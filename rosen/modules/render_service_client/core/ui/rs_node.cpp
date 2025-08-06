@@ -4579,6 +4579,18 @@ void RSNode::AddChild(SharedPtr child, int index)
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetRSUIContext() != GetRSUIContext()) {
+        if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>()) {
+            ROSEN_LOGI("RSNode::AddChild, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
+                       " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
+                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
+                surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+            RS_TRACE_NAME_FMT("RSNode::AddChild, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is " PRIu64 "]",
+                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
+                surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+        }
         std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
         child->AddCommand(child_command, IsRenderServiceNode(), GetFollowType(), id_);
     }
@@ -4808,6 +4820,18 @@ void RSNode::RemoveFromTree()
     MarkDirty(NodeDirtyType::APPEARANCE, true);
     auto parentPtr = parent_.lock();
     if (parentPtr) {
+        if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
+            ROSEN_LOGI("RSNode::RemoveFromTree, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
+                       " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
+                parentPtr->GetId(), parentPtr->GetRSUIContext() ? parentPtr->GetRSUIContext()->GetToken() : 0,
+                surfaceNode->GetId(), surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+            RS_TRACE_NAME_FMT("RSNode::RemoveFromTree, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is " PRIu64 "]",
+                parentPtr->GetId(), parentPtr->GetRSUIContext() ? parentPtr->GetRSUIContext()->GetToken() : 0,
+                surfaceNode->GetId(), surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+        }
         parentPtr->RemoveChildByNode(shared_from_this());
         OnRemoveChildren();
         parent_.reset();
