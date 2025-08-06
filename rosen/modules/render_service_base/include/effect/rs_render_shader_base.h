@@ -60,14 +60,9 @@ public:
         if (ge == nullptr) {
             return;
         }
-#ifndef ROSEN_TRACE_DISABLE
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
-            std::string paramStr;
-            EffectTemplateBase::Dump(paramStr);
-            RS_TRACE_NAME_FMT("RSNGRenderShaderTemplate::AppendToGEContainer, Type: %s paramStr: %s",
-                RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(), paramStr.c_str());
-        }
-#endif
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderShaderTemplate::AppendToGEContainer, Type: %s paramStr: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
+            EffectTemplateBase::DumpProperties().c_str());
         auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         std::apply(
             [&geShader](const auto&... propTag) {
