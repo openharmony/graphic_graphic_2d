@@ -90,7 +90,7 @@ static inline int g_debugLevel = OHOS::Rosen::RSSystemProperties::GetDebugTraceL
     std::unique_ptr<RSOptionalFmtTrace> optionalFmtTrace =              \
         OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled() ?    \
         std::make_unique<RSOptionalFmtTrace>(fmt, ##__VA_ARGS__) :      \
-        nullptr;
+        nullptr
 
 class RenderTrace {
 public:
