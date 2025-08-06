@@ -164,7 +164,7 @@ public:
 
     void Attach(RSNode& node, const std::weak_ptr<ModifierNG::RSModifier>& modifier) override
     {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSNGEffectTemplate::Attach, Type:%s",
+        RS_OPTIONAL_TRACE_FMT("RSNGEffectTemplate::Attach, Type:%s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         std::apply([&node, &modifier](const auto&... args) {
                 (RSNGEffectUtils::Attach(args.value_, node, modifier), ...);
@@ -177,7 +177,7 @@ public:
 
     void Detach() override
     {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSNGEffectTemplate::Detach, Type:%s",
+        RS_OPTIONAL_TRACE_FMT("RSNGEffectTemplate::Detach, Type:%s",
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         std::apply([](const auto&... args) { (RSNGEffectUtils::Detach(args.value_), ...); }, properties_);
         if (Base::nextEffect_) {
