@@ -236,8 +236,9 @@ enum class CacheProcessStatus : uint8_t {
 
 // the type of surfaceCapture
 enum class SurfaceCaptureType : uint8_t {
-    DEFAULT_CAPTURE = 0, // displayNode capture or window capture
-    UICAPTURE,
+    DEFAULT_CAPTURE = 0,       // displayNode capture or window capture
+    UICAPTURE = 1,             // UI capture
+    SURFACE_CAPTURE_TYPE_BUTT, // a boundary for SurfaceTureCaptureType Security Check
 };
 
 #ifdef TP_FEATURE_ENABLE

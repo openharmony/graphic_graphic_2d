@@ -1415,7 +1415,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool isFreeze{false};
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY calling is no legal, "
+                        "id:%{public}" PRIu64 ", callingPid:%{public}d ",
+                    id, callingPid);
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            bool isFreeze {false};
             if (!data.ReadBool(isFreeze)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY Read isFreeze failed!");
                 ret = ERR_INVALID_DATA;
@@ -2728,6 +2735,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (!watermarkImg) {
+                RS_LOGE("RSRenderServiceConnectionStub::SHOW_WATERMARK watermarkImg is nullptr");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ShowWatermark(watermarkImg, isShow);
             break;
         }
@@ -3970,6 +3982,10 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
         !data.ReadUint32(captureConfig.backGroundColor)) {
+        RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
+        return false;
+    }
+    if (captureType < 0 || captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {
         RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureType failed!");
         return false;
     }
