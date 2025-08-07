@@ -80,7 +80,7 @@ namespace {
     constexpr const float DEGREE = 90.0f;
     constexpr const int DOUBLE_TIMES = 2;
     constexpr const float EXPAND_RATIO = 720.0f;
-    constexpr const char TYPE_1 = '1';
+    constexpr const char LARGE_FOLD_TYPE = '1';
 }
 
 void BootCompileProgress::Init(const BootAnimationConfig& config)
@@ -341,7 +341,7 @@ void BootCompileProgress::SetFrame()
         rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
         return;
     }
-    if (FOLD_SCREEN_TYPE.c_str()[0] == TYPE_1 && screenId_ == 0) {
+    if (FOLD_SCREEN_TYPE.c_str()[0] == LARGE_FOLD_TYPE && screenId_ == 0) {
         LOGI("foldScreenType is 1");
         fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_PHONE, EXPAND_RATIO);
         currentRadius_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), RADIUS, EXPAND_RATIO);
