@@ -150,7 +150,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
     } else {
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
     }
     return true;
 }
