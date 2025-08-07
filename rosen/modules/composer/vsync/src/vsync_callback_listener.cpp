@@ -20,6 +20,9 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync_delay.h"
+#endif
 #include "graphic_common.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
