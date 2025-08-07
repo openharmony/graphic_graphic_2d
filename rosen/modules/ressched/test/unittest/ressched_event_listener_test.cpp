@@ -149,7 +149,34 @@ HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS001, Function | MediumTe
     ASSERT_EQ(ResschedEventListener::GetInstance()->GetCurrentPid(), 0);
 }
 
+/*
+* Function: ReportFrameRateToRSS002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. 调用ReportFrameRateToRSS，验证当 GetFfrtHighPriorityQueue 成功或失败时，任务是否提交
+ */
+HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS001, Function | MediumTest| Level3)
+{
+    //mapPayload为空
+    std::unordered_map<std::string, std::string> mapPayload;
+    ASSERT_TRUE(ResschedEventListener::GetInstance()->GetFfrtHighPriorityQueue());
+    ResschedEventListener::GetInstance()->ReportFrameRateToRSS(mapPayload);
+    sleep(1);
 
+    //common payload
+    mapPayload["pid"] = "100";
+    mapPayload["type"] = "1";
+    mapPayload["frameRate"] = "60";
+    ASSERT_TRUE(ResschedEventListener::GetInstance()->GetFfrtHighPriorityQueue());
+    ResschedEventListener::GetInstance()->ReportFrameRateToRSS(mapPayload);
+    sleep(1);
+
+    //mock GetFfrtHighPriorityQueue return false
+    ResschedEventListener::GetInstance()->ffrtHighPriorityQueue_ = nullptr;
+    ResschedEventListener::GetInstance()->ReportFrameRateToRSS(mapPayload);
+    sleep(1);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
