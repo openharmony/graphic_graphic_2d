@@ -29,7 +29,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "zlib.h"
-
+1
 namespace OHOS {
 static const int NUMBER_TWO = 2;
 static const int READ_SIZE = 8192;
