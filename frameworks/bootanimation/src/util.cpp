@@ -364,6 +364,9 @@ int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp)
 */
 int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp, const float ratio)
 {
+    if (ratio == 0) {
+        return 0;
+    }
     return static_cast<int32_t>(std::ceil(sideLen * HALF / ratio) / HALF * vp);
 }
 
