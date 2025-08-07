@@ -39,6 +39,7 @@
 #endif
 
 namespace OHOS::Rosen::DrawableV2 {
+static const size_t CMD_LIST_COUNT_WARNING_LIMIT = 5000;
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
 RSRenderNodeDrawableAdapter::DrawableVec RSRenderNodeDrawableAdapter::toClearDrawableVec_;
@@ -652,6 +653,9 @@ void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
         toClearCmdListVec_.push_back(cmdList);
     }
     vec.clear();
+    if (toClearCmdListVec_.size() >= CMD_LIST_COUNT_WARNING_LIMIT) {
+        ROSEN_LOGW("%{public}s, cmdList count(%{public}zu) out of limit", __func__, toClearCmdListVec_.size());
+    }
 }
 
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
