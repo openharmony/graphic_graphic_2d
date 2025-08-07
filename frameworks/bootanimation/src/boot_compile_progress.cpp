@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "boot_compile_progress.h"
 
 #include <chrono>
