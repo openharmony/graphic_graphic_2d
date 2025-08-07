@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "util.h"
 
 #include <event_handler.h>
@@ -351,6 +351,19 @@ int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp)
     if (DEVICE_TYPE_PHONE != deviceType && DEVICE_TYPE_WEARABLE != deviceType) {
         ratio = RATIO_OTHER;
     }
+    return TranslateVp2Pixel(sideLen, vp, ratio);
+}
+
+/**
+* Transate vp to pixel.
+*
+* @param sideLen The short side length of screen.
+* @param vp vp value.
+* @param ratio ratio value.
+* @return Returns the font size.
+*/
+int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp, const float ratio)
+{
     return static_cast<int32_t>(std::ceil(sideLen * HALF / ratio) / HALF * vp);
 }
 
