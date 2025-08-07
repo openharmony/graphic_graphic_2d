@@ -496,6 +496,25 @@ bool RSRcdSurfacePrintResetFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RSRcdSurfaceIsInvalidSurfaceFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) +  sizeof(uint32_t))) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+
+    node->IsInvalidSurface();
+
+    return true;
+}
+
 bool RSRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -519,6 +538,8 @@ bool RSRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
     RSRcdSurfaceRenderNodeSetHardwareFuzzTest(data, size);
     RSRcdSurfaceIsTypeFuzzTest(data, size);
     RSRcdSurfacePrintResetFuzzTest(data, size);
+
+    RSRcdSurfaceIsInvalidSurfaceFuzzTest(data, size);
 
     return true;
 }
