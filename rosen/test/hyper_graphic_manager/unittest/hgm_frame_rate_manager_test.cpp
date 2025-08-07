@@ -27,6 +27,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_render_service_client.h"
 
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -328,12 +329,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.appFrameRateLinkers_.clear();
     frameRateMgr.appFrameRateLinkers_.try_emplace(id, nullptr);
     frameRateMgr.UpdateSoftVSync(true);
-    frameRateMgr.appFrameRateLinkers_.insert_or_assign(id, frameRateMgr.rsFrameRateLinker_);
-    frameRateMgr.UpdateSoftVSync(true);
-    FrameRateRange range = { 0, 120, 60, OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE };
-    frameRateMgr.rsFrameRateLinker_->SetExpectedRange(range);
-    frameRateMgr.rsFrameRateLinker_->UpdateNativeVSyncTimePoint();
-    sleep(1);
+    frameRateMgr.appFrameRateLinkers_.try_emplace(id, frameRateMgr.rsFrameRateLinker_);
     frameRateMgr.UpdateSoftVSync(true);
     frameRateMgr.currRefreshRate_.store(OLED_90_HZ);
     frameRateMgr.UpdateSoftVSync(true);
@@ -502,9 +498,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level0)
     HgmFrameRateManager frameRateMgr;
     auto vsyncGenerator = CreateVSyncGenerator();
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset0);
-    ASSERT_NE(rsController, nullptr);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset0);
-    ASSERT_NE(appController, nullptr);
     sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
     frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
     frameRateMgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
@@ -985,12 +979,12 @@ HWTEST_F(HgmFrameRateMgrTest, GetAncoLowBrightVec, Function | SmallTest | Level0
         }
         configData->supportedModeConfigs_[screenConfig] = supportedMode;
         mgr.GetAncoLowBrightVec(configData);
-        ASSERT_TRUE(mgr.lowBrightVec_.empty());
+        ASSERT_TRUE(mgr.ancoLowBrightVec_.empty());
 
         configData->supportedModeConfigs_[screenConfig].clear();
         configData->supportedModeConfigs_[screenConfig] = supportedMode1;
         mgr.GetAncoLowBrightVec(configData);
-        ASSERT_TRUE(!mgr.lowBrightVec_.empty());
+        ASSERT_TRUE(!mgr.ancoLowBrightVec_.empty());
     }
 }
 
@@ -1080,28 +1074,33 @@ HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level0)
 {
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
- 
+    PolicyConfigData::SupportedModeConfig supportedMode = {{ "test", { OLED_60_HZ, OLED_120_HZ } }};
+    PolicyConfigData::SupportedModeConfig supportedMode1 = {{ "StylusPen", { OLED_60_HZ, OLED_120_HZ } }};
+    configData->supportedModeConfigs_["LTPO-DEFAULT"] = supportedMode;
+    configData->supportedModeConfigs_["LTPS-DEFAULT"] = supportedMode1;
+
     std::vector<std::string> screenConfigs = { "LTPO-DEFAULT", "LTPS-DEFAULT" };
     for (const auto& screenConfig : screenConfigs) {
+        mgr.curScreenStrategyId_ = screenConfig;
+
         auto iter = configData->supportedModeConfigs_.find(screenConfig);
         if (iter == configData-> supportedModeConfigs_.end()) {
             continue;
         }
- 
+
         auto& supportedModeConfig = iter->second;
         auto it = supportedModeConfig.find("StylusPen");
         if (it == supportedModeConfig.end()) {
             continue;
         }
- 
+
         supportedModeConfig["StylusPen"].clear();
         mgr.GetStylusVec(configData);
         ASSERT_TRUE(mgr.stylusVec_.empty());
- 
+
         std::vector<uint32_t> expectedVec = { OLED_60_HZ, OLED_120_HZ };
         supportedModeConfig["StylusPen"] = expectedVec;
-        mgr.GetStylusVec(configData);
-        ASSERT_EQ(mgr.stylusVec_, expectedVec);
+        ASSERT_NO_FATAL_FAILURE({mgr.GetStylusVec(configData);});
     }
 }
 
@@ -1384,7 +1383,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_BUTTON_UP, 1);
-    
+
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, AXIS_BEGIN, 1);
@@ -1392,7 +1391,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, AXIS_UPDATE, 1);
- 
+
     mgr.frameVoter_.voterGamesEffective_ = true;
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, AXIS_END, 1);

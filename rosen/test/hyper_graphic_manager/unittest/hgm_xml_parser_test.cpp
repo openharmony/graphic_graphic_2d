@@ -18,6 +18,7 @@
 
 #include "hgm_test_base.h"
 
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -30,7 +31,6 @@ public:
     void SetUp();
     void TearDown();
     void LoadXmlContent1();
-
     static constexpr char config[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     static constexpr char invalidConfig[] = "/sys_prod/etc/graphic/invalid_config.xml";
 };
@@ -42,6 +42,7 @@ void HgmXmlParserTest::SetUpTestCase()
 void HgmXmlParserTest::TearDownTestCase() {}
 void HgmXmlParserTest::SetUp() {}
 void HgmXmlParserTest::TearDown() {}
+
 void HgmXmlParserTest::LoadXmlContent1()
 {
     // test xml file TEST_XML_CONTENT_1;
@@ -109,6 +110,30 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level0)
 }
 
 /**
+ * @tc.name: IsNumber
+ * @tc.desc: Verify the result of IsNumber function
+ * @tc.type: FUNC
+ * @tc.require: IBCFDD
+ */
+HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
+{
+    std::vector<std::pair<std::string, bool>> cases = {
+        { "", false },
+        { "123456789", false },
+        { "a023", false },
+        { "02a3", false },
+        { "023a", false },
+        { "123", true },
+        { "-123", true },
+        { "023", true },
+        { "12345678", true }
+    };
+    for (const auto& [str, res] : cases) {
+        EXPECT_EQ(XMLParser::IsNumber(str), res);
+    }
+}
+
+/**
  * @tc.name: StringToVector001
  * @tc.desc: Verify the result of StringToVector001 functions
  * @tc.type: FUNC
@@ -149,30 +174,6 @@ HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level0)
     std::string invalidInput = "abc";
     std::vector<uint32_t> result = parser->StringToVector(invalidInput);
     EXPECT_TRUE(result.empty());
-}
-
-/**
- * @tc.name: IsNumber
- * @tc.desc: Verify the result of IsNumber function
- * @tc.type: FUNC
- * @tc.require: IBCFDD
- */
-HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
-{
-    std::vector<std::pair<std::string, bool>> cases = {
-        { "", false },
-        { "123456789", false },
-        { "a023", false },
-        { "02a3", false },
-        { "023a", false },
-        { "123", true },
-        { "-123", true },
-        { "023", true },
-        { "12345678", true }
-    };
-    for (const auto& [str, res] : cases) {
-        EXPECT_EQ(XMLParser::IsNumber(str), res);
-    }
 }
 
 /**
