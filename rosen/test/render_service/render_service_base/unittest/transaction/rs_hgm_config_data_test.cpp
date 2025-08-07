@@ -23,8 +23,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-const int32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
-const int32_t MAX_PAGE_NAME_SIZE = 64;
+constexpr int32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
+constexpr int32_t MAX_PAGE_NAME_SIZE = 64;
 
 class RSHgmConfigDataTest : public testing::Test {
 public:

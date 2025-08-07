@@ -23,7 +23,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-const int32_t MAX_FRAME_RATE_LINKER_SIZE = 2048;
+constexpr int32_t MAX_FRAME_RATE_LINKER_SIZE = 2048;
+
 class RSRenderFrameRateLinkerMapTest : public testing::Test {
 public:
     static void SetUpTestCase();
