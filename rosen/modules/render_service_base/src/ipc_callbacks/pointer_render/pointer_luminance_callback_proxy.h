@@ -15,12 +15,12 @@
  
 #ifndef ROSEN_RENDER_SERVICE_BASE_IPOINTER_LUMINANCE_CHANGE_CALLBACK_PROXY_H
 #define ROSEN_RENDER_SERVICE_BASE_IPOINTER_LUMINANCE_CHANGE_CALLBACK_PROXY_H
- 
+
 #include <iremote_proxy.h>
- 
+
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback_ipc_interface_code.h"
- 
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSPointerLuminanceChangeCallbackProxy : public IRemoteProxy<RSIPointerLuminanceChangeCallback> {

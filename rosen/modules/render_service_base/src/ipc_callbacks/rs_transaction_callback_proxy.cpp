@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 #include "rs_transaction_callback_proxy.h"
+
 #include <message_option.h>
 #include <message_parcel.h>
-#include "platform/common/rs_log.h"
+
 #include "graphic_common.h"
 
+#include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
 RSTransactionCallbackProxy::RSTransactionCallbackProxy(const sptr<IRemoteObject>& impl)
@@ -52,9 +54,9 @@ GSError RSTransactionCallbackProxy::OnCompleted(const OnCompletedRet& ret)
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionCallbackInterfaceCode::ON_COMPLETED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSTransactionCallbackProxy: OnCompleted Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionCallbackProxy: OnCompleted SendRequest() error");
         return GSERROR_BINDER;
     }
     return GSERROR_OK;
@@ -75,9 +77,9 @@ GSError RSTransactionCallbackProxy::GoBackground(uint64_t queueId)
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionCallbackInterfaceCode::GO_BACKGROUND);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSTransactionCallbackProxy: GoBackground Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionCallbackProxy: GoBackground SendRequest() error");
         return GSERROR_BINDER;
     }
     return GSERROR_OK;
@@ -108,9 +110,9 @@ GSError RSTransactionCallbackProxy::OnDropBuffers(const OnDropBuffersRet& ret)
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionCallbackInterfaceCode::ON_DROPBUFFERS);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSTransactionCallbackProxy: OnDropBuffers Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionCallbackProxy: OnDropBuffers SendRequest() error");
         return GSERROR_BINDER;
     }
     return GSERROR_OK;
@@ -131,9 +133,9 @@ GSError RSTransactionCallbackProxy::OnSurfaceDump(OnSurfaceDumpRet& ret)
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionCallbackInterfaceCode::ON_SURFACE_DUMP);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSTransactionCallbackProxy: OnSurfaceDump Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionCallbackProxy: OnSurfaceDump SendRequest() error");
         return GSERROR_BINDER;
     }
     int32_t replyRet = GSERROR_BINDER;
@@ -165,9 +167,9 @@ GSError RSTransactionCallbackProxy::SetDefaultWidthAndHeight(const OnSetDefaultW
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionCallbackInterfaceCode::SET_DEFAULT_WIDTH_AND_HEIGHT);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSTransactionCallbackProxy: SetDefaultWidthAndHeight Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionCallbackProxy: SetDefaultWidthAndHeight SendRequest() error");
         return GSERROR_BINDER;
     }
     return GSERROR_OK;

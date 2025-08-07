@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/surface_capture_callback_ipc_interface_code.h"
-
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceCaptureCallbackProxy : public IRemoteProxy<RSISurfaceCaptureCallback> {
@@ -30,7 +30,6 @@ public:
 
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
         Media::PixelMap* pixelmapHDR = nullptr) override;
-    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSSurfaceCaptureCallbackProxy> delegator_;

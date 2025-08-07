@@ -46,19 +46,10 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION);
-    int32_t err = SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("RSApplicationAgentProxy::OnTransaction error = %{public}d", err);
     }
-}
-
-int32_t RSApplicationAgentProxy::SendRequest(
-    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
-{
-    if (!Remote()) {
-        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
-    }
-    return Remote()->SendRequest(code, data, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS

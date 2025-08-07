@@ -20,6 +20,7 @@
 
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_available_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,7 +30,6 @@ public:
     virtual ~RSBufferAvailableCallbackProxy() noexcept = default;
 
     void OnBufferAvailable() override;
-    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSBufferAvailableCallbackProxy> delegator_;

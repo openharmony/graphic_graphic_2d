@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback_ipc_interface_code.h"
-
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSTransactionDataCallbackProxy : public IRemoteProxy<RSITransactionDataCallback> {
@@ -29,7 +29,6 @@ public:
     virtual ~RSTransactionDataCallbackProxy() noexcept = default;
 
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override;
-    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSTransactionDataCallbackProxy> delegator_;

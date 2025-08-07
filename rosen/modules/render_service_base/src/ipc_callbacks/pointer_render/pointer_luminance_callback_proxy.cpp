@@ -17,7 +17,7 @@
  
 #include <message_option.h>
 #include <message_parcel.h>
- 
+
 namespace OHOS {
 namespace Rosen {
 RSPointerLuminanceChangeCallbackProxy::RSPointerLuminanceChangeCallbackProxy(const sptr<IRemoteObject>& impl)
@@ -42,7 +42,7 @@ void RSPointerLuminanceChangeCallbackProxy::OnPointerLuminanceChanged(int32_t br
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIPointerLuminanceChangeCallbackInterfaceCode::ON_POINTER_LUMINANCE_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSPointerLuminanceChangeCallbackProxy::OnPointerLuminanceChanged error = %{public}d", err);
     }
