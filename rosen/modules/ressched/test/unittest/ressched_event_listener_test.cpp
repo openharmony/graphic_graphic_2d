@@ -156,7 +156,7 @@ HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS001, Function | MediumTe
 * EnvConditions: N/A
 * CaseDescription: 1. 调用ReportFrameRateToRSS，验证当 GetFfrtHighPriorityQueue 成功或失败时，任务是否提交
  */
-HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS001, Function | MediumTest| Level3)
+HWTEST_F(ResschedEventListenerTest, ReportFrameRateToRSS002, Function | MediumTest| Level3)
 {
     //mapPayload为空
     std::unordered_map<std::string, std::string> mapPayload;
