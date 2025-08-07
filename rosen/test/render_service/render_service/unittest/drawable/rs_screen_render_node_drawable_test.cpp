@@ -196,6 +196,29 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, DrawCurtainScreen, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LastPixelFormat
+ * @tc.desc: Test LastPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, LastPixelFormatTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
+
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    auto format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    screenDrawable_->SetLastPixelFormat(format);
+    EXPECT_EQ(screenDrawable_->GetLastPixelFormat(), format);
+    auto format2 = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
+    params->SetNewPixelFormat(format2);
+    EXPECT_EQ(screenDrawable_->IsPixelFormatChanged(*params), true);
+    params->SetNewPixelFormat(format);
+    EXPECT_EQ(screenDrawable_->IsPixelFormatChanged(*params), false);
+}
+
+/**
  * @tc.name: RequestFrame
  * @tc.desc: Test RequestFrame
  * @tc.type: FUNC
@@ -216,7 +239,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
-    params->SetHDRStatusChanged(true);
+    params->SetNewPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102);
     screenDrawable_->surfaceCreated_ = true;
     result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);

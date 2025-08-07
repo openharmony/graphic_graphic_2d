@@ -245,11 +245,6 @@ public:
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
-
-    void SetHDRStatusChanged(bool isHDRStatusChanged)
-    {
-        isHDRStatusChanged_ = isHDRStatusChanged;
-    }
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -281,7 +276,6 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif
-    bool isHDRStatusChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
