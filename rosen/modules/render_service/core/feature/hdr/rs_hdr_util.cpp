@@ -333,6 +333,23 @@ void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode&
     node.SetHDRPresent(flag);
 }
 
+void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
+{
+    if (!node.GetIsLuminanceStatusChange()) {
+        return;
+    }
+    auto& hdrNodeList = node.GetHDRNodeList();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    for (const auto& nodeId : hdrNodeList) {
+        auto canvasNode = nodeMap.GetRenderNode(nodeId);
+        if (!canvasNode) {
+            RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty get nullptr canvasNodeId: %{public}" PRIu64 "", nodeId);
+            continue;
+        }
+        canvasNode->SetContentDirty();
+    }
+}
+
 ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
     ScreenColorGamut screenColorGamut;

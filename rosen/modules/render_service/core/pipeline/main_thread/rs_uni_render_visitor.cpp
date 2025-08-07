@@ -442,9 +442,6 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
             curScreenNode_->CollectHdrStatus(HdrStatus::HDR_EFFECT);
         }
         RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
-        if (curScreenNode_->GetIsLuminanceStatusChange() && !curScreenNode_->GetForceCloseHdr()) {
-            node.SetContentDirty();
-        }
     }
 }
 
@@ -868,6 +865,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
 
     rsScreenNodeChildNum_ = 0;
+    RSHdrUtil::LuminanceChangeSetDirty(node);
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
 
