@@ -3645,7 +3645,7 @@ void RSNode::AddChild(SharedPtr child, int index)
                 surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
             RS_TRACE_NAME_FMT("RSNode::AddChild, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
-                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is " PRIu64 "]",
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
                 id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
                 surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
@@ -3886,7 +3886,7 @@ void RSNode::RemoveFromTree()
                 surfaceNode->GetId(), surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
             RS_TRACE_NAME_FMT("RSNode::RemoveFromTree, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
-                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is " PRIu64 "]",
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
                 parentPtr->GetId(), parentPtr->GetRSUIContext() ? parentPtr->GetRSUIContext()->GetToken() : 0,
                 surfaceNode->GetId(), surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);

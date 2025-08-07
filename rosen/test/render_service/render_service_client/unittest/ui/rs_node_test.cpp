@@ -7181,6 +7181,36 @@ HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddChildTest003
+ * @tc.desc: test results of AddChild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto rsUIContext = uiDirector1->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto rsUIContext2 = uiDirector2->GetRSUIContext();
+    ASSERT_NE(rsUIContext2, nullptr);
+    auto childNode = RSCanvasNode::Create(false, false, rsUIContext2);
+    rsNode->AddChild(childNode, -1);
+    EXPECT_NE(rsNode->children_.size(), 0);
+    childNode->RemoveFromTree();
+    EXPECT_EQ(rsNode->children_.size(), 0);
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext2);
+    rsNode->AddChild(surfaceNode, -1);
+    EXPECT_NE(rsNode->children_.size(), 0);
+    surfaceNode->RemoveFromTree();
+    EXPECT_EQ(rsNode->children_.size(), 0);
+}
+
+/**
  * @tc.name: MoveChild
  * @tc.desc: test results of MoveChild
  * @tc.type: FUNC
