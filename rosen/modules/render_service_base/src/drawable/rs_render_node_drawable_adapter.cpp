@@ -710,6 +710,11 @@ bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
 const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
 {
     RectI rect{0, 0, 0, 0};
+    if (!RSSystemProperties::GetBlurEnabled()) {
+        ROSEN_LOGD("blur is disabled");
+        return rect;
+    }
+
     if (compositingFilterDrawable_) {
         return compositingFilterDrawable_->GetFilterCachedRegion();
     } else if (backgroundFilterDrawable_) {
