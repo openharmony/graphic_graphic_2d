@@ -1229,17 +1229,15 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionFromRT004, TestSize.L
 
 /**
  * @tc.name: TestPostTask
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
+ * @tc.desc: add cases including using PostTask and PostDelayTask func.
+ * @tc.type: FUNC
+ * @tc.require: issueICQP7Q
  */
 HWTEST_F(RSTransactionHandlerTest, TestPostTask, TestSize.Level1)
 {
     auto transaction = std::make_shared<RSTransactionHandler>();
 
-    const std::function<void()>& task = []() {
-        std::cout << "for test" << std::endl;
-    };
+    const std::function<void()>& task = []() {};
     transaction->PostTask(task);
     transaction->PostDelayTask(task, 0);
     transaction->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});

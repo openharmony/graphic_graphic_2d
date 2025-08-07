@@ -198,13 +198,9 @@ void RSTransactionHandler::PostTask(const std::function<void()>& task)
 void RSTransactionHandler::PostDelayTask(const std::function<void()>& task, uint32_t delay)
 {
     if (taskRunner_ == nullptr) {
-        ROSEN_LOGW(
-            "multi-instance RSTransactionHandler::PostDelayTask failed, taskRunner is empty, "
-            "token=%{public}" PRIu64, token_);
         return;
     }
     taskRunner_(task, delay);
-    ROSEN_LOGD("multi-instance RSTransactionHandler::PostDelayTask success token=%{public}" PRIu64, token_);
 }
 
 void RSTransactionHandler::SetUITaskRunner(const TaskRunner& uiTaskRunner)

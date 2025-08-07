@@ -1040,7 +1040,7 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
  * @tc.name: TestTransactionHandler001
  * @tc.desc: Test the input param transactionHandler of callback is nullptr under single instance.
  * @tc.type: FUNC
- * @tc.require: issueI9N1QF
+ * @tc.require: issueICQP7Q
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
 {
@@ -1061,6 +1061,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
     // test cmd is nullptr
     std::get<2>(cmds->GetPayload()[0]) = nullptr;
     std::swap(cmds, RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 
     director->SendMessages();
 }
@@ -1069,7 +1070,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
  * @tc.name: TestTransactionHandler002
  * @tc.desc: Test the input param transactionHandler of callback is nullptr under single instance.
  * @tc.type: FUNC
- * @tc.require: issueI9N1QF
+ * @tc.require: issueICQP7Q
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
 {
@@ -1090,6 +1091,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
     cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
     cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
     std::swap(cmds, RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 
     director->SendMessages();
 }
@@ -1098,7 +1100,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
  * @tc.name: TestTransactionHandler003
  * @tc.desc: Test the input param transactionHandler of callback is nullptr under multiple instances.
  * @tc.type: FUNC
- * @tc.require: issueI9N1QF
+ * @tc.require: issueICQP7Q
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
 {
@@ -1118,6 +1120,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
     cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
     ASSERT_NE(director->rsUIContext_, nullptr);
     std::swap(cmds, director->rsUIContext_->GetRSTransaction()->implicitRemoteTransactionData_);
+    ASSERT_NE(director->rsUIContext_->GetRSTransaction()->implicitRemoteTransactionData_, nullptr);
     director->SendMessages();
     director->Destroy();
 }
