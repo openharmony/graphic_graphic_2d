@@ -879,7 +879,7 @@ public:
      *
      * @param color The color to set.
      */
-    void SetBackgroundColor(RSColor color);
+    void SetBackgroundColor(RSColor& color);
 
     /**
      * @brief Sets the background shader for this node.

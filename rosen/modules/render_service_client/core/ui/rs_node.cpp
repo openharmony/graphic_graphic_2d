@@ -1745,14 +1745,13 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
     SetBackgroundColor(color);
 }
 
-void RSNode::SetBackgroundColor(RSColor color)
+void RSNode::SetBackgroundColor(RSColor& color)
 {
-#ifndef ROSEN_CROSS_PLATFORM
-    color.ConvertToP3ColorSpace();
-#endif
+    RSColor colorInP3 = color;
+    colorInP3.ConvertToP3ColorSpace();
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
-        color);
-    if (color.GetAlpha() > 0) {
+        colorInP3);
+    if (colorInP3.GetAlpha() > 0) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
