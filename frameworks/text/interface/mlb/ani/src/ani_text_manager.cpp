@@ -67,7 +67,7 @@ void SafeDelete(ani_long& ptrAddr)
 static void Clean(ani_env* env, ani_object object)
 {
     ani_long ptrAddr = 0;
-    ani_status ret = env->Object_GetFieldByName_Long(object, "ptrAddr", &ptrAddr);
+    ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptrAddr);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to clean ptrAddr");
         return;

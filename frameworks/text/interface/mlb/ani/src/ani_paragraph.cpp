@@ -367,7 +367,7 @@ ani_object AniParagraph::GetGlyphPositionAtCoordinate(ani_env* env, ani_object o
     return indexAndAffinityObj;
 }
 
-ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_double offset)
+ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_int offset)
 {
     Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
     if (typography == nullptr) {
