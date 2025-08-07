@@ -115,18 +115,6 @@ public:
     RSOptionalFmtTrace(const char* fmt, ...)
     {
         va_list vaList;
-        va_start(vaList, fmt);
-        StartFormatTrace(fmt, vaList);
-        va_end(vaList);
-    }
-    ~RSOptionalFmtTrace()
-    {
-        FinishTrace(HITRACE_TAG_GRAPHIC_AGP); // 256 Maximum length of a character string to be printed
-    }
-
-    inline static void StartFormatTrace(const char* fmt, ...)
-    {
-        va_list vaList;
         char buf[maxSize_];
         va_start(vaList, fmt);
         if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList) < 0) {
@@ -137,9 +125,13 @@ public:
         va_end(vaList);
         StartTrace(HITRACE_TAG_GRAPHIC_AGP, buf);
     }
+    ~RSOptionalFmtTrace()
+    {
+        FinishTrace(HITRACE_TAG_GRAPHIC_AGP); // 256 Maximum length of a character string to be printed
+    }
 
 private:
-    constexpr static int maxSize_ = 256;
+    const int maxSize_ = 256;
 };
 
 class RSOptionalTrace {
