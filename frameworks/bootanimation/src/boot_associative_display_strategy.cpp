@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "boot_associative_display_strategy.h"
 
 #include "log.h"
@@ -24,7 +24,6 @@ using namespace OHOS;
 namespace {
     const bool IS_COORDINATION_SUPPORT =
         system::GetBoolParameter("const.window.foldabledevice.is_coordination_support", false);
-    const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
 }
 
 void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
