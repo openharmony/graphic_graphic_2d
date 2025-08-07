@@ -18,6 +18,7 @@
 
 #undef LOG_TAG
 #define LOG_TAG "RSTvMetadataManager"
+
 namespace OHOS::Rosen {
 
 RSTvMetadataManager& RSTvMetadataManager::Instance()
