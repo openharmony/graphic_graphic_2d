@@ -327,7 +327,7 @@ public:
      * @param captureConfig Indicates the configrutation items required for snapshot.
      * @return return true if snaphot success or display unfreezed, else return false.
      */
-    bool SetScreenFreezeImmediately(std::shared_ptr<RSDisplayNode> node, bool isFreeze,
+    bool TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node, bool isFreeze,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
 
     /**

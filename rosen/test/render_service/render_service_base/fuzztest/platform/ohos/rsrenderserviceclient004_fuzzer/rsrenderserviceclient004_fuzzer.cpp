@@ -52,7 +52,7 @@ const uint8_t DO_REPORT_JANK_STATS = 16;
 const uint8_t DO_REPORT_EVENT_RESPONSE = 17;
 const uint8_t DO_REPORT_GAME_STATE_DATA = 18;
 const uint8_t DO_GET_SCREEN_HDR_STATUS = 19;
-const uint8_t DO_SET_SCREEN_FREEZE_IMMEDIATELY = 20;
+const uint8_t TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW = 20;
 const uint8_t TARGET_SIZE = 21;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
@@ -331,7 +331,7 @@ bool DoGetScreenHDRStatus()
     return true;
 }
 
-bool DoSetScreenFreezeImmediately()
+bool TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     NodeId nodeId = GetData<NodeId>();
@@ -413,8 +413,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_GET_SCREEN_HDR_STATUS:
             OHOS::Rosen::DoGetScreenHDRStatus();
             break;
-        case OHOS::Rosen::DO_SET_SCREEN_FREEZE_IMMEDIATELY:
-            OHOS::Rosen::DoSetScreenFreezeImmediately();
+        case OHOS::Rosen::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW:
+            OHOS::Rosen::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW();
             break;
         default:
             return -1;

@@ -1473,7 +1473,7 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
     mainThread_->PostTask(selfCaptureTask);
 }
 
-ErrCode RSRenderServiceConnection::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
+ErrCode RSRenderServiceConnection::TakeSurfaceCaptureWithAllWindows(NodeId id, bool isFreeze,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     RSSurfaceCapturePermissions permissions)
 {

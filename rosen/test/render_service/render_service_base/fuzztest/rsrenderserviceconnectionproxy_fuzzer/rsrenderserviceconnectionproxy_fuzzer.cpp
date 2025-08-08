@@ -634,7 +634,7 @@ bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
+bool TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -682,6 +682,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
-    OHOS::Rosen::DoSetScreenFreezeImmediately(data, size);
+    OHOS::Rosen::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW(data, size);
     return 0;
 }

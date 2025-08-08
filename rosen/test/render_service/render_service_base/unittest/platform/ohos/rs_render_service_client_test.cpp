@@ -17,7 +17,7 @@
 
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
-#include "platform/ohos/rs_render_service_connect_hub.h"
+#include "platform/ohos/rs_render_service_connect_hub.h" // proxy.h
 #include "ui/rs_surface_node.h"
 #include "surface_utils.h"
 #include <iostream>
@@ -1343,7 +1343,7 @@ HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSClientTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
+HWTEST_F(RSClientTest, TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     bool isFreeze = false;

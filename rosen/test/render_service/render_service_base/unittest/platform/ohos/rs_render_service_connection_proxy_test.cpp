@@ -1505,7 +1505,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Lev
  * @tc.type:FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionProxyTest, TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW, TestSize.Level1)
 {
     ASSERT_NE(proxy, nullptr);
     NodeId nodeId = 1;

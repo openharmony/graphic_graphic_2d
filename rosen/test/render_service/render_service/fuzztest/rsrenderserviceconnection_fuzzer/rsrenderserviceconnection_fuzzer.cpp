@@ -1512,7 +1512,7 @@ bool DoClearUifirstCache()
     return true;
 }
 
-bool DoSetScreenFreezeImmediately()
+bool TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW()
 {
     if (rsConn_ == nullptr) {
         return false;
@@ -1648,7 +1648,7 @@ void DoFuzzerTest3()
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();
     DoClearUifirstCache();
-    DoSetScreenFreezeImmediately();
+    TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW();
 }
 } // namespace Rosen
 } // namespace OHOS

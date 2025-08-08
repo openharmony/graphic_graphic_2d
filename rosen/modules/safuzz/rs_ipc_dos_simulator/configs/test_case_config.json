@@ -2340,7 +2340,7 @@
   },
   {
     "testCaseDesc": "SET_SCREEN_FREEZE_IMMEDIATELY_TEST_001",
-    "interfaceName": "SET_SCREEN_FREEZE_IMMEDIATELY",
+    "interfaceName": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW",
     "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUInt32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"

@@ -813,7 +813,7 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSInterfacesTest, SetScreenFreezeImmediatelyTest001, TestSize.Level1)
+HWTEST_F(RSInterfacesTest, TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW, TestSize.Level1)
 {
     class TestSurfaceCapture : public SurfaceCaptureCallback {
     public:

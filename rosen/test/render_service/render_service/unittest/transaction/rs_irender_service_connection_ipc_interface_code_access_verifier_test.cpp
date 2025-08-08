@@ -262,7 +262,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskMan
 }
 
 /**
- * @tc.name: IsSetScreenFreezeImmediately
+ * @tc.name: TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW
  * @tc.desc: test SetScreenFreezeImmediately permission checking
  * @tc.type: FUNC
  * @tc.require: issueICQ74B

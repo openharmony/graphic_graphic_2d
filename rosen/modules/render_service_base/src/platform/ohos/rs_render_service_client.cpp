@@ -415,7 +415,7 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return true;
 }
 
-bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
+bool RSRenderServiceClient::TakeSurfaceCaptureWithAllWindows(NodeId id, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

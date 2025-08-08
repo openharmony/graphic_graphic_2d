@@ -1895,7 +1895,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bo
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnectionProxy::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
+ErrCode RSRenderServiceConnectionProxy::TakeSurfaceCaptureWithAllWindows(NodeId id, bool isFreeze,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     RSSurfaceCapturePermissions /*permissions*/)
 {

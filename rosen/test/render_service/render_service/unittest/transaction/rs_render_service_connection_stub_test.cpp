@@ -1229,7 +1229,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, GetScreenHDRStatus003, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest001, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TakeSurfaceCaptureWithAllWindows, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
 

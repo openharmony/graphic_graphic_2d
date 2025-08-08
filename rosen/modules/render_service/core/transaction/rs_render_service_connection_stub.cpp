@@ -216,7 +216,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -425,7 +425,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
-        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY)) {
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}d", code);
         return ERR_INVALID_STATE;
     }
@@ -1458,7 +1458,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig, blurParam);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY): {
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOW): {
             NodeId id { 0 };
             if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY read id failed!");
