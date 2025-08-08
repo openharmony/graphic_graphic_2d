@@ -42,8 +42,8 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-    static constexpr int RENDER_TIMEOUT = 2500; // 2500ms: render timeout threshold
-    static constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
+    constexpr int RENDER_TIMEOUT = 2500; // 2500ms: render timeout threshold
+    constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
 }
 RSDrawFrame::RSDrawFrame()
     : unirenderInstance_(RSUniRenderThread::Instance()), rsParallelType_(RSSystemParameters::GetRsParallelType())
@@ -137,7 +137,7 @@ void RSDrawFrame::EndCheck()
         exceptionCheck_.exceptionCnt_ = longFrameCount_;
         exceptionCheck_.exceptionMoment_ = timer_->GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
-        RS_LOGE("RSHardwareThread::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
+        RS_LOGE("RSDrawFrame::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
             EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}lld, EXCEPTION_POINT:%{public}s",
             getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());

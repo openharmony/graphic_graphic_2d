@@ -132,7 +132,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Lev
             return nullptr;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
-        surfaceParams->isLeashorMainWindow_ = isApp;
+        surfaceParams->SetWindowInfo(isApp, isApp, isApp);
         surfaceParams->dstRect_ = emptyDstRect ? RectI() : DEFAULT_RECT1;
         return surfaceDrawable;
     };

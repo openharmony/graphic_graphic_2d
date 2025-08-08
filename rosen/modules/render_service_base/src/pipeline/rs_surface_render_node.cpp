@@ -3221,10 +3221,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->stencilVal_ = stencilVal_;
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
-    surfaceParams->isMainWindowType_ = IsMainWindowType();
-    surfaceParams->isLeashWindow_ = IsLeashWindow();
-    surfaceParams->isAppWindow_ = IsAppWindow();
-    surfaceParams->isLeashorMainWindow_ = IsLeashOrMainWindow();
+    surfaceParams->SetWindowInfo(IsMainWindowType(), IsLeashWindow(), IsAppWindow());
     surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->specialLayerManager_ = specialLayerManager_;
