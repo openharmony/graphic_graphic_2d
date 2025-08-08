@@ -304,9 +304,8 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
     if (gpuContext) {
         Drawing::TraceMemoryDump gpuTracer("category", true);
         Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
-        gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, tag);
-        float gpuMem = gpuTracer.GetGLMemorySize();
-        totalMemGraphic.IncreaseGpuMemory(gpuMem);
+        uint64_t totalGpuSize = gpuContext->NewDumpMemoryStatisticsByTag(&gpuTracer, tag);
+        totalMemGraphic.IncreaseGpuMemory(totalGpuSize);
     }
 #endif
 
