@@ -795,42 +795,6 @@ ohos_executable("render_service_client_pointer_window_demo") {
   subsystem_name = "graphic"
 }
 
-ohos_executable("render_service_client_render_profiler_demo") {
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_packet.cpp",
-    "render_service_client_render_profiler_demo.cpp"
-  ]
-
-  include_dirs = [
-    "$graphic_2d_root/graphic_test/graphic_test_framework/include",
-    "$graphic_2d_root/rosen/modules/render_service_profiler",
-  ]
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-  ]
-
-  public_external_deps = [ "$public_deps_skia" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "image_framework:image_native",
-    "window_manager:libdm",
-    "window_manager:sms",
-  ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
 ohos_executable("render_service_client_unobscuredUEC_demo") {
   sources = [ "render_service_client_unobscuredUEC_demo.cpp" ]
 

@@ -60,8 +60,8 @@ public:
     void SetRunPolicy(std::function<void(std::function<void()>)> runPolicy);
     void SetVSyncFuncs(VSyncFuncs vSyncFuncs);
     void SetIsUniRender(bool isUniRender);
-#ifdef RS_ENABLE_VK
-    void SetReleaseFenceForVulkan(int releaseFenceFd, NodeId rootNodeId);
+#ifdef ROSEN_OHOS
+    void SetReleaseFence(int releaseFenceFd, NodeId rootNodeId = INVALID_NODEID);
 #endif
  
     void RunSurfaceBufferCallback();

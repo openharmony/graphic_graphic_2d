@@ -29,6 +29,7 @@ public:
     virtual ~RSUIExtensionCallbackProxy() noexcept = default;
 
     void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override;
+    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSUIExtensionCallbackProxy> delegator_;

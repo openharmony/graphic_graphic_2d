@@ -183,7 +183,7 @@ public:
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
     virtual int32_t GetVirtualSecLayerOption() const = 0;
-    virtual bool GetPSurfaceChange() const = 0;
+    virtual bool GetAndResetPSurfaceChange() = 0;
     virtual void SetPSurfaceChange(bool pSurfaceChange) = 0;
 };
 
@@ -329,7 +329,7 @@ public:
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
     int32_t GetVirtualSecLayerOption() const override;
-    bool GetPSurfaceChange() const override;
+    bool GetAndResetPSurfaceChange() override;
     void SetPSurfaceChange(bool pSurfaceChange) override;
 
 private:

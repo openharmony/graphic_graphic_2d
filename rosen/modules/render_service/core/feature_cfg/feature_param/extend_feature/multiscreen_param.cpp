@@ -66,4 +66,14 @@ void MultiScreenParam::SetMirrorDisplayCloseP3(bool isEnabled)
 {
     isMirrorDisplayCloseP3_ = isEnabled;
 }
+
+Drawing::MipmapMode MultiScreenParam::GetMipmapMode()
+{
+    return mipMapModeValue_;
+}
+ 
+void MultiScreenParam::SetMipmapMode(Drawing::MipmapMode modeValue)
+{
+    mipMapModeValue_ = modeValue;
+}
 } // namespace OHOS::Rosen

@@ -732,12 +732,14 @@ void RSComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
-    srcRect.x = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
-        originSrcRect.w / dstRectI.width_);
-    srcRect.y = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
-        originSrcRect.h / dstRectI.height_);
-    srcRect.w = dstRectI.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / dstRectI.width_;
-    srcRect.h = dstRectI.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / dstRectI.height_;
+    srcRect.x = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
+        0 : std::floor((resDstRect.left_ - dstRectI.left_) * originSrcRect.w / dstRectI.width_);
+    srcRect.y = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
+        0 : std::floor((resDstRect.top_ - dstRectI.top_) * originSrcRect.h / dstRectI.height_);
+    srcRect.w = (dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
+        0 : std::ceil(originSrcRect.w * resDstRect.width_ / dstRectI.width_);
+    srcRect.h = (dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
+        0 : std::ceil(originSrcRect.h * resDstRect.height_ / dstRectI.height_);
     layer->SetLayerSize(dstRect);
     std::vector<GraphicIRect> dirtyRegions;
     dirtyRegions.emplace_back(srcRect);

@@ -157,6 +157,8 @@ public:
 
     bool isRunCombinated() { return paragraph_->isRunCombinated(); }
 
+    bool CanPaintAllText() const override;
+
     std::string_view GetDumpInfo() override;
 
 private:

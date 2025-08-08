@@ -1377,10 +1377,6 @@ const std::vector<uint64_t> RSScreen::GetSecurityExemptionList() const
 
 int32_t RSScreen::SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask)
 {
-    if (!IsVirtual()) {
-        RS_LOGW("%{public}s not virtual screen", __func__);
-        return SCREEN_NOT_FOUND;
-    }
     std::lock_guard<std::mutex> lock(securityMaskMutex_);
     securityMask_ = securityMask;
     return SUCCESS;
@@ -1504,9 +1500,10 @@ int32_t RSScreen::GetVirtualSecLayerOption() const
     return virtualSecLayerOption_;
 }
 
-bool RSScreen::GetPSurfaceChange() const
+bool RSScreen::GetAndResetPSurfaceChange()
 {
-    return pSurfaceChange_;
+    bool expected = true;
+    return pSurfaceChange_.compare_exchange_strong(expected, false);
 }
 
 // only used in virtual screen

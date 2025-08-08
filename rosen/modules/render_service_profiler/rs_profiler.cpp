@@ -2279,6 +2279,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
         return;
     }
 
+    RSSystemProperties::SetProfilerPixelCheckMode(true);
     std::stringstream stream;
 
     // Save RSFILE_VERSION
@@ -2307,6 +2308,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     } else {
         Respond("Save subTree Failed: save file faild!");
     }
+    RSSystemProperties::SetProfilerPixelCheckMode(false);
 }
 
 void RSProfiler::TestLoadSubTree(const ArgList& args)

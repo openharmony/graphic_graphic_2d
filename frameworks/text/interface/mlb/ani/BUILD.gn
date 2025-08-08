@@ -1,0 +1,106 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+group("text_engine_ani_group") {
+  deps = [
+    ":text_engine_ani",
+    ":text_engine_etc",
+  ]
+}
+
+config("text_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "$rosen_text_root",
+    "$rosen_text_root/interface/mlb/ani/include",
+    "$rosen_text_root/interface/export/rosen_text",
+    "$graphic_2d_root/interfaces/kits/ani/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+  ]
+}
+
+ohos_shared_library("text_engine_ani") {
+  branch_protector_ret = "pac_ret"
+  sources = [
+    "./src/ani_drawing_converter.cpp",
+    "./src/ani_font_collection.cpp",
+    "./src/ani_line_metrics_converter.cpp",
+    "./src/ani_paragraph.cpp",
+    "./src/ani_paragraph_builder.cpp",
+    "./src/ani_paragraph_style_converter.cpp",
+    "./src/ani_resource_parser.cpp",
+    "./src/ani_run_metrics_converter.cpp",
+    "./src/ani_text_manager.cpp",
+    "./src/ani_text_style_converter.cpp",
+    "./src/ani_text_utils.cpp",
+  ]
+
+  configs = [ ":text_config" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/interfaces/kits/ani/drawing:drawing_ani",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$rosen_text_root:rosen_text",
+  ]
+
+  external_deps = [
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
+    "hilog:libhilog",
+    "resource_management:global_resmgr",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime",
+  ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    external_deps += [ "init:libbegetutil" ]
+    defines = [ "OHOS_TEXT_ENABLE" ]
+  }
+  cflags_cc = [ "-std=c++17" ]
+
+  if (current_os == "mingw") {
+    defines += [ "WINDOWS_PLATFORM" ]
+  }
+
+  innerapi_tags = [ "platformsdk" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+generate_static_abc("text_engine") {
+  base_url = "$rosen_text_root/interface/export/ani"
+  files = [ "$rosen_text_root/interface/export/ani/@ohos.graphics.text.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/text_engine.abc"
+}
+
+ohos_prebuilt_etc("text_engine_etc") {
+  source = "$target_out_dir/text_engine.abc"
+  module_install_dir = "framework"
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+  deps = [ ":text_engine" ]
+}

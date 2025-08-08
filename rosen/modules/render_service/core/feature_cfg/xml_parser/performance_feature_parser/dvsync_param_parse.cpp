@@ -88,7 +88,7 @@ int32_t DVSyncParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &nam
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("DVSyncParamParse stop parsing, no children nodes");
+        RS_LOGE("DVSyncParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
     currNode = currNode->xmlChildrenNode;
@@ -101,11 +101,7 @@ int32_t DVSyncParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &nam
         if (!IsNumber(val)) {
             return PARSE_ERROR;
         }
-        if (name == "ForceRsDVsyncConfig") {
-            DVSyncParam::SetForceRsDVsyncConfig(paramName, val);
-        } else {
-            DVSyncParam::SetAdaptiveConfig(paramName, val);
-        }
+        DVSyncParam::SetAdaptiveConfig(paramName, val);
     }
     return PARSE_EXEC_SUCCESS;
 }

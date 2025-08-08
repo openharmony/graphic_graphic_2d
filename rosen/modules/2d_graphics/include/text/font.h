@@ -299,7 +299,7 @@ public:
      * @param unicode      unicode encoding of a single character.
      * @param unicodeId    unicode encoding id of a single character.
      * @param fontFeatures font features to be applied.
-     * @return             The width of a single character.
+     * @return             The width of a single character, in px.
      */
     scalar MeasureSingleCharacterWithFeatures(const char* unicode, int32_t unicodeId,
         std::shared_ptr<Drawing::DrawingFontFeatures> fontFeatures) const;

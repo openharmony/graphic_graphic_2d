@@ -43,13 +43,11 @@ public:
     RSUniRenderComposerAdapter() = default;
     ~RSUniRenderComposerAdapter() noexcept = default;
     LayerInfoPtr CreateLayer(RSScreenRenderNode& node);
-    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateLayer(RSRcdSurfaceRenderNode& node);
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY);
     bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
     LayerInfoPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
-    LayerInfoPtr CreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable &surfaceDrawable) const;
     LayerInfoPtr CreateLayer(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
@@ -67,8 +65,6 @@ private:
 
     ComposeInfo BuildComposeInfo(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         const std::vector<RectI>& dirtyRegion);
-    ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
-    ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) const;
 
@@ -81,8 +77,6 @@ private:
     void LayerRotate(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
     void DealWithNodeGravity(const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, ComposeInfo& info) const;
-    LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
-    LayerInfoPtr CreateBufferLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
 
     void LayerCrop(const LayerInfoPtr& layer) const;
     static void LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node);

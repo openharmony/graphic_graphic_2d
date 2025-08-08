@@ -22,9 +22,6 @@
 #include <parameters.h>
 
 namespace OHOS {
-constexpr const float HALF = 2.0;
-constexpr const float RATIO_PHONE = 360.0;
-constexpr const float RATIO_OTHER = 800.0;
 
 void PostTask(std::function<void()> func, uint32_t delayTime)
 {
@@ -353,6 +350,23 @@ int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp)
     float ratio = RATIO_PHONE;
     if (DEVICE_TYPE_PHONE != deviceType && DEVICE_TYPE_WEARABLE != deviceType) {
         ratio = RATIO_OTHER;
+    }
+    return TranslateVp2Pixel(sideLen, vp, ratio);
+}
+
+/**
+* Transate vp to pixel.
+*
+* @param sideLen The short side length of screen.
+* @param vp vp value.
+* @param ratio ratio value.
+* @return Returns the font size.
+*/
+int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp, const float ratio)
+{
+    if (ratio == 0) {
+        LOGE("invalid ratio");
+        return 0;
     }
     return static_cast<int32_t>(std::ceil(sideLen * HALF / ratio) / HALF * vp);
 }

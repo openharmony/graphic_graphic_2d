@@ -53,6 +53,10 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
+void RSSystemProperties::SetProfilerPixelCheckMode(bool flag)
+{
+}
+
 bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
@@ -593,6 +597,12 @@ bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
+
 std::string RSSystemProperties::GetVersionType()
 {
     return "";
@@ -769,6 +779,16 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1044,14 +1044,13 @@ bool RSRenderNodeDrawable::ShouldPaint() const
 std::string RSRenderNodeDrawable::GetNodeDebugInfo()
 {
     std::string ret("");
-#ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
     const auto& params = GetRenderParams();
     if (!params) {
         return ret;
     }
     auto& unionRect = opincDrawCache_.GetOpListUnionArea();
-    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d, isOpincDropNodeExt:%d",
-        params->GetId(), params->OpincGetRootFlag(),
+    AppendFormat(ret, "%" PRIu64 ", rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d,"
+        " isOpincDropNodeExt:%d", params->GetId(), params->OpincGetRootFlag(),
         opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
         opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), isOpincDropNodeExt_);
     auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();
@@ -1061,7 +1060,6 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
         0.f, 0.f, bounds.GetWidth(), bounds.GetHeight());
     AppendFormat(ret, ", ur{%.1f %.1f %.1f %.1f}",
         unionRect.GetLeft(), unionRect.GetTop(), unionRect.GetWidth(), unionRect.GetHeight());
-#endif
     return ret;
 }
 

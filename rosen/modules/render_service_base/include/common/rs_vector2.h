@@ -24,6 +24,8 @@ namespace Rosen {
 template<typename T>
 class Vector2 {
 public:
+    static constexpr uint32_t V2SIZE = 2;
+    static constexpr size_t DATA_SIZE = sizeof(T) * V2SIZE;
     union {
         struct {
             T x_;

@@ -784,7 +784,6 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
     NodeId screenParamsId = 10000;
     ScreenInfo screenInfo;
     int32_t bufferAge = 1;
-    ScreenId mainId = 1000;
     ScreenId otherId = 1001;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
@@ -815,11 +814,9 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
     ASSERT_NE(screenManager, nullptr);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.SetDefaultScreenId(mainId);
     screenManagerImpl.screens_[screenId] = std::make_shared<impl::RSScreen>(screenId, true, nullptr, nullptr);
-    screenManagerImpl.screens_[mainId] = std::make_shared<impl::RSScreen>(mainId, false, nullptr, nullptr);
     int32_t result = screenManager->AddVirtualScreenBlackList(screenId, blockList);
-    ASSERT_EQ(result, SUCCESS);
+    ASSERT_EQ(result, SCREEN_NOT_FOUND);
 
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, false);
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, bufferAge, screenInfo);

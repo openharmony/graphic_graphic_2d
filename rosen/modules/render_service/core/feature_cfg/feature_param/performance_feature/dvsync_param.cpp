@@ -61,11 +61,6 @@ std::unordered_map<std::string, std::string> DVSyncParam::GetAdaptiveConfig()
     return adaptiveConfig_;
 }
 
-std::unordered_map<std::string, std::string> DVSyncParam::GetForceRsDVsyncConfig()
-{
-    return forceRsDvsyncConfig_;
-}
-
 void DVSyncParam::SetDVSyncEnable(bool isEnable)
 {
     isRsDVSyncEnabled_ = isEnable;
@@ -109,10 +104,5 @@ void DVSyncParam::SetWebBufferCount(int32_t cnt)
 void DVSyncParam::SetAdaptiveConfig(const std::string &name, const std::string &val)
 {
     adaptiveConfig_[name] = val;
-}
-
-void DVSyncParam::SetForceRsDVsyncConfig(const std::string &name, const std::string &val)
-{
-    forceRsDvsyncConfig_[name] = val;
 }
 } // namespace OHOS::Rosen

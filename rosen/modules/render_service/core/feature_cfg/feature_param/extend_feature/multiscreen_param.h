@@ -17,6 +17,7 @@
 #define MULTISCREEN_PARAM_H
  
 #include "feature_param.h"
+#include "draw/canvas.h"
  
 namespace OHOS::Rosen {
 class MultiScreenParam : public FeatureParam {
@@ -29,6 +30,7 @@ public:
     static bool IsRsReportHwcDead();
     static bool IsRsSetScreenPowerStatus();
     static bool IsMirrorDisplayCloseP3();
+    static Drawing::MipmapMode GetMipmapMode();
 
 protected:
     static void SetExternalScreenSecure(bool isSecure);
@@ -36,6 +38,7 @@ protected:
     static void SetRsReportHwcDead(bool isEnabled);
     static void SetRsSetScreenPowerStatus(bool isEnabled);
     static void SetMirrorDisplayCloseP3(bool isEnabled);
+    static void SetMipmapMode(Drawing::MipmapMode modeValue);
 
 private:
     inline static bool isExternalScreenSecure_ = false;
@@ -43,6 +46,7 @@ private:
     inline static bool isRsReportHwcDead_ = false;
     inline static bool isRsSetScreenPowerStatus_ = true;
     inline static bool isMirrorDisplayCloseP3_ = true;
+    inline static Drawing::MipmapMode mipMapModeValue_ = Drawing::MipmapMode::NEAREST;
  
     friend class MultiScreenParamParse;
 };

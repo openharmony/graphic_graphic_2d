@@ -53,6 +53,10 @@ public:
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
 
+    // DISPLAY ENGINE
+    void SetCurrentPkgName(const std::string& pkgName);
+    std::string GetCurrentPkgName() const;
+
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
@@ -71,6 +75,9 @@ private:
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
+
+    // DISPLAY ENGINE
+    std::string pkgName_{};
 };
 } // namespace OHOS::Rosen
 #endif

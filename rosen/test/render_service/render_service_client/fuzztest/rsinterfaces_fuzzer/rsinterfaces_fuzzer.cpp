@@ -458,6 +458,30 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     rsInterfaces.ClearUifirstCache(nodeId);
     return true;
 }
+
+bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    auto callback = std::make_shared<SurfaceCaptureFuture>();
+    RSDisplayNodeConfig displayConfig = {
+        static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
+    auto displayNode = RSDisplayNode::Create(displayConfig);
+    bool isFreeze = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenFreezeImmediately(displayNode, isFreeze, callback);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -480,5 +504,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
+    OHOS::Rosen::DoSetScreenFreezeImmediately(data, size);
     return 0;
 }

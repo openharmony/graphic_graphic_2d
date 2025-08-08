@@ -40,21 +40,12 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
         return;
     }
     const auto lengthTwo = 2;
-    bool hasAnimation = false;
     out.append(", RSAnimationManager: [");
     for (auto[id, animation]: animations_) {
-        if (!animation) {
-            continue;
-        }
         animation->DumpAnimation(out);
         out.append(", ");
-        if (hasAnimation == false) {
-            hasAnimation = true;
-        }
     }
-    if (hasAnimation) {
-        out.erase(out.end() - lengthTwo, out.end());
-    }
+    out.erase(out.end() - lengthTwo, out.end());
     out.append("]");
 }
 

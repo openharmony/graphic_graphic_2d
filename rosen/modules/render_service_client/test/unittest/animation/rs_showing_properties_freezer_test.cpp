@@ -17,7 +17,7 @@
 
 #include "common/rs_color.h"
 #include "modifier/rs_showing_properties_freezer.h"
-#include "render/rs_blur_filter.h"
+#include "render/rs_filter.h"
 #include "ui/rs_canvas_node.h"
 
 using namespace testing;
@@ -424,8 +424,8 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetHDRUIBrightnessTest
- * @tc.desc: Get the brightness.
+ * @tc.name: GetHDRUIBrightness
+ * @tc.desc: Verify the GetHDRUIBrightness
  * @tc.type:FUNC
  */
 HWTEST_F(RSShowingPropertiesFreezerTest, GetHDRUIBrightnessTest, TestSize.Level1)

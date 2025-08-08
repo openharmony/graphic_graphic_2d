@@ -131,7 +131,7 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
-    stagingChildrenDrawableVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearDrawables(stagingChildrenDrawableVec_);
     needSync_ = false;
 }
 
@@ -260,7 +260,7 @@ void RSCustomModifierDrawable::OnSync()
     gravity_ = stagingGravity_;
     isCanvasNode_ = stagingIsCanvasNode_;
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
-    stagingDrawCmdListVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingDrawCmdListVec_);
     needSync_ = false;
 }
 

@@ -15,7 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "metadata_helper.h"
+#include <parameters.h>
+
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "surface_buffer.h"
 
@@ -24,6 +25,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 const Rect DEFAULT_RECT = {0, 0, 100, 100};
+const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 class RSGpuDirtyCollectorTest : public testing::Test {
 public:
@@ -37,15 +39,6 @@ public:
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
 
-    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
-        .gpuDirtyEnable = true,
-        .curFrameDirtyEnable = true,
-        .left = 0,
-        .top = 0,
-        .right = 100,
-        .bottom = 100,
-    };
-
     static inline BufferSelfDrawingData isNotDirty = {
         .gpuDirtyEnable = true,
         .curFrameDirtyEnable = true,
@@ -55,13 +48,15 @@ public:
         .bottom = 0,
     };
 
-    static inline BlobDataType defaultBlobDataType = {
-        .offset = 0,
-        .length = 0,
-        .capacity = 0,
-        .vaddr = 0,
-        .cacheop = CacheOption::CACHE_NOOP,
+    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
+        .gpuDirtyEnable = true,
+        .curFrameDirtyEnable = true,
+        .left = 0,
+        .top = 0,
+        .right = 100,
+        .bottom = 100,
     };
+
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -74,41 +69,21 @@ void RSGpuDirtyCollectorTest::SetUp() {}
 void RSGpuDirtyCollectorTest::TearDown() {}
 
 /**
- * @tc.name: GpuDirtyRegionCompute001
- * @tc.desc: Test GpuDirtyRegionCompute when buffer is nullptr and metadata is nullptr
+ * @tc.name: GetBufferSelfDrawingData001
+ * @tc.desc: Test GetBufferSelfDrawingData when buffer is nullptr and metadata is nullptr
  * @tc.type:FUNC
  * @tc.require: issuesICA3L1
  */
-HWTEST_F(RSGpuDirtyCollectorTest, GpuDirtyRegionCompute001, TestSize.Level1)
+HWTEST_F(RSGpuDirtyCollectorTest, GetBufferSelfDrawingData001, TestSize.Level1)
 {
-    auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(nullptr);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(nullptr);
     ASSERT_EQ(src, nullptr);
 
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
-    ASSERT_EQ(src, nullptr);
-}
-
-/**
- * @tc.name: GpuDirtyRegionCompute002
- * @tc.desc: Test GpuDirtyRegionCompute when metadata is not nullptr
- * @tc.type:FUNC
- * @tc.require: issuesICA3L1
- */
-HWTEST_F(RSGpuDirtyCollectorTest, GpuDirtyRegionCompute002, TestSize.Level1)
-{
-    auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    std::vector<uint8_t> metaData;
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
+    src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_EQ(src, nullptr);
 }
 
@@ -128,20 +103,25 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute001, TestSize.Level1)
     auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
     ASSERT_EQ(isDirtyRectValid, false);
 
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
-    src->curFrameDirtyEnable = false;
-    BlobDataType test = defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
-
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
+    isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(nullptr, rect);
+    ASSERT_EQ(isDirtyRectValid, false);
 
     isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
     ASSERT_EQ(isDirtyRectValid, false);
+
+    auto config = requestConfig;
+    config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    ret = buffer->Alloc(config);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    (*src) = defaultSelfDrawingRect;
+    src->curFrameDirtyEnable = false;
+
+    isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
+    ASSERT_EQ(isDirtyRectValid, false);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**
@@ -153,24 +133,22 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute001, TestSize.Level1)
 HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute002, TestSize.Level1)
 {
     auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
+    auto config = requestConfig;
+    config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    auto ret = buffer->Alloc(config);
     ASSERT_EQ(ret, GSERROR_OK);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
 
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
+    (*src) = defaultSelfDrawingRect;
     src->left = -1;
-    BlobDataType test = defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
-
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
 
     Rect rect = DEFAULT_RECT;
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
     ASSERT_EQ(isDirtyRectValid, false);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**
@@ -182,22 +160,21 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute002, TestSize.Level1)
 HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute003, TestSize.Level1)
 {
     auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
+    auto config = requestConfig;
+    config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    auto ret = buffer->Alloc(config);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData *src = &isNotDirty;
-    BlobDataType test = defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
-
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    (*src) = isNotDirty;
 
     Rect rect = DEFAULT_RECT;
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
     ASSERT_EQ(isDirtyRectValid, true);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**
@@ -209,21 +186,19 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute003, TestSize.Level1)
 HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute004, TestSize.Level1)
 {
     auto buffer = SurfaceBuffer::Create();
-    auto ret = buffer->Alloc(requestConfig);
+    auto config = requestConfig;
+    config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    auto ret = buffer->Alloc(config);
     ASSERT_EQ(ret, GSERROR_OK);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
 
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
-    BlobDataType test = defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
-
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
+    (*src) = defaultSelfDrawingRect;
     Rect rect = DEFAULT_RECT;
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     auto isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, rect);
     ASSERT_EQ(isDirtyRectValid, true);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 } // namespace OHOS::Rosen

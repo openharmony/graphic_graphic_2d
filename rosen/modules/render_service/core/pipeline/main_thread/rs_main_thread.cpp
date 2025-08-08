@@ -228,6 +228,8 @@ constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
+constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
+constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -1650,13 +1652,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
             }
             surfaceHandler->ResetCurrentFrameBufferConsumed();
-            bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
-                surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount());
             auto parentNode = surfaceNode->GetParent().lock();
             bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
             LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
-            if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive,
+            if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(
+                *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
                 parentNode ? parentNode->GetId() : 0)) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!isUniRender_) {
@@ -2532,6 +2532,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenNode state error");
         return false;
     }
+    if (UNLIKELY(screenNode->GetForceFreeze())) {
+        RS_TRACE_NAME("DoDirectComposition skip, screen frozen");
+        return true;
+    }
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         RS_LOGE("DoDirectComposition screenManager is nullptr");
@@ -2763,7 +2767,6 @@ void RSMainThread::Render()
         CallbackDrawContextStatusToWMS();
         PerfForBlurIfNeeded();
     }
-    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
     UpdateLuminanceAndColorTemp();
     bool isPostUniRender = isUniRender_ && !doDirectComposition_ && needDrawFrame_;
@@ -3691,7 +3694,7 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
     if (!rsTransactionData) {
         return;
     }
-    int64_t timestamp = rsTransactionData->GetTimestamp();
+    int64_t timestamp = static_cast<int64_t>(rsTransactionData->GetTimestamp());
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         std::lock_guard<std::mutex> lock(transitionDataMutex_);
@@ -3801,7 +3804,14 @@ void RSMainThread::RegisterSurfaceOcclusionChangeCallback(
     if (!partitionPoints.empty()) {
         level = partitionPoints.size();
     }
-    surfaceOcclusionListeners_[id] = std::make_tuple(pid, callback, partitionPoints, level);
+    auto it = surfaceOcclusionListeners_.find(id);
+    if (it != surfaceOcclusionListeners_.end()) {
+        it->second = std::make_tuple(pid, callback, partitionPoints, level);
+    } else if (surfaceOcclusionListeners_.size() < MAX_SURFACE_OCCLUSION_LISTENERS_SIZE) {
+        surfaceOcclusionListeners_.emplace(id, std::make_tuple(pid, callback, partitionPoints, level));
+    } else {
+        RS_LOGW("%{public}s: register failed because surfaceOcclusionListeners_ reached max size", __func__);
+    }
 }
 
 void RSMainThread::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
@@ -4045,41 +4055,62 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
         return;
     }
 
-    std::unordered_map<pid_t, std::vector<NodeId>> topNodes;
+    std::unordered_map<pid_t, std::vector<std::pair<NodeId, uint64_t>>> topNodes;
     if (const auto& rootNode = context_->GetGlobalRootRenderNode()) {
         for (const auto& screenNode : *rootNode->GetSortedChildren()) {
             for (const auto& node : *screenNode->GetSortedChildren()) {
                 NodeId id = node->GetId();
-                topNodes[ExtractPid(id)].push_back(id);
+                const auto& tokenList = node->GetUIContextTokenList();
+                if (tokenList.empty()) {
+                    topNodes[ExtractPid(id)].emplace_back(id, node->GetUIContextToken());
+                } else {
+                    for (const auto& token : tokenList) {
+                        topNodes[ExtractPid(id)].emplace_back(id, token);
+                    }
+                }
             }
         }
     }
-    context_->GetNodeMap().TraversalNodes([this, &topNodes] (const std::shared_ptr<RSBaseRenderNode>& node) {
+    context_->GetNodeMap().TraversalNodes([this, &topNodes](const std::shared_ptr<RSBaseRenderNode>& node) {
         if (node->IsOnTheTree() && node->GetType() == RSRenderNodeType::ROOT_NODE) {
             if (auto parent = node->GetParent().lock()) {
                 NodeId id = parent->GetId();
-                topNodes[ExtractPid(id)].push_back(id);
+                const auto& tokenList = parent->GetUIContextTokenList();
+                if (tokenList.empty()) {
+                    topNodes[ExtractPid(id)].emplace_back(id, parent->GetUIContextToken());
+                } else {
+                    for (const auto& token : tokenList) {
+                        topNodes[ExtractPid(id)].emplace_back(id, token);
+                    }
+                }
             }
             NodeId id = node->GetId();
-            topNodes[ExtractPid(id)].push_back(id);
+            const auto& tokenList = node->GetUIContextTokenList();
+            if (tokenList.empty()) {
+                topNodes[ExtractPid(id)].emplace_back(id, node->GetUIContextToken());
+            } else {
+                for (const auto& token : tokenList) {
+                    topNodes[ExtractPid(id)].emplace_back(id, token);
+                }
+            }
         }
     });
 
     auto& task = nodeTreeDumpTasks_[taskId];
-    for (const auto& [pid, nodeIds] : topNodes) {
+    for (const auto& [pid, nodeInfoList] : topNodes) {
         auto iter = applicationAgentMap_.find(pid);
         if (iter == applicationAgentMap_.end() || !iter->second) {
             continue;
         }
         auto transactionData = std::make_shared<RSTransactionData>();
-        for (auto id : nodeIds) {
-            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId);
-            transactionData->AddCommand(std::move(command), id, FollowType::NONE);
+        for (const auto& [nodeId, token] : nodeInfoList) {
+            auto command = std::make_unique<RSDumpClientNodeTree>(nodeId, pid, token, taskId);
+            transactionData->AddCommand(std::move(command), nodeId, FollowType::NONE);
             task.count++;
-            RS_TRACE_NAME_FMT("DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "]",
-                taskId, pid, id);
-            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "]",
-                taskId, pid, id);
+            RS_TRACE_NAME_FMT(
+                "DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}llu]",
+                taskId, pid, nodeId, token);
         }
         iter->second->OnTransaction(transactionData);
     }
@@ -4690,11 +4721,19 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
                 systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
+                if (threeFingerScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
+                    RS_LOGD("%{public}s: threeFingerScenesList is over max size!", __func__);
+                    return false;
+                }
                 threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER &&
                 systemAnimatedScenes != SystemAnimatedScenes::ENTER_RECENTS &&
                 systemAnimatedScenes != SystemAnimatedScenes::EXIT_RECENTS) {
+                if (systemAnimatedScenesList_.size() > MAX_ANIMATED_SCENES_NUM) {
+                    RS_LOGD("%{public}s: systemAnimatedScenesList is over max size!", __func__);
+                    return false;
+                }
                 // systemAnimatedScenesList_ is only for pc now
                 systemAnimatedScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
@@ -5309,11 +5348,6 @@ void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
     isMultiDisplayPre_ = isMultiDisplay;
 }
 
-void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageList)
-{
-    rsVSyncDistributor_->NotifyPackageEvent(packageList);
-}
-
 void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
@@ -5325,9 +5359,9 @@ void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t 
     rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);
 }
 
-void RSMainThread::SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageList)
 {
-    rsVSyncDistributor_->SetBufferQueueInfo(name, bufferCount, lastFlushedTimeStamp);
+    rsVSyncDistributor_->NotifyPackageEvent(packageList);
 }
 
 void RSMainThread::SetTaskEndWithTime(int64_t time)
@@ -5439,11 +5473,11 @@ void RSMainThread::DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime)
     rsVSyncDistributor_->DVSyncUpdate(dvsyncTime, vsyncTime);
 }
 
-void RSMainThread::SetForceRsDVsync()
+void RSMainThread::SetForceRsDVsync(const std::string& sceneId)
 {
     if (rsVSyncDistributor_ != nullptr) {
         RS_TRACE_NAME("RSMainThread::SetForceRsDVsync");
-        rsVSyncDistributor_->ForceRsDVsync();
+        rsVSyncDistributor_->ForceRsDVsync(sceneId);
     }
 }
 } // namespace Rosen

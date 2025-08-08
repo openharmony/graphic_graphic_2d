@@ -142,7 +142,15 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow002, TestSize.Level1)
     surfaceParams.isCrossNode_ = false;
     surfaceParams.SetIsCloned(false);
     surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONE);
-    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams));
+
+    surfaceParams.SetNeedCacheSurface(true);
+    // not clear cache
+    drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams);
+    ASSERT_TRUE(drawWindowCache.image_ != nullptr);
+
+    surfaceParams.SetNeedCacheSurface(false);
+    // clear cache
+    drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams, uniParams);
     ASSERT_TRUE(drawWindowCache.image_ == nullptr);
 
     // test cross-node don't reuse cache

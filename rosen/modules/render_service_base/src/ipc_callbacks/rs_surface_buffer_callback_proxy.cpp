@@ -61,7 +61,7 @@ void RSSurfaceBufferCallbackProxy::OnFinish(const FinishCallbackRet& ret)
 #endif
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSSurfaceBufferCallbackProxy: Remote()->SendRequest() error");
     }
@@ -86,10 +86,19 @@ void RSSurfaceBufferCallbackProxy::OnAfterAcquireBuffer(const AfterAcquireBuffer
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_AFTER_ACQUIRE_BUFFER);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSSurfaceBufferCallbackProxy: Remote()->SendRequest() error");
     }
+}
+
+int32_t RSSurfaceBufferCallbackProxy::SendRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    if (!Remote()) {
+        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
+    }
+    return Remote()->SendRequest(code, data, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS

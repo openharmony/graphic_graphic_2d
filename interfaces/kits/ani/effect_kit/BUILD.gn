@@ -71,7 +71,7 @@ ohos_shared_library("effectKit_ani") {
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image",
-    "image_framework:image_ani",
+    "image_framework:image_taihe",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
   ]

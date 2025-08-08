@@ -89,6 +89,8 @@ public:
     static bool GetAnimationOcclusionEnabled();
     static bool GetUIFirstPurgeEnabled();
     static bool GetUIFirstOcclusionEnabled();
+    static bool GetUIFirstCaptrueReuseEnabled();
+    static bool GetUIFirstStartingWindowCacheEnabled();
 };
 
 } // namespace Rosen

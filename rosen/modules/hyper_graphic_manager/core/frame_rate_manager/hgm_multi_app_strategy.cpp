@@ -57,6 +57,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
         RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
         HGM_LOGI("pkg update:%{public}s", param.c_str());
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
+
+        // DISPLAY ENGINE
+        RsCommonHook::Instance().SetCurrentPkgName(pkgName);
+
         pidAppTypeMap_[pkgName] = { pid, appType };
         if (pid > DEFAULT_PID) {
             foregroundPidAppMap_[pid] = { appType, pkgName };

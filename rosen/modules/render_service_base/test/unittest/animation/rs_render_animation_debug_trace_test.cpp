@@ -388,6 +388,8 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, GetColorString, TestSize.Level1)
  */
 HWTEST_F(RSRenderAnimationDebugTraceTest, OnAnimationTraceEnabledChangedCallback, TestSize.Level1)
 {
+    system("param set persist.rosen.animationtrace.enabled 0");
+    system("param set sys.graphic.openTestModeTrace 0");
     const char* key = "wrong_key";
     const char* value = "1";
     RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key, value, nullptr);

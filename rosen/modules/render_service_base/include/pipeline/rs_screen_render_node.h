@@ -251,11 +251,6 @@ public:
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams();
-    Occlusion::Region GetTopSurfaceOpaqueRegion() const;
-    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
-    {
-        topSurfaceOpaqueRects_.push_back(rect);
-    }
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
     {
         curMainAndLeashSurfaceNodes_.push_back(surface);
@@ -516,6 +511,9 @@ public:
     // Enable HWCompose
     RSHwcDisplayRecorder& HwcDisplayRecorder() { return hwcDisplayRecorder_; }
 
+    void SetForceFreeze(bool forceFreeze);
+    bool GetForceFreeze() const;
+
 protected:
     void OnSync() override;
 private:
@@ -535,6 +533,8 @@ private:
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
     bool isGeometryInitialized_ = false;
+
+    bool forceFreeze_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
@@ -567,7 +567,6 @@ private:
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
-    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::vector<std::string> windowsName_;

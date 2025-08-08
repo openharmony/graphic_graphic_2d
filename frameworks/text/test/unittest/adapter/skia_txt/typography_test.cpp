@@ -366,6 +366,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
     typography1->Layout(maxWidth);
     Boundary range2 = typography1->GetEllipsisTextRange();
     ASSERT_EQ(range2, Boundary(5, 16));
+    EXPECT_FALSE(typography1->CanPaintAllText());
+    typography1->Layout(500);
+    EXPECT_TRUE(typography1->CanPaintAllText());
 
     // For branch coverage
     OHOS::Rosen::TypographyStyle typographyStyle2;
@@ -992,6 +995,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     EXPECT_EQ(animationFunc, nullptr);
     typography->SetSkipTextBlobDrawing(true);
     EXPECT_FALSE(typography->HasSkipTextBlobDrawing());
+    EXPECT_FALSE(typography->CanPaintAllText());
 
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_NE(typography->GetTextBlobRecordInfo().size(), 0);
@@ -1229,6 +1233,37 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText005, TestS
     auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
     EXPECT_EQ(defaultRuns.size(), 1);
     EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
+ * @tc.desc: test for rtl's text adjusting textRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRtlClusterIndexOffset001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for normal English characters situation
+    style.fontSize = 11;
+    std::u16string text = u"لآؗۘئ";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 10 for rtl situation
+    double maxWidth = 10;
+    typography->Layout(maxWidth);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph =
+        static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
+    ASSERT_NE(skiaParagraph, nullptr);
+    // The byte value of لآؗۘئ is 11
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit.size(), 11);
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[0], 0);
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[1], 0);
 }
 
 /*

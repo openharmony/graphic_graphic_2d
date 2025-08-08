@@ -39,8 +39,11 @@
 #endif
 
 namespace OHOS::Rosen::DrawableV2 {
+static const size_t CMD_LIST_COUNT_WARNING_LIMIT = 5000;
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+RSRenderNodeDrawableAdapter::DrawableVec RSRenderNodeDrawableAdapter::toClearDrawableVec_;
+RSRenderNodeDrawableAdapter::CmdListVec RSRenderNodeDrawableAdapter::toClearCmdListVec_;
 std::unordered_map<NodeId, Drawing::Matrix> RSRenderNodeDrawableAdapter::unobscuredUECMatrixMap_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
@@ -626,6 +629,33 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
+}
+
+void RSRenderNodeDrawableAdapter::ClearResource()
+{
+    RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
+        toClearDrawableVec_.size(), toClearCmdListVec_.size());
+    toClearDrawableVec_.clear();
+    toClearCmdListVec_.clear();
+}
+
+void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
+{
+    for (auto &drawable: vec) {
+        toClearDrawableVec_.push_back(drawable);
+    }
+    vec.clear();
+}
+
+void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
+{
+    for (auto &cmdList: vec) {
+        toClearCmdListVec_.push_back(cmdList);
+    }
+    vec.clear();
+    if (toClearCmdListVec_.size() >= CMD_LIST_COUNT_WARNING_LIMIT) {
+        ROSEN_LOGW("%{public}s, cmdList count(%{public}zu) out of limit", __func__, toClearCmdListVec_.size());
+    }
 }
 
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const

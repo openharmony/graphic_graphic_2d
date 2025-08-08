@@ -55,6 +55,14 @@ enum class BackendAccess {
     DISCARD_WRITE
 };
 
+enum class SemaphoresSubmited {
+    DRAWING_SUBMIT_NO, // Drawing flush callback not executd.
+    DRAWING_SUBMIT_YES, // Drawing flush callback executed.
+    DRAWING_ENGINE_SUBMIT_NO, // Engine flush has callback parameters and return values.
+    DRAWING_ENGINE_SUBMIT_YES, // Engine flush has callback parameters and return values.
+    DRAWING_ENGINE_YES // Engine flush has no callback parameters and return values.
+};
+
 class DRAWING_API Surface {
 public:
     Surface();
@@ -185,7 +193,7 @@ public:
     /**
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
      */
-    void Flush(FlushInfo *drawingflushInfo = nullptr);
+    SemaphoresSubmited Flush(FlushInfo *drawingflushInfo = nullptr);
 
     int Width() const;
     int Height() const;

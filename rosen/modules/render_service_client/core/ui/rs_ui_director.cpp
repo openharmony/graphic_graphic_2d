@@ -145,9 +145,10 @@ void RSUIDirector::InitHybridRender()
         }
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
-            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
+            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
+            std::shared_ptr<RSTransactionHandler> transactionHandler) {
             auto task = [renderServiceClient, transactionData = std::move(rsTransactionData),
-                &transactionDataIndex]() mutable {
+                &transactionDataIndex, transactionHandler]() mutable {
                 bool isNeedCommit = true;
                 RSModifiersDrawThread::ConvertTransaction(transactionData, renderServiceClient, isNeedCommit);
                 if (isNeedCommit) {
@@ -159,20 +160,19 @@ void RSUIDirector::InitHybridRender()
                 std::shared_ptr<RSUIContext> rsUICtx;
                 {
                     int32_t instanceId = INSTANCE_ID_UNDEFINED;
-                    for (auto& [id, _, cmd] : transactionData->GetPayload()) {
-                        if (cmd == nullptr) {
-                            continue;
-                        }
-                        uint64_t token = cmd->GetToken();
-                        rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
-                        if (rsUICtx != nullptr) {
-                            break;
-                        }
-                        if (instanceId == INSTANCE_ID_UNDEFINED) {
-                            NodeId realId = id == 0 ? cmd->GetNodeId() : id;
-                            instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-                            instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
-                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
+                    if (!transactionHandler) {
+                        for (auto& [id, _, cmd] : transactionData->GetPayload()) {
+                            if (cmd == nullptr) {
+                                continue;
+                            }
+                            if (instanceId == INSTANCE_ID_UNDEFINED) {
+                                NodeId realId = id == 0 ? cmd->GetNodeId() : id;
+                                instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                                instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
+                                    RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
+                            } else {
+                                break;
+                            }
                         }
                     }
                     auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
@@ -181,7 +181,8 @@ void RSUIDirector::InitHybridRender()
                         std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
                         (void) dataHolder;
                     };
-                    rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);
+                    (transactionHandler == nullptr) ? RSUIDirector::PostTask(task, instanceId) :
+                        transactionHandler->PostTask(task);
                 }
             };
             RSModifiersDrawThread::Instance().ScheduleTask(task);
@@ -223,13 +224,13 @@ uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
     return RSSystemProperties::GetHybridRenderTextBlobLenCount();
 }
 
-void RSUIDirector::StartTextureExport()
+void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
 {
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (isUniRenderEnabled_) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-        if (rsUIContext_) {
-            auto transaction = rsUIContext_->GetRSTransaction();
+        if (rsUIContext) {
+            auto transaction = rsUIContext->GetRSTransaction();
             if (transaction != nullptr) {
                 transaction->SetRenderThreadClient(renderThreadClient);
             }
@@ -567,7 +568,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
 {
     if (rsUIContext_) {
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "multi-intance SendCommands With Callback");
-        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        RS_TRACE_NAME_FMT("SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr && !transaction->IsEmpty()) {
             if (callback != nullptr) {
@@ -625,7 +626,7 @@ void RSUIDirector::RecvMessages()
     RecvMessages(transactionDataPtr);
 }
 
-void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance)
+void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
 {
     if (cmds == nullptr || cmds->IsEmpty()) {
         ROSEN_LOGD("RSUIDirector::RecvMessages cmd empty");
@@ -763,13 +764,17 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
-void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId)
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
     // use for dump transactionFlags [pid,index] in client tree dump
+    if (auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token)) {
+        rsUICtx->DumpNodeTreeProcessor(out, nodeId, pid, taskId);
+        return;
+    }
     int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
     {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);

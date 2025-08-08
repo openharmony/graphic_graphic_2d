@@ -40,10 +40,19 @@ void RSBufferAvailableCallbackProxy::OnBufferAvailable()
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSBufferAvailableCallbackProxy::OnBufferAvailable error = %{public}d", err);
     }
+}
+
+int32_t RSBufferAvailableCallbackProxy::SendRequest(
+    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+{
+    if (!Remote()) {
+        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
+    }
+    return Remote()->SendRequest(code, data, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS

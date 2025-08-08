@@ -39,17 +39,11 @@ namespace OHOS {
 namespace Rosen {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 
-auto g_pid = getpid();
-auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
-auto mainThread_ = RSMainThread::Instance();
-sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+int32_t g_pid;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+RSMainThread* mainThread_ = RSMainThread::Instance();
+sptr<RSRenderServiceConnectionStub> connectionStub_ = nullptr;
 
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
 const uint8_t DO_COMMIT_TRANSACTION = 0;
 const uint8_t DO_GET_UNI_RENDER_ENABLED = 1;
@@ -101,7 +95,8 @@ const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 47;
 const uint8_t DO_SET_COLOR_FOLLOW = 48;
 const uint8_t DO_SET_FORCE_REFRESH = 49;
 const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
-const uint8_t TARGET_SIZE = 51;
+const uint8_t DO_CREATE_VSYNC_CONNECTION_BY_REMOTE_ID = 51;
+const uint8_t TARGET_SIZE = 52;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -625,6 +620,28 @@ void DoCreateVSyncConnection()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
+void DoCreateVSyncConnectionByRemoteId()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = iface_cast<VSyncIConnectionToken>(remoteObject);
+    uint64_t id = g_pid;
+    NodeId windowNodeID = GetData<NodeId>();
+    std::string name = GetData<std::string>();
+    dataParcel.WriteString(name);
+    dataParcel.WriteRemoteObject(vsyncIConnectionToken_->AsObject());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint64(windowNodeID);
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 void DoRegisterOcclusionChangeCallback()
 {
     uint32_t code =
@@ -818,9 +835,11 @@ void DoRegisterUIExtensionCallback()
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIUIExtensionCallback> rsIUIExtensionCallback = iface_cast<RSIUIExtensionCallback>(remoteObject);
     int64_t userId = GetData<int64_t>();
+    bool unobscured = GetData<bool>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteInt64(userId);
     dataParcel.WriteRemoteObject(rsIUIExtensionCallback->AsObject());
+    dataParcel.WriteBool(unobscured);
     dataParcel.RewindRead(0);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
@@ -1110,23 +1129,46 @@ void DoClearUifirstCache()
     dataParcel.WriteBool(id);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+void DoCreateNode02()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    NodeId id = static_cast<NodeId>(g_pid) << 32;
+    uint64_t mirroredId = GetData<uint64_t>();
+    uint64_t screenId = GetData<uint64_t>();
+    bool isMirror = GetData<bool>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint64(mirroredId);
+    dataParcel.WriteUint64(screenId);
+    dataParcel.WriteBool(isMirror);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    auto newPid = getpid();
-    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
-        newPid,
-        nullptr,
-        mainThread,
-        screenManagerPtr,
-        nullptr,
-        nullptr
-    );
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    OHOS::sptr<OHOS::Rosen::RSRenderServiceConnectionStub> connectionStub_ =
+        new OHOS::Rosen::RSRenderServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
+            OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
     return 0;
 }
 
@@ -1201,6 +1243,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_CREATE_VSYNC_CONNECTION:
             OHOS::Rosen::DoCreateVSyncConnection();
+            break;
+        case OHOS::Rosen::DO_CREATE_VSYNC_CONNECTION_BY_REMOTE_ID:
+            OHOS::Rosen::DoCreateVSyncConnectionByRemoteId();
             break;
         case OHOS::Rosen::DO_REGISTER_OCCLUSION_CHANGE_CALLBACK:
             OHOS::Rosen::DoRegisterOcclusionChangeCallback();

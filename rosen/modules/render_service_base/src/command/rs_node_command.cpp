@@ -192,10 +192,11 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     }
 }
 
-void RSNodeCommandHelper::DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId)
+void RSNodeCommandHelper::DumpClientNodeTree(
+    RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)
 {
     if (gDumpNodeTreeProcessor) {
-        gDumpNodeTreeProcessor(nodeId, pid, taskId);
+        gDumpNodeTreeProcessor(nodeId, pid, token, taskId);
     }
 }
 

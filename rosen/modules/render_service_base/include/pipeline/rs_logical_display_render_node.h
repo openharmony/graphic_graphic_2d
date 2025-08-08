@@ -146,6 +146,13 @@ public:
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
 
+    Occlusion::Region GetTopSurfaceOpaqueRegion() const;
+
+    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
+    {
+        topSurfaceOpaqueRects_.push_back(rect);
+    }
+
     void SetHasCaptureWindow(bool hasCaptureWindow)
     {
         hasCaptureWindow_ = hasCaptureWindow;
@@ -174,6 +181,7 @@ private:
     void InitRenderParams() override;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
 
     // bounds rotation
     bool preRotationStatus_ = false;

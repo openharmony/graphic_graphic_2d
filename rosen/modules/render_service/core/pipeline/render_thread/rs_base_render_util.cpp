@@ -886,8 +886,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool adaptiveDVSyncEnable)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     const auto surfaceConsumer = surfaceHandler.GetConsumer();
@@ -899,10 +898,6 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
 
     // maxDirtyListSize should minus one buffer used for displaying, and another one that has just been acquried.
     int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1 - 1;
-    if (adaptiveDVSyncEnable) {
-        // adaptiveDVSync need more buffer
-        maxDirtyListSize++;
-    }
     // maxDirtyListSize > 1 means QueueSize >3 too
     if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
@@ -972,7 +967,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 }
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, uint64_t parentNodeId, bool deleteCacheDisable)
+    bool dropFrameByPidEnable, uint64_t parentNodeId, bool deleteCacheDisable)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -986,8 +981,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     // check presentWhen conversion validation range
     bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
-        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled() &&
-            !adaptiveDVSyncEnable;
+        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
@@ -1067,7 +1061,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
-    DropFrameProcess(surfaceHandler, acquireTimeStamp, adaptiveDVSyncEnable);
+    DropFrameProcess(surfaceHandler, acquireTimeStamp);
 #ifdef RS_ENABLE_GPU
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine || deleteCacheDisable) {

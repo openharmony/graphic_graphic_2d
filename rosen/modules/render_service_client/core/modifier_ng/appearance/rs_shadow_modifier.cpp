@@ -53,7 +53,7 @@ void RSShadowModifier::SetShadowAlpha(float alpha)
 
 float RSShadowModifier::GetShadowAlpha() const
 {
-    return Getter(RSPropertyType::SHADOW_ALPHA, 0.f);
+    return Getter(RSPropertyType::SHADOW_ALPHA, 1.f);
 }
 
 void RSShadowModifier::SetShadowElevation(float elevation)

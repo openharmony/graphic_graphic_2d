@@ -216,6 +216,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -423,7 +424,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
-        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)) {
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}d", code);
         return ERR_INVALID_STATE;
     }
@@ -1260,6 +1262,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (status > static_cast<uint32_t>(ScreenPowerStatus::INVALID_POWER_STATUS)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_POWER_STATUS status is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
             break;
         }
@@ -1408,7 +1415,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool isFreeze{false};
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY calling is no legal, "
+                        "id:%{public}" PRIu64 ", callingPid:%{public}d ",
+                    id, callingPid);
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            bool isFreeze {false};
             if (!data.ReadBool(isFreeze)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY Read isFreeze failed!");
                 ret = ERR_INVALID_DATA;
@@ -1442,6 +1456,48 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 }
             }
             SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig, blurParam);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY): {
+            NodeId id { 0 };
+            if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool isFreeze { false };
+            if (!data.ReadBool(isFreeze)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY read isFreeze failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<RSISurfaceCaptureCallback> cb;
+            RSSurfaceCaptureConfig captureConfig;
+            if (isFreeze) {
+                auto remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    ret = ERR_NULL_OBJECT;
+                    RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY remoteObject is nullptr");
+                    break;
+                }
+                cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+                if (cb == nullptr) {
+                    ret = ERR_NULL_OBJECT;
+                    RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY cb is nullptr");
+                    break;
+                }
+                if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FREEZE_IMMEDIATELY read captureConfig failed");
+                    break;
+                }
+            }
+            RSSurfaceCapturePermissions permissions;
+            permissions.screenCapturePermission = accessible;
+            permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + \
+                "::SET_SCREEN_FREEZE_IMMEDIATELY");
+            ret = SetScreenFreezeImmediately(id, isFreeze, cb, captureConfig, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {
@@ -1799,9 +1855,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP): {
             ScreenId id{INVALID_SCREEN_ID};
-            int32_t mode{0};
-            if (!data.ReadUint64(id) || !data.ReadInt32(mode)) {
+            uint32_t mode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(mode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mode > static_cast<uint32_t>(ScreenGamutMap::GAMUT_MAP_HDR_EXTENSION)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP mode is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1814,9 +1875,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION): {
             ScreenId id{INVALID_SCREEN_ID};
-            int32_t screenRotation{0};
-            if (!data.ReadUint64(id) || !data.ReadInt32(screenRotation)) {
+            uint32_t screenRotation{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(screenRotation)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CORRECTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (screenRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CORRECTION screenRotation is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2519,6 +2585,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetScreenFrameGravity(id, gravity);
             break;
         }
@@ -2661,6 +2732,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool isShow{false};
             if (!data.ReadBool(isShow)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SHOW_WATERMARK Read isShow failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!watermarkImg) {
+                RS_LOGE("RSRenderServiceConnectionStub::SHOW_WATERMARK watermarkImg is nullptr");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -3906,6 +3982,10 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
         !data.ReadUint32(captureConfig.backGroundColor)) {
+        RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
+        return false;
+    }
+    if (captureType < 0 || captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {
         RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureType failed!");
         return false;
     }

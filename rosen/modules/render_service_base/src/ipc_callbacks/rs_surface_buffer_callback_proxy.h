@@ -30,6 +30,7 @@ public:
 
     void OnFinish(const FinishCallbackRet& ret) override;
     void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override;
+    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSSurfaceBufferCallbackProxy> delegator_;

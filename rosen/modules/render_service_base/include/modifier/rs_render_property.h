@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 #define RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 
-#include "feature/capture/rs_ui_capture.h"
 #include "recording/draw_cmd_list.h"
 
 #include "animation/rs_render_particle.h"
@@ -77,7 +76,6 @@ enum class RSPropertyType : uint8_t {
     INVALID = 0,
     BOOL,
     INT,
-    SHORT,
     FLOAT,
     VECTOR4_UINT32,
     RS_COLOR,
@@ -112,6 +110,7 @@ enum class RSPropertyType : uint8_t {
     RS_RENDER_FILTER,
     VECTOR_FLOAT,
     VECTOR_VECTOR2F,
+    SHORT, // HRP: move it to the middle of FLOAT and INT
     RS_NG_RENDER_FILTER_BASE,
     RS_NG_RENDER_MASK_BASE,
     RS_NG_RENDER_SHADER_BASE,
