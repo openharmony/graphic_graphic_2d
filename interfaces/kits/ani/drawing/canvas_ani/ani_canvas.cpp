@@ -165,6 +165,10 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
     }
     Drawing::Point* texsPoint = builder.TexCoords();
     uint16_t* indices = builder.Indices();
+    if (!texsPoint || !indices) {
+        ROSEN_LOGE("DrawingPixelMapMesh: texsPoint or indices is nullptr");
+        return;
+    }
 
     const float height = static_cast<float>(pixelMap->GetHeight());
     const float width = static_cast<float>(pixelMap->GetWidth());
@@ -466,6 +470,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
     float* verticesMesh = verticesSize ? (vertices + vertOffset * 2) : nullptr; // offset two coordinates
 
     if (ANI_OK != env->Object_GetPropertyByName_Double(colorsObj, "length", &aniLength)) {
+        delete []vertices;
         AniThrowError(env, "Invalid params.");
         return;
     }
