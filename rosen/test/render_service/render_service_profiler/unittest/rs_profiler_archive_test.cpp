@@ -247,7 +247,7 @@ HWTEST_F(RSProfilerArchiveTest, SerializeVectorCustomSerializerTest, testing::ex
     EXPECT_EQ(initial, result);
 }
 
-H WTEST_F(RSProfilerArchiveTest, SerializeInt16, testing::ext::TestSize.Level1)
+HWTEST_F(RSProfilerArchiveTest, SerializeInt16, testing::ext::TestSize.Level1)
 {
     std::vector<char> buf;
     DataWriter writer(buf);
