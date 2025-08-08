@@ -1366,4 +1366,25 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, T
     res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
 }
+
+/**
+ * @tc.name: DropFrameByPid
+ * @tc.desc: Test DropFrameByPid
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, DropFrameByPid001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    // MAX_DROP_FRAME_PID_LIST_SIZE = 1024
+    std::vector<int32_t> pidList(1025, 1);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteInt32Vector(pidList);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
 } // namespace OHOS::Rosen

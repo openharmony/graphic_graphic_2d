@@ -51,7 +51,9 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
+    static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+}
 class RSIRenderServiceConnection : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");

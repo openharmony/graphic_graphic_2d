@@ -230,6 +230,7 @@ constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
+constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -5122,6 +5123,10 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSMainThread::AddPidNeedDropFrame(std::vector<int32_t> pidList)
 {
+    if (surfacePidNeedDropFrame_.size() > MAX_DROP_FRAME_PID_LIST_SIZE) {
+        surfacePidNeedDropFrame_.clear();
+    }
+
     for (const auto& pid: pidList) {
         surfacePidNeedDropFrame_.insert(pid);
     }

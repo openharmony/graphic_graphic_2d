@@ -3405,6 +3405,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
                 break;
             }
+            if (pidList.size() > MAX_DROP_FRAME_PID_LIST_SIZE) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             DropFrameByPid(pidList);
             break;
         }
