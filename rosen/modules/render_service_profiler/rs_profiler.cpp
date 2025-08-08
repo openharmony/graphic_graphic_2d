@@ -1004,8 +1004,10 @@ void RSProfiler::HiddenSpaceTurnOn()
         HRPE("RSProfiler::HiddenSpaceTurnOn Logical Display is nullptr");
         return;
     }
+
     if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
         g_childOfDisplayNodes = *logicalDisplayNode->GetChildren();
+
         logicalDisplayNode->ClearChildren();
         logicalDisplayNode->AddChild(rootNode);
     }
@@ -1020,6 +1022,7 @@ std::shared_ptr<RSRenderNode> RSProfiler::GetLogicalDisplay()
     if (rootRenderNode == nullptr) {
         return nullptr;
     }
+
     const auto& children = *rootRenderNode->GetChildren();
     if (children.empty()) {
         return nullptr;

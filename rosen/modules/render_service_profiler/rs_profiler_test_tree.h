@@ -27,7 +27,8 @@ namespace OHOS::Rosen {
 class TestTreeBuilder {
 public:
     TestTreeBuilder();
-    std::vector<std::shared_ptr<RSRenderNode>> Build(RSContext& context, NodeId topId, bool withDisplay);
+    std::vector<std::shared_ptr<RSRenderNode>> Build(RSContext& context, NodeId topId, bool withDisplay,
+        bool withScreenNode = false, bool withPatchedGlobalRoot = false);
 
 private:
     inline static const int startX = 200;
@@ -51,6 +52,8 @@ private:
     Drawing::Image GenerateRandomImage(int width, int height);
     NodeId insideId_;
     bool withDisplay_;
+    bool withScreenNode_;
+    bool withPatchedGlobalRoot_;
     void CreateNode00(RSContext& context, std::vector<std::shared_ptr<RSRenderNode>>& tree);
     void CreateNode01(RSContext& context, std::vector<std::shared_ptr<RSRenderNode>>& tree);
     void CreateNode02(RSContext& context, std::vector<std::shared_ptr<RSRenderNode>>& tree);

@@ -1478,7 +1478,7 @@ private:
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
 
-struct SharedTransitionParam {
+struct RSB_EXPORT SharedTransitionParam {
     SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode, bool isInSameWindow);
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;

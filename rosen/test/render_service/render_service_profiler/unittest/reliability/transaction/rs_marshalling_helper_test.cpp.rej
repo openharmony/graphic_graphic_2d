@@ -1,0 +1,133 @@
+diff a/rosen/test/render_service/render_service_profiler/unittest/reliability/transaction/rs_marshalling_helper_test.cpp b/rosen/test/render_service/render_service_profiler/unittest/reliability/transaction/rs_marshalling_helper_test.cpp	(rejected hunks)
+@@ -311,5 +273,129 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfi
+     EXPECT_TRUE(CheckConsistencyWithPixelMap(pixelMap, position, pixelMapSize));
+ }
+ 
++HWTEST(RSMarshallingHelperTest, UnmarshallingEmpty, TestSize.Level1)
++{
++    Parcel parcel;
++    uint64_t val = 0;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
++    EXPECT_FALSE(ret);
++    EXPECT_EQ(val, 0);
++}
++
++HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusId0, TestSize.Level1)
++{
++    Parcel parcel;
++    uint64_t val = 0;
++    parcel.WriteUint64(val);
++    val = 42;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, 0);
++}
++
++HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusId, TestSize.Level1)
++{
++    Parcel parcel;
++    uint64_t val = 42;
++    parcel.WriteUint64(val);
++    val = 0;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, 42);
++}
++
++HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusIdNoChangeIfZero0, TestSize.Level1)
++{
++    Parcel parcel;
++    uint64_t val = 0;
++    parcel.WriteUint64(val);
++    val = 42;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, 0);
++}
++
++HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusIdNoChangeIfZero, TestSize.Level1)
++{
++    Parcel parcel;
++    uint64_t val = 42;
++    parcel.WriteUint64(val);
++    val = 0;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, 42);
++}
++
++class RSMarshallingHelperMockParcelTest : public testing::Test {
++public:
++    static void SetUpTestCase()
++    {
++        RSProfiler::testing_ = true;
++        RSProfiler::SetMode(Mode::READ);
++    }
++
++    static void TearDownTestCase()
++    {
++        RSProfiler::testing_ = false;
++        RSProfiler::SetMode(Mode::NONE);
++    }
++
++    void SetUp() override
++    {
++        parcel = new (parcelMemory + 1) Parcel;
++    }
++
++    void TearDown() override
++    {
++        parcel->~Parcel();
++    }
++
++private:
++    Parcel* parcel;
++    uint8_t parcelMemory[sizeof(Parcel) + 1];
++
++    static constexpr const uint64_t Flag = 1ull << 62u;
++};
++
++HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusId0, TestSize.Level1)
++{
++    uint64_t val = 0;
++    parcel->WriteUint64(val);
++    val = 42;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(*parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, Flag | 0);
++}
++
++HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusId, TestSize.Level1)
++{
++    uint64_t val = 42;
++    parcel->WriteUint64(val);
++    val = 0;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(*parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, Flag | 42);
++}
++
++HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusIdNoChangeIfZero0, TestSize.Level1)
++{
++    uint64_t val = 0;
++    parcel->WriteUint64(val);
++    val = 42;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(*parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, 0);
++}
++
++HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusIdNoChangeIfZero, TestSize.Level1)
++{
++    uint64_t val = 42;
++    parcel->WriteUint64(val);
++    val = 0;
++    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(*parcel, val);
++    EXPECT_TRUE(ret);
++    EXPECT_EQ(val, Flag | 42);
++}
++
+ } // namespace Rosen
+-} // namespace OHOS
+\ No newline at end of file
++} // namespace OHOS

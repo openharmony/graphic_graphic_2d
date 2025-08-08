@@ -45,7 +45,7 @@ HWTEST_F(RSProfilerArchiveTest, SerializeCharTest, testing::ext::TestSize.Level1
     reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
- 
+
 /*
  * @tc.name: SerializeFloatTest
  * @tc.desc: Test Archive float serialization
@@ -135,7 +135,6 @@ HWTEST_F(RSProfilerArchiveTest, SerializeUInt8Test, testing::ext::TestSize.Level
     reader.Serialize(result);
     EXPECT_EQ(initial, result);
 }
-
 
 /*
  * @tc.name: SerializeUint32Test
@@ -246,6 +245,41 @@ HWTEST_F(RSProfilerArchiveTest, SerializeVectorCustomSerializerTest, testing::ex
     writer.Serialize(initial, SomeStruct::Serialize);
     reader.Serialize(result, SomeStruct::Serialize);
     EXPECT_EQ(initial, result);
+}
+
+H WTEST_F(RSProfilerArchiveTest, SerializeInt16, testing::ext::TestSize.Level1)
+{
+    std::vector<char> buf;
+    DataWriter writer(buf);
+    DataReader reader(buf);
+    int16_t v1 = 0xb00d;
+    uint16_t v2 = 0xdeec;
+
+    writer.Serialize(v1);
+    writer.Serialize(v2);
+    int16_t res1 { 0 };
+    uint16_t res2 { 0 };
+    reader.Serialize(res1);
+    reader.Serialize(res2);
+    EXPECT_EQ(v1, res1);
+    EXPECT_EQ(v2, res2);
+}
+
+HWTEST_F(RSProfilerArchiveTest, SerializeVoid, testing::ext::TestSize.Level1)
+{
+    std::vector<char> buf;
+    DataWriter writer(buf);
+    EXPECT_TRUE(buf.empty());
+    writer.Serialize(nullptr, 100);
+    EXPECT_TRUE(buf.empty());
+
+    int placeholder;
+    void* addr = &placeholder;
+    writer.Serialize(addr, 0);
+    EXPECT_TRUE(buf.empty());
+
+    writer.Serialize(nullptr, 0); // both
+    EXPECT_TRUE(buf.empty());
 }
 
 } // namespace OHOS::Rosen

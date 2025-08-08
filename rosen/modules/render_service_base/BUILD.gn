@@ -859,6 +859,8 @@ ohos_shared_library("librender_service_base") {
     ]
   }
 
+  external_deps += [ "hilog:libhilog" ]
+
   if (rs_enable_gpu) {
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }
@@ -887,6 +889,8 @@ ohos_source_set("librender_service_base_static") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
+
+  external_deps = [ "hilog:libhilog" ]
 
   public_external_deps = []
   if (rosen_is_ohos) {

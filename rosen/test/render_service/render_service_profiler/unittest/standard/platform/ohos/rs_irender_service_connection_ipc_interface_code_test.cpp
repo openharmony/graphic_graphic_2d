@@ -130,8 +130,7 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue002, testing::
         ), 0x00002D);
     EXPECT_EQ(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME), 0x00002E);
-    EXPECT_EQ(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TEST_LOAD_FILE_SUB_TREE), 0x00002F);
+    // TEST_LOAD_FILE_SUB_TREE was 0x00002F
     EXPECT_EQ(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE), 0x000030);
 

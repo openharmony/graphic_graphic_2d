@@ -17,53 +17,14 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "memory/rs_memory_track.h"
 #include "gtest/hwext/gtest-tag.h"
 #include "parameters.h"
-#include "recording/record_cmd.h"
 #include "render_service_profiler/rs_profiler.h"
-#include "render_service_profiler/rs_profiler_settings.h"
+#include "rs_profiler.h"
 #include "test_utils.h"
 
-#include "animation/rs_particle_noise_field.h"
-#include "animation/rs_render_curve_animation.h"
-#include "animation/rs_render_interpolating_spring_animation.h"
-#include "animation/rs_render_keyframe_animation.h"
-#include "animation/rs_render_particle.h"
-#include "animation/rs_render_particle_animation.h"
-#include "animation/rs_render_path_animation.h"
-#include "animation/rs_render_spring_animation.h"
-#include "animation/rs_render_transition.h"
-#include "common/rs_color.h"
-#include "common/rs_common_def.h"
-#include "common/rs_matrix3.h"
-#include "common/rs_vector4.h"
-#include "modifier/rs_render_modifier.h"
-#include "pipeline/rs_draw_cmd.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
-#include "render/rs_blur_filter.h"
-#include "render/rs_filter.h"
-#include "render/rs_gradient_blur_para.h"
-#include "render/rs_image.h"
-#include "render/rs_image_base.h"
-#include "render/rs_light_up_effect_filter.h"
-#include "render/rs_mask.h"
-#include "render/rs_material_filter.h"
-#include "render/rs_motion_blur_filter.h"
-#include "render/rs_path.h"
-#include "render/rs_pixel_map_shader.h"
-#include "render/rs_shader.h"
-#include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "utils/data.h"
-
-#ifdef ROSEN_OHOS
-#include "buffer_utils.h"
-#endif
-#include "recording/mask_cmd_list.h"
-
-#include "property/rs_properties_def.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -99,7 +60,7 @@ void RSMarshallingHelperReliabilityTest::TearDown() {}
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithoutProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithoutProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "0");
     // data should be std::shared_ptr<Drawing::Data>
@@ -110,7 +71,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithoutProf
 
     void* allocated = malloc(length);
     EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
-    
+
     EXPECT_TRUE(CheckConsistencyWithData(data, position));
 }
 
@@ -120,7 +81,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithoutProf
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithoutProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithoutProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "0");
     // data should be std::shared_ptr<Drawing::Data>
@@ -141,7 +102,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithoutPro
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithoutProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithoutProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "0");
 
@@ -149,7 +110,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithout
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 84;
+    const size_t position = 92;
     const size_t pixelMapSize = 80;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
@@ -163,7 +124,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithout
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithoutProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithoutProfiler,
+    TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "0");
 
@@ -171,7 +133,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithou
     options.size.width = 860;
     options.size.height = 520;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 84;
+    const size_t position = 92;
     const size_t pixelMapSize = 80;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
@@ -185,7 +147,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithou
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithoutProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithoutProfiler,
+    TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "0");
 
@@ -193,7 +156,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithoutPr
     options.size.width = 2123;
     options.size.height = 1987;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 84;
+    const size_t position = 92;
     const size_t pixelMapSize = 80;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
@@ -201,14 +164,13 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithoutPr
     EXPECT_TRUE(CheckConsistencyWithPixelMap(pixelMap, position, pixelMapSize));
 }
 
-
 /**
  * @tc.name: ConsistencyWithSmallDataWithProfiler
  * @tc.desc: Verify function marshal, unmarshal and skip is consistent.
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     // data should be std::shared_ptr<Drawing::Data>
@@ -219,17 +181,17 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallDataWithProfile
 
     void* allocated = malloc(length);
     EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
-    
+
     EXPECT_TRUE(CheckConsistencyWithData(data, position));
 }
- 
+
 /**
  * @tc.name: ConsistencyWithMediumDataWithProfiler
  * @tc.desc: Verify function marshal, unmarshal and skip is consistent.
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     Parcel parcel;
@@ -241,7 +203,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithProfil
 
     void* allocated = malloc(length);
     EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
-    
+
     EXPECT_TRUE(CheckConsistencyWithData(data, position));
 }
 
@@ -251,7 +213,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumDataWithProfil
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
 
@@ -259,7 +221,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithPro
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
+    const size_t position = 100;
     const size_t pixelMapSize = 88;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
@@ -273,7 +235,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithPro
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
 
@@ -281,7 +243,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithPr
     options.size.width = 860;
     options.size.height = 520;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
+    const size_t position = 100;
     const size_t pixelMapSize = 88;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
@@ -295,7 +257,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithPr
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfiler, Level1 | Reliability)
+HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfiler, TestSize.Level1 | Reliability)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
 
@@ -303,7 +265,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfi
     options.size.width = 2123;
     options.size.height = 1987;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
+    const size_t position = 100;
     const size_t pixelMapSize = 88;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);

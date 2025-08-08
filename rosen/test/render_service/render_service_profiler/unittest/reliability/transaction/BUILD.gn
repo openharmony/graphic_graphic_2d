@@ -14,14 +14,14 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("../../reliability.gni")
+import("../reliability.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_profiler/reliability/platform/ohos"
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_profiler/reliability/transaction"
 
 ##############################  RSMarshallingHelperReliabilityTest  ##################################
 ohos_unittest("RSMarshallingHelperReliabilityTest") {
   module_out_path = module_output_path
-  defines = []
+  defines = [ "RS_PROFILER_ENABLED" ]
   sources = [ "rs_marshalling_helper_test.cpp" ]
 
   cflags = [
@@ -33,6 +33,7 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
     ":render_test",
     "$reliability_root/utils:test_utils_config",
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/2d_graphics:export_config",
   ]
 
   include_dirs = [
@@ -45,6 +46,7 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
   ]
 
   deps = [
@@ -58,6 +60,15 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
     "graphic_surface:sync_fence",
     "skia:skia_canvaskit",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
+    }
+
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
