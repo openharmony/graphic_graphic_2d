@@ -762,8 +762,8 @@ HWTEST(RSUniRenderProcessorTest, ScaleLayerIfNeeded001, TestSize.Level1)
     EXPECT_EQ(layerInfo.dstRect.x, 1);
 
     screenInfo.isSamplingOn = true;
-    screenInfo.samplingTranslateX = 1.0;
-    screenInfo.samplingTranslateY = 1.0;
+    screenInfo.samplingTranslateX = 1.f;
+    screenInfo.samplingTranslateY = 1.f;
     renderProcessor->screenInfo_ = screenInfo;
     renderProcessor->ScaleLayerIfNeeded(layerInfo);
     EXPECT_EQ(layerInfo.dstRect.x, 2);

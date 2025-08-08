@@ -126,23 +126,36 @@ void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absR
             dstRect = dstRect.IntersectRect(clipRect);
         }
     }
-    if (!node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
-        dstRect.left_ = static_cast<int>(
-            std::round(dstRect.left_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
-        dstRect.top_ = static_cast<int>(
-            std::round(dstRect.top_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
-        dstRect.width_ = static_cast<int>(
-            std::round(dstRect.width_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio()));
-        dstRect.height_ = static_cast<int>(
-            std::round(dstRect.height_ * uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio()));
-    }
+    auto widthRatio = uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio();
+    auto heightRatio = uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio();
+    dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_ * widthRatio));
+    dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_ * heightRatio));
+    dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_ * widthRatio));
+    dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_ * heightRatio));
+
     if (uniRenderVisitor_.curSurfaceNode_ && (node.GetId() != uniRenderVisitor_.curSurfaceNode_->GetId()) &&
         !node.GetHwcGlobalPositionEnabled()) {
         dstRect = dstRect.IntersectRect(uniRenderVisitor_.curSurfaceNode_->GetDstRect());
     }
+    UpdateRenderResolutionDstRectForDrm(node, dstRect);
     // Set the destination rectangle of the node
     node.SetDstRect(dstRect);
     node.SetDstRectWithoutRenderFit(dstRect);
+}
+
+void RSUniHwcVisitor::UpdateRenderResolutionDstRectForDrm(RSSurfaceRenderNode& node, RectI& dstRect)
+{
+    auto widthRatio = uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogWidthRatio();
+    auto heightRatio = uniRenderVisitor_.curScreenNode_->GetScreenInfo().GetRogHeightRatio();
+    if (ROSEN_EQ(widthRatio, 0.f) || ROSEN_EQ(heightRatio, 0.f)) {
+        return;
+    }
+    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        dstRect.left_ = static_cast<int32_t>(std::floor(dstRect.left_ / widthRatio));
+        dstRect.top_ = static_cast<int32_t>(std::floor(dstRect.top_ / heightRatio));
+        dstRect.width_ = static_cast<int32_t>(std::ceil(dstRect.width_ / widthRatio));
+        dstRect.height_ = static_cast<int32_t>(std::ceil(dstRect.height_ / heightRatio));
+    }
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
@@ -1296,7 +1309,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     UpdateSrcRect(node, absMatrix);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
-    // dstRect transform to globalposition after UpdateHwcNodeByTransform
+    // dstRect transform to global position after UpdateHwcNodeByTransform
     UpdateDstRectByGlobalPosition(node);
     UpdateHwcNodeEnableByBufferSize(node);
 }
