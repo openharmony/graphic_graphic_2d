@@ -160,8 +160,14 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return false;
 }
 
-bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    bool checkDrmAndSurfaceLock)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::FreezeScreen(NodeId id, bool isFreeze)
 {
     return false;
 }

@@ -268,14 +268,25 @@ bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> nod
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
-bool RSInterfaces::SetScreenFreezeImmediately(std::shared_ptr<RSDisplayNode> node, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
+    bool checkDrmAndSurfaceLock)
 {
     if (!node) {
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    return renderServiceClient_->SetScreenFreezeImmediately(node->GetId(), isFreeze, callback, captureConfig);
+    return renderServiceClient_->TaskSurfaceCaptureWithAllWindows(
+        node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
+}
+
+bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->FreezeScreen(node->GetId(), isFreeze);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,

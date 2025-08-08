@@ -1512,16 +1512,27 @@ bool DoClearUifirstCache()
     return true;
 }
 
-bool DoSetScreenFreezeImmediately()
+bool DoTaskSurfaceCaptureWithAllWindows()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    NodeId nodeId = GetData<NodeId>();
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    RSSurfaceCaptureConfig captureConfig;
+    rsConn_->TaskSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    return true;
+}
+
+bool DoFreezeScreen()
 {
     if (rsConn_ == nullptr) {
         return false;
     }
     NodeId nodeId = GetData<NodeId>();
     bool isFreeze = GetData<bool>();
-    sptr<RSISurfaceCaptureCallback> callback = nullptr;
-    RSSurfaceCaptureConfig captureConfig;
-    rsConn_->SetScreenFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
+    rsConn_->FreezeScreen(nodeId, isFreeze);
     return true;
 }
 
@@ -1648,7 +1659,8 @@ void DoFuzzerTest3()
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();
     DoClearUifirstCache();
-    DoSetScreenFreezeImmediately();
+    DoTaskSurfaceCaptureWithAllWindows();
+    DoFreezeScreen();
 }
 } // namespace Rosen
 } // namespace OHOS

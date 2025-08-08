@@ -459,7 +459,7 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
+bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -475,11 +475,35 @@ bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
     RSDisplayNodeConfig displayConfig = {
         static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
     auto displayNode = RSDisplayNode::Create(displayConfig);
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    RSSurfaceCaptureConfig captureConfig;
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    return true;
+}
+
+bool DoFreezeScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    RSDisplayNodeConfig displayConfig = {
+        static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
+    auto displayNode = RSDisplayNode::Create(displayConfig);
     bool isFreeze = GetData<bool>();
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetScreenFreezeImmediately(displayNode, isFreeze, callback);
+    rsInterfaces.FreezeScreen(displayNode, isFreeze);
     return true;
 }
 } // namespace Rosen
@@ -504,6 +528,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
-    OHOS::Rosen::DoSetScreenFreezeImmediately(data, size);
+    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

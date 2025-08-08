@@ -3920,7 +3920,87 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
+bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSISurfaceCaptureCallback> surfaceCaptureCallback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+
+    NodeId nodeId = GetData<NodeId>();
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    float scaleX = GetData<float>();
+    float scaleY = GetData<float>();
+    bool useDma = GetData<bool>();
+    bool useCurWindow = GetData<bool>();
+    uint8_t captureType = GetData<uint8_t>();
+    bool isSync = GetData<bool>();
+    bool isHdrCapture = GetData<bool>();
+    bool needF16WindowCaptureForScRGB = GetData<bool>();
+    float left = GetData<float>();
+    float top = GetData<float>();
+    float right = GetData<float>();
+    float bottom = GetData<float>();
+    std::vector<NodeId> blackList{GetData<NodeId>()};
+    NodeId endNodeId = GetData<NodeId>();
+    bool useBeginNodeSize = GetData<bool>();
+    float areaRectLeft = GetData<float>();
+    float areaRectTop = GetData<float>();
+    float areaRectRight = GetData<float>();
+    float areaRectBottom = GetData<float>();
+    uint32_t backGroundColor = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.WriteBool(checkDrmAndSurfaceLock);
+    dataParcel.WriteRemoteObject(surfaceCaptureCallback->AsObject());
+    dataParcel.WriteFloat(scaleX);
+    dataParcel.WriteFloat(scaleY);
+    dataParcel.WriteBool(useDma);
+    dataParcel.WriteBool(useCurWindow);
+    dataParcel.WriteUint8(captureType);
+    dataParcel.WriteBool(isSync);
+    dataParcel.WriteBool(isHdrCapture);
+    dataParcel.WriteBool(needF16WindowCaptureForScRGB);
+    dataParcel.WriteFloat(left);
+    dataParcel.WriteFloat(top);
+    dataParcel.WriteFloat(right);
+    dataParcel.WriteFloat(bottom);
+    dataParcel.WriteUInt64Vector(blackList);
+    dataParcel.WriteUint64(endNodeId);
+    dataParcel.WriteBool(useBeginNodeSize);
+    dataParcel.WriteFloat(areaRectLeft);
+    dataParcel.WriteFloat(areaRectRight);
+    dataParcel.WriteFloat(areaRectTop);
+    dataParcel.WriteFloat(areaRectBottom);
+    dataParcel.WriteUint32(backGroundColor);
+    dataParcel.RewindRead(0);
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoFreezeScreen(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -3947,54 +4027,13 @@ bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
 
     NodeId nodeId = GetData<NodeId>();
     bool isFreeze = GetData<bool>();
-    float scaleX = GetData<float>();
-    float scaleY = GetData<float>();
-    bool useDma = GetData<bool>();
-    bool useCurWindow = GetData<bool>();
-    uint8_t captureType = GetData<uint8_t>();
-    bool isSync = GetData<bool>();
-    bool isHdrCapture = GetData<bool>();
-    bool needF16WindowCaptureForScRGB = GetData<bool>();
-    float left = GetData<float>();
-    float top = GetData<float>();
-    float right = GetData<float>();
-    float bottom = GetData<float>();
-    std::vector<NodeId> blackList{GetData<NodeId>()};
-    NodeId endNodeId = GetData<NodeId>();
-    bool useBeginNodeSize = GetData<bool>();
-    float areaRectLeft = GetData<float>();
-    float areaRectTop = GetData<float>();
-    float areaRectRight = GetData<float>();
-    float areaRectBottom = GetData<float>();
-    uint32_t backGroundColor = GetData<uint32_t>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteBool(isFreeze);
-    dataParcel.WriteRemoteObject(surfaceCaptureCallback->AsObject());
-    dataParcel.WriteFloat(scaleX);
-    dataParcel.WriteFloat(scaleY);
-    dataParcel.WriteBool(useDma);
-    dataParcel.WriteBool(useCurWindow);
-    dataParcel.WriteUint8(captureType);
-    dataParcel.WriteBool(isSync);
-    dataParcel.WriteBool(isHdrCapture);
-    dataParcel.WriteBool(needF16WindowCaptureForScRGB);
-    dataParcel.WriteFloat(left);
-    dataParcel.WriteFloat(top);
-    dataParcel.WriteFloat(right);
-    dataParcel.WriteFloat(bottom);
-    dataParcel.WriteUInt64Vector(blackList);
-    dataParcel.WriteUint64(endNodeId);
-    dataParcel.WriteBool(useBeginNodeSize);
-    dataParcel.WriteFloat(areaRectLeft);
-    dataParcel.WriteFloat(areaRectRight);
-    dataParcel.WriteFloat(areaRectTop);
-    dataParcel.WriteFloat(areaRectBottom);
-    dataParcel.WriteUint32(backGroundColor);
     dataParcel.RewindRead(0);
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -4132,6 +4171,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerIsSecureScreen(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
-    OHOS::Rosen::DoSetScreenFreezeImmediately(data, size);
+    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

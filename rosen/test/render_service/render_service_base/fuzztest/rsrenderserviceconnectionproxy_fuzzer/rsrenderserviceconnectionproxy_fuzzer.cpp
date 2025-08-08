@@ -634,12 +634,38 @@ bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
+bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
-    
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    uint64_t nodeId = GetData<uint64_t>();
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.TaskSurfaceCaptureWithAllWindows(
+        nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    return true;
+}
+
+bool DoFreezeScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
     // initialize
     g_data = data;
     g_size = size;
@@ -648,14 +674,12 @@ bool DoSetScreenFreezeImmediately(const uint8_t* data, size_t size)
     // get data
     uint64_t nodeId = GetData<uint64_t>();
     bool isFreeze = GetData<bool>();
-    sptr<RSISurfaceCaptureCallback> callback;
-    RSSurfaceCaptureConfig captureConfig;
 
     // test
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
-    rsRenderServiceConnectionProxy.SetScreenFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
+    rsRenderServiceConnectionProxy.FreezeScreen(nodeId, isFreeze);
     return true;
 }
 } // namespace Rosen
@@ -682,6 +706,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
-    OHOS::Rosen::DoSetScreenFreezeImmediately(data, size);
+    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

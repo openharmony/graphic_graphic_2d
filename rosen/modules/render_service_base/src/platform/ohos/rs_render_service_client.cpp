@@ -415,17 +415,14 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return true;
 }
 
-bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    bool checkDrmAndSurfaceLock)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("%{public}s renderService == nullptr!", __func__);
         return false;
-    }
-    if (!isFreeze) {
-        renderService->SetScreenFreezeImmediately(id, isFreeze, nullptr, captureConfig);
-        return true;
     }
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr!", __func__);
@@ -448,13 +445,25 @@ bool RSRenderServiceClient::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
         }
     }
 
-    auto ret = renderService->SetScreenFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig);
+    auto ret = renderService->TaskSurfaceCaptureWithAllWindows(
+        id, surfaceCaptureCbDirector_, captureConfig, checkDrmAndSurfaceLock);
     if (ret != ERR_OK) {
         ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
         std::lock_guard<std::mutex> lock(mutex_);
         surfaceCaptureCbMap_.erase(key);
         return false;
     }
+    return true;
+}
+
+bool RSRenderServiceClient::FreezeScreen(NodeId id, bool isFreeze)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("%{public}s renderService == nullptr!", __func__);
+        return false;
+    }
+    renderService->FreezeScreen(id, isFreeze);
     return true;
 }
 
