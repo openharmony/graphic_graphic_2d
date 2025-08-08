@@ -114,7 +114,6 @@ void* HelperThreadforBinXO(void* arg)
     // step2: use func in libbinxo_ld.so to read linkinfo from librs_linkInfo.bin
     // step3: use func in libbinxo_ld.so to load librs_codeCache.so
     // step4: use func in libbinxo_ld.so to modify target so plt to enable rdo
-    RS_LOGI("[RDO] Start RDO");
 
     if (!IsRDOEnable()) {
         RS_LOGI("[RDO] RDO is not enabled");
@@ -127,7 +126,7 @@ void* HelperThreadforBinXO(void* arg)
         return nullptr;
     }
     RDOInstallSignalHandler(RDOSigchainHandler);
-    RS_LOGI("[RDO] RDOInstallSignalHandler true");
+
     char canonicalPath[PATH_MAX] = { 0 };
     if (realpath(g_binXOLoaderPath, canonicalPath) == nullptr) {
         RS_LOGI("[RDO] Failed to canonicalize path");
@@ -175,7 +174,6 @@ void* HelperThreadforBinXO(void* arg)
         }
     }
     close(rdo_pipe[0]);
-    RS_LOGI("[RDO] RDO child pipe closed");
     return nullptr;
 }
  
