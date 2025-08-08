@@ -207,26 +207,6 @@ bool RSScreenRenderParams::GetZoomed() const
     return isZoomed_;
 }
 
-void RSScreenRenderParams::SetHasMirrorScreen(bool hasMirrorScreen)
-{
-    if (hasMirrorScreen) {
-        mirrorDstCount_++;
-    } else {
-        mirrorDstCount_--;
-    }
-    bool ret = (mirrorDstCount_ != 0);
-    if (hasMirrorScreen_ == ret) {
-        return;
-    }
-    needSync_ = true;
-    hasMirrorScreen_ = hasMirrorScreen;
-}
-
-bool RSScreenRenderParams::HasMirrorScreen() const
-{
-    return hasMirrorScreen_;
-}
-
 void RSScreenRenderParams::SetTargetSurfaceRenderNodeDrawable(
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
@@ -301,6 +281,26 @@ std::string RSScreenRenderParams::ToString() const
 DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSScreenRenderParams::GetMirrorSourceDrawable()
 {
     return mirrorSourceDrawable_;
+}
+
+void RSScreenRenderParams::SetHasMirrorScreen(bool hasMirrorScreen)
+{
+    if (hasMirrorScreen) {
+        mirrorDstCount_++;
+    } else {
+        mirrorDstCount_--;
+    }
+    bool ret = (mirrorDstCount_ != 0);
+    if (hasMirrorScreen_ == ret) {
+        return;
+    }
+    needSync_ = true;
+    hasMirrorScreen_ = hasMirrorScreen;
+}
+
+bool RSScreenRenderParams::HasMirrorScreen() const
+{
+    return hasMirrorScreen_;
 }
 
 void RSScreenRenderParams::SetDrawnRegion(const Occlusion::Region& region)
