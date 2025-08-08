@@ -80,7 +80,6 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
         protectedSurfaceBufferList_.clear();
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
@@ -587,7 +586,6 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
         protectedSurfaceBufferList_.clear();
     }
 }
@@ -605,7 +603,6 @@ void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
         protectedSurfaceBufferList_.clear();
     }
     pixelFormat_ = pixelFormat;
