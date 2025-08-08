@@ -33,12 +33,15 @@ namespace OHOS {
 namespace Rosen {
 #ifdef RS_ENABLE_RDO
 #define MAX_PATH_LENGTH 128
+#define MSG_LEN 64
 constexpr const char *RDOPARAM = "persist.graphic.profiler.renderservice.rdo.enable";
 constexpr const char *RDOINITPARAM = "persist.graphic.profiler.renderservice.rdo.init.successed";
 static char g_codeCachePath[MAX_PATH_LENGTH] = "/system/lib64/librender_service_codeCache.so";
 static char g_linkInfoPath[MAX_PATH_LENGTH] = "/system/etc/librender_service_linkInfo.bin";
 static char g_binXOLoaderPath[MAX_PATH_LENGTH] = "/vendor/lib64/libbinxo_ld.so";
- 
+static const char *MSG_INFO = "RDO_CRASH";
+static int rdo_pipe[2];
+
 #ifndef NSIG
 #define NSIG 64
 #endif
@@ -79,27 +82,28 @@ static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t* si)
  
 static void RDOSigchainHandler(int signo, siginfo_t* si, void* context)
 {
-    SetRDOParam("false");
+    write(rdo_pipe[1], MSG_INFO, strlen(MSG_INFO));
+    close(rdo_pipe[1]);
     ResetAndRethrowSignalIfNeed(signo, si);
 }
  
-static void InstallSigActionHandler(int signo)
+static void InstallSigActionHandler(int signo, void (*SigHandler)(int, siginfo_t *, void *))
 {
     struct sigaction action;
     memset_s(&action, sizeof(action), 0, sizeof(action));
     sigfillset(&action.sa_mask);
-    action.sa_sigaction = RDOSigchainHandler;
+    action.sa_sigaction = SigHandler;
     action.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
     if (sigaction(signo, &action, &(g_oldSigactionList[signo])) != 0) {
         RS_LOGI("[RDO] Failed to register signal(%{public}d)", signo);
     }
 }
  
-static void RDOInstallSignalHandler()
+static void RDOInstallSignalHandler(void (*SigHandler)(int, siginfo_t *, void *))
 {
     for (size_t i = 0; i < kSignalListSize; i++) {
         int32_t signo = RDO_SIGCHAIN_CRASH_SIGNAL_LIST[i];
-        InstallSigActionHandler(signo);
+        InstallSigActionHandler(signo, SigHandler);
     }
 }
  
@@ -117,16 +121,23 @@ void* HelperThreadforBinXO(void* arg)
         return nullptr;
     }
     system::SetParameter(RDOINITPARAM, "false");
-    RDOInstallSignalHandler();
+
+    if (pipe(rdo_pipe) == -1) {
+        RS_LOGI("[RDO] pipe alloc error");
+        return nullptr;
+    }
+    RDOInstallSignalHandler(RDOSigchainHandler);
     RS_LOGI("[RDO] RDOInstallSignalHandler true");
     char canonicalPath[PATH_MAX] = { 0 };
     if (realpath(g_binXOLoaderPath, canonicalPath) == nullptr) {
         RS_LOGI("[RDO] Failed to canonicalize path");
+        close(rdo_pipe[0]);
         return nullptr;
     }
     void* handle = dlopen(canonicalPath, RTLD_NOW);
     if (!handle) {
         RS_LOGI("[RDO] dlopen libbinxo_ld.so failed");
+        close(rdo_pipe[0]);
         return nullptr;
     }
 
@@ -139,6 +150,7 @@ void* HelperThreadforBinXO(void* arg)
     if (!readInfo || !loadCC || !linkAll) {
         RS_LOGI("[RDO] Failed to load rdo function");
         dlclose(handle);
+        close(rdo_pipe[0]);
         return nullptr;
     }
     // Read linkinfo from  librs_linkInfo.bin
@@ -151,6 +163,19 @@ void* HelperThreadforBinXO(void* arg)
     dlclose(handle);
 
     system::SetParameter(RDOINITPARAM, "true");
+
+    RS_LOGI("[RDO] RDO finish, wait msg");
+    char msg_buf[MSG_LEN];
+    memset_s(msg_buf, sizeof(msg_buf), 0, sizeof(msg_buf));
+    if (read(rdo_pipe[0], msg_buf, MSG_LEN) > 0) {
+        RS_LOGI("[RDO] child process received message %{public}s", msg_buf);
+        if (strcmp(msg_buf, MSG_INFO) == 0) {
+            SetRDOParam("false");
+            RS_LOGI("[RDO] RDO disable");
+        }
+    }
+    close(rdo_pipe[0]);
+    RS_LOGI("[RDO] RDO child pipe closed");
     return nullptr;
 }
  
@@ -160,7 +185,7 @@ __attribute__((visibility("default"))) int32_t EnableRSCodeCache()
     pthread_t id = 0;
     int ret = pthread_create(&id, nullptr, HelperThreadforBinXO, nullptr);
     if (ret != 0) {
-        RS_LOGE("[RDO] pthread_create failed with error code %d", ret);
+        RS_LOGE("[RDO] pthread_create failed with error code %{public}d", ret);
     }
     pthread_setname_np(id, "binxo_helper_thread");
     pthread_detach(id);
