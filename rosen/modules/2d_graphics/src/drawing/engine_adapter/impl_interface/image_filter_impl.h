@@ -58,7 +58,8 @@ enum class HDSampleType : uint8_t {
 
 struct HDSampleInfo {
     HDSampleType type = HDSampleType::SLR;
-    float alpha = 0.15f; // sharpness for laplas in SLR
+    float beta[2] = {1.0f, 1.0f}; // used in SLR for adjusting image definition.
+    float alpha = 0.15f;          // used for adjusting sharpness.
     bool isUniformScale = false;
 };
 
