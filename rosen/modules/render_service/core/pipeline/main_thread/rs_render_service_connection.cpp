@@ -106,6 +106,8 @@ const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
+constexpr uint32_t PIDLIST_SIZE_MAX = 128;
+constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -481,6 +483,12 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
         node->GetId(), node->GetName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
     auto defaultUsage = surface->GetDefaultUsage();
+    auto nodeId = node->GetId();
+    bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
+        mainThread_->IsGpuDirtyEnable(nodeId) && config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    if (isUseSelfDrawBufferUsage) {
+        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
     RSMainThread* mainThread = mainThread_;
@@ -3198,6 +3206,24 @@ ErrCode RSRenderServiceConnection::DropFrameByPid(const std::vector<int32_t> pid
                 return;
             }
             connection->mainThread_->AddPidNeedDropFrame(pidList);
+        }
+    );
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList)
+{
+    if (!mainThread_ || pidList.size() > PIDLIST_SIZE_MAX) {
+        return ERR_INVALID_VALUE;
+    }
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), pidList]() {
+            // don't use 'this' directly
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->SetSelfDrawingGpuDirtyPidList(pidList);
         }
     );
     return ERR_OK;

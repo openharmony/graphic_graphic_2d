@@ -47,7 +47,9 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
         return false;
     }
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
-    if (src == nullptr || !src->curFrameDirtyEnable) {
+    // Determine whether current frame dirty region is valid and application enable self drawning dirty region
+    bool isSelfDrawingDirtyRegionEnable = src != nullptr && src->curFrameDirtyEnable && src->gpuDirtyEnable;
+    if (!isSelfDrawingDirtyRegionEnable) {
         return false;
     }
     // when layer don't have dirty region, the right and bottom of Gpu Dirty Region are initialized to minimum values
@@ -67,6 +69,17 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
     }
     rect = { src->left, src->top, src->right - src->left, src->bottom - src->top };
     return true;
+}
+
+void RSGpuDirtyCollector::SetGpuDirtyEnabled(const sptr<SurfaceBuffer> &buffer, bool gpuDirtyEnable)
+{
+    if (buffer == nullptr) {
+        return;
+    }
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    if (src != nullptr) {
+        src->gpuDirtyEnable = RSSystemProperties::GetGpuDirtyApsEnabled() && gpuDirtyEnable;
+    }
 }
 #endif
 } // namespace Rosen

@@ -53,6 +53,7 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     static BufferSelfDrawingData *GetBufferSelfDrawingData(const sptr<SurfaceBuffer> &buffer);
     static bool DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, Rect &rect);
+    static void SetGpuDirtyEnabled(const sptr<SurfaceBuffer> &buffer, bool gpuDirtyEnable);
 #endif
 };
 } // namespace Rosen

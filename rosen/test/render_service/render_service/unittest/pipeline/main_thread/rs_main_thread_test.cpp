@@ -6421,4 +6421,55 @@ HWTEST_F(RSMainThreadTest, SetForceRsDVsync001, TestSize.Level1)
     }
     mainThread->SetForceRsDVsync(sceneId);
 }
+
+/**
+ * @tc.name: SetSelfDrawingGpuDirtyPidList
+ * @tc.desc: Test SetSelfDrawingGpuDirtyPidList
+ * @tc.type: FUNC
+ * @tc.require: issueICR2M7
+ */
+HWTEST_F(RSMainThreadTest, SetSelfDrawingGpuDirtyPidList, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->SetSelfDrawingGpuDirtyPidList({ExtractPid(surfaceNode->GetId())});
+    ASSERT_EQ(mainThread->selfDrawingGpuDirtyPidList_.size(), 1);
+}
+
+/**
+ * @tc.name: IsGpuDirtyEnable001
+ * @tc.desc: Test IsGpuDirtyEnable while pid satisfy
+ * @tc.type: FUNC
+ * @tc.require: issueICR2M7
+ */
+HWTEST_F(RSMainThreadTest, IsGpuDirtyEnable001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->SetSelfDrawingGpuDirtyPidList({ExtractPid(surfaceNode->GetId())});
+    ASSERT_TRUE(mainThread->IsGpuDirtyEnable(surfaceNode->GetId()));
+}
+ 
+/**
+ * @tc.name: IsGpuDirtyEnablePid002
+ * @tc.desc: Test IsGpuDirtyEnable while pid not satisfy
+ * @tc.type: FUNC
+ * @tc.require: issueICR2M7
+ */
+HWTEST_F(RSMainThreadTest, IsGpuDirtyEnable002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->SetSelfDrawingGpuDirtyPidList({});
+    ASSERT_FALSE(mainThread->IsGpuDirtyEnable(surfaceNode->GetId()));
+}
 } // namespace OHOS::Rosen

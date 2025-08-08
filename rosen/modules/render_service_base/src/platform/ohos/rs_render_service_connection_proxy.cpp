@@ -5817,5 +5817,10 @@ void RSRenderServiceConnectionProxy::ClearUifirstCache(NodeId id)
         return;
     }
 }
+
+ErrCode RSRenderServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList)
+{
+    return ERR_INVALID_VALUE;
+}
 } // namespace Rosen
 } // namespace OHOS

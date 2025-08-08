@@ -201,4 +201,41 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute004, TestSize.Level1)
     ASSERT_EQ(isDirtyRectValid, true);
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
+
+/**
+ * @tc.name: SetGpuDirtyEnabled001
+ * @tc.desc: Test SetGpuDirtyEnabled when buffer is invalid
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, SetGpuDirtyEnabled001, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+ 
+    RSGpuDirtyCollector::SetGpuDirtyEnabled(nullptr, true);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, true);
+    ASSERT_EQ(src, nullptr);
+}
+ 
+/**
+ * @tc.name: SetGpuDirtyEnabled002
+ * @tc.desc: Test SetGpuDirtyEnabled when buffer is valid
+ * @tc.type:FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, SetGpuDirtyEnabled002, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    auto config = requestConfig;
+    config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    auto ret = buffer->Alloc(config);
+    ASSERT_EQ(ret, GSERROR_OK);
+ 
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, true);
+    ASSERT_EQ(src->gpuDirtyEnable, false);
+}
 } // namespace OHOS::Rosen
