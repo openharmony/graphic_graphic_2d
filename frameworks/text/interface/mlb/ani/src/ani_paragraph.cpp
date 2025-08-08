@@ -41,7 +41,7 @@ namespace {
     const std::string GET_RECTS_SIGN = std::string(ANI_INTERFACE_RANGE) + std::string(ANI_ENUM_RECT_WIDTH_STYLE)
         + std::string(ANI_ENUM_RECT_HEIGHT_STYLE) + ":" + std::string(ANI_ARRAY);
     const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGN = "DD:" + std::string(ANI_INTERFACE_POSITION_WITH_AFFINITY);
-    const std::string GET_WORD_BOUNDARY_SIGN = "D:" + std::string(ANI_INTERFACE_RANGE);
+    const std::string GET_WORD_BOUNDARY_SIGN = "I:" + std::string(ANI_INTERFACE_RANGE);
     const std::string GET_TEXT_LINES_SIGN = ":" + std::string(ANI_ARRAY);
     const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "IZ:" + std::string(ANI_INTERFACE_RANGE);
 } // namespace
