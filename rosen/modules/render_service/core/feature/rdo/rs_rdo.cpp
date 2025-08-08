@@ -41,7 +41,6 @@ static char g_linkInfoPath[MAX_PATH_LENGTH] = "/system/etc/librender_service_lin
 static char g_binXOLoaderPath[MAX_PATH_LENGTH] = "/vendor/lib64/libbinxo_ld.so";
 static const char *MSG_INFO = "RDO_CRASH";
 static int rdo_pipe[2];
-
 #ifndef NSIG
 #define NSIG 64
 #endif
@@ -54,7 +53,7 @@ static void SetRDOParam(const char* value)
 {
     system::SetParameter(RDOPARAM, value);
 }
- 
+
 static bool IsRDOEnable()
 {
     std::string rdoFlagValue = system::GetParameter(RDOPARAM, "undef");
@@ -63,7 +62,7 @@ static bool IsRDOEnable()
     RS_LOGI("[RDO] Is RDO init successfully: %{public}s", rdoInitValue.c_str());
     return (rdoFlagValue == "true" && rdoInitValue == "true");
 }
- 
+
 static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t* si)
 {
     if (g_oldSigactionList[signo].sa_sigaction == nullptr) {
@@ -86,7 +85,7 @@ static void RDOSigchainHandler(int signo, siginfo_t* si, void* context)
     close(rdo_pipe[1]);
     ResetAndRethrowSignalIfNeed(signo, si);
 }
- 
+
 static void InstallSigActionHandler(int signo, void (*SigHandler)(int, siginfo_t *, void *))
 {
     struct sigaction action;
@@ -98,7 +97,7 @@ static void InstallSigActionHandler(int signo, void (*SigHandler)(int, siginfo_t
         RS_LOGI("[RDO] Failed to register signal(%{public}d)", signo);
     }
 }
- 
+
 static void RDOInstallSignalHandler(void (*SigHandler)(int, siginfo_t *, void *))
 {
     for (size_t i = 0; i < kSignalListSize; i++) {
@@ -106,7 +105,22 @@ static void RDOInstallSignalHandler(void (*SigHandler)(int, siginfo_t *, void *)
         InstallSigActionHandler(signo, SigHandler);
     }
 }
- 
+
+static void ProcessPipeMessage(int pipe_fd)
+{
+    char msg_buf[MSG_LEN];
+    memset_s(msg_buf, sizeof(msg_buf), 0, sizeof(msg_buf));
+    if (read(pipe_fd, msg_buf, MSG_LEN) > 0) {
+        RS_LOGI("[RDO] child process received message %{public}s", msg_buf);
+        if (strcmp(msg_buf, MSG_INFO) == 0) {
+            SetRDOParam("false");
+            RS_LOGI("[RDO] RDO disable");
+        }
+    }
+    close(pipe_fd);
+    RS_LOGI("[RDO] RDO child pipe closed");
+}
+
 void* HelperThreadforBinXO(void* arg)
 {
     // For feature RDO:
@@ -162,18 +176,10 @@ void* HelperThreadforBinXO(void* arg)
     dlclose(handle);
 
     system::SetParameter(RDOINITPARAM, "true");
-
+ 
     RS_LOGI("[RDO] RDO finish, wait msg");
-    char msg_buf[MSG_LEN];
-    memset_s(msg_buf, sizeof(msg_buf), 0, sizeof(msg_buf));
-    if (read(rdo_pipe[0], msg_buf, MSG_LEN) > 0) {
-        RS_LOGI("[RDO] child process received message %{public}s", msg_buf);
-        if (strcmp(msg_buf, MSG_INFO) == 0) {
-            SetRDOParam("false");
-            RS_LOGI("[RDO] RDO disable");
-        }
-    }
-    close(rdo_pipe[0]);
+    ProcessPipeMessage(rdo_pipe[0]);
+ 
     return nullptr;
 }
  
