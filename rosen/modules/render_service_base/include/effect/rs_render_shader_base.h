@@ -116,6 +116,47 @@ DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
     ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
 );
 
+DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color0),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color1),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color2),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color3),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color4),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color5),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color6),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color7),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color8),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color9),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color10),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color11),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position0),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position1),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position2),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position3),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position4),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position5),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position6),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position7),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position8),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position9),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position10),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position11),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength0),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength1),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength2),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength3),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength4),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength5),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength6),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength7),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength8),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength9),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength10),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength11),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
+    ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHADER
 

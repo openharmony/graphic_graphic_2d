@@ -18,6 +18,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
 #include "ui_effect/property/include/rs_ui_blur_filter.h"
 #include "ui_effect/property/include/rs_ui_content_light_filter.h"
@@ -26,6 +27,7 @@
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -4100,6 +4102,28 @@ HWTEST_F(RSNodeTest, CreateBlurFilter002, TestSize.Level2)
     rsNode->SetBackgroundFilter(backgroundFilter);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[2]);
+}
+
+/**
+ * @tc.name: SetVisualEffect003
+ * @tc.desc: test results of SetVisualEfect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEfffect003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto effectObj = std::make_shared<VisualEffect>();
+    auto para = std::make_shared<BackgroundColorEffectPara>();
+    effectObj->AddPara(para);
+    auto colorGradient = std::make_shared<ColorGradientEffectPara>();
+    effectObj->AddPara(colorGradient);
+    rsNode->SetVisualEffect(effectObj.get());
+    auto& modifier = rsNode->modifiersNGCreatedBySetter_[static_cast<uint16_t>(
+        ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSProperty::BACKGROUND_NG_SHADER));
+    std::shared_ptr<VisualEffectPara> effectPara = nullptr;
+    auto shader = RSNGShaderBase::Create(effectPara);
+    EXPECT_TRUE(shader == nullptr);
 }
 
 /**
