@@ -76,7 +76,7 @@ public:
 
     void SetUseScreenShotWithHDR(bool enableHdrCapture)
     {
-        useScreenShotWithHDR_ = enableHdrCapture && displayNodeDrawable_ && pixelMapHDR_;
+        useScreenShotWithHDR_ = enableHdrCapture;
     }
 
     static void ClearCacheImageByFreeze(NodeId id);
