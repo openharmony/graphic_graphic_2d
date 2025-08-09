@@ -24,7 +24,6 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -163,8 +162,7 @@ bool DoAttachModifier(const uint8_t* data, size_t size)
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    prop->AttachModifier(modifier);
+    prop->AttachModifier(nullptr);
     return true;
 }
 
