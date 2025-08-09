@@ -144,6 +144,25 @@ JsFontCollection::JsFontCollection()
     fontcollection_ = OHOS::Rosen::FontCollection::From(nullptr);
 }
 
+
+void JsFontCollection::SetFontCollection(
+    napi_env env, napi_value obj, std::shared_ptr<FontCollection> fontCollection)
+{
+    if (env == nullptr || obj == nullptr || fontCollection == nullptr) {
+        TEXT_LOGE("Invalid arguments");
+        return;
+    }
+
+    napi_value pointerValue = nullptr;
+    JsFontCollection* me = napi_unwrap(env, obj, (void **)(&pointerValue)) == napi_ok ?
+        reinterpret_cast<JsFontCollection*>(pointerValue) : nullptr;
+    if (me == nullptr) {
+        TEXT_LOGE("Failed to unwrap JsFontCollection");
+        return;
+    }
+    me->fontcollection_ = fontCollection;
+}
+
 std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()
 {
     return fontcollection_;
