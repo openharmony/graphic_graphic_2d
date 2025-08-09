@@ -237,6 +237,9 @@ RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::
 
 void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
 {
+    if (isBootAnimation) {
+        RSSystemProperties::SetTypicalResidentProcess(true);
+    }
     isBootAnimation_ = isBootAnimation;
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetBootAnimation>(GetId(), isBootAnimation);
     AddCommand(command, true);
