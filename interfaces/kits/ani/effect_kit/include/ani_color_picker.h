@@ -31,10 +31,10 @@ public:
 
     static ani_object GetMainColorSync(ani_env* env, ani_object obj);
     static ani_object GetLargestProportionColor(ani_env* env, ani_object obj);
-    static ani_object GetTopProportionColors(ani_env* env, ani_object obj, ani_double colorCount);
+    static ani_object GetTopProportionColors(ani_env* env, ani_object obj, ani_int colorCount);
     static ani_object GetHighestSaturationColor(ani_env* env, ani_object obj);
     static ani_object GetAverageColor(ani_env* env, ani_object obj);
-    static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_double colorValue);
+    static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_int colorValue);
 
     std::shared_ptr<ColorPicker> nativeColorPicker_ = nullptr;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
