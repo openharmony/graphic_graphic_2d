@@ -15,10 +15,10 @@
 
 #ifndef MULTISCREEN_PARAM_H
 #define MULTISCREEN_PARAM_H
- 
-#include "feature_param.h"
+
 #include "draw/canvas.h"
- 
+#include "feature_param.h"
+
 namespace OHOS::Rosen {
 class MultiScreenParam : public FeatureParam {
 public:
