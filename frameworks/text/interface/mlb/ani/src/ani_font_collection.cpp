@@ -25,6 +25,9 @@
 #include "fontcollection_napi/js_fontcollection.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -221,19 +224,45 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
     return object;
 }
 
-ani_object AniFontCollection::NativeTransferDynamic(ani_env* env, ani_class cls, ani_long nativeObj)
+ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
     AniFontCollection* aniFontCollection = reinterpret_cast<AniFontCollection*>(nativeObj);
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
-        return AniTextUtils::CreateAniUndefined(env);
+        return AniTextUtils::CreateAniUndefined(aniEnv);
     }
-    napi_env napi_env = {};
-    if (!arkts_napi_scope_open(env, &napi_env)) {
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
         TEXT_LOGE("Failed to open napi scope");
-        return AniTextUtils::CreateAniUndefined(env);
+        return AniTextUtils::CreateAniUndefined(aniEnv);
     }
 
-    return nullptr;
+    napi_value objValue = {};
+    if (napi_create_object(napiEnv, &objValue) != napi_ok) {
+        TEXT_LOGE("Failed to create napi object");
+        return AniTextUtils::CreateAniUndefined(aniEnv);
+    }
+
+    objValue = JsFontCollection::Init(napiEnv, objValue);
+    JsFontCollection::SetFontCollection(napiEnv, objValue, aniFontCollection->GetFontCollection());
+
+    hybridgref ref = nullptr;
+    if(!hybridgref_create_from_napi(napiEnv, objValue, &ref)) {
+        TEXT_LOGE("Failed to create hybrid reference");
+        return AniTextUtils::CreateAniUndefined(aniEnv);
+    }
+
+    ani_object result = nullptr;
+    if (!hybridgref_get_esvalue(aniEnv, ref, &result)) {
+        TEXT_LOGE("Failed to get esvalue from hybrid reference");
+        return AniTextUtils::CreateAniUndefined(aniEnv);
+    }
+
+    hybridgref_delete_from_napi(napiEnv, ref);
+    if (!arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr)) {
+        TEXT_LOGE("Failed to close napi scope");
+        return AniTextUtils::CreateAniUndefined(aniEnv);
+    }
+    return result;
 }
 } // namespace OHOS::Text::ANI

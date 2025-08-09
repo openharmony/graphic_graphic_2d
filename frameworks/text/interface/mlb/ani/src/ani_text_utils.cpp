@@ -61,7 +61,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
         TEXT_LOGE("Failed to new err, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
-    status = env->Object_SetPropertyByName_Double(err, "code", static_cast<ani_int>(error));
+    status = env->Object_SetPropertyByName_Int(err, "code", static_cast<ani_int>(error));
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to set code, status:%{public}d", static_cast<int32_t>(status));
         return status;

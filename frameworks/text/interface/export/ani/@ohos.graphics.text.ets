@@ -78,20 +78,26 @@ namespace text {
     native clearCaches(): void;
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      hilog.info(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `FontCollection transfer static, input: ${input}`);
+      hilog.info(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `FontCollection transfer static, input: ${JSON.stringify(input)}`);
       let fontCollection: ESValue = ESValue.wrap(input);
       if (fontCollection != ESValue.Undefined) {
-        return nativeTransferStatic(fontCollection);
+        return FontCollection.nativeTransferStatic(fontCollection);
       } else {
-        return nativeTransferStatic(ESValue.wrap(input));
+        return FontCollection.nativeTransferStatic(ESValue.wrap(input));
       }
     }
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
-      hilog.info(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `FontCollection transfer dynamic, input: ${input}`);
       if (input instanceof FontCollection) {
-        return nativeTransferDynamic((input as FontCollection).nativeObj).unwrap();
+        let esValue: ESValue = FontCollection.nativeTransferDynamic((input as FontCollection).nativeObj);
+        if (esValue) {
+          return esValue.unwrap();
+        } else {
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer FontCollection to dynamic, input: ${JSON.stringify(input)}`);
+          return esValue;
+        }
       } else {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not FontCollection`);
         return undefined;
       }
     }
