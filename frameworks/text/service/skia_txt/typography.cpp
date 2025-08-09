@@ -570,7 +570,7 @@ bool Typography::CanPaintAllText() const
     return paragraph_->CanPaintAllText();
 }
 
-std::string_view Typography::GetDumpInfo()
+std::string Typography::GetDumpInfo() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (paragraph_ == nullptr) {

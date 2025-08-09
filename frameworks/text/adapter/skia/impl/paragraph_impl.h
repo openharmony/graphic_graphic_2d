@@ -159,7 +159,7 @@ public:
 
     bool CanPaintAllText() const override;
 
-    std::string_view GetDumpInfo() override;
+    std::string GetDumpInfo() const override;
 
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,

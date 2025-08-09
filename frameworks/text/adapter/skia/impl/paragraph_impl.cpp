@@ -591,7 +591,7 @@ void ParagraphImpl::SetLayoutState(size_t state)
     paragraph_->setState(static_cast<skt::InternalState>(state));
 }
 
-std::string_view ParagraphImpl::GetDumpInfo()
+std::string ParagraphImpl::GetDumpInfo() const
 {
     return paragraph_->GetDumpInfo();
 }

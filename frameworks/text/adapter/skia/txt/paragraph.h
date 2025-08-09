@@ -212,7 +212,7 @@ public:
     virtual bool HasSkipTextBlobDrawing() const = 0;
     virtual void SetSkipTextBlobDrawing(bool state) = 0;
     virtual bool CanPaintAllText() const = 0;
-    virtual std::string_view GetDumpInfo() = 0;
+    virtual std::string GetDumpInfo() const = 0;
 };
 } // namespace SPText
 } // namespace Rosen
