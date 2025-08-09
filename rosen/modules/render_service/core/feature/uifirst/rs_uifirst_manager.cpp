@@ -43,6 +43,7 @@ namespace {
     constexpr int EVENT_STOP_TIMEOUT = 150;
     constexpr int EVENT_DISABLE_UIFIRST_GAP = 100;
     constexpr int CLEAR_CACHE_DELAY = 400;
+    constexpr size_t MAX_CLEAR_CACHE_NODE_COUNT = 500; // 500 is the maximum number of nodes can be added to the list.
     const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
     constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
     constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
@@ -2314,12 +2315,14 @@ bool RSUifirstManager::IsExceededWindowsThreshold(const RSSurfaceRenderNode& nod
 
 void RSUifirstManager::AddMarkedClearCacheNode(NodeId id)
 {
-    RS_TRACE_NAME_FMT("AddMarkedClearCacheNode %" PRIu64, id);
-    RS_LOGI("AddMarkedClearCacheNode %{public}" PRIu64, id);
-    if (id == INVALID_NODEID) {
+    if (id == INVALID_NODEID || markedClearCacheNodes_.size() >= MAX_CLEAR_CACHE_NODE_COUNT) {
+        RS_LOGE("AddMarkedClearCacheNode failed. id %{public}" PRIu64 ", size:%{public}zu",
+            id, markedClearCacheNodes_.size());
         return;
     }
-
+    
+    RS_TRACE_NAME_FMT("AddMarkedClearCacheNode %" PRIu64, id);
+    RS_LOGI("AddMarkedClearCacheNode %{public}" PRIu64, id);
     markedClearCacheNodes_.insert(id);
 }
 
