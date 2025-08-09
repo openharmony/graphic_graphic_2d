@@ -212,4 +212,54 @@ HWTEST_F(RSNGRenderShaderBaseTest, CheckEnableEDR001, TestSize.Level1)
     EXPECT_EQ(chained->GetType(), RSNGEffectType::AURORA_NOISE);
 }
 
+/**
+ * @tc.name: SetRotationAngle
+ * @tc.desc: test SetRotationAngle
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, SetRotationAngle001, TestSize.Level1)
+{
+    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    const Vector3f rotationAngle = {0.0f, 0.0f, 0.0f};
+    {
+        RSNGRenderShaderHelper::SetRotationAngle(head, rotationAngle);
+    }
+    {
+        RSNGRenderShaderHelper::SetRotationAngle(nullptr, rotationAngle);
+    }
+    {
+        head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+        RSNGRenderShaderHelper::SetRotationAngle(head, rotationAngle);
+    }
+    {
+        RSNGRenderShaderHelper::SetRotationAngle(head, rotationAngle);
+    }
+    EXPECT_NE(head, nullptr);
+}
+ 
+/**
+ * @tc.name: SetCornerRadius
+ * @tc.desc: test SetCornerRadius
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, SetCornerRadius001, TestSize.Level1)
+{
+    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    const float cornerRadius = 0.0f;
+    {
+        RSNGRenderShaderHelper::SetCornerRadius(head, cornerRadius);
+    }
+    {
+        RSNGRenderShaderHelper::SetCornerRadius(nullptr, cornerRadius);
+    }
+    {
+        head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+        RSNGRenderShaderHelper::SetCornerRadius(head, cornerRadius);
+    }
+    {
+        RSNGRenderShaderHelper::SetCornerRadius(head, cornerRadius);
+    }
+    EXPECT_NE(head, nullptr);
+}
+
 } // namespace OHOS::Rosen
