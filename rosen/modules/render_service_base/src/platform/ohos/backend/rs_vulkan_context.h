@@ -456,8 +456,8 @@ public:
     }
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> GetDrawingContext(const std::string& cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext(const std::string& cacheDir = "");
     static void ReleaseDrawingContextMap();
     static void ReleaseRecyclableDrawingContext();
     static void ReleaseDrawingContextForThread(int tid);

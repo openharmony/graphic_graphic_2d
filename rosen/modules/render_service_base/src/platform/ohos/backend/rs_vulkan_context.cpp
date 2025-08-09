@@ -663,6 +663,9 @@ RsVulkanContext::~RsVulkanContext()
 
 void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheDir)
 {
+    if (cacheDir.empty()) {
+        RS_TRACE_NAME("Init hybrid render vk context without cache dir, this may cause redundant shader compiling.");
+    }
     auto vulkanInterface = std::make_shared<RsVulkanInterface>();
     vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
     // init drawing context for RT thread bind to backendContext.
@@ -756,10 +759,10 @@ void RsVulkanContext::ReleaseRecyclableSingleton()
     }
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetRecyclableDrawingContext()
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetRecyclableDrawingContext(const std::string& cacheDir)
 {
     // 1. get or create drawing context and save it in the map
-    auto drawingContext = RsVulkanContext::GetDrawingContext();
+    auto drawingContext = RsVulkanContext::GetDrawingContext(cacheDir);
 
     // 2. set recyclable tag for drawingContext when it's valid (i.e it's in the map)
     static thread_local int tidForRecyclable = gettid();
@@ -926,7 +929,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
     return GetRsVulkanInterface().CreateDrawingContext();
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext()
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext(const std::string& cacheDir)
 {
     static thread_local int tidForRecyclable = gettid();
     {
@@ -945,7 +948,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext()
             }
         }
     }
-    return GetRsVulkanInterface().CreateDrawingContext();
+    return GetRsVulkanInterface().CreateDrawingContext(cacheDir);
 }
 
 bool RsVulkanContext::GetIsProtected() const

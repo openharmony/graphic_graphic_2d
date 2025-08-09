@@ -140,9 +140,6 @@ void RSUIDirector::InitHybridRender()
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
-        if (!cacheDir_.empty()) {
-            RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
-        }
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
             std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
@@ -449,6 +446,11 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
+#ifdef RS_ENABLE_VK
+    if (!cacheDir_.empty() && RSSystemProperties::GetHybridRenderEnabled()) {
+        RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+    }
+#endif
 }
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)

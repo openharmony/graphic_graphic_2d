@@ -555,6 +555,33 @@ HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetCacheDir002
+ * @tc.desc: test cache directory can be sync from uidirector to RSModifiersDrawThread
+ * @tc.type: FUNC
+ * @tc.require: issueICR877
+ */
+HWTEST_F(RSUIDirectorTest, SetCacheDir002, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    if (!RSSystemProperties::GetHybridRenderEnabled()) {
+        return;
+    }
+    RSModifiersDrawThread::SetCacheDir("");
+    ASSERT_TRUE(RSModifiersDrawThread::GetCacheDir().empty());
+    // test cacheDir can be set.
+    const std::string& cacheFilePath1 = "test";
+    director->SetCacheDir(cacheFilePath1);
+    ASSERT_FALSE(RSModifiersDrawThread::GetCacheDir().empty());
+    // empty dir can not be set.
+    const std::string& cacheFilePath2 = "";
+    director->SetCacheDir(cacheFilePath2);
+    ASSERT_FALSE(RSModifiersDrawThread::GetCacheDir().empty());
+#endif
+}
+
+/**
  * @tc.name: SetRTRenderForced
  * @tc.desc:
  * @tc.type:FUNC

@@ -28,7 +28,9 @@ namespace OHOS {
 namespace Rosen {
 std::atomic<bool> RSModifiersDrawThread::isStarted_ = false;
 std::recursive_mutex RSModifiersDrawThread::transactionDataMutex_;
+std::shared_mutex RSModifiersDrawThread::cacheDirMtx_;
 bool RSModifiersDrawThread::isFirstFrame_ = true;
+std::string RSModifiersDrawThread::cacheDir_ = "";
 
 RSModifiersDrawThread::RSModifiersDrawThread()
 {
@@ -87,6 +89,15 @@ void RSModifiersDrawThread::SetCacheDir(const std::string& path)
 {
     auto& cache = ShaderCache::Instance();
     cache.SetFilePath(path);
+
+    std::unique_lock<std::shared_mutex> lock(cacheDirMtx_);
+    cacheDir_ = path;
+}
+
+std::string RSModifiersDrawThread::GetCacheDir()
+{
+    std::shared_lock<std::shared_mutex> lock(cacheDirMtx_);
+    return cacheDir_;
 }
 
 #ifdef ACCESSIBILITY_ENABLE
@@ -157,11 +168,11 @@ void RSModifiersDrawThread::Start()
         OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().QueryInterval(
             OHOS::ConcurrentTask::QUERY_MODIFIER_DRAW, reply);
         SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-        // Init shader cache
+        // Init shader cache, shader save delay time differs between uni-render and hybrid-render.
         std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
         auto size = vkVersion.size();
         auto& cache = ShaderCache::Instance();
-        cache.InitShaderCache(vkVersion.c_str(), size, true);
+        cache.InitShaderCache(vkVersion.c_str(), size, false);
     });
     RS_LOGI("%{public}s RSModifiersDrawThread started", __func__);
 }
