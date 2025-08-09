@@ -46,7 +46,6 @@
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_blend_modifier.h"

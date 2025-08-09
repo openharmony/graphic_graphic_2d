@@ -16,22 +16,12 @@
 #ifndef ANIM_CUSTOM_MODIFIER_TEST_H
 #define ANIM_CUSTOM_MODIFIER_TEST_H
 
-#if defined(MODIFIER_NG)
 #include "modifier_ng/custom/rs_content_style_modifier.h"
-#else
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_modifier.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-#if defined(MODIFIER_NG)
 using ContentStyleModifier = Rosen::ModifierNG::RSContentStyleModifier;
 using DrawingContext = Rosen::ModifierNG::RSDrawingContext;
-#else
-using ContentStyleModifier = Rosen::RSContentStyleModifier;
-using DrawingContext = Rosen::RSDrawingContext;
-#endif
 class AnimationCustomModifier : public ContentStyleModifier {
 public:
     ~AnimationCustomModifier() = default;

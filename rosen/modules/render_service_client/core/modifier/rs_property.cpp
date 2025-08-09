@@ -21,7 +21,6 @@
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
 #include "command/rs_node_command.h"
-#include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "platform/common/rs_log.h"
@@ -75,8 +74,6 @@ void RSPropertyBase::MarkNodeDirty()
 {
     if (auto modifier = modifierNG_.lock()) {
         modifier->MarkNodeDirty();
-    } else if (auto modifier = modifier_.lock()) {
-        modifier->MarkNodeDirty();
     }
 }
 
@@ -86,12 +83,7 @@ void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNod
         if (modifier->GetType() == ModifierNG::RSModifierType::BOUNDS ||
             modifier->GetType() == ModifierNG::RSModifierType::FRAME) {
             node->MarkAllExtendModifierDirty();
-            return;
         }
-    }
-
-    if (type_ == RSModifierType::BOUNDS || type_ == RSModifierType::FRAME) {
-        node->MarkAllExtendModifierDirty();
     }
 }
 

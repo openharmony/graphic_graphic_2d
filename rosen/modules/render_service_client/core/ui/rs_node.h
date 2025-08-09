@@ -2072,7 +2072,6 @@ private:
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
-    friend class RSModifier;
     friend class ModifierNG::RSModifier;
     friend class ModifierNG::RSCustomModifier;
     friend class RSBackgroundUIFilterModifier;

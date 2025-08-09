@@ -16,10 +16,8 @@
 #include "gtest/gtest.h"
 #include "feature/occlusion_culling/rs_occlusion_node.h"
 
-#include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_render_node.h"
 

@@ -28,10 +28,8 @@
 #include <unistd.h>
 
 #include "common/rs_common_def.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {

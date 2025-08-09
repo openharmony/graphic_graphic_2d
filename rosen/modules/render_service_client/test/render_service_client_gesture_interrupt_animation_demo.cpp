@@ -21,8 +21,6 @@
 #include "include/core/SkColor.h"
 #include "window.h"
 
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 #include "render/rs_border.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_display_node.h"

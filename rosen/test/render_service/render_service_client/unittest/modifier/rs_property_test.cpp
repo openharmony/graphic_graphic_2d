@@ -20,7 +20,6 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;

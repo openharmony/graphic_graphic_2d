@@ -17,7 +17,6 @@
 #include "gtest/gtest.h"
 #include "animation/rs_animation.h"
 #include "animation/rs_transition.h"
-#include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui_effect/effect/include/brightness_blender.h"
@@ -25,7 +24,6 @@
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
-#include "modifier/rs_modifier.h"
 #include "common/rs_vector4.h"
 
 using namespace testing;

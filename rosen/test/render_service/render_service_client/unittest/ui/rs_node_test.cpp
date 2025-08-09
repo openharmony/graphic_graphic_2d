@@ -33,9 +33,6 @@
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
 #include "feature/composite_layer/rs_composite_layer_utils.h"
-#include "modifier/rs_modifier.h"
-#include "modifier/rs_property_modifier.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "render/rs_filter.h"
@@ -97,14 +94,6 @@ public:
         auto borderOutlineGap = rsNode->GetStagingProperties().GetOutlineDashGap();
         EXPECT_TRUE(borderOutlineWidth.IsNearEqual(params));
         EXPECT_TRUE(borderOutlineGap.IsNearEqual(params));
-    }
-};
-
-class ContentStyleModifierTest : public RSContentStyleModifier {
-public:
-    void Draw(RSDrawingContext& context) const override
-    {
-        return;
     }
 };
 

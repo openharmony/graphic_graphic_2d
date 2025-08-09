@@ -17,7 +17,6 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
-#include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
@@ -160,22 +159,11 @@ void RSPropertyAnimation::InitAdditiveMode()
     if (property_ == nullptr) {
         return;
     }
-
-    switch (property_->type_) {
-        case RSModifierType::QUATERNION:
-            SetAdditive(false);
-            break;
-        default:
-            break;
-    }
 }
 
 void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
 {
     dumpInfo.append(", isCustom:").append(std::to_string(isCustom_));
-    if (property_) {
-        dumpInfo.append(", ModifierType: ").append(std::to_string(static_cast<int16_t>(property_->type_)));
-    }
     if (startValue_) {
         dumpInfo.append(", StartValue: ").append(
             RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty()));

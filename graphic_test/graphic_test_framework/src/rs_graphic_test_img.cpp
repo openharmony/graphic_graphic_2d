@@ -18,8 +18,6 @@
 #include "drawing/draw/core_canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 #include "utils/sampling_options.h"
 
 #define WIDTH_INDEX 2

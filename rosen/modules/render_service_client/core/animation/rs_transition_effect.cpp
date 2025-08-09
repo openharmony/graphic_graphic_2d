@@ -16,7 +16,6 @@
 #include "animation/rs_transition_effect.h"
 
 #include "animation/rs_render_transition_effect.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property.h"
 #include "platform/common/rs_log.h"
 

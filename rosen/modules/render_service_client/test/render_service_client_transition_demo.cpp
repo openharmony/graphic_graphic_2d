@@ -32,8 +32,6 @@
 #endif
 #include "animation/rs_transition.h"
 #include "animation/rs_transition_effect.h"
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_root_node.h"

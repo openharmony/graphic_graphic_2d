@@ -193,11 +193,6 @@ protected:
 
     virtual void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property) {}
 
-    void AttachModifier(const std::shared_ptr<RSModifier>& modifier)
-    {
-        modifier_ = modifier;
-    }
-
     void Attach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier = {})
     {
         target_ = node.weak_from_this();
@@ -241,9 +236,7 @@ protected:
     float GetThresholdByThresholdType(ThresholdType thresholdType) const;
 
     PropertyId id_;
-    RSModifierType type_ { RSModifierType::INVALID };
     std::weak_ptr<RSNode> target_;
-    std::weak_ptr<RSModifier> modifier_;
     std::weak_ptr<ModifierNG::RSModifier> modifierNG_;
 
 private:
