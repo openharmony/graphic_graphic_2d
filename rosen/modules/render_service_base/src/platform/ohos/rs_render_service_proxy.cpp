@@ -18,6 +18,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include <platform/common/rs_log.h>
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -20,6 +20,7 @@
 
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {
