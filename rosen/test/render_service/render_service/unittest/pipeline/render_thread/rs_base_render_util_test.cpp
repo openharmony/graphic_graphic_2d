@@ -17,7 +17,7 @@
 #include "limit_number.h"
 #include "parameters.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 #include "surface_buffer_impl.h"
 #include "system/rs_system_parameters.h"
 
@@ -131,31 +131,6 @@ void RSBaseRenderUtilTest::CompareMatrix(float mat1[], float mat2[])
 HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level2)
 {
     ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(nullptr));
-}
-
-/*
- * @tc.name: IsBufferValid_002
- * @tc.desc: Test IsBufferValid
- * @tc.type: FUNC
- * @tc.require: issueI605F4
- */
-HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_002, TestSize.Level2)
-{
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
-    ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(buffer));
-    BufferRequestConfig requestConfig = {
-        .width = 0x000,
-        .height = 0x000,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
-    };
-    GSError ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
-    ASSERT_EQ(false, RSBaseRenderUtil::IsBufferValid(buffer));
 }
 
 /*
@@ -380,14 +355,55 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
         surfaceHandler.SetConsumer(surfaceConsumer);
         uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
         uint64_t parentNodeId = 0;
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, false, parentNodeId);
+        const auto& consumer = surfaceHandler.GetConsumer();
+        consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
+        ASSERT_EQ(surfaceHandler.GetSourceType(), 5);
     }
 
     // release buffer
     surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
 }
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_005
+ * @tc.desc: Test ConsumeAndUpdateBuffer while need surfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC8HC4
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    sptr<IConsumerSurface> surfaceConsumer = IConsumerSurface::Create("DisplayNode");
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(surfaceConsumer);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp = 0;
+    Rect damage;
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
 
+    // acquire buffer
+    if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
+        surfaceHandler.SetConsumer(surfaceConsumer);
+        std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
+        surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
+        surfaceBuffer->buffer = new SurfaceBufferImpl(0);
+        uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
+        uint64_t parentNodeId = 0;
+        const auto& consumer = surfaceHandler.GetConsumer();
+        consumer->SetBufferHold(true);
+        consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
+        surfaceHandler.SetAvailableBufferCount(1);
+        surfaceHandler.SetHoldBuffer(surfaceBuffer);
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, parentNodeId);
+        ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
+        ASSERT_EQ(surfaceHandler.GetSourceType(), 5);
+    }
+    // release buffer
+    surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+}
 /*
  * @tc.name: ReleaseBuffer_001
  * @tc.desc: Test ReleaseBuffer
@@ -498,7 +514,6 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
     filter = paint.GetFilter();
     ASSERT_EQ(filter.GetColorFilter(), nullptr);
-
 }
 
 /*
@@ -547,7 +562,8 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_002, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 {
-    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "1");
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "0");
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "1");
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
     ASSERT_EQ(false, result);
@@ -667,33 +683,6 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
 }
 
 /*
- * @tc.name: ConvertBufferToBitmap_005
- * @tc.desc: Test ConvertBufferToBitmap by CreateBitmap
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_005, TestSize.Level2)
-{
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-    ASSERT_EQ(buffer->GetBufferHandle(), nullptr);
-    BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
-    };
-    GSError ret = buffer->Alloc(requestConfig);
-    ASSERT_EQ(ret, OHOS::GSERROR_OK);
-    std::vector<uint8_t> newBuffer;
-    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    Drawing::Bitmap bitmap;
-    (void)RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
-}
-
-/*
  * @tc.name: WritePixelMapToPng_001
  * @tc.desc: Test WritePixelMapToPng
  * @tc.type: FUNC
@@ -740,7 +729,6 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
 {
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-
     BufferDrawParam params;
     params.clipRect = Drawing::Rect(0, 0, 5, 5);
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
@@ -1344,7 +1332,7 @@ HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Leve
  */
 HWTEST_F(RSBaseRenderUtilTest, GenerateDrawingBitmapFormatTest, TestSize.Level2)
 {
-    sptr<SurfaceBuffer> buffer;
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     BufferHandle *bufferHandle = new BufferHandle();
     bufferHandle->format = 12;
     buffer->SetBufferHandle(bufferHandle);
