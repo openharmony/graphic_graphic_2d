@@ -6477,7 +6477,7 @@ HWTEST_F(RSMainThreadTest, IsGpuDirtyEnable002, TestSize.Level1)
  * @tc.name: surfaceNodeWatermarksLimit001
  * @tc.desc: Test surfaceNodeWatermarksLimit001
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:ICS7WS
  */
 HWTEST_F(RSMainThreadTest, surfaceNodeWatermarksLimit001, TestSize.Level1)
 {

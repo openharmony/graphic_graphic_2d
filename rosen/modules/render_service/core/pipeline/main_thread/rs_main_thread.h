@@ -797,7 +797,6 @@ private:
     std::condition_variable nodeTreeDumpCondVar_;
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
-
     std::map<std::pair<pid_t, std::string>, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
     std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
 
