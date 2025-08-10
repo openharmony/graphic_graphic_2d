@@ -118,6 +118,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetBackgroundColorBlender),
         DECLARE_NAPI_FUNCTION("borderLight", CreateBorderLight),
+        DECLARE_NAPI_FUNCTION("colorGradient", CreateColorGradientEffect),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -553,5 +554,99 @@ napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_inf
     effectObj->AddPara(para);
     return thisVar;
 }
+
+bool EffectNapi::GetColorGradientArray(napi_env env, napi_value* argValue,
+    std::shared_ptr<ColorGradientEffectPara>& para, uint32_t arraySize)
+{
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, false,
+        UIEFFECT_LOG_E("EffectNapi GetColorGradientArray para is nullptr"));
+    std::vector<Vector4f> colorValue;
+    std::vector<Vector2f> posValue;
+    std::vector<float> strengthValue;
+
+    for (size_t i = 0; i < arraySize; i++) {
+        napi_value jsValueColor;
+        napi_value jsValuePos;
+        napi_value jsValueStrength;
+        if ((napi_get_element(env, argValue[NUM_0], i, &jsValueColor)) != napi_ok ||
+            (napi_get_element(env, argValue[NUM_1], i, &jsValuePos)) != napi_ok ||
+            (napi_get_element(env, argValue[NUM_2], i, &jsValueStrength)) != napi_ok) {
+            UIEFFECT_LOG_E("GetColorGradientArray get args fail");
+            return false;
+        }
+
+        Vector4f color;
+        if (!ParseJsRGBAColor(env, jsValueColor, color)) { return false; }
+        colorValue.push_back(color);
+
+        Vector2f position;
+        if (!ParseJsPoint(env, jsValuePos, position)) { return false; }
+        posValue.push_back(position);
+
+        strengthValue.push_back(GetSpecialValue(env, jsValueStrength));
+    }
+
+    para->SetColors(colorValue);
+    para->SetPositions(posValue);
+    para->SetStrengths(strengthValue);
+
+    return true;
+}
+
+napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateColorGradientEffect failed, is not system app");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_4] = {0};
+    size_t argCount = NUM_4;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorGradientEffect parsing input fail"));
+    size_t minCount = static_cast<size_t>(NUM_3);
+    size_t maxCount = static_cast<size_t>(NUM_4);
+    UIEFFECT_NAPI_CHECK_RET_D(minCount <= argCount && argCount <= maxCount, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorGradientEffect Args count error"));
+  
+    auto para = std::make_shared<ColorGradientEffectPara>();
+    uint32_t arraySizeColor = 0;
+    uint32_t arraySizePos = 0;
+    uint32_t arraySizeStrength = 0;
+    if (!IsArrayForNapiValue(env, argValue[NUM_0], arraySizeColor) ||
+        !IsArrayForNapiValue(env, argValue[NUM_1], arraySizePos) ||
+        !IsArrayForNapiValue(env, argValue[NUM_2], arraySizeStrength)) {
+        UIEFFECT_LOG_E("CreateColorGradientEffect get args fail, not array");
+        return nullptr;
+    }
+    if (arraySizeColor != arraySizePos || arraySizeColor != arraySizeStrength || arraySizeStrength > NUM_12) {
+        UIEFFECT_LOG_E("CreateColorGradientEffect param Error");
+        return nullptr;
+    }
+
+    UIEFFECT_NAPI_CHECK_RET_D(GetColorGradientArray(env, argValue, para, arraySizeColor), nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorGradientEffect parsing array fail"));
+
+    if (argCount > NUM_3) {
+        Mask* mask = nullptr;
+        if (napi_unwrap(env, argValue[NUM_3], reinterpret_cast<void**>(&mask)) && mask != nullptr) {
+            para->SetMask(mask->GetMaskPara());
+        }
+    }
+
+    VisualEffect* visualEffectObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateColorGradientEffect napi_unwrap fail"));
+    visualEffectObj->AddPara(para);
+    return thisVar;
+}
+
 }  // namespace Rosen
 }  // namespace OHOS

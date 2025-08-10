@@ -30,6 +30,9 @@ public:
         NONE,
         BACKGROUND_COLOR_EFFECT,
         BORDER_LIGHT_EFFECT,
+        AIBAR_GLOW_EFFECT,
+        COLOR_GRADIENT_EFFECT,
+        ROUNDED_RECT_FLOWLIGHT_EFFECT,
         // The value in the OpenHarmony project should be less than this value.
         HDS_EFFECT_BEGIN = 2048,
     };
