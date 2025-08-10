@@ -258,6 +258,15 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->ClearWatermark(connection->remotePid_);
+        }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         mainThread_->ScheduleTask(
             [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -689,7 +698,8 @@ ErrCode RSRenderServiceConnection::SetWatermark(const std::string& name, std::sh
         success = false;
         return ERR_INVALID_VALUE;
     }
-    mainThread_->SetWatermark(name, watermark);
+    pid_t callingPid = GetCallingPid();
+    mainThread_->SetWatermark(callingPid, name, watermark);
     success = true;
     return ERR_OK;
 }

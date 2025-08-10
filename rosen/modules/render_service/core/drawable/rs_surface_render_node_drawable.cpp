@@ -287,7 +287,9 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
         if (!isEnabled) {
             continue;
         }
-        auto watermark = renderThreadParams->GetWatermark(name);
+        auto nodeId = GetId();
+        auto pid = ExtractPid(nodeId);
+        auto watermark = renderThreadParams->GetWatermark(pid, name);
         if (!watermark) {
             continue;
         }

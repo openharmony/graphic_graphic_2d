@@ -4887,10 +4887,34 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
     return needSync;
 }
 
-void RSMainThread::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    surfaceNodeWatermarks_[name] = watermark;
+    static constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
+    auto iter = surfaceNodeWatermarks_.find({pid, name});
+    if (iter == std::end(surfaceNodeWatermarks_)) {
+        if (registerSurfaceWaterMaskCount_[pid] >= REGISTER_SURFACE_WATER_MASK_LIMIT) {
+            RS_LOGE("RSMainThread::SetWatermark surfaceNodeWatermark:"
+                "[Pid:%{public}s] limit", std::to_string(pid).c_str());
+            return;
+        }
+        registerSurfaceWaterMaskCount_[pid]++;
+        surfaceNodeWatermarks_.insert({{pid, name}, watermark});
+    } else {
+        iter->second = watermark;
+    }
+}
+
+void RSMainThread::ClearWatermark(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    registerSurfaceWaterMaskCount_.erase(pid);
+    if (surfaceNodeWatermarks_.size() > 0) {
+        RS_TRACE_NAME_FMT("RSMainThread::ClearWatermark %d", pid);
+        EraseIf(surfaceNodeWatermarks_, [pid](const auto& pair) {
+            return pair.first.first == pid;
+        });
+    }
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
