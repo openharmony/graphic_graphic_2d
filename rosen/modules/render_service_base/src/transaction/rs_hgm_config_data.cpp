@@ -64,10 +64,6 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
         RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
         return data;
     }
-    if () {
-        RS_LOGE("RSHgmConfigData Unmarshalling Failed pageNameSize");
-        return data;
-    }
     len = static_cast<size_t>(pageNameSize);
     if (pageNameSize > MAX_PAGE_NAME_SIZE || len > readableSize) {
         RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
