@@ -100,6 +100,21 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel3.WriteUint32(0);
     parcel3.WriteUint32(MAX_PAGE_NAME_SIZE + 1);
     rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel3);
+    
+    Parcel parcel4;
+    parcel4.WriteFloat(rsHgmConfigData.ppi_);
+    parcel4.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel4.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel4.WriteUint32(MAX_ANIM_DYNAMIC_ITEM_SIZE);
+    rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel4);
+
+    Parcel parcel5;
+    parcel5.WriteFloat(rsHgmConfigData.ppi_);
+    parcel5.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel5.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel5.WriteUint32(0);
+    parcel5.WriteUint32(MAX_PAGE_NAME_SIZE);
+    rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel5);
 }
 
 /**
