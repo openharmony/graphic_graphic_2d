@@ -2052,6 +2052,26 @@ HWTEST_F(RSPropertiesTest, SetShadowColorStrategy002, TestSize.Level1)
     EXPECT_EQ(properties.GetShadowColorStrategy(), shadowColorStrategy);
 }
 
+
+/**
+ * @tc.name: ComposeNGRenderFilter001
+ * @tc.desc: test results of GenerateAIBarFilter
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, ComposeNGRenderFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.fgNGRenderFilter_ = filter;
+    std::shared_ptr<RSFilter> originFilter = nullptr;
+    properties.ComposeNGRenderFilter(originFilter, filter);
+    filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+    properties.fgNGRenderFilter_ = filter;
+    properties.ComposeNGRenderFilter(originFilter, filter);
+    EXPECT_NE(filter, nullptr);
+}
+
 /**
  * @tc.name: SetFrameGravity001
  * @tc.desc: test results of SetFrameGravity
