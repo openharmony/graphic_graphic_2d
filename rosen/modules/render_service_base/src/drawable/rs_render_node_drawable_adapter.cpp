@@ -431,7 +431,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
         out += ", SkipIndex:" + std::to_string(GetSkipIndex());
     }
     if (drawSkipType_ != DrawSkipType::NONE) {
-        out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_));
+        out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_.load()));
     }
     out += ", ChildrenIndex:" + std::to_string(drawCmdIndex_.childrenIndex_);
     out += "\n";
