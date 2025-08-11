@@ -237,15 +237,21 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
 {
     if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
         animDynamicCfgCallbacks_.erase(pid);
-        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove animDynamicCfgCallback", __func__);
     }
     if (pendingAnimDynamicCfgCallbacks_.find(pid) != pendingAnimDynamicCfgCallbacks_.end()) {
         pendingAnimDynamicCfgCallbacks_.erase(pid);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove pendingAnimDynamicCfgCallback", __func__);
     }
 
     if (refreshRateModeCallbacks_.find(pid) != refreshRateModeCallbacks_.end()) {
         refreshRateModeCallbacks_.erase(pid);
-        HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove refreshRateModeCallback", __func__);
+    }
+
+    if (refreshRateUpdateCallbacks_.find(pid) != refreshRateUpdateCallbacks_.end()) {
+        refreshRateUpdateCallbacks_.erase(pid);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove refreshRateUpdateCallback", __func__);
     }
 
     for (auto& [_, listenerPidCb] : xcomponentExpectedFrameRateCallbacks_) {
