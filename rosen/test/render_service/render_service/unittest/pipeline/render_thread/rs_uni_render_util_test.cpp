@@ -1242,7 +1242,7 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable001, TestSize.Level1)
             return nullptr;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
-        surfaceParams->isLeashorMainWindow_ = isApp;
+        surfaceParams->SetWindowInfo(isApp, isApp, isApp);
         surfaceParams->dstRect_ = emptyDstRect ? RectI() : RectI{0, 0, 1, 1};
         return surfaceDrawable;
     };
@@ -1427,20 +1427,20 @@ HWTEST_F(RSUniRenderUtilTest, SetDrawRegionForQuickReject001, TestSize.Level1)
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
     ASSERT_TRUE(surfaceParams != nullptr);
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = false;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
     EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
 
     surfaceDirtyManager->dirtyRegionForQuickReject_.clear();
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = false;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isLeashWindow_ = false;
     RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
     EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
 
     surfaceDirtyManager->dirtyRegionForQuickReject_.clear();
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     RSUniRenderUtil::SetDrawRegionForQuickReject(allSurfaceDrawables, mergedDirtyRects);
     EXPECT_EQ(surfaceDirtyManager->GetDirtyRegionForQuickReject().empty(), false);
 }

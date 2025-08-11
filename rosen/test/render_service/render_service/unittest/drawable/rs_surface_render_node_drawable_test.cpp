@@ -564,27 +564,19 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
 
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(false, true, false);
     Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = true;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(true, true, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = false;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(false, false, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = false;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(true, false, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
@@ -1503,7 +1495,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtu
     ASSERT_NE(leashDrawable, nullptr);
     auto leashParams = static_cast<RSSurfaceRenderParams*>(leashDrawable->GetRenderParams().get());
     ASSERT_NE(leashParams, nullptr);
-    leashParams->isLeashWindow_ = true;
+    leashParams->SetWindowInfo(false, true, false);
     leashParams->SetVisibleRegion(emptyRegion);
     leashParams->SetVisibleRegionInVirtual(emptyRegion);
 
@@ -1514,7 +1506,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtu
     ASSERT_NE(appDrawable, nullptr);
     auto appParams = static_cast<RSSurfaceRenderParams*>(appDrawable->GetRenderParams().get());
     ASSERT_NE(appParams, nullptr);
-    leashParams->isAppWindow_ = true;
+    leashParams->SetWindowInfo(true, false, true);
     leashParams->allSubSurfaceNodeIds_.insert(appId);
 
     // all empty

@@ -2164,6 +2164,11 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT) {
             SetBorderLightShader(visualEffectPara);
         }
+        if (visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT) {
+            std::shared_ptr<RSNGShaderBase> headVisualEffect = RSNGShaderBase::Create(visualEffectPara);
+            SetBackgroundNGShader(headVisualEffect);
+        }
+        
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
             continue;
         }

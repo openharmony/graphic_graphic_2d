@@ -21,7 +21,7 @@
 #include "common/rs_common_def.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code.h"
-
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceOcclusionChangeCallbackProxy : public IRemoteProxy<RSISurfaceOcclusionChangeCallback> {
@@ -30,7 +30,6 @@ public:
     virtual ~RSSurfaceOcclusionChangeCallbackProxy() noexcept = default;
 
     void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override;
-    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSSurfaceOcclusionChangeCallbackProxy> delegator_;

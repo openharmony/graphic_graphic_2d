@@ -50,6 +50,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
@@ -1681,6 +1682,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
                     auto preBuffer = surfaceHandler->GetPreBuffer();
+                    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, IsGpuDirtyEnable(surfaceNode->GetId()));
                     surfaceNode->UpdateBufferInfo(
                         buffer, surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), preBuffer);
                     if (surfaceHandler->GetBufferSizeChanged() || surfaceHandler->GetBufferTransformTypeChanged()) {
@@ -4110,8 +4112,8 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
             task.count++;
             RS_TRACE_NAME_FMT(
                 "DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
-            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}llu]",
-                taskId, pid, nodeId, token);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}"
+                PRIu64 "]", taskId, pid, nodeId, token);
         }
         iter->second->OnTransaction(transactionData);
     }
@@ -4885,10 +4887,34 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
     return needSync;
 }
 
-void RSMainThread::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    surfaceNodeWatermarks_[name] = watermark;
+    static constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
+    auto iter = surfaceNodeWatermarks_.find({pid, name});
+    if (iter == std::end(surfaceNodeWatermarks_)) {
+        if (registerSurfaceWaterMaskCount_[pid] >= REGISTER_SURFACE_WATER_MASK_LIMIT) {
+            RS_LOGE("RSMainThread::SetWatermark surfaceNodeWatermark:"
+                "[Pid:%{public}s] limit", std::to_string(pid).c_str());
+            return;
+        }
+        registerSurfaceWaterMaskCount_[pid]++;
+        surfaceNodeWatermarks_.insert({{pid, name}, watermark});
+    } else {
+        iter->second = watermark;
+    }
+}
+
+void RSMainThread::ClearWatermark(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    registerSurfaceWaterMaskCount_.erase(pid);
+    if (surfaceNodeWatermarks_.size() > 0) {
+        RS_TRACE_NAME_FMT("RSMainThread::ClearWatermark %d", pid);
+        EraseIf(surfaceNodeWatermarks_, [pid](const auto& pair) {
+            return pair.first.first == pid;
+        });
+    }
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
@@ -5147,6 +5173,20 @@ void RSMainThread::SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChang
 {
     std::lock_guard<std::mutex> lock(luminanceMutex_);
     displayLuminanceChanged_[id] = isLuminanceChanged;
+}
+
+void RSMainThread::SetSelfDrawingGpuDirtyPidList(const std::vector<int32_t>& pidList)
+{
+    std::lock_guard<std::mutex> lock(pidListMutex_);
+    selfDrawingGpuDirtyPidList_.clear();
+    selfDrawingGpuDirtyPidList_.insert(pidList.begin(), pidList.end());
+}
+
+bool RSMainThread::IsGpuDirtyEnable(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(pidListMutex_);
+    int32_t pid = ExtractPid(nodeId);
+    return selfDrawingGpuDirtyPidList_.find(pid) != selfDrawingGpuDirtyPidList_.end();
 }
 
 bool RSMainThread::ExchangeLuminanceChangingStatus(ScreenId id)

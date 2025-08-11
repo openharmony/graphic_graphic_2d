@@ -1308,7 +1308,7 @@ int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& p
         ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat renderService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->GetPixelFormat(id, pixelFormat, resCode);
     return resCode;
 }
@@ -1320,7 +1320,7 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
         ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat renderService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->SetPixelFormat(id, pixelFormat, resCode);
     return resCode;
 }
@@ -1331,7 +1331,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::ve
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
     return resCode;
 }
@@ -1342,7 +1342,7 @@ int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& 
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->GetScreenHDRFormat(id, hdrFormat, resCode);
     return resCode;
 }
@@ -1353,7 +1353,7 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->SetScreenHDRFormat(id, modeIdx, resCode);
     return resCode;
 }
@@ -1364,7 +1364,7 @@ int32_t RSRenderServiceClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSta
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     auto err = renderService->GetScreenHDRStatus(id, hdrStatus, resCode);
     if (err != ERR_OK) {
         ROSEN_LOGE("RSRenderServiceClient::GetScreenHDRStatus err(%{public}d)!", err);
@@ -1380,7 +1380,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
     return resCode;
 }
@@ -1391,7 +1391,7 @@ int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorS
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->GetScreenColorSpace(id, colorSpace, resCode);
     return resCode;
 }
@@ -1402,7 +1402,7 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode;
+    int32_t resCode = SUCCESS;
     renderService->SetScreenColorSpace(id, colorSpace, resCode);
     return resCode;
 }

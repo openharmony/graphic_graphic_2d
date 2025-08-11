@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/iapplication_agent_ipc_interface_code.h"
-
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSApplicationAgentProxy : public IRemoteProxy<IApplicationAgent> {
@@ -29,7 +29,6 @@ public:
     virtual ~RSApplicationAgentProxy() noexcept = default;
 
     void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override;
-    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSApplicationAgentProxy> delegator_;

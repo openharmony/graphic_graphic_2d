@@ -16,6 +16,7 @@
 #include <iremote_stub.h>
 #include <message_option.h>
 #include <message_parcel.h>
+#include <parameters.h>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -43,6 +44,7 @@ using namespace testing::ext;
 namespace {
     const int DEFAULT_WIDTH = 2160;
     const int DEFAULT_HEIGHT = 1080;
+    const int INVALID_PIDLIST_SIZE = 200;
 };
 
 namespace OHOS::Rosen {
@@ -354,12 +356,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub003
 HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004, TestSize.Level1)
 {
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE)), ERR_INVALID_STATE);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE)), ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE)),
-        ERR_INVALID_STATE);
+        ERR_NONE);
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED)), ERR_INVALID_STATE);
+        RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED)), ERR_NONE);
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED)), ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
@@ -1489,5 +1491,144 @@ HWTEST_F(RSRenderServiceConnectionStubTest, DropFrameByPid001, TestSize.Level2)
     data.WriteInt32Vector(pidList);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidListTest001
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIICR2M7
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteInt32(-1);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidListTest002
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when data is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIICR2M7
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    std::vector<int32_t> pidList;
+    data.WriteInt32Vector(pidList);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidListTest003
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIICR2M7
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
+    data.WriteInt32Vector(pidList);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidListTest004
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when mainThread_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIICR2M7
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    std::vector<int32_t> pidList;
+    data.WriteInt32Vector(pidList);
+    sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto mainThread = connection->mainThread_;
+    connection->mainThread_ = nullptr;
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+
+    connection->mainThread_ = mainThread;
+}
+
+/**
+ * @tc.name: SetGpuCrcDirtyEnabledPidListTest005
+ * @tc.desc: Test SetGpuCrcDirtyEnabledPidList when pidlist is invalid and mainThread_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIICR2M7
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
+    data.WriteInt32Vector(pidList);
+    sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto mainThread = connection->mainThread_;
+    connection->mainThread_ = nullptr;
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+
+    connection->mainThread_ = mainThread;
+}
+
+/**
+ * @tc.name: CreateNodeAndSurfaceTest001
+ * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
+ * @tc.type: FUNC
+ * @tc.require: issueIICR2M7
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
+{
+    sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto mainThread = connection->mainThread_;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    std::vector<int32_t> pidList;
+    pidList.emplace_back(ExtractPid(config.id));
+    mainThread->SetSelfDrawingGpuDirtyPidList(pidList);
+    sptr<Surface> surface = nullptr;
+    auto ret = connection->CreateNodeAndSurface(config, surface, false);
+    ASSERT_EQ(ret, ERR_OK);
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
+    ret = connection->CreateNodeAndSurface(config, surface, false);
+    ASSERT_NE(ret, ERR_OK);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 } // namespace OHOS::Rosen

@@ -673,9 +673,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Mirror mode (LINEAR, NEAREST)");
         } else {
             bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
-            samplingOptions = needBilinear
-                ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE)
-                : Drawing::SamplingOptions();
+            samplingOptions =
+                needBilinear ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE) :
+                Drawing::SamplingOptions();
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: %{public}s",
                 needBilinear ? "Bilinear interpolation (LINEAR, NONE)" : "Default sampling options");
         }

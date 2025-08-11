@@ -1199,4 +1199,45 @@ HWTEST_F(RSHardwareThreadTest, ContextRegisterPostTask001, TestSize.Level1)
     ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
     hardwareThread.ContextRegisterPostTask();
 }
+
+
+/*
+ * @tc.name: ClearRedrawGPUCompositionCache002
+ * @tc.desc: Test RSHardwareThreadTest.ClearRedrawGPUCompositionCache
+ * @tc.type: FUNC
+ * @tc.require: issueICS6NA
+ */
+HWTEST_F(RSHardwareThreadTest, ClearRedrawGPUCompositionCache002, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    hardwareThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    hardwareThread.uniRenderEngine_->Init();
+    ASSERT_NE(hardwareThread.uniRenderEngine_, nullptr);
+    std::set<uint32_t> bufferIds = {1};
+    hardwareThread.ClearRedrawGPUCompositionCache(bufferIds);
+}
+
+/*
+ * @tc.name: ClearFrameBuffers003
+ * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
+ * @tc.type: FUNC
+ * @tc.require: issueICS6NA
+ */
+HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers003, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    hardwareThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    hardwareThread.uniRenderEngine_->Init();
+    ASSERT_NE(hardwareThread.uniRenderEngine_, nullptr);
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(hdiOutput, nullptr);
+    if (hdiOutput->GetFrameBufferSurface()) {
+        GSError ret = hardwareThread.ClearFrameBuffers(hdiOutput);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
+}
 } // namespace OHOS::Rosen

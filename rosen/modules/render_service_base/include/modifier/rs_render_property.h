@@ -34,8 +34,8 @@
 namespace OHOS {
 namespace Rosen {
 class RSNGRenderFilterBase;
-class RSNGRenderShaderBase;
 class RSNGRenderMaskBase;
+class RSNGRenderShaderBase;
 class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
@@ -217,8 +217,8 @@ protected:
     }
 
     PropertyId id_;
-    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set, refactor this to
-    // remove the node_ member
+    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set
+    // refactor this to remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
     // deprecated
     RSModifierType modifierType_ { RSModifierType::INVALID };
@@ -363,7 +363,6 @@ protected:
                       RSMarshallingHelper::Marshalling(parcel, stagingValue_);
         return result;
     }
-
     static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
     inline static RSPropertyUnmarshallingFuncRegister unmarshallingFuncRegister_ { false, type_, OnUnmarshalling };
 
@@ -471,7 +470,6 @@ protected:
                       RSMarshallingHelper::Marshalling(parcel, unit_);
         return result;
     }
-
     static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
 private:
@@ -636,7 +634,6 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
     const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type);
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType();
-
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);

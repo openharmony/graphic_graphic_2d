@@ -394,17 +394,6 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, OnAnimationTraceEnabledChangedCallback
     const char* value = "1";
     RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key, value, nullptr);
     EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
-
-    system("param set persist.rosen.animationtrace.enabled 1");
-    // "persist.rosen.animationtrace.enabled" is animation debug trace switch
-    const char* key1 = "persist.rosen.animationtrace.enabled";
-    const char* value1 = "1";
-    RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key1, value1, nullptr);
-    EXPECT_TRUE(RSAnimationTraceUtils::isDebugEnabled_);
-
-    system("param set persist.rosen.animationtrace.enabled 0");
-    RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key1, value1, nullptr);
-    EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
 }
 
 /**

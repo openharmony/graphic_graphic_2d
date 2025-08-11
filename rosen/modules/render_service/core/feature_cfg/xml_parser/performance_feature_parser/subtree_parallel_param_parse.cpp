@@ -18,7 +18,7 @@
 
 namespace OHOS::Rosen {
 
-SubtreeSwitchType SubtreeParallelParamParse::GetSubtreeSwitchType(const std::string &input)
+SubtreeSwitchType SubtreeParallelParamParse::GetSubtreeSwitchType(const std::string& input)
 {
     static const std::map<std::string, SubtreeSwitchType> subtreeSwitchTypeMap = {
         {"SubtreeEnabled", SubtreeSwitchType::SUBTREE_ENABLED},
@@ -37,7 +37,7 @@ SubtreeSwitchType SubtreeParallelParamParse::GetSubtreeSwitchType(const std::str
     return SubtreeSwitchType::UNKNOWN;
 }
 
-int32_t SubtreeParallelParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t SubtreeParallelParamParse::ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
@@ -70,8 +70,8 @@ int32_t SubtreeParallelParamParse::ParseFeatureSingleParam(std::string name, std
     num = std::stoi(val);
     switch (GetSubtreeSwitchType(name)) {
         case SubtreeSwitchType::MULTIWIN_POLICY_SURFACE_NUMBER:
-            SubtreeParallelParam::SetMutliWinSurfaceNum(num);
-            RS_LOGI("SubtreeParallelParamParse parse SetMutliWinSurfaceNum %{public}d", num);
+            SubtreeParallelParam::SetMultiWinSurfaceNum(num);
+            RS_LOGI("SubtreeParallelParamParse parse SetMultiWinSurfaceNum %{public}d", num);
             break;
         case SubtreeSwitchType::RB_POLICY_CHILDREN_WEIGHT:
             SubtreeParallelParam::SetRBChildrenWeight(num);
@@ -88,7 +88,7 @@ int32_t SubtreeParallelParamParse::ParseFeatureSingleParam(std::string name, std
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t SubtreeParallelParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &name)
+int32_t SubtreeParallelParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& name)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
@@ -110,7 +110,7 @@ int32_t SubtreeParallelParamParse::ParseFeatureMultiParamForApp(xmlNode &node, s
             RS_LOGI("SubtreeParallelParamParse SetSubtreeScene appName: %{public}s, val: %{public}s",
                 appName.c_str(), val.c_str());
         } else {
-            RS_LOGD("SubtreeParallelParamParse cannot find name[%{public}s], appName[%{public}s], value[%{public}s]",
+            RS_LOGE("SubtreeParallelParamParse cannot find name[%{public}s], appName[%{public}s], value[%{public}s]",
                 name.c_str(), appName.c_str(), val.c_str());
             return PARSE_NO_PARAM;
         }
@@ -118,7 +118,7 @@ int32_t SubtreeParallelParamParse::ParseFeatureMultiParamForApp(xmlNode &node, s
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t SubtreeParallelParamParse::ParseSubtreeInternal(xmlNode &node)
+int32_t SubtreeParallelParamParse::ParseSubtreeInternal(xmlNode& node)
 {
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(node);

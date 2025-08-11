@@ -382,7 +382,7 @@ public:
     static bool GetRSMemoryInfoManagerParam();
     static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
-
+    static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
 
 private:
