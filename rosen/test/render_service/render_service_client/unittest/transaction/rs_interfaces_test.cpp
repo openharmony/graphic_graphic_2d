@@ -808,7 +808,7 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: TaskSurfaceCaptureWithAllWindows
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
  * @tc.desc: Test TaskSurfaceCaptureWithAllWindows to capture display
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
@@ -839,8 +839,8 @@ HWTEST_F(RSInterfacesTest, TaskSurfaceCaptureWithAllWindowsTest001, TestSize.Lev
 }
 
 /**
- * @tc.name: FreezeScreen
- * @tc.desc: Test FreezeScreen to capture display
+ * @tc.name: FreezeScreenTest001
+ * @tc.desc: Test FreezeScreen to freeze display
  * @tc.type: FUNC
  * @tc.require: issueICS2J8
  */

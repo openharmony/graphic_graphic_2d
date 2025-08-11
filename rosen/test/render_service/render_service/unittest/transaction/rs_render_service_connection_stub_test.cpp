@@ -1227,7 +1227,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, GetScreenHDRStatus003, TestSize.Leve
 
 /**
  * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for success
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
@@ -1270,12 +1270,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUint32(captureConfig.backGroundColor);
     auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, 5);
+    EXPECT_EQ(res, ERR_OK);
 }
 
 /**
  * @tc.name: TaskSurfaceCaptureWithAllWindowsTest002
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for task execution
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
@@ -1346,7 +1346,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
 
 /**
  * @tc.name: TaskSurfaceCaptureWithAllWindowsTest003
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for failures
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
@@ -1400,7 +1400,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
 
 /**
  * @tc.name: FreezeScreenTest001
- * @tc.desc: Test FreezeScreen
+ * @tc.desc: Test FreezeScreen to freeze or unfreeze screen
  * @tc.type: FUNC
  * @tc.require: issueICS2J8
  */

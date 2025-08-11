@@ -1409,7 +1409,7 @@ HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest002, TestSize.Level1)
 
 /**
  * @tc.name: FreezeScreen Test
- * @tc.desc: FreezeScreen
+ * @tc.desc: FreezeScreen to freeze or unfreeze screen
  * @tc.type:FUNC
  * @tc.require: issueICS2J8
  */

@@ -1500,8 +1500,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Lev
 }
 
 /**
- * @tc.name: TaskSurfaceCaptureWithAllWindows Test
- * @tc.desc: TaskSurfaceCaptureWithAllWindows Test
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest
+ * @tc.desc: TaskSurfaceCaptureWithAllWindows test to capture screen
  * @tc.type:FUNC
  * @tc.require: issueICQ74B
  */
@@ -1513,7 +1513,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TaskSurfaceCaptureWithAllWindowsTes
     sptr<RSISurfaceCaptureCallback> callback;
     RSSurfaceCaptureConfig captureConfig;
     auto ret = proxy->TaskSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
-    EXPECT_EQ(ret, 22);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
@@ -1524,8 +1524,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TaskSurfaceCaptureWithAllWindowsTes
 }
 
 /**
- * @tc.name: FreezeScreen Test
- * @tc.desc: FreezeScreen Test
+ * @tc.name: FreezeScreenTest
+ * @tc.desc: FreezeScreen test to freeze or unfreeze screen.
  * @tc.type:FUNC
  * @tc.require: issueICS2J8
  */
