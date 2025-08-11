@@ -82,7 +82,7 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(xmlNode &node)
                     UIFirstParam::IsFreeMultiWindowEnable());
                 break;
             default:
-                RS_LOGI("UIFirstParamParse parse %{public}s is not support!", name.c_str());
+                RS_LOGE("UIFirstParamParse %{public}s is not support!", name.c_str());
                 break;
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
