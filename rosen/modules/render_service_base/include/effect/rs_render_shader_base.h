@@ -161,6 +161,7 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Strength11),
     ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
     ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber)
+);
 
 DECLARE_SHADER(BorderLight, BORDER_LIGHT,
     ADD_PROPERTY_TAG(BorderLight, Position),
