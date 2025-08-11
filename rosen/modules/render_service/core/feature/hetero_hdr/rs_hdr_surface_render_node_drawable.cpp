@@ -81,7 +81,7 @@ bool RSSurfaceRenderNodeDrawable::DrawHDRCacheWithDmaFFRT(
             return false;
         }
         if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*hdrSurfaceHandler, CONSUME_DIRECTLY,
-            false, false, 0, true) || !hdrSurfaceHandler->GetBuffer()) {
+            false, 0, true) || !hdrSurfaceHandler->GetBuffer()) {
             RS_LOGE("DrawHDRCacheWithDmaFFRT ConsumeAndUpdateBuffer or GetBuffer return false");
             return false;
         }

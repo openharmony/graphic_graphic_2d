@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_ipc_interface_code.h"
-
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceBufferCallbackProxy : public IRemoteProxy<RSISurfaceBufferCallback> {

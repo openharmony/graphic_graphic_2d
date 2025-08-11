@@ -742,6 +742,42 @@ HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Le
     layerInfo->SetBuffer(buffer, nullptr);
     output->ANCOTransactionOnComplete(layerInfo, previousReleaseFence);
 }
+
+/*
+ * Function: CreateLayerFailed
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call CreateLayerFailed()
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, CreateLayerFailed, Function | MediumTest | Level1)
+{
+    std::vector<LayerInfoPtr> layerInfos;
+    for (size_t i = 0; i < 3; i++) {
+        LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+        layerInfos.emplace_back(layerInfo);
+        layerInfo->SetSurface(nullptr);
+        EXPECT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(INT_MAX, layerInfo), GRAPHIC_DISPLAY_FAILURE);
+    }
+    EXPECT_EQ(HdiOutputTest::hdiOutput_->layersTobeRelease_.size(), 3);
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
+    for (const auto& layerInfo : layerInfos) {
+        auto consumer = IConsumerSurface::Create("xcomponentIdSurface");
+        layerInfo->SetSurface(consumer);
+    }
+    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
+    for (const auto& layer : HdiOutputTest::hdiOutput_->layersTobeRelease_) {
+        layer->UpdateLayerInfo(nullptr);
+    }
+    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
+    HdiOutputTest::hdiOutput_->ResetLayerStatusLocked();
+    HdiOutputTest::hdiOutput_->DeletePrevLayersLocked();
+    EXPECT_EQ(HdiOutputTest::hdiOutput_->layersTobeRelease_.size(), 0);
+    HdiOutputTest::hdiOutput_->layersTobeRelease_.emplace_back(nullptr);
+    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

@@ -76,6 +76,7 @@ private:
                                   VSyncConnParam vsyncConnParam = {0, 0, false}) override;
 
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
+    float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
 
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) override;
@@ -187,6 +188,10 @@ private:
 
     ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
+
+    ErrCode SetScreenFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
@@ -385,6 +390,8 @@ private:
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
+
+    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
 

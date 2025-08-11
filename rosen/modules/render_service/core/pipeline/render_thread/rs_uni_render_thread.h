@@ -57,12 +57,14 @@ public:
     void PostRTTask(const std::function<void()>& task);
     void PostImageReleaseTask(const std::function<void()>& task);
     void RunImageReleaseTask();
+    void ClearResource();
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH);
     void PostSyncTask(const std::function<void()>& task);
     bool IsIdle() const;
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
+    void ReleaseSurfaceBufferOpItemBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyScreenNodeBufferReleased();
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
@@ -74,7 +76,7 @@ public:
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
     uint64_t GetFastComposeTimeStampDiff() const;
-
+    sptr<SyncFence> GetAcquireFence();
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
     void DefaultClearMemoryCache();

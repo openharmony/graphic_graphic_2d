@@ -558,9 +558,9 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
 {
     // Step 1.1: calculate dirty slots by looking up g_propertyToDrawableLut
     std::unordered_set<RSDrawableSlot> dirtySlots;
-    for (const auto& dirtySlotIt : g_propertyToDrawableLut) {
-        if (dirtyTypes.test(static_cast<size_t>(dirtySlotIt.first)) && dirtySlotIt.second != RSDrawableSlot::INVALID) {
-            dirtySlots.emplace(dirtySlotIt.second);
+    for (const auto& [modifierType, drawableSlot] : g_propertyToDrawableLut) {
+        if (dirtyTypes.test(static_cast<size_t>(modifierType)) && drawableSlot != RSDrawableSlot::INVALID) {
+            dirtySlots.emplace(drawableSlot);
         }
     }
 
@@ -597,7 +597,7 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
         dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
     }
 
-    // if pixel stretch changed, mark affected drawables as dirty
+    // if pixel-stretch changed, mark affected drawables as dirty
     if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
         MarkAffectedSlots(stretchDirtyTypes, drawableVec, dirtySlots);
     }
@@ -652,7 +652,7 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME))) {
         dirtySlots.emplace(RSDrawableSlot::CUSTOM_CLIP_TO_FRAME);
         dirtySlots.emplace(RSDrawableSlot::FRAME_OFFSET);
-        // CONTENT_STYLE and FOREGROUND_STYLE are used to adapt to FRAME_GRAVITY
+        // CONTENT_STYLE and FOREGROUND_STYLE are used to adapt to FRAME_GRAVITY.
         dirtySlots.emplace(RSDrawableSlot::CONTENT_STYLE);
         dirtySlots.emplace(RSDrawableSlot::FOREGROUND_STYLE);
     }

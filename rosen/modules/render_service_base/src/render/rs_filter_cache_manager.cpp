@@ -294,7 +294,8 @@ void RSFilterCacheManager::TakeSnapshot(
     if ((aibarShaderFilter != nullptr) && (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0)) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
     } else {
-        // Take a screenshot
+        RS_TRACE_NAME_FMT("RSFilterCacheManager::TakeSnapshot surface wh: [%d, %d], snapshotIBounds: %s",
+            drawingSurface->Width(), drawingSurface->Height(), snapshotIBounds.ToString().c_str());
         snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     }
     if (snapshot == nullptr) {

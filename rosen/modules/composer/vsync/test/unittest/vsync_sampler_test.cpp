@@ -118,7 +118,6 @@ HWTEST_F(VSyncSamplerTest, AddSample003, Function | MediumTest| Level3)
 {
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = true;
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->lastAdaptiveTime_ = SystemTime();
-    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->preAdaptiveSampleTime_ = 0;
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = false;
@@ -482,9 +481,9 @@ HWTEST_F(VSyncSamplerTest, SetAdaptive, Function | MediumTest| Level3)
 {
     static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_ = false;
     vsyncSampler->SetAdaptive(false);
-    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), false);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_, false);
     vsyncSampler->SetAdaptive(true);
-    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_.load(), true);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_, true);
 }
 } // namespace
 } // namespace Rosen

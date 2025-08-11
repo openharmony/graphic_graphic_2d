@@ -223,22 +223,6 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
         return;
     }
 
-    std::shared_ptr<RSRenderPropertyBase> renderProperty = nullptr;
-    bool isUIFilter = (type == RSPropertyType::FOREGROUND_UI_FILTER || type == RSPropertyType::BACKGROUND_UI_FILTER);
-    if (isUIFilter) {
-        auto id = property->GetId();
-        auto filterProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(property);
-        if (filterProperty) {
-            auto uiFilter = filterProperty->Get();
-            renderProperty = uiFilter->CreateRenderProperty(id);
-            if (!renderProperty) {
-                return;
-            }
-        }
-    } else {
-        renderProperty = property->GetRenderProperty();
-    }
-
     property->SetPropertyTypeNG(type);
     // replace existing property if any
     properties_[type] = property;
@@ -255,6 +239,21 @@ void RSModifier::AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyB
     }
     property->Attach(*node, weak_from_this());
     MarkNodeDirty();
+    std::shared_ptr<RSRenderPropertyBase> renderProperty = nullptr;
+    bool isUIFilter = (type == RSPropertyType::FOREGROUND_UI_FILTER || type == RSPropertyType::BACKGROUND_UI_FILTER);
+    if (isUIFilter) {
+        auto id = property->GetId();
+        auto filterProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(property);
+        if (filterProperty) {
+            auto uiFilter = filterProperty->Get();
+            renderProperty = uiFilter->CreateRenderProperty(id);
+            if (!renderProperty) {
+                return;
+            }
+        }
+    } else {
+        renderProperty = property->GetRenderProperty();
+    }
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSModifierNGAttachProperty>(node->GetId(), id_, GetType(), type, renderProperty);
     node->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
@@ -287,12 +286,13 @@ void RSModifier::DetachProperty(RSPropertyType type)
 
 void RSModifier::SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property)
 {
-    if (!g_propertyTypeToThresholdTypeMap.count(type)) {
+    auto it = g_propertyTypeToThresholdTypeMap.find(type);
+    if (it == g_propertyTypeToThresholdTypeMap.end()) {
         RS_LOGE("RSPropertyType is not exist! type: %{public}d", static_cast<int32_t>(type));
         return;
     }
-    if (g_propertyTypeToThresholdTypeMap.at(type) != ThresholdType::DEFAULT) {
-        property->SetThresholdType(g_propertyTypeToThresholdTypeMap.at(type));
+    if (it->second != ThresholdType::DEFAULT) {
+        property->SetThresholdType(it->second);
     }
 }
 

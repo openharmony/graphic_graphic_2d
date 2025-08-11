@@ -54,16 +54,7 @@ RSFrameRateLinker::~RSFrameRateLinker()
 {
     // tell RT/RS to destroy related frameRateLinker
     std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerDestroy>(id_);
-    auto rsUIContext = rsUIContext_.lock();
-    if (rsUIContext) {
-        auto transaction = rsUIContext->GetRSTransaction();
-        transaction->AddCommand(command, IsUniRenderEnabled());
-    } else {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsUniRenderEnabled());
-        }
-    }
+    AddCommand(command, IsUniRenderEnabled());
 
     auto renderServiceClient =
             std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
@@ -94,15 +85,7 @@ void RSFrameRateLinker::UpdateFrameRateRange(
         currAnimatorExpectedFrameRate_ = animatorExpectedFrameRate;
         std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerUpdateRange>(GetId(),
             range, animatorExpectedFrameRate);
-        if (rsUIContext != nullptr) {
-            auto transaction = rsUIContext->GetRSTransaction();
-            transaction->AddCommand(command, IsUniRenderEnabled());
-        } else {
-            auto transactionProxy = RSTransactionProxy::GetInstance();
-            if (transactionProxy != nullptr) {
-                transactionProxy->AddCommand(command, IsUniRenderEnabled());
-            }
-        }
+        AddCommand(command, IsUniRenderEnabled());
     }
 }
 
@@ -118,6 +101,20 @@ void RSFrameRateLinker::UpdateFrameRateRangeImme(const FrameRateRange& range, in
 void RSFrameRateLinker::SetEnable(bool enabled)
 {
     isEnabled_ = enabled;
+}
+
+void RSFrameRateLinker::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand)
+{
+    auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext != nullptr) {
+        auto transaction = rsUIContext->GetRSTransaction();
+        transaction->AddCommand(command, IsUniRenderEnabled());
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsUniRenderEnabled());
+        }
+    }
 }
 
 bool RSFrameRateLinker::IsEnable()

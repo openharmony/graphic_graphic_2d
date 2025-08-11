@@ -53,6 +53,8 @@
 #include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
+#include "subtree_parallel_param.h"
+#include "subtree_parallel_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "vrate_param_parse.h"
@@ -119,6 +121,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
+    {FEATURE_CONFIGS[SUBTREEPARALLEL], [] { return std::make_unique<SubtreeParallelParamParse>(); },
+        [] { return std::make_unique<SubtreeParallelParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

@@ -291,37 +291,5 @@ HWTEST_F(DVSyncParamTest, GetAdaptiveConfig, Function | SmallTest | Level1)
     std::unordered_map<std::string, std::string> adaptiveConfig = param.GetAdaptiveConfig();
     ASSERT_EQ(adaptiveConfig[name], val);
 }
-
-/**
-* @tc.name: SetForceRsDVsyncConfig
-* @tc.desc: Verify the SetForceRsDVsyncConfig function
-* @tc.type: FUNC
-* @tc.require: #IBIE4T
-*/
-HWTEST_F(DVSyncParamTest, SetForceRsDVsyncConfig, Function | SmallTest | Level1)
-{
-    DVSyncParam param;
-    std::string name = "test";
-    std::string val = "1";
-    param.SetForceRsDVsyncConfig(name, val);
-    std::unordered_map<std::string, std::string> forceRSDVsyncConfig = param.GetForceRsDVsyncConfig();
-    ASSERT_EQ(forceRSDVsyncConfig[name], val);
-}
-
-/**
-* @tc.name: GetForceRsDVsyncConfig
-* @tc.desc: Verify the GetForceRsDVsyncConfig function
-* @tc.type: FUNC
-* @tc.require: #IBIE4T
-*/
-HWTEST_F(DVSyncParamTest, GetForceRsDVsyncConfig, Function | SmallTest | Level1)
-{
-    DVSyncParam param;
-    std::string name = "test";
-    std::string val = "1";
-    param.SetForceRsDVsyncConfig(name, val);
-    std::unordered_map<std::string, std::string> forceRSDVsyncConfig = param.GetForceRsDVsyncConfig();
-    ASSERT_EQ(forceRSDVsyncConfig[name], val);
-}
 } // namespace Rosen
 } // namespace OHOS

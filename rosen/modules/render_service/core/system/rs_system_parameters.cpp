@@ -302,5 +302,18 @@ bool RSSystemParameters::GetUIFirstOcclusionEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0);
 }
+
+bool RSSystemParameters::GetUIFirstCaptrueReuseEnabled()
+{
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.uifirst.captrue.reuse.enable", "1")).c_str()) != 0;
+    return enable;
+}
+bool RSSystemParameters::GetUIFirstStartingWindowCacheEnabled()
+{
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.uifirst.startingWindow.cache.enable", "1")).c_str()) != 0;
+    return enable;
+}
 } // namespace Rosen
 } // namespace OHOS

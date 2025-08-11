@@ -109,6 +109,21 @@ public:
         return isRenderSkipIfScreenOff_;
     }
 
+    void SetLastPixelFormat(const GraphicPixelFormat& lastPixelFormat)
+    {
+        lastPixelFormat_ = lastPixelFormat;
+    }
+
+    GraphicPixelFormat GetLastPixelFormat() const
+    {
+        return lastPixelFormat_;
+    }
+
+    bool IsPixelFormatChanged(RSScreenRenderParams& params) const
+    {
+        return lastPixelFormat_ != params.GetNewPixelFormat();
+    }
+
     RSRenderNodeDrawableType GetDrawableType() const override
     {
         return RSRenderNodeDrawableType::DISPLAY_NODE_DRAWABLE;
@@ -128,8 +143,6 @@ public:
 private:
     explicit RSScreenRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckScreenNodeSkip(RSScreenRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void ClearCanvasStencil(RSPaintFilterCanvas& canvas, RSScreenRenderParams& params,
-         RSRenderThreadParams& uniParam);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSScreenRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
@@ -148,6 +161,8 @@ private:
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 
     void CheckHpaeBlurRun(bool isHdrOn);
+
+    bool CheckScreenFreezeSkip(RSScreenRenderParams& params);
     
     // hpae offline
     void CheckAndPostAsyncProcessOfflineTask();
@@ -162,6 +177,7 @@ private:
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
     std::shared_ptr<Drawing::Image> cacheImgForMultiScreenView_ = nullptr;
+    GraphicPixelFormat lastPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     bool isScreenNodeSkip_ = false;
     bool isScreenNodeSkipStatusChanged_ = false;
     bool useFixedOffscreenSurfaceSize_ = false;

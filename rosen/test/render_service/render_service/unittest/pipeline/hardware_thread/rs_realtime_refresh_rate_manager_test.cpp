@@ -135,11 +135,11 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, RSInterface001, TestSize.Level1)
 
     instance.SetShowRefreshRateEnabled(true);
     bool ret = instance.GetShowRefreshRateEnabled();
-    ASSERT_EQ(ret, false);
+    ASSERT_EQ(ret, true);
 
     instance.SetShowRefreshRateEnabled(true);
     ret = instance.GetShowRefreshRateEnabled();
-    ASSERT_EQ(ret, false);
+    ASSERT_EQ(ret, true);
 
     instance.SetShowRefreshRateEnabled(false);
     ret = instance.GetShowRefreshRateEnabled();

@@ -991,6 +991,7 @@ ohos_unittest("RSRenderNodeTest") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",

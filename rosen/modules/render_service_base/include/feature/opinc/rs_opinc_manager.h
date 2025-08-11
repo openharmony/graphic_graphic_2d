@@ -19,6 +19,18 @@
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
+enum class OpincUnsupportType : uint8_t {
+    NONE,
+    CHILD_NOT_SUPPORT,
+    SHARED_TRANSITION,
+    SPHERIZE,
+    ATTRACTION,
+    HAS_FILTER,
+    USE_EFFECT,
+    COLOR_BLEND,
+    CHILD_HAS_FILTER,
+    CHILD_HAS_EFFECT,
+};
 class RSB_EXPORT RSOpincManager {
 public:
     static RSOpincManager& Instance();
@@ -35,6 +47,8 @@ public:
 
     bool OpincGetNodeSupportFlag(RSRenderNode& node);
     bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
+    OpincUnsupportType GetUnsupportReason(RSRenderNode& node);
+    std::string QuickGetNodeDebugInfo(RSRenderNode& node);
 
 private:
     RSOpincManager() = default;

@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 #define RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H
 
-#include "feature/capture/rs_ui_capture.h"
 #include "recording/draw_cmd_list.h"
 
 #include "animation/rs_render_particle.h"
@@ -35,8 +34,8 @@
 namespace OHOS {
 namespace Rosen {
 class RSNGRenderFilterBase;
-class RSNGRenderShaderBase;
 class RSNGRenderMaskBase;
+class RSNGRenderShaderBase;
 class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
@@ -77,7 +76,6 @@ enum class RSPropertyType : uint8_t {
     INVALID = 0,
     BOOL,
     INT,
-    SHORT,
     FLOAT,
     VECTOR4_UINT32,
     RS_COLOR,
@@ -112,6 +110,7 @@ enum class RSPropertyType : uint8_t {
     RS_RENDER_FILTER,
     VECTOR_FLOAT,
     VECTOR_VECTOR2F,
+    SHORT, // HRP: move it to the middle of FLOAT and INT
     RS_NG_RENDER_FILTER_BASE,
     RS_NG_RENDER_MASK_BASE,
     RS_NG_RENDER_SHADER_BASE,
@@ -218,8 +217,8 @@ protected:
     }
 
     PropertyId id_;
-    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set, refactor this to
-    // remove the node_ member
+    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set
+    // refactor this to remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
     // deprecated
     RSModifierType modifierType_ { RSModifierType::INVALID };
@@ -364,7 +363,6 @@ protected:
                       RSMarshallingHelper::Marshalling(parcel, stagingValue_);
         return result;
     }
-
     static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
     inline static RSPropertyUnmarshallingFuncRegister unmarshallingFuncRegister_ { false, type_, OnUnmarshalling };
 
@@ -472,7 +470,6 @@ protected:
                       RSMarshallingHelper::Marshalling(parcel, unit_);
         return result;
     }
-
     static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
 private:
@@ -637,7 +634,6 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
     const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type);
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType();
-
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);

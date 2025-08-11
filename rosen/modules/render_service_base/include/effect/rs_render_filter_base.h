@@ -65,6 +65,9 @@ public:
 
     void GenerateGEVisualEffect() override
     {
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterTemplate::GenerateGEVisualEffect, Type: %s paramStr: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
+            EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
         std::apply([&geFilter](const auto&... propTag) {
@@ -126,12 +129,12 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
     ADD_PROPERTY_TAG(SoundWave, ColorB),
     ADD_PROPERTY_TAG(SoundWave, ColorC),
     ADD_PROPERTY_TAG(SoundWave, ColorProgress),
-    ADD_PROPERTY_TAG(SoundWave, CenterBrightness),
     ADD_PROPERTY_TAG(SoundWave, Intensity),
     ADD_PROPERTY_TAG(SoundWave, AlphaA),
     ADD_PROPERTY_TAG(SoundWave, AlphaB),
     ADD_PROPERTY_TAG(SoundWave, ProgressA),
-    ADD_PROPERTY_TAG(SoundWave, ProgressB)
+    ADD_PROPERTY_TAG(SoundWave, ProgressB),
+    ADD_PROPERTY_TAG(SoundWave, TotalAlpha)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,

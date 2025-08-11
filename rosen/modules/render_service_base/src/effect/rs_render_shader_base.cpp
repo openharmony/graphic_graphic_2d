@@ -44,6 +44,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderParticleCircularHalo>();
         }
     },
+    {RSNGEffectType::COLOR_GRADIENT_EFFECT, [] {
+            return std::make_shared<RSNGRenderColorGradientEffect>();
+        }
+    },
     {RSNGEffectType::BORDER_LIGHT, [] {
             return std::make_shared<RSNGRenderBorderLight>();
         }

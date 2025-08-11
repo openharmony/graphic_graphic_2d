@@ -250,6 +250,66 @@ HWTEST_F(RSUIDirectorTest, DirectorSendMessages002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SendMessagesTest001
+ * @tc.desc: test results of SendMessages
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SendMessagesTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+
+    director->Init(true, true);
+    std::function<void()> callback = []() { std::cout << "for test" << std::endl; };
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto node = RSCanvasNode::Create();
+    NodeId nodeId = node->GetId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddCommonCommand(command);
+
+    director->rsUIContext_->rsTransactionHandler_ = transaction;
+    director->SendMessages(callback);
+
+    callback = nullptr;
+    director->SendMessages(callback);
+    EXPECT_NE(director->rsUIContext_->GetRSTransaction(), nullptr);
+
+    director->rsUIContext_->rsTransactionHandler_ = nullptr;
+    director->SendMessages(callback);
+    EXPECT_EQ(director->rsUIContext_->GetRSTransaction(), nullptr);
+}
+
+/**
+ * @tc.name: SendMessagesTest002
+ * @tc.desc: test results of SendMessages
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SendMessagesTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+
+    director->Init(true, true);
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    auto node = RSCanvasNode::Create();
+    NodeId nodeId = node->GetId();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    director->rsUIContext_ = nullptr;
+    std::function<void()> callback = []() { std::cout << "for test" << std::endl; };
+    director->SendMessages(callback);
+
+    callback = nullptr;
+    director->SendMessages(callback);
+    EXPECT_NE(rsTransactionProxy, nullptr);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    director->SendMessages(callback);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
  * @tc.name: UIDirectorSetRoot001
  * @tc.desc:
  * @tc.type:FUNC
@@ -495,6 +555,33 @@ HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetCacheDir002
+ * @tc.desc: test cache directory can be sync from uidirector to RSModifiersDrawThread
+ * @tc.type: FUNC
+ * @tc.require: issueICR877
+ */
+HWTEST_F(RSUIDirectorTest, SetCacheDir002, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    if (!RSSystemProperties::GetHybridRenderEnabled()) {
+        return;
+    }
+    RSModifiersDrawThread::SetCacheDir("");
+    ASSERT_TRUE(RSModifiersDrawThread::GetCacheDir().empty());
+    // test cacheDir can be set.
+    const std::string& cacheFilePath1 = "test";
+    director->SetCacheDir(cacheFilePath1);
+    ASSERT_FALSE(RSModifiersDrawThread::GetCacheDir().empty());
+    // empty dir can not be set.
+    const std::string& cacheFilePath2 = "";
+    director->SetCacheDir(cacheFilePath2);
+    ASSERT_FALSE(RSModifiersDrawThread::GetCacheDir().empty());
+#endif
+}
+
+/**
  * @tc.name: SetRTRenderForced
  * @tc.desc:
  * @tc.type:FUNC
@@ -696,6 +783,38 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AnimationCallbackProcessorTest001
+ * @tc.desc: test results of AnimationCallbackProcessor
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->Init(true, true);
+    // for test
+    NodeId nodeId = 0;
+    AnimationId animId = 0;
+    uint64_t token = 0;
+    AnimationCallbackEvent event = REPEAT_FINISHED;
+    director->AnimationCallbackProcessor(nodeId, animId, token, event);
+
+    auto node = std::make_shared<RSRootNode>(false);
+    nodeId = node->GetId();
+    director->SetRoot(nodeId);
+    RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(nodeId);
+    bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
+    director->AnimationCallbackProcessor(nodeId, animId, token, event);
+    auto animation = std::make_shared<RSAnimation>();
+    animId = animation->GetId();
+    director->rsUIContext_->animations_.emplace(animId, animation);
+    director->AnimationCallbackProcessor(nodeId, animId, token, event);
+    director->rsUIContext_ = nullptr;
+    director->AnimationCallbackProcessor(nodeId, animId, token, event);
+    ASSERT_TRUE(res);
+}
+
+/**
  * @tc.name: PostTask
  * @tc.desc:
  * @tc.type:FUNC
@@ -765,11 +884,34 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    int32_t instanceId = 10;
+    director->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {}, 0);
+    director->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {}, instanceId);
     RSNode::SharedPtr rsNode = RSCanvasNode::Create();
-    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0);
+    rsNode->SetInstanceId(instanceId);
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0, 0);
     const NodeId invalidId = 1;
-    director->DumpNodeTreeProcessor(invalidId, 0, 0);
+    director->DumpNodeTreeProcessor(invalidId, 0, 0, 0);
     SUCCEED();
+}
+
+/**
+ * @tc.name: DumpNodeTreeProcessor002
+ * @tc.desc: DumpNodeTreeProcessor Test
+ * @tc.type: FUNC
+ * @tc.require: issueICPQSU
+ */
+HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    RSNode::SharedPtr rsNode = RSCanvasNode::Create();
+    uint64_t token = uiContext->GetToken();
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, token, 0);
+    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
 }
 
 /**
@@ -919,6 +1061,95 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
     uint32_t systemPropertiesRet = RSSystemProperties::GetHybridRenderTextBlobLenCount();
     uint32_t directorRet = director->GetHybridRenderTextBlobLenCount();
     EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: TestTransactionHandler001
+ * @tc.desc: Test the input param transactionHandler of callback is nullptr under single instance.
+ * @tc.type: FUNC
+ * @tc.require: issueICQP7Q
+ */
+HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // isMultiInstance is false
+    director->Init(false, false);
+
+    // test adding multiple cmds
+    std::unique_ptr<RSTransactionData> cmds = std::make_unique<RSTransactionData>();
+    uint64_t id = 1;
+    auto node1 = RSCanvasNode::Create();
+    auto node2 = RSCanvasNode::Create();
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, FINISHED);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, FINISHED);
+    cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
+    cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
+    // test cmd is nullptr
+    std::get<2>(cmds->GetPayload()[0]) = nullptr;
+    std::swap(cmds, RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+
+    director->SendMessages();
+}
+
+/**
+ * @tc.name: TestTransactionHandler002
+ * @tc.desc: Test the input param transactionHandler of callback is nullptr under single instance.
+ * @tc.type: FUNC
+ * @tc.require: issueICQP7Q
+ */
+HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // isMultiInstance is false
+    director->Init(false, false);
+
+    // test adding multiple cmds
+    std::unique_ptr<RSTransactionData> cmds = std::make_unique<RSTransactionData>();
+    uint64_t id = 1;
+    auto node1 = RSCanvasNode::Create();
+    auto node2 = RSCanvasNode::Create();
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, FINISHED);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, FINISHED);
+    RSNodeMap::MutableInstance().RegisterAnimationInstanceId(0, node1->GetId(), id);
+    RSNodeMap::MutableInstance().RegisterAnimationInstanceId(0, node2->GetId(), ++id);
+    cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
+    cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
+    std::swap(cmds, RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+
+    director->SendMessages();
+}
+
+/**
+ * @tc.name: TestTransactionHandler003
+ * @tc.desc: Test the input param transactionHandler of callback is nullptr under multiple instances.
+ * @tc.type: FUNC
+ * @tc.require: issueICQP7Q
+ */
+HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // isMultiInstance is true
+    director->Init(false, true);
+
+    // test adding multiple cmds
+    std::unique_ptr<RSTransactionData> cmds = std::make_unique<RSTransactionData>();
+    uint64_t id = 1;
+    auto node1 = RSCanvasNode::Create();
+    auto node2 = RSCanvasNode::Create();
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, FINISHED);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, FINISHED);
+    cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
+    cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
+    ASSERT_NE(director->rsUIContext_, nullptr);
+    std::swap(cmds, director->rsUIContext_->GetRSTransaction()->implicitRemoteTransactionData_);
+    ASSERT_NE(director->rsUIContext_->GetRSTransaction()->implicitRemoteTransactionData_, nullptr);
+    director->SendMessages();
+    director->Destroy();
 }
 
 /**

@@ -278,7 +278,7 @@ public:
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
     uint32_t GetParallelThreadId();
-    void SetParallelThreadId(int idx);
+    void SetParallelThreadId(uint32_t idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
 
@@ -443,10 +443,6 @@ protected:
         // foreground color and foreground color strategy identification
         if (brush.GetColor().CastToColorQuad() == 0x00000001) {
             brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
-        }
-
-        if (envStack_.top().blender_) {
-            brush.SetBlender(envStack_.top().blender_);
         }
 
         // use alphaStack_.top() to multiply alpha

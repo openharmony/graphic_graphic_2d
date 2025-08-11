@@ -442,9 +442,6 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
             curScreenNode_->CollectHdrStatus(HdrStatus::HDR_EFFECT);
         }
         RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
-        if (curScreenNode_->GetIsLuminanceStatusChange() && !curScreenNode_->GetForceCloseHdr()) {
-            node.SetContentDirty();
-        }
     }
 }
 
@@ -868,6 +865,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
 
     rsScreenNodeChildNum_ = 0;
+    RSHdrUtil::LuminanceChangeSetDirty(node);
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
 
@@ -912,6 +910,7 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
+    occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
     auto mirrorSourceNode = curLogicalDisplayNode_->GetMirrorSource().lock();
     auto mirrorSourceScreenNode = mirrorSourceNode ?
         std::static_pointer_cast<RSScreenRenderNode>(mirrorSourceNode->GetParent().lock()) : nullptr;
@@ -1186,6 +1185,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             node.SetContentDirty(); // HDR content is dirty on Dimming status.
         }
     }
+#ifdef SUBTREE_PARALLEL_ENABLE
+    const bool isInFocusSurface = isInFocusSurface_;
+    isInFocusSurface_ = node.IsFocusedNode(currentFocusedNodeId_)
+        || node.IsFocusedNode(focusedLeashWindowId_) || isInFocusSurface_;
+#endif
     CollectSelfDrawingNodeRectInfo(node);
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     // Initialize the handler of control-level occlusion culling.
@@ -1231,10 +1235,10 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     PrepareForUIFirstNode(node);
     PrepareForCrossNode(node);
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (node.GetSubThreadAssignable() || (!node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) &&
-        !node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()))) {
+    if (node.GetSubThreadAssignable() || !isInFocusSurface_) {
         node.ClearSubtreeParallelNodes();
     }
+    isInFocusSurface_ = isInFocusSurface;
 #endif
     node.UpdateInfoForClonedNode(clonedSourceNodeId_);
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
@@ -1404,8 +1408,8 @@ void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& no
         node.IsFirstLevelCrossNode()) {
         return;
     }
-    if (curScreenNode_ == nullptr) {
-        RS_LOGE("%s: curScreenNode_ is nullptr", __func__);
+    if (curLogicalDisplayNode_ == nullptr) {
+        RS_LOGE("%s: curLogicalDisplayNode_ is nullptr", __func__);
         return;
     }
     auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
@@ -1417,7 +1421,7 @@ void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& no
     // the underlying applications beneath the transparent blur cannot participate in occlusion culling.
     if (occlusionSurfaceOrder_ < TOP_OCCLUSION_SURFACES_NUM && node.IsTransparent() &&
         !GetSurfaceTransparentFilterRegion(node).And(
-            curScreenNode_->GetTopSurfaceOpaqueRegion()).IsEmpty()) {
+            curLogicalDisplayNode_->GetTopSurfaceOpaqueRegion()).IsEmpty()) {
         RS_OPTIONAL_TRACE_NAME_FMT("%s: %s's transparent filter terminate spoc, current occlusion surface "
             "order: %" PRId16, "", __func__, node.GetName().c_str(), occlusionSurfaceOrder_);
         occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
@@ -1436,7 +1440,7 @@ void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& no
             [](Occlusion::Rect a, Occlusion::Rect b) ->bool { return a.Area() < b.Area(); });
         RS_OPTIONAL_TRACE_NAME_FMT("%s: record name[%s] rect[%s] stencil[%d]", __func__,
             node.GetName().c_str(), maxOpaqueRect->GetRectInfo().c_str(), static_cast<int>(stencilVal));
-        curScreenNode_->RecordTopSurfaceOpaqueRects(*maxOpaqueRect);
+        curLogicalDisplayNode_->RecordTopSurfaceOpaqueRects(*maxOpaqueRect);
         --occlusionSurfaceOrder_;
     }
 }
@@ -1511,7 +1515,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     node.SetOcclusionInSpecificScenes(mainThread->GetIsRegularAnimation());
     bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
     bool isParticipateInOcclusion = node.CheckParticipateInOcclusion() &&
-        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_;
+        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_ && !node.IsAttractionAnimation();
     CollectTopOcclusionSurfacesInfo(node, isParticipateInOcclusion);
     if (isParticipateInOcclusion) {
         RS_OPTIONAL_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
@@ -1899,7 +1903,6 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     curScreenDirtyManager_->Clear();
     hwcVisitor_->transparentHwcCleanFilter_.clear();
     hwcVisitor_->transparentHwcDirtyFilter_.clear();
-    occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
@@ -1960,6 +1963,12 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
     }
     node.UpdateUIFirstFrameGravity();
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
+        // if firstLevelNode has attration animation,
+        // subsurface with main window type, set attraction animation flag to skip filter cache occlusion
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+            node.GetFirstLevelNode());
+        node.SetAttractionAnimation(firstLevelNode != nullptr &&
+            firstLevelNode->GetRenderProperties().IsAttractionValid());
         node.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
         node.UpdateCurCornerRadius(curCornerRadius_);

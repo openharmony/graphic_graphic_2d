@@ -223,6 +223,9 @@ void RSDrawingFilter::GenerateAndUpdateGEVisualEffect()
 {
     visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     for (const auto& filter : shaderFilters_) {
+        if (filter->GetType() == RSUIFilterType::KAWASE) {
+            continue;
+        }
         filter->GenerateGEVisualEffect(visualEffectContainer_);
     }
     if (!renderFilter_) {
@@ -268,6 +271,7 @@ uint32_t RSDrawingFilter::Hash() const
     const auto hashFunc = SkOpts::hash;
 #endif
     auto hash = hashFunc(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
+    hash = hashFunc(&renderFilterHash_, sizeof(renderFilterHash_), hash_);
     return hash;
 }
 
@@ -341,6 +345,12 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(
 #endif
     result->imageFilterHash_ = hashFunc(&hash, sizeof(hash), imageFilterHash_);
     return result;
+}
+
+void RSDrawingFilter::SetNGRenderFilter(std::shared_ptr<RSNGRenderFilterBase> filter)
+{
+    renderFilter_ = filter;
+    renderFilterHash_ = renderFilter_->CalculateHash();
 }
 
 std::shared_ptr<Drawing::ImageFilter> RSDrawingFilter::GetImageFilter() const

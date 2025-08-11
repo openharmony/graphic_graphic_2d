@@ -27,6 +27,7 @@ template<typename T>
 class Vector4 {
 public:
     static constexpr uint32_t V4SIZE = 4;
+    static constexpr size_t DATA_SIZE = sizeof(T) * V4SIZE;
     union {
         struct {
             T x_;

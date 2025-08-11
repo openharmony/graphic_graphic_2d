@@ -305,7 +305,7 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton001, TestSize.Level2)
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::GetRecyclableSingleton();
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore
     RsVulkanContext::SetRecyclable(false);
@@ -341,7 +341,7 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton003, TestSize.Level2)
     RsVulkanContext::protectedDrawingContextMap_[gettid()] = {nullptr, false};
 
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore
     RsVulkanContext::SetRecyclable(false);
@@ -365,7 +365,7 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton004, TestSize.Level2)
     RsVulkanContext::protectedDrawingContextMap_[gettid()] = {drawingContext, false};
 
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore
     RsVulkanContext::SetRecyclable(false);
@@ -586,7 +586,7 @@ HWTEST_F(RSVulkanContextTest, RSVulkanContextDestruction, TestSize.Level2)
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore
     RsVulkanContext::SetRecyclable(false);

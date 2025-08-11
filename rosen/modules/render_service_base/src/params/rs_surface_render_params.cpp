@@ -110,6 +110,11 @@ bool RSSurfaceRenderParams::GetFilterCacheFullyCovered() const
     return isFilterCacheFullyCovered_;
 }
 
+bool RSSurfaceRenderParams::GetAttractionAnimation() const
+{
+    return isAttractionAnimation_;
+}
+
 const std::vector<NodeId>& RSSurfaceRenderParams::GetVisibleFilterChild() const
 {
     return visibleFilterChild_;
@@ -547,6 +552,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->layerInfo_ = layerInfo_;
         dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
+    targetSurfaceParams->windowInfo_ = windowInfo_;
 
 #ifndef ROSEN_CROSS_PLATFORM
     if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
@@ -559,10 +565,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     }
 #endif
 
-    targetSurfaceParams->isMainWindowType_ = isMainWindowType_;
-    targetSurfaceParams->isLeashWindow_ = isLeashWindow_;
-    targetSurfaceParams->isAppWindow_ = isAppWindow_;
-    targetSurfaceParams->isLeashorMainWindow_ = isLeashorMainWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorScreenNode_ = ancestorScreenNode_;
@@ -575,6 +577,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
+    targetSurfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->isCrossNode_ = isCrossNode_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;

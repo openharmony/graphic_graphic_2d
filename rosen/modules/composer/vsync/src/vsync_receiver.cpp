@@ -22,6 +22,9 @@
 #include <hitrace_meter.h>
 
 #include "accesstoken_kit.h"
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync_delay.h"
+#endif
 #include "event_handler.h"
 #include "graphic_common.h"
 #include "ipc_skeleton.h"

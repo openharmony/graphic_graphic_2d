@@ -181,6 +181,7 @@ public:
     virtual void SetTextEffectAssociation(bool association) = 0;
     virtual bool GetTextEffectAssociation() const = 0;
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
+    virtual bool CanPaintAllText() const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -3214,16 +3214,14 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isCrossNode_ = IsCrossNode();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
     surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
+    surfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->stencilVal_ = stencilVal_;
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
-    surfaceParams->isMainWindowType_ = IsMainWindowType();
-    surfaceParams->isLeashWindow_ = IsLeashWindow();
-    surfaceParams->isAppWindow_ = IsAppWindow();
-    surfaceParams->isLeashorMainWindow_ = IsLeashOrMainWindow();
+    surfaceParams->SetWindowInfo(IsMainWindowType(), IsLeashWindow(), IsAppWindow());
     surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->specialLayerManager_ = specialLayerManager_;

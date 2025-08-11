@@ -285,13 +285,8 @@ bool RSSurfaceCaptureTaskParallel::Run(
             AddBlur(canvas, surface, captureParam.blurParam.blurRadius);
         }
     } else if (displayNodeDrawable_) {
-        RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
-        canvas.SetScreenshotType(RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
-        // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
-        std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
-        RSUniRenderThread::Instance().SetBlackList(blackList);
-        displayNodeDrawable_->OnCapture(canvas);
-        RSUniRenderThread::Instance().SetBlackList({});
+        auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
+        CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeDrawable!");
         return false;
@@ -341,7 +336,8 @@ bool RSSurfaceCaptureTaskParallel::Run(
     return true;
 }
 
-bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(std::shared_ptr<Drawing::Surface> surface, bool isOnHDR)
+bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
+    std::shared_ptr<Drawing::Surface> surface, bool isOnHDR, const RSSurfaceCaptureParam& captureParam)
 {
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent surface is nullptr!");
@@ -359,13 +355,7 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(std::shared_ptr<Drawing
     if (displayNodeDrawable_) {
         RSPaintFilterCanvas::ScreenshotType type = isOnHDR ? RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
-        canvas.SetScreenshotType(type);
-        RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
-        // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
-        std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
-        RSUniRenderThread::Instance().SetBlackList(blackList);
-        displayNodeDrawable_->OnCapture(canvas);
-        RSUniRenderThread::Instance().SetBlackList({});
+        CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent: Invalid RSRenderNodeDrawable!");
         return false;
@@ -393,7 +383,8 @@ bool RSSurfaceCaptureTaskParallel::RunHDR(
 #endif
     auto surface = CreateSurface(pixelMap_);
     auto surfaceHDR = CreateSurface(pixelMapHDR_);
-    if (!DrawHDRSurfaceContent(surface, false) || !DrawHDRSurfaceContent(surfaceHDR, true)) {
+    if (!DrawHDRSurfaceContent(surface, false, captureParam) ||
+        !DrawHDRSurfaceContent(surfaceHDR, true, captureParam)) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::RunHDR: DrawHDRSurfaceContent failed!");
         return false;
     }
@@ -461,10 +452,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " useDma: [%{public}d], useCurWindow: [%{public}d],"
-        " isOnTheTree: [%{public}d], isVisible: [%{public}d], isF16Capture: [%{public}d]",
+        " isOnTheTree: [%{public}d], isVisible: [%{public}d],"
+        " backGroundColor: [%{public}d], isF16Capture: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
-        !surfaceNode_->GetVisibleRegion().IsEmpty(), isF16Capture);
+        !surfaceNode_->GetVisibleRegion().IsEmpty(), captureConfig_.backGroundColor, isF16Capture);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -836,6 +828,27 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
     return true;
 }
 #endif // RS_ENABLE_UNI_RENDER
+
+void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDrawable& displayNodeDrawable,
+    RSPaintFilterCanvas& canvas, const RSSurfaceCaptureParam& captureParam, RSPaintFilterCanvas::ScreenshotType type)
+{
+    bool secExemption = false;
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParams) {
+        secExemption = uniParams->GetSecExemption();
+        uniParams->SetSecExemption(captureParam.secExemption || secExemption);
+    }
+    RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
+    canvas.SetScreenshotType(type);
+    // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
+    std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
+    RSUniRenderThread::Instance().SetBlackList(blackList);
+    displayNodeDrawable.OnCapture(canvas);
+    RSUniRenderThread::Instance().SetBlackList({});
+    if (uniParams) {
+        uniParams->SetSecExemption(secExemption);
+    }
+}
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 DmaMem::~DmaMem()

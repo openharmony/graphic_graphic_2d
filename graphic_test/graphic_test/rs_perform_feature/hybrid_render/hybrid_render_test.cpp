@@ -15,12 +15,16 @@
 
 
 #include "rs_graphic_test.h"
+#include "draw/path.h"
+#include "symbol_engine/hm_symbol_run.h"
+#include "symbol_engine/hm_symbol_txt.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace Drawing {
 namespace {
 constexpr uint32_t FONT_SIZE = 50;
 constexpr uint32_t DEFAULT_SCALAR_X = 50;
@@ -48,6 +52,7 @@ public:
  * @tc.name: HybridRender_TestText_1
  * @tc.desc: Test the textblob type for hybrid render without text tag.
  * @tc.type: FUNC
+ * @tc.require: issueICRTWV
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_1)
 {
@@ -57,14 +62,14 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_1)
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
     GetRootNode()->AddChild(canvasNode);
     auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
-    Drawing::Font font = Drawing::Font();
+    Font font = Font();
     font.SetSize(FONT_SIZE);
-    Drawing::Brush brush;
+    Brush brush;
     brush.SetColor(SK_ColorBLACK);
     brush.SetAntiAlias(true);
     recordingCanvas->AttachBrush(brush);
-    std::shared_ptr<Drawing::TextBlob> textblob = Drawing::TextBlob::MakeFromString("HybridRender",
-        font, Drawing::TextEncoding::UTF8);
+    std::shared_ptr<TextBlob> textblob = TextBlob::MakeFromString("HybridRender",
+        font, TextEncoding::UTF8);
     recordingCanvas->DrawTextBlob(textblob.get(), DEFAULT_SCALAR_X, DEFAULT_SCALAR_Y);
     recordingCanvas->DetachBrush();
     canvasNode->FinishRecording();
@@ -76,6 +81,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_1)
  * @tc.name: HybridRender_TestText_2
  * @tc.desc: Test the textblob type for hybrid render with text tag.
  * @tc.type: FUNC
+ * @tc.require: issueICRTWV
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_2)
 {
@@ -85,18 +91,18 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_2)
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
     GetRootNode()->AddChild(canvasNode);
     auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
-    Drawing::Font font = Drawing::Font();
+    Font font = Font();
     font.SetSize(FONT_SIZE);
-    Drawing::Brush brush;
+    Brush brush;
     brush.SetColor(SK_ColorBLACK);
     brush.SetAntiAlias(true);
     recordingCanvas->AttachBrush(brush);
-    std::shared_ptr<Drawing::TextBlob> textblob = Drawing::TextBlob::MakeFromString("HybridRender",
-        font, Drawing::TextEncoding::UTF8);
+    std::shared_ptr<TextBlob> textblob = TextBlob::MakeFromString("HybridRender",
+        font, TextEncoding::UTF8);
     recordingCanvas->DrawTextBlob(textblob.get(), DEFAULT_SCALAR_X, DEFAULT_SCALAR_Y);
     recordingCanvas->DetachBrush();
     canvasNode->FinishRecording();
-    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::TEXT);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     RegisterNode(canvasNode);
 }
@@ -105,6 +111,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_2)
  * @tc.name: HybridRender_TestText_3
  * @tc.desc: Test the textblob including multi lines for hybrid render with text tag.
  * @tc.type: FUNC
+ * @tc.require: issueICRTWV
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_3)
 {
@@ -114,20 +121,166 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_3)
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
     GetRootNode()->AddChild(canvasNode);
     auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
-    Drawing::Font font = Drawing::Font();
+    Font font = Font();
     font.SetSize(FONT_SIZE);
-    Drawing::Brush brush;
+    Brush brush;
     brush.SetColor(SK_ColorBLACK);
     brush.SetAntiAlias(true);
     recordingCanvas->AttachBrush(brush);
-    std::shared_ptr<Drawing::TextBlob> textblob = Drawing::TextBlob::MakeFromString("Hello\nHybridRender",
-        font, Drawing::TextEncoding::UTF8);
+    std::shared_ptr<TextBlob> textblob = TextBlob::MakeFromString("Hello\nHybridRender",
+        font, TextEncoding::UTF8);
     recordingCanvas->DrawTextBlob(textblob.get(), DEFAULT_SCALAR_X, DEFAULT_SCALAR_Y);
     recordingCanvas->DetachBrush();
     canvasNode->FinishRecording();
-    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::TEXT);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     RegisterNode(canvasNode);
 }
+
+/*
+ * @tc.name: HybridRender_TestSymbol_1
+ * @tc.desc: Test the HMSymbol type for hybrid render without HMSYMBOL tag.
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSymbol_1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(DEFAULT_BOUNDS);
+    canvasNode->SetFrame(DEFAULT_FRAME);
+    canvasNode->SetBackgroundColor(SK_ColorWHITE);
+    GetRootNode()->AddChild(canvasNode);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
+    Font font = Font();
+    font.SetSize(FONT_SIZE);
+    Brush brush;
+    brush.SetColor(SK_ColorBLACK);
+    brush.SetAntiAlias(true);
+    recordingCanvas->AttachBrush(brush);
+
+    RSPoint paint = {100, 100};
+    SPText::HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    std::shared_ptr<TextBlob> textblob = TextBlob::MakeFromString("HybridRender",
+        font, TextEncoding::UTF8);
+    SPText::HMSymbolRun hmSymbolRun = SPText::HMSymbolRun(1, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.DrawSymbol(recordingCanvas, paint);
+
+    recordingCanvas->DetachBrush();
+    canvasNode->FinishRecording();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RegisterNode(canvasNode);
+}
+
+/*
+ * @tc.name: HybridRender_TestSymbol_2
+ * @tc.desc: Test the HMSymbol for hybrid render with HMSYMBOL tag.
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSymbol_2)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(DEFAULT_BOUNDS);
+    canvasNode->SetFrame(DEFAULT_FRAME);
+    canvasNode->SetBackgroundColor(SK_ColorWHITE);
+    GetRootNode()->AddChild(canvasNode);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
+    Font font = Font();
+    font.SetSize(FONT_SIZE);
+    Brush brush;
+    brush.SetColor(SK_ColorBLACK);
+    brush.SetAntiAlias(true);
+    recordingCanvas->AttachBrush(brush);
+
+    RSPoint paint = {100, 100};
+    SPText::HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    std::shared_ptr<TextBlob> textblob = TextBlob::MakeFromString("HybridRender",
+        font, TextEncoding::UTF8);
+    SPText::HMSymbolRun hmSymbolRun = SPText::HMSymbolRun(1, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.DrawSymbol(recordingCanvas, paint);
+
+    recordingCanvas->DetachBrush();
+    canvasNode->FinishRecording();
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::HMSYMBOL);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RegisterNode(canvasNode);
+}
+/*
+ * @tc.name: HybridRender_TestSVG_1
+ * @tc.desc: Test the svg for hybrid render without SVG tag.
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSVG_1)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(DEFAULT_BOUNDS);
+    canvasNode->SetFrame(DEFAULT_FRAME);
+    canvasNode->SetBackgroundColor(SK_ColorWHITE);
+    GetRootNode()->AddChild(canvasNode);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
+    Font font = Font();
+    font.SetSize(FONT_SIZE);
+    Brush brush;
+    brush.SetColor(SK_ColorBLACK);
+    brush.SetAntiAlias(true);
+    recordingCanvas->AttachBrush(brush);
+
+    Path path;
+    path.AddRect(Rect(RECORDING_WIDHT, 0, RECORDING_WIDHT, RECORDING_HEIGHT));
+    recordingCanvas->DrawPath(path);
+    Pen pen(Color::COLOR_RED);
+    recordingCanvas->AttachPen(pen);
+    recordingCanvas->DrawPath(path);
+
+    recordingCanvas->DetachBrush();
+    canvasNode->FinishRecording();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RegisterNode(canvasNode);
+}
+
+/*
+ * @tc.name: HybridRender_TestSVG_2
+ * @tc.desc: Test the svg for hybrid render with SVG tag.
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSVG_2)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(DEFAULT_BOUNDS);
+    canvasNode->SetFrame(DEFAULT_FRAME);
+    canvasNode->SetBackgroundColor(SK_ColorWHITE);
+    GetRootNode()->AddChild(canvasNode);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDHT, RECORDING_HEIGHT);
+    Font font = Font();
+    font.SetSize(FONT_SIZE);
+    Brush brush;
+    brush.SetColor(SK_ColorBLACK);
+    brush.SetAntiAlias(true);
+    recordingCanvas->AttachBrush(brush);
+
+    Path path;
+    path.AddRect(Rect(RECORDING_WIDHT, 0, RECORDING_WIDHT, RECORDING_HEIGHT));
+    recordingCanvas->DrawPath(path);
+    Pen pen(Color::COLOR_RED);
+    recordingCanvas->AttachPen(pen);
+    recordingCanvas->DrawPath(path);
+
+    recordingCanvas->DetachBrush();
+    canvasNode->FinishRecording();
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::SVG);
+    RegisterNode(canvasNode);
+}
+} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -62,10 +62,10 @@ HWTEST_F(RSAnimationManagerTest, DumpAnimationsTest001, TestSize.Level1)
 HWTEST_F(RSAnimationManagerTest, AddAnimationTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
-    bool isInitialized_ = false;
+    bool isInitialized = false;
     auto animation = std::make_shared<RSRenderAnimation>();
     rsAnimationManager.AddAnimation(animation);
-    ASSERT_FALSE(isInitialized_);
+    ASSERT_FALSE(isInitialized);
 }
 
 /**
@@ -76,10 +76,10 @@ HWTEST_F(RSAnimationManagerTest, AddAnimationTest001, TestSize.Level1)
 HWTEST_F(RSAnimationManagerTest, RemoveAnimationTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
-    bool isInitialized_ = false;
+    bool isInitialized = false;
     AnimationId keyId = 0;
     rsAnimationManager.RemoveAnimation(keyId);
-    ASSERT_FALSE(isInitialized_);
+    ASSERT_FALSE(isInitialized);
 }
 
 /**
@@ -90,10 +90,10 @@ HWTEST_F(RSAnimationManagerTest, RemoveAnimationTest001, TestSize.Level1)
 HWTEST_F(RSAnimationManagerTest, CancelAnimationByPropertyIdTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
-    bool isInitialized_ = false;
+    bool isInitialized = false;
     PropertyId id = 0;
     rsAnimationManager.CancelAnimationByPropertyId(id);
-    ASSERT_FALSE(isInitialized_);
+    ASSERT_FALSE(isInitialized);
 }
 
 /**

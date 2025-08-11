@@ -43,7 +43,7 @@ struct RSLayerInfo {
     int32_t gravity = 0;
     int32_t zOrder = 0;
     float alpha = 1.f;
-    GraphicBlendType blendType;
+    GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     int32_t layerSource;
@@ -52,7 +52,7 @@ struct RSLayerInfo {
     uint32_t ancoFlags = 0;
     GraphicIRect ancoCropRect{};
     bool useDeviceOffline = false;
-    
+
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -66,25 +66,40 @@ struct RSLayerInfo {
     }
 #endif
 };
+struct RSWindowInfo {
+    bool isMainWindowType_ = false;
+    bool isLeashWindow_ = false;
+    bool isAppWindow_ = false;
+    void SetWindowInfo(bool isMainWindowType, bool isLeashWindow, bool isAppWindow)
+    {
+        isMainWindowType_ = isMainWindowType;
+        isLeashWindow_ = isLeashWindow;
+        isAppWindow_ = isAppWindow;
+    }
+};
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
     ~RSSurfaceRenderParams() override = default;
     inline bool IsMainWindowType() const
     {
-        return isMainWindowType_;
+        return windowInfo_.isMainWindowType_;
     }
     inline bool IsLeashWindow() const override
     {
-        return isLeashWindow_;
+        return windowInfo_.isLeashWindow_;
     }
     bool IsAppWindow() const override
     {
-        return isAppWindow_;
+        return windowInfo_.isAppWindow_;
+    }
+    void SetWindowInfo(bool isMainWindowType, bool isLeashWindow, bool isAppWindow)
+    {
+        windowInfo_.SetWindowInfo(isMainWindowType, isLeashWindow, isAppWindow);
     }
     bool IsLeashOrMainWindow() const
     {
-        return isLeashorMainWindow_;
+        return windowInfo_.isLeashWindow_ || windowInfo_.isMainWindowType_;
     }
 
     RSSurfaceNodeType GetSurfaceNodeType() const
@@ -325,6 +340,7 @@ public:
 
     void SetFilterCacheFullyCovered(bool val);
     bool GetFilterCacheFullyCovered() const;
+    bool GetAttractionAnimation() const;
 
     const std::vector<NodeId>& GetVisibleFilterChild() const;
     bool IsTransparent() const;
@@ -735,10 +751,6 @@ public:
     }
 
 private:
-    bool isMainWindowType_ = false;
-    bool isLeashWindow_ = false;
-    bool isAppWindow_ = false;
-    bool isLeashorMainWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorScreenNode_;
@@ -790,8 +802,10 @@ private:
     bool isOccludedByFilterCache_ = false;
     // if current surfaceNode has filter cache to occlude the back surfaceNode
     bool isFilterCacheFullyCovered_ = false;
+    bool isAttractionAnimation_ = false;
     std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
+    RSWindowInfo windowInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;

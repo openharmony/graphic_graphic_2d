@@ -515,6 +515,11 @@ bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetVersionType()
 {
     return "";

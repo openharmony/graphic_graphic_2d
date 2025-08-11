@@ -23,11 +23,26 @@ NClass &NClass::GetInstance()
     static NClass nClass;
     return nClass;
 }
+NClass::~NClass()
+{
+    lock_guard<std::mutex> lock(exClassMapLock);
+    if (env && !exClassMap.empty()) {
+        auto it = exClassMap.begin();
+        while (it != exClassMap.end()) {
+            napi_delete_reference(env, it->second);
+            it = exClassMap.erase(it);
+        }
+    }
+}
 
 tuple<bool, napi_value> NClass::DefineClass(napi_env env, string className, napi_callback constructor,
     vector<napi_property_descriptor> &&properties)
 {
     napi_value classVal = nullptr;
+    NClass &nClass = NClass::GetInstance();
+    if (nClass.env != nullptr && env != nClass.env) {
+        return { false, nullptr };
+    }
     napi_status stat = napi_define_class(env, className.c_str(), className.length(), constructor,
         nullptr, properties.size(), properties.data(), &classVal);
     return { stat == napi_ok, classVal };
@@ -37,7 +52,10 @@ bool NClass::SaveClass(napi_env env, string className, napi_value exClass)
 {
     NClass &nClass = NClass::GetInstance();
     lock_guard(nClass.exClassMapLock);
-
+    if (nClass.env != nullptr && env != nClass.env) {
+        return false;
+    }
+    
     if (nClass.exClassMap.find(className) != nClass.exClassMap.end()) {
         return true;
     }
@@ -45,6 +63,7 @@ bool NClass::SaveClass(napi_env env, string className, napi_value exClass)
     napi_ref constructor;
     napi_status res = napi_create_reference(env, exClass, 2, &constructor);
     if (res == napi_ok) {
+        nClass.env = env;
         nClass.exClassMap.insert({ className, constructor });
     }
     return res == napi_ok;

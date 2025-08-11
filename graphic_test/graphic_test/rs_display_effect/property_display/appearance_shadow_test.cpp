@@ -422,7 +422,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Touch_Test_
     int nodeSize = 400;
 
     float alphaList[] = { 1, 0.5 };
-    uint32_t colorList[] = { 0xff000000, 0xffff0000 };
+    uint32_t colorList[] = { 0xff000000, 0xffff0000, 0xff0000ff, 0xffff0000 };
 
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * nodePos;

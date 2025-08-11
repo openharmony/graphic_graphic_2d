@@ -46,7 +46,7 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("RSApplicationAgentProxy::OnTransaction error = %{public}d", err);
     }

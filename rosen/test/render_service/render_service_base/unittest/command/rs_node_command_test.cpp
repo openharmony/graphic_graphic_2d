@@ -424,14 +424,14 @@ HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
     bool flag = false;
-    auto func = [&flag] (NodeId, pid_t, uint32_t) { flag = true; };
+    auto func = [&flag] (NodeId, pid_t, uint64_t, uint32_t) { flag = true; };
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
-    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, 0);
     ASSERT_TRUE(flag);
 
     flag = false;
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
-    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, 0);
     ASSERT_FALSE(flag);
 
     SUCCEED();
@@ -471,6 +471,11 @@ HWTEST_F(RSNodeCommandTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
     bool needUseCmdlistDrawRegion = false;
     RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    context.nodeMap.renderNodeMap_[ExtractPid(nodeId)][nodeId] = node;
+    RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
+    EXPECT_FALSE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
 }
 
 /**

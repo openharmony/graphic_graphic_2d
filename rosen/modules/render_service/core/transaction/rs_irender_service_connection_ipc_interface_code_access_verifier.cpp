@@ -29,6 +29,8 @@ std::vector<std::pair<RSIRenderServiceConnectionInterfaceCodeAccessVerifier::Cod
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,
             PermissionType::UPDATE_CONFIGURATION },
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::CREATE_VIRTUAL_SCREEN,
+            PermissionType::CAPTURE_SCREEN },
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_FREEZE_IMMEDIATELY,
             PermissionType::CAPTURE_SCREEN }
 };
 
@@ -263,11 +265,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
-            hasPermission = IsSystemApp();
+            hasPermission = IsSystemApp() || IsSystemCalling(codeEnumTypeName_ + "::SET_REFRESH_RATE_MODE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CURRENT_REFRESH_RATE_MODE): {
-            hasPermission = IsSystemApp();
+            hasPermission = IsSystemApp() || IsSystemCalling(codeEnumTypeName_ + "::GET_CURRENT_REFRESH_RATE_MODE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
@@ -276,7 +278,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED): {
-            hasPermission = IsSystemApp();
+            hasPermission = IsSystemApp() || IsSystemCalling(codeEnumTypeName_ + "::GET_SHOW_REFRESH_RATE_ENABLED");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SHOW_REFRESH_RATE_ENABLED): {
@@ -595,11 +597,18 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_FREEZE_IMMEDIATELY): {
+            hasPermission = CheckPermission(code);
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
+        }
         default: {
             break;
         }
     }
-    return hasPermission;
+return hasPermission;
 }
 
 #ifdef ENABLE_IPC_SECURITY

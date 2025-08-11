@@ -56,7 +56,7 @@ Vector3 ColorSpaceConvertor::ConvertLinear(const Vector3& v) const
 
 ColorSpaceConvertor ColorSpaceConvertor::sRGBtoP3ColorSpaceConvertor(ColorSpace(ColorSpaceName::SRGB),
     ColorSpace(ColorSpaceName::DISPLAY_P3), GamutMappingMode::GAMUT_MAP_CONSTANT);
-ColorSpaceConvertor ColorSpaceConvertor::P3toSRGBColorSpaceConvertor(ColorSpace(ColorSpaceName::DISPLAY_P3),
+ColorSpaceConvertor ColorSpaceConvertor::p3toSRGBColorSpaceConvertor(ColorSpace(ColorSpaceName::DISPLAY_P3),
     ColorSpace(ColorSpaceName::SRGB), GamutMappingMode::GAMUT_MAP_CONSTANT);
 }  // namespace ColorManager
 }  // namespace OHOS

@@ -127,6 +127,7 @@ enum class DrawSkipType : uint8_t {
     NO_DISPLAY_NODE = 33,
     HARDWARE_HDR_CACHE_SKIP = 34,
     SCREEN_STATE_INVALID = 35,
+    SCREEN_FREEZE = 36,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -157,6 +158,11 @@ public:
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
+    static void ClearResource();
+    using DrawableVec = std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>>;
+    static void AddToClearDrawables(DrawableVec &vec);
+    using CmdListVec = std::vector<std::shared_ptr<Drawing::DrawCmdList>>;
+    static void AddToClearCmdList(CmdListVec &vec);
     inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
         return renderParams_;
@@ -197,11 +203,11 @@ public:
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
 
-    bool IsFilterCacheValidForOcclusion() const;
-    const RectI GetFilterCachedRegion() const;
-
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
     void SetChildInBlackList(bool hasChildInBlackList);
+
+    bool IsFilterCacheValidForOcclusion() const;
+    const RectI GetFilterCachedRegion() const;
 
     size_t GetFilterNodeSize() const
     {
@@ -246,12 +252,6 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
-    virtual void Purge()
-    {
-        if (purgeFunc_) {
-            purgeFunc_();
-        }
-    }
 
     virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
 
@@ -266,6 +266,13 @@ public:
 
     DrawSkipType GetDrawSkipType() {
         return drawSkipType_;
+    }
+
+    virtual void Purge()
+    {
+        if (purgeFunc_) {
+            purgeFunc_();
+        }
     }
 
     inline bool DrawableTryLockForDraw()
@@ -371,6 +378,8 @@ private:
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
+    static DrawableVec toClearDrawableVec_;
+    static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
     DrawSkipType drawSkipType_ = DrawSkipType::NONE;

@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include "animation/rs_symbol_animation.h"
-
 #include <cmath>
 
 #include "animation/rs_keyframe_animation.h"
+#include "animation/rs_symbol_animation.h"
 #include "draw/paint.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
@@ -1345,8 +1344,8 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
     RSAnimationTimingCurve alphaCurve;
     SymbolAnimation::CreateAnimationTimingCurve(alphaParameter.curveType, alphaParameter.curveArgs, alphaCurve);
 
-    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(), alphaProtocol,
-        alphaCurve, [&alphaProperty, &alphaValueEnd]() { alphaProperty->Set(alphaValueEnd); });
+    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
+        alphaProtocol, alphaCurve, [&alphaProperty, &alphaValueEnd]() { alphaProperty->Set(alphaValueEnd); });
 
     if (animations1.size() > 0 && animations1[0] != nullptr) {
         animations.emplace_back(animations1[0]);

@@ -80,6 +80,8 @@ ohos_fuzztest("RSRenderServiceConnection007FuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "rsrenderserviceconnection007_fuzzer.cpp" ]
 

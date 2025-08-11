@@ -38,7 +38,7 @@ constexpr float DEFAULT_FOREGROUND_RADIUS = 10.0f;
 constexpr float DEFAULT_RADIUS = 50.0f;
 
 Vector2f DEFAULT_TRANSLATE = { 600, 0 };
-Vector4f DEFAULT_BOUNDS = { 0, 500, 400, 400 };
+Vector4f DEFAULT_BOUNDS = { 0, 100, 400, 400 };
 Vector4f DEFAULT_OUTLINE_WIDTH = { 10, 10, 10, 10 };
 Vector4f DEFAULT_BORDER_WIDTH = { 15, 15, 15, 15 };
 Vector4f DEFAULT_PIXEL_STRETCH = { 30, 30, 30, 30 };
@@ -61,6 +61,7 @@ public:
     {
         auto pixelMap =
             DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId());
+        pixelMap->crop({ 0, 0, 1200, 2000 });
         if (pixelMap) {
             const ::testing::TestInfo* const testInfo =
             ::testing::UnitTest::GetInstance()->current_test_info();
@@ -229,7 +230,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow02)
     testNode->SetShadowRadius(DEFAULT_RADIUS);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
@@ -332,7 +333,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow06)
     testNode->SetShadowIsFilled(0);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
@@ -365,7 +366,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow07)
     testNode->SetShadowColorStrategy(0);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
@@ -374,7 +375,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow07)
     testNode2->SetShadowColorStrategy(1);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    Vector4f bounds3 = { 0, 1900, 400, 400 };
+    Vector4f bounds3 = { 0, 1500, 400, 400 };
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
@@ -461,7 +462,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline03)
     testNode->SetOutlineColor(outlineColor);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
@@ -470,7 +471,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline03)
     testNode2->SetOutlineColor(outlineColor);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    Vector4f bounds3 = { 0, 1900, 400, 400 };
+    Vector4f bounds3 = { 0, 1500, 400, 400 };
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
@@ -531,7 +532,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border02)
     testNode->SetBorderColor(borderColor);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
@@ -540,7 +541,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border02)
     testNode2->SetBorderColor(borderColor);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    Vector4f bounds3 = { 0, 1900, 400, 400 };
+    Vector4f bounds3 = { 0, 1500, 400, 400 };
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
@@ -595,14 +596,14 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, PixelStretch02)
     testNode->SetPixelStretch(pixelStretchList[0], Drawing::TileMode::CLAMP);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetPixelStretch(pixelStretchList[1], Drawing::TileMode::CLAMP);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    Vector4f bounds3 = { 0, 1900, 400, 400 };
+    Vector4f bounds3 = { 0, 1500, 400, 400 };
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
@@ -635,14 +636,14 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, PixelStretch03)
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH, modeList[0]);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetPixelStretch(DEFAULT_PIXEL_STRETCH, modeList[1]);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    Vector4f bounds3 = { 0, 1900, 400, 400 };
+    Vector4f bounds3 = { 0, 1500, 400, 400 };
     auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
@@ -694,7 +695,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground02)
     testNode->SetForegroundColor(COLOR_BLUE);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
-    Vector4f bounds2 = { 0, 1200, 400, 400 };
+    Vector4f bounds2 = { 0, 800, 400, 400 };
     float radius = 50.0f;
     auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
     RegisterNode(testNode2);

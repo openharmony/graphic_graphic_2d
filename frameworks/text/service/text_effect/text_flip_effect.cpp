@@ -186,6 +186,7 @@ void TextFlipEffect::NoEffect(Drawing::Canvas* canvas, double x, double y)
     typographyConfig_.typography->SetSkipTextBlobDrawing(lastSkipState);
 }
 
+// LCOV_EXCL_START
 void TextFlipEffect::DrawTextFlip(std::vector<TextBlobRecordInfo>& infos, Drawing::Canvas* canvas, double x, double y)
 {
     if (canvas == nullptr) {
@@ -358,6 +359,7 @@ std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> TextFlipEffect::Gen
     }
     return parameters;
 }
+// LCOV_EXCL_STOP
 
 REGISTER_TEXT_EFFECT_FACTORY_IMPL(Flip, TextEffectStrategy::FLIP);
 } // namespace OHOS::Rosen

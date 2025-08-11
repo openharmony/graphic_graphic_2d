@@ -166,7 +166,8 @@ void HgmIdleDetector::UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpe
         return;
     }
     bool existAnimatorNoExpectdRate = aceAnimatorExpectedFrameRate & 1;
-    if (bufferFpsMap_[ACE_ANIMATOR_NAME] > 0 && existAnimatorNoExpectdRate) {
+    auto iter = bufferFpsMap_.find(ACE_ANIMATOR_NAME);
+    if (iter != bufferFpsMap_.end() && iter->second > 0 && existAnimatorNoExpectdRate) {
         aceAnimatorExpectedFrameRate = 0;
     } else {
         aceAnimatorExpectedFrameRate = aceAnimatorExpectedFrameRate >> ACE_ANIMATOR_OFFSET;

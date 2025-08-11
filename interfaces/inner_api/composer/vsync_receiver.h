@@ -17,11 +17,6 @@
 #define VSYNC_VSYNC_RECEIVER_H
 
 #include <refbase.h>
-
-#if defined(RS_ENABLE_DVSYNC_2)
-#include "dvsync_delay.h"
-#endif
-
 #include "ivsync_connection.h"
 #include "file_descriptor_listener.h"
 

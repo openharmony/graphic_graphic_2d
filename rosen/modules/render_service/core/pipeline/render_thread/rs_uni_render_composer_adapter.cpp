@@ -627,10 +627,10 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     newDstRect.Intersect(Drawing::RectI(
         info.dstRect.x, info.dstRect.y, info.dstRect.w + info.dstRect.x, info.dstRect.h + info.dstRect.y));
     auto localRect = canvas->GetLocalClipBounds();
-    int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
-    int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
-    int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
-    int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
+    int32_t left = std::clamp<int32_t>(localRect.GetLeft(), 0, frameWidth);
+    int32_t top = std::clamp<int32_t>(localRect.GetTop(), 0, frameHeight);
+    int32_t width = std::clamp<int32_t>(localRect.GetWidth(), 0, frameWidth - left);
+    int32_t height = std::clamp<int32_t>(localRect.GetHeight(), 0, frameHeight - top);
     GraphicIRect newSrcRect = {left, top, width, height};
 
     // log and apply new dstRect and srcRect
@@ -699,10 +699,10 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(
     newDstRect.Intersect(Drawing::RectI(
         info.dstRect.x, info.dstRect.y, info.dstRect.w + info.dstRect.x, info.dstRect.h + info.dstRect.y));
     auto localRect = canvas->GetLocalClipBounds();
-    int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
-    int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
-    int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
-    int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
+    int32_t left = std::clamp<int32_t>(localRect.GetLeft(), 0, frameWidth);
+    int32_t top = std::clamp<int32_t>(localRect.GetTop(), 0, frameHeight);
+    int32_t width = std::clamp<int32_t>(localRect.GetWidth(), 0, frameWidth - left);
+    int32_t height = std::clamp<int32_t>(localRect.GetHeight(), 0, frameHeight - top);
     GraphicIRect newSrcRect = {left, top, width, height};
 
     // log and apply new dstRect and srcRect
@@ -823,152 +823,6 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
     return srcRect;
 }
 
-// private func, for RSSurfaceRenderNode.
-ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node) const
-{
-    ComposeInfo info {};
-    auto& params = node.GetStagingRenderParams();
-    if (!params) {
-        RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
-        return info;
-    }
-
-    auto surfaceHandler = node.GetRSSurfaceHandler();
-    const auto& dstRect = node.GetDstRect();
-    const auto srcRect = SrcRectRotateTransform(node);
-    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = GraphicIRect {
-        static_cast<int32_t>(static_cast<float>(dstRect.left_) * screenInfo_.GetRogWidthRatio()),
-        static_cast<int32_t>(static_cast<float>(dstRect.top_) * screenInfo_.GetRogHeightRatio()),
-        static_cast<int32_t>(static_cast<float>(dstRect.width_) * screenInfo_.GetRogWidthRatio()),
-        static_cast<int32_t>(static_cast<float>(dstRect.height_) * screenInfo_.GetRogHeightRatio())
-    };
-    info.zOrder = surfaceHandler->GetGlobalZOrder();
-    info.alpha.enGlobalAlpha = true;
-    info.alpha.gAlpha = node.GetGlobalAlpha() * 255; // map gAlpha from float(0, 1) to uint8_t(0, 255).
-    info.fence = surfaceHandler->GetAcquireFence();
-    info.blendType = node.GetBlendType();
-    const auto& buffer = surfaceHandler->GetBuffer();
-    info.buffer = buffer;
-    SetPreBufferInfo(*surfaceHandler, info);
-    GetComposerInfoSrcRect(info, node);
-    info.needClient = GetComposerInfoNeedClient(info, *params);
-    DealWithNodeGravity(node, info);
-
-    info.dstRect.x -= offsetX_;
-    info.dstRect.y -= offsetY_;
-    info.visibleRect = info.dstRect;
-    std::vector<GraphicIRect> dirtyRects;
-    const Rect& dirtyRect = surfaceHandler->GetDamageRegion();
-    dirtyRects.emplace_back(GraphicIRect {dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h});
-    info.dirtyRects = dirtyRects;
-    auto totalMatrix = node.GetTotalMatrix();
-    info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
-        totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),
-        totalMatrix.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
-        totalMatrix.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix.Get(Drawing::Matrix::Index::PERSP_0),
-        totalMatrix.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix.Get(Drawing::Matrix::Index::PERSP_2)};
-
-    const auto& property = node.GetRenderProperties();
-    info.boundRect = { 0, 0,
-        static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};
-
-    const auto& renderParam = static_cast<RSSurfaceRenderParams*>(params.get());
-    if (renderParam == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
-        return info;
-    }
-    info.sdrNit = renderParam->GetSdrNit();
-    info.displayNit = renderParam->GetDisplayNit();
-    info.brightnessRatio = renderParam->GetBrightnessRatio();
-    info.layerLinearMatrix = renderParam->GetLayerLinearMatrix();
-    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}f, displayNit: %{public}f, brightnessRatio: %{public}f",
-        info.sdrNit, info.displayNit, info.brightnessRatio);
-    RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
-        " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
-        " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
-        " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        node.GetId(), info.zOrder, info.blendType, info.needClient,
-        info.alpha.enGlobalAlpha, info.alpha.gAlpha,
-        info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
-        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.y,
-        info.matrix.scaleX, info.matrix.scaleY, info.matrix.skewX, info.matrix.skewY, info.matrix.transX,
-        info.matrix.transY, info.matrix.pers0, info.matrix.pers1, info.matrix.pers2);
-    return info;
-}
-
-ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const
-{
-    ComposeInfo info {};
-    auto& params = surfaceDrawable.GetRenderParams();
-    if (!params) {
-        RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo params is nullptr");
-        return info;
-    }
-    const auto& dstRect = params->GetLayerInfo().dstRect;
-    const auto srcRect = SrcRectRotateTransform(surfaceDrawable);
-    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = GraphicIRect { static_cast<int32_t>(static_cast<float>(dstRect.x) * screenInfo_.GetRogWidthRatio()),
-        static_cast<int32_t>(static_cast<float>(dstRect.y) * screenInfo_.GetRogHeightRatio()),
-        static_cast<int32_t>(static_cast<float>(dstRect.w) * screenInfo_.GetRogWidthRatio()),
-        static_cast<int32_t>(static_cast<float>(dstRect.h) * screenInfo_.GetRogHeightRatio()) };
-    info.zOrder = params->GetLayerInfo().zOrder;
-    info.alpha.enGlobalAlpha = true;
-    info.alpha.gAlpha = params->GetGlobalAlpha() * 255; // map gAlpha from float(0, 1) to uint8_t(0, 255).
-    info.fence = params->GetAcquireFence();
-    info.blendType = params->GetLayerInfo().blendType;
-    const auto& buffer = params->GetBuffer();
-    info.buffer = buffer;
-    info.preBuffer = params->GetPreBuffer();
-    GetComposerInfoSrcRect(info, surfaceDrawable);
-    info.needClient = GetComposerInfoNeedClient(info, *params);
-    DealWithNodeGravity(surfaceDrawable, info);
-
-    info.dstRect.x -= offsetX_;
-    info.dstRect.y -= offsetY_;
-    info.visibleRect = info.dstRect;
-    std::vector<GraphicIRect> dirtyRects;
-    const Rect& dirtyRect = params->GetBufferDamage();
-    dirtyRects.emplace_back(GraphicIRect {dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h});
-    info.dirtyRects = dirtyRects;
-    auto totalMatrix = params->GetTotalMatrix();
-    info.matrix = GraphicMatrix {totalMatrix.Get(Drawing::Matrix::Index::SCALE_X),
-        totalMatrix.Get(Drawing::Matrix::Index::SKEW_X), totalMatrix.Get(Drawing::Matrix::Index::TRANS_X),
-        totalMatrix.Get(Drawing::Matrix::Index::SKEW_Y), totalMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
-        totalMatrix.Get(Drawing::Matrix::Index::TRANS_Y), totalMatrix.Get(Drawing::Matrix::Index::PERSP_0),
-        totalMatrix.Get(Drawing::Matrix::Index::PERSP_1), totalMatrix.Get(Drawing::Matrix::Index::PERSP_2)};
-
-    info.boundRect = { 0, 0,
-        static_cast<int32_t>(params->GetBounds().GetWidth()), static_cast<int32_t>(params->GetBounds().GetHeight())};
-
-    const auto& curRenderParam = static_cast<RSSurfaceRenderParams*>(params.get());
-    if (curRenderParam == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::curRenderParam is nullptr");
-        return info;
-    }
-    info.sdrNit = curRenderParam->GetSdrNit();
-    info.displayNit = curRenderParam->GetDisplayNit();
-    info.brightnessRatio = curRenderParam->GetBrightnessRatio();
-    info.layerLinearMatrix = curRenderParam->GetLayerLinearMatrix();
-    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}f, displayNit: %{public}f, brightnessRatio: %{public}f",
-        info.sdrNit, info.displayNit, info.brightnessRatio);
-    RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
-        " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
-        " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
-        " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient,
-        info.alpha.enGlobalAlpha, info.alpha.gAlpha,
-        info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
-        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.y,
-        info.matrix.scaleX, info.matrix.scaleY, info.matrix.skewX, info.matrix.skewY, info.matrix.transX,
-        info.matrix.transY, info.matrix.pers0, info.matrix.pers1, info.matrix.pers2);
-    return info;
-}
-
 bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const
 {
     if (output_ == nullptr) {
@@ -1044,12 +898,14 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
-    srcRect.x = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
-        originSrcRect.w / dstRectI.width_);
-    srcRect.y = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
-        originSrcRect.h / dstRectI.height_);
-    srcRect.w = dstRectI.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / dstRectI.width_;
-    srcRect.h = dstRectI.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / dstRectI.height_;
+    srcRect.x = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
+        0 : std::floor((resDstRect.left_ - dstRectI.left_) * originSrcRect.w / dstRectI.width_);
+    srcRect.y = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
+        0 : std::floor((resDstRect.top_ - dstRectI.top_) * originSrcRect.h / dstRectI.height_);
+    srcRect.w = (dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
+        0 : std::ceil(originSrcRect.w * resDstRect.width_ / dstRectI.width_);
+    srcRect.h = (dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
+        0 : std::ceil(originSrcRect.h * resDstRect.height_ / dstRectI.height_);
     layer->SetLayerSize(dstRect);
     std::vector<GraphicIRect> dirtyRegions;
     dirtyRegions.emplace_back(srcRect);
@@ -1270,115 +1126,6 @@ bool RSUniRenderComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) co
     return false;
 }
 
-LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
-    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const
-{
-    auto& params = surfaceDrawable.GetRenderParams();
-    if (!params) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateBLayer fail, params is nullptr");
-        return nullptr;
-    }
-
-    if (!CheckStatusBeforeCreateLayer(surfaceDrawable)) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateBLayer fail, check surfaceDrawable fail");
-        return nullptr;
-    }
-    ComposeInfo info = BuildComposeInfo(surfaceDrawable);
-    if (IsOutOfScreenRegion(info)) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CreateBufferLayer: node(%{public}" PRIu64
-                ") out of screen region, no need to composite.",
-            surfaceDrawable.GetId());
-        return nullptr;
-    }
-    if (info.buffer) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:"
-            "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
-            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}d,"
-            " globalZOrder:%{public}d, blendType = %{public}d",
-        surfaceDrawable.GetId(), surfaceDrawable.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w,
-        info.dstRect.h, info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), params->GetLayerInfo().zOrder,
-        info.zOrder, info.blendType);
-    }
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
-    SetComposeInfoToLayer(layer, info, surfaceDrawable.GetConsumerOnDraw());
-    LayerRotate(layer, surfaceDrawable);
-    LayerCrop(layer);
-    const auto& buffer = layer->GetBuffer();
-    if (buffer == nullptr) {
-        RS_LOGE("buffer is nullptr");
-        return layer;
-    }
-
-    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::CreateBLayer scalingMode is %{public}d", scalingMode);
-    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        LayerScaleDown(layer, surfaceDrawable);
-    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        LayerScaleFit(layer);
-    }
-    auto& layerRect = layer->GetLayerSize();
-    auto& cropRect = layer->GetCropRect();
-    RS_TRACE_NAME_FMT("CreateLayer:%s ScreenId:%llu layerRect XYWH[%d %d %d %d], "
-        "cropRect XYWH[%d %d %d %d], transform:%d", surfaceDrawable.GetName().c_str(), screenInfo_.id,
-        layerRect.x, layerRect.y, layerRect.w, layerRect.h,
-        cropRect.x, cropRect.y, cropRect.w, cropRect.h, layer->GetTransformType());
-    return layer;
-}
-
-LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
-{
-    if (!CheckStatusBeforeCreateLayer(node)) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateBLayer fail, check node fail");
-        return nullptr;
-    }
-    auto surfaceHandler = node.GetRSSurfaceHandler();
-    if (!surfaceHandler) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateBLayer fail, surfaceHandler is nullptr");
-        return nullptr;
-    }
-    ComposeInfo info = BuildComposeInfo(node);
-    if (IsOutOfScreenRegion(info)) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CreateBufferLayer: node(%{public}" PRIu64
-                ") out of screen region, no need to composite.",
-            node.GetId());
-        return nullptr;
-    }
-    RS_TRACE_NAME_FMT("CreateLayer:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
-    if (info.buffer) {
-        RS_LOGD(
-            "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:"
-            "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
-            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}f,"
-            " globalZOrder:%{public}d, blendType = %{public}d",
-            node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-            info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
-            info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
-            surfaceHandler->GetGlobalZOrder(), info.zOrder, info.blendType);
-    }
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
-    SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
-    LayerRotate(layer, node);
-    LayerCrop(layer);
-    layer->SetNodeId(node.GetId());
-    const auto& buffer = layer->GetBuffer();
-    if (buffer == nullptr) {
-        RS_LOGE("buffer or surface is nullptr");
-        return layer;
-    }
-    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::CreateBLayer scalingMode is %{public}d", scalingMode);
-    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
-        LayerScaleDown(layer, node);
-    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        LayerScaleFit(layer);
-    }
-    return layer;
-}
-
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
     if (output_ == nullptr) {
@@ -1473,26 +1220,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     LayerRotate(layer, *screenDrawable);
     // do not crop or scale down for screenNode's layer.
     return layer;
-}
-
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSSurfaceRenderNode& node) const
-{
-    const auto& consumer = node.GetRSSurfaceHandler()->GetConsumer();
-    if (consumer == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer get consumer fail");
-        return nullptr;
-    }
-    return CreateBufferLayer(node);
-}
-
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const
-{
-    const auto consumer = surfaceDrawable.GetConsumerOnDraw();
-    if (consumer == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer get consumer fail");
-        return nullptr;
-    }
-    return CreateBufferLayer(surfaceDrawable);
 }
 
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)

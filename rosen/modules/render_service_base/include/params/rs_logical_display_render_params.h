@@ -63,6 +63,21 @@ public:
         isSecurityExemption_ = isSecurityExemption;
     }
 
+    const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const
+    {
+        return topSurfaceOpaqueRects_;
+    }
+
+    void SetTopSurfaceOpaqueRects(const std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = topSurfaceOpaqueRects;
+    }
+
+    void SetTopSurfaceOpaqueRects(std::vector<Occlusion::Rect>&& topSurfaceOpaqueRects)
+    {
+        topSurfaceOpaqueRects_ = std::move(topSurfaceOpaqueRects);
+    }
+
     const RSSpecialLayerManager& GetSpecialLayerMgr() const
     {
         return specialLayerManager_;
@@ -105,6 +120,7 @@ public:
 
 private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     bool hasSecLayerInVisibleRect_ = false;
     RSSpecialLayerManager specialLayerManager_;
     bool isSecurityExemption_ = false;

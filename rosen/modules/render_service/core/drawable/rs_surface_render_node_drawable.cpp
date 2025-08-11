@@ -125,11 +125,9 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     return false;
 }
 
-void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
+void RSSurfaceRenderNodeDrawable::ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas,
+    const RSSurfaceRenderParams& surfaceParams)
 {
-    auto bounds = surfaceParams.GetFrameRect();
-
     if (surfaceParams.GetGlobalPositionEnabled()) {
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
@@ -150,7 +148,13 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     } else if (lastGlobalPositionEnabled_) {
         lastGlobalPositionEnabled_ = false;
     }
+}
 
+void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
+{
+    ApplyCrossScreenOffset(canvas, surfaceParams);
+    auto bounds = surfaceParams.GetFrameRect();
     // 1. draw background
     if (surfaceParams.IsLeashWindow()) {
         DrawLeashWindowBackground(canvas, bounds,
@@ -656,7 +660,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curDrawingCacheRoot_) {
         if (hasSkipCacheLayer_) {
             curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->NodeGroupHasChildInBlackList()) {
+        } else if (surfaceParams->NodeGroupHasChildInBlacklist()) {
             curDrawingCacheRoot_->SetChildInBlackList(true);
         }
     }
@@ -747,10 +751,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(),
         RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
-    pid_t realTid = rscanvas->GetParallelThreadId();
+    uint32_t realTid = rscanvas->GetParallelThreadId();
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kAll);
-    bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
+    bool needOffscreen = (static_cast<pid_t>(realTid) == RSUniRenderThread::Instance().GetTid()) &&
         RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
@@ -1155,6 +1159,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             "draw black with protected layer or screenshot security layer or virtual screen security layer",
             surfaceParams.GetId(), name_.c_str());
 
+        ApplyCrossScreenOffset(canvas, surfaceParams);
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
         canvas.AttachBrush(rectBrush);
@@ -1191,7 +1196,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             return;
         }
-        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
+        if (RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
+            subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
             }
@@ -1265,7 +1271,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             RS_TRACE_NAME_FMT("DealWithSelfDrawingNodeBuffer Id:%" PRIu64 "", surfaceParams.GetId());
             RSAutoCanvasRestore arc(&canvas);
             surfaceParams.SetGlobalAlpha(1.0f);
-            pid_t threadId = canvas.GetParallelThreadId();
+            uint32_t threadId = canvas.GetParallelThreadId();
             auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
 
             Drawing::Matrix rotateMatrix = canvas.GetTotalMatrix();
@@ -1304,7 +1310,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 
     RSAutoCanvasRestore arc(&canvas);
     surfaceParams.SetGlobalAlpha(1.0f);
-    pid_t threadId = canvas.GetParallelThreadId();
+    uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -1400,7 +1406,7 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
         RS_LOGE("DrawBufferForRotationFixed failed to get invert matrix");
     }
     canvas.ConcatMatrix(inverse);
-    pid_t threadId = canvas.GetParallelThreadId();
+    uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams,
         static_cast<uint32_t>(threadId));
     RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);

@@ -709,8 +709,8 @@ int32_t XMLParser::ParsePerformanceConfig(
         }
         auto name = ExtractPropertyValue("name", *currNode);
         auto value = ExtractPropertyValue("value", *currNode);
-        performanceConfig[std::move(name)] = std::move(value);
         HGM_LOGI("HgmXMLParser performanceConfig name=%{public}s strategy=%{public}s", name.c_str(), value.c_str());
+        performanceConfig[std::move(name)] = std::move(value);
     }
 
     return EXEC_SUCCESS;

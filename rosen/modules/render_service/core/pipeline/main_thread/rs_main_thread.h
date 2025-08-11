@@ -121,7 +121,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    void SetForceRsDVsync();
+    void SetForceRsDVsync(const std::string& sceneId);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -299,6 +299,8 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     void AddPidNeedDropFrame(std::vector<int32_t> pid);
     void ClearNeedDropframePidList();
+    void SetSelfDrawingGpuDirtyPidList(const std::vector<int32_t>& pid);
+    bool IsGpuDirtyEnable(NodeId nodeId);
     bool IsNeedDropFrameByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus(ScreenId id);
@@ -432,7 +434,6 @@ public:
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     void GetFrontBufferDesiredPresentTimeStamp(
         const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
-    void SetBufferQueueInfo(const std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();
@@ -841,6 +842,8 @@ private:
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
+    std::unordered_set<int32_t> selfDrawingGpuDirtyPidList_;
+    std::mutex pidListMutex_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
 
     // for record fastcompose time change

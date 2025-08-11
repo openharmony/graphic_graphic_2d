@@ -130,7 +130,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
 
 /**
  * @tc.name: SetSymbolAnimation003
- * @tc.desc: SetSymbolAnimation of RSSymbolAnimationTest
+ * @tc.desc: Test SetSymbolAnimation when the input effect strategy is TEXT_FLIP
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation003, TestSize.Level1)

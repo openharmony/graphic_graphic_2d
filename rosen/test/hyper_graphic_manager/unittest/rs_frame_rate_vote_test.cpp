@@ -25,8 +25,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-}
 class RSFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();

@@ -80,6 +80,66 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     geFilter.SetParam(desc, value);
 }
 
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, float value)
+{
+    hash = hashFunc_(&value, sizeof(value), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, bool value)
+{
+    hash = hashFunc_(&value, sizeof(value), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Vector4f& value)
+{
+    hash = hashFunc_(&value.data_, Vector4f::DATA_SIZE, hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Vector3f& value)
+{
+    hash = hashFunc_(&value.data_, Vector3f::DATA_SIZE, hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Vector2f& value)
+{
+    hash = hashFunc_(&value.data_, Vector2f::DATA_SIZE, hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSNGRenderMaskBase> value)
+{
+    if (!value) {
+        return;
+    }
+
+    uint32_t maskHash = value->CalculateHash();
+    hash = hashFunc_(&maskHash, sizeof(maskHash), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const VectorVector2F& value)
+{
+    for (size_t i = 0; i < value.size(); i++) {
+        hash = hashFunc_(value[i].data_, Vector2f::DATA_SIZE, hash);
+    }
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Media::PixelMap> value)
+{
+    auto image = RSPixelMapUtil::ExtractDrawingImage(value);
+    if (!image) {
+        return;
+    }
+
+    auto imageUniqueID = image->GetUniqueID();
+    hash = hashFunc_(&imageUniqueID, sizeof(imageUniqueID), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value)
+{
+    for (size_t i = 0; i < value.size(); i++) {
+        hash = hashFunc_(&value[i], sizeof(float), hash);
+    }
+}
+
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)
 {
     return std::make_shared<Drawing::GEVisualEffect>(GetEffectTypeString(type), Drawing::DrawingPaintType::BRUSH);

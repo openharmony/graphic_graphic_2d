@@ -62,7 +62,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
-#include "string_utils.h"
 
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -448,6 +447,7 @@ uint32_t RSRenderNode::GetRepaintBoundaryWeight()
 
 void RSRenderNode::UpdateSubTreeParallelNodes()
 {
+    // static constexpr size_t RB_POLICY_CHILDREN_NUMBER = SubtreeParallelParam::GetRBChildrenWeight();
     static constexpr size_t RB_POLICY_CHILDREN_NUMBER = 4;
     if (!isRepaintBoundary_ || GetChildrenCount() <= RB_POLICY_CHILDREN_NUMBER || !isAllChildRepaintBoundary_
         || ChildHasVisibleEffect() || GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
@@ -986,8 +986,12 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
-    if (uiContextToken_ > 0) {
-        out += ", RSUIContextToken: " + std::to_string(uiContextToken_);
+    if (!uiContextTokenList_.empty()) {
+        out += ", RSUIContextToken: [";
+        for (const auto& token : uiContextTokenList_) {
+            out += " " + std::to_string(token);
+        }
+        out += " ]";
     } else {
         out += ", RSUIContextToken: NO_RSUIContext";
     }
@@ -1275,6 +1279,7 @@ void RSRenderNode::DumpModifiers(std::string& out) const
             if (modifier->IsCustom()) {
                 continue;
             }
+            propertyDesc = propertyDesc + "pid:" + std::to_string(ExtractPid(modifier->GetId())) + "->";
             modifier->Dump(propertyDesc, splitStr);
         }
     }
@@ -1693,7 +1698,7 @@ void RSRenderNode::UpdateBufferDirtyRegion()
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
         bool isUseSelfDrawingDirtyRegion = buffer->GetSurfaceBufferWidth() == rect.w &&
-            buffer->GetSurfaceBufferHeight() == rect.h;
+            buffer->GetSurfaceBufferHeight() == rect.h && rect.x == 0 && rect.y == 0;
         if (isUseSelfDrawingDirtyRegion) {
             Rect selfDrawingDirtyRect;
             bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
@@ -1811,8 +1816,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         // currently CheckAndUpdateGeoTrans without dirty check
         auto& geoPtr = properties.boundsGeo_;
         // selfdrawing node's geo may not dirty when its dirty region changes
+        // updateDrawRect info when this node need to use cmdlistDrawRegion
         if (geoPtr && (CheckAndUpdateGeoTrans(geoPtr) || accumGeoDirty || properties.geoDirty_ ||
-            isSelfDrawingNode_ || selfDrawRectChanged)) {
+            isSelfDrawingNode_ || selfDrawRectChanged || GetNeedUseCmdlistDrawRegion())) {
             absDrawRectF_ = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
             absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF_);
             innerAbsDrawRect_ = geoPtr->DeflateToRectI(absDrawRectF_);
@@ -3882,18 +3888,6 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     SetDirty();
 }
 
-std::string RSRenderNode::QuickGetNodeDebugInfo()
-{
-    std::string ret("");
-#ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
-    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d filter:%d effect:%d",
-        GetId(), IsSubTreeDirty(), opincCache_.GetNodeCacheState(), opincCache_.GetUnchangeCount(),
-        opincCache_.IsSuggestOpincNode(), opincCache_.GetCurNodeTreeSupportFlag(), opincCache_.OpincGetRootFlag(),
-        ChildHasVisibleFilter(), ChildHasVisibleEffect());
-#endif
-    return ret;
-}
-
 void RSRenderNode::UpdateOpincParam()
 {
     if (stagingRenderParams_) {
@@ -5600,7 +5594,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
-        stagingRenderParams_->SetNodeGroupHasChildInBlackList(true);
+        stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());

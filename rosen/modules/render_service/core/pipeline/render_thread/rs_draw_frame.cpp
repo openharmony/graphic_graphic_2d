@@ -42,8 +42,8 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-    static constexpr int RENDER_TIMEOUT = 2500; // 2500ms: render timeout threshold
-    static constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
+    constexpr int RENDER_TIMEOUT = 2500; // 2500ms: render timeout threshold
+    constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
 }
 RSDrawFrame::RSDrawFrame()
     : unirenderInstance_(RSUniRenderThread::Instance()), rsParallelType_(RSSystemParameters::GetRsParallelType())
@@ -93,7 +93,7 @@ void RSDrawFrame::RenderFrame()
     UnblockMainThread();
     RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
     Render();
-    ReleaseSelfDrawingNodeBuffer();
+    ReleaseSpecialDrawingNodeBuffer();
     NotifyClearGpuCache();
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
@@ -137,8 +137,10 @@ void RSDrawFrame::EndCheck()
         exceptionCheck_.exceptionCnt_ = longFrameCount_;
         exceptionCheck_.exceptionMoment_ = timer_->GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
-        sleep(1); // sleep 1s : abort will kill RS, sleep 1s for hisysevent report.
-        abort(); // The RS process needs to be restarted because 12 consecutive frames times out.
+        RS_LOGE("RSDrawFrame::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
+            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}lld, EXCEPTION_POINT:%{public}s",
+            getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
+            exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }
 }
 
@@ -150,9 +152,10 @@ void RSDrawFrame::NotifyClearGpuCache()
     }
 }
 
-void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
+void RSDrawFrame::ReleaseSpecialDrawingNodeBuffer()
 {
     unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
+    unirenderInstance_.ReleaseSurfaceBufferOpItemBuffer();
 }
 
 void RSDrawFrame::PostAndWait()
@@ -171,7 +174,7 @@ void RSDrawFrame::PostAndWait()
                 unirenderInstance_.SetMainLooping(true);
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
                 RenderFrame();
-                unirenderInstance_.RunImageReleaseTask();
+                unirenderInstance_.ClearResource();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
                 unirenderInstance_.SetMainLooping(false);
             });
@@ -179,7 +182,7 @@ void RSDrawFrame::PostAndWait()
         }
         case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
             RenderFrame();
-            unirenderInstance_.RunImageReleaseTask();
+            unirenderInstance_.ClearResource();
             break;
         }
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
@@ -191,7 +194,7 @@ void RSDrawFrame::PostAndWait()
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
                 RenderFrame();
-                unirenderInstance_.RunImageReleaseTask();
+                unirenderInstance_.ClearResource();
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationEnd();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
                 unirenderInstance_.SetMainLooping(false);

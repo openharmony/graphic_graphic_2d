@@ -77,9 +77,9 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceC
     uint32_t code = captureConfig.isHdrCapture ?
         static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR) :
         static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error");
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy: SendRequest() error");
     }
 }
 } // namespace Rosen

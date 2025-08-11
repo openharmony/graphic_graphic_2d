@@ -251,7 +251,9 @@ void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
     auto estimateDuration = std::max(duration * MULTIPLES_DURATION, MIN_DURATION);
     // Double-check the finish callback is called by the timing when the estimateDuration. This is a safety net
     // to ensure that the callback is executed even if the timing is not triggered due to some reason.
-    RSUIDirector::PostDelayTask(callbackSafetyNetLambda, estimateDuration);
+    auto rsUIContext = rsUIContext_.lock();
+    rsUIContext ? rsUIContext->PostDelayTask(callbackSafetyNetLambda, estimateDuration)
+        : RSUIDirector::PostDelayTask(callbackSafetyNetLambda, estimateDuration);
 }
 
 CancelAnimationStatus RSImplicitAnimator::CloseImplicitCancelAnimation()
