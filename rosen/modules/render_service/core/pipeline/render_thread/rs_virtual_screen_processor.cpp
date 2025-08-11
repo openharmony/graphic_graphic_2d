@@ -73,7 +73,12 @@ bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, i
     if (canvas_ == nullptr) {
         return false;
     }
-    canvas_->ConcatMatrix(screenTransformMatrix_);
+
+    if (mirroredScreenInfo_.id != INVALID_SCREEN_ID) {
+        canvas_->ConcatMatrix(mirrorAdaptiveMatrix_);
+    } else {
+        canvas_->ConcatMatrix(screenTransformMatrix_);
+    }
 
     return true;
 }
@@ -108,12 +113,10 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // clipHole: false.
     // forceCPU: true.
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
-    const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient_;
-    const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient_;
     params.dstRect.SetLeft(0);
     params.dstRect.SetTop(0);
-    params.dstRect.SetRight(adaptiveDstWidth);
-    params.dstRect.SetBottom(adaptiveDstHeight);
+    params.dstRect.SetRight(params.dstRect.GetWidth());
+    params.dstRect.SetBottom(params.dstRect.GetHeight());
     renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
 }
 
