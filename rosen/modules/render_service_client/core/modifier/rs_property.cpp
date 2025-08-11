@@ -16,7 +16,6 @@
 #include "modifier/rs_property.h"
 
 #include "sandbox_utils.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
@@ -530,14 +529,6 @@ template<>
 void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyRRect, value, type);
-}
-
-template<>
-void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
-    const std::shared_ptr<RSUIFilter>& value, PropertyUpdateType type) const
-{
-    auto rsRenderFilter = value->GetRSRenderFilter();
-    UPDATE_TO_RENDER(RSUpdatePropertyUIFilter, rsRenderFilter, type);
 }
 
 template<>

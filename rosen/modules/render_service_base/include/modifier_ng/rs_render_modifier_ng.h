@@ -176,13 +176,6 @@ protected:
     // sub-class should not directly access properties_, use GetPropertyValue instead
     std::map<RSPropertyType, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
-    virtual void AttachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type)
-    {}
-    virtual void DetachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type)
-    {}
-
     template<typename T, auto Setter>
     static void PropertyApplyHelper(RSProperties& properties, RSRenderPropertyBase& property)
     {

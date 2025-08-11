@@ -452,40 +452,6 @@ public:
     }
 };
 
-class RSB_EXPORT RSBackgroundUIFilterRenderModifier : public RSBackgroundRenderModifier {
-public:
-    RSBackgroundUIFilterRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
-        : RSBackgroundRenderModifier(property)
-    {
-        property->SetModifierType(RSModifierType::BACKGROUND_UI_FILTER);
-    }
-    ~RSBackgroundUIFilterRenderModifier() override = default;
-    void Apply(RSModifierContext& context) const override;
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
-    bool Marshalling(Parcel& parcel) override;
-    RSModifierType GetType() override
-    {
-        return RSModifierType::BACKGROUND_UI_FILTER;
-    }
-};
-
-class RSB_EXPORT RSForegroundUIFilterRenderModifier : public RSForegroundRenderModifier {
-public:
-    RSForegroundUIFilterRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
-        : RSForegroundRenderModifier(property)
-    {
-        property->SetModifierType(RSModifierType::FOREGROUND_UI_FILTER);
-    }
-    ~RSForegroundUIFilterRenderModifier() override = default;
-    void Apply(RSModifierContext& context) const override;
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
-    bool Marshalling(Parcel& parcel) override;
-    RSModifierType GetType() override
-    {
-        return RSModifierType::FOREGROUND_UI_FILTER;
-    }
-};
-
 class RSB_EXPORT RSForegroundNGFilterRenderModifier : public RSForegroundRenderModifier {
 public:
     RSForegroundNGFilterRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)

@@ -20,7 +20,7 @@
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_render_color_gradient_filter.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
