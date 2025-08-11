@@ -52,7 +52,8 @@ const uint8_t DO_SET_SCREEN_CORRECTION = 2;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION = 3;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE = 4;
 const uint8_t DO_SET_GLOBAL_DARK_COLOR_MODE = 5;
-const uint8_t TARGET_SIZE = 6;
+const uint8_t DO_DROP_FRAME_BY_PID = 6;
+const uint8_t TARGET_SIZE = 7;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -234,6 +235,23 @@ void DoSetGlobalDarkColorMode()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     sleep(1);
 }
+
+void DoDropFrameByPid()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    }
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInt32Vector(pidList);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    sleep(1);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -284,6 +302,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_GLOBAL_DARK_COLOR_MODE:
             OHOS::Rosen::DoSetGlobalDarkColorMode();
+            break;
+        case OHOS::Rosen::DO_DROP_FRAME_BY_PID:
+            OHOS::Rosen::DoDropFrameByPid();
             break;
         default:
             return -1;
