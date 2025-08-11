@@ -21,6 +21,11 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
