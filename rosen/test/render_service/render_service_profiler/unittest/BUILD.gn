@@ -390,6 +390,7 @@ ohos_unittest("RSProfilerDumpTest") {
 
   external_deps = [ 
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 
@@ -421,6 +422,7 @@ ohos_unittest("RSProfilerPixelMapTest") {
 
   external_deps = [
     "c_utils:utils",  # sptr
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",  # SurfaceBuffer
     "image_framework:image_native",  # ImageInfo, PIXEL_MAP_ERR, PixelMap,
                                      # PixelMapInfo, AllocatorType
