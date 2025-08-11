@@ -351,6 +351,9 @@ void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& u
 void RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect)
 {
     surfaceParams.SetFilterCacheFullyCovered(false);
+    if (surfaceParams.GetAttractionAnimation()) {
+        return;
+    }
     bool dirtyBelowContainsFilterNode = false;
     for (auto& filterNodeId : surfaceParams.GetVisibleFilterChild()) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(filterNodeId);

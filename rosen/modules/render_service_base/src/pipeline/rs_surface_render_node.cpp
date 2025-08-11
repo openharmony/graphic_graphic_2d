@@ -2890,6 +2890,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->alpha_ = properties.GetAlpha();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
     surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
+    surfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();

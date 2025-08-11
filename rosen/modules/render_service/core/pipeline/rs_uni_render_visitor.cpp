@@ -869,7 +869,9 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
         mainThread->IsPCThreeFingerScenesListScene());
     // check current surface Participate In Occlusion
     bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
-    if (node.CheckParticipateInOcclusion() && occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_) {
+    bool isParticipateInOcclusion = node.CheckParticipateInOcclusion() &&
+        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_ && !node.IsAttractionAnimation();
+    if (isParticipateInOcclusion) {
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
         if (IsValidInVirtualScreen(node)) {
             occlusionRegionWithoutSkipLayer_.OrSelf(node.GetOpaqueRegion());
@@ -1205,6 +1207,12 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     UpdateSecuritySkipAndProtectedLayersRecord(node);
     node.UpdateUIFirstFrameGravity();
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
+        // if firstLevelNode has attration animation,
+        // subsurface with main window type, set attraction animation flag to skip filter cache occlusion
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+            node.GetFirstLevelNode());
+        node.SetAttractionAnimation(firstLevelNode != nullptr &&
+            firstLevelNode->GetRenderProperties().IsAttractionValid());
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
         node.UpdateCurCornerRadius(curCornerRadius_);
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
