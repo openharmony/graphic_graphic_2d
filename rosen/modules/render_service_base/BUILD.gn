@@ -347,7 +347,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_ripple_mask.cpp",
     "src/render/rs_render_sound_wave_filter.cpp",
     "src/render/rs_render_water_ripple_filter.cpp",
-    "src/render/rs_resource_manager.cpp",
     "src/render/rs_shader.cpp",
     "src/render/rs_shader_mask.cpp",
     "src/render/rs_shadow.cpp",

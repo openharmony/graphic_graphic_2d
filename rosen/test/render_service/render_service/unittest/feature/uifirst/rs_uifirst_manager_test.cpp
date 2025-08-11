@@ -2248,14 +2248,14 @@ HWTEST_F(RSUifirstManagerTest, IsMissionCenterScene, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, IsSplitScreenScene, TestSize.Level1)
 {
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_SPLIT_SCREEN);
-    auto isMissionCenterScene = uifirstManager_.IsSplitScreenScene();
-    ASSERT_EQ(isMissionCenterScene, true);
+    auto isSplitScreenScene = uifirstManager_.IsSplitScreenScene();
+    ASSERT_EQ(isSplitScreenScene, true);
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::OTHERS);
-    isMissionCenterScene = uifirstManager_.IsSplitScreenScene();
-    ASSERT_EQ(isMissionCenterScene, false);
+    isSplitScreenScene = uifirstManager_.IsSplitScreenScene();
+    ASSERT_EQ(isSplitScreenScene, false);
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::EXIT_SPLIT_SCREEN);
-    isMissionCenterScene = uifirstManager_.IsSplitScreenScene();
-    ASSERT_EQ(isMissionCenterScene, true);
+    isSplitScreenScene = uifirstManager_.IsSplitScreenScene();
+    ASSERT_EQ(isSplitScreenScene, true);
 }
 
 /**
