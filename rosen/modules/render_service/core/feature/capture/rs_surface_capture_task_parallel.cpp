@@ -258,8 +258,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
     if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
         canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
         canvas.Translate(-rect.GetLeft(), -rect.GetTop());
+    } else {
+        canvas.Translate(-boundsX_, -boundsY_);
     }
-    canvas.Translate(-boundsX_, -boundsY_);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     if (surfaceNodeDrawable_) {
