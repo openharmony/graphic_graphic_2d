@@ -83,46 +83,45 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::FOREGROUND_SHADER,        RSForegroundShaderRenderModifier::ResetProperties },
 };
 
-std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT>
-    RSRenderModifier::ConstructorLUT_ = {
-        nullptr,                                                                        // INVALID
-        [] { return new RSBoundsRenderModifier(); },                                    // BOUNDS
-        [] { return new RSFrameRenderModifier(); },                                     // FRAME
-        [] { return new RSTransformRenderModifier(); },                                 // TRANSFORM
-        [] { return new RSAlphaRenderModifier(); },                                     // ALPHA
-        [] { return new RSForegroundColorRenderModifier(); },                           // FOREGROUND_COLOR
-        [] { return new RSBackgroundColorRenderModifier(); },                           // BACKGROUND_COLOR
-        [] { return new RSBackgroundShaderRenderModifier(); },                          // BACKGROUND_SHADER
-        [] { return new RSBackgroundImageRenderModifier(); },                           // BACKGROUND_IMAGE
-        [] { return new RSBorderRenderModifier(); },                                    // BORDER
-        [] { return new RSOutlineRenderModifier(); },                                   // OUTLINE
-        [] { return new RSBoundsClipRenderModifier(); },                                // CLIP_TO_BOUNDS
-        [] { return new RSFrameClipRenderModifier(); },                                 // CLIP_TO_FRAME
-        [] { return new RSVisibilityRenderModifier(); },                                // VISIBILITY
-        [] { return new RSDynamicLightUpRenderModifier(); },                            // DYNAMIC_LIGHT_UP
-        [] { return new RSShadowRenderModifier(); },                                    // SHADOW
-        [] { return new RSMaskRenderModifier(); },                                      // MASK
-        [] { return new RSPixelStretchRenderModifier(); },                              // PIXEL_STRETCH
-        [] { return new RSUseEffectRenderModifier(); },                                 // USE_EFFECT
-        [] { return new RSBlendRenderModifier(); },                                     // BLENDER
-        [] { return new RSPointLightRenderModifier(); },                                // POINT_LIGHT
-        [] { return new RSParticleEffectRenderModifier(); },                            // PARTICLE_EFFECT
-        [] { return new RSCompositingFilterRenderModifier(); },                         // COMPOSITING_FILTER
-        [] { return new RSBackgroundFilterRenderModifier(); },                          // BACKGROUND_FILTER
-        [] { return new RSForegroundFilterRenderModifier(); },                          // FOREGROUND_FILTER
-        [] { return new RSCustomRenderModifier<RSModifierType::TRANSITION_STYLE>(); },  // TRANSITION_STYLE
-        [] { return new RSCustomRenderModifier<RSModifierType::BACKGROUND_STYLE>(); },  // BACKGROUND_STYLE
-        [] { return new RSCustomRenderModifier<RSModifierType::CONTENT_STYLE>(); },     // CONTENT_STYLE
-        [] { return new RSCustomRenderModifier<RSModifierType::FOREGROUND_STYLE>(); },  // FOREGROUND_STYLE
-        [] { return new RSCustomRenderModifier<RSModifierType::OVERLAY_STYLE>(); },     // OVERLAY_STYLE
-        nullptr,                                                                        // NODE_MODIFIER
-        [] { return new RSEnvForegroundColorRenderModifier(); },                        // ENV_FOREGROUND_COLOR
-        [] { return new RSHDRBrightnessRenderModifier(); },                             // HDR_BRIGHTNESS
-        [] { return new RSBehindWindowFilterRenderModifier(); },                        // BEHIND_WINDOW_FILTER
-        [] { return new RSBackgroundNGShaderRenderModifier(); },                        // BACKGROUND_NG_SHADER
-        [] { return new RSForegroundShaderRenderModifier(); },                          // FOREGROUND_SHADER
-        nullptr,                                                                        // CHILDREN
-    };
+std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier::ConstructorLUT_ = {
+    nullptr,                                                                                     // INVALID
+    [] { return std::make_shared<RSBoundsRenderModifier>(); },                                   // BOUNDS
+    [] { return std::make_shared<RSFrameRenderModifier>(); },                                    // FRAME
+    [] { return std::make_shared<RSTransformRenderModifier>(); },                                // TRANSFORM
+    [] { return std::make_shared<RSAlphaRenderModifier>(); },                                    // ALPHA
+    [] { return std::make_shared<RSForegroundColorRenderModifier>(); },                          // FOREGROUND_COLOR
+    [] { return std::make_shared<RSBackgroundColorRenderModifier>(); },                          // BACKGROUND_COLOR
+    [] { return std::make_shared<RSBackgroundShaderRenderModifier>(); },                         // BACKGROUND_SHADER
+    [] { return std::make_shared<RSBackgroundImageRenderModifier>(); },                          // BACKGROUND_IMAGE
+    [] { return std::make_shared<RSBorderRenderModifier>(); },                                   // BORDER
+    [] { return std::make_shared<RSOutlineRenderModifier>(); },                                  // OUTLINE
+    [] { return std::make_shared<RSBoundsClipRenderModifier>(); },                               // CLIP_TO_BOUNDS
+    [] { return std::make_shared<RSFrameClipRenderModifier>(); },                                // CLIP_TO_FRAME
+    [] { return std::make_shared<RSVisibilityRenderModifier>(); },                               // VISIBILITY
+    [] { return std::make_shared<RSDynamicLightUpRenderModifier>(); },                           // DYNAMIC_LIGHT_UP
+    [] { return std::make_shared<RSShadowRenderModifier>(); },                                   // SHADOW
+    [] { return std::make_shared<RSMaskRenderModifier>(); },                                     // MASK
+    [] { return std::make_shared<RSPixelStretchRenderModifier>(); },                             // PIXEL_STRETCH
+    [] { return std::make_shared<RSUseEffectRenderModifier>(); },                                // USE_EFFECT
+    [] { return std::make_shared<RSBlendRenderModifier>(); },                                    // BLENDER
+    [] { return std::make_shared<RSPointLightRenderModifier>(); },                               // POINT_LIGHT
+    [] { return std::make_shared<RSParticleEffectRenderModifier>(); },                           // PARTICLE_EFFECT
+    [] { return std::make_shared<RSCompositingFilterRenderModifier>(); },                        // COMPOSITING_FILTER
+    [] { return std::make_shared<RSBackgroundFilterRenderModifier>(); },                         // BACKGROUND_FILTER
+    [] { return std::make_shared<RSForegroundFilterRenderModifier>(); },                         // FOREGROUND_FILTER
+    [] { return std::make_shared<RSCustomRenderModifier<RSModifierType::TRANSITION_STYLE>>(); }, // TRANSITION_STYLE
+    [] { return std::make_shared<RSCustomRenderModifier<RSModifierType::BACKGROUND_STYLE>>(); }, // BACKGROUND_STYLE
+    [] { return std::make_shared<RSCustomRenderModifier<RSModifierType::CONTENT_STYLE>>(); },    // CONTENT_STYLE
+    [] { return std::make_shared<RSCustomRenderModifier<RSModifierType::FOREGROUND_STYLE>>(); }, // FOREGROUND_STYLE
+    [] { return std::make_shared<RSCustomRenderModifier<RSModifierType::OVERLAY_STYLE>>(); },    // OVERLAY_STYLE
+    nullptr,                                                                                     // NODE_MODIFIER
+    [] { return std::make_shared<RSEnvForegroundColorRenderModifier>(); },                       // ENV_FOREGROUND_COLOR
+    [] { return std::make_shared<RSHDRBrightnessRenderModifier>(); },                            // HDR_BRIGHTNESS
+    [] { return std::make_shared<RSBehindWindowFilterRenderModifier>(); },                       // BEHIND_WINDOW_FILTER
+    [] { return std::make_shared<RSBackgroundNGShaderRenderModifier>(); },                       // BACKGROUND_NG_SHADER
+    [] { return std::make_shared<RSForegroundShaderRenderModifier>(); },                         // FOREGROUND_SHADER
+    nullptr,                                                                                     // CHILDREN
+};
 
 const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc>& RSRenderModifier::GetResetFuncMap()
 {
@@ -241,7 +240,7 @@ bool RSRenderModifier::Marshalling(Parcel& parcel) const
     return ret;
 }
 
-RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
+std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel)
 {
     RSModifierType type = RSModifierType::MAX;
     if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
@@ -255,10 +254,9 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
     if (constructor == nullptr) {
         return nullptr;
     }
-    RSRenderModifier* ret = constructor();
+    auto ret = constructor();
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {
-        delete ret;
         return nullptr;
     }
     for (auto& [type, property] : ret->properties_) {

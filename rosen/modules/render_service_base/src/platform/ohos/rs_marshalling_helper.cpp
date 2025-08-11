@@ -2949,7 +2949,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Modi
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {
-    val.reset(ModifierNG::RSRenderModifier::Unmarshalling(parcel));
+    val = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
     return val != nullptr;
 }
 

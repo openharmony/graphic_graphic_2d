@@ -348,12 +348,7 @@ std::shared_ptr<RSRenderModifier> RSModifier::CreateRenderModifier()
     if (constructor == nullptr) {
         return nullptr;
     }
-    auto rawPointer = constructor();
-    if (rawPointer == nullptr) {
-        return nullptr;
-    }
-    std::shared_ptr<RSRenderModifier> renderModifier(
-        rawPointer, [](RSRenderModifier* rawPointer) { delete rawPointer; });
+    auto renderModifier = constructor();
     renderModifier->id_ = id_;
     for (auto& [type, property] : properties_) {
         if (property == nullptr) {

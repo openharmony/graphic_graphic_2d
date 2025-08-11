@@ -1077,7 +1077,7 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
     return "";
 }
 
-static RenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::string& errReason)
+static std::shared_ptr<RenderModifier> UnmarshalRenderModifier(std::stringstream& data, std::string& errReason)
 {
     errReason = "";
 
@@ -1158,7 +1158,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
             RSProfiler::SendMessageBase("LOADERROR: Modifier format changed [" + errModifierCode + "]");
             continue;
         }
-        node.AddModifier(std::shared_ptr<RenderModifier>(ptr));
+        node.AddModifier(ptr);
     }
 
 #ifndef MODIFIER_NG
@@ -1174,7 +1174,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
                 RSProfiler::SendMessageBase("LOADERROR: DrawModifier format changed [" + errModifierCode + "]");
                 continue;
             }
-            node.AddModifier(std::shared_ptr<RenderModifier>(ptr));
+            node.AddModifier(ptr);
         }
     }
 #endif
