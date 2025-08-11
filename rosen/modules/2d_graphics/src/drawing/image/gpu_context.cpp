@@ -300,9 +300,9 @@ void GPUContext::FlushGpuMemoryInWaitQueue()
     impl_->FlushGpuMemoryInWaitQueue();
 }
 
-void GPUContext::SetEarlyZFlag(bool flag)
+void GPUContext::SetEarlyZEnabled(bool flag)
 {
-    impl_->SetEarlyZFlag(flag);
+    impl_->SetEarlyZEnabled(flag);
 }
 
 void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)

@@ -283,7 +283,7 @@ private:
         JANK_FRAME_180_FREQ,
         JANK_FRAME_INVALID,
     };
-    bool ddgrEarlyZEnableFlag_ = false;
+    bool ddgrEarlyZEnable_ = false;
     bool isFlushEarlyZ_ = false;
     int32_t lastReportEarlyZTraceId_ = -1;
 };

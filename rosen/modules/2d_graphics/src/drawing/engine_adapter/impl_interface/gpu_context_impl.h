@@ -132,7 +132,7 @@ public:
 
     virtual void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) = 0;
 
-    virtual void SetEarlyZFlag(bool flag) = 0;
+    virtual void SetEarlyZEnabled(bool flag) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

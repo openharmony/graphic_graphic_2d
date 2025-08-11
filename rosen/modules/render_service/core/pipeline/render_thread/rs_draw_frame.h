@@ -46,7 +46,7 @@ public:
 
 private:
     void RenderFrame();
-    void SetEarlyZFlag(Drawing::GPUContext* gpuContext);
+    void SetEarlyZEnabled(Drawing::GPUContext* gpuContext);
     void UnblockMainThread();
     void Sync();
     void Render();
