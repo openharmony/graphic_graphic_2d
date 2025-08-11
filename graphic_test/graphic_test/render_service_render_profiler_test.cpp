@@ -26,19 +26,22 @@
 #include <thread>
 #include <unistd.h>
 
+#ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_packet.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
+#endif
 using namespace std;
 
 constexpr int MAX_WAITING_TIMES = 1000;
-constexpr int INIT_WAIT_TIME = 50;
-constexpr int SOCKET_REFRESH_TIME = 20;
-constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
+[[maybe_unused]] constexpr int INIT_WAIT_TIME = 50;
+[[maybe_unused]] constexpr int SOCKET_REFRESH_TIME = 20;
+[[maybe_unused]] constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
 
 class RenderServiceRenderProfilerTest {
 public:
+#ifdef RS_PROFILER_ENABLED
     ~RenderServiceRenderProfilerTest()
     {
         Stop();
@@ -233,6 +236,16 @@ private:
     bool running_ = false;
     std::mutex queueMutex_;
     std::condition_variable cv_;
+#else
+    void Start() {}
+    void Stop() {}
+    bool IsSocketActive()
+    {
+        return false;
+    }
+    void ForceCloseSocket() {}
+    void SendCommand(const std::string command) {}
+#endif
 };
 
 void RecordStart(std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread)
