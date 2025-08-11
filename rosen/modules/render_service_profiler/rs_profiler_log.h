@@ -23,9 +23,9 @@
 #define HRPD(format, ...) RS_LOGD("[HRP] " format, ##__VA_ARGS__)
 #define HRPE(format, ...) RS_LOGE("[HRP] " format, ##__VA_ARGS__)
 #define HRPW(format, ...) RS_LOGW("[HRP] " format, ##__VA_ARGS__)
-#define HRPIDN(format, ...) (void)"LCOV_EXCL_BR_LINE"; ##\
+#define HRPIDN(format, ...) (void)"LCOV_EXCL_BR_LINE"; \
     ((CONDITION(DEBUG_NODE)) ? RS_LOGI("[HRP] " format, ##__VA_ARGS__) : (void)0)
-#define HRPIDM(format, ...) (void)"LCOV_EXCL_BR_LINE"; ##\
+#define HRPIDM(format, ...) (void)"LCOV_EXCL_BR_LINE"; \
     ((CONDITION(DEBUG_MODIFIER)) ? RS_LOGI("[HRP] " format, ##__VA_ARGS__) : (void)0)
 // NOLINTEND
 
