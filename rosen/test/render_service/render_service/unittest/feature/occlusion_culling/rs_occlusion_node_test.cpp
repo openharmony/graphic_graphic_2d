@@ -37,7 +37,8 @@ public:
     static const NodeId thirdNodeId;
     static const NodeId fouthNodeId;
     static const PropertyId propertyId;
-    static void SetNodeProperties(std::shared_ptr<OcclusionNode> node, bool isValid, bool isOpaque, bool needsAlpha, bool isIgnored);
+    static void SetNodeProperties(std::shared_ptr<OcclusionNode> node, bool isValid,
+        bool isOpaque, bool needsAlpha, bool isIgnored);
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
