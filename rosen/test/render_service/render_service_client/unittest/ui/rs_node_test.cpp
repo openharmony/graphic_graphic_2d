@@ -18,6 +18,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
 #include "ui_effect/property/include/rs_ui_blur_filter.h"
 #include "ui_effect/property/include/rs_ui_content_light_filter.h"
@@ -26,6 +27,7 @@
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -4103,6 +4105,28 @@ HWTEST_F(RSNodeTest, CreateBlurFilter002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetVisualEffect003
+ * @tc.desc: test results of SetVisualEfect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEfffect003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto effectObj = std::make_shared<VisualEffect>();
+    auto para = std::make_shared<BackgroundColorEffectPara>();
+    effectObj->AddPara(para);
+    auto colorGradient = std::make_shared<ColorGradientEffectPara>();
+    effectObj->AddPara(colorGradient);
+    rsNode->SetVisualEffect(effectObj.get());
+    auto& modifier = rsNode->modifiersNGCreatedBySetter_[static_cast<uint16_t>(
+        ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
+    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER));
+    std::shared_ptr<VisualEffectPara> effectPara = nullptr;
+    auto shader = RSNGShaderBase::Create(effectPara);
+    EXPECT_TRUE(shader == nullptr);
+}
+
+/**
  * @tc.name: CreateBlurFilter003
  * @tc.desc:
  * @tc.type:FUNC
@@ -7178,6 +7202,36 @@ HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
     rsNode->AddChild(childNode, -1);
     EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: AddChildTest003
+ * @tc.desc: test results of AddChild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto rsUIContext = uiDirector1->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto rsUIContext2 = uiDirector2->GetRSUIContext();
+    ASSERT_NE(rsUIContext2, nullptr);
+    auto childNode = RSCanvasNode::Create(false, false, rsUIContext2);
+    rsNode->AddChild(childNode, -1);
+    EXPECT_NE(rsNode->children_.size(), 0);
+    childNode->RemoveFromTree();
+    EXPECT_EQ(rsNode->children_.size(), 0);
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext2);
+    rsNode->AddChild(surfaceNode, -1);
+    EXPECT_NE(rsNode->children_.size(), 0);
+    surfaceNode->RemoveFromTree();
+    EXPECT_EQ(rsNode->children_.size(), 0);
 }
 
 /**

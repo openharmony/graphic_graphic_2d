@@ -16,8 +16,8 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "multiscreen_param.h"
 #include "draw/canvas.h"
+#include "multiscreen_param.h"
 
 using namespace testing;
 using namespace testing::ext;

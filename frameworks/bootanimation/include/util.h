@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "zlib.h"
+#include <parameters.h>
 
 namespace OHOS {
 static const int NUMBER_TWO = 2;
@@ -61,6 +62,8 @@ constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
 const std::string DEVICE_TYPE_PHONE = "phone";
 const std::string DEVICE_TYPE_WEARABLE = "wearable";
+
+const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "");
 
 enum class BootStrategyType {
     ASSOCIATIVE,
@@ -166,6 +169,8 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
 bool CloseZipFile(const unzFile zipFile, bool ret);
 
 int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp);
+
+int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp, const float ratio);
 
 std::string ReadFile(const std::string &filePath);
 

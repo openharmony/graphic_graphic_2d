@@ -5083,7 +5083,8 @@ ErrCode RSRenderServiceConnectionProxy::DropFrameByPid(const std::vector<int32_t
         ROSEN_LOGE("DropFrameByPid: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
     }
-    if (!data.WriteInt32Vector(pidList)) {
+
+    if (pidList.size() > MAX_DROP_FRAME_PID_LIST_SIZE || !data.WriteInt32Vector(pidList)) {
         ROSEN_LOGE("DropFrameByPid: WriteInt32Vector pidList err.");
         return ERR_INVALID_VALUE;
     }
@@ -5815,6 +5816,11 @@ void RSRenderServiceConnectionProxy::ClearUifirstCache(NodeId id)
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearUifirstCache sendrequest error : %{public}d", err);
         return;
     }
+}
+
+ErrCode RSRenderServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList)
+{
+    return ERR_INVALID_VALUE;
 }
 } // namespace Rosen
 } // namespace OHOS

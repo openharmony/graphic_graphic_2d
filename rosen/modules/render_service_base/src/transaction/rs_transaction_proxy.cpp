@@ -198,7 +198,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
         RS_TRACE_NAME_FMT("HybridRender transactionFlag:[%d,%" PRIu64 "]", GetRealPid(), transactionDataIndex_ + 1);
         commitTransactionCallback_(renderServiceClient_,
-            std::move(transactionData), transactionDataIndex_);
+            std::move(transactionData), transactionDataIndex_, nullptr);
         return;
     }
     renderServiceClient_->CommitTransaction(transactionData);

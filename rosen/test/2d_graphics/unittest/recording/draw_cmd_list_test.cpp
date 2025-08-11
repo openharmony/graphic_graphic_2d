@@ -280,7 +280,7 @@ HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled003, TestSize.Level1)
     auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
     drawCmdList->drawOpItems_.emplace_back(opItem);
     auto ret = drawCmdList->IsHybridRenderEnabled(INT_MAX, INT_MAX);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, true);
     delete drawCmdList;
 }
 

@@ -29,11 +29,6 @@
 #include "graphic_common_c.h"
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
-#ifdef USE_M133_SKIA
-#include "include/gpu/ganesh/GrDirectContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
 #include "memory/rs_memory_manager.h"
 #include "mem_param.h"
 #include "params/rs_screen_render_params.h"
@@ -326,6 +321,12 @@ void RSUniRenderThread::RunImageReleaseTask()
     for (auto task : tasks) {
         task();
     }
+}
+
+void RSUniRenderThread::ClearResource()
+{
+    RunImageReleaseTask();
+    DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
 }
 
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,

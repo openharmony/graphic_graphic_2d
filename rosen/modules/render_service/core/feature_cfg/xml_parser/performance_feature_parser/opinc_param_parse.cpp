@@ -20,6 +20,7 @@ namespace OHOS::Rosen {
 
 int32_t OPIncParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
+    RS_LOGI("OPIncParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
         RS_LOGD("OPIncParamParse stop parsing, no children nodes");
@@ -43,7 +44,7 @@ int32_t OPIncParamParse::ParseOPIncInternal(xmlNode &node)
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
-    if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+    if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "OPIncEnabled") {
             OPIncParam::SetOPIncEnable(isEnabled);

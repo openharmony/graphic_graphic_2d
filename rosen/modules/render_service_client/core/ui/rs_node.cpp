@@ -1745,13 +1745,14 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
     SetBackgroundColor(color);
 }
 
-void RSNode::SetBackgroundColor(RSColor& color)
+void RSNode::SetBackgroundColor(RSColor color)
 {
-    RSColor colorInP3 = color;
-    colorInP3.ConvertToP3ColorSpace();
+#ifndef ROSEN_CROSS_PLATFORM
+    color.ConvertToP3ColorSpace();
+#endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
-        colorInP3);
-    if (colorInP3.GetAlpha() > 0) {
+        color);
+    if (color.GetAlpha() > 0) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
@@ -2163,6 +2164,11 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT) {
             SetBorderLightShader(visualEffectPara);
         }
+        if (visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT) {
+            std::shared_ptr<RSNGShaderBase> headVisualEffect = RSNGShaderBase::Create(visualEffectPara);
+            SetBackgroundNGShader(headVisualEffect);
+        }
+        
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
             continue;
         }
@@ -3637,6 +3643,18 @@ void RSNode::AddChild(SharedPtr child, int index)
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetRSUIContext() != GetRSUIContext()) {
+        if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>()) {
+            ROSEN_LOGI("RSNode::AddChild, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
+                       " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
+                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
+                surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+            RS_TRACE_NAME_FMT("RSNode::AddChild, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
+                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
+                surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+        }
         std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
         child->AddCommand(child_command, IsRenderServiceNode(), GetFollowType(), id_);
     }
@@ -3866,6 +3884,18 @@ void RSNode::RemoveFromTree()
     MarkDirty(NodeDirtyType::APPEARANCE, true);
     auto parentPtr = parent_.lock();
     if (parentPtr) {
+        if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
+            ROSEN_LOGI("RSNode::RemoveFromTree, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
+                       " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
+                parentPtr->GetId(), parentPtr->GetRSUIContext() ? parentPtr->GetRSUIContext()->GetToken() : 0,
+                surfaceNode->GetId(), surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+            RS_TRACE_NAME_FMT("RSNode::RemoveFromTree, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
+                parentPtr->GetId(), parentPtr->GetRSUIContext() ? parentPtr->GetRSUIContext()->GetToken() : 0,
+                surfaceNode->GetId(), surfaceNode->GetName().c_str(),
+                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
+        }
         parentPtr->RemoveChildByNode(shared_from_this());
         OnRemoveChildren();
         parent_.reset();
@@ -4160,7 +4190,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         if (modifiersNG_.count(modifier->GetId())) {
             return;
         }
-        modifier->SetAddModifierFlag(true);
         modifier->OnAttach(*this); // Attach properties of modifier here
         auto modifierType = modifier->GetType();
         if (modifierType == ModifierNG::RSModifierType::NODE_MODIFIER) {

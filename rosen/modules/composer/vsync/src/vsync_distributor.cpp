@@ -1005,6 +1005,13 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
 #endif
         int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
                                                              connections_[i]->rate_;
+        // when this connection is not triggered this time and this connection should be triggered in future,
+        // only keep waiting for next vsync but do not post event to render service
+        if (rate <= 0 && (!connections_[i]->triggerThisTime_ && !connections_[i]->NeedTriggeredVsync(timestamp))) {
+            SCOPED_DEBUG_TRACE_FMT("CollectConnections, i:%d, name:%s", i, connections_[i]->info_.name_.c_str());
+            waitForVSync = (waitForVSync || !connections_[i]->IsRequestVsyncTimestampEmpty());
+            continue;
+        }
 
         if (rate < 0) {
             continue;

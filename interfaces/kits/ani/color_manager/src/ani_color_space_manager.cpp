@@ -103,7 +103,7 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
         ACMLOGE("[ANI]ColorSpaceType is invalid: %{public}u", csType);
         std::string errMsg = "Parameter value is abnormal. Cannot create color"
             " manager object using ApiColorSpaceType " +
-            std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
+            std::to_string(static_cast<int32_t>(csType));
         ani_error aniErr = CreateAniError(env, errMsg.c_str(), ABNORMAL_PARAMETER);
         env->ThrowError(aniErr);
         return false;
@@ -312,10 +312,12 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
     ani_class arrayCls = nullptr;
     if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
         ACMLOGE("[ANI]FindClass Lescompat/Array; Failed");
+        return arrayValue;
     }
     ani_method arrayCtor;
     if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)) {
         ACMLOGE("[ANI]Class_FindMethod <ctor> Failed");
+        return arrayValue;
     }
 
     ani_object arrayObj;
@@ -356,42 +358,42 @@ bool AniColorSpaceManager::ParseColorSpacePrimaries(ani_env *env, ani_object obj
 {
     double val;
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "redX", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries redX falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries redX failed");
         return false;
     }
     primaries.rX = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "redY", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries redY falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries redY failed");
         return false;
     }
     primaries.rY = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "greenX", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries greenX falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries greenX failed");
         return false;
     }
     primaries.gX = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "greenY", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries greenY falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries greenY failed");
         return false;
     }
     primaries.gY = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "blueX", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries blueX falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries blueX failed");
         return false;
     }
     primaries.bX = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "blueY", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries blueY falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries blueY failed");
         return false;
     }
     primaries.bY = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "whitePointX", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries whitePointX falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries whitePointX failed");
         return false;
     }
     primaries.wX = static_cast<float>(val);
     if (ANI_OK != env->Object_GetPropertyByName_Double(obj, "whitePointY", &val)) {
-        ACMLOGE("[ANI]ParseColorSpacePrimaries whitePointY falied");
+        ACMLOGE("[ANI]ParseColorSpacePrimaries whitePointY failed");
         return false;
     }
     primaries.wY = static_cast<float>(val);

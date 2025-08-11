@@ -44,7 +44,7 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat);
 /**
  * @tc.name: DrawImageTest
  * @tc.desc: Verify function DrawImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, DrawImageTest, TestSize.Level1)
@@ -62,7 +62,7 @@ HWTEST_F(RSImageBaseTest, DrawImageTest, TestSize.Level1)
 /**
  * @tc.name: SetImageTest
  * @tc.desc: Verify function SetImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, SetImageTest, TestSize.Level1)
@@ -76,7 +76,7 @@ HWTEST_F(RSImageBaseTest, SetImageTest, TestSize.Level1)
 /**
  * @tc.name: SetPixelMapTest
  * @tc.desc: Verify function SetPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, SetPixelMapTest, TestSize.Level1)
@@ -90,7 +90,7 @@ HWTEST_F(RSImageBaseTest, SetPixelMapTest, TestSize.Level1)
 /**
  * @tc.name: DumpPictureTest
  * @tc.desc: Verify function DumpPicture
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, DumpPictureTest, TestSize.Level1)
@@ -107,7 +107,7 @@ HWTEST_F(RSImageBaseTest, DumpPictureTest, TestSize.Level1)
 /**
  * @tc.name: SetSrcRectTest
  * @tc.desc: Verify function SetSrcRect
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, SetSrcRectTest, TestSize.Level1)
@@ -122,7 +122,7 @@ HWTEST_F(RSImageBaseTest, SetSrcRectTest, TestSize.Level1)
 /**
  * @tc.name: SetDstRectTest
  * @tc.desc: Verify function SetDstRect
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, SetDstRectTest, TestSize.Level1)
@@ -137,7 +137,7 @@ HWTEST_F(RSImageBaseTest, SetDstRectTest, TestSize.Level1)
 /**
  * @tc.name: SetImagePixelAddrTest
  * @tc.desc: Verify function SetImagePixelAddr
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, SetImagePixelAddrTest, TestSize.Level1)
@@ -151,7 +151,7 @@ HWTEST_F(RSImageBaseTest, SetImagePixelAddrTest, TestSize.Level1)
 /**
  * @tc.name: UpdateNodeIdToPictureTest
  * @tc.desc: Verify function UpdateNodeIdToPicture
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, UpdateNodeIdToPictureTest, TestSize.Level1)
@@ -169,7 +169,7 @@ HWTEST_F(RSImageBaseTest, UpdateNodeIdToPictureTest, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest, TestSize.Level1)
@@ -182,7 +182,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest, TestSize.Level1)
 /**
  * @tc.name: ConvertPixelMapToDrawingImageTest
  * @tc.desc: Verify function ConvertPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, ConvertPixelMapToDrawingImageTest, TestSize.Level1)
@@ -197,7 +197,7 @@ HWTEST_F(RSImageBaseTest, ConvertPixelMapToDrawingImageTest, TestSize.Level1)
 /**
  * @tc.name: GenUniqueIdTest
  * @tc.desc: Verify function GenUniqueId
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, GenUniqueIdTest, TestSize.Level1)
@@ -210,7 +210,7 @@ HWTEST_F(RSImageBaseTest, GenUniqueIdTest, TestSize.Level1)
 /**
  * @tc.name: GetPixelMapTest
  * @tc.desc: Verify function GetPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, GetPixelMapTest, TestSize.Level1)
@@ -222,7 +222,7 @@ HWTEST_F(RSImageBaseTest, GetPixelMapTest, TestSize.Level1)
 /**
  * @tc.name: PurgeTest
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9I9D1
  */
 HWTEST_F(RSImageBaseTest, PurgeTest, TestSize.Level1)
@@ -235,7 +235,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest, TestSize.Level1)
 /**
  * @tc.name: SetDmaImageTest
  * @tc.desc: Verify function SetDmaImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9MO9U
  */
 HWTEST_F(RSImageBaseTest, SetDmaImageTest, TestSize.Level1)
@@ -251,7 +251,7 @@ HWTEST_F(RSImageBaseTest, SetDmaImageTest, TestSize.Level1)
 /**
  * @tc.name: MarkYUVImageTest
  * @tc.desc: Verify function MarkYUVImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9SX8Q
  */
 HWTEST_F(RSImageBaseTest, MarkYUVImageTest, TestSize.Level1)
@@ -265,7 +265,7 @@ HWTEST_F(RSImageBaseTest, MarkYUVImageTest, TestSize.Level1)
 /**
  * @tc.name: UnmarshallingTest
  * @tc.desc: Verify function Unmarshalling
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9MO9U
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingTest, TestSize.Level1)
@@ -279,7 +279,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingTest, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest
  * @tc.desc: Verify function ProcessYUVImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest, TestSize.Level1)
@@ -302,7 +302,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is ARGB_8888
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest013, TestSize.Level1)
@@ -324,7 +324,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest013, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is RGB_565
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest012, TestSize.Level1)
@@ -345,7 +345,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest012, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is RGBA_8888
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest011, TestSize.Level1)
@@ -366,7 +366,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest011, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is BGRA_8888
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest010, TestSize.Level1)
@@ -387,7 +387,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest010, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is RGB_888
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest009, TestSize.Level1)
@@ -408,7 +408,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest009, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is ALPHA_8
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest008, TestSize.Level1)
@@ -429,7 +429,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest008, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is RGBA_F16
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest007, TestSize.Level1)
@@ -450,7 +450,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest007, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is NV21
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest006, TestSize.Level1)
@@ -471,7 +471,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest006, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is CMYK
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest005, TestSize.Level1)
@@ -492,7 +492,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest005, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is YCBCR_P010
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest004, TestSize.Level1)
@@ -513,7 +513,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest004, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is YCRCB_P010
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest003, TestSize.Level1)
@@ -534,7 +534,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest003, TestSize.Level1)
 /**
  * @tc.name: ProcessYUVImageTest001
  * @tc.desc: pixelFormat is RGBA_1010102
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesI9TOXM
  */
 HWTEST_F(RSImageBaseTest, ProcessYUVImageTest002, TestSize.Level1)
@@ -556,7 +556,7 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest002, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest001
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest001, TestSize.Level1)
@@ -574,7 +574,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest001, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest002
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest002, TestSize.Level1)
@@ -592,7 +592,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest002, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest103
  * @tc.desc: allocatorType_ is DEFAULT
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest103, TestSize.Level1)
@@ -610,7 +610,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest103, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest004
  * @tc.desc: allocatorType_ is CUSTOM_ALLOC
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest004, TestSize.Level1)
@@ -628,7 +628,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest004, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest005
  * @tc.desc: allocatorType_ is DMA_ALLOC
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest005, TestSize.Level1)
@@ -646,7 +646,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest005, TestSize.Level1)
 /**
  * @tc.name: MarkRenderServiceImageTest003
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest003, TestSize.Level1)
@@ -668,7 +668,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest003, TestSize.Level1)
 /**
  * @tc.name: GetColorTypeWithVKFormatTest
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest, TestSize.Level1)
@@ -680,7 +680,7 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest, TestSize.Level1)
 /**
  * @tc.name: GetColorTypeWithVKFormatTest001
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest001, TestSize.Level1)
@@ -692,7 +692,7 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest001, TestSize.Level1)
 /**
  * @tc.name: GetColorTypeWithVKFormatTest002
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest002, TestSize.Level1)
@@ -704,7 +704,7 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest002, TestSize.Level1)
 /**
  * @tc.name: GetColorTypeWithVKFormatTest003
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest003, TestSize.Level1)
@@ -716,7 +716,7 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest003, TestSize.Level1)
 /**
  * @tc.name: GetColorTypeWithVKFormatTest004
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
@@ -729,7 +729,7 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
 /**
  * @tc.name: PurgeTest001
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest001, TestSize.Level1)
@@ -744,7 +744,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest001, TestSize.Level1)
 /**
  * @tc.name: PurgeTest002
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest002, TestSize.Level1)
@@ -761,7 +761,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest002, TestSize.Level1)
 /**
  * @tc.name: PurgeTest003
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest003, TestSize.Level1)
@@ -778,7 +778,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest003, TestSize.Level1)
 /**
  * @tc.name: PurgeTest004
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest004, TestSize.Level1)
@@ -795,7 +795,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest004, TestSize.Level1)
 /**
  * @tc.name: PurgeTest005
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest005, TestSize.Level1)
@@ -812,7 +812,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest005, TestSize.Level1)
 /**
  * @tc.name: PurgeTest006
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest006, TestSize.Level1)
@@ -833,7 +833,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest006, TestSize.Level1)
 /**
  * @tc.name: PurgeTest007
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest007, TestSize.Level1)
@@ -854,7 +854,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest007, TestSize.Level1)
 /**
  * @tc.name: PurgeTest008
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, PurgeTest008, TestSize.Level1)
@@ -875,7 +875,7 @@ HWTEST_F(RSImageBaseTest, PurgeTest008, TestSize.Level1)
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest
  * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest, TestSize.Level1)
@@ -896,7 +896,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest, TestSize.Lev
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest001
  * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest001, TestSize.Level1)
@@ -916,7 +916,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest001, TestSize.
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest002
  * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest002, TestSize.Level1)
@@ -937,7 +937,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest002, TestSize.
 /**
  * @tc.name: MakeFromTextureForVKTest
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest, TestSize.Level1)
@@ -951,7 +951,7 @@ HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest, TestSize.Level1)
 /**
  * @tc.name: MakeFromTextureForVKTest001
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest001, TestSize.Level1)
@@ -967,7 +967,7 @@ HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest001, TestSize.Level1)
 /**
  * @tc.name: MakeFromTextureForVKTest002
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest002, TestSize.Level1)
@@ -983,7 +983,7 @@ HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest002, TestSize.Level1)
 /**
  * @tc.name: MakeFromTextureForVKTest003
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest003, TestSize.Level1)
@@ -1000,7 +1000,7 @@ HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest003, TestSize.Level1)
 /**
  * @tc.name: MakeFromTextureForVKTest004
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest004, TestSize.Level1)
@@ -1019,7 +1019,7 @@ HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest004, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest, TestSize.Level1)
@@ -1033,7 +1033,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest001
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest001, TestSize.Level1)
@@ -1049,7 +1049,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest001, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest002
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest002, TestSize.Level1)
@@ -1066,7 +1066,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest002, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest003
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest003, TestSize.Level1)
@@ -1083,7 +1083,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest003, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest004
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest004, TestSize.Level1)
@@ -1102,7 +1102,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest004, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest005
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest005, TestSize.Level1)
@@ -1121,7 +1121,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest005, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest006
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest006, TestSize.Level1)
@@ -1141,7 +1141,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest006, TestSize.Level1)
 /**
  * @tc.name: BindPixelMapToDrawingImageTest007
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2B3G
  */
 HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest007, TestSize.Level1)
@@ -1162,7 +1162,7 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest007, TestSize.Level1)
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest003
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest003, TestSize.Level1)
@@ -1182,7 +1182,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest003, TestSize.
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest004
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest004, TestSize.Level1)
@@ -1202,7 +1202,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest004, TestSize.
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest005
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest005, TestSize.Level1)
@@ -1223,7 +1223,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest005, TestSize.
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest006
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest006, TestSize.Level1)
@@ -1244,7 +1244,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest006, TestSize.
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest007
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest007, TestSize.Level1)
@@ -1266,7 +1266,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest007, TestSize.
 /**
  * @tc.name: UnmarshallingDrawingImageAndPixelMapTest008
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest008, TestSize.Level1)
@@ -1286,7 +1286,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest008, TestSize.
 /**
  * @tc.name: IncreaseCacheRefCountTest
  * @tc.desc: Verify IncreaseCacheRefCount
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest, TestSize.Level1)
@@ -1303,7 +1303,7 @@ HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest, TestSize.Level1)
 /**
  * @tc.name: IncreaseCacheRefCountTest001
  * @tc.desc: Verify IncreaseCacheRefCount
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest001, TestSize.Level1)
@@ -1320,7 +1320,7 @@ HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest001, TestSize.Level1)
 /**
  * @tc.name: IncreaseCacheRefCountTest002
  * @tc.desc: Verify IncreaseCacheRefCount
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest002, TestSize.Level1)
@@ -1337,7 +1337,7 @@ HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest002, TestSize.Level1)
 /**
  * @tc.name: DrawImageNineTest001
  * @tc.desc: Verify DrawImageNine
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, DrawImageNineTest001, TestSize.Level1)
@@ -1356,7 +1356,7 @@ HWTEST_F(RSImageBaseTest, DrawImageNineTest001, TestSize.Level1)
 /**
  * @tc.name: DrawImageLatticeTest001
  * @tc.desc: Verify DrawImageLattice
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issue#IB2LQP
  */
 HWTEST_F(RSImageBaseTest, DrawImageLatticeTest001, TestSize.Level1)
@@ -1370,5 +1370,18 @@ HWTEST_F(RSImageBaseTest, DrawImageLatticeTest001, TestSize.Level1)
     imageBase->SetImage(image);
     imageBase->DrawImageLattice(canvas, lat, dst);
     ASSERT_NE(imageBase->image_, nullptr);
+}
+
+/**
+ * @tc.name: GetUniqueIdTest001
+ * @tc.desc: Verify GetUniqueId
+ * @tc.type: FUNC
+ * @tc.require: issue#ICRZCE
+ */
+HWTEST_F(RSImageBaseTest, GetUniqueIdTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto uniqueId = imageBase->GetUniqueId();
+    EXPECT_EQ(uniqueId, 0);
 }
 } // namespace OHOS::Rosen

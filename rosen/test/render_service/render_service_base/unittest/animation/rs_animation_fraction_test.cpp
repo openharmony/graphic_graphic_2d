@@ -41,9 +41,9 @@ void RSAnimationFractionTest::TearDown() {}
 HWTEST_F(RSAnimationFractionTest, InitTest001, TestSize.Level1)
 {
     RSAnimationFraction rsAnimationFraction;
-    bool isInitialized_ = false;
+    bool isInitialized = false;
     rsAnimationFraction.Init();
-    ASSERT_FALSE(isInitialized_);
+    ASSERT_FALSE(isInitialized);
 }
 
 /**

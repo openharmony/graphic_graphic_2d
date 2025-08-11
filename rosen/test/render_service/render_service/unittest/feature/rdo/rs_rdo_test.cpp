@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <parameters.h>
 #include "feature/rdo/rs_rdo.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
-#include <parameters.h>
 
 using namespace testing;
 using namespace testing::ext;

@@ -1215,7 +1215,7 @@ Vector4f RSProperties::GetBorderWidth() const
 
 Vector4<uint32_t> RSProperties::GetBorderStyle() const
 {
-    return border_ ? border_->GetStyleFour() : Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE));
+    return border_ ? border_->GetStyleFour() : Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::SOLID));
 }
 
 Vector4f RSProperties::GetBorderDashWidth() const
@@ -2126,7 +2126,7 @@ float RSProperties::GetShadowOffsetY() const
 
 float RSProperties::GetShadowAlpha() const
 {
-    return shadow_ ? shadow_->GetAlpha() : 0.f;
+    return shadow_ ? shadow_->GetAlpha() : 1.f;
 }
 
 float RSProperties::GetShadowElevation() const

@@ -61,7 +61,9 @@ const uint8_t DO_NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 5;
 const uint8_t DO_NOTIFY_HGMCONFIG_EVENT = 6;
 const uint8_t DO_NOTIFY_SCREEN_SWITCHED = 7;
 const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
+const uint8_t TARGET_SIZE = 10;
+const uint16_t TASK_WAIT_MICROSECONDS = 50000;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -324,12 +326,44 @@ void DoNotifySoftVsyncRateDiscountEvent()
     dataP.WriteUint32(rateDiscount);
     connectionStub_->OnRemoteRequest(code, dataP, replyParcel, option);
 }
+
+void DoSetBehindWindowFilterEnabled()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    bool enabled = GetData<bool>();
+    dataParcel.WriteBool(enabled);
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    auto& nodeMap = mainThread_->GetContext().nodeMap;
+    NodeId surfaceNodeId = 10001;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    nodeMap.surfaceNodeMap_.emplace(surfaceNodeId, surfaceNode);
+    NodeId childId = 10002;
+    surfaceNode->childrenBlurBehindWindow_.emplace(childId);
+
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    // prevent variables from being destructed before the task finishes execution.
+    usleep(TASK_WAIT_MICROSECONDS);
+    nodeMap.surfaceNodeMap_.erase(surfaceNodeId);
+}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
 {
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();
     auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
@@ -379,6 +413,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT:
             OHOS::Rosen::DoNotifySoftVsyncRateDiscountEvent();
+            break;
+        case OHOS::Rosen::DO_SET_BEHIND_WINDOW_FILTER_ENABLED:
+            OHOS::Rosen::DoSetBehindWindowFilterEnabled();
             break;
         default:
             return -1;

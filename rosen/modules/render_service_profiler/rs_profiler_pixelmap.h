@@ -137,10 +137,11 @@ private:
 
     static ImageData GenerateRawCopy(const uint8_t* data, size_t size);
     static ImageData GenerateMiniatureAstc(const uint8_t* data, size_t size);
-    static ImageData GenerateMiniature(const uint8_t* data, size_t size, uint32_t pixelBytes);
-    static ImageData GenerateImageData(const uint8_t* data, size_t size, const PixelMap& map);
-    static ImageData GenerateImageData(const ImageInfo& info, const PixelMemInfo& memory);
-    static ImageData GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes);
+    static ImageData GenerateMiniature(uint64_t uniqueId, const uint8_t* data, size_t size, uint32_t pixelBytes);
+    static ImageData GenerateImageData(uint64_t uniqueId, const uint8_t* data, size_t size, const PixelMap& map);
+    static ImageData GenerateImageData(uint64_t uniqueId, const ImageInfo& info, const PixelMemInfo& memory);
+    static ImageData GenerateImageData(
+        uint64_t uniqueId, const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes);
 };
 
 } // OHOS::Rosen

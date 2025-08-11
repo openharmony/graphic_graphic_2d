@@ -268,6 +268,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, true, captureParam.isSystemCalling,
             captureParam.isSelfCapture, captureParam.blurParam.isNeedBlur));
+        DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
         bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->GetHDRPresent();
         RSPaintFilterCanvas::ScreenshotType type = isHDRCapture ? RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;

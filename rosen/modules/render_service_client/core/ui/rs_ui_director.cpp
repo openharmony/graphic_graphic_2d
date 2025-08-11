@@ -140,14 +140,12 @@ void RSUIDirector::InitHybridRender()
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
-        if (!cacheDir_.empty()) {
-            RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
-        }
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
-            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
+            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
+            std::shared_ptr<RSTransactionHandler> transactionHandler) {
             auto task = [renderServiceClient, transactionData = std::move(rsTransactionData),
-                &transactionDataIndex]() mutable {
+                &transactionDataIndex, transactionHandler]() mutable {
                 bool isNeedCommit = true;
                 RSModifiersDrawThread::ConvertTransaction(transactionData, renderServiceClient, isNeedCommit);
                 if (isNeedCommit) {
@@ -159,20 +157,19 @@ void RSUIDirector::InitHybridRender()
                 std::shared_ptr<RSUIContext> rsUICtx;
                 {
                     int32_t instanceId = INSTANCE_ID_UNDEFINED;
-                    for (auto& [id, _, cmd] : transactionData->GetPayload()) {
-                        if (cmd == nullptr) {
-                            continue;
-                        }
-                        uint64_t token = cmd->GetToken();
-                        rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
-                        if (rsUICtx != nullptr) {
-                            break;
-                        }
-                        if (instanceId == INSTANCE_ID_UNDEFINED) {
-                            NodeId realId = id == 0 ? cmd->GetNodeId() : id;
-                            instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-                            instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
-                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
+                    if (!transactionHandler) {
+                        for (auto& [id, _, cmd] : transactionData->GetPayload()) {
+                            if (cmd == nullptr) {
+                                continue;
+                            }
+                            if (instanceId == INSTANCE_ID_UNDEFINED) {
+                                NodeId realId = id == 0 ? cmd->GetNodeId() : id;
+                                instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                                instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
+                                    RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
+                            } else {
+                                break;
+                            }
                         }
                     }
                     auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
@@ -181,7 +178,8 @@ void RSUIDirector::InitHybridRender()
                         std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
                         (void) dataHolder;
                     };
-                    rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);
+                    (transactionHandler == nullptr) ? RSUIDirector::PostTask(task, instanceId) :
+                        transactionHandler->PostTask(task);
                 }
             };
             RSModifiersDrawThread::Instance().ScheduleTask(task);
@@ -223,13 +221,13 @@ uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
     return RSSystemProperties::GetHybridRenderTextBlobLenCount();
 }
 
-void RSUIDirector::StartTextureExport()
+void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
 {
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (isUniRenderEnabled_) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-        if (rsUIContext_) {
-            auto transaction = rsUIContext_->GetRSTransaction();
+        if (rsUIContext) {
+            auto transaction = rsUIContext->GetRSTransaction();
             if (transaction != nullptr) {
                 transaction->SetRenderThreadClient(renderThreadClient);
             }
@@ -448,6 +446,11 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
+#ifdef RS_ENABLE_VK
+    if (!cacheDir_.empty() && RSSystemProperties::GetHybridRenderEnabled()) {
+        RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+    }
+#endif
 }
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
@@ -675,7 +678,7 @@ void RSUIDirector::ProcessUIContextMessages(
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
-            ROSEN_LOGI(
+            ROSEN_LOGE(
                 "RSUIDirector::ProcessUIContextMessages, can not get rsUIContext with token:%{public}" PRIu64, token);
             continue;
         }
@@ -831,7 +834,8 @@ void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t del
         return;
     }
     if (instanceId != INSTANCE_ID_UNDEFINED) {
-        ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found", instanceId);
+        ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found, taskRunnerSize=%{public}zu", instanceId,
+            uiTaskRunners_.size());
     }
     for (const auto &[_, taskRunner] : uiTaskRunners_) {
         ROSEN_LOGD("RSUIDirector::PostTask success");

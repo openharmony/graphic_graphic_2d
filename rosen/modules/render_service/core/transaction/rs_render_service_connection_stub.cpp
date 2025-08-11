@@ -206,6 +206,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
@@ -1415,7 +1416,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool isFreeze{false};
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY calling is no legal, "
+                        "id:%{public}" PRIu64 ", callingPid:%{public}d ",
+                    id, callingPid);
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            bool isFreeze {false};
             if (!data.ReadBool(isFreeze)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY Read isFreeze failed!");
                 ret = ERR_INVALID_DATA;
@@ -2728,6 +2736,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (!watermarkImg) {
+                RS_LOGE("RSRenderServiceConnectionStub::SHOW_WATERMARK watermarkImg is nullptr");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ShowWatermark(watermarkImg, isShow);
             break;
         }
@@ -3393,6 +3406,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
                 break;
             }
+            if (pidList.size() > MAX_DROP_FRAME_PID_LIST_SIZE) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             DropFrameByPid(pidList);
             break;
         }
@@ -3696,6 +3713,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST) : {
+            std::vector<int32_t> pidList;
+            if (!data.ReadInt32Vector(&pidList)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST Read pidList failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            SetGpuCrcDirtyEnabledPidList(pidList);
+            break;
+        }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
             int32_t status = UnRegisterSelfDrawingNodeRectChangeCallback();
@@ -3970,6 +3997,10 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
         !data.ReadUint32(captureConfig.backGroundColor)) {
+        RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
+        return false;
+    }
+    if (captureType < 0 || captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {
         RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureType failed!");
         return false;
     }

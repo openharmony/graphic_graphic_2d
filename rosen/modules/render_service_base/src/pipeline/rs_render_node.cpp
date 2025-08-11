@@ -447,6 +447,7 @@ uint32_t RSRenderNode::GetRepaintBoundaryWeight()
 
 void RSRenderNode::UpdateSubTreeParallelNodes()
 {
+    // static constexpr size_t RB_POLICY_CHILDREN_NUMBER = SubtreeParallelParam::GetRBChildrenWeight();
     static constexpr size_t RB_POLICY_CHILDREN_NUMBER = 4;
     if (!isRepaintBoundary_ || GetChildrenCount() <= RB_POLICY_CHILDREN_NUMBER || !isAllChildRepaintBoundary_
         || ChildHasVisibleEffect() || GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {

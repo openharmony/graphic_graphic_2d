@@ -198,5 +198,11 @@ bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId)
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->IsScreenNoHeadroom(screenId) : false;
 }
+
+bool RSLuminanceControl::IsEnableImageDetailEnhance()
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsEnableImageDetailEnhance() : false;
+}
 } // namespace Rosen
 } // namespace OHOS

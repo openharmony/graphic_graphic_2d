@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint64_t MAX_TRANSACTION_DATA_CALLBACKS = 65535;
 RSTransactionDataCallbackManager& RSTransactionDataCallbackManager::Instance()
 {
     static RSTransactionDataCallbackManager mgr;
@@ -51,6 +52,11 @@ bool RSTransactionDataCallbackManager::PushTransactionDataCallback(uint64_t toke
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
     std::lock_guard<std::mutex> lock{ transactionDataCbMutex_ };
+    if (transactionDataCallbacks_.size() >= MAX_TRANSACTION_DATA_CALLBACKS) {
+        RS_LOGD("RSTransactionDataCallbackManager: transactionDataCallbacks_ has reached maximus size, cannot add new "
+                "callback");
+        return false;
+    }
     if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
         RS_LOGD("RSTransactionDataCallbackManager push data, timeStamp: %{public}"
             PRIu64 " token: %{public}" PRIu64, timeStamp, token);

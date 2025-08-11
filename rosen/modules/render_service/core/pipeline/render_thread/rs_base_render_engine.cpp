@@ -205,16 +205,6 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
         std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext_);
     }
 #endif
-    if (isHDRStatusChanged_) {
-        if (rsSurface->GetSurface() == nullptr) {
-            RS_LOGE("RSBaseRenderEngine::rsSurface->GetSurface is nullptr!!");
-        } else {
-            RS_TRACE_NAME("RSBaseRenderEngine::SetBufferReallocFlag isHDRStatusChanged");
-            rsSurface->GetSurface()->SetBufferReallocFlag(isHDRStatusChanged_);
-            RS_LOGI("RSBaseRenderEngine::SetBufferReallocFlag isHDRStatusChanged");
-            isHDRStatusChanged_ = false;
-        }
-    }
     auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC,
         frameContextConfig.isProtected);
     RS_OPTIONAL_TRACE_END();
@@ -683,9 +673,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: Mirror mode (LINEAR, NEAREST)");
         } else {
             bool needBilinear = NeedBilinearInterpolation(params, canvas.GetTotalMatrix());
-            samplingOptions = needBilinear
-                ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE)
-                : Drawing::SamplingOptions();
+            samplingOptions =
+                needBilinear ? Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE) :
+                Drawing::SamplingOptions();
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Sampling options: %{public}s",
                 needBilinear ? "Bilinear interpolation (LINEAR, NONE)" : "Default sampling options");
         }

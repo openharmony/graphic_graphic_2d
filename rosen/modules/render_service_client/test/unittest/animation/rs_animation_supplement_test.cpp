@@ -1043,6 +1043,12 @@ public:
     float data;
 };
 
+class MyFilterMock : public RSFilter {
+public:
+    MyFilterMock() : RSFilter() {}
+    virtual ~MyFilterMock() = default;
+};
+
 /**
  * @tc.name: AnimationSupplementTest020
  * @tc.desc: Verify the setcallback of Animation
@@ -1119,9 +1125,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
 
     std::string str;
     RSMotionPathOption option(str);
-    option.SetRotationMode(RotationMode::ROTATE_AUTO);
     option.GetRotationMode();
-    option.SetPathNeedAddOrigin(true);
     option.GetPathNeedAddOrigin();
 
     float dipScale = 1.0;
@@ -1250,7 +1254,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
     RectT<float> rect4;
     rect1.SetValues(rect3, &data);
     rect2.SetValues(rect4, &data);
-    rect1.IsNearEqual(rect2);
     auto temp1 = rect1 - rect2;
     rect1 = temp1 + rect2;
     temp1 = rect1 * (1.f);

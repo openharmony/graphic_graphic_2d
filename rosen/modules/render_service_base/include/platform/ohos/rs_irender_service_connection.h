@@ -51,7 +51,9 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
+    static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+}
 class RSIRenderServiceConnection : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
@@ -458,6 +460,8 @@ public:
     virtual bool ProfilerIsSecureScreen() = 0;
 
     virtual void ClearUifirstCache(NodeId id) = 0;
+
+    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

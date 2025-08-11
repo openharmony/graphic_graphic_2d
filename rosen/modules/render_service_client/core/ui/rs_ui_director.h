@@ -44,10 +44,12 @@ class RSSurfaceNode;
 class RSRootNode;
 class RSTransactionData;
 class RSUIContext;
+class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 
 /**
  * @class RSUIDirector
@@ -96,8 +98,9 @@ public:
 
     /**
      * @brief Initiates the process of exporting texture data.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set.
      */
-    void StartTextureExport();
+    void StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Destroy RSUIDirector instance.

@@ -1526,5 +1526,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenFreezeImmediatelyTest, Tes
     ret = proxy->SetScreenFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+/*
+ * @tc.name: DropFrameByPidWithInvalidParameter Test
+ * @tc.desc: DropFrameByPidWithInvalidParameter Test
+ * @tc.type:FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, DropFrameByPidWithInvalidParameter, TestSize.Level1)
+{
+    // MAX_DROP_FRAME_PID_LIST_SIZE = 1024
+    std::vector<int32_t> vec(1025);
+    ASSERT_EQ(proxy->DropFrameByPid(vec), ERR_INVALID_VALUE);
+}
 } // namespace Rosen
 } // namespace OHOS

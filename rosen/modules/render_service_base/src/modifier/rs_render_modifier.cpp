@@ -264,7 +264,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::FOREGROUND_NG_FILTER, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderPropertyBase> prop =
                 std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>();
-            if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !prop) {
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::FOREGROUND_NG_FILTER Unmarshalling failed");
                 return nullptr;
             }
@@ -279,7 +279,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::BACKGROUND_NG_FILTER, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderPropertyBase> prop =
                 std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>();
-            if (!RSMarshallingHelper::Unmarshalling(parcel, prop) || !prop) {
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::BACKGROUND_NG_FILTER Unmarshalling failed");
                 return nullptr;
             }

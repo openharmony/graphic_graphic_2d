@@ -97,6 +97,7 @@ const uint8_t DO_SET_FORCE_REFRESH = 49;
 const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
 const uint8_t DO_CREATE_VSYNC_CONNECTION_BY_REMOTE_ID = 51;
 const uint8_t TARGET_SIZE = 52;
+const uint32_t FUZZ_MAX_DROP_FRAME_LIST = 10000;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -771,7 +772,14 @@ void DoSetCurtainScreenUsingStatus()
 void DoDropFrameByPid()
 {
     std::vector<int32_t> pidList;
+    // MAX_DROP_FRAME_PID_LIST_SIZE = 1024
     uint8_t pidListSize = GetData<uint8_t>();
+    int32_t status = GetData<int32_t>() % 3;
+    if (status == 0) {
+        pidListSize = (pidListSize % FUZZ_MAX_DROP_FRAME_LIST) + MAX_DROP_FRAME_PID_LIST_SIZE;
+    } else if (status == 1) {
+        pidListSize = pidListSize % MAX_DROP_FRAME_PID_LIST_SIZE;
+    }
     for (size_t i = 0; i < pidListSize; i++) {
         pidList.push_back(GetData<int32_t>());
     }

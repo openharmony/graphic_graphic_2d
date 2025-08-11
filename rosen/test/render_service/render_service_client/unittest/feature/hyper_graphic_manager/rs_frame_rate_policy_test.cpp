@@ -199,10 +199,10 @@ HWTEST_F(RSFrameRatePolicyTest, GetExpectedFrameRate, TestSize.Level1)
 HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
 {
     auto instance = RSFrameRatePolicy::GetInstance();
-    int32_t undefinedPointerAc = -1;
+    int32_t undefinedPointerAction = -1;
     int32_t sendMoveDuration = 1100000;
 
-    EXPECT_FALSE(instance->GetTouchOrPointerAction(undefinedPointerAc));
+    EXPECT_FALSE(instance->GetTouchOrPointerAction(undefinedPointerAction));
 
     EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_CANCEL));
 
@@ -230,13 +230,13 @@ HWTEST_F(RSFrameRatePolicyTest, GetTouchOrPointerAction, TestSize.Level1)
     EXPECT_TRUE(instance->GetTouchOrPointerAction(TOUCH_PULL_MOVE));
 
     EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_BEGIN));
- 
+
     EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_END));
     
     EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
- 
+
     EXPECT_FALSE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
- 
+
     usleep(sendMoveDuration);
     EXPECT_TRUE(instance->GetTouchOrPointerAction(AXIS_UPDATE));
 }

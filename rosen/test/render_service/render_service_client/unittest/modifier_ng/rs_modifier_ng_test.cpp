@@ -55,35 +55,6 @@ HWTEST_F(RSModifierNGTest, RSDisplayListModifierUpdaterTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddPropertyTest
- * @tc.desc: AddProperty
- * @tc.type: FUNC
- */
-HWTEST_F(RSModifierNGTest, AddPropertyTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSAlphaModifier>();
-    auto property = std::make_shared<RSProperty<float>>(0.5f);
-    modifier->AddProperty(ModifierNG::RSPropertyType::ALPHA, property);
-    EXPECT_EQ(property->GetPropertyTypeNG(), ModifierNG::RSPropertyType::ALPHA);
-}
-
-
-/**
- * @tc.name: SetAddModifierFlagTest
- * @tc.desc: SetAddModifierFlag
- * @tc.type: FUNC
- */
-HWTEST_F(RSModifierNGTest, SetAddModifierFlagTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSAlphaModifier>();
-    modifier->SetAddModifierFlag(true);
-    ASSERT_TRUE(modifier->isModifierAdded_);
-
-    modifier->SetAddModifierFlag(false);
-    ASSERT_TRUE(!modifier->isModifierAdded_);
-}
-
-/**
  * @tc.name: SetPropertyThresholdTypeTest
  * @tc.desc: SetPropertyThresholdType
  * @tc.type: FUNC

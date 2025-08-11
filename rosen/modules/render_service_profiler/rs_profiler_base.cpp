@@ -498,7 +498,21 @@ std::shared_ptr<RSScreenRenderNode> RSProfiler::GetScreenNode(const RSContext& c
         return nullptr;
     }
 
-    return RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(root->GetSortedChildren()->front());
+    const auto& children = *root->GetChildren();
+    if (children.empty()) {
+        return nullptr;
+    }
+    for (const auto& screenNode : children) {   // apply multiple screen nodes
+        if (!screenNode) {
+            continue;
+        }
+        const auto& screenNodeChildren = screenNode->GetChildren();
+        if (screenNodeChildren->empty()) {
+            continue;
+        }
+        return RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(screenNode);
+    }
+    return nullptr;
 }
 
 Vector4f RSProfiler::GetScreenRect(const RSContext& context)

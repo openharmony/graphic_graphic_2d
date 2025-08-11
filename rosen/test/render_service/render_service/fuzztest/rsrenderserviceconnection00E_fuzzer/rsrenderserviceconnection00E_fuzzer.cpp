@@ -126,12 +126,12 @@ void DoRegisterTypeface()
     MessageOption option;
     uint64_t uniqueId = static_cast<NodeId>(g_pid) << 32;
     uint32_t hash = GetData<uint32_t>();
-    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
-    RSMarshallingHelper::Marshalling(dataParcel, typeface);
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(uniqueId);
     dataParcel.WriteUint32(hash);
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    RSMarshallingHelper::Marshalling(dataParcel, typeface);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 

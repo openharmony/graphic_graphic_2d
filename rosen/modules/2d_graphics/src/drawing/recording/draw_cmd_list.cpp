@@ -28,32 +28,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 namespace {
-// WhiteList for hybridRender DrawOpItemTypes
-const std::unordered_set<uint32_t> HYBRID_RENDER_DRAW_OPITEM_TYPES = {
-    DrawOpItem::OPITEM_HEAD,
-    DrawOpItem::PATH_OPITEM,
-    DrawOpItem::TEXT_BLOB_OPITEM,
-    DrawOpItem::SYMBOL_OPITEM,
-    DrawOpItem::CLIP_RECT_OPITEM,
-    DrawOpItem::CLIP_IRECT_OPITEM,
-    DrawOpItem::CLIP_ROUND_RECT_OPITEM,
-    DrawOpItem::CLIP_PATH_OPITEM,
-    DrawOpItem::CLIP_REGION_OPITEM,
-    DrawOpItem::SET_MATRIX_OPITEM,
-    DrawOpItem::CONCAT_MATRIX_OPITEM,
-    DrawOpItem::TRANSLATE_OPITEM,
-    DrawOpItem::SCALE_OPITEM,
-    DrawOpItem::ROTATE_OPITEM,
-    DrawOpItem::SHEAR_OPITEM,
-    DrawOpItem::FLUSH_OPITEM,
-    DrawOpItem::CLEAR_OPITEM,
-    DrawOpItem::SAVE_OPITEM,
-    DrawOpItem::SAVE_LAYER_OPITEM,
-    DrawOpItem::RESTORE_OPITEM,
-    DrawOpItem::DISCARD_OPITEM,
-    DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
-    DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
-};
 constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
 }
 
@@ -732,15 +706,6 @@ bool DrawCmdList::IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxP
     }
     if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
         return false;
-    }
-    // check whiteList
-    for (const auto& op : drawOpItems_) {
-        if (op == nullptr) {
-            continue;
-        }
-        if (HYBRID_RENDER_DRAW_OPITEM_TYPES.find(op->GetType()) == HYBRID_RENDER_DRAW_OPITEM_TYPES.end()) {
-            return false;
-        }
     }
     // check size
     Drawing::Rect bounds;

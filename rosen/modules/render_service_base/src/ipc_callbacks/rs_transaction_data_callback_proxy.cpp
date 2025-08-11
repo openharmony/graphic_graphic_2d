@@ -47,19 +47,10 @@ void RSTransactionDataCallbackProxy::OnAfterProcess(uint64_t token, uint64_t tim
     uint32_t code = static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS);
     RS_LOGD("RSTransactionDataCallbackProxy: OnAfterProcess send data, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    int32_t err = SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSTransactionDataCallbackProxy: Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy: SendRequest() error");
     }
-}
-
-int32_t RSTransactionDataCallbackProxy::SendRequest(
-    uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
-{
-    if (!Remote()) {
-        return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
-    }
-    return Remote()->SendRequest(code, data, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS

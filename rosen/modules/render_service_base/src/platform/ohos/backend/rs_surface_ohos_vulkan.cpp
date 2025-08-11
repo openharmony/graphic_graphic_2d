@@ -80,7 +80,6 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
         protectedSurfaceBufferList_.clear();
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
@@ -514,7 +513,13 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     {
         RS_TRACE_NAME("Flush");
         RSTimer timer("Flush", 50); // 50ms
-        surface.drawingSurface->Flush(&drawingFlushInfo);
+        RsVulkanInterface::callbackSemaphoreInfoFlushCnt_.fetch_add(+1, std::memory_order_relaxed);
+        auto res = surface.drawingSurface->Flush(&drawingFlushInfo);
+        // skia may not perform callback func when the return value is no
+        if (res == Drawing::SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO) {
+            RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFrom2DEngine(callbackInfo);
+            RsVulkanInterface::callbackSemaphoreInfo2DEngineDefensiveDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+        }
     }
     {
         RS_TRACE_NAME("Submit");
@@ -545,7 +550,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         return false;
     }
     callbackInfo->mFenceFd = ::dup(fenceFd);
-    RsVulkanInterface::callbackSemaphoreInfoCnt_.fetch_add(+1, std::memory_order_relaxed);
+    RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.fetch_add(+1, std::memory_order_relaxed);
     mReservedFlushFd = ::dup(fenceFd);
     fdsan_exchange_owner_tag(mReservedFlushFd, 0, LOG_DOMAIN);
 
@@ -587,7 +592,6 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
         protectedSurfaceBufferList_.clear();
     }
 }
@@ -605,7 +609,6 @@ void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
         protectedSurfaceBufferList_.clear();
     }
     pixelFormat_ = pixelFormat;

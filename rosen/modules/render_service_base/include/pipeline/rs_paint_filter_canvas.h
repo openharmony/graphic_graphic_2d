@@ -278,7 +278,7 @@ public:
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
     uint32_t GetParallelThreadId();
-    void SetParallelThreadId(int idx);
+    void SetParallelThreadId(uint32_t idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
 

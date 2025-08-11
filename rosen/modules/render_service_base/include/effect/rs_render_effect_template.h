@@ -17,6 +17,7 @@
 #include <tuple>
 #include <type_traits>
 
+#include "common/rs_optional_trace.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
@@ -78,6 +79,7 @@ public:
             case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
             case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
+            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             default:
                 return "UNKNOWN";
@@ -153,12 +155,14 @@ public:
     virtual void Detach() = 0;
     virtual void SetModifierType(RSModifierType inType) = 0;
     virtual void Dump(std::string& out) const = 0;
+    virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 
     virtual void DumpProperties(std::string& out) const {}
+    virtual std::string DumpProperties() const = 0;
 
     size_t GetEffectCount() const
     {
@@ -235,7 +239,12 @@ public:
     void Dump(std::string& out) const
     {
         static_assert(is_render_property_tag_v<Tag>, "Tag must be a render property tag");
-        out += Tag::NAME;
+        std::string tagName = Tag::NAME;
+        size_t pos = tagName.rfind('_');
+        if (pos != std::string::npos) {
+            tagName = tagName.substr(pos + 1);
+        }
+        out += tagName;
         out += "[";
         Getter<Tag>()->Dump(out);
         out += "]";
@@ -269,6 +278,8 @@ public:
 
     void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
     {
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderEffectTemplate::Attach, Type:%s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         std::apply([&node, &modifier](const auto&... props) {
                 (props.value_->Attach(node, modifier), ...);
             },
@@ -280,6 +291,8 @@ public:
 
     void Detach() override
     {
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderEffectTemplate::Detach, Type:%s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         std::apply([](const auto&... props) { (props.value_->Detach(), ...); }, properties_);
         if (Base::nextEffect_) {
             Base::nextEffect_->Detach();
@@ -295,7 +308,26 @@ public:
         }
     }
 
-    void Dump(std::string& out) const override;
+    void Dump(std::string& out) const override
+    {
+        std::string descStr = ": ";
+        std::string splitStr = "--";
+
+        out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
+        out += descStr;
+        DumpProperties(out);
+        if (Base::nextEffect_) {
+            out += splitStr;
+            Base::nextEffect_->Dump(out);
+        }
+    }
+
+    std::string Dump() const override
+    {
+        std::string result;
+        Dump(result);
+        return result;
+    }
 
     uint32_t CalculateHash() override
     {
@@ -350,6 +382,13 @@ protected:
         out += endStr;
     }
 
+    std::string DumpProperties() const override
+    {
+        std::string result;
+        DumpProperties(result);
+        return result;
+    }
+
     std::tuple<PropertyTags...> properties_;
 
     template <typename U, typename R>
@@ -358,22 +397,6 @@ protected:
     template <typename U, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
 };
-
-template <typename Base, RSNGEffectType Type, typename... PropertyTags>
-void RSNGRenderEffectTemplate<Base, Type, PropertyTags...>::Dump(std::string& out) const
-{
-    std::string descStr = ": ";
-    std::string splitStr = "--";
-
-    out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
-    out += descStr;
-    DumpProperties(out);
-    if (Base::nextEffect_) {
-        out += splitStr;
-        Base::nextEffect_->Dump(out);
-    }
-}
-
 } // namespace Rosen
 } // namespace OHOS
 

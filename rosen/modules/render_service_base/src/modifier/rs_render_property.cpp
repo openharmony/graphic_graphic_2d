@@ -774,7 +774,7 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnDetach()
 }
 
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
+void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
     const std::shared_ptr<RSNGRenderFilterBase>& value, PropertyUpdateType type)
 {
     if (value == stagingValue_) {
@@ -817,7 +817,7 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnDetach()
 }
 
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
+void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
     const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type)
 {
     if (value == stagingValue_) {
@@ -862,7 +862,7 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach()
 }
 
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
+void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
     const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type)
 {
     if (value == stagingValue_) {

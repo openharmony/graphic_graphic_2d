@@ -49,7 +49,7 @@ bool RSTextureExport::DoTextureExport()
     if (!rootNode_->IsTextureExportNode()) {
         rootNode_->SyncTextureExport(true);
     }
-    rsUiDirector_->StartTextureExport();
+    rsUiDirector_->StartTextureExport(rootNode_->GetRSUIContext());
     if (rootNode_->GetType() != RSUINodeType::ROOT_NODE) {
         virtualRootNode_ = RSRootNode::Create(false, true, rootNode_->GetRSUIContext());
         auto bounds = rootNode_->GetStagingProperties().GetBounds();

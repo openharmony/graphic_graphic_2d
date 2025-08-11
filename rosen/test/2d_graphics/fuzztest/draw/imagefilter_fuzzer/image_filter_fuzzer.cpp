@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t FILTERTYPE_SIZE = 9;
+constexpr size_t FILTERTYPE_SIZE = 12;
 constexpr size_t TITLEMODE_SIZE = 4;
 constexpr size_t BLENDMODE_SIZE = 29;
 constexpr size_t BLURTYPE_SIZE = 2;
@@ -273,6 +273,58 @@ bool ImageFilterFuzzTest005(const uint8_t* data, size_t size)
     auto imageFilter2 = ImageFilter::CreateImageImageFilter(nullptr, rect, rect2, options);
     return true;
 }
+
+/*
+ * 测试以下 ImageFilter 接口：
+ * 1. CreateHDSampleImageFilter(...)
+ * 2. InitWithHDSample(...)
+ * 3. Serialize()
+ * 4. Deserialize(...)
+ * 5. GetType()
+ * 6. GetDrawingType()
+ * 4. ImageFilter(FilterType t, const std::shared_ptr<Image>& image,
+ *        const Rect& src, const Rect& dst, const HDSampleInfo& info)
+ */
+void ImageFilterFuzzTest006(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    Rect srcRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    Rect dstRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    Bitmap bitmap;
+    int width = GetObject<int>() % MAX_SIZE;
+    int height = GetObject<int>() % MAX_SIZE;
+    BitmapFormat bitmapFormat = { COLORTYPE_N32, ALPHATYPE_OPAQUE };
+    if (!bitmap.Build(width, height, bitmapFormat)) {
+        return;
+    }
+    Image image;
+    if (!image.BuildFromBitmap(bitmap)) {
+        return;
+    }
+    HDSampleInfo sampleInfo;
+    std::shared_ptr<Image> imagePtr = std::make_shared<Image>(image);
+    std::shared_ptr<ImageFilter> imageFilter =
+        ImageFilter::CreateHDSampleImageFilter(imagePtr, srcRect, dstRect, sampleInfo);
+    if (imageFilter == nullptr) {
+        return;
+    }
+    std::shared_ptr<Data> dataVal = imageFilter->Serialize();
+    if (dataVal == nullptr) {
+        return;
+    }
+    imageFilter->Deserialize(dataVal);
+    imageFilter->GetType();
+    imageFilter->GetDrawingType();
+    uint32_t type = GetObject<uint32_t>();
+    ImageFilter hdSampleIF = ImageFilter(static_cast<ImageFilter::FilterType>(type % FILTERTYPE_SIZE),
+        imagePtr, srcRect, dstRect, sampleInfo);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -286,5 +338,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::ImageFilterFuzzTest003(data, size);
     OHOS::Rosen::Drawing::ImageFilterFuzzTest004(data, size);
     OHOS::Rosen::Drawing::ImageFilterFuzzTest005(data, size);
+    OHOS::Rosen::Drawing::ImageFilterFuzzTest006(data, size);
     return 0;
 }

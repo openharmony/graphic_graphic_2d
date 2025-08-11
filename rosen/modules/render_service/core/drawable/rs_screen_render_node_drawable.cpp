@@ -164,8 +164,8 @@ RSRenderNodeDrawable::Ptr RSScreenRenderNodeDrawable::OnGenerate(std::shared_ptr
 std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
     RSScreenRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
-    RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable:RequestFrame with colorSpace: %d, pixelformat: %d",
-        params.GetNewColorSpace(), params.GetNewPixelFormat());
+    RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable:RequestFrame with colorSpace: %d, pixelformat: %d, ",
+        "lastPixelFormat: %d", params.GetNewColorSpace(), params.GetNewPixelFormat(), GetLastPixelFormat());
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (UNLIKELY(!renderEngine)) {
         RS_LOGE("RSScreenRenderNodeDrawable::RequestFrame RenderEngine is null!");
@@ -192,8 +192,8 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
     }
     auto bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(params.GetScreenInfo(), false,
         params.GetNewColorSpace(), params.GetNewPixelFormat());
-    RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d", params.GetNewColorSpace(),
-        params.GetNewPixelFormat());
+    RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d, lastPixelFormat: %{public}d",
+        params.GetNewColorSpace(), params.GetNewPixelFormat(), GetLastPixelFormat());
 
     bool isHebc = true;
     if (RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
@@ -201,11 +201,18 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
         RS_LOGI("anco request frame not use hebc");
     }
     RSAncoManager::Instance()->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
-    if (params.IsHDRStatusChanged()) {
-        RS_TRACE_NAME("RSScreenRenderNodeDrawable::SetBufferReallocFlag isHDRStatusChanged");
-        renderEngine->SetHDRStatusChanged(params.IsHDRStatusChanged());
-        RS_LOGI("RSScreenRenderNodeDrawable::SetBufferReallocFlag isHDRStatusChanged");
+    if (IsPixelFormatChanged(params)) {
+        auto ohosSurface = std::static_pointer_cast<RSSurfaceOhos>(rsSurface);
+        auto surface = ohosSurface->GetSurface();
+        if (surface == nullptr) {
+            RS_LOGE("RSScreenRenderNodeDrawable::rsSurface->GetSurface is nullptr!!");
+        } else {
+            RS_TRACE_NAME("RSScreenRenderNodeDrawable::SetBufferReallocFlag succeed");
+            surface->SetBufferReallocFlag(true);
+            RS_LOGI("RSScreenRenderNodeDrawable::SetBufferReallocFlag succeed");
+        }
     }
+    SetLastPixelFormat(params.GetNewPixelFormat());
     auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
         bufferConfig, false, isHebc);
     if (!renderFrame) {

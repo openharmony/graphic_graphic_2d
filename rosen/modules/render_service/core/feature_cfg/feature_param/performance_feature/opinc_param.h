@@ -32,7 +32,7 @@ protected:
     static void SetCacheWidthThresholdPercentValue(int cacheWidthThresholdPercentValue);
 
 private:
-    inline static int isOPIncEnable_ = true;
+    inline static bool isOPIncEnable_ = true;
     inline static int cacheWidthThresholdPercentValue_ = 150;
 
     friend class OPIncParamParse;

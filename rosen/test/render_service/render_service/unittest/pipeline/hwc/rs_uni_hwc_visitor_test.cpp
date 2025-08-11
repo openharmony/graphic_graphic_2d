@@ -219,13 +219,25 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect001, TestSize.Level2)
 
     RectI absRect(0, 0, 0, 0);
     RectI clipRect(0, 0, 0, 0);
-    rsUniRenderVisitor->curSurfaceNode_ = rsSurfaceRenderNode2;
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
     ASSERT_NE(rsUniHwcVisitor, nullptr);
-    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+    rsUniRenderVisitor->curSurfaceNode_ = nullptr;
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+
+    rsUniRenderVisitor->curSurfaceNode_ = rsSurfaceRenderNode2;
     rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode2, absRect, clipRect);
     ASSERT_EQ(rsSurfaceRenderNode2->GetDstRect().left_, 0);
+
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(false);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(true);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
 }
 
 /**
@@ -259,7 +271,23 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect002, TestSize.Level2)
     RectI clipRect(0, 0, 0, 0);
     rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
     ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(false);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    ScreenInfo info { .width = 1.f };
+    rsUniHwcVisitor->uniRenderVisitor_.curScreenNode_->SetScreenInfo(info);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    info.width = 0.f;
+    info.height = 1.f;
+    rsUniHwcVisitor->uniRenderVisitor_.curScreenNode_->SetScreenInfo(info);
     rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
     ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
 }

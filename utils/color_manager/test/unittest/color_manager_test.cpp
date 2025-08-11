@@ -27,6 +27,9 @@ using namespace testing::ext;
 namespace OHOS {
 namespace ColorManager {
 constexpr uint32_t MATRIX_SIZE = 3;
+constexpr float FLOAT_DELTA = 0.000001;
+constexpr ColorSpacePrimaries CSP_ADOBE_RGB = {0.640f, 0.330f, 0.210f, 0.710f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+constexpr TransferFunc TF_ADOBE_RGB = {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 static void CheckColorSpaceEqual(const ColorSpace& cs0, const ColorSpace& cs1)
 {
@@ -127,6 +130,38 @@ HWTEST_F(ColorManagerTest, Display_P3TosRGB, Function | SmallTest | Level2)
     ASSERT_EQ(FloatEqual(result.r, 0.0594f), true);
     ASSERT_EQ(FloatEqual(result.g, 0.2031f), true);
     ASSERT_EQ(FloatEqual(result.b, 0.3087f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: ConvertP3ToSRGBColorSpace convert P3 to sRGB
+*/
+HWTEST_F(ColorManagerTest, ConvertP3ToSRGBColorSpace, Function | SmallTest | Level2)
+{
+    Vector3 rgbInP3 = {0.1, 0.2, 0.3};
+    auto rgbInSRGB = ColorSpaceConvertor::ConvertP3ToSRGBColorSpace(rgbInP3);
+    ASSERT_EQ(FloatEqual(rgbInSRGB[0], 0.0594f), true);
+    ASSERT_EQ(FloatEqual(rgbInSRGB[1], 0.2031f), true);
+    ASSERT_EQ(FloatEqual(rgbInSRGB[2], 0.3087f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: ConvertSRGBToP3ColorSpace convert P3 to sRGB
+*/
+HWTEST_F(ColorManagerTest, ConvertSRGBToP3ColorSpace, Function | SmallTest | Level2)
+{
+    Vector3 rgbInSRGB = {0.1, 0.2, 0.3};
+    auto rgbInP3 = ColorSpaceConvertor::ConvertSRGBToP3ColorSpace(rgbInSRGB);
+    ASSERT_EQ(FloatEqual(rgbInP3[0], 0.1237f), true);
+    ASSERT_EQ(FloatEqual(rgbInP3[1], 0.1975f), true);
+    ASSERT_EQ(FloatEqual(rgbInP3[2], 0.2918f), true);
 }
 
 /*
@@ -767,6 +802,33 @@ HWTEST_F(ColorManagerTest, VectorOperator, TestSize.Level1)
 
     const Vector3 v2 = v1 * m1;
     ASSERT_EQ(v2, v1);
+}
+
+/**
+ * @tc.name: GetWhitePoint
+ * @tc.desc: Verify GetWhitePoint func
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(ColorManagerTest, GetWhitePoint, TestSize.Level1)
+{
+    ColorSpace space(ColorSpaceName::ADOBE_RGB);
+    std::array<float, 2> whiteP = {CSP_ADOBE_RGB.wX, CSP_ADOBE_RGB.wY};
+    auto p = space.GetWhitePoint();
+    ASSERT_EQ(p[0], whiteP[0]);
+    ASSERT_EQ(p[1], whiteP[1]);
+}
+
+/**
+ * @tc.name: GetGamma
+ * @tc.desc: Verify GetGamma func
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(ColorManagerTest, GetGamma, TestSize.Level1)
+{
+    ColorSpace space(ColorSpaceName::ADOBE_RGB);
+    ASSERT_TRUE(std::abs((space.GetGamma()) - (TF_ADOBE_RGB.g)) <= (FLOAT_DELTA));
 }
 }
 }

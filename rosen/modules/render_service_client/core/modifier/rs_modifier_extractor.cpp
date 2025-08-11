@@ -214,7 +214,7 @@ Vector4f RSModifierExtractor::GetBorderWidth() const
 Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
-        Vector4<uint32_t>, BORDER, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
+        Vector4<uint32_t>, BORDER, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::SOLID)), =);
 }
 
 Vector4f RSModifierExtractor::GetBorderDashWidth() const
@@ -281,7 +281,7 @@ float RSModifierExtractor::GetShadowOffsetY() const
 
 float RSModifierExtractor::GetShadowAlpha() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_ALPHA, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_ALPHA, 1.f, =);
 }
 
 float RSModifierExtractor::GetShadowElevation() const

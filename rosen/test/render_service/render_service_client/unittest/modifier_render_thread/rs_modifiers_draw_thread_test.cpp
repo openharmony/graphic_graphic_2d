@@ -122,7 +122,8 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction002, TestSize.Level1
     transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
     CommitTransactionCallback callback =
         [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
-        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {};
+        std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
+        std::shared_ptr<RSTransactionHandler>) {};
     RSTransactionHandler::SetCommitTransactionCallback(callback);
     transaction->FlushImplicitTransaction(timestamp);
 }

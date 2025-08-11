@@ -34,7 +34,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "frame_rate_report.h"
-#include "hisysevent.h"
 #include "hdi_device.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_hisysevent.h"
@@ -471,7 +470,6 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         needChangeDssRefreshRate = true;
         FrameRateReport();
     }
-
     bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
         rsFrameRateLinker_,
         appFrameRateLinkers_,
@@ -482,10 +480,6 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
 
 void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
 {
-    static bool reportHiSysEventEnabled = system::GetParameter("const.logsystem.versiontype", "") == "beta";
-    if (!reportHiSysEventEnabled) {
-        return;
-    }
     if (frameRateVoteInfo.voterName.empty()) {
         return;
     }
@@ -644,7 +638,7 @@ void HgmFrameRateManager::GetStylusVec(const std::shared_ptr<PolicyConfigData>& 
     if (!configData) {
         return;
     }
- 
+
     // refresh rate for stylus pen
     if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
         return;
@@ -1002,6 +996,11 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         return;
     }
     if (hgmCore.GetMultiSelfOwnedScreenEnable()) {
+        return;
+    }
+
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
         return;
     }
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
@@ -1382,11 +1381,11 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 case CleanPidCallbackType::GAMES:
                     DeliverRefreshRateVote({"VOTER_GAMES"}, false);
                     break;
-                case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
-                    HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
-                    break;
                 case CleanPidCallbackType::PAGE_URL:
                     CleanPageUrlVote(pid);
+                    break;
+                case CleanPidCallbackType::APP_STRATEGY_CONFIG_EVENT:
+                    HandleAppStrategyConfigEvent(DEFAULT_PID, "", {});
                     break;
                 default:
                     break;
@@ -1612,7 +1611,7 @@ void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
     HgmTaskHandleThread::Instance().PostTask(
         [this, leftRetryTimes]() {
             if (leftRetryTimes == 1 || system::GetBoolParameter("bootevent.boot.completed", false)) {
-                HGM_LOGI("FrameRateReportTask run and left retry: %{public}d", leftRetryTimes);
+                HGM_LOGI("FrameRateReportTask run and left retry:%{public}d", leftRetryTimes);
                 schedulePreferredFpsChange_ = true;
                 FrameRateReport();
                 return;

@@ -1070,12 +1070,49 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
     return colorGamut;
 }
 
+bool RSHardwareThread::IsAllRedraw(const std::vector<LayerInfoPtr>& layers)
+{
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
+    for (auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
+        // skip RCD layer
+        auto layerSurface = layer->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                RS_LOGD("IsAllRedraw skip RCD layer");
+                continue;
+            }
+        }
+        // skip hard cursor
+        if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
+            RS_LOGD("IsAllRedraw skip cursor");
+            continue;
+        }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            RS_LOGD("IsAllRedraw not all layers are redraw");
+            return false;
+        }
+    }
+    return true;
+}
+
 GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers)
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    bool allRedraw = IsAllRedraw(layers);
     for (auto& layer : layers) {
         if (layer == nullptr) {
+            continue;
+        }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
             continue;
         }
         auto buffer = layer->GetBuffer();
@@ -1087,7 +1124,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
         auto bufferPixelFormat = buffer->GetFormat();
         if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010108) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            if (RSHdrUtil::GetRGBA1010108Enabled()) {
+            if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled()) {
                 pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
                 RS_LOGD("ComputeTargetPixelFormat pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108");
             }

@@ -241,8 +241,8 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_ThreadNums, Function | Medi
         thds.emplace_back(std::thread([&] () { displaySoloistTask(); }));
     }
     for (auto& thd : thds) {
-        ++thdsJoinNums;
         if (thd.joinable()) {
+            ++thdsJoinNums;
             thd.join();
         }
     }

@@ -74,7 +74,7 @@ void RSTransactionHandler::AddCommand(
         "RSTransactionHandler::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu",
         nodeId, isRenderServiceCommand, followType);
-    if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+    if (renderServiceClient_ != nullptr && isRenderServiceCommand) {
         AddRemoteCommand(command, nodeId, followType);
         return;
     }
@@ -178,7 +178,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
         RS_TRACE_NAME_FMT("HybridRender transactionFlag:[%d,%" PRIu64 "]", GetRealPid(), transactionDataIndex_ + 1);
         RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
-            std::move(transactionData), transactionDataIndex_);
+            std::move(transactionData), transactionDataIndex_, shared_from_this());
         return;
     }
     renderServiceClient_->CommitTransaction(transactionData);
@@ -188,6 +188,24 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
 uint32_t RSTransactionHandler::GetTransactionDataIndex() const
 {
     return transactionDataIndex_;
+}
+
+void RSTransactionHandler::PostTask(const std::function<void()>& task)
+{
+    PostDelayTask(task, 0);
+}
+
+void RSTransactionHandler::PostDelayTask(const std::function<void()>& task, uint32_t delay)
+{
+    if (taskRunner_ == nullptr) {
+        return;
+    }
+    taskRunner_(task, delay);
+}
+
+void RSTransactionHandler::SetUITaskRunner(const TaskRunner& uiTaskRunner)
+{
+    taskRunner_ = uiTaskRunner;
 }
 
 bool RSTransactionHandler::IsEmpty() const

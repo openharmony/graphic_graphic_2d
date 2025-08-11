@@ -790,5 +790,10 @@ bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
 {
     return {};
 }
+
+bool RSSystemProperties::GetGpuDirtyApsEnabled()
+{
+    return {};
+}
 } // namespace Rosen
 } // namespace OHOS
