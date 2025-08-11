@@ -63,6 +63,12 @@ static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
             return Drawing::ColorSpace::CreateSRGBLinear();
         case ColorManager::ColorSpaceName::SRGB:
             return Drawing::ColorSpace::CreateSRGB();
+        case ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+        case ColorManager::ColorSpaceName::ADOBE_RGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
         default:
             return Drawing::ColorSpace::CreateSRGB();
     }
