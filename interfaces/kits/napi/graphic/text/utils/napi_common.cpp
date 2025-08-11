@@ -711,7 +711,6 @@ napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontF
         }
         napi_set_named_property(env, jsObject, "name", CreateStringJsValue(env, Str8ToStr16(feature.first)));
         napi_set_named_property(env, jsObject, "value", CreateJsNumber(env, feature.second));
-        napi_set_element(env, jsArray, i, jsObject);
         status = napi_set_element(env, jsArray, i, jsObject);
         if (status != napi_ok) {
             TEXT_LOGE("Failed to set fontFeature, ret %{public}d", status);

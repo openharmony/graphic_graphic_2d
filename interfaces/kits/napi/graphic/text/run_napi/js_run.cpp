@@ -453,6 +453,7 @@ napi_value JsRun::OnGetStringIndices(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     } else if (argc == ARGC_ONE) {
         if (!GetStartEndParams(env, argv[0], start, end)) {
+            TEXT_LOGE("Failed to GetStringIndices: invalid start and end");
             return NapiGetUndefined(env);
         }
     }

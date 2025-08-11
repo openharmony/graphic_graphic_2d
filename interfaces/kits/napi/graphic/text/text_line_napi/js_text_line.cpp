@@ -505,8 +505,8 @@ napi_value JsTextLine::OnGetOffsetForStringIndex(napi_env env, napi_callback_inf
 
 bool CallJsFunc(napi_env env, napi_value callback, int32_t index, double leftOffset, double rightOffset)
 {
-    static napi_value jsLeadingEdgeTrue = CreateJsValue(env, true);
-    static napi_value jsLeadingEdgeFalse = CreateJsValue(env, false);
+    napi_value jsLeadingEdgeTrue = CreateJsValue(env, true);
+    napi_value jsLeadingEdgeFalse = CreateJsValue(env, false);
     napi_value jsIndex = CreateJsValue(env, index);
     for (size_t i = 0; i < ARGC_TWO; i++) {
         napi_value jsOffset = (i == 0) ? CreateJsValue(env, leftOffset) : CreateJsValue(env, rightOffset);
