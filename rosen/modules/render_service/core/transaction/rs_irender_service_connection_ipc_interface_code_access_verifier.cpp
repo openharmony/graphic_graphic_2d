@@ -604,6 +604,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         case static_cast<CodeUnderlyingType>(CodeEnumType::FREEZE_SCREEN): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::FREEZE_SCREEN");
             break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
         }
@@ -611,7 +612,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
     }
-return hasPermission;
+    return hasPermission;
 }
 
 #ifdef ENABLE_IPC_SECURITY
