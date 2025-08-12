@@ -207,6 +207,9 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
+    parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
+        RSLuminanceConst::DEFAULT_CAST_HDR_NITS : displayNits;
+    parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     switch (hdrProperties.screenshotType) {
         case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
             parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
@@ -219,9 +222,6 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
                 std::clamp(sdrNits * scaler, sdrNits, displayNits);
             break;
     }
-    parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
-        RSLuminanceConst::DEFAULT_CAST_HDR_NITS : displayNits;
-    parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     // color temperature
     parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, (ret == GSERROR_OK &&
         dynamicRangeMode != DynamicRangeMode::STANDARD) ? parameter.dynamicMetadata : std::vector<uint8_t>(),
