@@ -113,10 +113,6 @@ void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
     // clipHole: false.
     // forceCPU: true.
     auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, false);
-    params.dstRect.SetLeft(0);
-    params.dstRect.SetTop(0);
-    params.dstRect.SetRight(params.dstRect.GetWidth());
-    params.dstRect.SetBottom(params.dstRect.GetHeight());
     renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
 }
 
