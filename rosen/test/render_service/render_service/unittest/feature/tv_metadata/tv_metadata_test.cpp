@@ -83,7 +83,7 @@ static std::shared_ptr<RSSurfaceOhos> CreateRsSurfaceOhos(void)
     return rsSurface;
 }
 
-/*
+/**
  * @tc.name: RecordAndCombineMetadata_001
  * @tc.desc: Test RecordAndCombineMetadata
  * @tc.type: FUNC
@@ -108,7 +108,7 @@ HWTEST_F(TvMetadataTest, RecordAndCombineMetadata_001, TestSize.Level1)
     ASSERT_EQ(2, outMetadata.dpPixFmt);
 }
 
-/*
+/**
  * @tc.name: CopyTvMetadataToSurface_001
  * @tc.desc: Test CopyTvMetadataToSurface
  * @tc.type: FUNC
@@ -148,7 +148,7 @@ HWTEST_F(TvMetadataTest, CopyTvMetadataToSurface_001, TestSize.Level1)
     ASSERT_EQ(0, outMetadata.dpPixFmt);
 }
 
-/*
+/**
  * @tc.name: CopyFromLayersToSurface_001
  * @tc.desc: Test CopyFromLayersToSurface
  * @tc.type: FUNC
@@ -195,7 +195,7 @@ HWTEST_F(TvMetadataTest, CopyFromLayersToSurface_001, TestSize.Level1)
     ASSERT_EQ(2, tvMetadata.dpPixFmt);
 }
 
-/*
+/**
  * @tc.name: ResetDpPixelFormat_001
  * @tc.desc: Test ResetDpPixelFormat
  * @tc.type: FUNC
