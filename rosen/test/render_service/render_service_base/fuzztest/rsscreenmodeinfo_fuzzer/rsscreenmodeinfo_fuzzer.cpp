@@ -55,11 +55,6 @@ bool DoMarshalling(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     Parcel parcel;
@@ -72,11 +67,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     RSScreenModeInfo screenModeInfo;
@@ -91,11 +81,6 @@ bool DoGetScreenWidth(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     screenModeInfo.GetScreenWidth();
@@ -107,11 +92,6 @@ bool DoGetScreenHeight(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     RSScreenModeInfo screenModeInfo;
@@ -125,11 +105,6 @@ bool DoGetScreenRefreshRate(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     screenModeInfo.GetScreenRefreshRate();
@@ -142,11 +117,6 @@ bool DoGetScreenModeId(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     screenModeInfo.GetScreenModeId();
@@ -158,11 +128,6 @@ bool DoSetScreenWidth(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     RSScreenModeInfo screenModeInfo;
@@ -177,11 +142,6 @@ bool DoSetScreenHeight(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     int32_t height = GetData<int32_t>();
@@ -194,11 +154,6 @@ bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     RSScreenModeInfo screenModeInfo;
@@ -213,11 +168,6 @@ bool DoSetScreenModeId(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     int32_t id = GetData<int32_t>();
@@ -231,11 +181,6 @@ bool DoRSScreenModeInfo(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSScreenModeInfo screenModeInfo;
     RSScreenModeInfo screenModeInfo2 = screenModeInfo;
@@ -248,6 +193,11 @@ bool DoRSScreenModeInfo(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoMarshalling(data, size);
     OHOS::Rosen::DoUnmarshalling(data, size);

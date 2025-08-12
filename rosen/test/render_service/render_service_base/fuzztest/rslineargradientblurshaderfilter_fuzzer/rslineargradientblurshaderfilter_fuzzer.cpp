@@ -65,6 +65,10 @@ T GetData()
 */
 std::string GetStringFromData(int strlen)
 {
+    if (data == nullptr) {
+        return false;
+    }
+
     char cstr[strlen];
     cstr[strlen - 1] = '\0';
     for (int i = 0; i < strlen - 1; i++) {
@@ -79,11 +83,7 @@ bool DoCreateRSLinearGradientBlurShaderFilter(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
+    
     float geoWidth = GetData<float>();
     float geoHeight = GetData<float>();
     float blurRadius = GetData<float>();
@@ -105,10 +105,6 @@ bool DoGenerateGEVisualEffect(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     float geoWidth = GetData<float>();
     float geoHeight = GetData<float>();
@@ -133,11 +129,7 @@ bool DoSetGeometry(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
+    
     float geoWidth = GetData<float>();
     float geoHeight = GetData<float>();
     float blurRadius = GetData<float>();
@@ -157,10 +149,6 @@ bool DoIsOffscreenCanvas(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     float geoWidth = GetData<float>();
     float geoHeight = GetData<float>();
@@ -182,14 +170,6 @@ bool DoIsOffscreenCanvas(const uint8_t* data, size_t size)
 
 float DoGetLinearGradientBlurRadius(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     float geoWidth = GetData<float>();
     float geoHeight = GetData<float>();
     float blurRadius = GetData<float>();
@@ -210,6 +190,11 @@ float DoGetLinearGradientBlurRadius(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoCreateRSLinearGradientBlurShaderFilter(data, size);
     OHOS::Rosen::DoGenerateGEVisualEffect(data, size);

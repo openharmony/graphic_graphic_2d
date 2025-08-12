@@ -28,11 +28,6 @@ namespace Rosen {
 namespace Drawing {
 void OpItemFuzzTest000(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t type = GetObject<uint32_t>();
     uint32_t offset = GetObject<uint32_t>();
 
@@ -48,6 +43,11 @@ void OpItemFuzzTest000(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::OpItemFuzzTest000(data, size);
 

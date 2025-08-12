@@ -54,17 +54,20 @@ T GetData()
     return object;
 }
 
-bool DoCreateDrawingContext(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoCreateDrawingContext(const uint8_t* data, size_t size)
+{
     // test
     std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
     auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
@@ -75,15 +78,6 @@ bool DoCreateDrawingContext(const uint8_t* data, size_t size)
 
 bool DoCreateRenderModifier(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::weak_ptr<RSCanvasNode> node = RSCanvasNode::Create(false, false);
     auto ctx = RSExtendedModifierHelper::CreateDrawingContext(node);
@@ -96,15 +90,6 @@ bool DoCreateRenderModifier(const uint8_t* data, size_t size)
 
 bool DoFinishDrawing(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     Drawing::Font font = Drawing::Font();
     font.SetSize(1);
@@ -123,6 +108,10 @@ bool DoFinishDrawing(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoCreateDrawingContext(data, size);
     OHOS::Rosen::DoCreateRenderModifier(data, size);

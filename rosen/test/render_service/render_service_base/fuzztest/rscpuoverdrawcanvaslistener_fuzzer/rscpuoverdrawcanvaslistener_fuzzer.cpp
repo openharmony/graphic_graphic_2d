@@ -357,6 +357,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::rsCpu) {
         return 0;
     }
+
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoDrawPoint(data, size);
     OHOS::Rosen::DoDrawLine(data, size);

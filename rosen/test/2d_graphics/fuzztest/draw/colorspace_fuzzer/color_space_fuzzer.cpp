@@ -45,10 +45,6 @@ bool ColorSpaceFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
     auto dataVal = std::make_shared<Data>();
@@ -83,10 +79,6 @@ bool ColorSpaceFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<ColorSpace> colorSpaceOne = ColorSpace::CreateSRGBLinear();
     uint32_t funcType = GetObject<uint32_t>();
@@ -119,6 +111,11 @@ bool ColorSpaceFuzzTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::ColorSpaceFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ColorSpaceFuzzTest002(data, size);

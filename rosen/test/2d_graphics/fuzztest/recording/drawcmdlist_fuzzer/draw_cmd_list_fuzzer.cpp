@@ -36,11 +36,6 @@ constexpr size_t MAX_SIZE = 5000;
 namespace Drawing {
 void DrawCmdListFuzzTest000(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>() % MAX_SIZE;
     int32_t height = GetObject<int32_t>() % MAX_SIZE;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -76,11 +71,6 @@ void DrawCmdListFuzzTest000(const uint8_t* data, size_t size)
 
 void DrawCmdListFuzzTest001(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t width = GetObject<int32_t>();
     uint32_t height = GetObject<int32_t>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -121,11 +111,6 @@ void DrawCmdListFuzzTest001(const uint8_t* data, size_t size)
 
 void DrawCmdListFuzzTest002(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t width = GetObject<int32_t>();
     uint32_t height = GetObject<int32_t>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -168,11 +153,6 @@ void DrawCmdListFuzzTest002(const uint8_t* data, size_t size)
 
 void DrawCmdListFuzzTest003(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     scalar l = GetObject<scalar>();
     scalar t = GetObject<scalar>();
@@ -213,11 +193,6 @@ void DrawCmdListFuzzTest003(const uint8_t* data, size_t size)
 
 void DrawCmdListFuzzTest004(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* obj = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -263,11 +238,6 @@ void DrawCmdListFuzzTest004(const uint8_t* data, size_t size)
 
 void DrawCmdListFuzzTest005(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar l = GetObject<scalar>();
     scalar t = GetObject<scalar>();
     scalar r = GetObject<scalar>();
@@ -304,11 +274,6 @@ void DrawCmdListFuzzTest005(const uint8_t* data, size_t size)
 
 void DrawCmdListFuzzTest006(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t width = GetObject<int32_t>();
     uint32_t height = GetObject<int32_t>();
     scalar l = GetObject<scalar>();
@@ -352,6 +317,11 @@ void DrawCmdListFuzzTest006(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::Drawing::DrawCmdListFuzzTest000(data, size);
     OHOS::Rosen::Drawing::DrawCmdListFuzzTest001(data, size);

@@ -51,17 +51,20 @@ T GetData()
     return object;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     DATA = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoCreate(const uint8_t* data, size_t size)
+{
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -73,15 +76,6 @@ bool DoCreate(const uint8_t* data, size_t size)
 
 bool DoBeginRecordingAndFinishRecording(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -98,15 +92,6 @@ bool DoBeginRecordingAndFinishRecording(const uint8_t* data, size_t size)
 
 bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -119,15 +104,6 @@ bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
 
 bool DoDrawOnNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -142,15 +118,6 @@ bool DoDrawOnNode(const uint8_t* data, size_t size)
 
 bool DoGetPaintWidthAndGetPaintHeight(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -164,15 +131,6 @@ bool DoGetPaintWidthAndGetPaintHeight(const uint8_t* data, size_t size)
 
 bool DoSetFreeze(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -186,15 +144,6 @@ bool DoSetFreeze(const uint8_t* data, size_t size)
 
 bool DoSetHDRPresent(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -208,15 +157,6 @@ bool DoSetHDRPresent(const uint8_t* data, size_t size)
 
 bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -231,15 +171,6 @@ bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
 
 bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -253,15 +184,6 @@ bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
 
 bool DoDrawOnNode002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -280,15 +202,6 @@ bool DoDrawOnNode002(const uint8_t* data, size_t size)
 
 bool DoSetFreeze002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -303,6 +216,10 @@ bool DoSetFreeze002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoCreate(data, size);
     OHOS::Rosen::DoBeginRecordingAndFinishRecording(data, size);

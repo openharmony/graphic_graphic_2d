@@ -49,17 +49,20 @@ T GetData()
     return object;
 }
 
-bool DoGetBounds(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoGetBounds(const uint8_t* data, size_t size)
+{
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -70,15 +73,6 @@ bool DoGetBounds(const uint8_t* data, size_t size)
 
 bool DoGetFrame(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -89,15 +83,6 @@ bool DoGetFrame(const uint8_t* data, size_t size)
 
 bool DoGetPositionZ(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -108,15 +93,6 @@ bool DoGetPositionZ(const uint8_t* data, size_t size)
 
 bool DoGetPivot(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -127,15 +103,6 @@ bool DoGetPivot(const uint8_t* data, size_t size)
 
 bool DoGetPivotZ(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -146,15 +113,6 @@ bool DoGetPivotZ(const uint8_t* data, size_t size)
 
 bool DoGetQuaternion(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -165,15 +123,6 @@ bool DoGetQuaternion(const uint8_t* data, size_t size)
 
 bool DoGetRotation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -184,15 +133,6 @@ bool DoGetRotation(const uint8_t* data, size_t size)
 
 bool DoGetRotationX(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -203,15 +143,6 @@ bool DoGetRotationX(const uint8_t* data, size_t size)
 
 bool DoGetRotationY(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -222,15 +153,6 @@ bool DoGetRotationY(const uint8_t* data, size_t size)
 
 bool DoGetCameraDistance(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -241,15 +163,6 @@ bool DoGetCameraDistance(const uint8_t* data, size_t size)
 
 bool DoGetTranslate(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -260,15 +173,6 @@ bool DoGetTranslate(const uint8_t* data, size_t size)
 
 bool DoGetTranslateZ(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -279,15 +183,6 @@ bool DoGetTranslateZ(const uint8_t* data, size_t size)
 
 bool DoGetScale(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -298,15 +193,6 @@ bool DoGetScale(const uint8_t* data, size_t size)
 
 bool DoGetSkew(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -317,15 +203,6 @@ bool DoGetSkew(const uint8_t* data, size_t size)
 
 bool DoGetPersp(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -336,15 +213,6 @@ bool DoGetPersp(const uint8_t* data, size_t size)
 
 bool DoGetAlpha(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -355,15 +223,6 @@ bool DoGetAlpha(const uint8_t* data, size_t size)
 
 bool DoGetCornerRadius(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -374,15 +233,6 @@ bool DoGetCornerRadius(const uint8_t* data, size_t size)
 
 bool DoGetForegroundColor(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -393,15 +243,6 @@ bool DoGetForegroundColor(const uint8_t* data, size_t size)
 
 bool DoGetBackgroundColor(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -412,15 +253,6 @@ bool DoGetBackgroundColor(const uint8_t* data, size_t size)
 
 bool DoGetBgImageWidth(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -431,15 +263,6 @@ bool DoGetBgImageWidth(const uint8_t* data, size_t size)
 
 bool DoGetBgImageHeight(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -450,15 +273,6 @@ bool DoGetBgImageHeight(const uint8_t* data, size_t size)
 
 bool DoGetBgImagePositionX(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -469,15 +283,6 @@ bool DoGetBgImagePositionX(const uint8_t* data, size_t size)
 
 bool DoGetBgImagePositionY(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -488,15 +293,6 @@ bool DoGetBgImagePositionY(const uint8_t* data, size_t size)
 
 bool DoGetBorderColor(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -507,15 +303,6 @@ bool DoGetBorderColor(const uint8_t* data, size_t size)
 
 bool DoGetBorderWidth(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -526,15 +313,6 @@ bool DoGetBorderWidth(const uint8_t* data, size_t size)
 
 bool DoGetShadowColor(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -545,15 +323,6 @@ bool DoGetShadowColor(const uint8_t* data, size_t size)
 
 bool DoGetShadowOffsetX(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -564,15 +333,6 @@ bool DoGetShadowOffsetX(const uint8_t* data, size_t size)
 
 bool DoGetShadowOffsetY(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -583,15 +343,6 @@ bool DoGetShadowOffsetY(const uint8_t* data, size_t size)
 
 bool DoGetShadowAlpha(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -602,15 +353,6 @@ bool DoGetShadowAlpha(const uint8_t* data, size_t size)
 
 bool DoGetShadowElevation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -621,15 +363,6 @@ bool DoGetShadowElevation(const uint8_t* data, size_t size)
 
 bool DoGetShadowRadius(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -640,15 +373,6 @@ bool DoGetShadowRadius(const uint8_t* data, size_t size)
 
 bool DoGetSpherizeDegree(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -659,15 +383,6 @@ bool DoGetSpherizeDegree(const uint8_t* data, size_t size)
 
 bool DoGetHDRUIBrightness(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -678,15 +393,6 @@ bool DoGetHDRUIBrightness(const uint8_t* data, size_t size)
 
 bool DoGetAttractionFractionValue(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -697,15 +403,6 @@ bool DoGetAttractionFractionValue(const uint8_t* data, size_t size)
 
 bool DoGetAttractionDstPointValue(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -716,15 +413,6 @@ bool DoGetAttractionDstPointValue(const uint8_t* data, size_t size)
 
 bool DoGetLightUpEffectDegree(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -735,15 +423,6 @@ bool DoGetLightUpEffectDegree(const uint8_t* data, size_t size)
 
 bool DoGetDynamicDimDegree(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSShowingPropertiesFreezer showingPropertiesFreezer(id);
@@ -757,6 +436,10 @@ bool DoGetDynamicDimDegree(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoGetBounds(data, size);
     OHOS::Rosen::DoGetFrame(data, size);

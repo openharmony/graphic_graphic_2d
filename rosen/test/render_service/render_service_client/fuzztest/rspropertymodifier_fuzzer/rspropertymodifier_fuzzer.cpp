@@ -54,17 +54,20 @@ T GetData()
     return object;
 }
 
-bool DoModifier001(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoModifier001(const uint8_t* data, size_t size)
+{
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -106,15 +109,6 @@ bool DoModifier001(const uint8_t* data, size_t size)
 
 bool DoModifier002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -156,15 +150,6 @@ bool DoModifier002(const uint8_t* data, size_t size)
 
 bool DoModifier003(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -206,15 +191,6 @@ bool DoModifier003(const uint8_t* data, size_t size)
 
 bool DoModifier004(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -253,15 +229,6 @@ bool DoModifier004(const uint8_t* data, size_t size)
 
 bool DoModifier005(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -303,15 +270,6 @@ bool DoModifier005(const uint8_t* data, size_t size)
 
 bool DoModifier006(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -353,15 +311,6 @@ bool DoModifier006(const uint8_t* data, size_t size)
 
 bool DoModifier007(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -403,15 +352,6 @@ bool DoModifier007(const uint8_t* data, size_t size)
 
 bool DoModifier008(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -453,15 +393,6 @@ bool DoModifier008(const uint8_t* data, size_t size)
 
 bool DoModifier009(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -503,15 +434,6 @@ bool DoModifier009(const uint8_t* data, size_t size)
 
 bool DoModifier010(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -556,15 +478,6 @@ bool DoModifier010(const uint8_t* data, size_t size)
 
 bool DoModifier011(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -597,15 +510,6 @@ bool DoModifier011(const uint8_t* data, size_t size)
         
 bool DoApply(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     auto geometry = std::make_shared<RSObjAbsGeometry>();
     float value = GetData<float>();
@@ -649,6 +553,10 @@ bool DoApply(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoModifier001(data, size);
     OHOS::Rosen::DoModifier002(data, size);

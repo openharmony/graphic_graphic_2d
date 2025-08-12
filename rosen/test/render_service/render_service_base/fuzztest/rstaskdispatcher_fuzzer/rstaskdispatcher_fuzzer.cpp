@@ -59,11 +59,6 @@ bool DoRegisterTaskDispatchFunc(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int tid = GetData<int>();
     auto taskDispatchFunc = [](RSTask task, bool condition) {
         if (condition) {
@@ -81,11 +76,6 @@ bool DoPostTask(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int tid = GetData<int>();
 
     RSTask task = []() {};
@@ -98,11 +88,6 @@ bool DoHasRegisteredTask(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int tid = GetData<int>();
     RSTaskDispatcher::GetInstance().HasRegisteredTask(tid);
     return true;
@@ -113,6 +98,11 @@ bool DoHasRegisteredTask(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoRegisterTaskDispatchFunc(data, size);
     OHOS::Rosen::DoPostTask(data, size);

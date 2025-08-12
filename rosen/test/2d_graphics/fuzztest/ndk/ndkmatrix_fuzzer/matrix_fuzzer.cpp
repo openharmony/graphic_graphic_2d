@@ -39,10 +39,6 @@ void NativeMatrixTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float degree = GetObject<float>();
     float x = GetObject<float>();
@@ -83,10 +79,7 @@ void NativeMatrixTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     float degree = GetObject<float>();
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -126,10 +119,6 @@ void NativeMatrixTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float degree = GetObject<float>();
     float x = GetObject<float>();
@@ -174,10 +163,6 @@ void NativeMatrixTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float px = GetObject<float>();
     float py = GetObject<float>();
@@ -222,10 +207,6 @@ void NativeMatrixTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float scaleX = GetObject<float>();
     float skewX = GetObject<float>();
@@ -250,10 +231,6 @@ void NativeMatrixTest006(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float scaleX = GetObject<float>();
     float skewX = GetObject<float>();
@@ -282,6 +259,11 @@ void NativeMatrixTest006(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeMatrixTest001(data, size);
     OHOS::Rosen::Drawing::NativeMatrixTest002(data, size);

@@ -67,11 +67,6 @@ bool DoCreateColorPicker(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     FuzzedDataProvider fdp(data, size);
@@ -91,11 +86,6 @@ bool DoGetLargestProportionColor(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     uint32_t color = GetData<uint32_t>();
@@ -108,11 +98,6 @@ bool DoGetHighestSaturationColor(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     uint32_t color = GetData<uint32_t>();
@@ -124,11 +109,6 @@ bool DoGetAverageColor(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
@@ -147,11 +127,6 @@ bool DoIsBlackOrWhiteOrGrayColor(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     uint32_t color = GetData<uint32_t>();
@@ -163,11 +138,6 @@ bool DoIsEquals(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
@@ -183,11 +153,6 @@ bool DoRGB2HSV(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     uint32_t rgb = GetData<uint32_t>();
@@ -200,11 +165,6 @@ bool DoAdjustHSVToDefinedIterval(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
@@ -233,11 +193,6 @@ bool DoHSVtoRGB(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto pixmap = std::make_shared<Pixmap>();
     auto rsColorPicker = std::make_shared<RSColorPicker>(pixmap);
     HSV color;
@@ -265,6 +220,11 @@ bool DoHSVtoRGB(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::DoCreateColorPicker(data, size);
     OHOS::Rosen::DoGetLargestProportionColor(data, size);

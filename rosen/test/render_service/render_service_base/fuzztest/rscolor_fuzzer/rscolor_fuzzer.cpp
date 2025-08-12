@@ -56,11 +56,6 @@ bool DoRSColor(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t r = GetData<uint32_t>();
     uint32_t g = GetData<uint32_t>();
     uint32_t b = GetData<uint32_t>();
@@ -81,11 +76,6 @@ bool DoOperator(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t r = GetData<uint32_t>();
     uint32_t g = GetData<uint32_t>();
@@ -110,11 +100,6 @@ bool DoHaveParameters(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSColor color;
     uint32_t rgba = GetData<uint32_t>();
     RSColor::FromRgbaInt(rgba);
@@ -138,11 +123,6 @@ bool DoNoParameters(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t r = GetData<uint32_t>();
     uint32_t g = GetData<uint32_t>();
     uint32_t b = GetData<uint32_t>();
@@ -164,6 +144,11 @@ bool DoNoParameters(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoRSColor(data, size);        // RSColor
     OHOS::Rosen::DoOperator(data, size);       // operator
