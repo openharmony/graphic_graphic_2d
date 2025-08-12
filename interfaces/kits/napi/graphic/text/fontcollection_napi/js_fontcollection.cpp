@@ -125,23 +125,37 @@ JsFontCollection::JsFontCollection()
     fontcollection_ = OHOS::Rosen::FontCollection::From(nullptr);
 }
 
+napi_status JsFontCollection::CreateFontCollection(napi_env env, napi_value constructor, napi_value* obj)
+{
+    napi_value instance = nullptr;
+    napi_status status = napi_get_named_property(env, constructor, CLASS_NAME.c_str(), &instance);
+    if (status != napi_ok || instance == nullptr) {
+        TEXT_LOGE("Failed to get prototype, status: %{public}d", status);
+        return status;
+    }
+    status = napi_new_instance(env, instance, 0, nullptr, obj);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to create instance, status: %{public}d", status);
+        return status;
+    }
+    return napi_ok;
+}
 
-void JsFontCollection::SetFontCollection(
+napi_status JsFontCollection::SetFontCollection(
     napi_env env, napi_value obj, std::shared_ptr<FontCollection> fontCollection)
 {
     if (env == nullptr || obj == nullptr || fontCollection == nullptr) {
         TEXT_LOGE("Invalid arguments");
-        return;
+        return napi_invalid_arg;
     }
-
-    napi_value pointerValue = nullptr;
-    JsFontCollection* me = napi_unwrap(env, obj, (void **)(&pointerValue)) == napi_ok ?
-        reinterpret_cast<JsFontCollection*>(pointerValue) : nullptr;
-    if (me == nullptr) {
-        TEXT_LOGE("Failed to unwrap JsFontCollection");
-        return;
+    JsFontCollection* jsFontCollection = nullptr;
+    napi_status status = napi_unwrap(env, obj, reinterpret_cast<void**>(&jsFontCollection));
+    if (status != napi_ok || jsFontCollection == nullptr) {
+        TEXT_LOGE("Failed to unwrap JsFontCollection, status: %{public}d", status);
+        return status;
     }
-    me->fontcollection_ = fontCollection;
+    jsFontCollection->fontcollection_ = fontCollection;
+    return napi_ok;
 }
 
 std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()

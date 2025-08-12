@@ -76,16 +76,15 @@ namespace text {
       });
     }
     native clearCaches(): void;
+
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      hilog.info(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `FontCollection transfer static, input: ${JSON.stringify(input)}`);
-      let fontCollection: ESValue = ESValue.wrap(input);
-      if (fontCollection != ESValue.Undefined) {
-        return FontCollection.nativeTransferStatic(fontCollection);
-      } else {
-        return FontCollection.nativeTransferStatic(ESValue.wrap(input));
+      if (input == null || input == undefined) {
+        throw new Error("Param is null or undefined");
       }
+      return FontCollection.nativeTransferStatic(ESValue.wrap(input));
     }
+
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
       if (input instanceof FontCollection) {
