@@ -714,6 +714,30 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest, Test
 }
 
 /**
+ * @tc.name: CheckFilterCacheFullyCovered_IsAttractionAnimation
+ * @tc.desc: Test CheckFilterCacheFullyCovered with attraction animation
+ * @tc.type: FUNC
+ * @tc.require: issueICQJZW
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCovered_IsAttractionAnimation, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    RSSurfaceRenderParams surfaceParams(DEFAULT_SURFACE_NODE_ID);
+    surfaceParams.isTransparent_ = true;
+    surfaceParams.isRotating_ = false;
+    surfaceParams.isAttractionAnimation_ = true;
+    int width = 100;
+    int height = 100;
+    RectI screenRect(0, 0, width, height);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(surfaceParams, screenRect);
+    EXPECT_FALSE(surfaceParams.GetFilterCacheFullyCovered());
+
+    surfaceParams.isAttractionAnimation_ = false;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(surfaceParams, screenRect);
+    EXPECT_FALSE(surfaceParams.GetFilterCacheFullyCovered());
+}
+
+/**
  * @tc.name: OnDraw001
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
