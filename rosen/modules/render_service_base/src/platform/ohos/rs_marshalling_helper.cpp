@@ -82,6 +82,8 @@ std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 thread_local pid_t g_callingPid = 0;
 constexpr size_t NUM_ITEMS_IN_VERSION = 4;
+constexpr int32_t MAX_IMAGE_WIDTH = 40960;
+constexpr int32_t MAX_IMAGE_HEIGHT = 40960;
 
 // Static registration of Data marshalling/unmarshalling callbacks
 DATA_CALLBACKS_REGISTER(
@@ -670,6 +672,14 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     int height{0};
     if (!parcel.ReadUint32(rb) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ImageInfo failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
+        return false;
+    }
+    if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        ROSEN_LOGE("Width(%{public}d) or height(%{public}d) of image too large.", width, height);
         if (isMalloc) {
             free(const_cast<void*>(addr));
             addr = nullptr;
@@ -2274,6 +2284,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
         return false;
     }
     if (replacedOpListSize > Drawing::MAX_OPITEMSIZE) {
+        ROSEN_LOGE("Drawing replacedOpListSize %{public}d too large", replacedOpListSize);
         val = nullptr;
         return false;
     }

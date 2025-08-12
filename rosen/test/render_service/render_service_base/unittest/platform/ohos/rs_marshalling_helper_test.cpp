@@ -76,6 +76,21 @@ void RSMarshallingHelperTest::TearDownTestCase() {}
 void RSMarshallingHelperTest::SetUp() {}
 void RSMarshallingHelperTest::TearDown() {}
 
+static std::shared_ptr<Drawing::Image> CreateDrawingImage(int32_t width, int32_t height)
+{
+    const Drawing::ImageInfo info =
+        Drawing::ImageInfo(width, height, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE);
+    auto surface(Drawing::Surface::MakeRaster(info));
+    auto canvas = surface->GetCanvas();
+    canvas->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
+    canvas->AttachBrush(brush);
+    canvas->DrawRect(Drawing::Rect(0, 0, width, height));
+    canvas->DetachBrush();
+    return surface->GetImageSnapshot();
+}
+
 /**
  * @tc.name: MarshallingTest001
  * @tc.desc: Verify function Marshalling
@@ -238,6 +253,59 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNoLazyGeneratedImageTest, TestSiz
     auto val = std::make_shared<Drawing::Image>();
     void* imagepixelAddr = nullptr;
     EXPECT_FALSE(RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(parcel, val, imagepixelAddr));
+}
+
+/**
+ * @tc.name: UnmarshallingNoLazyGeneratedImageTest002
+ * @tc.desc: Verify function UnmarshallingNoLazyGeneratedImage when width height too large
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingNoLazyGeneratedImageTest002, TestSize.Level1)
+{
+    int32_t validWidth = 100;
+    int32_t validHeight = 100;
+    int32_t invalidWidth = 40961;
+    int32_t invalidHeight = 40961;
+
+    Parcel parcel;
+    std::shared_ptr<Drawing::Image> image = CreateDrawingImage(10, 10);
+    EXPECT_TRUE(image != nullptr);
+    Drawing::Bitmap bitmap;
+    EXPECT_TRUE(image->GetROPixels(bitmap));
+
+    Drawing::Pixmap pixmap;
+    bitmap.PeekPixels(pixmap);
+    size_t rb = pixmap.GetRowBytes();
+    const void* addr = pixmap.GetAddr();
+    size_t size = bitmap.ComputeByteSize();
+    EXPECT_TRUE(parcel.WriteInt32(size));
+    EXPECT_TRUE(RSMarshallingHelper::WriteToParcel(parcel, addr, size));
+    EXPECT_TRUE(parcel.WriteInt32(rb));
+    EXPECT_TRUE(parcel.WriteInt32(validWidth));
+    EXPECT_TRUE(parcel.WriteInt32(invalidHeight));
+
+    auto val = std::make_shared<Drawing::Image>();
+    void* imagepixelAddr = nullptr;
+    EXPECT_FALSE(RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(parcel, val, imagepixelAddr));
+
+    Parcel parcel2;
+    std::shared_ptr<Drawing::Image> image2 = CreateDrawingImage(400, 400);
+    Drawing::Bitmap bitmap2;
+    EXPECT_TRUE(image2->GetROPixels(bitmap2));
+
+    Drawing::Pixmap pixmap2;
+    bitmap2.PeekPixels(pixmap2);
+    rb = pixmap2.GetRowBytes();
+    addr = pixmap2.GetAddr();
+    size = bitmap2.ComputeByteSize();
+
+    EXPECT_TRUE(parcel2.WriteInt32(size));
+    RSMarshallingHelper::WriteToParcel(parcel2, addr, size);
+    EXPECT_TRUE(parcel2.WriteInt32(rb));
+    EXPECT_TRUE(parcel2.WriteInt32(invalidWidth));
+    EXPECT_TRUE(parcel2.WriteInt32(validHeight));
+    EXPECT_FALSE(RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(parcel2, val, imagepixelAddr));
 }
 
 /**
