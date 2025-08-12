@@ -593,19 +593,9 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput>& output)
         RS_LOGI("%{public}s: add screen: w * h: [%{public}u * %{public}u], capability w * h: "
             "[%{public}u * %{public}u]", __func__, screen->Width(), screen->Height(),
             capability.phyWidth, capability.phyHeight);
-        if (hgmCore.AddScreen(thisId, initModeId, screenSize)) {
+        if (hgmCore.AddScreen(thisId, initModeId, screenSize, screen->GetSupportedModes())) {
             RS_LOGE("%{public}s failed to add screen : %{public}" PRIu64, __func__, thisId);
             return;
-        }
-
-        // for each supported mode, use the index as modeId to add the detailed mode to hgm
-        int32_t modeId = 0;
-        auto supportedModes = screen->GetSupportedModes();
-        for (const auto& mode : supportedModes) {
-            if (hgmCore.AddScreenInfo(thisId, mode.width, mode.height, mode.freshRate, modeId)) {
-                RS_LOGW("failed to add a screen profile to the screen : %{public}" PRIu64, thisId);
-            }
-            modeId++;
         }
     });
 }
