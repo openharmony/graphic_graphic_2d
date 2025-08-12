@@ -30,7 +30,6 @@
 #include "effect/rs_render_filter_base.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier_ng/appearance/rs_hdr_brightness_render_modifier.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 #include "modifier_ng/geometry/rs_frame_clip_render_modifier.h"
