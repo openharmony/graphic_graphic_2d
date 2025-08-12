@@ -401,7 +401,6 @@ int CacheData::Serialize(uint8_t *buffer, const size_t size) const
 
 int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
 {
-    shaderPointers_.clear();
     if (size < sizeof(Header)) {
         LOGD("abandon, not enough room for cache header");
     }
