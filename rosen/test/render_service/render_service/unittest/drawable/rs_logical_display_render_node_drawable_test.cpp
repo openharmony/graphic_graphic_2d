@@ -1229,7 +1229,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ClearCanvasStencil001, TestSize
 
     uniParams->isStencilPixelOcclusionCullingEnabled_ = true;
     renderParams->SetTopSurfaceOpaqueRects({{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE}});
-    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, uniParams, screenInfo);
+    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenInfo);
     EXPECT_EQ(tempFilterCanvas->GetMaxStencilVal(), TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM);
 }
 
