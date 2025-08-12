@@ -224,6 +224,12 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
     return object;
 }
 
+ani_object CloseNapiEnvReturnUndefined(ani_env* aniEnv, napi_env napiEnv)
+{
+    arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+    return AniTextUtils::CreateAniUndefined(aniEnv);
+}
+
 ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
     AniFontCollection* aniFontCollection = reinterpret_cast<AniFontCollection*>(nativeObj);
@@ -231,31 +237,44 @@ ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class c
         TEXT_LOGE("Null font collection");
         return AniTextUtils::CreateAniUndefined(aniEnv);
     }
-    napi_env napiEnv = {};
+
+    napi_env napiEnv = nullptr;
     if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
         TEXT_LOGE("Failed to open napi scope");
         return AniTextUtils::CreateAniUndefined(aniEnv);
     }
 
-    napi_value objValue = {};
+    napi_value objValue = nullptr;
     if (napi_create_object(napiEnv, &objValue) != napi_ok) {
         TEXT_LOGE("Failed to create napi object");
-        return AniTextUtils::CreateAniUndefined(aniEnv);
+        return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
 
     objValue = JsFontCollection::Init(napiEnv, objValue);
-    JsFontCollection::SetFontCollection(napiEnv, objValue, aniFontCollection->GetFontCollection());
+
+    napi_value fontCollectionObj = nullptr;
+    napi_status status = JsFontCollection::CreateFontCollection(napiEnv, objValue, &fontCollectionObj);
+    if (status != napi_ok || fontCollectionObj == nullptr) {
+        TEXT_LOGE("Failed to create font collection, status: %{public}d", status);
+        return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
+    }
+    
+    status = JsFontCollection::SetFontCollection(napiEnv, fontCollectionObj, aniFontCollection->GetFontCollection());
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to set inner font collection, status: %{public}d", status);
+        return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
+    }
 
     hybridgref ref = nullptr;
-    if(!hybridgref_create_from_napi(napiEnv, objValue, &ref)) {
+    if (!hybridgref_create_from_napi(napiEnv, fontCollectionObj, &ref)) {
         TEXT_LOGE("Failed to create hybrid reference");
-        return AniTextUtils::CreateAniUndefined(aniEnv);
+        return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
 
     ani_object result = nullptr;
     if (!hybridgref_get_esvalue(aniEnv, ref, &result)) {
         TEXT_LOGE("Failed to get esvalue from hybrid reference");
-        return AniTextUtils::CreateAniUndefined(aniEnv);
+        return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
 
     hybridgref_delete_from_napi(napiEnv, ref);
