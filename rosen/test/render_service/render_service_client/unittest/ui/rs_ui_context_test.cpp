@@ -88,7 +88,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
     ASSERT_NE(transaction, nullptr);
     auto canvasNode = RSCanvasNode::Create(false, false, uiContext);
     std::string out = "";
-    uiContext->DumpNodeTreeProcessor(out, canvasNode->GetId(), 0, 0);
+    uiContext->DumpNodeTreeProcessor(canvasNode->GetId(), 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") != std::string::npos);
     ASSERT_TRUE(out.find("UIContext") != std::string::npos);
 }
@@ -105,7 +105,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_EQ(transaction, nullptr);
     std::string out = "";
-    uiContext->DumpNodeTreeProcessor(out, 0, 0, 0);
+    uiContext->DumpNodeTreeProcessor(0, 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
     ASSERT_TRUE(out.find("UIContext") == std::string::npos);
 }

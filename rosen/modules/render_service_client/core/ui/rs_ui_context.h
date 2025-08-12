@@ -183,7 +183,7 @@ private:
     RSUIContext& operator=(const RSUIContext&) = delete;
     RSUIContext& operator=(const RSUIContext&&) = delete;
 
-    void DumpNodeTreeProcessor(std::string& out, NodeId nodeId, pid_t pid, uint32_t taskId);
+    void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
 
     uint64_t token_;
 

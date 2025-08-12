@@ -140,7 +140,7 @@ void RSUIContext::PostDelayTask(const std::function<void()>& task, uint32_t dela
     ROSEN_LOGD("multi-instance RSUIContext::PostDelayTask success token=%{public}" PRIu64, token_);
 }
 
-void RSUIContext::DumpNodeTreeProcessor(std::string& out, NodeId nodeId, pid_t pid, uint32_t taskId)
+void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out)
 {
     auto transaction = GetRSTransaction();
     if (transaction) {

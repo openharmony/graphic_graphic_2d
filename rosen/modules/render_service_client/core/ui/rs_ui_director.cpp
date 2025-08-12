@@ -778,7 +778,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t toke
     std::string out;
     // use for dump transactionFlags [pid,index] in client tree dump
     if (auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token)) {
-        rsUICtx->DumpNodeTreeProcessor(out, nodeId, pid, taskId);
+        rsUICtx->DumpNodeTreeProcessor(nodeId, pid, taskId, out);
         return;
     }
     int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);

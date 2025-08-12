@@ -4066,8 +4066,9 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
             task.count++;
             RS_TRACE_NAME_FMT(
                 "DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
-            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}"
-                PRIu64 "]", taskId, pid, nodeId, token);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%{public}u] node[%{public}" PRIu64
+                    "] token[%{public}" PRIu64 "]",
+                taskId, pid, nodeId, token);
         }
         iter->second->OnTransaction(transactionData);
     }
