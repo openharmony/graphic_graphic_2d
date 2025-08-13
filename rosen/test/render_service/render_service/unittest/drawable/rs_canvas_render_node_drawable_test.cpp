@@ -254,7 +254,8 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsUiRangeCaptureEndNodeTest, TestSize.Lev
 {
     NodeId nodeId = 3;
     auto node = std::make_shared<RSRenderNode>(nodeId);
-    auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
 

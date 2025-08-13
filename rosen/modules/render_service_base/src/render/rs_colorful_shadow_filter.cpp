@@ -67,7 +67,7 @@ std::shared_ptr<Drawing::Image> RSColorfulShadowFilter::DrawImageRectWithColor(D
         return nullptr;
     }
 
-    RS_OPTIONAL_TRACE_NAME("ApplyaShadowColorFilter");
+    RS_OPTIONAL_TRACE_NAME("ApplyShadowColorFilter");
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(canvas.GetGPUContext().get(),
         false, image->GetImageInfo());
     if (!surface) {

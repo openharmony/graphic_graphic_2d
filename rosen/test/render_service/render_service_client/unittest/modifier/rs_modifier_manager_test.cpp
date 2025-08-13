@@ -20,6 +20,7 @@
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_property_modifier.h"
+#include "modifier_ng/appearance/rs_alpha_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -96,6 +97,18 @@ HWTEST_F(RSModifierManagerTest, RemoveAnimationTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RemoveAnimationTest002
+ * @tc.desc: test results of RemoveAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSModifierManagerTest, RemoveAnimationTest002, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    rsModifierManager.RemoveAnimation(1);
+    ASSERT_TRUE(rsModifierManager.animations_.empty());
+}
+
+/**
  * @tc.name: IsDisplaySyncEnabled
  * @tc.desc:
  * @tc.type:FUNC
@@ -135,5 +148,105 @@ HWTEST_F(RSModifierManagerTest, UnregisterSpringAnimationTest001, TestSize.Level
     AnimationId animId = 0;
     rsModifierManager.UnregisterSpringAnimation(propertyId, animId);
     ASSERT_NE(propertyId, 10);
+}
+
+/**
+ * @tc.name: DrawTest
+ * @tc.desc: test results of Draw
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, DrawTest, TestSize.Level1)
+{
+    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
+    RSModifierManager rsModifierManager;
+    rsModifierManager.AddModifier(alphaModifier);
+    ASSERT_FALSE(rsModifierManager.modifiers_.empty());
+    rsModifierManager.Draw();
+    ASSERT_TRUE(rsModifierManager.modifiers_.empty());
+}
+
+/**
+ * @tc.name: AddAnimationTest002
+ * @tc.desc: test results of AddAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, AddAnimationTest002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, startValue, endValue);
+    RSModifierManager rsModifierManager;
+    rsModifierManager.AddAnimation(animation);
+    ASSERT_EQ(rsModifierManager.animations_.size(), 1);
+    rsModifierManager.AddAnimation(animation);
+    ASSERT_EQ(rsModifierManager.animations_.size(), 1);
+}
+
+/**
+ * @tc.name: AnimateTest
+ * @tc.desc: test results of Animate
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, AnimateTest, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, startValue, endValue);
+    RSModifierManager rsModifierManager;
+    rsModifierManager.AddAnimation(animation);
+    AnimationId animId = animation->GetAnimationId();
+    rsModifierManager.Animate(1, 1);
+    ASSERT_FALSE(rsModifierManager.JudgeAnimateWhetherSkip(animId, 1, 1));
+    int64_t minLeftDelayTime = 0;
+    ASSERT_FALSE(animation->Animate(1, minLeftDelayTime));
+}
+
+/**
+ * @tc.name: QuerySpringAnimationTest
+ * @tc.desc: test results of QuerySpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, QuerySpringAnimationTest, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    AnimationId animId = 1;
+    PropertyId propertyId = 1;
+    auto animation = std::make_shared<RSRenderCurveAnimation>(animId, propertyId, property, startValue, endValue);
+    RSModifierManager rsModifierManager;
+    rsModifierManager.AddAnimation(animation);
+    rsModifierManager.RegisterSpringAnimation(propertyId, animId);
+    ASSERT_TRUE(rsModifierManager.QuerySpringAnimation(propertyId));
+}
+
+/**
+ * @tc.name: GetAnimationTest001
+ * @tc.desc: test results of GetAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, GetAnimationTest001, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    ASSERT_FALSE(rsModifierManager.GetAnimation(1));
+}
+
+/**
+ * @tc.name: GetAnimationTest002
+ * @tc.desc: test results of GetAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, GetAnimationTest002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    AnimationId animId = 1;
+    auto animation = std::make_shared<RSRenderCurveAnimation>(animId, 1, property, startValue, endValue);
+    RSModifierManager rsModifierManager;
+    rsModifierManager.AddAnimation(animation);
+    ASSERT_TRUE(rsModifierManager.GetAnimation(animId));
 }
 } // namespace OHOS::Rosen

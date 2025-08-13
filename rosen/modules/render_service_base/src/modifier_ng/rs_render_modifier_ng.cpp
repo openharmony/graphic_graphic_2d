@@ -139,7 +139,6 @@ void RSRenderModifier::AttachProperty(RSPropertyType type, const std::shared_ptr
         property->UpdatePropertyUnitNG(type);
         node->SetDirty();
         node->AddDirtyType(GetType());
-        AttachRenderFilterProperty(property, type);
     }
     dirty_ = true;
 }
@@ -151,7 +150,6 @@ void RSRenderModifier::DetachProperty(RSPropertyType type)
         return;
     }
     if (auto node = target_.lock()) {
-        DetachRenderFilterProperty(it->second, type);
         if (it->second) {
             it->second->Detach();
         }
@@ -203,7 +201,6 @@ void RSRenderModifier::OnDetachModifier()
         return;
     }
     for (auto& [type, property] : properties_) {
-        DetachRenderFilterProperty(property, type);
         property->Detach();
     }
     node->SetDirty();

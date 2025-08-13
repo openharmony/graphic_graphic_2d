@@ -35,7 +35,11 @@ public:
     {
         isOffscreenCanvas_ = isOffscreenCanvas;
     }
+
     float GetLinearGradientBlurRadius() const;
+
+    virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) override;
+
 private:
     friend class RSMarshallingHelper;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;

@@ -190,7 +190,7 @@ HWTEST_F(RSImageBaseTest, ConvertPixelMapToDrawingImageTest, TestSize.Level1)
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelmap = std::make_shared<Media::PixelMap>();
     imageBase->SetPixelMap(pixelmap);
-    imageBase->ConvertPixelMapToDrawingImage(true);
+    imageBase->ConvertPixelMapToDrawingImage();
     EXPECT_EQ(imageBase->image_, nullptr);
 }
 

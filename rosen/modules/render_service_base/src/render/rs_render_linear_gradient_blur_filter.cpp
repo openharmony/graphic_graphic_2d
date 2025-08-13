@@ -35,7 +35,8 @@ RSLinearGradientBlurShaderFilter::RSLinearGradientBlurShaderFilter(
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    hash_ = hashFunc(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
+    basicHash_ = hashFunc(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
+    hash_ = basicHash_;
     hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
     hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
@@ -65,6 +66,24 @@ float RSLinearGradientBlurShaderFilter::GetLinearGradientBlurRadius() const
         return 0;
     }
     return linearGradientBlurPara_->blurRadius_;
+}
+
+void RSLinearGradientBlurShaderFilter::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+{
+    auto dst = canvas.GetDeviceClipBounds();
+    geoWidth_ = std::ceil(geoWidth);
+    geoHeight_ = std::ceil(geoHeight);
+    tranX_ = dst.GetLeft();
+    tranY_ = dst.GetTop();
+    mat_ = canvas.GetTotalMatrix();
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = basicHash_;
+    hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
 } // namespace Rosen
 } // namespace OHOS

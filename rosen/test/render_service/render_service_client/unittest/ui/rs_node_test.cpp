@@ -19,13 +19,9 @@
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
-#include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
-#include "ui_effect/property/include/rs_ui_blur_filter.h"
-#include "ui_effect/property/include/rs_ui_content_light_filter.h"
-#include "ui_effect/property/include/rs_ui_dispersion_filter.h"
-#include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
-#include "ui_effect/property/include/rs_ui_edge_light_filter.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
+#include "ui_effect/filter/include/filter_content_light_para.h"
+#include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
@@ -3761,20 +3757,6 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetBackgroundUIFilter
- * @tc.desc: test results of SetBackgroundUIFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, SetBackgroundUIFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto backgroundFilter = std::make_shared<RSUIFilter>();
-
-    rsNode->SetBackgroundUIFilter(backgroundFilter);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
-}
-
-/**
  * @tc.name: GetProperty
  * @tc.desc: test results of GetProperty
  * @tc.type: FUNC
@@ -4006,20 +3988,6 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter003, TestSize.Level1)
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
     EXPECT_NE(rsNode->GetStagingProperties().GetLightIntensity(), lightIntensity);
-}
-
-/**
- * @tc.name: SetForegroundUIFilter
- * @tc.desc: test results of SetForegroundUIFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, SetForegroundUIFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto rsUIFilter = std::make_shared<RSUIFilter>();
-
-    rsNode->SetForegroundUIFilter(rsUIFilter);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
 }
 
 /**
@@ -7971,53 +7939,6 @@ HWTEST_F(RSNodeTest, AddChildTest, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     node->AddChild(surfaceNode);
     EXPECT_TRUE(node->AddCompositeNodeChild(surfaceNode, -1));
-}
-
-HWTEST_F(RSNodeTest, DetachUIFilterPropertiesTest, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-
-    auto rsUIFilter = std::make_shared<RSUIFilter>();
-    float radius = 1.0f;
-    auto filterBlurPara = std::make_shared<FilterBlurPara>();
-    filterBlurPara->SetRadius(radius);
-    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
-    rsUIBlurFilterPara->SetBlurPara(filterBlurPara);
-    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
-    rsUIFilter->Insert(rsUIFilterParaBase);
-
-    rsNode->SetForegroundUIFilter(nullptr);
-    rsNode->SetForegroundUIFilter(rsUIFilter);
-    auto& modifier =
-        rsNode->modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_FILTER)];
-    rsNode->DetachUIFilterProperties(modifier);
-
-    rsNode->SetBackgroundUIFilter(nullptr);
-    rsNode->SetBackgroundUIFilter(rsUIFilter);
-    auto& modifier01 =
-        rsNode->modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_FILTER)];
-    rsNode->DetachUIFilterProperties(modifier01);
-
-    std::shared_ptr<ModifierNG::RSModifier> modifier02 =
-        std::make_shared<ModifierNG::RSForegroundFilterModifier>();
-    std::shared_ptr<RSProperty<std::shared_ptr<RSUIFilter>>> property = nullptr;
-    modifier02->properties_[ ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER] = property;
-    rsNode->DetachUIFilterProperties(modifier02);
-    
-    property = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(nullptr);
-    modifier02->properties_[ ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER] = property;
-    rsNode->DetachUIFilterProperties(modifier02);
-
-    std::shared_ptr<ModifierNG::RSBackgroundFilterModifier> modifier03 =
-        std::make_shared<ModifierNG::RSBackgroundFilterModifier>();
-    property = nullptr;
-    modifier03->properties_[ ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER] = property;
-    rsNode->DetachUIFilterProperties(modifier03);
-    
-    property = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(nullptr);
-    modifier03->properties_[ ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER] = property;
-    rsNode->DetachUIFilterProperties(modifier03);
 }
 
 /**

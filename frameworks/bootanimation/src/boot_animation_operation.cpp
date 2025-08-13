@@ -43,6 +43,7 @@ BootAnimationOperation::~BootAnimationOperation()
 void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration)
 {
     LOGI("Init enter, width: %{public}d, height: %{public}d, screenId : " BPUBU64 "", width, height, config.screenId);
+    OHOS::Rosen::RSSystemProperties::SetTypicalResidentProcess(true);
     currentScreenId_ = config.screenId;
     windowWidth_ = width;
     windowHeight_ = height;

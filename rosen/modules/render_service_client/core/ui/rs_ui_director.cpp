@@ -206,20 +206,24 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
     }
 }
 
+// LCOV_EXCL_START
 bool RSUIDirector::IsHybridRenderEnabled()
 {
     return RSSystemProperties::GetHybridRenderEnabled();
 }
+// LCOV_EXCL_STOP
 
 bool RSUIDirector::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     return RSSystemProperties::GetHybridRenderSwitch(bitSeq);
 }
 
+// LCOV_EXCL_START
 uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
 {
     return RSSystemProperties::GetHybridRenderTextBlobLenCount();
 }
+// LCOV_EXCL_STOP
 
 void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
 {
