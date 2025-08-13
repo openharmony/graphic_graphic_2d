@@ -260,8 +260,8 @@ HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
         int canvasHeight = 10;
         int canvasWidth = 10;
-        std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
-        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+        auto drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
+        auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
         BufferDrawParam params;
         params.buffer = nullptr;
         params.acquireFence = nullptr;
@@ -270,7 +270,7 @@ HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
         std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
         renderContext->InitializeEglContext();
         renderContext->SetUpGpuContext();
-        std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
         auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
         EXPECT_EQ(res, nullptr);
     }
@@ -301,7 +301,7 @@ HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
         std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
         renderContext->InitializeEglContext();
         renderContext->SetUpGpuContext();
-        std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
         auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
         EXPECT_EQ(res, nullptr);
         params.buffer = SurfaceBuffer::Create();
@@ -348,7 +348,7 @@ HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest003, TestSize.Level1)
             renderEngine->Init();
             auto drawingCanvas = std::make_unique<Drawing::RecordingCanvas>(canvasHeight, canvasWidth);
             drawingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
-            std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+            auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
             BufferDrawParam params;
             params.acquireFence = nullptr;
             params.threadIndex = 0;
