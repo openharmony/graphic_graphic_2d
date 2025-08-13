@@ -254,8 +254,7 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& node,
-    std::weak_ptr<ModifierNG::RSModifier> modifier)
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier)
 {
     if (stagingValue_) {
         stagingValue_->Attach(node, modifier);
@@ -535,21 +534,21 @@ template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value->GetRenderEffect(), type);
+    UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>
 void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
     const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyNGShaderBase, value->GetRenderEffect(), type);
+    UPDATE_TO_RENDER(RSUpdatePropertyNGShaderBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>
 void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
     const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value->GetRenderEffect(), type);
+    UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>

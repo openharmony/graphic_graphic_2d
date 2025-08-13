@@ -1123,6 +1123,22 @@ HWTEST_F(RSHardwareThreadTest, RedrawScreenRCD001, TestSize.Level1)
     std::vector<LayerInfoPtr> layers;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layers.emplace_back(layer);
+    LayerInfoPtr nullLayer = nullptr;
+    layers.emplace_back(nullLayer);
+    std::vector<GraphicCompositionType> skipTypes = {GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE,
+        GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR,
+        GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR};
+    for (auto skipType : skipTypes) {
+        LayerInfoPtr skipLayer = HdiLayerInfo::CreateHdiLayerInfo();
+        skipLayer->SetCompositionType(skipType);
+        layers.emplace_back(skipLayer);
+    }
+    std::vector<RCDSurfaceType> rcdTypes = {RCDSurfaceType::INVALID, RCDSurfaceType::TOP, RCDSurfaceType::BOTTOM};
+    RSUniRenderComposerAdapter ca;
+    for (size_t i = 0; i < rcdTypes.size(); i++) {
+        auto rcdNode = RSRcdSurfaceRenderNode::Create(i, rcdTypes[i]);
+        layers.emplace_back(ca.CreateLayer(*rcdNode));
+    }
     EXPECT_NE(layers.size(), 0);
     hardwareThread.RedrawScreenRCD(rsPaintFilterCanvas, layers);
 }
