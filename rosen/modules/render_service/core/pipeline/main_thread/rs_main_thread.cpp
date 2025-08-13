@@ -1584,7 +1584,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
-    LppVideoHandler::Instance().ClearLppSufraceNode();
+    LppVideoHandler::Instance().ClearLppSurfaceNode();
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
@@ -1630,7 +1630,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
             bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
-            LppVideoHandler::Instance().AddLppSurfaceNode(surfaceNode);
+            LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(surfaceNode);
             if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
                 parentNode ? parentNode->GetId() : 0)) {
@@ -2726,8 +2726,7 @@ void RSMainThread::Render()
     }
     CheckSystemSceneStatus();
     UpdateLuminanceAndColorTemp();
-    bool isPostUniRender = isUniRender_ && !doDirectComposition_ && needDrawFrame_;
-    LppVideoHandler::Instance().JudgeRsDrawLppState(isPostUniRender);
+    LppVideoHandler::Instance().JudgeRsDrawLppState(needDrawFrame_, doDirectComposition_);
 }
 
 void RSMainThread::OnUniRenderDraw()
