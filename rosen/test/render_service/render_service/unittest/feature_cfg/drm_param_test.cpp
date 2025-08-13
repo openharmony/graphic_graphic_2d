@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "drm_param_parse.h"
+#include "drm_param.h"
 
 using namespace testing;
 using namespace testing::ext;
