@@ -2477,7 +2477,7 @@ protected:
  * @class RSDynamicLightUpDegreeModifier
  *
  * @brief The class for dynamic light up degree modifiers.
- */ 
+ */
 class RSC_EXPORT RSDynamicLightUpDegreeModifier : public RSForegroundModifier {
 public:
     /**
@@ -3497,34 +3497,34 @@ protected:
 };
 
 class RS_EXPORT RSHDRUIBrightnessModifier : public RSForegroundModifier {
-    public:
-        /**
-         * @brief Construct a new RSHDRUIBrightnessModifier instance.
-         *
-         * @param property A shared pointer to the RSPropertyBase object.
-         */
-        explicit RSHDRUIBrightnessModifier(const std::shared_ptr<RSPropertyBase>& property);
-    
-        /**
-         * @brief Destructor for RSHDRUIBrightnessModifier.
-         */
-        virtual ~RSHDRUIBrightnessModifier() = default;
-    
-    protected:
-        /**
-         * @brief Get the type of the modifier.
-         *
-         * @return The type of the modifier.
-         */
-        RSModifierType GetModifierType() const override;
-    
-        /**
-         * @brief Create a new render modifier.
-         *
-         * @return A shared pointer to the created RSRenderModifier.
-         */
-        std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    };
+public:
+    /**
+     * @brief Construct a new RSHDRUIBrightnessModifier instance.
+     *
+     * @param property A shared pointer to the RSPropertyBase object.
+     */
+    explicit RSHDRUIBrightnessModifier(const std::shared_ptr<RSPropertyBase>& property);
+
+    /**
+     * @brief Destructor for RSHDRUIBrightnessModifier.
+     */
+    virtual ~RSHDRUIBrightnessModifier() = default;
+
+protected:
+    /**
+     * @brief Get the type of the modifier.
+     *
+     * @return The type of the modifier.
+     */
+    RSModifierType GetModifierType() const override;
+
+    /**
+     * @brief Create a new render modifier.
+     *
+     * @return A shared pointer to the created RSRenderModifier.
+     */
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
 
 /**
  * @class RSVisibleModifier

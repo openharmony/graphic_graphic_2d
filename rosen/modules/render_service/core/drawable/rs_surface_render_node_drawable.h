@@ -185,7 +185,7 @@ private:
     void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    bool QuickGetDrawState(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
+    bool QuickGetDrawState(RSPaintFilterCanvas* rscanvas, Drawing::Region& curSurfaceDrawRegion,
         RSSurfaceRenderParams* surfaceParams);
 #endif
     std::string name_;

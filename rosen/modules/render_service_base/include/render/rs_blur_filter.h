@@ -15,6 +15,8 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_BLUR_FILTER_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_BLUR_FILTER_H
 
+#include <optional>
+
 #include "include/core/SkColorFilter.h"
 #include "include/effects/SkRuntimeEffect.h"
 

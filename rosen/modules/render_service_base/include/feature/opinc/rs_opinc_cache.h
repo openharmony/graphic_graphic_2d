@@ -62,7 +62,7 @@ public:
     bool GetSubTreeSupportFlag() const { return subTreeSupportFlag_; }
     void UpdateSubTreeSupportFlag(bool childSupportFlag, bool childRootFlag, bool groupTypeIsNone);
 
-    bool GetCurNodeTreeSupportFlag() const { return subTreeSupportFlag_; }
+    bool GetCurNodeTreeSupportFlag() const { return curNodeTreeSupportFlag_; }
     void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
 
 private:

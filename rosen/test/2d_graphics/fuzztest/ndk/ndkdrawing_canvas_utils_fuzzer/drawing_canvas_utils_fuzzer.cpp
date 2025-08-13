@@ -248,10 +248,6 @@ static unsigned char g_testJpgBuffer[] = {
 
 void DrawCanvasUtilsFuzzerTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<Media::PixelMap> p = nullptr;
     OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(nullptr);
     if (pixelMap) {
@@ -289,10 +285,6 @@ void DrawCanvasUtilsFuzzerTest001(const uint8_t* data, size_t size)
 
 void DrawCanvasUtilsFuzzerTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<Media::PixelMap> p = nullptr;
     OH_Drawing_PixelMap* pixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(nullptr);
     if (pixelMap) {
@@ -331,9 +323,6 @@ void DrawCanvasUtilsFuzzerTest002(const uint8_t* data, size_t size)
 
 void DrawCanvasUtilsFuzzerTest003(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     Drawing::Canvas canvas = Canvas(width, height);
@@ -345,10 +334,6 @@ void DrawCanvasUtilsFuzzerTest003(const uint8_t* data, size_t size)
 
 void DrawCanvasUtilsFuzzerTest004(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Drawing::Bitmap bitmap;
     DrawingCanvasUtils::ExtractDrawingBitmap(nullptr, bitmap);
 
@@ -374,6 +359,11 @@ void DrawCanvasUtilsFuzzerTest004(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::DrawCanvasUtilsFuzzerTest001(data, size);
     OHOS::Rosen::Drawing::DrawCanvasUtilsFuzzerTest002(data, size);

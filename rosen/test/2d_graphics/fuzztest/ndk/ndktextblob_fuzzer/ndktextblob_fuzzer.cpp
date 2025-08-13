@@ -39,10 +39,6 @@ void NativeDrawingTextBlobTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_TextBlobBuilder* textBlobBuilder = OH_Drawing_TextBlobBuilderCreate();
@@ -73,10 +69,6 @@ void NativeDrawingTextBlobTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
@@ -134,6 +126,11 @@ void NativeDrawingTextBlobTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingTextBlobTest001(data, size);
     OHOS::Rosen::Drawing::NativeDrawingTextBlobTest002(data, size);

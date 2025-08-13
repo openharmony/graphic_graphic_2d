@@ -37,14 +37,14 @@ public:
     SubtreeParallelParamParse() = default;
     ~SubtreeParallelParamParse() = default;
 
-    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
+    int32_t ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node) override;
 
 private:
-    SubtreeSwitchType GetSubtreeSwitchType(const std::string &input);
-    int32_t ParseFeatureMultiParamForApp(xmlNode &node, std::string &name);
+    SubtreeSwitchType GetSubtreeSwitchType(const std::string& input);
+    int32_t ParseFeatureMultiParamForApp(xmlNode& node, std::string& name);
     int32_t ParseFeatureSingleParam(std::string name, std::string val);
 
-    int32_t ParseSubtreeInternal(xmlNode &node);
+    int32_t ParseSubtreeInternal(xmlNode& node);
 };
 } // namespace OHOS::Rosen
 #endif // SUBTREE_PARAM_PARSE_H

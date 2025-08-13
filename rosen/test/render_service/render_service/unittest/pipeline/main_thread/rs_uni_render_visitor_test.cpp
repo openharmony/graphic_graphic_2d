@@ -5349,7 +5349,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }
 
-/*
+/**
  * @tc.name: UpdateDstRectByGlobalPosition001
  * @tc.desc: Test function UpdateDstRectByGlobalPosition
  * @tc.type: FUNC

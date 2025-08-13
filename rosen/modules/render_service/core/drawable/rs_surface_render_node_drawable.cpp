@@ -287,7 +287,9 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
         if (!isEnabled) {
             continue;
         }
-        auto watermark = renderThreadParams->GetWatermark(name);
+        auto nodeId = GetId();
+        auto pid = ExtractPid(nodeId);
+        auto watermark = renderThreadParams->GetWatermark(pid, name);
         if (!watermark) {
             continue;
         }
@@ -521,11 +523,9 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheImageForMultiScreenView(RSPaintFilter
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-bool RSSurfaceRenderNodeDrawable::QuickGetDrawState(Drawing::Canvas& canvas, Drawing::Region& curSurfaceDrawRegion,
-    RSSurfaceRenderParams* surfaceParams)
+bool RSSurfaceRenderNodeDrawable::QuickGetDrawState(RSPaintFilterCanvas* rscanvas,
+    Drawing::Region& curSurfaceDrawRegion, RSSurfaceRenderParams* surfaceParams)
 {
-    auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
-
     if (!rscanvas->IsQuickGetDrawState()) {
         return false;
     }
@@ -546,7 +546,7 @@ bool RSSurfaceRenderNodeDrawable::QuickGetDrawState(Drawing::Canvas& canvas, Dra
         SetCulledNodesToCanvas(rscanvas, surfaceParams);
     }
 
-    RSParallelManager::Singleton().OnQuickDraw(this, canvas);
+    RSParallelManager::Singleton().OnQuickDraw(this, *rscanvas);
     if (surfaceParams->IsMainWindowType()) {
         if (!(surfaceParams->GetNeedOffscreen() && RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable())) {
             rscanvas->PopDirtyRegion();
@@ -685,7 +685,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (QuickGetDrawState(canvas, curSurfaceDrawRegion, surfaceParams)) {
+    if (QuickGetDrawState(rscanvas, curSurfaceDrawRegion, surfaceParams)) {
         return;
     }
 #endif

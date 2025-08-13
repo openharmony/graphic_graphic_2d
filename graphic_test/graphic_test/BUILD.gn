@@ -13,6 +13,8 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("${graphic_2d_root}/rosen/modules/render_service_base/config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/graphic_test"
 
@@ -121,8 +123,13 @@ ohos_unittest("RSGraphicTest") {
   sources += rs_func_feature_sources
   sources += rs_perform_feature_sources
 
+  include_dirs = [
+    "$rosen_text_root/adapter/skia",
+  ]
+
   deps = [
     "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
+    "$rosen_text_root:rosen_text",
   ]
 
   defines = []
@@ -175,6 +182,7 @@ ohos_unittest("RenderServiceRenderProfilerTest") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
+  defines = []
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -182,6 +190,11 @@ ohos_unittest("RenderServiceRenderProfilerTest") {
     "window_manager:libdm",
     "window_manager:sms",
   ]
+
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

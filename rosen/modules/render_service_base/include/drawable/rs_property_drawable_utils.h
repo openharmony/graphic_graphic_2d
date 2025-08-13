@@ -125,7 +125,7 @@ private:
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessLinearBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> shadowBlenderEffect_;
-    inline static int g_blurCnt = 0;
+    inline static std::atomic<int> g_blurCnt = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -408,11 +408,6 @@ bool DoDrawPath(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Drawing::Canvas canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
     auto rsGpu = std::make_shared<RSGPUOverdrawCanvasListener>(canvas);
     if (!rsGpu) {
@@ -432,11 +427,6 @@ bool DoDrawShadowStyle(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Drawing::Canvas canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
     auto rsGpu = std::make_shared<RSGPUOverdrawCanvasListener>(canvas);
@@ -484,11 +474,6 @@ bool DoDrawRegion(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Drawing::Canvas canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
     auto rsGpu = std::make_shared<RSGPUOverdrawCanvasListener>(canvas);
     if (!rsGpu) {
@@ -517,6 +502,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::rsGpu) {
         return 0;
     }
+    
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoDrawPoint(data, size);
     OHOS::Rosen::DoDrawLine(data, size);

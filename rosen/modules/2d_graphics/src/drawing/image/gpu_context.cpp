@@ -204,6 +204,11 @@ void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPU
     impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
 }
 
+uint64_t GPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
+{
+    return impl_->NewDumpMemoryStatisticsByTag(traceMemoryDump, tag);
+}
+
 void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
 {
     impl_->DumpMemoryStatistics(traceMemoryDump);

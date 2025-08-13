@@ -974,17 +974,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCachedBlurPartialRenderEnabled, TestSize.Lev
 }
 
 /**
- * @tc.name: GetParallelUploadTexture
- * @tc.desc: GetParallelUploadTexture Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetParallelUploadTexture, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetParallelUploadTexture());
-}
-
-/**
  * @tc.name: GetImageGpuResourceCacheEnable
  * @tc.desc: GetImageGpuResourceCacheEnable Test
  * @tc.type:FUNC

@@ -296,7 +296,6 @@ public:
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSecurityPermissionCheckEnabled();
-    static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHdrImageEnabled();
@@ -382,7 +381,7 @@ public:
     static bool GetRSMemoryInfoManagerParam();
     static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
-
+    static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
 
 private:

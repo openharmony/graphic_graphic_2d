@@ -47,11 +47,6 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
-#ifdef USE_M133_SKIA
-#include "include/gpu/ganesh/GrDirectContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
 #include "info_collection/rs_hdr_collection.h"
 #ifdef RS_ENABLE_GPU
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -106,6 +101,8 @@ const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
+constexpr uint32_t PIDLIST_SIZE_MAX = 128;
+constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -255,6 +252,15 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->UnRegisterOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
+        }).wait();
+
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->ClearWatermark(connection->remotePid_);
         }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         mainThread_->ScheduleTask(
@@ -481,6 +487,12 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
         node->GetId(), node->GetName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
     auto defaultUsage = surface->GetDefaultUsage();
+    auto nodeId = node->GetId();
+    bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
+        mainThread_->IsGpuDirtyEnable(nodeId) && config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
+    if (isUseSelfDrawBufferUsage) {
+        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
     RSMainThread* mainThread = mainThread_;
@@ -563,6 +575,7 @@ ErrCode RSRenderServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>&
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
+        UnregisterFrameRateLinker(conn->id_);
         vsyncConn = nullptr;
         return ERR_INVALID_VALUE;
     }
@@ -681,7 +694,8 @@ ErrCode RSRenderServiceConnection::SetWatermark(const std::string& name, std::sh
         success = false;
         return ERR_INVALID_VALUE;
     }
-    mainThread_->SetWatermark(name, watermark);
+    pid_t callingPid = GetCallingPid();
+    mainThread_->SetWatermark(callingPid, name, watermark);
     success = true;
     return ERR_OK;
 }
@@ -2111,6 +2125,11 @@ ErrCode RSRenderServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelForma
         resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
+    if (pixelFormat < 0 ||
+        (pixelFormat >= GRAPHIC_PIXEL_FMT_END_OF_VALID && pixelFormat != GRAPHIC_PIXEL_FMT_VENDER_MASK)) {
+        resCode = StatusCode::INVALID_ARGUMENTS;
+        return ERR_INVALID_VALUE;
+    }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
@@ -3198,6 +3217,24 @@ ErrCode RSRenderServiceConnection::DropFrameByPid(const std::vector<int32_t> pid
                 return;
             }
             connection->mainThread_->AddPidNeedDropFrame(pidList);
+        }
+    );
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList)
+{
+    if (!mainThread_ || pidList.size() > PIDLIST_SIZE_MAX) {
+        return ERR_INVALID_VALUE;
+    }
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), pidList]() {
+            // don't use 'this' directly
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->SetSelfDrawingGpuDirtyPidList(pidList);
         }
     );
     return ERR_OK;

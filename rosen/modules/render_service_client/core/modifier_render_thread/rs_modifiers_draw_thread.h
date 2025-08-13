@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <future>
 #include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 #include "common/rs_common_def.h"
@@ -109,7 +110,8 @@ private:
 class RSB_EXPORT RSModifiersDrawThread final {
 public:
     static RSModifiersDrawThread& Instance();
-    void SetCacheDir(const std::string& path);
+    static void SetCacheDir(const std::string& path);
+    static std::string GetCacheDir();
 #ifdef ACCESSIBILITY_ENABLE
     bool GetHighContrast() const;
 #endif
@@ -152,6 +154,8 @@ private:
     std::mutex mutex_;
     static std::atomic<bool> isStarted_;
     static bool isFirstFrame_;
+    static std::string cacheDir_;
+    static std::shared_mutex cacheDirMtx_;
 
 #ifdef ACCESSIBILITY_ENABLE
     bool highContrast_ = false;

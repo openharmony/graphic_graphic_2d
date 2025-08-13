@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "ipc_callbacks/rs_iuiextension_callback_ipc_interface_code.h"
-
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 class RSUIExtensionCallbackProxy : public IRemoteProxy<RSIUIExtensionCallback> {
@@ -29,7 +29,6 @@ public:
     virtual ~RSUIExtensionCallbackProxy() noexcept = default;
 
     void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override;
-    int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
 
 private:
     static inline BrokerDelegator<RSUIExtensionCallbackProxy> delegator_;

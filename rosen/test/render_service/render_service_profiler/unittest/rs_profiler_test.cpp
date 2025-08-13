@@ -22,9 +22,12 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_utils.h"
 
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service.h"
+#include "common/rs_common_def.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_root_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,6 +50,10 @@ public:
 
 RSRenderService* GetAndInitRenderService()
 {
+    MemoryTrack::Instance();
+    MemorySnapshot::Instance();
+    RSRenderNodeGC::Instance();
+
     auto renderService(new RSRenderService());
     if (renderService) {
         renderService->mainThread_ = new RSMainThread();
@@ -141,7 +148,7 @@ bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std:
         const auto& drawCmdModifiers = patchedNode->GetDrawCmdModifiers();
 
         for (const auto& [modifierType, modifiers] : drawCmdModifiers) {
-            HRPI("TestDoubleReplay: For index %" PRIu64 " and modifierType %{public}hd count in buffer %" PRIu64, index,
+            HRPI("TestDoubleReplay: For index %" PRIu32 " and modifierType %{public}hd count in buffer %" PRIu32, index,
                 modifierType, bufferOfDrawCmdModifiers[index].count(modifierType));
             if (bufferOfDrawCmdModifiers[index].count(modifierType) == 0) {
                 isDrawCmdModifiersEqual = false;
@@ -149,7 +156,7 @@ bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std:
             }
 
             const auto& currentBufferList = bufferOfDrawCmdModifiers[index].at(modifierType);
-            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %" PRIu64 " buffer size %" PRIu64,
+            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %" PRIu32 " buffer size %" PRIu32,
                 modifierType, modifiers.size(), currentBufferList.size());
             if (currentBufferList.size() != modifiers.size()) {
                 isDrawCmdModifiersEqual = false;
@@ -237,25 +244,6 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
     });
 }
 
-
-/*
- * @tc.name: RSTreeTest
- * @tc.desc: Test SecureScreen
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerTest, SecureScreen, testing::ext::TestSize.Level1)
-{
-    RSProfiler::testing_ = true;
-
-    sptr<RSRenderService> renderService = GetAndInitRenderService();
-
-    EXPECT_NO_THROW({
-        RSProfiler::Init(renderService);
-        EXPECT_FALSE(RSProfiler::IsSecureScreen());
-    });
-}
-
 /*
  * @tc.name: RSDoubleTransformationTest
  * @tc.desc: Test double use of FirstFrameMarshalling & FirstFrameUnmarshalling with test tree
@@ -332,7 +320,7 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
     void* allocated = malloc(length);
     EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
 
-    auto* buffer = new[std::nothrow] uint8_t[sizeof(MessageParcel) + 1];
+    auto* buffer = new (std::nothrow) uint8_t[sizeof(MessageParcel) + 1];
     MessageParcel* messageParcel = new (buffer + 1) MessageParcel;
 
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(*messageParcel, data));
@@ -482,10 +470,10 @@ HWTEST_F(RSProfilerTestWithContext, HiddenSpaceTurnOnOff, Level1)
     TestTreeBuilder treeBuilder;
     std::cout << "Preparing to run test..." << std::endl;
 
-    auto originalTree = treeBuilder.Build(*RSProfiler::context_, topNodeId, true, true);
+    treeBuilder.Build(*RSProfiler::context_, topNodeId, true, true);
     std::cout << "Builded test tree" << std::endl;
 
-    auto patchedTree = treeBuilder.Build(*RSProfiler::context_, Utils::PatchNodeId(topNodeId), true, true, true);
+    treeBuilder.Build(*RSProfiler::context_, Utils::PatchNodeId(topNodeId), true, true, true);
     std::cout << "Builded patched test tree" << std::endl;
 
     GenerateFullChildrenListForAll(*RSProfiler::context_);
@@ -512,13 +500,19 @@ HWTEST_F(RSProfilerTestWithContext, HiddenSpaceTurnOnOff, Level1)
     checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
     std::cout << "Checked test tree third time" << std::endl;
 
-    for (auto node : originalTree) {
-        RSProfiler::context_->GetMutableNodeMap().UnRegisterUnTreeNode(node->GetId());
-    }
-    for (auto patchedNode : originalTree) {
-        RSProfiler::context_->GetMutableNodeMap().UnRegisterUnTreeNode(patchedNode->GetId());
-    }
-
     std::cout << "End of test" << std::endl;
 }
+
+/*
+ * @tc.name: RSTreeTest
+ * @tc.desc: Test SecureScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTestWithContext, SecureScreen, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    EXPECT_FALSE(RSProfiler::IsSecureScreen());
+}
+
 } // namespace OHOS::Rosen

@@ -35,10 +35,6 @@ bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* text = new char[length];
@@ -81,10 +77,6 @@ bool RuntimeShaderFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     static constexpr char prog[] = R"(
         uniform shader imageInput;
@@ -141,10 +133,6 @@ bool RuntimeBlenderFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     static constexpr char prog[] = R"(
         uniform float dynamicLightUpRate;
@@ -194,6 +182,11 @@ bool RuntimeBlenderFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::RuntimeEffectFuzzTest(data, size);
     OHOS::Rosen::Drawing::RuntimeShaderFuzzTest(data, size);

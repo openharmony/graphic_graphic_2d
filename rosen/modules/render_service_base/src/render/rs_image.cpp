@@ -223,7 +223,7 @@ void RSImage::ApplyImageOrientation(Drawing::Canvas& canvas)
 void RSImage::DrawImageRect(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions)
 {
-    bool needCanvasRestore = (rotateDegree_ != 0) || isOrientationValid_;
+    bool needCanvasRestore = rotateDegree_ || isOrientationValid_;
     Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
     if (rotateDegree_ != 0) {
         canvas.Rotate(rotateDegree_);
@@ -234,7 +234,6 @@ void RSImage::DrawImageRect(
     if (isOrientationValid_) {
         ApplyImageOrientation(canvas);
     }
-
     auto imageShader = GenerateImageShaderForDrawRect(canvas, samplingOptions);
     if (imageShader != nullptr) {
         DrawImageShaderRectOnCanvas(canvas, imageShader);
@@ -248,8 +247,7 @@ void RSImage::DrawImageRect(
         DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
         return;
     }
-    canvas.DrawImageRect(
-        *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DrawImageRect(*image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
 
 struct ImageParameter {
@@ -912,15 +910,6 @@ void RSImage::ProcessImageAfterCreation(
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-#if defined(RS_ENABLE_UNI_RENDER)
-        if (pixelMap != nullptr && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
-            rsImage->ConvertPixelMapToDrawingImage(true);
-        }
-#endif
-    }
-#endif
 }
 #endif
 } // namespace Rosen

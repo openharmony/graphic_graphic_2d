@@ -44,10 +44,6 @@ void NativeDrawingFontTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     uint32_t edging = GetObject<uint32_t>();
@@ -75,10 +71,6 @@ void NativeDrawingFontTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     bool isBaselineSnap = GetObject<bool>();
@@ -116,10 +108,7 @@ void NativeDrawingFontTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
     char* str = new char[str_size];
@@ -141,10 +130,6 @@ void NativeDrawingFontTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
 
@@ -185,10 +170,7 @@ void NativeDrawingFontTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     char* str = new char[count];
@@ -213,10 +195,7 @@ void NativeDrawingFontTest006(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     float textWidth;
@@ -247,10 +226,7 @@ void NativeDrawingFontTest007(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
@@ -288,10 +264,7 @@ void NativeDrawingFontTest008(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 50);
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
@@ -322,10 +295,7 @@ void NativeDrawingFontTest009(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     char* str = new char[count];
@@ -365,10 +335,7 @@ void NativeDrawingFontTest010(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     float spacing = 0.0f;
     OH_Drawing_FontGetSpacing(nullptr, &spacing);
@@ -382,10 +349,6 @@ void NativeDrawingFontTest011(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     char* str = new char[count];
@@ -415,10 +378,6 @@ void NativeDrawingFontTest012(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     char* str = new char[count];
@@ -452,6 +411,11 @@ void NativeDrawingFontTest012(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingFontTest001(data, size);
     OHOS::Rosen::Drawing::NativeDrawingFontTest002(data, size);

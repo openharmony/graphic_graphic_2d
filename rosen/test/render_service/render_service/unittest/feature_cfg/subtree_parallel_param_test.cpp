@@ -53,8 +53,8 @@ HWTEST_F(SubtreeParallelParamTest, SetSubtreeEnable, Function | SmallTest | Leve
     SubtreeParallelParam::SetMultiWinPolicyEnabled(true);
     ASSERT_EQ(SubtreeParallelParam::GetMultiWinPolicyEnabled(), true);
 
-    SubtreeParallelParam::SetMutliWinSurfaceNum(100);
-    ASSERT_EQ(SubtreeParallelParam::GetMutliWinSurfaceNum(), 100);
+    SubtreeParallelParam::SetMultiWinSurfaceNum(100);
+    ASSERT_EQ(SubtreeParallelParam::GetMultiWinSurfaceNum(), 100);
 
     SubtreeParallelParam::SetRBChildrenWeight(200);
     ASSERT_EQ(SubtreeParallelParam::GetRBChildrenWeight(), 200);
@@ -62,7 +62,9 @@ HWTEST_F(SubtreeParallelParamTest, SetSubtreeEnable, Function | SmallTest | Leve
     SubtreeParallelParam::SetRBSubtreeWeight(300);
     ASSERT_EQ(SubtreeParallelParam::GetRBSubtreeWeight(), 300);
 
-    SubtreeParallelParam::SetSubtreeScene("test", "1");
+    std::string appName = "test";
+    std::string value = "1";
+    SubtreeParallelParam::SetSubtreeScene(appName, value);
     ASSERT_EQ(SubtreeParallelParam::GetSubtreeScene()["test"], "1");
 }
 } // namespace Rosen

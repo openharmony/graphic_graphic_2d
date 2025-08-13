@@ -879,6 +879,7 @@ void DrawHybridPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
     if (objectHandle_->IsValid() && !WaitFence(fence_)) {
         if (auto rsExtendImageObject = static_cast<RSExtendImageObject*>(objectHandle_.get())) {
             RS_TRACE_NAME_FMT("DrawHybridPixelMap waitfence error, nodeId: %llu", rsExtendImageObject->GetNodeId());
+            LOGW("DrawHybridPixelMap waitfence timeout, nodeId: %{public}lu", rsExtendImageObject->GetNodeId());
         }
     }
     objectHandle_->Playback(*paintCanvas, *rect, sampling_, false);

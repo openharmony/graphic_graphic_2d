@@ -17,9 +17,15 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
+
+namespace OHOS::Rosen {
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+}
 
 namespace OHOS::Rosen {
 class RsSubThreadManagerTest : public testing::Test {
@@ -286,24 +292,6 @@ HWTEST_F(RsSubThreadManagerTest, AddToReleaseQueue, TestSize.Level1)
 }
 
 /**
- * @tc.name: CountSubMemTest001
- * @tc.desc: Verify function CountSubMem
- * @tc.type:FUNC
- */
-HWTEST_F(RsSubThreadManagerTest, CountSubMemTest001, TestSize.Level1)
-{
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    EXPECT_TRUE(rsSubThreadManager->CountSubMem(0).empty());
-    auto renderContext = std::make_shared<RenderContext>();
-    std::shared_ptr<RSSubThread> curThread = nullptr;
-    auto curThreads = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    rsSubThreadManager->threadList_.push_back(curThread);
-    rsSubThreadManager->threadList_.push_back(curThreads);
-    EXPECT_FALSE(rsSubThreadManager->CountSubMem(0).empty());
-    rsSubThreadManager->threadList_.clear();
-}
-
-/**
  * @tc.name: GetReThreadIndexMapTest001
  * @tc.desc: Verify function GetReThreadIndexMap
  * @tc.type:FUNC
@@ -340,25 +328,24 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleReleaseCacheSurfaceOnlyTest, TestSize.L
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
     rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(drawable);
     EXPECT_FALSE(drawable);
-}
 
-/**
- * @tc.name: GetGpuMemoryForReportTest
- * @tc.desc: Test RsSubThreadManagerTest.GetGpuMemoryForReportTest
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RsSubThreadManagerTest, GetGpuMemoryForReportTest, TestSize.Level1)
-{
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    pid_t pid = 123;
-    size_t size = 2048;
-    auto renderContext = std::make_shared<RenderContext>();
-    auto thread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    thread->gpuMemoryOfPid_.insert(std::make_pair(pid, size));
-    rsSubThreadManager->threadList_.push_back(thread);
-    std::unordered_map<pid_t, size_t> totalGpuMemOfPid;
-    rsSubThreadManager->GetGpuMemoryForReport(totalGpuMemOfPid);
-    EXPECT_TRUE(totalGpuMemOfPid[pid] == size);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
+    auto surfaceDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(surfaceRenderNode));
+    rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
+    EXPECT_FALSE(surfaceDrawable->GetRenderParams());
+
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
+    EXPECT_TRUE(surfaceDrawable->GetRsSubThreadCache().GetLastFrameUsedThreadIndex());
+
+    pid_t id = 2;
+    uint32_t index = 1;
+    rsSubThreadManager->threadIndexMap_.insert(std::make_pair(id, index));
+    surfaceDrawable->GetRsSubThreadCache().lastFrameUsedThreadIndex_ = 2;
+    auto context = std::make_shared<RenderContext>();
+    auto threadPtr = std::make_shared<RSSubThread>(context.get(), index);
+    rsSubThreadManager->threadList_[1] = threadPtr;
+    rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
+    EXPECT_FALSE(rsSubThreadManager->threadList_.size());
 }
 } // namespace OHOS::Rosen

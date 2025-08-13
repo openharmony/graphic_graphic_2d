@@ -122,15 +122,3 @@ EffectErrorCode OH_Filter_GetEffectPixelMap(OH_Filter* filter, OH_PixelmapNative
     }
     return EFFECT_SUCCESS;
 }
-
-EffectErrorCode OH_Filter_GetEffectPixelMapExt(OH_Filter* filter, OH_PixelmapNative** pixelmap, bool useCpuRender)
-{
-    if (!pixelmap || !filter) {
-        return EFFECT_BAD_PARAMETER;
-    }
-    *pixelmap = new OH_PixelmapNative(CastToFilter(filter)->GetPixelMap(useCpuRender));
-    if (*pixelmap == nullptr) {
-        return EFFECT_BAD_PARAMETER;
-    }
-    return EFFECT_SUCCESS;
-}

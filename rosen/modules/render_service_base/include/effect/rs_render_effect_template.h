@@ -79,6 +79,8 @@ public:
             case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
             case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
+            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
+            case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             default:
                 return "UNKNOWN";
         }

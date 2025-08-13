@@ -125,9 +125,9 @@ bool RSHdrUtil::CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfa
         return false;
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    std::vector<uint8_t> videoDynamicMetadata{};
-    if (MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, videoDynamicMetadata) ==
-        GSERROR_OK && videoDynamicMetadata.size() > 0) {
+    std::vector<uint8_t> sdrDynamicMetadata{};
+    if (MetadataHelper::GetSDRDynamicMetadata(surfaceBuffer, sdrDynamicMetadata) ==
+        GSERROR_OK && sdrDynamicMetadata.size() > 0) {
         return true;
     }
 #endif
@@ -235,7 +235,7 @@ void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceN
     if (srcColorMatrix == CM_Matrix::MATRIX_BT2020) {
         RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
     } else {
-        RSColorSpaceConvert::Instance().GetVideoDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
+        RSColorSpaceConvert::Instance().GetSDRDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
     }
 #endif
     std::vector<float> layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId,

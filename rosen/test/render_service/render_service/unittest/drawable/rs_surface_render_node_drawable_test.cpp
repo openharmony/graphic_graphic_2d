@@ -564,27 +564,19 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
 
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(false, true, false);
     Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = true;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(true, true, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = false;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(false, false, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = false;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(true, false, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
@@ -1503,7 +1495,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtu
     ASSERT_NE(leashDrawable, nullptr);
     auto leashParams = static_cast<RSSurfaceRenderParams*>(leashDrawable->GetRenderParams().get());
     ASSERT_NE(leashParams, nullptr);
-    leashParams->isLeashWindow_ = true;
+    leashParams->SetWindowInfo(false, true, false);
     leashParams->SetVisibleRegion(emptyRegion);
     leashParams->SetVisibleRegionInVirtual(emptyRegion);
 
@@ -1514,7 +1506,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtu
     ASSERT_NE(appDrawable, nullptr);
     auto appParams = static_cast<RSSurfaceRenderParams*>(appDrawable->GetRenderParams().get());
     ASSERT_NE(appParams, nullptr);
-    leashParams->isAppWindow_ = true;
+    leashParams->SetWindowInfo(true, false, true);
     leashParams->allSubSurfaceNodeIds_.insert(appId);
 
     // all empty
@@ -1635,9 +1627,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw004, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     canvas_->SetIsParallelCanvas(true);
     surfaceParams->isHardCursor_ = false;
-    canvas_->SetQuickGetDrawState(true);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     surfaceDrawable_->OnDraw(*canvas_);
-    canvas_->SetQuickGetDrawState(false);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::DEFAULT_STATE);
     surfaceDrawable_->OnDraw(*canvas_);
     canvas_->canvas_->gpuContext_ = nullptr;
     surfaceDrawable_->OnDraw(*canvas_);
@@ -1718,25 +1710,25 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, QuickDrawTest, TestSize.Level1)
     ASSERT_NE(canvas_, nullptr);
     Drawing::Region region;
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    canvas_->SetQuickGetDrawState(false);
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::DEFAULT_STATE);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 
-    canvas_->SetQuickGetDrawState(true);
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 
     params->windowInfo_.isMainWindowType_ = true;
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
     ASSERT_EQ(params->needOffscreen_, false);
 
     params->needOffscreen_ = true;
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 
     RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(false);
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
     ASSERT_EQ(canvas_->GetDisableFilterCache(), false);
 
     params->isOcclusionCullingOn_ = true;
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 }
 
 /**

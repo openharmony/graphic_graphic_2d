@@ -60,11 +60,6 @@ bool DoSetVideoSurfaceFlag(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     bool videoSurfaceFlag = GetData<bool>();
     RsCommonHook::Instance().SetVideoSurfaceFlag(videoSurfaceFlag);
     RsCommonHook::Instance().GetVideoSurfaceFlag();
@@ -77,11 +72,6 @@ bool DoSetHardwareEnabledByHwcnodeBelowSelfInAppFlag(const uint8_t* data, size_t
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     bool hardwareEnabledByHwcnodeSkippedFlag = GetData<bool>();
     RsCommonHook::Instance().SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(hardwareEnabledByHwcnodeSkippedFlag);
     RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
@@ -93,11 +83,6 @@ bool DoSetHardwareEnabledByBackgroundAlphaFlag(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     bool hardwareEnabledByBackgroundAlphaSkippedFlag = GetData<bool>();
     bool isWhiteListForSolidColorLayerFlag = GetData<bool>();
@@ -120,11 +105,6 @@ bool DoSetAdaptiveColorGamutEnable(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     bool isAdaptiveColorGamutEnable = GetData<bool>();
     RsCommonHook::Instance().SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
     RsCommonHook::Instance().IsAdaptiveColorGamutEnabled();
@@ -137,6 +117,11 @@ bool DoSetAdaptiveColorGamutEnable(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoSetVideoSurfaceFlag(data, size);
     OHOS::Rosen::DoSetHardwareEnabledByHwcnodeBelowSelfInAppFlag(data, size);

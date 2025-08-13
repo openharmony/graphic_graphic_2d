@@ -304,6 +304,9 @@ HWTEST_F(RSScreenRenderNodeTest, ResetMirrorSourceTest, TestSize.Level1)
     node->isMirroredScreen_ = true;
     node->SetMirrorSource(rsScreenRenderNode);
     EXPECT_NE(node->mirrorSource_.lock(), nullptr);
+    rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id + 2, screenId, context);
+    node->SetMirrorSource(rsScreenRenderNode);
+    EXPECT_NE(node->mirrorSource_.lock(), nullptr);
     node->ResetMirrorSource();
     EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
 }

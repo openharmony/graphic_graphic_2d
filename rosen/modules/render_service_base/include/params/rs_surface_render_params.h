@@ -52,7 +52,7 @@ struct RSLayerInfo {
     uint32_t ancoFlags = 0;
     GraphicIRect ancoCropRect{};
     bool useDeviceOffline = false;
-    
+
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -66,25 +66,40 @@ struct RSLayerInfo {
     }
 #endif
 };
+struct RSWindowInfo {
+    bool isMainWindowType_ = false;
+    bool isLeashWindow_ = false;
+    bool isAppWindow_ = false;
+    void SetWindowInfo(bool isMainWindowType, bool isLeashWindow, bool isAppWindow)
+    {
+        isMainWindowType_ = isMainWindowType;
+        isLeashWindow_ = isLeashWindow;
+        isAppWindow_ = isAppWindow;
+    }
+};
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
     ~RSSurfaceRenderParams() override = default;
     inline bool IsMainWindowType() const
     {
-        return isMainWindowType_;
+        return windowInfo_.isMainWindowType_;
     }
     inline bool IsLeashWindow() const override
     {
-        return isLeashWindow_;
+        return windowInfo_.isLeashWindow_;
     }
     bool IsAppWindow() const override
     {
-        return isAppWindow_;
+        return windowInfo_.isAppWindow_;
+    }
+    void SetWindowInfo(bool isMainWindowType, bool isLeashWindow, bool isAppWindow)
+    {
+        windowInfo_.SetWindowInfo(isMainWindowType, isLeashWindow, isAppWindow);
     }
     bool IsLeashOrMainWindow() const
     {
-        return isLeashorMainWindow_;
+        return windowInfo_.isLeashWindow_ || windowInfo_.isMainWindowType_;
     }
 
     RSSurfaceNodeType GetSurfaceNodeType() const
@@ -736,10 +751,6 @@ public:
     }
 
 private:
-    bool isMainWindowType_ = false;
-    bool isLeashWindow_ = false;
-    bool isAppWindow_ = false;
-    bool isLeashorMainWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorScreenNode_;
@@ -794,6 +805,7 @@ private:
     bool isAttractionAnimation_ = false;
     std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
+    RSWindowInfo windowInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;

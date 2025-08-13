@@ -87,10 +87,6 @@ void RSVKImageManagerFuzztest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto vkImageManager = std::make_shared<RSVkImageManager>();
     auto fakeSeqNum = GetData<uint32_t>();
@@ -126,10 +122,6 @@ void RSVKImageManagerFuzztestVKSemaphore(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto vkImageManager = std::make_shared<RSVkImageManager>();
     auto buffer1 = CreateBuffer();
@@ -156,6 +148,13 @@ void RSVKImageManagerFuzztestVKSemaphore(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     OHOS::Rosen::LocalInit();
+
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
+    /* Run your code on data */
     OHOS::Rosen::RSVKImageManagerFuzztest(data, size);
     OHOS::Rosen::RSVKImageManagerFuzztestVKSemaphore(data, size);
     return 0;

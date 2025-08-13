@@ -60,7 +60,6 @@
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
-#include "render/rs_render_filter.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
 
@@ -1707,37 +1706,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     return val != nullptr;
 }
 
-// RSRenderFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
-{
-    if (!val) {
-        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSRenderFilter is nullptr");
-        bool flag = parcel.WriteInt32(-1);
-        if (!flag) {
-            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSRenderFilter WriteInt32 failed");
-        }
-        return flag;
-    }
-    bool success = parcel.WriteInt32(1) && val->WriteToParcel(parcel);
-    if (!success) {
-        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSRenderFilter failed");
-    }
-    return success;
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderFilter>& val)
-{
-    if (parcel.ReadInt32() == -1) {
-        val = nullptr;
-        return true;
-    }
-    if (!val) {
-        ROSEN_LOGW("RSMarshallingHelper::Unmarshalling val is nullptr and create it");
-        val = std::make_shared<RSRenderFilter>();
-    }
-    return val->ReadFromParcel(parcel);
-}
-
 // RSNGRenderFilterBase
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderFilterBase>& val)
 {
@@ -2949,7 +2917,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Modi
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {
-    val.reset(ModifierNG::RSRenderModifier::Unmarshalling(parcel));
+    val = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
     return val != nullptr;
 }
 
@@ -2994,7 +2962,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderMaskBase>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderShaderBase>)        \

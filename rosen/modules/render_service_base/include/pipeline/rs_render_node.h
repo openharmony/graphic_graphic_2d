@@ -1116,7 +1116,6 @@ protected:
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
-    void AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& modifier);
 
     virtual void InitRenderParams();
     virtual void OnSync();
@@ -1478,7 +1477,7 @@ private:
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;
 
-struct SharedTransitionParam {
+struct RSB_EXPORT SharedTransitionParam {
     SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode, bool isInSameWindow);
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;

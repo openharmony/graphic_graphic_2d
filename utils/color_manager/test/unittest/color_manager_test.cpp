@@ -153,7 +153,7 @@ HWTEST_F(ColorManagerTest, ConvertP3ToSRGBColorSpace, Function | SmallTest | Lev
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: ConvertSRGBToP3ColorSpace convert P3 to sRGB
+* CaseDescription: ConvertSRGBToP3ColorSpace convert sRGB to P3
 */
 HWTEST_F(ColorManagerTest, ConvertSRGBToP3ColorSpace, Function | SmallTest | Level2)
 {

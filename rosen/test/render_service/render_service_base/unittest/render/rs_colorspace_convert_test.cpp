@@ -496,12 +496,12 @@ HWTEST_F(RSColorspaceConvertTest, GetFovMetadata002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetVideoDynamicMetadata001
+ * @tc.name: GetSDRDynamicMetadata001
  * @tc.desc: test get video dynamic metadata normal case
  * @tc.type:FUNC
  * @tc.require: IBYX6N
  */
-HWTEST_F(RSColorspaceConvertTest, GetVideoDynamicMetadata001, TestSize.Level1)
+HWTEST_F(RSColorspaceConvertTest, GetSDRDynamicMetadata001, TestSize.Level1)
 {
     BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -517,7 +517,7 @@ HWTEST_F(RSColorspaceConvertTest, GetVideoDynamicMetadata001, TestSize.Level1)
     ASSERT_TRUE(ret == GSERROR_OK);
     ASSERT_TRUE(surfaceBuffer != nullptr);
     std::vector<uint8_t> metadataSet{};
-    ret = MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, metadataSet);
+    ret = MetadataHelper::GetSDRDynamicMetadata(surfaceBuffer, metadataSet);
     ASSERT_TRUE(ret != GSERROR_OK);
 }
 

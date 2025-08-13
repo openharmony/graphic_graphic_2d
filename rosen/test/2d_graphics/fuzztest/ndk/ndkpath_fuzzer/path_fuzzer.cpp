@@ -44,9 +44,6 @@ void NativeDrawingPathTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -75,10 +72,7 @@ void NativeDrawingPathTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    
     float x1 = GetObject<float>();
     float y1 = GetObject<float>();
     float x2 = GetObject<float>();
@@ -127,9 +121,6 @@ void NativeDrawingPathTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float left = GetObject<float>();
     float top = GetObject<float>();
@@ -186,9 +177,6 @@ void NativeDrawingPathTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float left = GetObject<float>();
     float top = GetObject<float>();
@@ -241,9 +229,6 @@ void NativeDrawingPathTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float left = GetObject<float>();
     float top = GetObject<float>();
@@ -288,9 +273,6 @@ void NativeDrawingPathTest006(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     OH_Drawing_Point2D* point = new OH_Drawing_Point2D[count];
@@ -337,9 +319,6 @@ void NativeDrawingPathTest007(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -393,9 +372,6 @@ void NativeDrawingPathTest008(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float left = GetObject<float>();
     float top = GetObject<float>();
@@ -426,9 +402,7 @@ void NativeDrawingPathTest009(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t pathOpMode = GetObject<uint32_t>();
     uint32_t pathMatrixFlags = GetObject<uint32_t>();
     float scaleX = GetObject<float>();
@@ -466,9 +440,6 @@ void NativeDrawingPathTest010(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
@@ -495,9 +466,6 @@ void NativeDrawingPathTest011(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t pathFillType = GetObject<uint32_t>();
     bool isEmpty = GetObject<bool>();
@@ -531,9 +499,6 @@ void NativeDrawingPathTest012(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
@@ -580,9 +545,6 @@ void NativeDrawingPathTest013(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
@@ -618,9 +580,6 @@ void NativeDrawingPathTest014(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
@@ -647,6 +606,11 @@ void NativeDrawingPathTest014(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingPathTest001(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest002(data, size);

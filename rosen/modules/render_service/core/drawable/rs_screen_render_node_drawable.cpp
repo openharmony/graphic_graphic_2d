@@ -908,7 +908,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             Drawing::AutoCanvasRestore acr(*curCanvas_, true);
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-            RSParallelManager::Singleton().Reset(curCanvas_, params, vsyncRefreshRate);
+            RSParallelManager::Singleton().Reset(curCanvas_, uniParam, params, vsyncRefreshRate);
 #endif
             if (uniParam->IsOpDropped()) {
                 if (uniParam->IsDirtyAlignEnabled()) {

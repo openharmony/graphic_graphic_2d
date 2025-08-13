@@ -35,8 +35,6 @@ const RSForegroundFilterRenderModifier::LegacyPropertyApplierMap
             RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetAttractionFraction> },
         { RSPropertyType::ATTRACTION_DSTPOINT,
             RSRenderModifier::PropertyApplyHelper<Vector2f, &RSProperties::SetAttractionDstPoint> },
-        { RSPropertyType::FOREGROUND_UI_FILTER, RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSRenderFilter>,
-                                                    &RSProperties::SetForegroundUIFilter> },
         { RSPropertyType::FOREGROUND_NG_FILTER,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
                 &RSProperties::SetForegroundNGFilter> },
@@ -52,65 +50,6 @@ void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetDistortionK(std::nullopt);
     properties.SetAttractionFraction(0.f);
     properties.SetAttractionDstPoint(Vector2f());
-    properties.SetForegroundUIFilter({});
     properties.SetForegroundNGFilter({});
-}
-
-void RSForegroundFilterRenderModifier::AttachRenderFilterProperty(
-    const std::shared_ptr<RSRenderPropertyBase>& property, RSPropertyType type)
-{
-    if (type != ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER) {
-        return;
-    }
-    if (!property) {
-        return;
-    }
-    auto node = target_.lock();
-    if (!node) {
-        return;
-    }
-    // static_pointer_cast will not return nullptr
-    auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property);
-    auto& renderFilter = renderProperty->GetRef();
-    for (auto paramtype : renderFilter->GetUIFilterTypes()) {
-        auto propGroup = renderFilter->GetRenderFilterPara(paramtype);
-        if (!propGroup) {
-            continue;
-        }
-        for (auto& prop : propGroup->GetLeafRenderProperties()) {
-            if (prop) {
-                prop->Attach(*node, shared_from_this());
-            }
-        }
-    }
-}
-
-void RSForegroundFilterRenderModifier::DetachRenderFilterProperty(
-    const std::shared_ptr<RSRenderPropertyBase>& property, RSPropertyType type)
-{
-    if (type != ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER) {
-        return;
-    }
-    if (!property) {
-        return;
-    }
-    auto node = target_.lock();
-    if (!node) {
-        return;
-    }
-    // static_pointer_cast will not return nullptr
-    auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property);
-    auto& renderFilter = renderProperty->GetRef();
-    for (auto paramtype : renderFilter->GetUIFilterTypes()) {
-        auto propGroup = renderFilter->GetRenderFilterPara(paramtype);
-        if (!propGroup) {
-            continue;
-        }
-        for (auto& prop : propGroup->GetLeafRenderProperties()) {
-            if (prop) {
-                node->properties_.erase(prop->GetId());
-            }
-        }
-    }
 }
 } // namespace OHOS::Rosen::ModifierNG

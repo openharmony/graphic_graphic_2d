@@ -115,6 +115,8 @@ public:
 
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
 
+    uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
+
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) override;
 
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;

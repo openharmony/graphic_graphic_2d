@@ -140,9 +140,6 @@ void RSUIDirector::InitHybridRender()
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
-        if (!cacheDir_.empty()) {
-            RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
-        }
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
             std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
@@ -209,20 +206,24 @@ void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commit
     }
 }
 
+// LCOV_EXCL_START
 bool RSUIDirector::IsHybridRenderEnabled()
 {
     return RSSystemProperties::GetHybridRenderEnabled();
 }
+// LCOV_EXCL_STOP
 
 bool RSUIDirector::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     return RSSystemProperties::GetHybridRenderSwitch(bitSeq);
 }
 
+// LCOV_EXCL_START
 uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
 {
     return RSSystemProperties::GetHybridRenderTextBlobLenCount();
 }
+// LCOV_EXCL_STOP
 
 void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
 {
@@ -449,6 +450,11 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
+#ifdef RS_ENABLE_VK
+    if (!cacheDir_.empty() && RSSystemProperties::GetHybridRenderEnabled()) {
+        RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+    }
+#endif
 }
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
@@ -676,7 +682,7 @@ void RSUIDirector::ProcessUIContextMessages(
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
-            ROSEN_LOGI(
+            ROSEN_LOGE(
                 "RSUIDirector::ProcessUIContextMessages, can not get rsUIContext with token:%{public}" PRIu64, token);
             continue;
         }
@@ -832,7 +838,8 @@ void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t del
         return;
     }
     if (instanceId != INSTANCE_ID_UNDEFINED) {
-        ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found", instanceId);
+        ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found, taskRunnerSize=%{public}zu", instanceId,
+            uiTaskRunners_.size());
     }
     for (const auto &[_, taskRunner] : uiTaskRunners_) {
         ROSEN_LOGD("RSUIDirector::PostTask success");

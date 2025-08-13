@@ -50,6 +50,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
@@ -132,10 +133,6 @@
 #include "GLES3/gl3.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
-#endif
-
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "rs_upload_resource_thread.h"
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
@@ -230,6 +227,7 @@ constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
+constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -394,17 +392,6 @@ public:
     }
 };
 #endif
-static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
-{
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-    if (isUniRender) {
-        RSUploadResourceThread::Instance().OnProcessBegin();
-    }
-    return;
-#endif
-#endif
-}
 
 RSMainThread* RSMainThread::Instance()
 {
@@ -509,9 +496,6 @@ void RSMainThread::Init()
             };
             RSBackgroundThread::Instance().PostTask(task);
         }
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-        RSUploadResourceThread::Instance().OnRenderEnd();
-#endif
         RSTypefaceCache::Instance().HandleDelayDestroyQueue();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
         ConnectChipsetVsyncSer();
@@ -690,14 +674,6 @@ void RSMainThread::Init()
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
     RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetImageManager());
 #endif
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        RSUploadResourceThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
-#endif
-    }
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
@@ -1680,6 +1656,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
                     auto preBuffer = surfaceHandler->GetPreBuffer();
+                    RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, IsGpuDirtyEnable(surfaceNode->GetId()));
                     surfaceNode->UpdateBufferInfo(
                         buffer, surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), preBuffer);
                     if (surfaceHandler->GetBufferSizeChanged() || surfaceHandler->GetBufferTransformTypeChanged()) {
@@ -2217,15 +2194,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
-void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
-{
-#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        WaitUntilUploadTextureTaskFinished(isUniRender_);
-    }
-#endif
-}
-
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
@@ -2421,7 +2389,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                     node->MarkCurrentFrameHardwareEnabled();
                 }
             }
-            WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
@@ -2488,16 +2455,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-            WaitUntilUploadTextureTaskFinished(isUniRender_);
-        }
         lastWatermarkFlag_ = watermarkFlag_;
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
-    } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        WaitUntilUploadTextureTaskFinished(isUniRender_);
     } else {
         RsFrameReport::GetInstance().DirectRenderEnd();
     }
@@ -2687,11 +2649,6 @@ void RSMainThread::Render()
     }
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-#ifdef RS_ENABLE_GPU
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-            WaitUntilUploadTextureTaskFinished(isUniRender_);
-        }
-#endif
         RS_LOGE("Render GetGlobalRootRenderNode fail");
         return;
     }
@@ -4109,8 +4066,8 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
             task.count++;
             RS_TRACE_NAME_FMT(
                 "DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
-            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}llu]",
-                taskId, pid, nodeId, token);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "] token[%{public}"
+                PRIu64 "]", taskId, pid, nodeId, token);
         }
         iter->second->OnTransaction(transactionData);
     }
@@ -4884,10 +4841,34 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
     return needSync;
 }
 
-void RSMainThread::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    surfaceNodeWatermarks_[name] = watermark;
+    static constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
+    auto iter = surfaceNodeWatermarks_.find({pid, name});
+    if (iter == std::end(surfaceNodeWatermarks_)) {
+        if (registerSurfaceWaterMaskCount_[pid] >= REGISTER_SURFACE_WATER_MASK_LIMIT) {
+            RS_LOGE("RSMainThread::SetWatermark surfaceNodeWatermark:"
+                "[Pid:%{public}s] limit", std::to_string(pid).c_str());
+            return;
+        }
+        registerSurfaceWaterMaskCount_[pid]++;
+        surfaceNodeWatermarks_.insert({{pid, name}, watermark});
+    } else {
+        iter->second = watermark;
+    }
+}
+
+void RSMainThread::ClearWatermark(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    registerSurfaceWaterMaskCount_.erase(pid);
+    if (surfaceNodeWatermarks_.size() > 0) {
+        RS_TRACE_NAME_FMT("RSMainThread::ClearWatermark %d", pid);
+        EraseIf(surfaceNodeWatermarks_, [pid](const auto& pair) {
+            return pair.first.first == pid;
+        });
+    }
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
@@ -5122,6 +5103,10 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSMainThread::AddPidNeedDropFrame(std::vector<int32_t> pidList)
 {
+    if (surfacePidNeedDropFrame_.size() > MAX_DROP_FRAME_PID_LIST_SIZE) {
+        surfacePidNeedDropFrame_.clear();
+    }
+
     for (const auto& pid: pidList) {
         surfacePidNeedDropFrame_.insert(pid);
     }
@@ -5142,6 +5127,20 @@ void RSMainThread::SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChang
 {
     std::lock_guard<std::mutex> lock(luminanceMutex_);
     displayLuminanceChanged_[id] = isLuminanceChanged;
+}
+
+void RSMainThread::SetSelfDrawingGpuDirtyPidList(const std::vector<int32_t>& pidList)
+{
+    std::lock_guard<std::mutex> lock(pidListMutex_);
+    selfDrawingGpuDirtyPidList_.clear();
+    selfDrawingGpuDirtyPidList_.insert(pidList.begin(), pidList.end());
+}
+
+bool RSMainThread::IsGpuDirtyEnable(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(pidListMutex_);
+    int32_t pid = ExtractPid(nodeId);
+    return selfDrawingGpuDirtyPidList_.find(pid) != selfDrawingGpuDirtyPidList_.end();
 }
 
 bool RSMainThread::ExchangeLuminanceChangingStatus(ScreenId id)
@@ -5430,6 +5429,7 @@ void RSMainThread::RSScreenNodeListener::OnScreenDisconnect(ScreenId id)
         if (screenNode == nullptr) {
             return;
         }
+        screenNode->ResetMirrorSource();
         context->GetGlobalRootRenderNode()->RemoveChild(screenNode);
         nodeMap.UnregisterRenderNode(screenNode->GetId());
     };

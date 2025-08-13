@@ -18,10 +18,6 @@
 #include "gtest/gtest.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
-#include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
-#include "ui_effect/property/include/rs_ui_blur_filter.h"
-#include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -526,75 +522,6 @@ HWTEST_F(RSPropertyModifierTest, RSComplexShaderParamModifierTest, TestSize.Leve
     RSModifierType modifierType = modifier->GetModifierType();
     EXPECT_EQ(modifierType, RSModifierType::COMPLEX_SHADER_PARAM);
     ASSERT_NE(modifier->CreateRenderModifier(), nullptr);
-}
-
-/**
- * @tc.name: RSBackgroundUIFilterModifierTest
- * @tc.desc: RSBackgroundUIFilterModifierTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
-    ASSERT_NE(property, nullptr);
-    std::shared_ptr<RSBackgroundUIFilterModifier> modifier =
-        std::make_shared<RSBackgroundUIFilterModifier>(property);
-    ASSERT_NE(modifier, nullptr);
-    RSModifierType ModifierType = modifier->GetModifierType();
-    EXPECT_EQ(ModifierType, RSModifierType::BACKGROUND_UI_FILTER);
-
-    auto shareNode = std::make_shared<RSNode>(false);
-    std::weak_ptr<RSNode> nullNode;
-    // create cases
-    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
-    auto noLeafPropertry = std::make_shared<RSUIDispDistortFilterPara>();
-    uiFilter->Insert(noLeafPropertry);
-    auto blurProperty = std::make_shared<RSUIBlurFilterPara>();
-    blurProperty->properties_[RSUIFilterType::BLUR_RADIUS_X] = nullptr;
-    uiFilter->Insert(blurProperty);
-    std::shared_ptr<RSUIFilter> nullFilter = nullptr;
-
-    std::shared_ptr<RSProperty<int>> nullPropertyCase = std::make_shared<RSProperty<int>>(0);
-    auto nullFilterCase = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(nullFilter);
-    auto composeFilterCase = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(uiFilter);
-
-    auto nullProModifier = std::make_shared<RSBackgroundUIFilterModifier>(nullPropertyCase);
-    auto nullFilterModifier = std::make_shared<RSBackgroundUIFilterModifier>(nullFilterCase);
-    auto composeModifier = std::make_shared<RSBackgroundUIFilterModifier>(composeFilterCase);
-
-    nullProModifier->property_ = nullptr;
-    nullProModifier->OnAttachToNode(nullNode);
-    nullProModifier->OnAttachToNode(shareNode);
-    nullProModifier->OnDetachFromNode();
-    EXPECT_EQ(nullProModifier->CreateRenderModifier(), nullptr);
-    nullFilterModifier->property_ = nullptr;
-    nullFilterModifier->OnAttachToNode(nullNode);
-    nullFilterModifier->OnAttachToNode(shareNode);
-    nullFilterModifier->OnDetachFromNode();
-    EXPECT_EQ(nullFilterModifier->CreateRenderModifier(), nullptr);
-    composeModifier->property_ = nullptr;
-    composeModifier->OnAttachToNode(nullNode);
-    composeModifier->OnAttachToNode(shareNode);
-    composeModifier->OnDetachFromNode();
-    EXPECT_EQ(composeModifier->CreateRenderModifier(), nullptr);
-}
-
-/**
- * @tc.name: RSForegroundUIFilterModifierTest
- * @tc.desc: RSForegroundUIFilterModifierTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSProperty<float>>();
-    ASSERT_NE(property, nullptr);
-    std::shared_ptr<RSForegroundUIFilterModifier> modifier =
-        std::make_shared<RSForegroundUIFilterModifier>(property);
-    ASSERT_NE(modifier, nullptr);
-    RSModifierType ModifierType = modifier->GetModifierType();
-    EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_UI_FILTER);
 }
 
 /**

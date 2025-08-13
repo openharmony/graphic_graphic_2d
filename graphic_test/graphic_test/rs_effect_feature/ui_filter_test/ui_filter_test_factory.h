@@ -21,19 +21,26 @@
 #include <vector>
 #include <array>
 
-#include "render/rs_render_pixel_map_mask.h"
+#include "effect/shader_effect.h"
+#include "render/rs_gradient_blur_para.h"
+#include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_bezier_warp_para.h"
+#include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_hdr_para.h"
 #include "ui_effect/filter/include/filter_para.h"
+#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/mask/include/pixel_map_mask_para.h"
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
-#include "ui_effect/property/include/rs_ui_mask_para.h"
 
 namespace OHOS {
 namespace Rosen {

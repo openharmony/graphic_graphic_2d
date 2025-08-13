@@ -40,10 +40,6 @@ bool PathIteratorFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     PathIterator iter(path);
@@ -66,10 +62,6 @@ bool PathIterFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     path.MoveTo(GetObject<float>(), GetObject<float>());
@@ -96,6 +88,11 @@ bool PathIterFuzzTest001(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::PathIteratorFuzzTest001(data, size);
     OHOS::Rosen::Drawing::PathIterFuzzTest001(data, size);

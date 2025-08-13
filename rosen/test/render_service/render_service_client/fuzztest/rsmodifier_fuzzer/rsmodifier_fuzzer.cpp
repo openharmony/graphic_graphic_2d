@@ -57,17 +57,20 @@ T GetData()
     return object;
 }
 
-bool DoGetPropertyId(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoGetPropertyId(const uint8_t* data, size_t size)
+{
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -78,15 +81,6 @@ bool DoGetPropertyId(const uint8_t* data, size_t size)
 
 bool DoSet(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -99,15 +93,6 @@ bool DoSet(const uint8_t* data, size_t size)
 
 bool DoAttachProperty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -121,15 +106,6 @@ bool DoAttachProperty(const uint8_t* data, size_t size)
 
 bool DoSetDirty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -145,15 +121,6 @@ bool DoSetDirty(const uint8_t* data, size_t size)
 
 bool DoResetRSNodeExtendModifierDirty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -165,15 +132,6 @@ bool DoResetRSNodeExtendModifierDirty(const uint8_t* data, size_t size)
 
 bool DoGetProperty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -186,15 +144,6 @@ bool DoGetProperty(const uint8_t* data, size_t size)
 
 bool DoGetModifierType(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -206,15 +155,6 @@ bool DoGetModifierType(const uint8_t* data, size_t size)
 
 bool DoAttachAndDetachNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -231,6 +171,10 @@ bool DoAttachAndDetachNode(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoGetPropertyId(data, size);
     OHOS::Rosen::DoSet(data, size);

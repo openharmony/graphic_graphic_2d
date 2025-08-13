@@ -16,7 +16,6 @@
 #include "modifier/rs_property.h"
 
 #include "sandbox_utils.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
@@ -255,8 +254,7 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& node,
-    std::weak_ptr<ModifierNG::RSModifier> modifier)
+void RSProperty<std::shared_ptr<RSNGShaderBase>>::OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier)
 {
     if (stagingValue_) {
         stagingValue_->Attach(node, modifier);
@@ -533,32 +531,24 @@ void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType ty
 }
 
 template<>
-void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
-    const std::shared_ptr<RSUIFilter>& value, PropertyUpdateType type) const
-{
-    auto rsRenderFilter = value->GetRSRenderFilter();
-    UPDATE_TO_RENDER(RSUpdatePropertyUIFilter, rsRenderFilter, type);
-}
-
-template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value->GetRenderEffect(), type);
+    UPDATE_TO_RENDER(RSUpdatePropertyNGFilterBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>
 void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
     const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyNGShaderBase, value->GetRenderEffect(), type);
+    UPDATE_TO_RENDER(RSUpdatePropertyNGShaderBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>
 void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
     const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value->GetRenderEffect(), type);
+    UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>

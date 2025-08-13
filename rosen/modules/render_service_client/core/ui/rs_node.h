@@ -80,7 +80,6 @@ class RSImplicitAnimator;
 class RSModifier;
 class RSObjAbsGeometry;
 class RSUIContext;
-class RSUIFilter;
 class RSNGFilterBase;
 class RSNGShaderBase;
 enum class CancelAnimationStatus;
@@ -1137,9 +1136,6 @@ public:
      * @param visualEffect Pointer to a VisualEffect that defines the visual effect.
      */
     void SetVisualEffect(const VisualEffect* visualEffect);
-
-    void SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter);
-    void SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter);
 
     /**
      * @brief Sets the foreground effect radius.

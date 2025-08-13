@@ -461,12 +461,7 @@ void SurfaceImageListener::OnBufferAvailable()
         BLOGE("surfaceImage promote failed");
         return;
     }
-
-    // check here maybe a messagequeue, flag instead now
-    surfaceImage->OnUpdateBufferAvailableState(true);
-    if (surfaceImage->listener_ != nullptr) {
-        surfaceImage->listener_(surfaceImage->context_);
-    }
+    surfaceImage->OnBufferAvailable();
 }
 
 SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
@@ -553,6 +548,25 @@ SurfaceError SurfaceImage::SetDropBufferMode(bool enableDrop)
         return ret;
     }
     dropFrameMode_ = enableDrop;
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::OnBufferAvailable()
+{
+    OnBufferAvailableListener listener = nullptr;
+    EGLContext context = nullptr;
+    {
+        std::lock_guard<std::mutex> lockGuard(opMutex_);
+        // check here maybe a messagequeue, flag instead now
+        OnUpdateBufferAvailableState(true);
+        if (listener_ == nullptr || context_ == nullptr) {
+            BLOGE("SurfaceImage::OnBufferAvailable listener or context is nullptr");
+            return GSERROR_INVALID_OPERATING;
+        }
+        listener = listener_;
+        context = context_;
+    }
+    listener(context);
     return SURFACE_ERROR_OK;
 }
 } // namespace OHOS

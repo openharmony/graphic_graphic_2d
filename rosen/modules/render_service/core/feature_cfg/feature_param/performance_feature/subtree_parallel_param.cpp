@@ -49,12 +49,12 @@ bool SubtreeParallelParam::GetMultiWinPolicyEnabled()
     return isMultiWinPolicyEnable_;
 }
 
-void SubtreeParallelParam::SetMutliWinSurfaceNum(int surfaceNumber)
+void SubtreeParallelParam::SetMultiWinSurfaceNum(int surfaceNumber)
 {
     multiWinSurfaceNum_ = surfaceNumber;
 }
 
-int SubtreeParallelParam::GetMutliWinSurfaceNum()
+int SubtreeParallelParam::GetMultiWinSurfaceNum()
 {
     return multiWinSurfaceNum_;
 }
@@ -79,12 +79,12 @@ int SubtreeParallelParam::GetRBSubtreeWeight()
     return rbSubTreeWeight_;
 }
 
-void SubtreeParallelParam::SetSubtreeScene(std::string appName, std::string val)
+void SubtreeParallelParam::SetSubtreeScene(const std::string& appName, const std::string& val)
 {
-    subtreeScene_[std::move(appName)] = std::move(val);
+    subtreeScene_[appName] = val;
 }
 
-std::unordered_map<std::string, std::string>& SubtreeParallelParam::GetSubtreeScene()
+std::unordered_map<std::string, std::string> SubtreeParallelParam::GetSubtreeScene()
 {
     return subtreeScene_;
 }

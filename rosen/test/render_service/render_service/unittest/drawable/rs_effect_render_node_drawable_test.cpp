@@ -105,7 +105,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 
     RSParallelManager::Singleton().state_ = RSParallelManager::FrameType::PARALLEL;
     RSParallelManager::Singleton().workingPolicy_ = std::make_shared<RSParallelMultiwinPolicy>();
-    rsPaintFilterCanvas->SetQuickGetDrawState(true);
+    rsPaintFilterCanvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     effectDrawable->OnDraw(*rsPaintFilterCanvas);
 }
 #endif

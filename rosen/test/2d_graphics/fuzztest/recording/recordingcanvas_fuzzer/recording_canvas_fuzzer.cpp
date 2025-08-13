@@ -33,11 +33,6 @@ constexpr size_t MAX_SIZE = 5000;
 namespace Drawing {
 void RecordingCanvasFuzzTest000(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -75,11 +70,6 @@ void RecordingCanvasFuzzTest000(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest001(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -115,11 +105,6 @@ void RecordingCanvasFuzzTest001(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest002(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -156,11 +141,6 @@ void RecordingCanvasFuzzTest002(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest003(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -210,11 +190,6 @@ void RecordingCanvasFuzzTest003(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest004(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>() % MAX_SIZE;
     int32_t height = GetObject<int32_t>() % MAX_SIZE;
     bool addDrawOpImmediate = GetObject<bool>();
@@ -259,11 +234,6 @@ void RecordingCanvasFuzzTest004(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest005(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -304,11 +274,6 @@ void RecordingCanvasFuzzTest005(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -354,11 +319,6 @@ void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest007(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     bool addDrawOpImmediate = GetObject<bool>();
@@ -380,11 +340,6 @@ void RecordingCanvasFuzzTest007(const uint8_t* data, size_t size)
 
 void RecordingCanvasFuzzTest008(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     RecordingCanvas recordcanvas = RecordingCanvas(width, height);
@@ -404,6 +359,11 @@ void RecordingCanvasFuzzTest008(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest000(data, size);
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest001(data, size);

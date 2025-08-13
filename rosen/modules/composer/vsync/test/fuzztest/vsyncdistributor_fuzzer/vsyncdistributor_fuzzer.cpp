@@ -83,10 +83,6 @@ namespace OHOS {
         if (data == nullptr) {
             return false;
         }
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
 
         // get data
         int64_t offset = GetData<int64_t>();
@@ -142,11 +138,6 @@ namespace OHOS {
             return false;
         }
 
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         //get data
         int64_t offset  = GetData<int32_t>();
         int32_t pid = GetData<int32_t>();
@@ -167,11 +158,6 @@ namespace OHOS {
             return false;
         }
 
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         // get data
         int64_t offset  = GetData<int32_t>();
         uint32_t pid = GetData<uint32_t>();
@@ -191,6 +177,11 @@ namespace OHOS {
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::data_ = data;
+    OHOS::size_ = size;
+    OHOS::pos = 0;
+
     /* Run your code on data */
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::DoSetQosVSyncRateByPidPublic(data, size);

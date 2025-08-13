@@ -1087,12 +1087,6 @@ bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
     return ConvertToInt(type, 1) != 0;
 }
 
-bool RSSystemProperties::GetParallelUploadTexture()
-{
-    static bool enable = std::atoi((system::GetParameter("rosen.parallelUpload,enabled", "1")).c_str()) != 0;
-    return enable;
-}
-
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 {
     static bool cacheEnable =
@@ -1680,6 +1674,14 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.selfdrawingdirtyregion.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetGpuDirtyApsEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.gpudirtyaps.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;

@@ -19,11 +19,11 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_aibar_filter.h"
-#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_render_light_blur_filter.h"
+#include "render/rs_render_water_ripple_filter.h"
 #include "ge_visual_effect_container.h"
 using namespace testing;
 using namespace testing::ext;
@@ -722,21 +722,28 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
     int radius0 = 0;
     auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
 
+    float progress = 0.1f;
+    uint32_t waveCount = 2;
+    float rippleCenterX = 0.3f;
+    float rippleCenterY = 0.5f;
+    uint32_t rippleMode = 1;
+
     /* go to hps 1.0 kawase ApplyColorFilter branch */
     auto visualEffectContainer1 = std::make_shared<Drawing::GEVisualEffectContainer>();
     auto kawaseShaderFilter2 = std::make_shared<RSKawaseBlurShaderFilter>(radius0);
     RSDrawingFilter drawingFilter2(kawaseShaderFilter2);
     kawaseShaderFilter2->GenerateGEVisualEffect(visualEffectContainer1);
-    auto rsRenderBezierWarpFilterPara = std::make_shared<RSRenderBezierWarpFilterPara>(0);
-    drawingFilter2.InsertShaderFilter(rsRenderBezierWarpFilterPara);
-    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer1);
+    auto waterRippleFilter = std::make_shared<RSWaterRippleShaderFilter>(
+        progress, waveCount, rippleCenterX, rippleCenterY, rippleMode);
+    drawingFilter2.InsertShaderFilter(waterRippleFilter);
+    waterRippleFilter->GenerateGEVisualEffect(visualEffectContainer1);
     drawingFilter2.ApplyImageEffect(canvas, image, visualEffectContainer1, attr);
 
     /* go to hps 1.0 kawase branch */
     auto visualEffectContainer3 = std::make_shared<Drawing::GEVisualEffectContainer>();
     RSDrawingFilter drawingFilter3(kawaseShaderFilter);
-    drawingFilter3.InsertShaderFilter(rsRenderBezierWarpFilterPara);
-    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer3);
+    drawingFilter3.InsertShaderFilter(waterRippleFilter);
+    waterRippleFilter->GenerateGEVisualEffect(visualEffectContainer3);
     drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
     /* go to ge kawase branch */
     drawingFilter3.SetFilterType(RSFilter::WATER_RIPPLE);

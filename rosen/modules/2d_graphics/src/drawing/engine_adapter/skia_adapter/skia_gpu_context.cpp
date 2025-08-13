@@ -416,6 +416,11 @@ void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump,
     grContext_->dumpMemoryStatisticsByTag(skTraceMemoryDump, grTag);
 }
 
+uint64_t SkiaGPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
+{
+    return 0;
+}
+
 void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
 {
     if (!grContext_) {

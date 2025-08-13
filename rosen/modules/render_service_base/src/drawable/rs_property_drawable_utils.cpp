@@ -439,7 +439,7 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 {
-    auto blurCnt = g_blurCnt;
+    auto blurCnt = g_blurCnt.load();
     g_blurCnt = 0;
     return blurCnt;
 }

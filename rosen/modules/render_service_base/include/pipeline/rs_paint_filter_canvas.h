@@ -224,6 +224,12 @@ public:
         int envSaveCount = -1;
     };
 
+    enum SubTreeStatus : uint8_t {
+        DEFAULT_STATE = 0x00,
+        SUBTREE_PARALLEL_STATE = 0x01,
+        SUBTREE_QUICK_DRAW_STATE = 0x02
+    };
+
     enum class ScreenshotType {
         NON_SHOT = 0,
         SDR_SCREENSHOT,
@@ -286,13 +292,17 @@ public:
     std::weak_ptr<Drawing::Surface> GetWeakSurface();
     // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
     void SetWeakSurface(std::shared_ptr<Drawing::Surface> surface);
-    inline void SetQuickGetDrawState(bool isQuickGetDrawState)
+    inline void SetSubTreeParallelState(SubTreeStatus state)
     {
-        isQuickGetDrawState_ = isQuickGetDrawState;
+        subTreeDrawStatus_ = state;
     }
-    inline bool IsQuickGetDrawState()
+    inline bool IsQuickGetDrawState() const
     {
-        return isQuickGetDrawState_;
+        return subTreeDrawStatus_ == SUBTREE_QUICK_DRAW_STATE;
+    }
+    inline bool IsSubTreeInParallel() const
+    {
+        return subTreeDrawStatus_ != DEFAULT_STATE;
     }
 
     void SetDisableFilterCache(bool disable);
@@ -436,7 +446,7 @@ protected:
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
     {
-        if (isQuickGetDrawState_) {
+        if (IsQuickGetDrawState()) {
             return false;
         }
         float alpha = alphaStack_.top();
@@ -506,7 +516,7 @@ private:
     Occlusion::Region drawnRegion_;
     uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
-    bool isQuickGetDrawState_= false;
+    uint8_t subTreeDrawStatus_ = DEFAULT_STATE;
 };
 
 #ifdef RS_ENABLE_VK

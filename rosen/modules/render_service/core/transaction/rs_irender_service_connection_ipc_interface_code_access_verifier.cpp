@@ -601,11 +601,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
+        }
         default: {
             break;
         }
     }
-    return hasPermission;
+return hasPermission;
 }
 
 #ifdef ENABLE_IPC_SECURITY

@@ -33,10 +33,6 @@ public:
     static void ResetProperties(RSProperties& properties);
 
 protected:
-    void AttachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type) override;
-    void DetachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type) override;
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;

@@ -101,11 +101,6 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     NodeId id = GetData<NodeId>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
@@ -150,11 +145,6 @@ bool RSCrossRenderNodeFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
@@ -175,11 +165,6 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // getdata
     NodeId id = GetData<NodeId>();
@@ -207,11 +192,6 @@ bool RSContextFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // getdata
     RSContext rsContext;
     NodeId id = GetData<NodeId>();
@@ -226,11 +206,6 @@ bool RSDirtyRegionManagerFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     RSDirtyRegionManager manager;
     manager.Clear();
@@ -265,11 +240,6 @@ bool RSScreenRenderParamsNodeFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // getdata
     NodeId id = GetData<NodeId>();
@@ -307,11 +277,6 @@ bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     DrawBuffer drawBuffer = GetData<DrawBuffer>();
     float fLeft = GetData<float>();
     float fTop = GetData<float>();
@@ -336,11 +301,6 @@ bool RSOcclusionConfigFuzzTes(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSOcclusionConfig config = RSOcclusionConfig::GetInstance();
     std::string win = GetStringFromData(STR_LEN);
     config.IsLeashWindow(win);
@@ -356,11 +316,6 @@ bool RSContextFuzzerTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     RSContext context;
     NodeId targetId = GetData<NodeId>();
@@ -387,11 +342,6 @@ bool RSRenderFrameRateFuzzerTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Rosen::RSRenderFrameRateLinker::ObserverType observer = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> node = std::make_shared<RSRenderFrameRateLinker>(observer);
     std::shared_ptr<RSRenderFrameRateLinker> node1 = std::make_shared<RSRenderFrameRateLinker>(observer);
@@ -407,11 +357,6 @@ bool RSRenderNodeGcFuzzerTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     NodeId targetId = GetData<NodeId>();
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSBaseRenderNode>(targetId);
@@ -441,11 +386,6 @@ bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<RSRenderNodeMap> nodeMap = std::make_shared<RSRenderNodeMap>();
     nodeMap->GetSize();
@@ -497,11 +437,6 @@ bool RSSurfaceCallbackManagerFuzzerTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
         return;
     });
@@ -527,11 +462,6 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     NodeId targetId = GetData<NodeId>();
     std::shared_ptr<RSSurfaceHandler> surfaceHandler = std::make_shared<RSSurfaceHandler>(targetId);
@@ -562,11 +492,6 @@ bool RSSkResourceManagerFuzzerTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     SKResourceManager::Instance().DeleteSharedTextureContext(nullptr);
     std::list<std::shared_ptr<Drawing::Surface>> list;
     SKResourceManager::Instance().HaveReleaseableResourceCheck(list);
@@ -580,6 +505,11 @@ bool RSSkResourceManagerFuzzerTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSBaseRenderNodeFuzzTest(data, size);
     OHOS::Rosen::RSContextFuzzTest(data, size);
