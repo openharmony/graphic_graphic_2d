@@ -14,13 +14,17 @@
  */
 
 #include "rs_drm_util.h"
+#include <parameters.h>
 #include "common/rs_background_thread.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "pipeline/rs_effect_render_node.h"
+#include "graphic_feature_param_manager.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr const int BLUR_MIN_ALPHA = 100;
 
 void RSDrmUtil::ClearDrmNodes()
 {
@@ -125,6 +129,130 @@ void RSDrmUtil::PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRender
         RSHardwareThread::Instance().PreAllocateProtectedBuffer(buffer, screenId);
     };
     RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
+}
+
+void RSDrmUtil::MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
+    const std::shared_ptr<RSScreenRenderNode>& curScreenNode)
+{
+    static bool isDrmMarkAllParentBlurEnable = DRMParam::IsDrmMarkAllParentBlurEnable();
+    if (isDrmMarkAllParentBlurEnable) {
+        MarkBlurIntersectWithDRMForAllParentFilter(node, drmNodes, curScreenNode);
+    } else {
+        MarkBlurIntersectWithDRM(node, drmNodes);
+    }
+}
+
+void RSDrmUtil::MarkBlurIntersectWithDRMForAllParentFilter(const std::shared_ptr<RSRenderNode>& node,
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
+    const std::shared_ptr<RSScreenRenderNode>& curScreenNode)
+{
+    if (node->GetRenderProperties().GetBackgroundBlurMaskColor().GetAlpha() >= BLUR_MIN_ALPHA) {
+        return;
+    }
+    auto appWindowNodeId = node->GetInstanceRootNodeId();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto appWindowNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
+    if (appWindowNode == nullptr) {
+        return;
+    }
+    static std::vector<std::string> drmKeyWins = DRMParam::GetBlackList();
+    for (const auto& win : drmKeyWins) {
+        if (appWindowNode->GetName().find(win) != std::string::npos) {
+            return;
+        }
+    }
+    for (auto& drmNode : drmNodes) {
+        auto drmNodePtr = drmNode.lock();
+        if (drmNodePtr == nullptr) {
+            continue;
+        }
+        bool isIntersect =
+            drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
+        bool isVisible = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+            drmNodePtr->GetInstanceRootNode())->GetVisibleRegion().IsEmpty();
+        if (isIntersect && !isVisible && IsDRMBelowFilter(curScreenNode, appWindowNode, drmNodes)) {
+            node->MarkBlurIntersectWithDRM(true, GetDarkColorMode(node, appWindowNode));
+        }
+    }
+}
+
+void RSDrmUtil::MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes)
+{
+    auto appWindowNodeId = node->GetInstanceRootNodeId();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto appWindowNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
+    if (appWindowNode == nullptr) {
+        return;
+    }
+    static std::vector<std::string> drmKeyWins = DRMParam::GetWhiteList();
+    auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>() ?
+        node->ReinterpretCastTo<RSEffectRenderNode>() : nullptr;
+    if (effectNode) {
+        effectNode->SetEffectIntersectWithDRM(false);
+        effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
+    }
+    for (const auto& win : drmKeyWins) {
+        if (appWindowNode->GetName().find(win) == std::string::npos) {
+            continue;
+        }
+        for (auto& drmNode : drmNodes) {
+            auto drmNodePtr = drmNode.lock();
+            if (drmNodePtr == nullptr) {
+                continue;
+            }
+            bool isIntersect =
+                drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
+            if (!isIntersect) {
+                continue;
+            }
+            node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
+            if (effectNode) {
+                effectNode->SetEffectIntersectWithDRM(true);
+            }
+        }
+    }
+}
+
+bool RSDrmUtil::IsDRMBelowFilter(const std::shared_ptr<RSScreenRenderNode>& curScreenNode,
+    const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode,
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes)
+{
+    auto& curMainAndLeashSurfaces = curScreenNode->GetAllMainAndLeashSurfaces();
+    auto filterNodeIndex = 0;
+    auto drmNodeIndex = 0;
+    for (size_t i = 0; i < curMainAndLeashSurfaces.size(); ++i) {
+        if (appWindowNode ==
+            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curMainAndLeashSurfaces[i])) {
+            filterNodeIndex = i;
+        }
+        for (auto& drmNode : drmNodes) {
+            auto drmNodePtr = drmNode.lock();
+            if (drmNodePtr == nullptr) {
+                continue;
+            }
+            auto drmLeashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                drmNodePtr->GetInstanceRootNode());
+            if (drmLeashNode ==
+                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curMainAndLeashSurfaces[i])) {
+                drmNodeIndex = i;
+                break;
+            }
+        }
+    }
+    return drmNodeIndex > filterNodeIndex;
+}
+
+bool RSDrmUtil::GetDarkColorMode(const std::shared_ptr<RSRenderNode>& node,
+    const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode)
+{
+    bool isDarkColorMode = RSMainThread::Instance()->GetGlobalDarkColorMode();
+    if (appWindowNode->GetName().find("SCBSmartDock") != std::string::npos) {
+        float saturation = node->GetRenderProperties().GetBgBrightnessSaturation();
+        isDarkColorMode = ROSEN_GNE(saturation, 1.4f) ? false : true;
+    }
+    return isDarkColorMode;
 }
 } // namespace Rosen
 } // namespace OHOS

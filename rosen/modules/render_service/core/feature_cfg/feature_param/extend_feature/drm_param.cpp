@@ -26,4 +26,34 @@ void DRMParam::SetDrmEnable(bool isEnable)
 {
     isDrmEnable_ = isEnable;
 }
+
+bool DRMParam::IsDrmMarkAllParentBlurEnable()
+{
+    return isDrmMarkAllParentBlurEnable_;
+}
+
+void DRMParam::SetDrmMarkAllParentBlurEnable(bool isEnable)
+{
+    isDrmMarkAllParentBlurEnable_ = isEnable;
+}
+
+void DRMParam::AddWhiteList(const std::string& name)
+{
+    whiteMarkBlurList_.push_back(name);
+}
+
+void DRMParam::AddBlackList(const std::string& name)
+{
+    blackMarkBlurList_.push_back(name);
+}
+
+const std::vector<std::string>& DRMParam::GetWhiteList()
+{
+    return whiteMarkBlurList_;
+}
+
+const std::vector<std::string>& DRMParam::GetBlackList()
+{
+    return blackMarkBlurList_;
+}
 } // namespace OHOS::Rosen

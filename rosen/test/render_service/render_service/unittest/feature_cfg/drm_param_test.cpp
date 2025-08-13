@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "drm_param.h"
+#include "drm_param_parse.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,7 +47,7 @@ HWTEST_F(DrmParamTest, SetDrmEnable, Function | SmallTest | Level1)
     DRMParam::SetDrmEnable(false);
     EXPECT_EQ(DRMParam::IsDrmEnable(), false);
     DRMParam::SetDrmEnable(true);
-    EXPECT_EQ(DRMParam::IsDrmEnable(), false);
+    EXPECT_EQ(DRMParam::IsDrmEnable(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

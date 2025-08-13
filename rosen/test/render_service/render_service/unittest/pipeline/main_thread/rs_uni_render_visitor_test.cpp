@@ -4615,6 +4615,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePointWindowDirtyStatus001, TestSize.Level
  */
 HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
 {
+    DRMParam::AddWhiteList("SCBBannerNotification");
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
     surfaceConfig.name = "SCBBannerNotification";
@@ -4645,6 +4646,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM003, TestSize.Level2)
 {
+    DRMParam::AddWhiteList("SCBBannerNotification");
     auto rsContext = std::make_shared<RSContext>();
     NodeId id = 1;
     auto effectNode = std::make_shared<RSEffectRenderNode>(id, rsContext->weak_from_this());

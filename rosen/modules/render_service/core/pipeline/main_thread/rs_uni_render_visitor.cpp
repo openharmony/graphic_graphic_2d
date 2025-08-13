@@ -31,6 +31,7 @@
 #endif
 #include "common/rs_special_layer_manager.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/drm/rs_drm_util.h"
 #include "feature/opinc/rs_opinc_cache.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/hpae/rs_hpae_manager.h"
@@ -3068,39 +3069,7 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
     if (!RSSystemProperties::GetDrmMarkedFilterEnabled()) {
         return;
     }
-    auto appWindowNodeId = node->GetInstanceRootNodeId();
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    auto appWindowNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
-    if (appWindowNode == nullptr) {
-        return;
-    }
-    static std::vector<std::string> drmKeyWins = { "SCBVolumePanel", "SCBBannerNotification", "HosKey",
-        "status_bar_control_center", "status_bar_input", "status_bar_tray" };
-    auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>() ?
-        node->ReinterpretCastTo<RSEffectRenderNode>() : nullptr;
-    if (effectNode) {
-        effectNode->SetEffectIntersectWithDRM(false);
-        effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
-    }
-    for (const auto& win : drmKeyWins) {
-        if (appWindowNode->GetName().find(win) == std::string::npos) {
-            continue;
-        }
-        for (auto& drmNode : drmNodes_) {
-            auto drmNodePtr = drmNode.lock();
-            if (drmNodePtr == nullptr) {
-                continue;
-            }
-            bool isIntersect =
-                drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
-            if (isIntersect) {
-                node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
-                if (effectNode) {
-                    effectNode->SetEffectIntersectWithDRM(true);
-                }
-            }
-        }
-    }
+    RSDrmUtil::MarkBlurIntersectWithDRM(node, drmNodes_, curScreenNode_);
 }
 
 void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(

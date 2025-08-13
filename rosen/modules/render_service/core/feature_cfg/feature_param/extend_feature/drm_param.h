@@ -25,12 +25,21 @@ public:
     ~DRMParam() = default;
 
     static bool IsDrmEnable();
+    static bool IsDrmMarkAllParentBlurEnable();
+    static const std::vector<std::string>& GetWhiteList();
+    static const std::vector<std::string>& GetBlackList();
 
 protected:
     static void SetDrmEnable(bool isEnable);
+    static void SetDrmMarkAllParentBlurEnable(bool isEnable);
+    static void AddWhiteList(const std::string& name);
+    static void AddBlackList(const std::string& name);
 
 private:
     inline static bool isDrmEnable_ = false;
+    inline static bool isDrmMarkAllParentBlurEnable_ = false;
+    inline static std::vector<std::string> whiteMarkBlurList_;
+    inline static std::vector<std::string> blackMarkBlurList_;
 
     friend class DRMParamParse;
 };

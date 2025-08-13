@@ -12,11 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "common/rs_common_def.h"
-#include "gtest/gtest.h"
 #include "feature/drm/rs_drm_util.h"
-#include "pipeline/rs_test_util.h"
+#include "graphic_feature_param_manager.h"
+#include "gtest/gtest.h"
 
+#include "common/rs_common_def.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_test_util.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 
@@ -165,5 +169,165 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest005, TestSize.Level1)
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(2);
     surfaceHandler->buffer_.buffer = nullptr;
     RSDrmUtil::PreAllocateProtectedBuffer(node, node->GetRSSurfaceHandler());
+}
+
+/**
+ * Function: MarkBlurIntersectWithDRMForAllParentFilter
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: CreateSurfaceNode, screenNode and drmNode
+ *                  2. operation: PreAllocateProtectedBuffer
+ *                  3. result: surfaceNode drmNodes andd screenNode are not nullptr
+ */
+HWTEST_F(RSDrmUtilTest, MarkBlurIntersectWithDRMForAllParentFilter001, TestSize.Level1)
+{
+    DRMParam::AddBlackList("SCBCloneWallpaper");
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "SCBCloneWallpaper";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    Color color(10, 10, 10, 110);
+    surfaceNode->renderProperties_.SetBackgroundBlurMaskColor(color);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+
+    // let drm intersect with blur
+    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+
+    NodeId id = 0;
+    ScreenId screenId = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes;
+    drmNodes.push_back(drmNode);
+    RSDrmUtil::MarkBlurIntersectWithDRMForAllParentFilter(surfaceNode, drmNodes, screenNode);
+}
+
+/**
+ * Function: MarkBlurIntersectWithDRMForAllParentFilter
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: CreateSurfaceNode, screenNode and drmNode
+ *                  2. operation: PreAllocateProtectedBuffer
+ *                  3. result: surfaceNode drmNodes andd screenNode are not nullptr
+ */
+HWTEST_F(RSDrmUtilTest, MarkBlurIntersectWithDRMForAllParentFilter002, TestSize.Level1)
+{
+    DRMParam::AddBlackList("SCBCloneWallpaper");
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "SCBCloneWallpaper";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    Color color(10, 10, 10, 10);
+    surfaceNode->renderProperties_.SetBackgroundBlurMaskColor(color);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+
+    // let drm intersect with blur
+    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+
+    NodeId id = 0;
+    ScreenId screenId = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes;
+    drmNodes.push_back(drmNode);
+    RSDrmUtil::MarkBlurIntersectWithDRMForAllParentFilter(surfaceNode, drmNodes, screenNode);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/**
+ * Function: MarkBlurIntersectWithDRMForAllParentFilter
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: CreateSurfaceNode, screenNode and drmNode
+ *                  2. operation: PreAllocateProtectedBuffer
+ *                  3. result: surfaceNode drmNodes andd screenNode are not nullptr
+ */
+HWTEST_F(RSDrmUtilTest, MarkBlurIntersectWithDRMForAllParentFilter003, TestSize.Level1)
+{
+    DRMParam::AddBlackList("SCBCloneWallpaper");
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "SCBCloneWallpaper";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    Color color(10, 10, 10, 10);
+    surfaceNode->renderProperties_.SetBackgroundBlurMaskColor(color);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+
+    // let drm intersect with blur
+    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+
+    NodeId id = 0;
+    ScreenId screenId = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes;
+    drmNodes.push_back(drmNode);
+    RSDrmUtil::MarkBlurIntersectWithDRMForAllParentFilter(surfaceNode, drmNodes, screenNode);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/**
+ * Function: MarkBlurIntersectWithDRMForAllParentFilter
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: CreateSurfaceNode, screenNode and drmNode
+ *                  2. operation: PreAllocateProtectedBuffer
+ *                  3. result: surfaceNode drmNodes andd screenNode are not nullptr
+ */
+HWTEST_F(RSDrmUtilTest, MarkBlurIntersectWithDRMForAllParentFilter004, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "SCBBannerNotification";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    Color color(10, 10, 10, 10);
+    surfaceNode->renderProperties_.SetBackgroundBlurMaskColor(color);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+    drmNode->instanceRootNodeId_ = drmNode->GetId();
+    Occlusion::Region region1({120, 50, 1000, 1500});
+    drmNode->SetVisibleRegion(region1);
+
+    // let drm intersect with blur
+    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(drmNode);
+
+    NodeId id = 0;
+    ScreenId screenId = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes;
+    drmNodes.push_back(drmNode);
+    RSDrmUtil::MarkBlurIntersectWithDRMForAllParentFilter(surfaceNode, drmNodes, screenNode);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
 }
 }

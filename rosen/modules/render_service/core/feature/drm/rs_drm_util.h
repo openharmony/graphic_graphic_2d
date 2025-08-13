@@ -34,7 +34,20 @@ public:
     static void DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::Matrix hwcMatrix);
     static void PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
+    static void MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
+        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
+        const std::shared_ptr<RSScreenRenderNode>& curScreenNode);
 private:
+    static void MarkBlurIntersectWithDRMForAllParentFilter(const std::shared_ptr<RSRenderNode>& node,
+        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
+        const std::shared_ptr<RSScreenRenderNode>& curScreenNode);
+    static void MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
+        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes);
+    static bool IsDRMBelowFilter(const std::shared_ptr<RSScreenRenderNode>& curScreenNode,
+        const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode,
+        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes);
+    static bool GetDarkColorMode(const std::shared_ptr<RSRenderNode>& node,
+        const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode);
     inline static std::unordered_map<NodeId, // map<first level node ID, drm surface node>
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_ = {};
 };
