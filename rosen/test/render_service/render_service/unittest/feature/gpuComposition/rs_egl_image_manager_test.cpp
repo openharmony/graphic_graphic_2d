@@ -372,7 +372,7 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest, TestSize.Level1)
         std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
         renderContext->InitializeEglContext();
         renderContext->SetUpGpuContext();
-        std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
         Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
         std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
         sptr<OHOS::SurfaceBuffer> buffer = nullptr;
