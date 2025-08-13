@@ -35,7 +35,7 @@ void OHLineTypographyFuzz1(const uint8_t* data, size_t size)
     OHOS::Rosen::TypographyStyle typographyStyle;
     typographyStyle.fontSize = std::fabs(fdp.ConsumeFloatingPoint<double>() + 1);
     std::unique_ptr<TypographyCreate> handler = TypographyCreate::Create(typographyStyle, fontCollection);
-    std::string text = "world";
+    std::string text = "World";
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::u16string wideText = convert.from_bytes(text);
     handler->AppendText(wideText);

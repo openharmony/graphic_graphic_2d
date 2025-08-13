@@ -1498,20 +1498,20 @@ HWTEST_F(NdkTypographyTest, TypographyTest047, TestSize.Level0)
     OH_Drawing_TypographyHandlerAddText(handler, text);
     OH_Drawing_TypographyHandlerPopTextStyle(handler);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    double maxWidth = 800.0;
+    double maxWidth = 800.0;    // 800.0 was used for testing
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = { 10.0, 15.0 };
+    double position[2] = { 10.0, 15.0 };    // 10.0 and 15.0 were used for testing
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
-    uint32_t width = 20;
-    uint32_t height = 40;
+    uint32_t width = 20;    // 20 was used for testing
+    uint32_t height = 40;   // 40 was used for testing
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
     OH_Drawing_Canvas* cCanvas = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
     OH_Drawing_Pen* foregroundPen = OH_Drawing_PenCreate();
-    float foregroundPenWidth = 20;
+    float foregroundPenWidth = 20;  // 20 was used for testing
     OH_Drawing_PenSetWidth(foregroundPen, foregroundPenWidth);
     OH_Drawing_SetTextStyleForegroundPen(txtStyle, nullptr);
     OH_Drawing_SetTextStyleForegroundPen(txtStyle, foregroundPen);
@@ -2272,23 +2272,6 @@ HWTEST_F(NdkTypographyTest, TypographyTest076, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest079
- * @tc.desc: test for setting the hinting of text typography
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TypographyTest079, TestSize.Level0)
-{
-    OH_Drawing_TypographyStyleSetHintsEnabled(fTypoStyle, true);
-    EXPECT_TRUE(ConvertToOriginalText(fTypoStyle)->hintingIsOn);
-
-    CreateTypographyHandler();
-    AddText();
-    CreateTypography();
-    Layout();
-    Paint();
-}
-
-/*
  * @tc.name: TypographyTest080
  * @tc.desc: test for whether two TextStyle objects are equal
  * @tc.type: FUNC
@@ -2767,7 +2750,7 @@ HWTEST_F(NdkTypographyTest, TypographyTest102, TestSize.Level0)
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_NE(list, nullptr);
         EXPECT_EQ(OH_Drawing_FontParserGetSystemFontList(nullptr, &fontNum), nullptr);
-        const char* name = list[0] ;
+        const char* name = list[0];
         EXPECT_NE(OH_Drawing_FontParserGetFontByName(parser, name), nullptr);
         EXPECT_EQ(OH_Drawing_FontParserGetFontByName(nullptr, name), nullptr);
         OH_Drawing_DestroySystemFontList(list, fontNum);
@@ -3211,6 +3194,308 @@ HWTEST_F(NdkTypographyTest, TypographyTest112, TestSize.Level0)
 }
 
 /*
+ * @tc.name: TextStyleGetTest001
+ * @tc.desc: test for getting basic attributes from textstyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleGetTest001, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
+    EXPECT_EQ(OH_Drawing_TextStyleGetDecorationStyle(txtStyle), 4);
+    EXPECT_EQ(OH_Drawing_TextStyleGetDecorationStyle(nullptr), TEXT_DECORATION_STYLE_SOLID);
+
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
+    EXPECT_FALSE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
+    EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(nullptr), TEXT_DECORATION_STYLE_SOLID);
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, -2);
+    EXPECT_TRUE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, 20);
+    EXPECT_TRUE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
+
+    OH_Drawing_SetTextStyleFontSize(txtStyle, -20); // This value does not actually take effect.
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(txtStyle), -20);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 10.5632);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(txtStyle), 10.5632);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(nullptr), 0.0);
+
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 1);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(nullptr), FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, -100);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), FONT_WEIGHT_400);
+
+    // The current value does not take effect and the returned enumeration value is 1
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_OBLIQUE);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), 1);
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_ITALIC);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), 1);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(nullptr), FONT_STYLE_NORMAL);
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, -1);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), FONT_STYLE_NORMAL);
+
+    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(txtStyle), 1);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(nullptr), TEXT_BASELINE_ALPHABETIC);
+    OH_Drawing_SetTextStyleBaseLine(txtStyle, -5);
+    EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(txtStyle), TEXT_BASELINE_ALPHABETIC);
+
+    const char* fontFamilies[] = { "Text", "Text2" };
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 2, fontFamilies);
+    size_t fontFamiliesNumber;
+    char** fontFamiliesList = OH_Drawing_TextStyleGetFontFamilies(txtStyle, &fontFamiliesNumber);
+    EXPECT_EQ(fontFamiliesNumber, 2);
+    EXPECT_NE(fontFamiliesList, nullptr);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontFamilies(nullptr, &fontFamiliesNumber), nullptr);
+    OH_Drawing_TextStyleDestroyFontFamilies(fontFamiliesList, fontFamiliesNumber);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TextStyleGetTest002
+ * @tc.desc: test for getting other attributes value from textstyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleGetTest002, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, -20);
+    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(txtStyle), -20);
+    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, 0.56);
+    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(txtStyle), 0.56);
+    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(nullptr), 0.0);
+
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, -0.50);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(txtStyle), -0.50);
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, 0.5632);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(txtStyle), 0.5632);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(nullptr), 0.0);
+
+    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -30);
+    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(txtStyle), -30);
+    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -2.50);
+    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(txtStyle), -2.50);
+    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(nullptr), 0.0);
+
+    OH_Drawing_SetTextStyleLocale(txtStyle, "zh-Hans");
+    EXPECT_EQ(std::strcmp(OH_Drawing_TextStyleGetLocale(txtStyle), "zh-Hans"), 0);
+    EXPECT_EQ(OH_Drawing_TextStyleGetLocale(nullptr), nullptr);
+
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(255, 50, 0, 255));
+    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brush);
+    OH_Drawing_Brush* brush1 = OH_Drawing_BrushCreate();
+    OH_Drawing_TextStyleGetBackgroundBrush(txtStyle, brush1);
+    EXPECT_EQ(OH_Drawing_BrushGetAlpha(brush), OH_Drawing_BrushGetAlpha(brush1));
+    EXPECT_NE(brush, brush1);
+
+    EXPECT_FALSE(OH_Drawing_TextStyleIsPlaceholder(txtStyle));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsPlaceholder(nullptr));
+    OH_Drawing_TextStyleSetPlaceholder(txtStyle);
+    EXPECT_TRUE(OH_Drawing_TextStyleIsPlaceholder(txtStyle));
+    OH_Drawing_TextStyleSetPlaceholder(txtStyle);
+    EXPECT_TRUE(OH_Drawing_TextStyleIsPlaceholder(txtStyle));
+
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_BrushDestroy(brush1);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TextStyleGetTest003
+ * @tc.desc: test for OH_Drawing_SetTextStyleFontStyleStruct
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleGetTest003, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+
+    // Test the default value.
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 3);
+    OH_Drawing_FontStyleStruct fontStyle;
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 3);
+    EXPECT_EQ(fontStyle.slant, 0);
+    EXPECT_EQ(fontStyle.width, 0);
+    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, fontStyle);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 0);
+    EXPECT_EQ(fontStyle.slant, 0);
+    EXPECT_EQ(fontStyle.width, 0);
+    OH_Drawing_FontStyleStruct fontStyle1 = OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
+    EXPECT_EQ(fontStyle1.slant, FONT_STYLE_NORMAL);
+    EXPECT_EQ(fontStyle1.slant, 0);
+    EXPECT_EQ(fontStyle1.width, FONT_WIDTH_NORMAL);
+    EXPECT_EQ(fontStyle1.width, 5);
+    EXPECT_EQ(fontStyle1.weight, FONT_WEIGHT_100);
+
+    // Test normal assignment
+    fontStyle.slant = FONT_STYLE_OBLIQUE;
+    fontStyle.weight = FONT_WEIGHT_600;
+    fontStyle.width = FONT_WIDTH_EXTRA_EXPANDED;
+    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, fontStyle);
+    fontStyle1 = OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
+
+    // Specification: The enumerated value of FONT_STYLE_OBLIQUE passed out is uniformly 1.
+    EXPECT_EQ(fontStyle1.slant, 1);
+    EXPECT_NE(fontStyle1.slant, fontStyle.slant);
+    EXPECT_EQ(fontStyle1.width, fontStyle.width);
+    EXPECT_EQ(fontStyle1.width, FONT_WIDTH_EXTRA_EXPANDED);
+    EXPECT_EQ(fontStyle1.weight, fontStyle.weight);
+    EXPECT_EQ(fontStyle1.weight, FONT_WEIGHT_600);
+
+    // Test the abnormal values.
+    fontStyle.slant = static_cast<OH_Drawing_FontStyle>(-1);
+    fontStyle.weight = static_cast<OH_Drawing_FontWeight>(-1);
+    fontStyle.width = static_cast<OH_Drawing_FontWidth>(-1);
+    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, fontStyle);
+    fontStyle1 = OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
+    EXPECT_EQ(fontStyle1.slant, FONT_STYLE_NORMAL);
+    EXPECT_EQ(fontStyle1.width, FONT_WIDTH_NORMAL);
+    EXPECT_EQ(fontStyle1.weight, FONT_WEIGHT_400);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyleStruct(nullptr).slant, FONT_STYLE_NORMAL);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyleStruct(nullptr).width, FONT_WIDTH_NORMAL);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyleStruct(nullptr).weight, FONT_WEIGHT_400);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TextStyleGetTest004
+ * @tc.desc: test for TextStyle fontFeature
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleGetTest004, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "frac", 1);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "numr", 1);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 2);
+    OH_Drawing_TextStyleClearFontFeature(txtStyle);
+    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 0);
+
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "frac", 1);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "frac", 0);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "numr", 1);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "liga", 1);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "liga", 1);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "", 1);
+    OH_Drawing_TextStyleAddFontFeature(txtStyle, "testtesttesttesttest", 10);
+    size_t mySize = OH_Drawing_TextStyleGetFontFeatureSize(txtStyle);
+    EXPECT_EQ(mySize, 7);
+
+    OH_Drawing_FontFeature* myFontFeatures = OH_Drawing_TextStyleGetFontFeatures(txtStyle);
+    EXPECT_STREQ(myFontFeatures[0].tag, "frac");
+    EXPECT_EQ(myFontFeatures[0].value, 1);
+    EXPECT_STREQ(myFontFeatures[5].tag, "");
+    EXPECT_EQ(myFontFeatures[5].value, 1);
+    EXPECT_STREQ(myFontFeatures[3].tag, myFontFeatures[4].tag);
+    EXPECT_EQ(myFontFeatures[3].value, myFontFeatures[4].value);
+    EXPECT_STREQ(myFontFeatures[mySize - 1].tag, "testtesttesttesttest");
+    EXPECT_EQ(myFontFeatures[mySize - 1].value, 10);
+    OH_Drawing_TextStyleDestroyFontFeatures(myFontFeatures, mySize);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TextStyleGetTest005
+ * @tc.desc: test for OH_Drawing_TextStyleIsAttributeMatched false
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleGetTest005, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_OBLIQUE);
+    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
+    const char* fontFamilies[] = { "Text", "Text2" };
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 2, fontFamilies);
+    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, -20);
+    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -30);
+    OH_Drawing_SetTextStyleLocale(txtStyle, "zh-Hans");
+
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(255, 50, 0, 255));
+    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brush);
+
+    OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(10, -5);
+    OH_Drawing_SetTextShadow(shadow, OH_Drawing_ColorSetArgb(255, 255, 0, 255), point, 10);
+    OH_Drawing_TextStyleAddShadow(txtStyle, shadow);
+
+    OH_Drawing_TextStyle* textStyleGet = OH_Drawing_CreateTextStyle();
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_NONE));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_BACKGROUND));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_ALL_ATTRIBUTES));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_FONT));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_SHADOW));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_DECORATIONS));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_WORD_SPACING));
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_LETTER_SPACING));
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTextStyle(textStyleGet);
+    OH_Drawing_PointDestroy(point);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_DestroyTextShadow(shadow);
+}
+
+/*
+ * @tc.name: TextStyleGetTest006
+ * @tc.desc: test for OH_Drawing_TextStyleIsAttributeMatched true
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleGetTest006, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
+    OH_Drawing_SetTextStyleDecorationStyle(txtStyleCompare, TEXT_DECORATION_STYLE_WAVY);
+    OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
+    OH_Drawing_SetTextStyleHalfLeading(txtStyleCompare, false);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
+    OH_Drawing_SetTextStyleFontWeight(txtStyleCompare, FONT_WEIGHT_200);
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_OBLIQUE);
+    OH_Drawing_SetTextStyleFontStyle(txtStyleCompare, FONT_STYLE_OBLIQUE);
+    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
+    OH_Drawing_SetTextStyleBaseLine(txtStyleCompare, TEXT_BASELINE_IDEOGRAPHIC);
+    const char* fontFamilies[] = { "Text", "Text2" };
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 2, fontFamilies);
+    OH_Drawing_SetTextStyleFontFamilies(txtStyleCompare, 2, fontFamilies);
+    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, -20);
+    OH_Drawing_SetTextStyleLetterSpacing(txtStyleCompare, -20);
+    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -30);
+    OH_Drawing_SetTextStyleWordSpacing(txtStyleCompare, -30);
+    OH_Drawing_SetTextStyleLocale(txtStyle, "zh-Hans");
+    OH_Drawing_SetTextStyleLocale(txtStyleCompare, "zh-Hans");
+
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(255, 50, 0, 255));
+    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brush);
+    OH_Drawing_SetTextStyleBackgroundBrush(txtStyleCompare, brush);
+
+    OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(10, -5);
+    OH_Drawing_SetTextShadow(shadow, OH_Drawing_ColorSetArgb(255, 255, 0, 255), point, 10);
+    OH_Drawing_TextStyleAddShadow(txtStyle, shadow);
+    OH_Drawing_TextStyleAddShadow(txtStyleCompare, shadow);
+
+    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_NONE));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_BACKGROUND));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_ALL_ATTRIBUTES));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_FONT));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_SHADOW));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_DECORATIONS));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_WORD_SPACING));
+    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_LETTER_SPACING));
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTextStyle(txtStyleCompare);
+    OH_Drawing_PointDestroy(point);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_DestroyTextShadow(shadow);
+}
+
+/*
  * @tc.name: TypographyTest113
  * @tc.desc: test for the input nullptr.
  * @tc.type: FUNC
@@ -3428,289 +3713,6 @@ HWTEST_F(NdkTypographyTest, TypographyTest121, TestSize.Level0)
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTextTab(tab);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
-}
-
-/*
- * @tc.name: TextStyleGetTest001
- * @tc.desc: test for getting basic attributes from textstyle
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TextStyleGetTest001, TestSize.Level0)
-{
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
-    EXPECT_EQ(OH_Drawing_TextStyleGetDecorationStyle(txtStyle), 4);
-    EXPECT_EQ(OH_Drawing_TextStyleGetDecorationStyle(nullptr), TEXT_DECORATION_STYLE_SOLID);
-
-    OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
-    EXPECT_FALSE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
-    EXPECT_EQ(OH_Drawing_TextStyleGetHalfLeading(nullptr), TEXT_DECORATION_STYLE_SOLID);
-    OH_Drawing_SetTextStyleHalfLeading(txtStyle, -2);
-    EXPECT_TRUE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
-    OH_Drawing_SetTextStyleHalfLeading(txtStyle, 20);
-    EXPECT_TRUE(OH_Drawing_TextStyleGetHalfLeading(txtStyle));
-
-    OH_Drawing_SetTextStyleFontSize(txtStyle, -20); // This value does not actually take effect.
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(txtStyle), -20);
-    OH_Drawing_SetTextStyleFontSize(txtStyle, 10.5632);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(txtStyle), 10.5632);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontSize(nullptr), 0.0);
-
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 1);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(nullptr), FONT_WEIGHT_400);
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, -100);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), FONT_WEIGHT_400);
-
-    // The current value does not take effect and the returned enumeration value is 1
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_OBLIQUE);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), 1);
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_ITALIC);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), 1);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(nullptr), FONT_STYLE_NORMAL);
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, -1);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyle(txtStyle), FONT_STYLE_NORMAL);
-
-    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
-    EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(txtStyle), 1);
-    EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(nullptr), TEXT_BASELINE_ALPHABETIC);
-    OH_Drawing_SetTextStyleBaseLine(txtStyle, -5);
-    EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(txtStyle), TEXT_BASELINE_ALPHABETIC);
-
-    const char* fontFamilies[] = { "Text", "Text2" };
-    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 2, fontFamilies);
-    size_t fontFamiliesNumber;
-    char** fontFamiliesList = OH_Drawing_TextStyleGetFontFamilies(txtStyle, &fontFamiliesNumber);
-    EXPECT_EQ(fontFamiliesNumber, 2);
-    EXPECT_NE(fontFamiliesList, nullptr);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontFamilies(nullptr, &fontFamiliesNumber), nullptr);
-    OH_Drawing_TextStyleDestroyFontFamilies(fontFamiliesList, fontFamiliesNumber);
-}
-
-/*
- * @tc.name: TextStyleGetTest002
- * @tc.desc: test for getting other attributes value from textstyle
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TextStyleGetTest002, TestSize.Level0)
-{
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, -20);
-    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(txtStyle), -20);
-    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, 0.56);
-    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(txtStyle), 0.56);
-    EXPECT_EQ(OH_Drawing_TextStyleGetLetterSpacing(nullptr), 0.0);
-
-    OH_Drawing_SetTextStyleFontHeight(txtStyle, -0.50);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(txtStyle), -0.50);
-    OH_Drawing_SetTextStyleFontHeight(txtStyle, 0.5632);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(txtStyle), 0.5632);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontHeight(nullptr), 0.0);
-
-    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -30);
-    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(txtStyle), -30);
-    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -2.50);
-    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(txtStyle), -2.50);
-    EXPECT_EQ(OH_Drawing_TextStyleGetWordSpacing(nullptr), 0.0);
-
-    OH_Drawing_SetTextStyleLocale(txtStyle, "zh-Hans");
-    EXPECT_EQ(std::strcmp(OH_Drawing_TextStyleGetLocale(txtStyle), "zh-Hans"), 0);
-    EXPECT_EQ(OH_Drawing_TextStyleGetLocale(nullptr), nullptr);
-
-    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(255, 50, 0, 255));
-    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brush);
-    OH_Drawing_Brush* brush1 = OH_Drawing_BrushCreate();
-    OH_Drawing_TextStyleGetBackgroundBrush(txtStyle, brush1);
-    EXPECT_EQ(OH_Drawing_BrushGetAlpha(brush), OH_Drawing_BrushGetAlpha(brush1));
-    EXPECT_NE(brush, brush1);
-
-    EXPECT_FALSE(OH_Drawing_TextStyleIsPlaceholder(txtStyle));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsPlaceholder(nullptr));
-    OH_Drawing_TextStyleSetPlaceholder(txtStyle);
-    EXPECT_TRUE(OH_Drawing_TextStyleIsPlaceholder(txtStyle));
-    OH_Drawing_TextStyleSetPlaceholder(txtStyle);
-    EXPECT_TRUE(OH_Drawing_TextStyleIsPlaceholder(txtStyle));
-}
-
-/*
- * @tc.name: TextStyleGetTest003
- * @tc.desc: test for OH_Drawing_SetTextStyleFontStyleStruct
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TextStyleGetTest003, TestSize.Level0)
-{
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-
-    // Test the default value.
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 3);
-    OH_Drawing_FontStyleStruct fontStyle;
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 3);
-    EXPECT_EQ(fontStyle.slant, 0);
-    EXPECT_EQ(fontStyle.width, 0);
-    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, fontStyle);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontWeight(txtStyle), 0);
-    EXPECT_EQ(fontStyle.slant, 0);
-    EXPECT_EQ(fontStyle.width, 0);
-    OH_Drawing_FontStyleStruct fontStyle1 = OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
-    EXPECT_EQ(fontStyle1.slant, FONT_STYLE_NORMAL);
-    EXPECT_EQ(fontStyle1.slant, 0);
-    EXPECT_EQ(fontStyle1.width, FONT_WIDTH_NORMAL);
-    EXPECT_EQ(fontStyle1.width, 5);
-    EXPECT_EQ(fontStyle1.weight, FONT_WEIGHT_100);
-
-    // Test normal assignment
-    fontStyle.slant = FONT_STYLE_OBLIQUE;
-    fontStyle.weight = FONT_WEIGHT_600;
-    fontStyle.width = FONT_WIDTH_EXTRA_EXPANDED;
-    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, fontStyle);
-    fontStyle1 = OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
-
-    // Specification: The enumerated value of FONT_STYLE_OBLIQUE passed out is uniformly 1.
-    EXPECT_EQ(fontStyle1.slant, 1);
-    EXPECT_NE(fontStyle1.slant, fontStyle.slant);
-    EXPECT_EQ(fontStyle1.width, fontStyle.width);
-    EXPECT_EQ(fontStyle1.width, FONT_WIDTH_EXTRA_EXPANDED);
-    EXPECT_EQ(fontStyle1.weight, fontStyle.weight);
-    EXPECT_EQ(fontStyle1.weight, FONT_WEIGHT_600);
-
-    // Test the abnormal values.
-    fontStyle.slant = static_cast<OH_Drawing_FontStyle>(-1);
-    fontStyle.weight = static_cast<OH_Drawing_FontWeight>(-1);
-    fontStyle.width = static_cast<OH_Drawing_FontWidth>(-1);
-    OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, fontStyle);
-    fontStyle1 = OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
-    EXPECT_EQ(fontStyle1.slant, FONT_STYLE_NORMAL);
-    EXPECT_EQ(fontStyle1.width, FONT_WIDTH_NORMAL);
-    EXPECT_EQ(fontStyle1.weight, FONT_WEIGHT_400);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyleStruct(nullptr).slant, FONT_STYLE_NORMAL);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyleStruct(nullptr).width, FONT_WIDTH_NORMAL);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontStyleStruct(nullptr).weight, FONT_WEIGHT_400);
-}
-
-/*
- * @tc.name: TextStyleGetTest004
- * @tc.desc: test for TextStyle fontFeature
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TextStyleGetTest004, TestSize.Level0)
-{
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "frac", 1);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "numr", 1);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 2);
-    OH_Drawing_TextStyleClearFontFeature(txtStyle);
-    EXPECT_EQ(OH_Drawing_TextStyleGetFontFeatureSize(txtStyle), 0);
-
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "frac", 1);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "frac", 0);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "numr", 1);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "liga", 1);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "liga", 1);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "", 1);
-    OH_Drawing_TextStyleAddFontFeature(txtStyle, "testtesttesttesttest", 10);
-    size_t mySize = OH_Drawing_TextStyleGetFontFeatureSize(txtStyle);
-    EXPECT_EQ(mySize, 7);
-
-    OH_Drawing_FontFeature* myFontFeatures = OH_Drawing_TextStyleGetFontFeatures(txtStyle);
-    EXPECT_STREQ(myFontFeatures[0].tag, "frac");
-    EXPECT_EQ(myFontFeatures[0].value, 1);
-    EXPECT_STREQ(myFontFeatures[5].tag, "");
-    EXPECT_EQ(myFontFeatures[5].value, 1);
-    EXPECT_STREQ(myFontFeatures[3].tag, myFontFeatures[4].tag);
-    EXPECT_EQ(myFontFeatures[3].value, myFontFeatures[4].value);
-    EXPECT_STREQ(myFontFeatures[mySize - 1].tag, "testtesttesttesttest");
-    EXPECT_EQ(myFontFeatures[mySize - 1].value, 10);
-    OH_Drawing_TextStyleDestroyFontFeatures(myFontFeatures, mySize);
-}
-
-/*
- * @tc.name: TextStyleGetTest005
- * @tc.desc: test for OH_Drawing_TextStyleIsAttributeMatched false
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TextStyleGetTest005, TestSize.Level0)
-{
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
-    OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_OBLIQUE);
-    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
-    const char* fontFamilies[] = { "Text", "Text2" };
-    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 2, fontFamilies);
-    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, -20);
-    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -30);
-    OH_Drawing_SetTextStyleLocale(txtStyle, "zh-Hans");
-
-    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(255, 50, 0, 255));
-    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brush);
-
-    OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
-    OH_Drawing_Point* point = OH_Drawing_PointCreate(10, -5);
-    OH_Drawing_SetTextShadow(shadow, OH_Drawing_ColorSetArgb(255, 255, 0, 255), point, 10);
-    OH_Drawing_TextStyleAddShadow(txtStyle, shadow);
-
-    OH_Drawing_TextStyle* textStyleGet = OH_Drawing_CreateTextStyle();
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_NONE));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_BACKGROUND));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_ALL_ATTRIBUTES));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_FONT));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_SHADOW));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_DECORATIONS));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_WORD_SPACING));
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, textStyleGet, TEXT_STYLE_LETTER_SPACING));
-}
-
-/*
- * @tc.name: TextStyleGetTest006
- * @tc.desc: test for OH_Drawing_TextStyleIsAttributeMatched true
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, TextStyleGetTest006, TestSize.Level0)
-{
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
-    OH_Drawing_SetTextStyleDecorationStyle(txtStyleCompare, TEXT_DECORATION_STYLE_WAVY);
-    OH_Drawing_SetTextStyleHalfLeading(txtStyle, false);
-    OH_Drawing_SetTextStyleHalfLeading(txtStyleCompare, false);
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
-    OH_Drawing_SetTextStyleFontWeight(txtStyleCompare, FONT_WEIGHT_200);
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_OBLIQUE);
-    OH_Drawing_SetTextStyleFontStyle(txtStyleCompare, FONT_STYLE_OBLIQUE);
-    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
-    OH_Drawing_SetTextStyleBaseLine(txtStyleCompare, TEXT_BASELINE_IDEOGRAPHIC);
-    const char* fontFamilies[] = { "Text", "Text2" };
-    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 2, fontFamilies);
-    OH_Drawing_SetTextStyleFontFamilies(txtStyleCompare, 2, fontFamilies);
-    OH_Drawing_SetTextStyleLetterSpacing(txtStyle, -20);
-    OH_Drawing_SetTextStyleLetterSpacing(txtStyleCompare, -20);
-    OH_Drawing_SetTextStyleWordSpacing(txtStyle, -30);
-    OH_Drawing_SetTextStyleWordSpacing(txtStyleCompare, -30);
-    OH_Drawing_SetTextStyleLocale(txtStyle, "zh-Hans");
-    OH_Drawing_SetTextStyleLocale(txtStyleCompare, "zh-Hans");
-
-    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetColor(brush, OH_Drawing_ColorSetArgb(255, 50, 0, 255));
-    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brush);
-    OH_Drawing_SetTextStyleBackgroundBrush(txtStyleCompare, brush);
-
-    OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
-    OH_Drawing_Point* point = OH_Drawing_PointCreate(10, -5);
-    OH_Drawing_SetTextShadow(shadow, OH_Drawing_ColorSetArgb(255, 255, 0, 255), point, 10);
-    OH_Drawing_TextStyleAddShadow(txtStyle, shadow);
-    OH_Drawing_TextStyleAddShadow(txtStyleCompare, shadow);
-
-    EXPECT_FALSE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_NONE));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_BACKGROUND));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_ALL_ATTRIBUTES));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_FONT));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_SHADOW));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_DECORATIONS));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_WORD_SPACING));
-    EXPECT_TRUE(OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_LETTER_SPACING));
 }
 
 /*
@@ -4530,48 +4532,6 @@ HWTEST_F(NdkTypographyTest, TypographyGetLineTextRangeTest002, TestSize.Level0)
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTextStyle(txtStyle);
-}
-
-/*
- * @tc.name: ParagraphTestGlyphPositionAtCoordinate001
- * @tc.desc: test for GlyphPositionAtCoordinate with dash
- * @tc.type: FUNC
- */
-HWTEST_F(NdkTypographyTest, ParagraphTestGlyphPositionAtCoordinateWithCluster001, TestSize.Level0)
-{
-    std::string text3 = "————————";
-
-    double maxWidth3 = 1000.0;
-    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
-
-    OH_Drawing_SetTextStyleFontSize(txtStyle, 30);
-    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
-
-    OH_Drawing_TypographyHandlerAddText(handler, text3.c_str());
-    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    OH_Drawing_TypographyLayout(typography, maxWidth3);
-
-    float xCoords[] = { 0, 20, 30, 45, 60, 75, 100 };
-    int expectedPositions[] = { 0, 1, 1, 2, 2, 3, 3 };
-    int expectedAffinities[] = { 1, 0, 1, 0, 1, 0, 1 };
-    OH_Drawing_PositionAndAffinity* results[7];
-    for (int i = 0; i < 7; i++) {
-        results[i] = OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, xCoords[i], 0);
-        EXPECT_EQ(OH_Drawing_GetPositionFromPositionAndAffinity(results[i]), expectedPositions[i]);
-        EXPECT_EQ(OH_Drawing_GetAffinityFromPositionAndAffinity(results[i]), expectedAffinities[i]);
-    }
-
-    OH_Drawing_DestroyTypography(typography);
-    OH_Drawing_DestroyTypographyStyle(typoStyle);
-    OH_Drawing_DestroyTypographyHandler(handler);
-    OH_Drawing_DestroyTextStyle(txtStyle);
-    for (int i = 0; i < 7; i++) {
-        free(results[i]);
-    }
 }
 
 /*

@@ -29,7 +29,7 @@ ohos_unittest("rosen_text_global_test") {
     "-Dprivate=public",
   ]
 
-  defines = [ "OHOS_TEXT_ENABLE" ]
+  defines = [ "ENABLE_OHOS_ENHANCE" ]
   deps = [
     "$rosen_root/modules/2d_graphics:2d_graphics",
     "$rosen_text_root:rosen_text",

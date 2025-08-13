@@ -98,7 +98,7 @@ RegisterError FontCollection::RegisterTypeface(const TypefaceWithAlias& ta)
     std::unique_lock<std::shared_mutex> lock(mutex_);
     if (typefaceSet_.count(ta)) {
         TEXT_LOGI_LIMIT3_MIN(
-            "Find same typeface: family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(), ta.GetHash());
+            "Find same typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(), ta.GetHash());
         return RegisterError::ALREADY_EXIST;
     }
     if (!Drawing::Typeface::GetTypefaceRegisterCallBack()(ta.GetTypeface())) {

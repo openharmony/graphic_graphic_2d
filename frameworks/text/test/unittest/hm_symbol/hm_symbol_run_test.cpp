@@ -1181,7 +1181,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level0)
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     hmSymbolRun.SetSymbolEffect(RSEffectStrategy::DISABLE);
     RSHMSymbolData symbol;
-    std::pair<float, float> offsetXY(10.0f, 15.0f);
+    std::pair<float, float> offsetXY(10.0f, 15.0f); // 10.0f is x, 15.0f is y of offset
     Drawing::DrawingAnimationSetting animationSettingOne = {
         // animationTypes
         {
@@ -1318,7 +1318,7 @@ HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level0)
  * @tc.desc: test SetSymbolShadow with animation current is false and true
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level0)
 {
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     // {10.0F, 10.0f} is offsetXY, 10.0f is radius
@@ -1337,7 +1337,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level1)
  * @tc.desc: test OnDrawSymbol with shadow
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, OnDrawSymbolTestShadow, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, OnDrawSymbolTestShadow, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
@@ -1369,7 +1369,7 @@ HWTEST_F(OHHmSymbolRunTest, OnDrawSymbolTestShadow, TestSize.Level1)
  * @tc.desc: test DrawSymbolShadow
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
@@ -1400,7 +1400,7 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level1)
  * @tc.desc: test DrawSymbolShadow width recordingCanvas
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow002, TestSize.Level0)
 {
     // 100 is width, 200 is height of canvas
     std::shared_ptr<RSRecordingCanvas> rsCanvas = std::make_shared<RSRecordingCanvas>(100, 200);
