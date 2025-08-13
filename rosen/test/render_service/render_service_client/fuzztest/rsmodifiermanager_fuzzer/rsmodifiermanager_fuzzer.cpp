@@ -111,9 +111,9 @@ bool TestHasUIAnimation(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
 
     /* Run your code on data */
     OHOS::Rosen::TestModifierManager(data, size);

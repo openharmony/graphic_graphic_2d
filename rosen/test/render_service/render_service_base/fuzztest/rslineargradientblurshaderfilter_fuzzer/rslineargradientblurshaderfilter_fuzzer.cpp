@@ -65,10 +65,6 @@ T GetData()
 */
 std::string GetStringFromData(int strlen)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
     char cstr[strlen];
     cstr[strlen - 1] = '\0';
     for (int i = 0; i < strlen - 1; i++) {
