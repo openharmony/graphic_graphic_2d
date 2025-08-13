@@ -349,7 +349,7 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 
 uint32_t RSInterfaces::GetRealtimeRefreshRate(ScreenId id)
 {
-    RS_LOGD("GetRealtimeRefreshRate: screenId[%{public}" PRIu64"]", id);
+    RS_LOGD("RSInterfaces::GetRealtimeRefreshRate: id[%{public}" PRIu64"]", id);
     return renderServiceClient_->GetRealtimeRefreshRate(id);
 }
 
