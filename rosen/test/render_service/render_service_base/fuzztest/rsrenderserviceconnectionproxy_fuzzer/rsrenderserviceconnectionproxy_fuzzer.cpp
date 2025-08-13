@@ -37,6 +37,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const uint8_t* g_data = nullptr;
+const std::string XCOMPONENT_ID = "xcomponentId";
 size_t g_size = 0;
 size_t g_pos;
 
@@ -296,7 +297,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(false);
     rsRenderServiceConnectionProxy.RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid1,
         rsIFrameRateLinkerExpectedFpsUpdateCallback);
-    rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, expectedFps);
+    rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, XCOMPONENT_ID, expectedFps);
     return true;
 }
 

@@ -244,7 +244,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallback
 bool MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpdateCallbackSptr(
     MessageParcel& messageParcel, const TestCaseParams& /* testCaseParams */)
 {
-    FrameRateLinkerExpectedFpsUpdateCallback callback = [](int32_t, int32_t) {
+    FrameRateLinkerExpectedFpsUpdateCallback callback = [](int32_t, const std::string&, int32_t) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpdateCallbackSptr "
             "enter dead lock");
         while (true) {}

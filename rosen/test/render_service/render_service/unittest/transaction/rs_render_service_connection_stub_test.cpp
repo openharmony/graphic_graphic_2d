@@ -22,6 +22,9 @@
 #include "limit_number.h"
 #include "mock_hdi_device.h"
 #include "sandbox_utils.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -233,6 +236,15 @@ public:
     virtual ~RSScreenChangeCallbackStubMock() = default;
     void OnScreenChanged(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason) override {};
+};
+
+
+class RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
+public:
+    RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock() = default;
+    virtual ~RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock() = default;
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid,
+        const std::string& xcomponentId, int32_t expectedFps) override {};
 };
 
 void RSRenderServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,
@@ -667,6 +679,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub012
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE)),
         ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE)),
+        ERR_INVALID_DATA);
 }
 
 /**
@@ -891,6 +909,193 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub024
     data.WriteUint64(1);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub029
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub029, TestSize.Level1)
+{
+    int32_t dstPid = 1;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(dstPid);
+    data.WriteBool(true);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub031
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub031, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+    data.WriteBool(true);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub032
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub032, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+    data.WriteInt32(0);
+    data.WriteBool(true);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub033
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub033, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(0);
+    data.WriteBool(false);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub036
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub036, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIFrameRateLinkerExpectedFpsUpdateCallback::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(0);
+    data.WriteString("");
+    data.WriteInt32(0);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub037
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub037, TestSize.Level1)
+{
+    int32_t dstPid = 1;
+    int32_t expectedFps = 60;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIFrameRateLinkerExpectedFpsUpdateCallback::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(dstPid);
+    data.WriteString("xcomponentId");
+    data.WriteInt32(expectedFps);
+    int32_t res = callback->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub034
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub034, TestSize.Level1)
+{
+    int32_t dstPid = 1;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    sptr<RSScreenChangeCallbackStubMock> callback = new RSScreenChangeCallbackStubMock();
+
+    data.WriteString("xcomponent");
+    data.WriteInt32(dstPid);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub035
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub035, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    sptr<RSScreenChangeCallbackStubMock> callback = new RSScreenChangeCallbackStubMock();
+
+    data.WriteString("xcomponent");
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(res, NO_ERROR);
 }
 
 /**

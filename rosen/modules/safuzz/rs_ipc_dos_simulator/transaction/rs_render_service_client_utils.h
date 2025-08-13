@@ -163,12 +163,12 @@ public:
         const FrameRateLinkerExpectedFpsUpdateCallback& callback) : cb_(callback) {}
     ~CustomFrameRateLinkerExpectedFpsUpdateCallback() override {};
 
-    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) override
     {
         ROSEN_LOGD("CustomFrameRateLinkerExpectedFpsUpdateCallback::OnFrameRateLinkerExpectedFpsUpdate called,"
             " pid=%{public}d, fps=%{public}d", dstPid, expectedFps);
         if (cb_ != nullptr) {
-            cb_(dstPid, expectedFps);
+            cb_(dstPid, xcomponentId, expectedFps);
         }
     }
 
