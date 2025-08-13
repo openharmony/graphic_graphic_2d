@@ -864,9 +864,9 @@ bool RSSystemProperties::GetSubtreeParallelEnable()
     return subtreeParallelEnable;
 }
 
-int RSSystemProperties::GetSubtreeDebugOption()
+uint32_t RSSystemProperties::GetSubtreeDebugOption()
 {
-    static const int subtreeDebugOption =
+    static const uint32_t subtreeDebugOption =
         std::atoi((system::GetParameter("persist.sys.graphic.subtreeDebugOption", "0")).c_str());
     return subtreeDebugOption;
 }

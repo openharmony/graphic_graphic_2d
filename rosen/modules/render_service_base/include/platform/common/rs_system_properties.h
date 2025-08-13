@@ -275,7 +275,7 @@ public:
     static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSubtreeParallelEnable();
-    static int GetSubtreeDebugOption();
+    static uint32_t GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
