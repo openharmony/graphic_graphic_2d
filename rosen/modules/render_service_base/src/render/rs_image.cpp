@@ -73,10 +73,10 @@ std::shared_ptr<Drawing::ShaderEffect> RSImage::GenerateImageShaderForDrawRect(
     }
 
     Drawing::Matrix matrix;
-    auto sx = rectForDrawShader_.GetWidth() / src_.GetWidth();
-    auto sy = rectForDrawShader_.GetHeight() / src_.GetHeight();
-    auto tx = rectForDrawShader_.GetLeft() - src_.GetLeft() * sx;
-    auto ty = rectForDrawShader_.GetTop() - src_.GetTop() * sy;
+    auto sx = dstRect_.GetWidth() / src_.GetWidth();
+    auto sy = dstRect_.GetHeight() / src_.GetHeight();
+    auto tx = dstRect_.GetLeft() - src_.GetLeft() * sx;
+    auto ty = dstRect_.GetTop() - src_.GetTop() * sy;
     matrix.SetScaleTranslate(sx, sy, tx, ty);
 
     return Drawing::ShaderEffect::CreateImageShader(
@@ -183,7 +183,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
         }
-        rectForDrawShader_ = dst_;
         if (isFitMatrixValid_) {
             canvas.ConcatMatrix(fitMatrix_.value());
         }
@@ -531,7 +530,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             if (isAstc) {
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
             }
-            rectForDrawShader_ = dst_;
+
             if (isOrientationValid_) {
                 ApplyImageOrientation(canvas);
             }
