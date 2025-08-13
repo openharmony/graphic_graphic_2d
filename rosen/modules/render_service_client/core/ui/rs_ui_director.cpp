@@ -344,7 +344,6 @@ void RSUIDirector::Destroy(bool isTextureExport)
         rootNode_.reset();
     }
     GoBackground(isTextureExport);
-    SendMessages();
     if (rsUIContext_ != nullptr) {
         RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
         rsUIContext_ = nullptr;
@@ -682,7 +681,7 @@ void RSUIDirector::ProcessUIContextMessages(
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
-            ROSEN_LOGE(
+            ROSEN_LOGI(
                 "RSUIDirector::ProcessUIContextMessages, can not get rsUIContext with token:%{public}" PRIu64, token);
             continue;
         }
