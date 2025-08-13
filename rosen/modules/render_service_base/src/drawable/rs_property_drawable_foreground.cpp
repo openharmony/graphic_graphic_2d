@@ -754,6 +754,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
         uniform float specularStrength[12];
+        uniform float borderWidth;
 
         float sdRoundedBox(vec2 p, vec2 b, float r)
         {
@@ -775,12 +776,17 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
             float shininess = 8.0;
             mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
             vec2 halfResolution = iResolution.xy * 0.5;
-            float sd = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius)
-                / halfResolution.y;
-            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
+
+            float gradRadius = min(max(contentBorderRadius, abs(borderWidth) * 3.0), iResolution.y * 0.5);
+            float drawRadius = min(max(contentBorderRadius, abs(borderWidth) * 1.1), iResolution.y * 0.5);
+            float realRoundedBoxSDF =
+                sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
+            float virtualRoundedBoxSDF = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, drawRadius);
+            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, gradRadius);
             for (int i = 0; i < 12; i++) {
                 if (abs(specularStrength[i]) > 0.01) {
-                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution, halfResolution,
+                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
+                        halfResolution,
                         contentBorderRadius); // lightGrad could be pre-computed
                     float angleEfficient = dot(grad, lightGrad);
                     if (angleEfficient > 0.0) {
@@ -790,14 +796,14 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
                         // exponential relationship of angle
                         float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
                         spec *= specularStrength[i];
-                        spec *= smoothstep(-0.28, 0.0, sd);
+                        spec *= smoothstep(-borderWidth, 0.0, virtualRoundedBoxSDF);
                         spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
                         vec4 specularColor = specularLightColor[i];
                         fragColor += specularColor * (spec * angleEfficient);
                     }
                 }
             }
-            return fragColor;
+            return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
         }
     )");
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(lightString);

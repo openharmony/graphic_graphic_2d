@@ -35,7 +35,7 @@ RSComplexShader::RSComplexShader(GexComplexShaderType type)
     type_ = ShaderType::COMPLEX;
 }
   
-void RSComplexShader::MakeDrawingShader(const RectF &rect, std::vector<float> params)
+void RSComplexShader::MakeDrawingShader(const RectF &rect, const std::vector<float> &params)
 {
     shaderEffect_ =
         GetShaderEffect(params, Drawing::Rect{rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight()});
