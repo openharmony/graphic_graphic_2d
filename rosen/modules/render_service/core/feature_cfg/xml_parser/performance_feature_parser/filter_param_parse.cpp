@@ -70,7 +70,6 @@ int32_t FilterParamParse::ParseFilterCacheInternal(xmlNode &node)
             RS_LOGI("FilterParamParse parse MesablurAllEnabled %{public}d", FilterParam::IsMesablurAllEnable());
         } else {
             RS_LOGD("FilterParamParse unknown feature name");
-            return PARSE_ERROR;
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == XML_PARAM_SIMPLIFIED_MESA_MODE && IsNumber(val)) {
@@ -79,7 +78,6 @@ int32_t FilterParamParse::ParseFilterCacheInternal(xmlNode &node)
             RS_LOGI("FilterParamParse parse SetSimplifiedMesaMode %{public}d", FilterParam::GetSimplifiedMesaMode());
         } else {
             RS_LOGD("FilterParamParse unknown feature name");
-            return PARSE_ERROR;
         }
     }
 
