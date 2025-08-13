@@ -114,6 +114,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Width, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center1, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center2, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Turbulence, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, HaloThickness, float);
 
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Mask, MASK_PTR);
 DECLARE_ANIMATABLE_PROPERTY_TAG(MaskTransition, Factor, float);
