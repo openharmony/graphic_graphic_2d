@@ -246,7 +246,7 @@ bool ResschedEventListener::GetFfrtHighPriorityQueue()
             RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY.c_str(), ffrt::queue_attr().qos(ffrt::qos_user_interactive));
     }
     if (ffrtHighPriorityQueue_ == nullptr) {
-        RS_TRACE_NAME("FrameRateStatistics Init ffrtqueue failed!");
+        RS_TRACE_NAME("FrameRateStatistics Init HighPriority ffrtqueue failed!");
         return false;
     }
     return true;
