@@ -903,19 +903,19 @@ void RSSurfaceRenderNode::SetHwcGlobalPositionEnabled(bool isEnabled)
     isHwcGlobalPositionEnabled_ = isEnabled;
 }
 
-void RSSurfaceRenderNode::SetHwcCrossNode(bool isDRMCrossNode)
+void RSSurfaceRenderNode::SetHwcCrossNode(bool isHwcCrossNode)
 {
-    if (isHwcCrossNode_ == isDRMCrossNode) {
+    if (isHwcCrossNode_ == isHwcCrossNode) {
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetHwcCrossNode(isDRMCrossNode);
+    surfaceParams->SetHwcCrossNode(isHwcCrossNode);
     AddToPendingSyncList();
 
-    isHwcCrossNode_ = isDRMCrossNode;
+    isHwcCrossNode_ = isHwcCrossNode;
 }
 
 bool RSSurfaceRenderNode::IsHwcCrossNode() const

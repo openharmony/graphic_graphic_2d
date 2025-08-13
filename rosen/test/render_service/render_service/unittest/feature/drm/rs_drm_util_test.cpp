@@ -88,7 +88,7 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest002, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvCondition: N/A
- * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer ,screennode and output
+ * CaseDescription: 1. preSetup: CreateSurfaceNodeWithBuffer, screenNode and output
  *                  2. operation: PreAllocateProtectedBuffer
  *                  3. result: surfaceHandler is not nullptr, node has ancestor
  */

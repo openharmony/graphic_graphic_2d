@@ -36,7 +36,7 @@ protected:
     static void AddBlackList(const std::string& name);
 
 private:
-    inline static bool isDrmEnable_ = false;
+    inline static bool isDrmEnable_ = true;
     inline static bool isDrmMarkAllParentBlurEnable_ = false;
     inline static std::vector<std::string> whiteMarkBlurList_;
     inline static std::vector<std::string> blackMarkBlurList_;
