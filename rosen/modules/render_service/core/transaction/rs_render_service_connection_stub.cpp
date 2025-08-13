@@ -3389,6 +3389,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            RS_LOGI("RSRenderServiceConnectionStub::SET_TP_FEATURE_CONFIG "
+                "callingPid: %{public}d, featrue: %{public}d, confid:%{public}s, TpFeatureConfigType: %{public}u",
+                callingPid, feature, config, tpFeatureConfigType);
             SetTpFeatureConfig(feature, config, static_cast<TpFeatureConfigType>(tpFeatureConfigType));
             break;
         }

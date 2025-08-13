@@ -50,30 +50,26 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoPostTask(const uint8_t* data, size_t size)
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoPostTask(const uint8_t* data, size_t size)
+{
     RSBackgroundThread::Instance().PostTask([]() {});
     return true;
 }
 bool DoPostSyncTask(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RSBackgroundThread::Instance().PostSyncTask([]() {});
     return true;
 }
@@ -81,14 +77,6 @@ bool DoPostSyncTask(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_GL
 bool DoCreateShareEglContext(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RSBackgroundThread::Instance().CreateShareEglContext();
 #if defined(ACE_ENABLE_GL) || defined(RS_ENABLE_GL)
     RSBackgroundThread::Instance().CreateShareEglContext();
@@ -101,41 +89,17 @@ bool DoCreateShareEglContext(const uint8_t* data, size_t size)
 #endif
 bool DoInitRenderContext(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RenderContext* context = new RenderContext();
     RSBackgroundThread::Instance().InitRenderContext(context);
     return true;
 }
 bool DoGetShareGPUContext(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RSBackgroundThread::Instance().GetShareGPUContext();
     return true;
 }
 bool DoCreateShareGPUContext(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RSBackgroundThread::Instance().GetShareGPUContext();
 #ifdef RS_ENABLE_GL
     RSBackgroundThread::Instance().GetShareGPUContext();
@@ -147,14 +111,6 @@ bool DoCreateShareGPUContext(const uint8_t* data, size_t size)
 }
 bool DoCleanGrResource(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RSBackgroundThread::Instance().CleanGrResource();
     return true;
 }
@@ -165,6 +121,10 @@ bool DoCleanGrResource(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoPostTask(data, size);     // PostTask
     OHOS::Rosen::DoPostSyncTask(data, size); // PostSyncTask

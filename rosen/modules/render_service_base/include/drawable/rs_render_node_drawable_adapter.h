@@ -261,11 +261,11 @@ public:
     }
 
     void SetDrawSkipType(DrawSkipType type) {
-        drawSkipType_ = type;
+        drawSkipType_.store(type);
     }
 
     DrawSkipType GetDrawSkipType() {
-        return drawSkipType_;
+        return drawSkipType_.load();
     }
 
     virtual void Purge()
@@ -382,7 +382,7 @@ private:
     static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
-    DrawSkipType drawSkipType_ = DrawSkipType::NONE;
+    std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;

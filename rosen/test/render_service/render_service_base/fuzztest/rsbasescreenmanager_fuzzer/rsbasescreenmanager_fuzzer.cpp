@@ -56,11 +56,6 @@ bool RSScreenCapabilityFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSScreenCapability screenCapability;
     std::string capName(STRING_LEN, GetData<char>());
     RSScreenProps prop = RSScreenProps(capName, GetData<uint32_t>(), GetData<uint64_t>());
@@ -91,11 +86,6 @@ bool RSScreenHdrCapabilityFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSScreenHDRCapability hdrScreenCapability;
     std::vector<ScreenHDRFormat> hdrFormats = { GetData<ScreenHDRFormat>() };
     hdrScreenCapability.SetMaxLum(GetData<float>());
@@ -116,11 +106,6 @@ bool RSScreenPropsFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSScreenProps props;
     std::string propName(STRING_LEN, GetData<char>());
     props.SetPropertyName(propName);
@@ -138,6 +123,12 @@ bool RSScreenPropsFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
+    /* Run your code on data */
     OHOS::Rosen::RSScreenCapabilityFuzzTest(data, size);
     OHOS::Rosen::RSScreenHdrCapabilityFuzzTest(data, size);
     OHOS::Rosen::RSScreenPropsFuzzTest(data, size);

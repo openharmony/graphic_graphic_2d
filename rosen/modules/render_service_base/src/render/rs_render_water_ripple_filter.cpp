@@ -43,15 +43,18 @@ RSWaterRippleShaderFilter::RSWaterRippleShaderFilter(const float progress, const
     rippleCenterY_ = rippleCenterY;
     rippleMode_ = rippleMode;
 #ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
+    hash_ = SkChecksum::Hash32(&progress_, sizeof(progress_), hash_);
+    hash_ = SkChecksum::Hash32(&waveCount_, sizeof(waveCount_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleMode_, sizeof(rippleMode_), hash_);
 #else
-    const auto hashFunc = SkOpts::hash;
+    hash_ = SkOpts::hash(&progress_, sizeof(progress_), hash_);
+    hash_ = SkOpts::hash(&waveCount_, sizeof(waveCount_), hash_);
+    hash_ = SkOpts::hash(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
+    hash_ = SkOpts::hash(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
+    hash_ = SkOpts::hash(&rippleMode_, sizeof(rippleMode_), hash_);
 #endif
-    hash_ = hashFunc(&progress_, sizeof(progress_), hash_);
-    hash_ = hashFunc(&waveCount_, sizeof(waveCount_), hash_);
-    hash_ = hashFunc(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
-    hash_ = hashFunc(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
-    hash_ = hashFunc(&rippleMode_, sizeof(rippleMode_), hash_);
 }
 
 float RSWaterRippleShaderFilter::GetProgress() const
@@ -89,6 +92,7 @@ void RSWaterRippleShaderFilter::GenerateGEVisualEffect(
     waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, rippleCenterX_);
     waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, rippleCenterY_);
     waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_MODE, rippleMode_);
+
     visualEffectContainer->AddToChainedFilter(waterRippleFilter);
 }
 } // namespace Rosen

@@ -59,11 +59,6 @@ bool RSBoundsClipModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSBoundsClipModifier> modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
 
@@ -88,11 +83,6 @@ bool RSBoundsModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSBoundsModifier> modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
@@ -128,11 +118,6 @@ bool RSFrameClipModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSFrameClipModifier> modifier = std::make_shared<ModifierNG::RSFrameClipModifier>();
 
@@ -153,11 +138,6 @@ bool RSFrameModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSFrameModifier> modifier = std::make_shared<ModifierNG::RSFrameModifier>();
@@ -192,11 +172,6 @@ bool RSTransformModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSTransformModifier> modifier = std::make_shared<ModifierNG::RSTransformModifier>();
@@ -262,6 +237,11 @@ bool RSTransformModifierFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSBoundsClipModifierFuzzTest(data, size);
     OHOS::Rosen::RSBoundsModifierFuzzTest(data, size);

@@ -52,17 +52,20 @@ T GetData()
     return object;
 }
 
-bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
+{
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSBaseNode> child = RSCanvasNode::Create();
     int index = GetData<int>();
@@ -214,15 +217,6 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
 
 bool RSNodeFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
 
@@ -242,6 +236,10 @@ bool RSNodeFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::RSSurfaceNodeFuzzTest(data, size);
     OHOS::Rosen::RSNodeFuzzTest(data, size);

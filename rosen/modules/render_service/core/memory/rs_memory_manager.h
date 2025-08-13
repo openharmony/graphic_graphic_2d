@@ -72,7 +72,11 @@ private:
     static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);
     static void DumpMemorySnapshot(DfxString& log);
     static void FillMemorySnapshot();
-    static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName);
+    static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
+        const std::string& hidumperReport);
+    static void WriteInfoToFile(std::string& filePath, std::string& gpuMemInfo, const std::string& hidumperReport);
+    static bool NeedCleanNow(std::vector<std::string>& needCleanFileName);
+    static void CleanFiles(std::vector<std::string>& needCleanFileName);
     static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
     static void MemoryOverForReport(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap, bool isTotalOver);

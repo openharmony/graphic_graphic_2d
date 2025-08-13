@@ -94,7 +94,7 @@ HWTEST_F(RSShadowTest, LifeCycle001, TestSize.Level1)
     std::shared_ptr<RSShadow> rsShadow = std::make_shared<RSShadow>();
     ASSERT_FALSE(rsShadow->IsValid());
     rsShadow->SetElevation(5.f);
-    ASSERT_FALSE(rsShadow->IsValid());
+    ASSERT_TRUE(rsShadow->IsValid());
 }
 
 /**
@@ -277,7 +277,7 @@ HWTEST_F(RSShadowTest, TestRSShadow002, TestSize.Level1)
 {
     RSShadow shadow;
     shadow.SetElevation(0.1);
-    EXPECT_FALSE(shadow.IsValid());
+    EXPECT_TRUE(shadow.IsValid());
 }
 
 /**

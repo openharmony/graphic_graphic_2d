@@ -79,11 +79,6 @@ bool RSSurfaceFpsFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // getdata
     std::string name = GetStringFromData(STR_LEN);
     std::string result = GetStringFromData(STR_LEN);
@@ -109,10 +104,6 @@ bool RSFirstFrameNotifierTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     pid_t pid = GetData<pid_t>();
     const sptr<RSIFirstFrameCommitCallback> callback;
     RSFirstFrameNotifier::GetInstance().RegisterFirstFrameCommitCallback(pid, callback);
@@ -130,6 +121,11 @@ bool RSFirstFrameNotifierTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSSurfaceFpsFuzzTest(data, size);
     OHOS::Rosen::RSFirstFrameNotifierTest(data, size);

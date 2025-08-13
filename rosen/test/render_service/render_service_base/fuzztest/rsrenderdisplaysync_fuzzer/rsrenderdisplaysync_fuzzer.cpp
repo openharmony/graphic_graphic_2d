@@ -56,11 +56,6 @@ bool DoSetExpectedFrameRateRange(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     int min = GetData<int>();
     int max = GetData<int>();
@@ -85,11 +80,6 @@ bool DoSetAnimateResult(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     RSRenderDisplaySync rsRenderDisplaySync(id);
 
@@ -108,11 +98,6 @@ bool DoGetNearestFrameRate(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     int32_t num = GetData<int32_t>();
     int32_t value = GetData<int32_t>();
@@ -128,6 +113,11 @@ bool DoGetNearestFrameRate(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoSetExpectedFrameRateRange(data, size);
     OHOS::Rosen::DoSetAnimateResult(data, size);

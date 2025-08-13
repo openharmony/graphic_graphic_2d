@@ -37,10 +37,6 @@ namespace {
 
 void BitmapFuzzTest000(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t width = GetObject<uint32_t>();
     uint32_t height = GetObject<uint32_t>();
     int32_t enum_1 = GetObject<int32_t>();
@@ -68,10 +64,6 @@ void BitmapFuzzTest000(const uint8_t* data, size_t size)
 
 void BitmapFuzzTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>() % MAX_ARRAY_SIZE;
     int32_t height = GetObject<int32_t>() % MAX_ARRAY_SIZE;
   
@@ -105,10 +97,6 @@ void BitmapFuzzTest001(const uint8_t* data, size_t size)
 
 void BitmapFuzzTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetObject<int32_t>() % MAX_ARRAY_SIZE;
     int32_t height = GetObject<int32_t>() % MAX_ARRAY_SIZE;
     int32_t width1 = GetObject<int32_t>() % width;
@@ -145,6 +133,11 @@ void BitmapFuzzTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::Drawing::BitmapFuzzTest000(data, size);
     OHOS::Rosen::Drawing::BitmapFuzzTest001(data, size);

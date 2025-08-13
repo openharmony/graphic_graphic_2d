@@ -60,11 +60,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
     int32_t offsetX = GetData<int32_t>();
@@ -104,11 +99,6 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
@@ -129,11 +119,6 @@ bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
@@ -150,11 +135,6 @@ bool DoIsZoomStateChange(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
@@ -170,11 +150,6 @@ bool DoGetSortedChildren(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
@@ -193,11 +168,6 @@ bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
@@ -213,11 +183,6 @@ bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
@@ -235,6 +200,11 @@ bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::Rosen::DoUpdateScreenRenderParams(data, size);

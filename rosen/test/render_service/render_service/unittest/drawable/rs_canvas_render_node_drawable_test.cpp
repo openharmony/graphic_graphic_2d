@@ -211,7 +211,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest001, TestSize.Level1)
     ASSERT_TRUE(canvas);
     canvasDrawable->OnDraw(*canvas);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-    canvas->SetQuickGetDrawState(true);
+    canvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     canvasDrawable->OnDraw(*canvas);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
 }
@@ -230,17 +230,50 @@ HWTEST(RSCanvasRenderNodeDrawableTest, QuickDrawTest001, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(
         RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    pCanvas->SetQuickGetDrawState(false);
-    canvasDrawable->QuickGetDrawState(*pCanvas);
+    pCanvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::DEFAULT_STATE);
+    canvasDrawable->QuickGetDrawState(pCanvas.get());
 
-    pCanvas->SetQuickGetDrawState(true);
+    pCanvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     canvasDrawable->nodeId_ = 0;
-    canvasDrawable->QuickGetDrawState(*pCanvas);
+    canvasDrawable->QuickGetDrawState(pCanvas.get();
 
     canvasDrawable->nodeId_ = 1;
     canvasDrawable->occlusionCullingEnabled_ = true;
     pCanvas->culledEntireSubtree_.insert(1);
-    canvasDrawable->QuickGetDrawState(*pCanvas);
+    canvasDrawable->QuickGetDrawState(pCanvas.get());
 }
 #endif
+
+/**
+ * @tc.name: IsUiRangeCaptureEndNodeTest
+ * @tc.desc: Test IsUiRangeCaptureEndNode
+ * @tc.type: FUNC
+ * @tc.require: ICS709
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, IsUiRangeCaptureEndNodeTest, TestSize.Level1)
+{
+    NodeId nodeId = 3;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    canvas.SetUICapture(false);
+    CaptureParam params;
+    params.endNodeId_ = INVALID_NODEID;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), false);
+
+    canvas.SetUICapture(true);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), false);
+
+    params.endNodeId_ = 4;
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), false);
+
+    params.endNodeId_ = drawable->GetId();
+    RSUniRenderThread::SetCaptureParam(params);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), true);
+}
 }

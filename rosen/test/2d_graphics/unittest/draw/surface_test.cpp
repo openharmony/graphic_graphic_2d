@@ -17,7 +17,10 @@
 #include "gtest/gtest.h"
 
 #include "draw/surface.h"
+#include "draw/canvas.h"
 #include "effect/color_space.h"
+#include "effect/runtime_shader_builder.h"
+#include "effect/runtime_effect.h"
 #include "image/gpu_context.h"
 
 using namespace testing;
@@ -26,6 +29,23 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class CanvasMakeImage : public Canvas {
+public:
+    explicit CanvasMakeImage(Surface* surface);
+    Drawing::Surface* GetSurface() const override;
+private:
+    Surface* surface_ = nullptr;
+};
+
+CanvasMakeImage::CanvasMakeImage(Surface* surface)
+    : surface_(surface)
+{
+}
+Drawing::Surface* CanvasMakeImage::GetSurface() const
+{
+    return surface_;
+}
+
 class SurfaceTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -290,6 +310,84 @@ HWTEST_F(SurfaceTest, SetHeadroom001, TestSize.Level1)
     ASSERT_TRUE(surface != nullptr);
     surface->SetHeadroom(1.5f);
     ASSERT_EQ(surface->GetHeadroom(), 1.0f);
+}
+
+/**
+ * @tc.name: MakeImageWithCanvas001
+ * @tc.desc: Test for makeImage with canvas.
+ * @tc.type: FUNC
+ * @tc.require:I774GD
+ */
+HWTEST_F(SurfaceTest, MakeImageWithCanvas001, TestSize.Level1)
+{
+    const char* glsl =  R"(
+        uniform shader imageshader0;
+        vec4 main(vec2 drawing_coord) {
+            return imageshader0.eval(drawing_coord);
+        }
+    )";
+    Matrix localMatrix;
+    auto effect = RuntimeEffect::CreateForShader(glsl);
+    RuntimeShaderBuilder builder(effect);
+    auto gpuContext = std::make_shared<GPUContext>();
+    ImageInfo imageInfo;
+    imageInfo = imageInfo.MakeN32Premul(256, 256); // 256 mean size
+    std::shared_ptr<Canvas> canvas = std::make_shared<Canvas>();
+    auto image = builder.MakeImage(*canvas, &localMatrix, imageInfo, false);
+    EXPECT_TRUE(image == nullptr);
+}
+
+/**
+ * @tc.name: MakeImageWithCanvas002
+ * @tc.desc: Test for makeImage with canvas.
+ * @tc.type: FUNC
+ * @tc.require:I774GD
+ */
+HWTEST_F(SurfaceTest, MakeImageWithCanvas002, TestSize.Level1)
+{
+    const char* glsl =  R"(
+        uniform shader imageshader0;
+        vec4 main(vec2 drawing_coord) {
+            return imageshader0.eval(drawing_coord);
+        }
+    )";
+    Matrix localMatrix;
+    auto effect = RuntimeEffect::CreateForShader(glsl);
+    RuntimeShaderBuilder builder(effect);
+    auto gpuContext = std::make_shared<GPUContext>();
+    ImageInfo imageInfo;
+    imageInfo = imageInfo.MakeN32Premul(256, 256); // 256 mean size
+    std::shared_ptr<Canvas> canvas = std::make_shared<Canvas>();
+    auto overDrawCanvas = std::make_shared<OverDrawCanvas>(canvas);
+    overDrawCanvas->SetGrContext(gpuContext);
+    auto image = builder.MakeImage(*overDrawCanvas, &localMatrix, imageInfo, false);
+    EXPECT_TRUE(image == nullptr);
+}
+
+/**
+ * @tc.name: MakeImageWithCanvas003
+ * @tc.desc: Test for makeImage with canvas.
+ * @tc.type: FUNC
+ * @tc.require:I774GD
+ */
+HWTEST_F(SurfaceTest, MakeImageWithCanvas003, TestSize.Level1)
+{
+    const char* glsl =  R"(
+        uniform shader imageshader0;
+        vec4 main(vec2 drawing_coord) {
+            return imageshader0.eval(drawing_coord);
+        }
+    )";
+    Matrix localMatrix;
+    auto effect = RuntimeEffect::CreateForShader(glsl);
+    RuntimeShaderBuilder builder(effect);
+    auto gpuContext = std::make_shared<GPUContext>();
+    ImageInfo imageInfo;
+    imageInfo = imageInfo.MakeN32Premul(256, 256); // 256 mean size
+    auto surface = std::make_unique<Surface>();
+    std::shared_ptr<CanvasMakeImage> canvas = std::make_shared<CanvasMakeImage>(surface.get());
+    auto image = builder.MakeImage(*canvas, &localMatrix, imageInfo, false);
+    EXPECT_TRUE(image == nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

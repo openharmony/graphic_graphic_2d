@@ -34,10 +34,6 @@ bool FontFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
     scalar fSize = GetObject<scalar>();
@@ -52,10 +48,6 @@ bool FontFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     FontMetrics metrics;
@@ -98,10 +90,6 @@ bool FontFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     bool isEmbolden = GetObject<bool>();
@@ -118,10 +106,6 @@ bool FontFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -150,10 +134,6 @@ bool FontFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE;
@@ -191,10 +171,6 @@ bool FontFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -225,10 +201,6 @@ bool FontFuzzTest007(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -250,10 +222,6 @@ bool FontFuzzTest008(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -280,10 +248,6 @@ bool FontFuzzTest009(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE;
@@ -301,10 +265,6 @@ bool FontFuzzTest010(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Font font;
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -331,6 +291,11 @@ bool FontFuzzTest010(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::FontFuzzTest001(data, size);
     OHOS::Rosen::Drawing::FontFuzzTest002(data, size);

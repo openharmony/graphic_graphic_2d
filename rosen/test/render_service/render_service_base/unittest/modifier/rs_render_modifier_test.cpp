@@ -634,25 +634,6 @@ HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterMaskColorRenderModifier001, T
 }
 
 /**
- * @tc.name: RSForegroundUIFilterRenderModifier001
- * @tc.desc: RSForegroundUIFilterRenderModifier001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderModifierTest, RSForegroundUIFilterRenderModifier001, TestSize.Level1)
-{
-    auto prop1 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
-    auto modifier = std::make_shared<RSForegroundUIFilterRenderModifier>(prop1);
-    EXPECT_EQ(modifier->GetProperty(), prop1);
-
-    auto prop2 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
-    modifier->Update(prop2, false);
-
-    Parcel parcel;
-    EXPECT_TRUE(modifier->Marshalling(parcel));
-}
-
-/**
  * @tc.name: RSForegroundNGFilterRenderModifier001
  * @tc.desc: RSForegroundNGFilterRenderModifier001
  * @tc.type: FUNC
@@ -665,25 +646,6 @@ HWTEST_F(RSRenderModifierTest, RSForegroundNGFilterRenderModifier001, TestSize.L
     EXPECT_EQ(modifier->GetProperty(), prop1);
 
     auto prop2 = std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderEdgeLightFilter>>>();
-    modifier->Update(prop2, false);
-
-    Parcel parcel;
-    EXPECT_TRUE(modifier->Marshalling(parcel));
-}
-
-/**
- * @tc.name: RSBackgroundUIFilterRenderModifier001
- * @tc.desc: RSBackgroundUIFilterRenderModifier001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderModifierTest, RSBackgroundUIFilterRenderModifier001, TestSize.Level1)
-{
-    auto prop1 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
-    auto modifier = std::make_shared<RSBackgroundUIFilterRenderModifier>(prop1);
-    EXPECT_EQ(modifier->GetProperty(), prop1);
-
-    auto prop2 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
     modifier->Update(prop2, false);
 
     Parcel parcel;

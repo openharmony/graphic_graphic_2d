@@ -606,7 +606,7 @@ public:
      * @return true if system adaptation is disabled; false otherwise.
      */
     bool GetFgBlurDisableSystemAdaptation() const;
-    
+
     /**
      * @brief Gets light intensity.
      *

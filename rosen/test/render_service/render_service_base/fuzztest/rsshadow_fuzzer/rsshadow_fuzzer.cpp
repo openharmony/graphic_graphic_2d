@@ -59,11 +59,6 @@ bool DoSetColor(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t r = GetData<uint32_t>();
     uint32_t g = GetData<uint32_t>();
     uint32_t b = GetData<uint32_t>();
@@ -78,11 +73,6 @@ bool DoSetOffsetX(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float offsetX = GetData<float>();
     rsShadow->SetOffsetX(offsetX);
     return true;
@@ -92,11 +82,6 @@ bool DoSetOffsetY(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float offsetY = GetData<float>();
     rsShadow->SetOffsetY(offsetY);
@@ -108,11 +93,6 @@ bool DoSetAlpha(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float alpha = GetData<float>();
     rsShadow->SetAlpha(alpha);
     return true;
@@ -122,11 +102,6 @@ bool DoSetElevation(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float elevation = GetData<float>();
     rsShadow->SetElevation(elevation);
@@ -138,11 +113,6 @@ bool DoSetRadius(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float radius = GetData<float>();
     rsShadow->SetRadius(radius);
     return true;
@@ -152,11 +122,6 @@ bool DoSetMask(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     bool imageMask = GetData<bool>();
     rsShadow->SetMask(imageMask);
@@ -168,11 +133,6 @@ bool DoSetIsFilled(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     bool isFilled = GetData<bool>();
     rsShadow->SetIsFilled(isFilled);
     return true;
@@ -183,11 +143,6 @@ bool DoSetColorStrategy(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int colorStrategy = GetData<int>();
     rsShadow->SetColorStrategy(colorStrategy);
     return true;
@@ -197,6 +152,11 @@ bool DoSetColorStrategy(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoSetColor(data, size);
     OHOS::Rosen::DoSetOffsetX(data, size);

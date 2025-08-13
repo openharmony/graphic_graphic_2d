@@ -38,10 +38,6 @@ namespace {
 
 void BrushFuzzTest000(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t aa = GetObject<uint32_t>();
     uint32_t color = GetObject<uint32_t>();
     uint8_t alpha = GetObject<uint8_t>();
@@ -80,10 +76,6 @@ void BrushFuzzTest000(const uint8_t* data, size_t size)
 
 void BrushFuzzTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t color = GetObject<uint32_t>();
     float blurRadius = GetObject<float>();
     float x = GetObject<float>();
@@ -112,10 +104,6 @@ void BrushFuzzTest001(const uint8_t* data, size_t size)
 
 void BrushFuzzTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     float a = GetObject<float>();
     float r = GetObject<float>();
@@ -152,6 +140,11 @@ void BrushFuzzTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::Drawing::BrushFuzzTest000(data, size);
     OHOS::Rosen::Drawing::BrushFuzzTest001(data, size);

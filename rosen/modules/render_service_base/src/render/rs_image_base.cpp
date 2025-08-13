@@ -19,9 +19,6 @@
 #include "image_type.h"
 #include "image/image.h"
 #include "common/rs_background_thread.h"
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "render/rs_resource_manager.h"
-#endif
 #include "common/rs_common_def.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
@@ -524,12 +521,8 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
 }
 #endif
 
-void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
+void RSImageBase::ConvertPixelMapToDrawingImage()
 {
-#if defined(ROSEN_OHOS)
-    // paraUpload only enable in render_service or UnmarshalThread
-    pid_t tid = paraUpload ? getpid() : gettid();
-#endif
     if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
 #if defined(ROSEN_OHOS)
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -550,10 +543,6 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
             }
 #else
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
-#endif
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-            RSResourceManager::Instance().UploadTexture(paraUpload && renderServiceImage_, image_,
-                pixelMap_, uniqueId_);
 #endif
         }
     }

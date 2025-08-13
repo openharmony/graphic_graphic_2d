@@ -57,9 +57,6 @@ void CanvasFuzzTest009(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
@@ -90,9 +87,6 @@ void CanvasFuzzTest008(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Point* point = OH_Drawing_PointCreate(GetObject<float>(), GetObject<float>());
@@ -139,9 +133,6 @@ void CanvasFuzzTest007(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
 
@@ -184,9 +175,6 @@ void CanvasFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(),
@@ -238,9 +226,6 @@ void CanvasFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Image* image = OH_Drawing_ImageCreate();
@@ -287,9 +272,6 @@ void CanvasFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
@@ -340,9 +322,6 @@ void CanvasFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Region* region = OH_Drawing_RegionCreate();
@@ -392,9 +371,6 @@ void CanvasFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
@@ -445,9 +421,6 @@ void CanvasFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
 
@@ -502,9 +475,6 @@ void CanvasFuzzTest010(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
 
@@ -558,9 +528,6 @@ void CanvasFuzzTest011(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
@@ -585,9 +552,6 @@ void CanvasFuzzTest012(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     bool quickReject = GetObject<bool>();
     int32_t width = GetObject<int32_t>();
@@ -623,9 +587,6 @@ void CanvasFuzzTest013(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     bool useCenter = GetObject<bool>();
     float startAngle = GetObject<float>();
@@ -659,9 +620,6 @@ void CanvasFuzzTest014(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Pixelmap_InitializationOptions *options = nullptr;
@@ -712,9 +670,6 @@ void CanvasFuzzTest015(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
@@ -736,13 +691,9 @@ void CanvasFuzzTest015(const uint8_t* data, size_t size)
 
 void CanvasFuzzTest016(const uint8_t* data, size_t size)
 {
-        if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_MAX + 1;
     char* str = new char[count];
@@ -790,17 +741,7 @@ void CanvasFuzzTest017(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    if (data == nullptr || size < DATA_MIN_SIZE) {
-        return;
-    }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
 
     OH_Pixelmap_InitializationOptions *options = nullptr;
@@ -872,6 +813,11 @@ void CanvasFuzzTest017(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);

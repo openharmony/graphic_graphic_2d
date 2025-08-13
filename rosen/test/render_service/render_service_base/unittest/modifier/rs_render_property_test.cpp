@@ -206,7 +206,6 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
     props.push_back(std::make_shared<MockRSRenderProperty<Vector3f>>());
     props.push_back(std::make_shared<MockRSRenderProperty<Vector4f>>());
     props.push_back(std::make_shared<MockRSRenderProperty<Vector4<Color>>>());
-    props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSRenderFilter>>>());
     props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<Drawing::DrawCmdList>>>());
 
     for (auto& prop : props) {

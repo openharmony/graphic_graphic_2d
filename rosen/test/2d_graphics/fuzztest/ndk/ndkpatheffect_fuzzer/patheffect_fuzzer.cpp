@@ -38,10 +38,6 @@ void NativePathEffectTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t number = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
     float* intervals = new float[number];
@@ -67,10 +63,6 @@ void NativePathEffectTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -93,10 +85,6 @@ void NativePathEffectTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t numberOne = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
     float phaseOne = GetObject<float>();
@@ -131,10 +119,6 @@ void NativePathEffectTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float segLength = GetObject<float>();
     float deviation = GetObject<float>();
@@ -148,10 +132,6 @@ void NativePathEffectTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float radius = GetObject<float>();
 
@@ -164,10 +144,6 @@ void NativePathEffectTest006(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float radiusOne = GetObject<float>();
     OH_Drawing_PathEffect* pathEffect1 = OH_Drawing_CreateCornerPathEffect(radiusOne);
@@ -186,6 +162,11 @@ void NativePathEffectTest006(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativePathEffectTest001(data, size);
     OHOS::Rosen::Drawing::NativePathEffectTest002(data, size);

@@ -41,11 +41,6 @@ bool DrawCmdFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     BrushHandle brushHandle;
     brushHandle.colorFilterHandle.size = GetObject<size_t>();
     brushHandle.colorSpaceHandle.size = GetObject<size_t>();
@@ -76,11 +71,6 @@ bool DrawCmdFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     BrushHandle brushHandle;
     brushHandle.colorFilterHandle.size = GetObject<size_t>();
@@ -121,11 +111,6 @@ bool DrawCmdFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -171,11 +156,6 @@ bool DrawCmdFuzzTest004(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
     paintHandle.blenderEnabled = GetObject<bool>();
@@ -217,10 +197,6 @@ bool DrawCmdFuzzTest005(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -261,11 +237,6 @@ bool DrawCmdFuzzTest006(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -301,10 +272,6 @@ bool DrawCmdFuzzTest007(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -342,10 +309,6 @@ bool DrawCmdFuzzTest008(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     int32_t x = GetObject<int32_t>();
     int32_t y = GetObject<int32_t>();
     Point point { x, y };
@@ -384,10 +347,6 @@ bool DrawCmdFuzzTest009(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::vector<Point> points;
     scalar ptOneX = GetObject<scalar>();
     scalar ptOneY = GetObject<scalar>();
@@ -440,11 +399,6 @@ bool DrawCmdFuzzTest010(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     uint32_t strCount = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -501,11 +455,6 @@ bool DrawCmdFuzzTest011(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -539,10 +488,6 @@ bool DrawCmdFuzzTest012(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Region region;
     RectI rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     region.SetRect(rect);
@@ -583,10 +528,6 @@ bool DrawCmdFuzzTest013(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Path path;
     uint32_t strCount = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* str = new char[strCount];
@@ -643,10 +584,6 @@ bool DrawCmdFuzzTest014(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -668,10 +605,6 @@ bool DrawCmdFuzzTest015(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -713,10 +646,6 @@ bool DrawCmdFuzzTest016(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar startPtX = GetObject<scalar>();
     scalar startPtY = GetObject<scalar>();
     scalar endPtX = GetObject<scalar>();
@@ -744,10 +673,6 @@ bool DrawCmdFuzzTest017(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -783,10 +708,6 @@ bool DrawCmdFuzzTest018(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
@@ -809,10 +730,6 @@ bool DrawCmdFuzzTest019(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -852,10 +769,6 @@ bool DrawCmdFuzzTest020(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
@@ -881,10 +794,6 @@ bool DrawCmdFuzzTest021(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -928,10 +837,6 @@ bool DrawCmdFuzzTest022(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Rect otherRect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
@@ -961,10 +866,6 @@ bool DrawCmdFuzzTest023(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1003,10 +904,6 @@ bool DrawCmdFuzzTest024(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar startAngle = GetObject<scalar>();
     scalar sweepAngle = GetObject<scalar>();
@@ -1031,10 +928,6 @@ bool DrawCmdFuzzTest025(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1073,10 +966,6 @@ bool DrawCmdFuzzTest026(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar startAngle = GetObject<scalar>();
     scalar sweepAngle = GetObject<scalar>();
@@ -1101,10 +990,6 @@ bool DrawCmdFuzzTest027(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1140,10 +1025,6 @@ bool DrawCmdFuzzTest028(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
@@ -1166,10 +1047,6 @@ bool DrawCmdFuzzTest029(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1209,10 +1086,6 @@ bool DrawCmdFuzzTest030(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     int32_t x = GetObject<int32_t>();
     int32_t y = GetObject<int32_t>();
     Point point { x, y };
@@ -1237,11 +1110,6 @@ bool DrawCmdFuzzTest031(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
@@ -1275,10 +1143,6 @@ bool DrawCmdFuzzTest032(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar deg = GetObject<scalar>();
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
@@ -1297,10 +1161,6 @@ bool DrawCmdFuzzTest033(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1332,10 +1192,6 @@ bool DrawCmdFuzzTest034(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     ShearOpItem shearOpItem = ShearOpItem(sx, sy);
@@ -1353,10 +1209,6 @@ bool DrawCmdFuzzTest035(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1384,10 +1236,6 @@ bool DrawCmdFuzzTest036(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     FlushOpItem flushOpItem = FlushOpItem();
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
@@ -1403,10 +1251,6 @@ bool DrawCmdFuzzTest037(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1437,10 +1281,6 @@ bool DrawCmdFuzzTest038(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     ColorQuad colorQuad = GetObject<ColorQuad>();
     ClearOpItem clearOpItem = ClearOpItem(colorQuad);
     int32_t width = GetObject<int32_t>();
@@ -1457,10 +1297,6 @@ bool DrawCmdFuzzTest039(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Region region;
     RectI rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     region.SetRect(rect);
@@ -1510,10 +1346,7 @@ bool DrawCmdFuzzTest040(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Vertices vertices;
     VertexMode vertexMode = GetObject<VertexMode>();
     uint32_t arr_size = GetObject<uint32_t>() % MAX_SIZE;
@@ -1589,10 +1422,6 @@ bool DrawCmdFuzzTest041(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1624,10 +1453,6 @@ bool DrawCmdFuzzTest042(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     ColorQuad color = GetObject<ColorQuad>();
     BlendMode mode = GetObject<BlendMode>();
     DrawColorOpItem drawColorOpItem = DrawColorOpItem(color, mode);
@@ -1644,10 +1469,7 @@ bool DrawCmdFuzzTest043(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int bitmapWidth = GetObject<int>() % MATH_TEN;
     int bitmapHeight = GetObject<int>() % MATH_TEN;
@@ -1707,10 +1529,6 @@ bool DrawCmdFuzzTest044(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Bitmap bitmap;
     int bitmapWidth = GetObject<int>() % MATH_TEN;
     int bitmapHeight = GetObject<int>() % MATH_TEN;
@@ -1767,10 +1585,7 @@ bool DrawCmdFuzzTest045(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int bitmapWidth = GetObject<int>() % MATH_TEN;
     int bitmapHeight = GetObject<int>() % MATH_TEN;
@@ -1833,10 +1648,7 @@ bool DrawCmdFuzzTest046(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -1882,10 +1694,6 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Bitmap bitmap;
     int bitmapWidth = GetObject<int>() % MATH_TEN;
     int bitmapHeight = GetObject<int>() % MATH_TEN;
@@ -1936,10 +1744,6 @@ bool DrawCmdFuzzTest048(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Bitmap bitmap;
     int bitmapWidth = GetObject<int>() % MATH_TEN;
     int bitmapHeight = GetObject<int>() % MATH_TEN;
@@ -1997,10 +1801,7 @@ bool DrawCmdFuzzTest049(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int bitmapWidth = GetObject<int>() % MATH_TEN;
     int bitmapHeight = GetObject<int>() % MATH_TEN;
@@ -2062,10 +1863,6 @@ bool DrawCmdFuzzTest050(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Picture picture;
     auto dataVal = std::make_shared<Data>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -2105,10 +1902,6 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2152,10 +1945,6 @@ bool DrawCmdFuzzTest052(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Font font;
     scalar fSize = GetObject<scalar>();
     font.SetSize(fSize);
@@ -2184,10 +1973,6 @@ bool DrawCmdFuzzTest053(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2230,10 +2015,6 @@ bool DrawCmdFuzzTest054(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
@@ -2277,10 +2058,6 @@ bool DrawCmdFuzzTest055(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2308,10 +2085,6 @@ bool DrawCmdFuzzTest056(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     SaveOpItem saveOpItem = SaveOpItem();
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
@@ -2327,10 +2100,6 @@ bool DrawCmdFuzzTest057(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2362,10 +2131,6 @@ bool DrawCmdFuzzTest058(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar dx = GetObject<scalar>();
     scalar dy = GetObject<scalar>();
     TranslateOpItem translateOpItem = TranslateOpItem(dx, dy);
@@ -2383,10 +2148,6 @@ bool DrawCmdFuzzTest059(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2418,10 +2179,6 @@ bool DrawCmdFuzzTest060(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     ScaleOpItem scaleOpItem = ScaleOpItem(sx, sy);
@@ -2439,10 +2196,6 @@ bool DrawCmdFuzzTest061(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2475,10 +2228,6 @@ bool DrawCmdFuzzTest062(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     ClipOp op = GetObject<ClipOp>();
     bool doAntiAlias = GetObject<bool>();
@@ -2496,10 +2245,6 @@ bool DrawCmdFuzzTest063(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2531,10 +2276,6 @@ bool DrawCmdFuzzTest064(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     RectI rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     ClipOp op = GetObject<ClipOp>();
     ClipIRectOpItem clipIRectOpItem = ClipIRectOpItem(rect, op);
@@ -2552,10 +2293,6 @@ bool DrawCmdFuzzTest065(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2592,10 +2329,6 @@ bool DrawCmdFuzzTest066(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
@@ -2617,10 +2350,6 @@ bool DrawCmdFuzzTest067(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Path path;
     uint32_t strCount = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* str = new char[strCount];
@@ -2669,10 +2398,6 @@ bool DrawCmdFuzzTest068(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2706,10 +2431,6 @@ bool DrawCmdFuzzTest069(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     scalar sz = GetObject<scalar>();
@@ -2736,10 +2457,6 @@ bool DrawCmdFuzzTest070(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2767,10 +2484,6 @@ bool DrawCmdFuzzTest071(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     ResetMatrixOpItem resetMatrixOpItem = ResetMatrixOpItem();
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
@@ -2786,10 +2499,6 @@ bool DrawCmdFuzzTest072(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2823,10 +2532,6 @@ bool DrawCmdFuzzTest073(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     scalar sz = GetObject<scalar>();
@@ -2853,10 +2558,6 @@ bool DrawCmdFuzzTest074(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2897,10 +2598,6 @@ bool DrawCmdFuzzTest075(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2945,10 +2642,6 @@ bool DrawCmdFuzzTest076(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -2990,10 +2683,6 @@ bool DrawCmdFuzzTest077(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -3026,10 +2715,6 @@ bool DrawCmdFuzzTest078(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -3062,10 +2747,6 @@ bool DrawCmdFuzzTest079(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -3104,10 +2785,6 @@ bool DrawCmdFuzzTest080(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -3138,10 +2815,6 @@ bool DrawCmdFuzzTest081(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -3209,10 +2882,6 @@ bool DrawCmdFuzzTest082(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Path path;
     uint32_t strCount = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* str = new char[strCount];
@@ -3262,6 +2931,11 @@ bool DrawCmdFuzzTest082(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::DrawCmdFuzzTest001(data, size);
     OHOS::Rosen::Drawing::DrawCmdFuzzTest002(data, size);

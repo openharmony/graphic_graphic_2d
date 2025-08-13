@@ -225,10 +225,6 @@ ADD_COMMAND(RSUpdatePropertyMatrix3f,
 ADD_COMMAND(RSUpdatePropertyQuaternion,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_QUATERNION,
         RSNodeCommandHelper::UpdateProperty<Quaternion>, NodeId, Quaternion, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyUIFilter,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_UI_FILTER_PTR,
-        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSRenderFilter>>,
-        NodeId, std::shared_ptr<RSRenderFilter>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyNGFilterBase,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_FILTER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderFilterBase>>,

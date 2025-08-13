@@ -538,7 +538,6 @@ private:
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
     void ProcessScreenHotPlugEvents();
-    void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
@@ -745,14 +744,6 @@ private:
     RSTaskMessage::RSTask unmarshalBarrierTask_;
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;
-
-#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
-    RSTaskMessage::RSTask uploadTextureBarrierTask_;
-    std::condition_variable uploadTextureTaskCond_;
-    std::mutex uploadTextureMutex_;
-    int32_t uploadTextureFinishedCount_ = 0;
-    EGLSyncKHR uploadTextureFence;
-#endif
 
     mutable std::mutex uniRenderMutex_;
 

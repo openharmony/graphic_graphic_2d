@@ -180,14 +180,14 @@ public:
 
     /**
      * @brief Gets the perspective of modifier.
-     * 
+     *
      * @return A Vector4f object representing the perspective.
      */
     std::optional<Vector4f> GetPersp() const;
 
     /**
      * @brief Gets the alpha of modifier.
-     * 
+     *
      * @return The alpha of the modifier.
      */
     std::optional<float> GetAlpha() const;

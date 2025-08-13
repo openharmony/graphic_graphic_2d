@@ -26,13 +26,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
-#include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
-#include "ui_effect/property/include/rs_ui_content_light_filter.h"
-#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
-#include "ui_effect/property/include/rs_ui_dispersion_filter.h"
-#include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
-#include "ui_effect/property/include/rs_ui_edge_light_filter.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
@@ -1951,9 +1944,7 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
         ROSEN_LOGE("Failed to set backgroundFilter, backgroundFilter is null!");
         return;
     }
-    // planning: remove RSUIFilter and generate composed filter as RSNGFilterBase
     std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
-    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto filterParas = backgroundFilter->GetAllPara();
     for (auto it = filterParas.begin(); it != filterParas.end(); ++it) {
         auto filterPara = *it;
@@ -1987,53 +1978,12 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 SetWaterRippleParams(params, progress);
                 break;
             }
-            case FilterPara::DISPLACEMENT_DISTORT : {
-                auto distortProperty = std::make_shared<RSUIDispDistortFilterPara>();
-                auto filterDistortPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
-                distortProperty->SetDisplacementDistort(filterDistortPara);
-                uiFilter->Insert(distortProperty);
-                break;
-            }
-            case FilterPara::COLOR_GRADIENT : {
-                auto filterColorGradientPara = std::static_pointer_cast<ColorGradientPara>(filterPara);
-                auto colorGradientProperty = std::make_shared<RSUIColorGradientFilterPara>();
-                colorGradientProperty->SetColorGradient(filterColorGradientPara);
-                uiFilter->Insert(colorGradientProperty);
-                break;
-            }
-            case FilterPara::EDGE_LIGHT: {
-                auto edgeLightProperty = std::make_shared<RSUIEdgeLightFilterPara>();
-                auto filterEdgeLightPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
-                edgeLightProperty->SetEdgeLight(filterEdgeLightPara);
-                uiFilter->Insert(edgeLightProperty);
-                break;
-            }
-            case FilterPara::DISPERSION: {
-                auto dispersionProperty = std::make_shared<RSUIDispersionFilterPara>();
-                auto filterDispersionPara = std::static_pointer_cast<DispersionPara>(filterPara);
-                dispersionProperty->SetDispersion(filterDispersionPara);
-                uiFilter->Insert(dispersionProperty);
-                break;
-            }
+            
             default:
                 break;
         }
     }
-    if (!uiFilter->GetAllTypes().empty()) {
-        SetBackgroundUIFilter(uiFilter);
-    }
     SetBackgroundNGFilter(headFilter);
-}
-
-void RSNode::SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter)
-{
-    if (!backgroundFilter) {
-        ROSEN_LOGE("RSNode::SetBackgroundUIFilter background RSUIFilter is nullptr");
-        return;
-    }
-
-    SetUIFilterPropertyNG<ModifierNG::RSBackgroundFilterModifier,
-        &ModifierNG::RSBackgroundFilterModifier::SetUIFilter>(backgroundFilter);
 }
 
 void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter)
@@ -2076,7 +2026,6 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     }
     // To do: generate composed filter here. Now we just set foreground blur in v1.0.
     std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
-    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara == nullptr) {
@@ -2107,39 +2056,13 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto distortionK = distortPara->GetDistortionK();
             SetDistortionK(distortionK);
         }
-        if (filterPara->GetParaType() == FilterPara::BEZIER_WARP) {
-            auto bezierWarpProperty = std::make_shared<RSUIBezierWarpFilterPara>();
-            auto bezierWarpPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
-            bezierWarpProperty->SetBezierWarp(bezierWarpPara);
-            uiFilter->Insert(bezierWarpProperty);
-        }
         if (filterPara->GetParaType() == FilterPara::HDR_BRIGHTNESS_RATIO) {
             auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
             auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
             SetHDRUIBrightness(brightnessRatio);
         }
-        if (filterPara->GetParaType() == FilterPara::CONTENT_LIGHT) {
-            auto contentLightProperty = std::make_shared<RSUIContentLightFilterPara>();
-            auto contentLightPara = std::static_pointer_cast<ContentLightPara>(filterPara);
-            contentLightProperty->SetContentLight(contentLightPara);
-            uiFilter->Insert(contentLightProperty);
-        }
-    }
-    if (!uiFilter->GetAllTypes().empty()) {
-        SetForegroundUIFilter(uiFilter);
     }
     SetForegroundNGFilter(headFilter);
-}
-
-void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter)
-{
-    if (foregroundFilter == nullptr) {
-        ROSEN_LOGE("RSNode::SetForegroundUIFilter foregroundFilter is nullptr");
-        return;
-    }
-
-    SetUIFilterPropertyNG<ModifierNG::RSForegroundFilterModifier,
-        &ModifierNG::RSForegroundFilterModifier::SetUIFilter>(foregroundFilter);
 }
 
 void RSNode::SetHDRUIBrightness(float hdrUIBrightness)
@@ -3650,7 +3573,7 @@ void RSNode::AddChild(SharedPtr child, int index)
                 surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
             RS_TRACE_NAME_FMT("RSNode::AddChild, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
-                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is " PRIu64 "]",
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
                 id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
                 surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
@@ -3891,7 +3814,7 @@ void RSNode::RemoveFromTree()
                 surfaceNode->GetId(), surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
             RS_TRACE_NAME_FMT("RSNode::RemoveFromTree, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
-                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is " PRIu64 "]",
+                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
                 parentPtr->GetId(), parentPtr->GetRSUIContext() ? parentPtr->GetRSUIContext()->GetToken() : 0,
                 surfaceNode->GetId(), surfaceNode->GetName().c_str(),
                 surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
@@ -4228,7 +4151,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
         modifiersNG_.erase(modifier->GetId());
     }
     modifier->OnDetach(); // Detach properties of modifier here
-    DetachUIFilterProperties(modifier);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRemoveModifierNG>(id_, modifier->GetType(), modifier->GetId());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
@@ -4236,38 +4158,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
         std::unique_ptr<RSCommand> cmdForRemote =
             std::make_unique<RSRemoveModifierNG>(id_, modifier->GetType(), modifier->GetId());
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
-    }
-}
-
-void RSNode::DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
-{
-    std::shared_ptr<RSProperty<std::shared_ptr<RSUIFilter>>> property = nullptr;
-    if (modifier->GetType() == ModifierNG::RSModifierType::FOREGROUND_FILTER) {
-        property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
-            modifier->GetProperty(ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER));
-    } else if (modifier->GetType() == ModifierNG::RSModifierType::BACKGROUND_FILTER) {
-        property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
-            modifier->GetProperty(ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER));
-    }
-    if (!property) {
-        return;
-    }
-    auto uiFilter = property->Get();
-    if (!uiFilter) {
-        return;
-    }
-    for (auto type : uiFilter->GetUIFilterTypes()) {
-        auto paraGroup = uiFilter->GetUIFilterPara(type);
-        if (!paraGroup) {
-            continue;
-        }
-        for (auto& prop : paraGroup->GetLeafProperties()) {
-            if (!prop) {
-                continue;
-            }
-            prop->target_.reset();
-            UnregisterProperty(prop->GetId());
-        }
     }
 }
 

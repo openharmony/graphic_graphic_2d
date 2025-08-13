@@ -61,11 +61,6 @@ bool DoRegisterFrameRateLinker(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     auto linkerPtr = std::make_shared<RSRenderFrameRateLinker>(id);
     RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
@@ -78,11 +73,6 @@ bool DoUnregisterFrameRateLinker(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
     rsRenderFrameRateLinkerMap.UnregisterFrameRateLinker(id);
@@ -93,11 +83,6 @@ bool DoFilterFrameRateLinkerByPid(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     int pid = GetData<int>();
     RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
@@ -110,11 +95,6 @@ bool DoGetFrameRateLinker(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
     rsRenderFrameRateLinkerMap.GetFrameRateLinker(id);
@@ -125,11 +105,6 @@ bool DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, siz
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     int listenerPid = GetData<int>();
     uint32_t dstPid = GetData<uint32_t>();
@@ -149,11 +124,6 @@ bool DoUnRegisterExpectedFpsUpdateCallbackByListener(const uint8_t* data, size_t
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     int listenerPid = GetData<int>();
     RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
     rsRenderFrameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(listenerPid);
@@ -166,6 +136,11 @@ bool DoUnRegisterExpectedFpsUpdateCallbackByListener(const uint8_t* data, size_t
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoRegisterFrameRateLinker(data, size);
     OHOS::Rosen::DoUnregisterFrameRateLinker(data, size);

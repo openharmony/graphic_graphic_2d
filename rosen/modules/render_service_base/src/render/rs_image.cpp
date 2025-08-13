@@ -910,15 +910,6 @@ void RSImage::ProcessImageAfterCreation(
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-#if defined(RS_ENABLE_UNI_RENDER)
-        if (pixelMap != nullptr && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
-            rsImage->ConvertPixelMapToDrawingImage(true);
-        }
-#endif
-    }
-#endif
 }
 #endif
 } // namespace Rosen

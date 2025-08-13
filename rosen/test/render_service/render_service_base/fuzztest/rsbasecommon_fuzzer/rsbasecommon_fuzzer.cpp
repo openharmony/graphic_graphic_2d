@@ -82,11 +82,6 @@ bool RSColorFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // getdata
     uint32_t argbInt = GetData<uint32_t>();
     uint32_t rgbaInt = GetData<uint32_t>();
@@ -133,11 +128,6 @@ bool RSObjAbsGeometryFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // getdata
     Drawing::Matrix matrix;
     float offsetX = GetData<float>();
@@ -158,11 +148,6 @@ bool RSObjOcclusionFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // getdata
     int y1 = GetData<int>();
@@ -199,11 +184,6 @@ bool RSThreadHandlerGenericFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // getdata
     RSThreadHandlerGeneric rsthreadhandlergeneric;
     std::shared_ptr<RSTaskMessage> taskHandle = std::make_shared<RSTaskMessage>();
@@ -226,6 +206,11 @@ bool RSThreadHandlerGenericFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSColorFuzzTest(data, size);
     OHOS::Rosen::RSObjAbsGeometryFuzzTest(data, size);

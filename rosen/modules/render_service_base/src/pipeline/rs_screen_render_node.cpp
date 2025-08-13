@@ -116,8 +116,12 @@ void RSScreenRenderNode::SetForceSoftComposite(bool flag)
 
 void RSScreenRenderNode::SetMirrorSource(SharedPtr node)
 {
-    if (!isMirroredScreen_ || node == nullptr) {
+    if (!isMirroredScreen_ || node == nullptr || node == mirrorSource_.lock()) {
         return;
+    }
+
+    if (auto mirrorSource = mirrorSource_.lock()) {
+        mirrorSource->SetHasMirrorScreen(false);
     }
     node->SetHasMirrorScreen(true);
     mirrorSource_ = node;

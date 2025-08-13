@@ -135,10 +135,6 @@
 #include "EGL/eglext.h"
 #endif
 
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "rs_upload_resource_thread.h"
-#endif
-
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -396,17 +392,6 @@ public:
     }
 };
 #endif
-static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
-{
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-    if (isUniRender) {
-        RSUploadResourceThread::Instance().OnProcessBegin();
-    }
-    return;
-#endif
-#endif
-}
 
 RSMainThread* RSMainThread::Instance()
 {
@@ -511,9 +496,6 @@ void RSMainThread::Init()
             };
             RSBackgroundThread::Instance().PostTask(task);
         }
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-        RSUploadResourceThread::Instance().OnRenderEnd();
-#endif
         RSTypefaceCache::Instance().HandleDelayDestroyQueue();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
         ConnectChipsetVsyncSer();
@@ -692,14 +674,6 @@ void RSMainThread::Init()
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
     RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetImageManager());
 #endif
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        RSUploadResourceThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
-#endif
-    }
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
@@ -2220,15 +2194,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
-void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
-{
-#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        WaitUntilUploadTextureTaskFinished(isUniRender_);
-    }
-#endif
-}
-
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
@@ -2424,7 +2389,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                     node->MarkCurrentFrameHardwareEnabled();
                 }
             }
-            WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
@@ -2491,16 +2455,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-            WaitUntilUploadTextureTaskFinished(isUniRender_);
-        }
         lastWatermarkFlag_ = watermarkFlag_;
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
-    } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        WaitUntilUploadTextureTaskFinished(isUniRender_);
     } else {
         RsFrameReport::GetInstance().DirectRenderEnd();
     }
@@ -2690,11 +2649,6 @@ void RSMainThread::Render()
     }
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-#ifdef RS_ENABLE_GPU
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-            WaitUntilUploadTextureTaskFinished(isUniRender_);
-        }
-#endif
         RS_LOGE("Render GetGlobalRootRenderNode fail");
         return;
     }
@@ -5475,6 +5429,7 @@ void RSMainThread::RSScreenNodeListener::OnScreenDisconnect(ScreenId id)
         if (screenNode == nullptr) {
             return;
         }
+        screenNode->ResetMirrorSource();
         context->GetGlobalRootRenderNode()->RemoveChild(screenNode);
         nodeMap.UnregisterRenderNode(screenNode->GetId());
     };

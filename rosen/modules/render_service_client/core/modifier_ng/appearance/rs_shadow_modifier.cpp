@@ -23,7 +23,7 @@ void RSShadowModifier::SetShadowColor(Color color)
 
 Color RSShadowModifier::GetShadowColor() const
 {
-    return Getter(RSPropertyType::SHADOW_COLOR, Color(RgbPalette::Transparent()));
+    return Getter(RSPropertyType::SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR));
 }
 
 void RSShadowModifier::SetShadowOffsetX(float offsetX)

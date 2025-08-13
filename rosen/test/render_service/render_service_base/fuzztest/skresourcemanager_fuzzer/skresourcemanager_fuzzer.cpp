@@ -57,11 +57,6 @@ bool DoHoldResource(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto img = std::make_shared<Drawing::Image>();
     auto surface = std::make_shared<Drawing::Surface>();
     SKResourceManager::Instance().HoldResource(img);
@@ -74,10 +69,6 @@ bool DoReleaseResource(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     SKResourceManager::Instance().ReleaseResource();
     return true;
 }
@@ -87,11 +78,6 @@ bool HaveReleaseableResourceCheck(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     const std::list<std::shared_ptr<Drawing::Surface>> list;
 
@@ -104,6 +90,11 @@ bool HaveReleaseableResourceCheck(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoHoldResource(data, size);
     OHOS::Rosen::DoReleaseResource(data, size);

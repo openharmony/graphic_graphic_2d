@@ -47,6 +47,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     {RSNGEffectType::COLOR_GRADIENT_EFFECT, [] {
             return std::make_shared<RSNGRenderColorGradientEffect>();
         }
+    },
+    {RSNGEffectType::LIGHT_CAVE, [] {
+            return std::make_shared<RSNGRenderLightCave>();
+        }
     }
 };
 

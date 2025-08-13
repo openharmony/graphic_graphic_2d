@@ -38,10 +38,10 @@ const RSShadowRenderModifier::LegacyPropertyApplierMap RSShadowRenderModifier::L
 
 void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetShadowColor(Color());
+    properties.SetShadowColor(Color::FromArgbInt(DEFAULT_SPOT_COLOR));
     properties.SetShadowOffsetX(0.f);
     properties.SetShadowOffsetY(0.f);
-    properties.SetShadowAlpha(0.f);
+    properties.SetShadowAlpha(1.f);
     properties.SetShadowElevation(0.f);
     properties.SetShadowRadius(0.f);
     properties.SetShadowPath(nullptr);

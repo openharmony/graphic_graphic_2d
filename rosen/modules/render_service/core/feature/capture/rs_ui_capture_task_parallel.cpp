@@ -139,7 +139,7 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         return;
     }
     if (!captureConfig.uiCaptureInRangeParam.useBeginNodeSize && !captureHandle->UpdateStartAndEndNodeRect()) {
-        RS_LOGE("RSUICapRSUiCaptureTaskParallel::Capture UpdateStartAndEndNodeRect error!");
+        RS_LOGE("RSUiCaptureTaskParallel::Capture UpdateStartAndEndNodeRect error!");
         ProcessUiCaptureCallback(callback, id, captureConfig, nullptr);
         return;
     }
@@ -326,6 +326,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
         captureConfig_.uiCaptureInRangeParam.endNodeId));
+    DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
     if (HasEndNodeRect() && !isStartEndNodeSame_) {
         auto offScreenWidth = nodeParams->GetBounds().GetWidth();
         auto offScreenHeight = nodeParams->GetBounds().GetHeight();
@@ -357,6 +358,10 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     } else {
         nodeDrawable_->OnCapture(canvas);
     }
+    RS_LOGI("RSUiCaptureTaskParallel::Run: NodeId: [%{public}" PRIu64 "], "
+        "the number of total processedNodes: [%{public}d]",
+        nodeId_, DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());
+    DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
     RSUniRenderThread::ResetCaptureParam();
 #ifdef RS_PROFILER_ENABLED
     // finish capturing if started

@@ -38,9 +38,6 @@ constexpr int MAX_ARRAY_SIZE = 10;
 namespace Drawing {
 void DrawGpuContextFuzzerTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     OH_Drawing_GpuContextOptions ops1;
     ops1.allowPathMaskCaching = GetObject<bool>();
     OH_Drawing_GpuContext* gpuContext1 = OH_Drawing_GpuContextCreateFromGL(ops1);
@@ -61,9 +58,6 @@ void DrawGpuContextFuzzerTest001(const uint8_t* data, size_t size)
 
 void DrawGpuContextFuzzerTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     OH_Drawing_GpuContextOptions ops1 {GetObject<bool>()};
     OH_Drawing_GpuContext* gpuContext1 =  OH_Drawing_GpuContextCreateFromGL(ops1);
 
@@ -112,6 +106,11 @@ void DrawGpuContextFuzzerTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::DrawGpuContextFuzzerTest001(data, size);
     OHOS::Rosen::Drawing::DrawGpuContextFuzzerTest002(data, size);

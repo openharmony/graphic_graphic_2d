@@ -50,17 +50,20 @@ T GetData()
     return object;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoCreate(const uint8_t* data, size_t size)
+{
     // test
     bool isRenderServiceNode = GetData<bool>();
     RSRootNode::Create(isRenderServiceNode);
@@ -69,15 +72,6 @@ bool DoCreate(const uint8_t* data, size_t size)
 
 bool DoGetType(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
@@ -87,15 +81,6 @@ bool DoGetType(const uint8_t* data, size_t size)
 
 bool DoAttachRSSurfaceNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
@@ -107,15 +92,6 @@ bool DoAttachRSSurfaceNode(const uint8_t* data, size_t size)
 
 bool DoSetEnableRender(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
@@ -126,15 +102,6 @@ bool DoSetEnableRender(const uint8_t* data, size_t size)
 
 bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
@@ -147,6 +114,10 @@ bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoCreate(data, size);
     OHOS::Rosen::DoGetType(data, size);
