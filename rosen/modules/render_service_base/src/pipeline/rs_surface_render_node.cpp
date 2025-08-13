@@ -2100,10 +2100,9 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
         DealWithDrawBehindWindowTransparentRegion();
         transparentRegion_.SubSelf(opaqueRegion_);
     }
-    Occlusion::Rect screen{screeninfo};
-    Occlusion::Region screenRegion{screen};
-    transparentRegion_.AndSelf(screenRegion);
-    opaqueRegion_.AndSelf(screenRegion);
+    Occlusion::Region clipRegion{Occlusion::Rect{GetOldDirtyInSurface()}};
+    transparentRegion_.AndSelf(clipRegion);
+    opaqueRegion_.AndSelf(clipRegion);
     occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(
         NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();

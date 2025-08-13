@@ -528,6 +528,29 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion10, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetSurfaceOpaqueRegion11
+ * @tc.desc: test ResetSurfaceOpaqueRegion with surface's display area is empty
+ * @tc.type: FUNC
+ * @tc.require: issueICSKM3
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion11, TestSize.Level1)
+{
+    auto surfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    RectI screenRect{defaultLargeRect};
+    RectI absRect{defaultSmallRect};
+    surfaceRenderNode->SetAbilityBGAlpha(255);
+    constexpr int cornerRadiu{3};
+    Vector4<int> cornerRadius{cornerRadiu, cornerRadiu, cornerRadiu, cornerRadiu};
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    surfaceRenderNode->oldDirtyInSurface_ = RectI();
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
+        screenRect, absRect, ScreenRotation::ROTATION_0, false, cornerRadius);
+    EXPECT_TRUE(surfaceRenderNode->opaqueRegion_.IsEmpty());
+    EXPECT_TRUE(surfaceRenderNode->transparentRegion_.IsEmpty());
+}
+
+/**
  * @tc.name: SetNodeCostTest
  * @tc.desc: function test
  * @tc.type:FUNC
