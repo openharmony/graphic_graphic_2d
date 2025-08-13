@@ -1176,6 +1176,7 @@ void RSJankStats::AvcodecVideoDump(
 void RSJankStats::AvcodecVideoStart(
     const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (avcodecVideoMap_.find(queueId) != avcodecVideoMap_.end()) {
         RS_LOGE("AvcodecVideoStart mission exists. %{public}" PRIu64 ".", queueId);
         return;
@@ -1195,6 +1196,7 @@ void RSJankStats::AvcodecVideoStart(
 
 void RSJankStats::AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName, const uint32_t fps)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it = avcodecVideoMap_.find(queueId);
     if (it == avcodecVideoMap_.end()) {
         RS_LOGE("AvcodecVideoStop mission does not exist. %{public}" PRIu64 ".", queueId);
