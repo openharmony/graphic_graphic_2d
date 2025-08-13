@@ -304,30 +304,31 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurface, TestSize.Level2)
 }
 
 /**
- * @tc.name: MergeFenceForHardwareEnabledDrawablesTest001
- * @tc.desc: Test MergeFenceForHardwareEnabledDrawables, RSRenderThreadParams null or not
+ * @tc.name: MergeMirrorFenceToHardwareEnabledDrawablesTest001
+ * @tc.desc: Test MergeMirrorFenceToHardwareEnabledDrawables, RSRenderThreadParams null or not
  * @tc.type: FUNC
  * @tc.require: issueICNZ6M
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesTest001, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeMirrorFenceToHardwareEnabledDrawablesTest001, TestSize.Level2)
 {
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
-    virtualProcessor->MergeFenceForHardwareEnabledDrawables();
+    virtualProcessor->MergeMirrorFenceToHardwareEnabledDrawables();
     std::unique_ptr<RSRenderThreadParams> newUniParam = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(newUniParam));
-    virtualProcessor->MergeFenceForHardwareEnabledDrawables();
+    ASSERT_EQ(virtualProcessor->renderFrame_, nullptr);
+    virtualProcessor->MergeMirrorFenceToHardwareEnabledDrawables();
 }
 
 #ifdef RS_ENABLE_VK
 /**
- * @tc.name: MergeFenceForHardwareEnabledDrawablesTest002
- * @tc.desc: Test MergeFenceForHardwareEnabledDrawables, acquireFence null, not valid or valid
+ * @tc.name: MergeMirrorFenceToHardwareEnabledDrawablesTest002
+ * @tc.desc: Test MergeMirrorFenceToHardwareEnabledDrawables, acquireFence null, not valid or valid
  * @tc.type: FUNC
  * @tc.require: issueICNZ6M
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesTest002, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeMirrorFenceToHardwareEnabledDrawablesTest002, TestSize.Level2)
 {
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
@@ -344,24 +345,24 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesT
     ASSERT_NE(virtualProcessor->renderFrame_->surfaceFrame_, nullptr);
 
     ASSERT_FALSE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
-    virtualProcessor->MergeFenceForHardwareEnabledDrawables();
+    virtualProcessor->MergeMirrorFenceToHardwareEnabledDrawables();
     virtualProcessor->renderFrame_->acquireFence_ = nullptr;
-    virtualProcessor->MergeFenceForHardwareEnabledDrawables();
+    virtualProcessor->MergeMirrorFenceToHardwareEnabledDrawables();
 
     int fenceFd = open("/data/local/tmpfile", O_RDONLY | O_CREAT);
     virtualProcessor->renderFrame_->acquireFence_ = sptr<SyncFence>(new SyncFence(::dup(fenceFd)));
     ASSERT_TRUE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
-    virtualProcessor->MergeFenceForHardwareEnabledDrawables();
+    virtualProcessor->MergeMirrorFenceToHardwareEnabledDrawables();
     close(fenceFd);
 }
 
 /**
- * @tc.name: MergeFenceForHardwareEnabledDrawablesTest003
- * @tc.desc: Test MergeFenceForHardwareEnabledDrawables, hardware enabled drawables
+ * @tc.name: MergeMirrorFenceToHardwareEnabledDrawablesTest003
+ * @tc.desc: Test MergeMirrorFenceToHardwareEnabledDrawables, hardware enabled drawables
  * @tc.type: FUNC
  * @tc.require: issueICNZ6M
  */
-HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesTest003, TestSize.Level2)
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeMirrorFenceToHardwareEnabledDrawablesTest003, TestSize.Level2)
 {
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
@@ -383,6 +384,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesT
     auto newUniParam = std::make_unique<RSRenderThreadParams>();
     NodeId displayNodeId = 1000;
     NodeId surfaceNodeId = 200;
+    NodeId mirroredScreenId = 300;
+    virtualProcessor->mirroredScreenNodeId_ = mirroredScreenId;
     auto surfaceNode0 = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     auto drawable0 = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(surfaceNode0));
 
@@ -406,13 +409,14 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeFenceForHardwareEnabledDrawablesT
     drawable3->renderParams_->SetBuffer(buffer, damageRect);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable3->renderParams_.get());
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(surfaceNodeId, 0, nullptr));
-    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(surfaceNodeId, displayNodeId, drawable0));
-    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(surfaceNodeId, displayNodeId, drawable1));
-    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(surfaceNodeId, displayNodeId, drawable2));
-    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(surfaceNodeId, displayNodeId, drawable3));
+    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(0, 0, nullptr));
+    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(mirroredScreenId, 0, nullptr));
+    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(mirroredScreenId, displayNodeId, drawable0));
+    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(mirroredScreenId, displayNodeId, drawable1));
+    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(mirroredScreenId, displayNodeId, drawable2));
+    newUniParam->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(mirroredScreenId, displayNodeId, drawable3));
     RSUniRenderThread::Instance().Sync(std::move(newUniParam));
-    virtualProcessor->MergeFenceForHardwareEnabledDrawables();
+    virtualProcessor->MergeMirrorFenceToHardwareEnabledDrawables();
 
     newUniParam = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(newUniParam));

@@ -24,6 +24,11 @@ namespace OHOS {
 namespace Rosen {
 class RSSurfaceFrameDarwin : public RSSurfaceFrame {
 public:
+    RSSurfaceFrameType GetType() const override
+    {
+        return RSSurfaceFrameType::RS_SURFACE_FRAME_DARWIN;
+    }
+
     RSSurfaceFrameDarwin(int32_t width, int32_t height);
     ~RSSurfaceFrameDarwin() override = default;
 

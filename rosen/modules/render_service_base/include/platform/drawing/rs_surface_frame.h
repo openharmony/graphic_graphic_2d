@@ -27,6 +27,11 @@ namespace Rosen {
 class RenderContext;
 class RSSurfaceFrame {
 public:
+    virtual RSSurfaceFrameType GetType() const
+    {
+        return RSSurfaceFrameType::RS_SURFACE_FRAME;
+    }
+
     RSSurfaceFrame() = default;
     virtual ~RSSurfaceFrame() = default;
 

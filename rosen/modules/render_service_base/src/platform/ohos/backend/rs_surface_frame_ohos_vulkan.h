@@ -32,6 +32,11 @@ namespace Rosen {
 
 class RSSurfaceFrameOhosVulkan : public RSSurfaceFrameOhos {
 public:
+    RSSurfaceFrameType GetType() const override
+    {
+        return RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_VULKAN;
+    }
+
     RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width,
         int32_t height, int32_t bufferAge);
     ~RSSurfaceFrameOhosVulkan() override = default;

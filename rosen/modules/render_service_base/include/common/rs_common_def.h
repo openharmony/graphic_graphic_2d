@@ -81,6 +81,17 @@ enum class FollowType : uint8_t {
     FOLLOW_TO_SELF,
 };
 
+enum class RSSurfaceFrameType : uint8_t {
+    NONE = 0,
+    RS_SURFACE_FRAME = 1,
+    RS_SURFACE_FRAME_DARWIN = 2,
+    RS_SURFACE_FRAME_OHOS = 3,
+    RS_SURFACE_FRAME_WINDOWS = 4,
+    RS_SURFACE_FRAME_OHOS_GL = 5,
+    RS_SURFACE_FRAME_OHOS_RASTER = 6,
+    RS_SURFACE_FRAME_OHOS_VULKAN = 7,
+};
+
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
 #define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
 

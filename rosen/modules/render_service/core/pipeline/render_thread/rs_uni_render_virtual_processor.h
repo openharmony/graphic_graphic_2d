@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr uint32_t ROI_REGIONS_MAX_CNT = 8;
 constexpr int32_t NO_SPECIAL_LAYER = 0;
-constexpr int32_t HAS_SPECIAL_LAYER = 0;
+constexpr int32_t HAS_SPECIAL_LAYER = 1;
 struct RoiRegionInfo {
     uint32_t startX = 0;
     uint32_t startY = 0;
@@ -98,8 +98,8 @@ public:
     }
     void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
 private:
-    void MergeFenceForHardwareEnabledDrawables();
-    void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawble,
+    void MergeMirrorFenceToHardwareEnabledDrawables();
+    void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         const sptr<RSScreenManager>& screenManager);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
@@ -136,7 +136,7 @@ private:
     Drawing::Rect visibleRect_;
     sptr<RSScreenManager> screenManager_ = nullptr;
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
-    ScreenId mirroredScreenId_ = INVALID_SCREEN_ID;
+    NodeId mirroredScreenNodeId_ = INVALID_NODEID;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
     bool drawMirrorCopy_ = false;
 };

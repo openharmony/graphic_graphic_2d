@@ -24,6 +24,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "graphic_feature_param_manager.h"
 #include "params/rs_logical_display_render_params.h"
 #include "platform/common/rs_log.h"
@@ -41,7 +42,6 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         return false;
     }
 
-    // Do expand screen if the mirror id is invalid.
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         return false;
@@ -65,7 +65,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     if (enableVisibleRect_) {
         const auto& rect = screenManager->GetMirrorScreenVisibleRect(virtualScreenId_);
         visibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
-        // not support rotation for MirrorScreen visibleRect
+        // set rotation for MirrorScreen visibleRect
         canvasRotation_ = screenManager->IsVisibleRectSupportRotation(virtualScreenId_);
     }
     bool mirrorScreenHDR = false;
@@ -74,6 +74,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     auto mirroredScreenDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     if (mirroredScreenDrawable) {
+        mirroredScreenNodeId_ = mirroredScreenDrawable->GetId();
         auto childDrawables = params->GetDisplayDrawables();
         if (childDrawables.empty() || childDrawables.front() == nullptr) {
             RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: no child display in mirror screen");
@@ -419,7 +420,7 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     }
 }
 
-void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
+void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables()
 {
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (!renderThreadParams) {
@@ -435,12 +436,16 @@ void RSUniRenderVirtualProcessor::MergeFenceForHardwareEnabledDrawables()
         RS_LOGE("RSUniRenderVirtualProcessor::%{public}s acquireFence not valid!", __func__);
         return;
     }
-    for (const auto& [_, __, drawable] : renderThreadParams->GetHardwareEnabledTypeDrawables()) {
+    for (const auto& [screenNodeId, _, drawable] : renderThreadParams->GetHardwareEnabledTypeDrawables()) {
+        if (screenNodeId != mirroredScreenNodeId_) {
+            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s drawable not on mirroredscreen!", __func__);
+            continue;
+        }
         if (!drawable) {
             RS_LOGW("RSUniRenderVirtualProcessor::%{public}s drawable null!", __func__);
             continue;
         }
-        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
         if (!surfaceParams) {
             RS_LOGW("RSUniRenderVirtualProcessor::%{public}s surfaceParams null!", __func__);
@@ -471,8 +476,10 @@ void RSUniRenderVirtualProcessor::PostProcess()
     auto surfaceOhos = renderFrame_->GetSurface();
     RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
-    // Merge virtual screen fence to hardware enabled drawables, preventing buffer from being released too early.
-    MergeFenceForHardwareEnabledDrawables();
+    // Merge virtual mirror screen fence to hardware drawables, preventing buffer from being released too early.
+    if (isMirror_) {
+        MergeMirrorFenceToHardwareEnabledDrawables();
+    }
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
 }
@@ -626,7 +633,7 @@ bool RSUniRenderVirtualProcessor::CheckIfBufferSizeNeedChange(
 }
 
 void RSUniRenderVirtualProcessor::SetVirtualScreenSize(
-    DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawble, const sptr<RSScreenManager>& screenManager)
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const sptr<RSScreenManager>& screenManager)
 {
     auto virtualScreenInfo = screenManager->QueryScreenInfo(virtualScreenId_);
     autoBufferRotation_ = screenManager->GetVirtualScreenAutoRotation(virtualScreenId_);
@@ -634,16 +641,16 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(
         auto rotationDiff = static_cast<int>(screenRotation_) - static_cast<int>(screenCorrection_);
         auto curBufferRotation =
             static_cast<ScreenRotation>((rotationDiff + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
-        ScreenRotation firstBufferRotation = screenNodeDrawble.GetFirstBufferRotation();
+        ScreenRotation firstBufferRotation = screenDrawable.GetFirstBufferRotation();
         if (firstBufferRotation == ScreenRotation::INVALID_SCREEN_ROTATION) {
-            screenNodeDrawble.SetFirstBufferRotation(curBufferRotation);
+            screenDrawable.SetFirstBufferRotation(curBufferRotation);
             RS_LOGI("RSUniRenderVirtualProcessor::%{public}s, set firstBufferRotation: %{public}d,"
                 "width: %{public}" PRIu32 ", height: %{public}" PRIu32, __func__, static_cast<int>(curBufferRotation),
                 renderFrameConfig_.width, renderFrameConfig_.height);
         } else if (CheckIfBufferSizeNeedChange(firstBufferRotation, curBufferRotation)) {
             std::swap(renderFrameConfig_.width, renderFrameConfig_.height);
             std::swap(virtualScreenInfo.width, virtualScreenInfo.height);
-            RS_LOGI("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}" PRIu32
+            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}" PRIu32
                 ", height: %{public}" PRIu32, __func__, renderFrameConfig_.width, renderFrameConfig_.height);
             RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: swap buffer width and height, "
                 "width: %" PRIu32 "height: %" PRIu32, __func__, renderFrameConfig_.width, renderFrameConfig_.height);

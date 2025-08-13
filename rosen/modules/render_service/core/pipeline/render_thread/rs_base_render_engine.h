@@ -80,10 +80,12 @@ public:
     {
         if (targetSurface_ != nullptr && surfaceFrame_ != nullptr) {
             targetSurface_->FlushFrame(surfaceFrame_);
-#ifdef RS_ENABLE_VK
-            auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(surfaceFrame_.get());
-            if (frameOhosVulkan) {
-                acquireFence_ = frameOhosVulkan->GetAcquireFence();
+#if defined(RS_ENABLE_VK)
+            if (surfaceFrame_->GetType() == RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_VULKAN) {
+                auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(surfaceFrame_.get());
+                if (frameOhosVulkan) {
+                    acquireFence_ = frameOhosVulkan->GetAcquireFence();
+                }
             }
 #endif // RS_ENABLE_VK
             targetSurface_ = nullptr;
