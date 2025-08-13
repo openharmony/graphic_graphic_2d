@@ -137,7 +137,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         } else {
             const auto &now = std::chrono::steady_clock::now().time_since_epoch();
             int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-            constexpr int64_t ONE_PERIOD = 8000000;
+            constexpr int64_t ONE_PERIOD = 8333333;
             if (currentTime - time > ONE_PERIOD && time != 0) {
                 RSMainThread::Instance()->RequestNextVSync("UI", time);
             }
