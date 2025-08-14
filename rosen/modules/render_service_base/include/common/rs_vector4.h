@@ -121,6 +121,8 @@ Vector4<T>::Vector4(T value)
 template<typename T>
 Vector4<T>::Vector4(const Vector4<T>& value)
 {
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data0 = value[0];
     T data1 = value[1];
     T data2 = value[2];
@@ -251,6 +253,8 @@ void Vector4<T>::Min(const Vector4<T>& a, const Vector4<T>& b, Vector4<T>& resul
     T* resultData = result.data_;
     const T* aData = a.data_;
     const T* bData = b.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T aData3 = aData[3];
     T aData2 = aData[2];
     T aData1 = aData[1];
@@ -271,6 +275,8 @@ void Vector4<T>::Max(const Vector4<T>& a, const Vector4<T>& b, Vector4<T>& resul
     T* resultData = result.data_;
     const T* aData = a.data_;
     const T* bData = b.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T aData3 = aData[3];
     T aData2 = aData[2];
     T aData1 = aData[1];
@@ -291,6 +297,8 @@ void Vector4<T>::Mix(const Vector4<T>& min, const Vector4<T>& max, T a, Vector4<
     T* resultData = result.data_;
     const T* minData = min.data_;
     const T* maxData = max.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T minData3 = minData[3];
     T minData2 = minData[2];
     T minData1 = minData[1];
@@ -400,6 +408,8 @@ template<typename T>
 Vector4<T>& Vector4<T>::operator*=(const Vector4<T>& other)
 {
     const T* oData = other.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data3 = oData[3];
     T data2 = oData[2];
     T data1 = oData[1];
@@ -426,6 +436,8 @@ template<typename T>
 Vector4<T>& Vector4<T>::operator=(const Vector4<T>& other)
 {
     const T* oData = other.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data3 = oData[3];
     T data2 = oData[2];
     T data1 = oData[1];
@@ -492,6 +504,8 @@ template<typename T>
 void Vector4<T>::Sub(const Vector4<T>& arg)
 {
     const T* argData = arg.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data3 = argData[3];
     T data2 = argData[2];
     T data1 = argData[1];
@@ -506,6 +520,8 @@ template<typename T>
 void Vector4<T>::Add(const Vector4<T>& arg)
 {
     const T* argData = arg.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data3 = argData[3];
     T data2 = argData[2];
     T data1 = argData[1];
@@ -520,6 +536,8 @@ template<typename T>
 void Vector4<T>::Multiply(const Vector4<T>& arg)
 {
     const T* argData = arg.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data3 = argData[3];
     T data2 = argData[2];
     T data1 = argData[1];

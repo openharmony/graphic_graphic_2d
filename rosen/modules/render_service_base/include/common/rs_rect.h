@@ -55,6 +55,8 @@ public:
     }
     RectT(Vector4<T> vector)
     {
+        // Tell the compiler there is no alias and to select wider load/store
+        // instructions.
         T data0 = vector[0];
         T data1 = vector[1];
         T data2 = vector[2];
@@ -66,6 +68,8 @@ public:
     }
     explicit RectT(const T* v)
     {
+        // Tell the compiler there is no alias and to select wider load/store
+        // instructions.
         T data0 = v[0];
         T data1 = v[1];
         T data2 = v[2];
@@ -96,6 +100,8 @@ public:
 
     inline RectT& operator=(const RectT& other)
     {
+        // Tell the compiler there is no alias and to select wider load/store
+        // instructions.
         const T* oData = other.data_;
         T data0 = oData[0];
         T data1 = oData[1];
