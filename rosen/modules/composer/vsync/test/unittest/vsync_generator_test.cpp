@@ -18,6 +18,7 @@
 #include "vsync_distributor.h"
 #include "vsync_receiver.h"
 #include "vsync_iconnection_token.h"
+#include "ffrt_inner.h"
 #include <event_handler.h>
 
 #include <gtest/gtest.h>
@@ -108,6 +109,52 @@ int64_t VSyncGeneratorTestCallback::GetPhaseOffset()
 }
 
 namespace {
+/*
+* Function: ThreadTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test thread
+ */
+HWTEST_F(VSyncGeneratorTest, ThreadTest001, Function | MediumTest| Level0)
+{
+    sptr<impl::VSyncGenerator> generatorImpl = new impl::VSyncGenerator(true);
+    ASSERT_TRUE(generatorImpl->isUseFfrt_);
+    {
+        std::unique_lock<std::mutex> locker(generatorImpl->mutex_);
+        generatorImpl->vsyncThreadRunning_ = false;
+    }
+    if (generatorImpl->ffrtThread_->joinable()) {
+        generatorImpl->con_.notify_all();
+        generatorImpl->ffrtThread_->join();
+    }
+    ASSERT_FALSE(generatorImpl->ffrtThread_->joinable());
+    generatorImpl = nullptr;
+}
+
+/*
+* Function: ThreadTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test thread
+ */
+HWTEST_F(VSyncGeneratorTest, ThreadTest002, Function | MediumTest| Level0)
+{
+    sptr<impl::VSyncGenerator> generatorImpl = new impl::VSyncGenerator();
+    ASSERT_FALSE(generatorImpl->isUseFfrt_);
+    {
+        std::unique_lock<std::mutex> locker(generatorImpl->mutex_);
+        generatorImpl->vsyncThreadRunning_ = false;
+    }
+    if (generatorImpl->thread_.joinable()) {
+        generatorImpl->con_.notify_all();
+        generatorImpl->thread_.join();
+    }
+    ASSERT_FALSE(generatorImpl->thread_.joinable());
+    generatorImpl = nullptr;
+}
+
 /*
 * Function: CheckSampleIsAdaptiveTest001
 * Type: Function
@@ -785,6 +832,24 @@ HWTEST_F(VSyncGeneratorTest, AddListener004, Function | MediumTest| Level0)
 }
 
 /*
+* Function: AddListener005
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddListener
+ */
+HWTEST_F(VSyncGeneratorTest, AddListener005, Function | MediumTest| Level0)
+{
+    sptr<impl::VSyncGenerator> generatorImpl = new impl::VSyncGenerator(true);
+    ASSERT_TRUE(generatorImpl->isUseFfrt_);
+    ASSERT_NE(generatorImpl->ffrtThread_, nullptr);
+    sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
+    ASSERT_EQ(generatorImpl->AddListener(callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(generatorImpl->listeners_.size(), 1);
+    generatorImpl = nullptr;
+}
+
+/*
 * Function: RemoveListener001
 * Type: Function
 * Rank: Important(2)
@@ -1122,12 +1187,12 @@ HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest001, Fun
     listener.lastTime_ = SystemTime();
     listener.phase_ = 0;
     listener.callback_ = nullptr;
- 
+
     auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
     auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, 0, 0, 0);
     ASSERT_EQ(ret, INT64_MAX);
 }
- 
+
 /*
 * Function: ComputeDVSyncListenerNextVSyncTimeStampTest002
 * Type: Function
@@ -1147,11 +1212,11 @@ HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest002, Fun
     auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
     vsyncGeneratorImpl->phaseRecord_ = 0;
     vsyncGeneratorImpl->wakeupDelay_ = 0;
- 
+
     auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, referenceTime, period);
     ASSERT_EQ(ret, 6 * period + listener.lastTime_);
 }
- 
+
 /*
 * Function: ComputeDVSyncListenerNextVSyncTimeStampTest003
 * Type: Function
@@ -1173,11 +1238,11 @@ HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest003, Fun
     vsyncGeneratorImpl->wakeupDelay_ = 0;
     vsyncGeneratorImpl->vsyncMode_ = VSYNC_MODE_LTPO;
     vsyncGeneratorImpl->refreshRateIsChanged_ = true;
- 
+
     auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, referenceTime, period);
     ASSERT_EQ(ret, referenceTime);
 }
- 
+
 /*
 * Function: ComputeDVSyncListenerNextVSyncTimeStampTest004
 * Type: Function
@@ -1198,7 +1263,7 @@ HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest004, Fun
     vsyncGeneratorImpl->phaseRecord_ = 0;
     vsyncGeneratorImpl->wakeupDelay_ = 0;
     vsyncGeneratorImpl->vsyncMode_ = VSYNC_MODE_LTPS;
- 
+
     auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, referenceTime, period);
     ASSERT_EQ(ret, referenceTime);
 }
@@ -1293,7 +1358,7 @@ HWTEST_F(VSyncGeneratorTest, NeedPreexecuteAndUpdateTs001, Function | MediumTest
     int64_t offset = 0;
     usleep(10000);
     ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), true);
- 
+
     lastVsyncTime = SystemTime();
     usleep(9100);
     ASSERT_EQ(vsyncGeneratorImpl->NeedPreexecuteAndUpdateTs(timestamp, period, offset, lastVsyncTime), false);

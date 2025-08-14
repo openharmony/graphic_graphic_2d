@@ -28,6 +28,10 @@
 #include "vsync_type.h"
 #include "vsync_system_ability_listener.h"
 
+namespace ffrt {
+class thread;
+}
+
 namespace OHOS {
 namespace Rosen {
 
@@ -163,6 +167,7 @@ private:
     };
 
     VSyncGenerator();
+    explicit VSyncGenerator(bool isUseFfrt);
     ~VSyncGenerator() override;
 
     int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime);
@@ -206,6 +211,8 @@ private:
     std::mutex waitForTimeoutMtx_;
     std::condition_variable waitForTimeoutCon_;
     std::thread thread_;
+    std::shared_ptr<ffrt::thread> ffrtThread_ = nullptr;
+    bool isUseFfrt_;
     bool vsyncThreadRunning_;
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::VSyncGenerator> instance_;

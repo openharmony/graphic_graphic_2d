@@ -16,6 +16,7 @@
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
 #include <cstdint>
+#include <fstream>
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <sched.h>
@@ -27,6 +28,8 @@
 #include <vsync_sampler.h>
 #include <rs_trace.h>
 #include "scoped_trace_fmt.h"
+#include "ffrt_inner.h"
+#include "c/ffrt_ipc.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -74,6 +77,20 @@ static void SetThreadHighPriority()
     sched_setscheduler(0, SCHED_FIFO, &param);
 }
 
+static bool isUseFfrt()
+{
+    bool result = false;
+    std::ifstream procFile("/proc/self/cmdline");
+    if (procFile.is_open()) {
+        std::string processName;
+        std::getline(procFile, processName);
+        std::string target = "/system/bin/render_service";
+        result = (processName.find(target) == 0);
+    }
+
+    return result;
+}
+
 }
 
 std::once_flag VSyncGenerator::createFlag_;
@@ -115,10 +132,26 @@ void VSyncGenerator::DeleteInstance() noexcept
     instance_ = nullptr;
 }
 
-VSyncGenerator::VSyncGenerator()
+VSyncGenerator::VSyncGenerator() : VSyncGenerator(isUseFfrt()) {}
+
+VSyncGenerator::VSyncGenerator(bool isUseFfrt) : isUseFfrt_(isUseFfrt)
 {
     period_ = DEFAULT_SOFT_VSYNC_PERIOD;
     vsyncThreadRunning_ = true;
+    if (isUseFfrt_) {
+        ffrtThread_ = std::make_shared<ffrt::thread>("VSyncGenerator", static_cast<int>(ffrt::qos_default), [this] {
+            pthread_setname_np(pthread_self(), "VSyncGenerator");
+            ffrt_this_task_set_legacy_mode(true);
+            this->ThreadLoop();
+        });
+
+        if (ffrtThread_ != nullptr) {
+            return;
+        }
+
+        isUseFfrt_ = false;
+    }
+
     thread_ = std::thread([this] { this->ThreadLoop(); });
     pthread_setname_np(thread_.native_handle(), "VSyncGenerator");
 }
@@ -130,9 +163,17 @@ VSyncGenerator::~VSyncGenerator()
         vsyncThreadRunning_ = false;
     }
 
-    if (thread_.joinable()) {
-        con_.notify_all();
-        thread_.join();
+    if (isUseFfrt_) {
+        if (ffrtThread_->joinable()) {
+            con_.notify_all();
+            ffrtThread_->join();
+        }
+        ffrtThread_ = nullptr;
+    } else {
+        if (thread_.joinable()) {
+            con_.notify_all();
+            thread_.join();
+        }
     }
 }
 
