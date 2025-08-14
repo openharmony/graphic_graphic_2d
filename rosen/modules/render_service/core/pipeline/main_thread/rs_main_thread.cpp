@@ -2102,32 +2102,26 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
         return;
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
-    if (RSSystemProperties::GetUnmarshParallelFlag()) {
-        RSUnmarshalThread::Instance().Wait();
-        auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
-        MergeToEffectiveTransactionDataMap(cachedTransactionData);
+    std::unique_lock<std::mutex> lock(unmarshalMutex_);
+    if (unmarshalFinishedCount_ > 0) {
+        waitForDVSyncFrame_.store(false);
     } else {
-        std::unique_lock<std::mutex> lock(unmarshalMutex_);
-        if (unmarshalFinishedCount_ > 0) {
-            waitForDVSyncFrame_.store(false);
-        } else {
-            waitForDVSyncFrame_.store(true);
-        }
-        if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
-            [this]() { return unmarshalFinishedCount_ > 0; })) {
-            if (auto task = RSUnmarshalTaskManager::Instance().GetLongestTask()) {
-                RSUnmarshalThread::Instance().RemoveTask(task.value().name);
-                RS_LOGI("WaitUntilUnmarshallingTaskFinished"
-                    "the wait time exceeds %{public}d ms, remove task %{public}s",
-                    WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
-                RS_TRACE_NAME_FMT("RSMainThread::WaitUntilUnmarshallingTaskFinished"
-                    "the wait time exceeds %d ms, remove task %s",
-                    WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
-            }
-        }
-        RSUnmarshalTaskManager::Instance().Clear();
-        --unmarshalFinishedCount_;
+        waitForDVSyncFrame_.store(true);
     }
+    if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
+        [this]() { return unmarshalFinishedCount_ > 0; })) {
+        if (auto task = RSUnmarshalTaskManager::Instance().GetLongestTask()) {
+            RSUnmarshalThread::Instance().RemoveTask(task.value().name);
+            RS_LOGI("WaitUntilUnmarshallingTaskFinished"
+                "the wait time exceeds %{public}d ms, remove task %{public}s",
+                WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
+            RS_TRACE_NAME_FMT("RSMainThread::WaitUntilUnmarshallingTaskFinished"
+                "the wait time exceeds %d ms, remove task %s",
+                WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
+        }
+    }
+    RSUnmarshalTaskManager::Instance().Clear();
+    --unmarshalFinishedCount_;
     RS_OPTIONAL_TRACE_END();
 }
 
@@ -3363,9 +3357,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
             // set needWaitUnmarshalFinished_ to false, it means mainLoop do not wait unmarshalBarrierTask_
             needWaitUnmarshalFinished_ = false;
         } else {
-            if (!RSSystemProperties::GetUnmarshParallelFlag()) {
-                RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_, DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME);
-            }
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_, DVSYNC_NOTIFY_UNMARSHAL_TASK_NAME);
         }
 #endif
     }
@@ -4512,9 +4504,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
             RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
             MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
-            if (!RSSystemProperties::GetUnmarshParallelFlag()) {
-                RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
-            }
+            RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
             auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);

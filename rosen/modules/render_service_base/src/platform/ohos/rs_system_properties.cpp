@@ -1326,20 +1326,6 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return pixelMapEnabled;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
-    return flag;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    static uint32_t size =
-        static_cast<uint32_t>(std::atoi(
-            (system::GetParameter("rosen.graphic.UnmashParallelSize", "102400")).c_str())); // 100K
-    return size;
-}
-
 bool RSSystemProperties::GetJankLoadOptimizeEnabled()
 {
     static bool jankLoadOptimizeEnabled =
