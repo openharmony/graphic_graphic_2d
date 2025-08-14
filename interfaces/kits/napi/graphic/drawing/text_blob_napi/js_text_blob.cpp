@@ -225,7 +225,7 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     }
     char16_t* buffer = new(std::nothrow) char16_t[len + 1];
     if (!buffer) {
-        ROSEN_LOGE("JsTextBlob::MakeFromString fail to create buffer");
+        ROSEN_LOGE("JsTextBlob::MakeFromString failed to create buffer");
         return nullptr;
     }
     if (napi_get_value_string_utf16(env, argv[ARGC_ZERO], buffer, len + 1, &len) != napi_ok) {
