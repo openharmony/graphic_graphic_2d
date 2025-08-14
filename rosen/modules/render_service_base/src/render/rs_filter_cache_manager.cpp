@@ -906,13 +906,9 @@ void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
         return;
     }
     auto drawnRegion = canvas.GetDrawnRegion();
-    if (drawnRegion.IsEmpty()) {
-        return;
-    }
     Occlusion::Region filterRegion(
         Occlusion::Rect(filterBound.left_, filterBound.top_, filterBound.right_, filterBound.bottom_));
-    // if region belongs to filterRegion but not drawnRegion is not empty, the cache is invalid.
-    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty();
+    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty() && !filterRegion.And(drawnRegion).IsEmpty();
     if (isCacheInvalid) {
         InvalidateFilterCache(FilterCacheType::BOTH);
     }

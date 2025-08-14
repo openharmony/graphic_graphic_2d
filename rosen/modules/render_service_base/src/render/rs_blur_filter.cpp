@@ -30,8 +30,8 @@ namespace OHOS {
 namespace Rosen {
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
 const auto BLUR_TYPE = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
-RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation) :
-    RSDrawingFilterOriginal(Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY,
+RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY, bool disableSystemAdaptation)
+    : RSDrawingFilterOriginal(Drawing::ImageFilter::CreateBlurImageFilter(blurRadiusX, blurRadiusY,
         Drawing::TileMode::CLAMP, nullptr, BLUR_TYPE)),
     blurRadiusX_(blurRadiusX),
     blurRadiusY_(blurRadiusY),
