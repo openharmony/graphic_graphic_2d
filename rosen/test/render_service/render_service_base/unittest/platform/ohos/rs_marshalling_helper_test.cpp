@@ -586,6 +586,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
 {
     Parcel parcel;
     parcel.WriteInt32(1);
+    parcel.WriteUint32(1);
     parcel.WriteInt32(-1);
     std::shared_ptr<ParticleNoiseFields> val;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
