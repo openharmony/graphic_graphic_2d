@@ -59,14 +59,14 @@ void RsChipsetVsync::GetChipsetVsyncFunc()
         initChipsetVsyncFunc_ = (InitChipsetVsyncFunc)dlsym(chipsetVsyncLibHandle_, "InitChipsetVsyncImpl");
         const char* dlsymError = dlerror();
         if (dlsymError) {
-            RS_LOGW("GetChipsetVsyncFunc fail to load InitChipsetVsyncImpl: %{public}s", dlsymError);
+            RS_LOGW("GetChipsetVsyncFunc failed to load InitChipsetVsyncImpl: %{public}s", dlsymError);
             initChipsetVsyncFunc_ = nullptr;
             return;
         }
         setVsyncFunc_ = (SetVsyncFunc)dlsym(chipsetVsyncLibHandle_, "SetVsyncImpl");
         dlsymError = dlerror();
         if (dlsymError) {
-            RS_LOGW("GetChipsetVsyncFunc fail to load SetVsyncImpl: %{public}s", dlsymError);
+            RS_LOGW("GetChipsetVsyncFunc failed to load SetVsyncImpl: %{public}s", dlsymError);
             setVsyncFunc_ = nullptr;
             initChipsetVsyncFunc_ = nullptr; // 重置已成功获取的函数指针
             return;
