@@ -93,12 +93,12 @@ public:
 
     bool HasCachedTexture() const;
 
-    float GetCacheSurfaceAlphaInfo()
+    float GetCacheSurfaceAlphaInfo() const
     {
         return cacheSurfaceInfo_.alpha;
     }
 
-    int GetCacheSurfaceProcessedNodes()
+    int GetCacheSurfaceProcessedNodes() const
     {
         return cacheSurfaceInfo_.processedNodeCount;
     }
@@ -201,7 +201,7 @@ public:
     // uifirst dirtyRegion
     std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;
     bool UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        bool hasCompleteCache, bool isLastFrameSkip);
+        bool hasCompletateCache, bool isLastFrameSkip);
     void UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable);
     void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
     Drawing::Region GetUifirstDirtyRegion() const;
@@ -220,7 +220,6 @@ public:
     void UpdateDirtyRecordCompletatedState(bool isCompletate);
     void UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         bool isEnableDirtyRegion);
-
     void SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas);
 
     void SetCacheBehindWindowData(const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& data);
@@ -237,7 +236,6 @@ private:
         RSPaintFilterCanvas& rscanvas, NodeId startingWindowId);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
-    void CheckSurfaceDrawableValidDfx(const DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr& drawable);
 
     NodeId nodeId_ = 0;
     // Cache in RT
