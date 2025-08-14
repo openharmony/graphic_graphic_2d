@@ -35,6 +35,16 @@ public:
         }
     }
 
+    static sptr<RSRenderServiceConnectHub> GetConnectHubInstance()
+    {
+        return instance_;
+    }
+
+    RSIConnectionToken* GetToken()
+    {
+        return token_.GetRefPtr();
+    }
+
 private:
     static sptr<RSRenderServiceConnectHub> GetInstance();
     static void Init();
