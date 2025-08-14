@@ -126,6 +126,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "libxml2:libxml2",
   ]
 
