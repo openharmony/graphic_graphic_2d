@@ -308,8 +308,9 @@ void RSImageBase::Purge()
     constexpr int USE_COUNT_FOR_PURGE = 2; // one in this RSImage, one in RSImageCache
     auto imageUseCount = image_.use_count();
     auto pixelMapCount = pixelMap_.use_count();
-    if (!(imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount == USE_COUNT_FOR_PURGE + 1) &&
-        !(imageUseCount == 0 && pixelMapCount == USE_COUNT_FOR_PURGE)) {
+    if (imageUseCount > USE_COUNT_FOR_PURGE || imageUseCount == 1 ||
+        (imageUseCount == 0 && pixelMapCount > USE_COUNT_FOR_PURGE) ||
+        (imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount > USE_COUNT_FOR_PURGE + 1)) {
         return;
     }
     // skip purge if multi RsImage Holds this PixelMap
