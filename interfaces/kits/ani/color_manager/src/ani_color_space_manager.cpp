@@ -103,7 +103,7 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
         ACMLOGE("[ANI]ColorSpaceType is invalid: %{public}u", csType);
         std::string errMsg = "Parameter value is abnormal. Cannot create color"
             " manager object using ApiColorSpaceType " +
-            std::to_string(static_cast<int32_t>(csType));
+            std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
         ani_error aniErr = CreateAniError(env, errMsg.c_str(), ABNORMAL_PARAMETER);
         env->ThrowError(aniErr);
         return false;

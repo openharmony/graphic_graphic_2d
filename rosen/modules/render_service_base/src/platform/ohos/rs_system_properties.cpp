@@ -1299,18 +1299,6 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
 }
 
-bool RSSystemProperties::GetHdrImageEnabled()
-{
-    static bool isHdrImageEnabled = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);
-    return isHdrImageEnabled;
-}
-
-bool RSSystemProperties::GetHdrVideoEnabled()
-{
-    static bool isHdrVideoEnabled = system::GetBoolParameter("persist.sys.graphic.hdrvideo.enabled", true);
-    return isHdrVideoEnabled;
-}
-
 bool RSSystemProperties::IsForceClient()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.client_composition.enabled", "0");
@@ -1324,6 +1312,18 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     static bool pixelMapEnabled =
         std::atoi((system::GetParameter("persist.rosen.textBlobAsPixelMapEnable.enable", "0")).c_str()) != 0;
     return pixelMapEnabled;
+}
+
+bool RSSystemProperties::GetHdrImageEnabled()
+{
+    static bool isHdrImageEnabled = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);
+    return isHdrImageEnabled;
+}
+
+bool RSSystemProperties::GetHdrVideoEnabled()
+{
+    static bool isHdrVideoEnabled = system::GetBoolParameter("persist.sys.graphic.hdrvideo.enabled", true);
+    return isHdrVideoEnabled;
 }
 
 bool RSSystemProperties::GetJankLoadOptimizeEnabled()
