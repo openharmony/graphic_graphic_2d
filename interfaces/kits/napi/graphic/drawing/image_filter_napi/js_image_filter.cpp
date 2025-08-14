@@ -230,11 +230,11 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
         napi_valuetype valueType = napi_undefined;
         if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                std::string("Incorrect ") + __FUNCTION__ + "parameter1 type");
+                std::string("Incorrect ") + __FUNCTION__ + " parameter1 type.");
         }
         if (valueType != napi_null && valueType != napi_object) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                std::string("Incorrect valueType") + __FUNCTION__ + "parameter1 type");
+                std::string("Incorrect valueType ") + __FUNCTION__ + " parameter1 type.");
         }
         if (valueType == napi_object) {
             double srcLtrb[ARGC_FOUR] = {0};
@@ -249,11 +249,11 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
         napi_valuetype valueType = napi_undefined;
         if (napi_typeof(env, argv[ARGC_TWO], &valueType) != napi_ok) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                std::string("Incorrect ") + __FUNCTION__ + "parameter2 type");
+                std::string("Incorrect ") + __FUNCTION__ + " parameter2 type.");
         }
         if (valueType != napi_null && valueType != napi_object) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                std::string("Incorrect valueType ") + __FUNCTION__ + "parameter2 type");
+                std::string("Incorrect valueType ") + __FUNCTION__ + " parameter2 type.");
         }
         if (valueType == napi_object) {
             double dstLtrb[ARGC_FOUR] = {0};
