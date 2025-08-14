@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/property/include/rs_ui_blur_filter.h"
 

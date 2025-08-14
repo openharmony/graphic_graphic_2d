@@ -49,10 +49,6 @@ bool ShaderEffectFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     ColorQuad color = GetObject<ColorQuad>();
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
@@ -89,11 +85,6 @@ bool ShaderEffectFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t color = GetObject<uint32_t>();
     std::shared_ptr<ShaderEffect> CreateColorShader= ShaderEffect::CreateColorShader(color);
@@ -137,9 +128,7 @@ bool ShaderEffectFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int width = GetObject<int>() % MAX_ARRAY_SIZE;
     int height = GetObject<int>() % MAX_ARRAY_SIZE;
@@ -211,10 +200,7 @@ bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t tileMode = GetObject<uint32_t>();
     Matrix matrix;
     scalar scaleX = GetObject<scalar>();
@@ -273,9 +259,7 @@ bool ShaderEffectFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t color = GetObject<uint32_t>();
     uint32_t t = GetObject<uint32_t>();
     Color4f color4f { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
@@ -356,10 +340,7 @@ bool ShaderEffectFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t tileMode = GetObject<uint32_t>();
     Matrix matrix;
     scalar scaleX = GetObject<scalar>();
@@ -419,10 +400,7 @@ bool ShaderEffectFuzzTest007(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t tileMode = GetObject<uint32_t>();
     Matrix matrix;
     scalar scaleX = GetObject<scalar>();
@@ -474,6 +452,11 @@ bool ShaderEffectFuzzTest007(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest002(data, size);

@@ -114,17 +114,17 @@ void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
     tvPlayerBundleName_ = bundleName;
 }
 
-std::string RsCommonHook::GetTvPlayerBundleName() const
+const std::string& RsCommonHook::GetTvPlayerBundleName() const
 {
     return tvPlayerBundleName_;
 }
 
-void RsCommonHook::SetFilterUnderHwcConfigByApp(std::string appName, std::string val)
+void RsCommonHook::SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val)
 {
-    filterUnderHwcConfig_[std::move(appName)] = std::move(val);
+    filterUnderHwcConfig_[appName] = val;
 }
 
-const std::string& RsCommonHook::GetFilterUnderHwcConfigByApp(const std::string& appName)
+std::string_view RsCommonHook::GetFilterUnderHwcConfigByApp(const std::string& appName)
 {
     if (auto it = filterUnderHwcConfig_.find(appName); it != filterUnderHwcConfig_.end()) {
         return it->second;

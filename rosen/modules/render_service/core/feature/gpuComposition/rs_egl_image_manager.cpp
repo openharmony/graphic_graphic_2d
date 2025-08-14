@@ -428,7 +428,7 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::GetIntersectImage(Drawing::Re
     std::shared_ptr<Drawing::Image> cutDownImage = std::make_shared<Drawing::Image>();
     bool res = cutDownImage->BuildSubset(layerImage, imgCutRect, *context);
     if (!res) {
-        ROSEN_LOGE("RSEglImageManager::GetIntersectImageFromVK cutDownImage BuildSubset failed.");
+        ROSEN_LOGE("RSEglImageManager::GetIntersectImageFromGL cutDownImage BuildSubset failed.");
         return nullptr;
     }
     Drawing::ImageInfo info = Drawing::ImageInfo(imgCutRect.GetWidth(), imgCutRect.GetHeight(),

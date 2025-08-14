@@ -84,7 +84,6 @@ class MotionBlurParam;
 class RSMagnifierParams;
 class ParticleNoiseFields;
 class RSShader;
-class RSUIFilter;
 class RSNGEffectUtils;
 
 /**
@@ -194,11 +193,6 @@ protected:
 
     virtual void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property) {}
 
-    void AttachModifier(const std::shared_ptr<RSModifier>& modifier)
-    {
-        modifier_ = modifier;
-    }
-
     void Attach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier = {})
     {
         target_ = node.weak_from_this();
@@ -242,9 +236,8 @@ protected:
     float GetThresholdByThresholdType(ThresholdType thresholdType) const;
 
     PropertyId id_;
-    RSModifierType type_ { RSModifierType::INVALID };
+    ModifierNG::RSPropertyType type_ { ModifierNG::RSPropertyType::INVALID };
     std::weak_ptr<RSNode> target_;
-    std::weak_ptr<RSModifier> modifier_;
     std::weak_ptr<ModifierNG::RSModifier> modifierNG_;
 
 private:
@@ -305,7 +298,6 @@ private:
     friend class RSExtendedModifier;
     friend class RSCustomTransitionEffect;
     friend class RSCurveAnimation;
-    friend class RSUIFilterParaBase;
     friend class ModifierNG::RSForegroundFilterModifier;
     friend class ModifierNG::RSBackgroundFilterModifier;
     template<typename T>
@@ -572,8 +564,8 @@ public:
             return;
         }
         auto rsUIContext = node->GetRSUIContext();
-        auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
+                                            : RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             implicitAnimator->CancelImplicitAnimation(node, RSProperty<T>::shared_from_this());
         }
@@ -995,9 +987,6 @@ template<>
 RSC_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType type) const;
-template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
-    const std::shared_ptr<RSUIFilter>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const;

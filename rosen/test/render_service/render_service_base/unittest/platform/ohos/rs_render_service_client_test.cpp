@@ -18,6 +18,7 @@
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
+#include "platform/ohos/rs_render_service_connection_proxy.h"
 #include "ui/rs_surface_node.h"
 #include "surface_utils.h"
 #include <iostream>
@@ -1338,36 +1339,90 @@ HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetScreenFreezeImmediately Test
- * @tc.desc: SetScreenFreezeImmediately when screen frozen
+ * @tc.name: TaskSurfaceCaptureWithAllWindows Test
+ * @tc.desc: TaskSurfaceCaptureWithAllWindows when screen frozen
  * @tc.type:FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSClientTest, SetScreenFreezeImmediatelyTest, TestSize.Level1)
+HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool isFreeze = false;
+    bool checkDrmAndSurfaceLock = false;
     std::shared_ptr<TestSurfaceCaptureCallback> cb;
     RSSurfaceCaptureConfig captureConfig;
-    bool ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
-    ASSERT_EQ(ret, true);
-
-    isFreeze = true;
-    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    bool ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, false);
 
     cb = std::make_shared<TestSurfaceCaptureCallback>();
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
     rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(TEST_ID, captureConfig), callbackVector);
-    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, true);
 
     rsClient->surfaceCaptureCbDirector_ = nullptr;
     rsClient->surfaceCaptureCbMap_.clear();
-    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, true);
 
-    ret = rsClient->SetScreenFreezeImmediately(TEST_ID, isFreeze, cb, captureConfig);
+    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
+    ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: TaskSurfaceCaptureWithAllWindows Test
+ * @tc.desc: TaskSurfaceCaptureWithAllWindows for failures
+ * @tc.type:FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest002, TestSize.Level1)
+{
+    class MockRenderServiceConnection : public RSRenderServiceConnectionProxy {
+    public:
+        explicit MockRenderServiceConnection(const sptr<IRemoteObject>& impl) : RSRenderServiceConnectionProxy(impl) {};
+        ErrCode TaskSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+            const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
+            RSSurfaceCapturePermissions permissions) override
+        {
+            return ERR_PERMISSION_DENIED;
+        }
+    };
+    ASSERT_NE(rsClient, nullptr);
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    std::shared_ptr<TestSurfaceCaptureCallback> cb;
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
+    ASSERT_EQ(ret, false);
+
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+    ASSERT_NE(RSRenderServiceConnectHub::GetInstance(), nullptr);
+    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
+    ASSERT_EQ(ret, false);
+
+    cb = std::make_shared<TestSurfaceCaptureCallback>();
+    auto conn = RSRenderServiceConnectHub::GetInstance()->conn_;
+    RSRenderServiceConnectHub::instance_->conn_ = new MockRenderServiceConnection(nullptr);
+    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
+    ASSERT_EQ(ret, false);
+    RSRenderServiceConnectHub::instance_->conn_ = conn;
+}
+
+/**
+ * @tc.name: FreezeScreen Test
+ * @tc.desc: FreezeScreen to freeze or unfreeze screen
+ * @tc.type:FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSClientTest, FreezeScreen, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    bool ret = rsClient->FreezeScreen(TEST_ID, false);
+    ASSERT_EQ(ret, false);
+
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+    ret = rsClient->FreezeScreen(TEST_ID, false);
     ASSERT_EQ(ret, true);
 }
 } // namespace Rosen

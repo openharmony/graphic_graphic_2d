@@ -36,11 +36,6 @@ bool MaskCmdListFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<Path> pathPtr = std::make_shared<Path>();
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
@@ -71,11 +66,6 @@ bool MaskCmdListFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
@@ -109,11 +99,6 @@ bool MaskCmdListFuzzTest003(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -146,10 +131,6 @@ bool MaskCmdListFuzzTest004(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     BrushHandle brushHandle;
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
@@ -198,10 +179,6 @@ bool MaskCmdListFuzzTest005(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     PenHandle penHandle;
     penHandle.width = GetObject<scalar>();
     penHandle.miterLimit = GetObject<scalar>();
@@ -242,10 +219,6 @@ bool MaskCmdListFuzzTest006(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     PenHandle penHandle;
     penHandle.width = GetObject<scalar>();
     penHandle.miterLimit = GetObject<scalar>();
@@ -279,10 +252,6 @@ bool MaskCmdListFuzzTest007(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     OpDataHandle pathHandle;
     pathHandle.size = GetObject<size_t>();
     pathHandle.offset = GetObject<uint32_t>();
@@ -319,10 +288,6 @@ bool MaskCmdListFuzzTest008(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     OpDataHandle pathHandle;
     pathHandle.size = GetObject<size_t>();
     pathHandle.offset = GetObject<uint32_t>();
@@ -356,11 +321,6 @@ bool MaskCmdListFuzzTest009(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<Path> pathPtr = std::make_shared<Path>();
     uint32_t alpha = GetObject<uint32_t>();
@@ -426,10 +386,6 @@ bool MaskCmdListFuzzTest010(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     BrushHandle brushHandle;
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
@@ -471,6 +427,11 @@ bool MaskCmdListFuzzTest010(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::MaskCmdListFuzzTest001(data, size);
     OHOS::Rosen::Drawing::MaskCmdListFuzzTest002(data, size);

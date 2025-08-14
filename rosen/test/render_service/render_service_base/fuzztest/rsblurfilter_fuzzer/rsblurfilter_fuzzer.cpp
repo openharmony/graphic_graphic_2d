@@ -63,11 +63,6 @@ bool DoOtherFunc(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float blurRadiusX = GetData<float>();
     float blurRadiusY = GetData<float>();
     auto rsBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
@@ -86,11 +81,6 @@ bool DoCompose(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float blurRadiusX = GetData<float>();
     float blurRadiusY = GetData<float>();
     auto blurFilter1 = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
@@ -103,11 +93,6 @@ bool DoDrawImageRect(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float blurRadiusX = GetData<float>();
     float blurRadiusY = GetData<float>();
@@ -134,11 +119,7 @@ bool DoSetGreyCoef(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    
     float blurRadiusX = GetData<float>();
     float blurRadiusY = GetData<float>();
     auto rsBlurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
@@ -152,6 +133,11 @@ bool DoSetGreyCoef(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoOtherFunc(data, size);
     OHOS::Rosen::DoCompose(data, size);

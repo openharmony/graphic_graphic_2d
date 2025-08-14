@@ -155,7 +155,6 @@ ohos_static_library("rs_test_command") {
   public_external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"

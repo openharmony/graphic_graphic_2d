@@ -43,11 +43,6 @@ bool CmdListHelperFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto dataVal = std::make_shared<Data>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
@@ -84,11 +79,6 @@ bool CmdListHelperFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto dataVal = std::make_shared<Data>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -152,11 +142,6 @@ bool CmdListHelperFuzzTest003(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Bitmap bitmap;
     int width = GetObject<int>() % MAX_SIZE;
     int height = GetObject<int>() % MAX_SIZE;
@@ -201,10 +186,6 @@ bool CmdListHelperFuzzTest004(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -254,10 +235,6 @@ bool CmdListHelperFuzzTest005(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto dataVal = std::make_shared<Data>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
@@ -297,10 +274,6 @@ bool CmdListHelperFuzzTest006(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -349,10 +322,6 @@ bool CmdListHelperFuzzTest007(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Data dataVal;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
@@ -390,10 +359,6 @@ bool CmdListHelperFuzzTest008(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -445,10 +410,6 @@ bool CmdListHelperFuzzTest009(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -499,10 +460,6 @@ bool CmdListHelperFuzzTest010(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -556,10 +513,6 @@ bool CmdListHelperFuzzTest011(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -612,10 +565,6 @@ bool CmdListHelperFuzzTest012(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -657,10 +606,6 @@ bool CmdListHelperFuzzTest013(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Data dataVal;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
@@ -701,6 +646,11 @@ bool CmdListHelperFuzzTest013(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::CmdListHelperFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CmdListHelperFuzzTest002(data, size);

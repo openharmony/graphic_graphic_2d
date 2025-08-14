@@ -49,6 +49,9 @@ HWTEST_F(RSNGRenderShaderBaseTest, Create001, TestSize.Level1)
 
     auto aurora = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     EXPECT_NE(aurora, nullptr);
+
+    auto lightCave = RSNGRenderShaderBase::Create(RSNGEffectType::LIGHT_CAVE);
+    EXPECT_NE(lightCave, nullptr);
 }
 
 /**
@@ -77,6 +80,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, GetShaderTypeString001, TestSize.Level1)
         "ContourDiagonalFlowLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT), "WavyRippleLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::AURORA_NOISE), "AuroraNoise");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::LIGHT_CAVE), "LightCave");
     // Unknown type
     RSNGEffectType unknownType = static_cast<RSNGEffectType>(999); // 999 is random value
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(unknownType), "UNKNOWN");

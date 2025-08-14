@@ -230,7 +230,8 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void ClearWatermark(pid_t pid);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
@@ -537,7 +538,6 @@ private:
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
     void ProcessScreenHotPlugEvents();
-    void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
@@ -745,14 +745,6 @@ private:
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;
 
-#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
-    RSTaskMessage::RSTask uploadTextureBarrierTask_;
-    std::condition_variable uploadTextureTaskCond_;
-    std::mutex uploadTextureMutex_;
-    int32_t uploadTextureFinishedCount_ = 0;
-    EGLSyncKHR uploadTextureFence;
-#endif
-
     mutable std::mutex uniRenderMutex_;
 
     // Used to refresh the whole display when luminance is changed
@@ -796,7 +788,8 @@ private:
     std::condition_variable nodeTreeDumpCondVar_;
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
-    std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::map<std::pair<pid_t, std::string>, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;

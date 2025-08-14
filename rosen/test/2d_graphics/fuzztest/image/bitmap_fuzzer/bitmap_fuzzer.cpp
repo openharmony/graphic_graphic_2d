@@ -46,10 +46,7 @@ bool BitmapFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int width = GetObject<int>();
     int height = GetObject<int>();
@@ -76,10 +73,7 @@ bool BitmapFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int imageInfoWidth = GetObject<int>();
     int imageInfoHeight = GetObject<int>();
@@ -117,10 +111,7 @@ bool BitmapFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int imageInfoWidth = GetObject<int>();
     int imageInfoHeight = GetObject<int>();
@@ -158,10 +149,7 @@ bool BitmapFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     bitmap.ComputeByteSize();
     Pixmap pixmap;
@@ -199,10 +187,7 @@ bool BitmapFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     Bitmap dst;
     int srcLeft = GetObject<int>();
@@ -237,10 +222,7 @@ bool BitmapFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     BitmapFormat format;
     bitmap.GetFormat();
@@ -270,10 +252,7 @@ bool BitmapFuzzTest007(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Bitmap bitmap;
     int imageInfoWidth = GetObject<int>();
     int imageInfoHeight = GetObject<int>();
@@ -303,6 +282,11 @@ bool BitmapFuzzTest007(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::BitmapFuzzTest001(data, size);
     OHOS::Rosen::Drawing::BitmapFuzzTest002(data, size);

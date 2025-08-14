@@ -52,12 +52,12 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearM
 
     if (!isSorted) {
         for (auto& child : node.GetChildrenList()) {
-            if (child.lock()) {
-                DumpNode(*child.lock(), children, clearMockFlag, false, isSorted);
+            if (auto lockedChild = child.lock(); lockedChild) {
+                DumpNode(*lockedChild, children, clearMockFlag, false, isSorted);
             }
         }
-    } else if (node.GetSortedChildren()) {
-        for (auto& child : *node.GetSortedChildren()) {
+    } else if (auto sortedChildren = node.GetSortedChildren()) {
+        for (auto& child : *sortedChildren) {
             if (child) {
                 DumpNode(*child, children, clearMockFlag, false, isSorted);
             }
@@ -168,7 +168,6 @@ void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, boo
         out["nodeGroupReuseCache"] = renderParams ? static_cast<int>(!renderParams->GetNeedUpdateCache()) : 0;
     }
     if (node.GetUifirstRootNodeId() != INVALID_NODEID) {
-        out["uifirstRootNodeId"] = node.GetUifirstRootNodeId();
         out["uifirstRootNodeId"] = AdjustNodeId(node.GetUifirstRootNodeId(), clearMockFlag);
     }
     DumpNodeSubClassNode(node, out);
@@ -513,7 +512,7 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
     if (properties.pixelStretch_.has_value()) {
         auto& pixelStretch = out["PixelStretch"];
         pixelStretch.PushObject();
-        pixelStretch["left"] = properties.pixelStretch_->z_;
+        pixelStretch["left"] = properties.pixelStretch_->x_;
         pixelStretch["top"] = properties.pixelStretch_->y_;
         pixelStretch["right"] = properties.pixelStretch_->z_;
         pixelStretch["bottom"] = properties.pixelStretch_->w_;

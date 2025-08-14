@@ -27,11 +27,6 @@ namespace Rosen {
 namespace Drawing {
 void RectFuzzTest000(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int pos = GetObject<int>();
 
     RectI rect;
@@ -53,10 +48,6 @@ void RectFuzzTest000(const uint8_t* data, size_t size)
 
 void RectFuzzTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int dx = GetObject<int>();
     int dy = GetObject<int>();
     int l = GetObject<int>();
@@ -79,10 +70,6 @@ void RectFuzzTest001(const uint8_t* data, size_t size)
 
 void RectFuzzTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar pos = GetObject<scalar>();
     scalar l = GetObject<scalar>();
     scalar t = GetObject<scalar>();
@@ -117,10 +104,6 @@ void RectFuzzTest002(const uint8_t* data, size_t size)
 
 void RectFuzzTest003(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar dx = GetObject<scalar>();
     scalar dy = GetObject<scalar>();
     scalar l = GetObject<scalar>();
@@ -142,6 +125,11 @@ void RectFuzzTest003(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::RectFuzzTest000(data, size);
     OHOS::Rosen::Drawing::RectFuzzTest001(data, size);

@@ -50,10 +50,6 @@ void NativeShaderEffectTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t color = GetObject<uint32_t>();
     OH_Drawing_ShaderEffect* shaderEffect = OH_Drawing_ShaderEffectCreateColorShader(color);
@@ -96,10 +92,6 @@ void NativeShaderEffectTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t tileMode = GetObject<uint32_t>();
     uint32_t format = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
@@ -138,10 +130,6 @@ void NativeShaderEffectTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -189,10 +177,7 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     float radius = GetObject<float>();
     uint32_t tileMode = GetObject<uint32_t>();
     uint32_t format = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
@@ -249,10 +234,7 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t tileMode = GetObject<uint32_t>();
     float startRadius = GetObject<float>();
     float endRadius = GetObject<float>();
@@ -294,10 +276,6 @@ void NativeShaderEffectTest006(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -344,10 +322,7 @@ void NativeShaderEffectTest007(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t blendMode = GetObject<uint32_t>();
     uint32_t color = GetObject<uint32_t>();
     uint32_t colorTwo = GetObject<uint32_t>();
@@ -384,10 +359,6 @@ void NativeShaderEffectTest008(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Pixelmap_InitializationOptions *options = nullptr;
     OH_PixelmapNative *pixelMap = nullptr;
@@ -438,6 +409,11 @@ void NativeShaderEffectTest008(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeShaderEffectTest001(data, size);
     OHOS::Rosen::Drawing::NativeShaderEffectTest002(data, size);

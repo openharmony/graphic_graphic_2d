@@ -26,7 +26,8 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.frameRateLinkerExpectedFpsUpdateCallback");
     RSIFrameRateLinkerExpectedFpsUpdateCallback() = default;
     virtual ~RSIFrameRateLinkerExpectedFpsUpdateCallback() noexcept = default;
-    virtual void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) = 0;
+    virtual void OnFrameRateLinkerExpectedFpsUpdate(
+        pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) {}
 };
 } // namespace Rosen
 } // namespace OHOS

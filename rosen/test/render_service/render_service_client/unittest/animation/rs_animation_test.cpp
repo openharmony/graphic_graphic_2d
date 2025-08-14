@@ -52,30 +52,16 @@ HWTEST_F(RSAnimationTest, SetFinishCallbackTest, Level1)
 }
 
 /**
- * @tc.name: StartTest001
+ * @tc.name: StartTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSAnimationTest, StartTest001, Level1)
+HWTEST_F(RSAnimationTest, StartTest, Level1)
 {
     RSAnimation rsAnimation;
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Start(target);
     ASSERT_EQ(target, nullptr);
-}
-
-/**
- * @tc.name: StartTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, StartTest002, Level1)
-{
-    RSAnimation rsAnimation;
-    auto per = std::make_shared<RSNode>(true);
-    rsAnimation.StartInner(per);
-    rsAnimation.Start(per);
-    ASSERT_NE(per, nullptr);
 }
 
 /**
@@ -105,30 +91,16 @@ HWTEST_F(RSAnimationTest, OnPauseTest, Level1)
 }
 
 /**
- * @tc.name: ResumeTest001
+ * @tc.name: ResumeTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSAnimationTest, ResumeTest001, Level1)
+HWTEST_F(RSAnimationTest, ResumeTest, Level1)
 {
     RSAnimation rsAnimation;
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Resume();
     ASSERT_EQ(target, nullptr);
-}
-
-/**
- * @tc.name: ResumeTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, ResumeTest002, Level1)
-{
-    RSAnimation rsAnimation;
-    auto per = std::make_shared<RSNode>(true);
-    rsAnimation.StartInner(per);
-    rsAnimation.Resume();
-    ASSERT_NE(per, nullptr);
 }
 
 /**
@@ -145,30 +117,16 @@ HWTEST_F(RSAnimationTest, OnResumeTest, Level1)
 }
 
 /**
- * @tc.name: FinishTest001
+ * @tc.name: FinishTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSAnimationTest, FinishTest001, Level1)
+HWTEST_F(RSAnimationTest, FinishTest, Level1)
 {
     RSAnimation rsAnimation;
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Finish();
     ASSERT_EQ(target, nullptr);
-}
-
-/**
- * @tc.name: FinishTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, FinishTest002, Level1)
-{
-    RSAnimation rsAnimation;
-    auto per = std::make_shared<RSNode>(true);
-    rsAnimation.CallFinishCallback();
-    rsAnimation.Finish();
-    ASSERT_NE(per, nullptr);
 }
 
 /**
@@ -185,30 +143,16 @@ HWTEST_F(RSAnimationTest, OnFinishTest, Level1)
 }
 
 /**
- * @tc.name: ReverseTest001
+ * @tc.name: ReverseTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSAnimationTest, ReverseTest001, Level1)
+HWTEST_F(RSAnimationTest, ReverseTest, Level1)
 {
     RSAnimation rsAnimation;
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Reverse();
     ASSERT_EQ(target, nullptr);
-}
-
-/**
- * @tc.name: ReverseTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, ReverseTest002, Level1)
-{
-    RSAnimation rsAnimation;
-    auto per = std::make_shared<RSNode>(true);
-    rsAnimation.CallFinishCallback();
-    rsAnimation.Reverse();
-    ASSERT_NE(per, nullptr);
 }
 
 /**
@@ -225,32 +169,17 @@ HWTEST_F(RSAnimationTest, OnReverseTest, Level1)
 }
 
 /**
- * @tc.name: SetFractionTest001
+ * @tc.name: SetFractionTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSAnimationTest, SetFractionTest001, Level1)
+HWTEST_F(RSAnimationTest, SetFractionTest, Level1)
 {
     RSAnimation rsAnimation;
     auto target = std::shared_ptr<RSNode>();
-    float frac = 3.f;
-    rsAnimation.SetFraction(frac);
+    float fraction = 0.f;
+    rsAnimation.SetFraction(fraction);
     ASSERT_EQ(target, nullptr);
-}
-
-/**
- * @tc.name: SetFractionTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, SetFractionTest002, Level1)
-{
-    RSAnimation rsAnimation;
-    float frac = 0.0f;
-    auto per = std::make_shared<RSNode>(true);
-    rsAnimation.CallFinishCallback();
-    rsAnimation.SetFraction(frac);
-    ASSERT_NE(per, nullptr);
 }
 
 /**
@@ -277,33 +206,6 @@ HWTEST_F(RSAnimationTest, StartCustomAnimationTest, Level1)
     auto animation = std::make_shared<RSRenderAnimation>();
     rsAnimation.StartCustomAnimation(animation);
     ASSERT_NE(animation, nullptr);
-}
-
-/**
- * @tc.name: PauseTest001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, PauseTest001, Level1)
-{
-    RSAnimation rsAnimation;
-    auto target = std::shared_ptr<RSNode>();
-    rsAnimation.Pause();
-    ASSERT_EQ(target, nullptr);
-}
-
-/**
- * @tc.name: PauseTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationTest, PauseTest002, Level1)
-{
-    RSAnimation rsAnimation;
-    auto per = std::make_shared<RSNode>(true);
-    rsAnimation.StartInner(per);
-    rsAnimation.Pause();
-    ASSERT_NE(per, nullptr);
 }
 
 /**

@@ -942,6 +942,9 @@ HWTEST_F(RSFilterCacheManagerTest, CheckAndUpdateAIBarCacheStatusTest, TestSize.
     EXPECT_FALSE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->stagingForceClearCacheForLastFrame_ = false;
     EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
+    rsFilterCacheManager->pendingPurge_ = false;
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
+    rsFilterCacheManager->pendingPurge_ = true;
     EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(true));
 }
 

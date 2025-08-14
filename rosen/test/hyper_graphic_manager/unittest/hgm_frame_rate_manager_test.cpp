@@ -101,12 +101,12 @@ public:
         const FrameRateLinkerExpectedFpsUpdateCallback& callback) : cb_(callback) {}
     ~MyCustomFrameRateLinkerExpectedFpsUpdateCallback() override {};
 
-    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) override
     {
         ROSEN_LOGD("MyCustomFrameRateLinkerExpectedFpsUpdateCallback::OnFrameRateLinkerExpectedFpsUpdate called,"
             " pid=%{public}d, fps=%{public}d", dstPid, expectedFps);
         if (cb_ != nullptr) {
-            cb_(dstPid, expectedFps);
+            cb_(dstPid, xcomponentId, expectedFps);
         }
     }
 
@@ -418,6 +418,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
             hccMgr->UnRegisterHgmConfigChangeCallback(pid);
+            hccMgr->UnRegisterHgmConfigChangeCallback(0);
             hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
             hccMgr->SyncHgmConfigChangeCallback();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
@@ -444,27 +445,45 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
 HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallTest | Level0)
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
-    pid_t listenerPid = 1;
-    pid_t dstPid = 1;
+    pid_t listenerPid = 3;
+    pid_t dstPid = 3;
+    pid_t dstPid1 = 5;
     vector<int32_t> expectedFrameRates = { 60, 0 };
-    std::string idStr = "";
+    int32_t invalidRate = -1;
+    int32_t invalidRate1 = -60;
+    std::string idStr = "xcomponentId";
     const sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> cb = nullptr;
     std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> cbMap;
     cbMap.try_emplace(listenerPid, cb);
     hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
 
     int32_t fps_ = 30;
-    std::function<void(int32_t, int32_t)> callback = [&fps_](int32_t dstPid, int32_t fps) {
+    std::function<void(int32_t, const std::string&, int32_t)> callback = [&fps_](int32_t dstPid,
+        const std::string& xcomponentId, int32_t fps) {
         fps_ = fps;
     };
+    std::unordered_map<std::string, int32_t> xcomponentIdMap;
+
     auto temp = new MyCustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
     auto cb1 = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(temp);
     for (const auto& expectedFrameRate : expectedFrameRates) {
         PART("HgmConfigCallbackManagerTest") {
             STEP("1. Test RegisterXComponentExpectedFrameRateCallback function with callback") {
+                xcomponentIdMap.try_emplace(idStr, expectedFrameRate);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+                cbMap.try_emplace(listenerPid, cb);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid1, cbMap);
+                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
                 hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
                 hccMgr->xcomponentExpectedFrameRate_.clear();
-                hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, expectedFrameRate);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+                hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid1, xcomponentIdMap);
+                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
+                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+                hccMgr->xcomponentExpectedFrameRate_.clear();
+                hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
                 hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
                 ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
             }
@@ -480,11 +499,66 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallT
                 cbMap.try_emplace(listenerPid, cb1);
                 hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
                 hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
-                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid], expectedFrameRate);
+                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
+                hccMgr->xcomponentExpectedFrameRate_.clear();
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+                cbMap.clear();
+                cbMap.try_emplace(listenerPid, cb1);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+                hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
             }
             ASSERT_EQ(fps_, expectedFrameRate);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, invalidRate);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(0, idStr, invalidRate);
+            ASSERT_NE(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], invalidRate);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, invalidRate1);
+            ASSERT_NE(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], invalidRate1);
+
+            hccMgr->xcomponentExpectedFrameRate_.clear();
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            cbMap.clear();
+            cbMap.try_emplace(listenerPid, cb);
+            cbMap.try_emplace(dstPid1, cb1);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+            ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
+            hccMgr->xcomponentExpectedFrameRate_.clear();
+
+            xcomponentIdMap.clear();
+            xcomponentIdMap.try_emplace("xcomponentId1", OLED_30_HZ);
+            hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
         }
     }
+    hccMgr->UnRegisterHgmConfigChangeCallback(dstPid);
+    hccMgr->UnRegisterHgmConfigChangeCallback(dstPid1);
+}
+
+/**
+ * @tc.name: HgmConfigCallbackManagerTest004
+ * @tc.desc: Verify the result of HgmConfigCallbackManagerTest004 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest004, Function | SmallTest | Level0)
+{
+    int32_t invalidRate = 300;
+    int32_t dstPid = 1;
+    int32_t expectedFrameRate = 60;
+    std::string xcomponentId = "xcomponentId";
+    std::unordered_map<std::string, int32_t> xcomponentIdMap;
+    xcomponentIdMap.try_emplace(xcomponentId, invalidRate);
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+    hccMgr->xcomponentExpectedFrameRate_.clear();
+    hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
+
+    for (int32_t i = 0; i < 100; ++i) { // 100 : xcomponentIdNums
+        std::string idStr = xcomponentId + std::to_string(i);
+        hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+    }
+    ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid].size(), 50); // 50 : xcomponentIdNumsMax of one pid
 }
 
 /**

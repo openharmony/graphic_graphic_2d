@@ -71,11 +71,6 @@ bool RSAlphaRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     ModifierId id = GetData<ModifierId>();
     std::shared_ptr<ModifierNG::RSAlphaRenderModifier> modifier =
@@ -93,11 +88,6 @@ bool RSBackgroundFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSBackgroundFilterRenderModifier> modifier =
         std::make_shared<ModifierNG::RSBackgroundFilterRenderModifier>();
@@ -114,11 +104,6 @@ bool RSBehindWindowFilterRenderModifierFuzzTest(const uint8_t* data, size_t size
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSBehindWindowFilterRenderModifier> modifier =
         std::make_shared<ModifierNG::RSBehindWindowFilterRenderModifier>();
@@ -132,11 +117,6 @@ bool RSBlendRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSBlendRenderModifier> modifier =
@@ -153,11 +133,6 @@ bool RSBorderRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSBorderRenderModifier> modifier =
@@ -176,11 +151,6 @@ bool RSCompositingFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSCompositingFilterRenderModifier> modifier =
         std::make_shared<ModifierNG::RSCompositingFilterRenderModifier>();
@@ -197,11 +167,6 @@ bool RSDynamicLightUpRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSDynamicLightUpRenderModifier> modifier =
@@ -220,11 +185,6 @@ bool RSForegroundFilterRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSForegroundFilterRenderModifier> modifier =
         std::make_shared<ModifierNG::RSForegroundFilterRenderModifier>();
@@ -242,11 +202,6 @@ bool RSHDRBrightnessRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSHDRBrightnessRenderModifier> modifier =
         std::make_shared<ModifierNG::RSHDRBrightnessRenderModifier>();
@@ -261,11 +216,6 @@ bool RSMaskRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSMaskRenderModifier> modifier = std::make_shared<ModifierNG::RSMaskRenderModifier>();
@@ -282,11 +232,6 @@ bool RSOutlineRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSOutlineRenderModifier> modifier =
@@ -305,11 +250,6 @@ bool RSParticleEffectRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSParticleEffectRenderModifier> modifier =
         std::make_shared<ModifierNG::RSParticleEffectRenderModifier>();
@@ -327,11 +267,6 @@ bool RSPixelStretchRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSPixelStretchRenderModifier> modifier =
         std::make_shared<ModifierNG::RSPixelStretchRenderModifier>();
@@ -347,11 +282,6 @@ bool RSPointLightRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSPointLightRenderModifier> modifier =
@@ -369,11 +299,6 @@ bool RSShadowRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSShadowRenderModifier> modifier =
         std::make_shared<ModifierNG::RSShadowRenderModifier>();
@@ -389,11 +314,6 @@ bool RSUseEffectRenderModifierFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // test
     std::shared_ptr<ModifierNG::RSUseEffectRenderModifier> modifier =
@@ -412,11 +332,6 @@ bool RSVisibilityRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<ModifierNG::RSVisibilityRenderModifier> modifier =
         std::make_shared<ModifierNG::RSVisibilityRenderModifier>();
@@ -434,6 +349,11 @@ bool RSVisibilityRenderModifierFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSAlphaRenderModifierFuzzTest(data, size);
     OHOS::Rosen::RSBackgroundFilterRenderModifierFuzzTest(data, size);

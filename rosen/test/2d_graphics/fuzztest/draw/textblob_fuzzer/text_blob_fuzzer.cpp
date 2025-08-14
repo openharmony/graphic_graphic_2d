@@ -42,10 +42,6 @@ bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* text = new char[count];
@@ -82,10 +78,7 @@ bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
     char* text = new char[count];
     for (size_t i = 0; i < count - 1; i++) {
@@ -129,10 +122,6 @@ bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* text = new char[count];
@@ -165,10 +154,6 @@ bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* path = new char[length];
@@ -200,10 +185,6 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
     char* text = new char[count];
@@ -249,11 +230,6 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
 
 bool TextBlobFuzzTest006(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Font font;
     TextContrast textContrast = static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE);
     auto textBlob1 = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
@@ -273,6 +249,11 @@ bool TextBlobFuzzTest006(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::TextBlobFuzzTest001(data, size);
     OHOS::Rosen::Drawing::TextBlobFuzzTest002(data, size);

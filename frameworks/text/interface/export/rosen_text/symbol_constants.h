@@ -38,8 +38,11 @@ enum class SymbolType {
 };
 
 enum class SymbolColorType {
-    COLOR_TYPE = 0,
-    GRADIENT_TYPE = 1,
+    COLOR_TYPE = 0, // Each layer has a color. Layers without a set use the default color.
+    GRADIENT_TYPE = 1, // Each layer has a color or gradient color.
+                       // Layers without a set use the color of the previous layer.
+    GRADIENT_DEFAULT_COLOR = 2, // Each layer has a color or gradient color.
+                                // Layers without a set use the color of the default layer.
 };
 
 struct SymbolShadow {

@@ -33,6 +33,28 @@ const double ARC_FONT_SIZE = 28;
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
+namespace {
+std::string g_expectDumpInfo = "This is paragraph dump info:,"
+    "Text size: 126 fState: Drawn fSkipTextBlobDrawing: false,"
+    "Run[0] glyph size: 6 text range: [0-14),"
+    "Run[1] glyph size: 11 text range: [14-25),"
+    "Run[2] glyph size: 14 text range: [25-63),"
+    "Run[3] glyph size: 6 text range: [63-77),"
+    "Run[4] glyph size: 11 text range: [77-88),"
+    "Run[5] glyph size: 14 text range: [88-126),"
+    "Block[0] text range[0-63) font size: 50 font color: ffff0000 font height: 0"
+    " font weight: 500 font width: 6 font slant: 2,"
+    "Block[1] text range[63-126) font size: 60 font color: ffffff00 font height: 0"
+    " font weight: 300 font width: 7 font slant: 1,"
+    "Paragraph glyph size: 62,"
+    "Line[0] run range: [0-1],"
+    "Line[1] run range: [1-2],"
+    "Line[2] run range: [2-3],"
+    "Line[3] run range: [4-5],"
+    "Line[4] run range: [5-5],"
+    "Line[5] run range: [5-5],";
+}
+
 /*
  * @tc.name: OH_Drawing_TypographyInnerBadgeTypeTest001
  * @tc.desc: Test for badge text
@@ -1270,5 +1292,51 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRtlClusterIndexOffset00
     EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[0], 0);
     EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[1], 0);
 }
+
+/*
+ * @tc.name: TypographyGetDumpInfoTest
+ * @tc.desc: test for get dump info
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    style1.fontWeight = FontWeight::W500;
+    style1.fontWidth = FontWidth::SEMI_EXPANDED;
+    style1.fontStyle = FontStyle::OBLIQUE;
+    std::u16string text = u"你好, 测试GetDumpInfo中返回的数据, 是否符合预期";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle style2;
+    style2.fontSize = 60;
+    style2.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
+    style2.fontWeight = FontWeight::W300;
+    style2.fontWidth = FontWidth::EXPANDED;
+    style2.fontStyle = FontStyle::ITALIC;
+    typographyCreate->PushStyle(style2);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
+    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetDumpInfo(), "");
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
+}
+
 } // namespace Rosen
 } // namespace OHOS

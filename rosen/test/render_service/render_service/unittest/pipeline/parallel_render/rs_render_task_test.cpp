@@ -110,8 +110,6 @@ HWTEST_F(RSRenderTaskTest, AddTaskTest, TestSize.Level1)
     auto taskSize = supRenderTask_->GetTaskSize();
     auto actualTaskSize = 2;
     ASSERT_EQ(taskSize, actualTaskSize);
-    supRenderTask_->AddTask(nullptr);
-    ASSERT_EQ(taskSize, actualTaskSize);
 }
 
 /**

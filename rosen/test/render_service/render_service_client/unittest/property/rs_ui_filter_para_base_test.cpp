@@ -25,7 +25,6 @@
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 #include "ui_effect/property/include/rs_ui_blur_filter.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_filter_para_base.h"
 
 
 using namespace testing;

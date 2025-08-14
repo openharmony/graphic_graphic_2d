@@ -1895,9 +1895,49 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bo
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnectionProxy::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
+ErrCode RSRenderServiceConnectionProxy::TaskSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    RSSurfaceCapturePermissions /*permissions*/)
+    bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions /*permissions*/)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s GetDescriptor err", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteBool(checkDrmAndSurfaceLock)) {
+        ROSEN_LOGE("%{public}s write checkDrmAndSurfaceLock failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("%{public}s callback == nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s write callback failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::FreezeScreen(NodeId id, bool isFreeze)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1915,22 +1955,8 @@ ErrCode RSRenderServiceConnectionProxy::SetScreenFreezeImmediately(NodeId id, bo
         ROSEN_LOGE("%{public}s write isFreeze failed", __func__);
         return ERR_INVALID_VALUE;
     }
-    if (isFreeze) {
-        if (callback == nullptr) {
-            ROSEN_LOGE("%{public}s callback == nullptr", __func__);
-            return ERR_INVALID_VALUE;
-        }
-        if (!data.WriteRemoteObject(callback->AsObject())) {
-            ROSEN_LOGE("%{public}s write callback failed", __func__);
-            return ERR_INVALID_VALUE;
-        }
-        if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
-            ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
-            return ERR_INVALID_VALUE;
-        }
-    }
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);

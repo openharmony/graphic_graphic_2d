@@ -507,5 +507,22 @@ HWTEST_F(RSLinearGradientBlurShaderFilterTest, GetLinearGradientBlurRadius003, T
         std::make_shared<RSLinearGradientBlurShaderFilter>(nullptr, geoWidth, geoHeight);
     EXPECT_TRUE(rsLinearGradientBlurShaderFilter->GetLinearGradientBlurRadius() == 0.);
 }
+
+/**
+ * @tc.name: SetGeometry001
+ * @tc.desc: Verify function SetGeometry
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLinearGradientBlurShaderFilterTest, SetGeometry001, TestSize.Level1)
+{
+    float geoWidth = 0.f;
+    float geoHeight = 0.f;
+    auto rsLinearGradientBlurShaderFilter =
+        std::make_shared<RSLinearGradientBlurShaderFilter>(nullptr, geoWidth, geoHeight);
+    Drawing::Canvas canvas(100, 100);
+    rsLinearGradientBlurShaderFilter->SetGeometry(canvas, 50.5f, 50.5f);
+    EXPECT_FLOAT_EQ(rsLinearGradientBlurShaderFilter->geoWidth_, 51.0f);
+    EXPECT_FLOAT_EQ(rsLinearGradientBlurShaderFilter->geoHeight_, 51.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

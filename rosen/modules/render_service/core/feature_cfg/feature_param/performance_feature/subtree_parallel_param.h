@@ -27,19 +27,19 @@ public:
     static bool GetSubtreeEnable();
     static bool GetRBPolicyEnabled();
     static bool GetMultiWinPolicyEnabled();
-    static int GetMutliWinSurfaceNum();
+    static int GetMultiWinSurfaceNum();
     static int GetRBChildrenWeight();
     static int GetRBSubtreeWeight();
-    static std::unordered_map<std::string, std::string>& GetSubtreeScene();
+    static std::unordered_map<std::string, std::string> GetSubtreeScene();
 
 protected:
     static void SetSubtreeEnable(bool isSubtreeEnable);
     static void SetMultiWinPolicyEnabled(bool isMultiWinPolicyEnable);
     static void SetRBPolicyEnabled(bool isRBPolicyEnable);
-    static void SetMutliWinSurfaceNum(int surfaceNum);
+    static void SetMultiWinSurfaceNum(int surfaceNum);
     static void SetRBChildrenWeight(int weight);
     static void SetRBSubtreeWeight(int weight);
-    static void SetSubtreeScene(std::string appName, const std::string val);
+    static void SetSubtreeScene(const std::string& appName, const std::string& val);
 
 private:
     inline static bool isSubtreeEnable_ = false;

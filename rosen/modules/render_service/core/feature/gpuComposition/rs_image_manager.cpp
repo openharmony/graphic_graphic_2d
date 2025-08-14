@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RSImageManager> RSImageManager::Create(std::shared_ptr<RenderContext>& renderContext)
 {
-    std::shared_ptr<RSImageManager> imageManager;
+    std::shared_ptr<RSImageManager> imageManager = nullptr;
     if (RSSystemProperties::IsUseVulkan()) {
 #ifdef RS_ENABLE_VK
         imageManager = std::make_shared<RSVkImageManager>();

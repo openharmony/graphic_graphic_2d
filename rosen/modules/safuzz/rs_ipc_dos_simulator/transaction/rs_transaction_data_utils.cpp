@@ -345,9 +345,7 @@ bool RSTransactionDataVariant::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        if ((RSSystemProperties::GetUnmarshParallelFlag() &&
-            parcel.GetDataSize() > RSSystemProperties::GetUnMarshParallelSize()) ||
-            parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD_VARIANT) {
+        if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD_VARIANT) {
             break;
         }
     }

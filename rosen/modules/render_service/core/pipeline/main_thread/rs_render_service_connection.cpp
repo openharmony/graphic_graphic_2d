@@ -47,11 +47,6 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
-#ifdef USE_M133_SKIA
-#include "include/gpu/ganesh/GrDirectContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
 #include "info_collection/rs_hdr_collection.h"
 #ifdef RS_ENABLE_GPU
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -108,6 +103,7 @@ constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
+constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -258,6 +254,15 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->ClearWatermark(connection->remotePid_);
+        }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         mainThread_->ScheduleTask(
             [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -384,7 +389,7 @@ ErrCode RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<
     // After a synchronous task times out, it will no longer be executed.
     auto isTimeout = std::make_shared<bool>(0);
     std::weak_ptr<bool> isTimeoutWeak = isTimeout;
-    std::chrono::nanoseconds span(task->GetTimeout());
+    std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
     mainThread_->ScheduleTask([task, mainThread = mainThread_, isTimeoutWeak] {
         if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
             return;
@@ -571,6 +576,7 @@ ErrCode RSRenderServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>&
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
+        UnregisterFrameRateLinker(conn->id_);
         vsyncConn = nullptr;
         return ERR_INVALID_VALUE;
     }
@@ -689,7 +695,8 @@ ErrCode RSRenderServiceConnection::SetWatermark(const std::string& name, std::sh
         success = false;
         return ERR_INVALID_VALUE;
     }
-    mainThread_->SetWatermark(name, watermark);
+    pid_t callingPid = GetCallingPid();
+    mainThread_->SetWatermark(callingPid, name, watermark);
     success = true;
     return ERR_OK;
 }
@@ -1481,11 +1488,11 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
     mainThread_->PostTask(selfCaptureTask);
 }
 
-ErrCode RSRenderServiceConnection::SetScreenFreezeImmediately(NodeId id, bool isFreeze,
+ErrCode RSRenderServiceConnection::TaskSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    RSSurfaceCapturePermissions permissions)
+    bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions permissions)
 {
-    bool hasPermission = permissions.screenCapturePermission & permissions.isSystemCalling;
+    bool hasPermission = permissions.screenCapturePermission && permissions.isSystemCalling;
     if (!mainThread_ || !hasPermission) {
         if (callback) {
             callback->OnSurfaceCapture(id, captureConfig, nullptr);
@@ -1493,30 +1500,47 @@ ErrCode RSRenderServiceConnection::SetScreenFreezeImmediately(NodeId id, bool is
         RS_LOGE("%{public}s mainThread_ is nullptr or permission denied", __func__);
         return ERR_PERMISSION_DENIED;
     }
-    std::function<void()> setScreenFreezeTask =
-        [id, isFreeze, callback, captureConfig, hasPermission]() -> void {
+    RS_TRACE_NAME_FMT("TaskSurfaceCaptureWithAllWindows checkDrmAndSurfaceLock: %d", checkDrmAndSurfaceLock);
+    std::function<void()> takeSurfaceCaptureTask =
+        [id, checkDrmAndSurfaceLock, callback, captureConfig, hasPermission]() -> void {
+        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
+            RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
+        if (!displayNode) {
+            if (callback) {
+                callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            }
+            RS_LOGE("%{public}s failed, displayNode is nullptr", __func__);
+            return;
+        }
+        RSSurfaceCaptureParam captureParam;
+        captureParam.id = id;
+        captureParam.config = captureConfig;
+        captureParam.isSystemCalling = hasPermission;
+        captureParam.secExemption = hasPermission;
+        RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+    };
+    mainThread_->PostTask(takeSurfaceCaptureTask);
+    return ERR_OK;
+}
+ 
+ErrCode RSRenderServiceConnection::FreezeScreen(NodeId id, bool isFreeze)
+{
+    if (!mainThread_) {
+        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
+        return ERR_INVALID_OPERATION;
+    }
+    RS_TRACE_NAME_FMT("FreezeScreen isFreeze: %d", isFreeze);
+    std::function<void()> setScreenFreezeTask = [id, isFreeze]() -> void {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
             RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
         auto screenNode = displayNode == nullptr ? nullptr :
             std::static_pointer_cast<RSScreenRenderNode>(displayNode->GetParent().lock());
         if (!screenNode) {
-            if (callback) {
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            }
             RS_LOGE("%{public}s failed, screenNode is nullptr", __func__);
             return;
         }
         screenNode->SetForceFreeze(isFreeze);
-        if (isFreeze) {
-            RSSurfaceCaptureParam captureParam;
-            captureParam.id = id;
-            captureParam.config = captureConfig;
-            captureParam.isSystemCalling = hasPermission;
-            captureParam.isFreeze = isFreeze;
-            captureParam.secExemption = hasPermission;
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
-        }
     };
     mainThread_->PostTask(setScreenFreezeTask);
     return ERR_OK;

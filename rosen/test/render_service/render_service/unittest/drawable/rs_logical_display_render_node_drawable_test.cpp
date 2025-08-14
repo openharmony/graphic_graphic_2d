@@ -1229,7 +1229,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ClearCanvasStencil001, TestSize
 
     uniParams->isStencilPixelOcclusionCullingEnabled_ = true;
     renderParams->SetTopSurfaceOpaqueRects({{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE}});
-    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, uniParams, screenInfo);
+    displayDrawable_->ClearCanvasStencil(*tempFilterCanvas, *renderParams, *uniParams, screenInfo);
     EXPECT_EQ(tempFilterCanvas->GetMaxStencilVal(), TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM);
 }
 
@@ -1601,6 +1601,54 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest004, Tes
     // enableVisibleRect is true
     displayDrawable_->enableVisibleRect_ = true;
     displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params.get());
+}
+
+/**
+ * @tc.name: DrawWiredMirrorCopyTest005
+ * @tc.desc: Test DrawWiredMirrorCopy when curScreenDrawable is nullptr
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest005, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params);
+
+    screenDrawable_ = nullptr;
+    params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    // enableVisibleRect is false
+    displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params);
+
+    // enableVisibleRect is true
+    displayDrawable_->enableVisibleRect_ = true;
+    displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params);
+}
+
+/**
+ * @tc.name: DrawWiredMirrorCopyTest006
+ * @tc.desc: Test DrawWiredMirrorCopy when curScreenParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest006, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(mirroredScreenDrawable_, nullptr);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params);
+
+    screenDrawable_->renderParams_ = nullptr;
+    params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    // enableVisibleRect is false
+    displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params);
+
+    // enableVisibleRect is true
+    displayDrawable_->enableVisibleRect_ = true;
+    displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params);
 }
 
 /**

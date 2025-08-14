@@ -48,7 +48,7 @@ bool RSPixelMapShader::Unmarshalling(Parcel& parcel)
 void* RSPixelMapShader::GenerateBaseObject()
 {
 #ifdef ROSEN_OHOS
-    if (pixelMap_ && pixelMap_->IsUnMap()) {
+    if (pixelMap_) {
         pixelMap_->ReMap();
     }
 #endif

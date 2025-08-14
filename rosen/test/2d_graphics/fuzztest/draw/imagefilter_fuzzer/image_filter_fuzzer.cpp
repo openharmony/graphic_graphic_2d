@@ -46,10 +46,6 @@ bool ImageFilterFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
     scalar sigmaX = GetObject<scalar>();
@@ -97,10 +93,6 @@ bool ImageFilterFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
     scalar sigmaX = GetObject<scalar>();
@@ -139,10 +131,7 @@ bool ImageFilterFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
     scalar sigmaX = GetObject<scalar>();
     scalar sigmaY = GetObject<scalar>();
@@ -200,10 +189,6 @@ bool ImageFilterFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
     scalar sigmaX = GetObject<scalar>();
@@ -248,10 +233,7 @@ bool ImageFilterFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     float left = GetObject<float>();
     float top = GetObject<float>();
     float right = GetObject<float>();
@@ -290,10 +272,7 @@ void ImageFilterFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     Rect srcRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Rect dstRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Bitmap bitmap;
@@ -332,6 +311,11 @@ void ImageFilterFuzzTest006(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::ImageFilterFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ImageFilterFuzzTest002(data, size);

@@ -52,27 +52,27 @@ HWTEST_F(SubtreeParallelParamParseTest, ParseFeatureParamTest, TestSize.Level1)
         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SUBTREEPARALLEL]));
 
     bool subtreeenable = subtreeParam->GetSubtreeEnable();
-    std::cout << "DFX:Subtree Parallel GetSubtreeEnable:" <<  subtreeenable << std::endl;
+    std::cout << "DFX:Subtree Parallel GetSubtreeEnable:" << subtreeenable << std::endl;
 
-    bool subtreeRbEnable =  subtreeParam->GetRBPolicyEnabled();
-    std::cout << "DFX:Subtree Parallel GetRBPolicyEnabled:" <<  subtreeRbEnable << std::endl;
+    bool subtreeRbEnable = subtreeParam->GetRBPolicyEnabled();
+    std::cout << "DFX:Subtree Parallel GetRBPolicyEnabled:" << subtreeRbEnable << std::endl;
 
     bool multiwinEnable = subtreeParam->GetMultiWinPolicyEnabled();
-    std::cout << "DFX:Subtree Parallel GetMultiWinPolicyEnabled:" <<  multiwinEnable << std::endl;
+    std::cout << "DFX:Subtree Parallel GetMultiWinPolicyEnabled:" << multiwinEnable << std::endl;
 
-    int multiwinSurfaceNum =  subtreeParam->GetMutliWinSurfaceNum();
-    std::cout << "DFX:Subtree Parallel GetMutliWinSurfaceNum:" <<  multiwinSurfaceNum << std::endl;
+    int multiwinSurfaceNum = subtreeParam->GetMultiWinSurfaceNum();
+    std::cout << "DFX:Subtree Parallel GetMultiWinSurfaceNum:" << multiwinSurfaceNum << std::endl;
 
     int subtreeChildWeight = subtreeParam->GetRBChildrenWeight();
-    std::cout << "DFX:Subtree Parallel GetRBChildrenWeight:" <<  subtreeChildWeight << std::endl;
+    std::cout << "DFX:Subtree Parallel GetRBChildrenWeight:" << subtreeChildWeight << std::endl;
 
     int subtreeRbWeight = subtreeParam->GetRBSubtreeWeight();
-    std::cout << "DFX:Subtree Parallel GetRBSubtreeWeight:" <<  subtreeRbWeight << std::endl;
+    std::cout << "DFX:Subtree Parallel GetRBSubtreeWeight:" << subtreeRbWeight << std::endl;
 
     std::unordered_map<std::string, std::string> subtreeScene = subtreeParam->GetSubtreeScene();
     
     for (auto& pair : subtreeScene) {
-        std::cout << "DFX:Subtree Parallel subtreeScene:" <<  pair.first << ":" << pair.second  << std::endl;
+        std::cout << "DFX:Subtree Parallel subtreeScene:" << pair.first << ":" << pair.second << std::endl;
     }
     EXPECT_NE(subtreeParam, nullptr);
 }
@@ -167,7 +167,7 @@ HWTEST_F(SubtreeParallelParamParseTest, ParseFeatureParamTest002, TestSize.Level
         reinterpret_cast<const xmlChar*>("MutliWinPolicySurfaceNumber"));
     xmlSetProp(&nextNode, reinterpret_cast<const xmlChar*>("value"), reinterpret_cast<const xmlChar*>("2"));
     res = paramParse.ParseFeatureParam(paramMapType, node);
-    ASSERT_EQ(SubtreeParallelParam::GetMutliWinSurfaceNum(), 2);
+    ASSERT_EQ(SubtreeParallelParam::GetMultiWinSurfaceNum(), 2);
 
     xmlSetProp(&nextNode, reinterpret_cast<const xmlChar*>("name"),
         reinterpret_cast<const xmlChar*>("RBPolicyChildrenWeight"));

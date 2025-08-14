@@ -903,19 +903,19 @@ void RSSurfaceRenderNode::SetHwcGlobalPositionEnabled(bool isEnabled)
     isHwcGlobalPositionEnabled_ = isEnabled;
 }
 
-void RSSurfaceRenderNode::SetHwcCrossNode(bool isDRMCrossNode)
+void RSSurfaceRenderNode::SetHwcCrossNode(bool isHwcCrossNode)
 {
-    if (isHwcCrossNode_ == isDRMCrossNode) {
+    if (isHwcCrossNode_ == isHwcCrossNode) {
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetHwcCrossNode(isDRMCrossNode);
+    surfaceParams->SetHwcCrossNode(isHwcCrossNode);
     AddToPendingSyncList();
 
-    isHwcCrossNode_ = isDRMCrossNode;
+    isHwcCrossNode_ = isHwcCrossNode;
 }
 
 bool RSSurfaceRenderNode::IsHwcCrossNode() const
@@ -2100,10 +2100,9 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
         DealWithDrawBehindWindowTransparentRegion();
         transparentRegion_.SubSelf(opaqueRegion_);
     }
-    Occlusion::Rect screen{screeninfo};
-    Occlusion::Region screenRegion{screen};
-    transparentRegion_.AndSelf(screenRegion);
-    opaqueRegion_.AndSelf(screenRegion);
+    Occlusion::Region clipRegion{Occlusion::Rect{GetOldDirtyInSurface()}};
+    transparentRegion_.AndSelf(clipRegion);
+    opaqueRegion_.AndSelf(clipRegion);
     occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(
         NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
@@ -3764,7 +3763,7 @@ void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
 
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
-    const std::string tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
+    const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
     if (tvPlayerBundleName.empty()) {
         return false;
     }

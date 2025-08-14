@@ -18,6 +18,7 @@
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "surface_buffer_impl.h"
 #include "metadata_helper.h"
 #include "screen_manager/rs_screen.h"
@@ -48,7 +49,11 @@ public:
     std::unique_ptr<RSUniRenderComposerAdapter> composerAdapter_;
 };
 
-void RSUniRenderComposerAdapterTest::SetUpTestCase() {}
+void RSUniRenderComposerAdapterTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
+
 void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
 void RSUniRenderComposerAdapterTest::TearDown()
 {
@@ -297,7 +302,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform005, TestSize.Lev
 
 /**
  * @tc.name: CreateLayer002
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CreateLayer002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CreateLayer
  * @tc.type: FUNC
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
@@ -308,7 +313,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
     LayerInfoPtr layer1 = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_EQ(layer1, nullptr);
-    
+
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode);
     ASSERT_NE(drawable, nullptr);
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
@@ -353,9 +358,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     SetUp();
 
     using namespace HDI::Display::Graphic::Common::V1_0;
+
     auto rsContext = std::make_shared<RSContext>();
     RSScreenRenderNode::SharedPtr nodePtr = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
-    auto screenDrawable =std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
     sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);

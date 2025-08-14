@@ -864,9 +864,9 @@ bool RSSystemProperties::GetSubtreeParallelEnable()
     return subtreeParallelEnable;
 }
 
-int RSSystemProperties::GetSubtreeDebugOption()
+uint32_t RSSystemProperties::GetSubtreeDebugOption()
 {
-    static const int subtreeDebugOption =
+    static const uint32_t subtreeDebugOption =
         std::atoi((system::GetParameter("persist.sys.graphic.subtreeDebugOption", "0")).c_str());
     return subtreeDebugOption;
 }
@@ -1085,12 +1085,6 @@ bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(type, 1) != 0;
-}
-
-bool RSSystemProperties::GetParallelUploadTexture()
-{
-    static bool enable = std::atoi((system::GetParameter("rosen.parallelUpload,enabled", "1")).c_str()) != 0;
-    return enable;
 }
 
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
@@ -1330,20 +1324,6 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     static bool pixelMapEnabled =
         std::atoi((system::GetParameter("persist.rosen.textBlobAsPixelMapEnable.enable", "0")).c_str()) != 0;
     return pixelMapEnabled;
-}
-
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
-    return flag;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    static uint32_t size =
-        static_cast<uint32_t>(std::atoi(
-            (system::GetParameter("rosen.graphic.UnmashParallelSize", "102400")).c_str())); // 100K
-    return size;
 }
 
 bool RSSystemProperties::GetJankLoadOptimizeEnabled()

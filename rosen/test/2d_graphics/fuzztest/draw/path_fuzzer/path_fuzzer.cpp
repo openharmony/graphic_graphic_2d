@@ -40,11 +40,6 @@ bool PathAddFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Path path;
     Rect rect = GetObject<Rect>();
     Rect oval = GetObject<Rect>();
@@ -59,11 +54,6 @@ bool PathOpFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path1;
     Path ending;
@@ -99,11 +89,6 @@ bool PathFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Path path;
     Path pathTwo = Path(path);
     path.GetDrawingType();
@@ -128,11 +113,6 @@ bool PathFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     scalar ptOneX = GetObject<scalar>();
@@ -175,11 +155,6 @@ bool PathFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     float left = GetObject<float>();
@@ -233,11 +208,6 @@ bool PathFuzzTest004(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Path path;
     Path src;
     Path ending;
@@ -270,11 +240,6 @@ bool PathFuzzTest005(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Path path;
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
     char str[count];
@@ -297,11 +262,6 @@ bool PathFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     std::vector<Point> points;
@@ -331,11 +291,6 @@ bool PathFuzzTest007(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     path.IsEmpty();
@@ -367,11 +322,6 @@ bool PathFuzzTest008(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     scalar ptOneX = GetObject<scalar>();
@@ -422,11 +372,6 @@ bool PathFuzzTest009(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Path path;
     Path src;
     Path ending;
@@ -464,11 +409,6 @@ bool PathFuzzTest010(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Path path;
     Path otherPath;
     path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
@@ -492,10 +432,6 @@ bool PathFuzzTest011(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Path path;
     path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
@@ -535,6 +471,11 @@ bool PathFuzzTest011(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::PathAddFuzzTest(data, size);
     OHOS::Rosen::Drawing::PathOpFuzzTest(data, size);

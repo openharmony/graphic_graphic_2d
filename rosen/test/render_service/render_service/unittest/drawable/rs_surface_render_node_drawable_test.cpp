@@ -1627,9 +1627,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw004, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     canvas_->SetIsParallelCanvas(true);
     surfaceParams->isHardCursor_ = false;
-    canvas_->SetQuickGetDrawState(true);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     surfaceDrawable_->OnDraw(*canvas_);
-    canvas_->SetQuickGetDrawState(false);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::DEFAULT_STATE);
     surfaceDrawable_->OnDraw(*canvas_);
     canvas_->canvas_->gpuContext_ = nullptr;
     surfaceDrawable_->OnDraw(*canvas_);
@@ -1710,25 +1710,25 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, QuickDrawTest, TestSize.Level1)
     ASSERT_NE(canvas_, nullptr);
     Drawing::Region region;
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    canvas_->SetQuickGetDrawState(false);
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::DEFAULT_STATE);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 
-    canvas_->SetQuickGetDrawState(true);
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    canvas_->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 
     params->windowInfo_.isMainWindowType_ = true;
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
     ASSERT_EQ(params->needOffscreen_, false);
 
     params->needOffscreen_ = true;
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 
     RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(false);
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
     ASSERT_EQ(canvas_->GetDisableFilterCache(), false);
 
     params->isOcclusionCullingOn_ = true;
-    surfaceDrawable_->QuickGetDrawState(*canvas_.get(), region, params);
+    surfaceDrawable_->QuickGetDrawState(canvas_.get(), region, params);
 }
 
 /**

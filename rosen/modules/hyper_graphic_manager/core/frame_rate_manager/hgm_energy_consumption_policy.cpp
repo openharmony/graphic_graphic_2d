@@ -45,6 +45,7 @@ constexpr int64_t DESCISION_VIDEO_CALL_TIME = 1000;
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
     RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string& componentName) {
+        // called by RSMainthread
         if (isAnimationEnergyConsumptionAssuranceMode_) {
             StartNewAnimation(componentName);
         }

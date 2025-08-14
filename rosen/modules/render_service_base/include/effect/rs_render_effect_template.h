@@ -80,6 +80,7 @@ public:
             case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
+            case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             default:

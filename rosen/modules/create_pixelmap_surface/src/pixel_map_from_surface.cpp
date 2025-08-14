@@ -64,7 +64,6 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
-#include "include/core/SkImage.h"
 #endif
 
 namespace OHOS {

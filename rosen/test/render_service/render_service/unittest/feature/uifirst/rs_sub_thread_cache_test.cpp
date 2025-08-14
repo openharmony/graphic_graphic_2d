@@ -888,7 +888,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest005, TestSize.Level1)
 
 /**
  * @tc.name: DealWithUIFirstCacheTest006
- * @tc.desc: Test skip drawing special nodes in the virtual screen, IsSnapshot_ = true
+ * @tc.desc: Test skip drawing special nodes in the virtual screen, isSnapshot_ = true
  * @tc.type: FUNC
  * @tc.require: issueIAEDYI
  */

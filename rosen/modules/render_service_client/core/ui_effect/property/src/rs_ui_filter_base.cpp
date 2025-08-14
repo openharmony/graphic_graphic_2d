@@ -62,12 +62,12 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGEdgeLightFilter>();
         }
     },
-    {RSNGEffectType::DIRECTION_LIGHT, [] {
-            return std::make_shared<RSNGDirectionLightFilter>();
-        }
-    },
     {RSNGEffectType::COLOR_GRADIENT, [] {
             return std::make_shared<RSNGColorGradientFilter>();
+        }
+    },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGDirectionLightFilter>();
         }
     },
     {RSNGEffectType::MASK_TRANSITION, [] {
@@ -118,22 +118,6 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     return edgeLightFilter;
 }
 
-std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
-{
-    auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
-    if (filter == nullptr || filterPara == nullptr) {
-        return nullptr;
-    }
-    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
-    auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
-    directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
-    directionLightFilter->Setter<DirectionLightFactorTag>(directionLightFilterPara->GetMaskFactor());
-    directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
-    directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
-    directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
-    return directionLightFilter;
-}
-
 std::shared_ptr<RSNGFilterBase> ConvertDispersionFilterPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::DISPERSION);
@@ -148,6 +132,22 @@ std::shared_ptr<RSNGFilterBase> ConvertDispersionFilterPara(std::shared_ptr<Filt
     dispersionFilter->Setter<DispersionGreenOffsetTag>(dispersionFilterPara->GetGreenOffset());
     dispersionFilter->Setter<DispersionBlueOffsetTag>(dispersionFilterPara->GetBlueOffset());
     return dispersionFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
+    directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
+    directionLightFilter->Setter<DirectionLightFactorTag>(directionLightFilterPara->GetMaskFactor());
+    directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
+    directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
+    directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
+    return directionLightFilter;
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertColorGradientFilterPara(std::shared_ptr<FilterPara> filterPara)

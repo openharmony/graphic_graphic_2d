@@ -41,23 +41,6 @@ bool GetSolidLayerEnabled()
     return (HWCParam::IsSolidLayerEnable() || RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag()) &&
         RSSystemParameters::GetSolidLayerHwcEnabled();
 }
-
-bool IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
-{
-    // Intersection judgment of layer boundaries has already been conducted
-    bool isIntersect = true;
-#ifndef ROSEN_CROSS_PLATFORM
-    if (RSSystemProperties::GetAIBarOptEnabled()) {
-        auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(hwcNode.GetStagingRenderParams().get());
-        if (stagingSurfaceParams) {
-            auto damageRect = stagingSurfaceParams->GetBufferDamage();
-            RectI rect = {damageRect.x, damageRect.y, damageRect.w, damageRect.h};
-            isIntersect = rect.Intersect(filterRect);
-        }
-    }
-#endif
-    return isIntersect;
-}
 }
 
 RSUniHwcVisitor::RSUniHwcVisitor(RSUniRenderVisitor& visitor) : uniRenderVisitor_(visitor) {}
@@ -1006,6 +989,32 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfac
     }
 }
 
+bool RSUniHwcVisitor::IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
+{
+    // Intersection judgment of layer boundaries has already been conducted
+    bool isIntersect = true;
+#ifndef ROSEN_CROSS_PLATFORM
+    if (RSSystemProperties::GetAIBarOptEnabled()) {
+        auto surfaceHandler = hwcNode.GetRSSurfaceHandler();
+        if (surfaceHandler && surfaceHandler->IsCurrentFrameBufferConsumed()) {
+            auto rect = surfaceHandler->GetDamageRegion();
+            const auto& matrix = hwcNode.GetBufferRelMatrix();
+            auto bufferDirtyRect = hwcNode.GetRenderProperties().GetBoundsGeometry()->MapRect(
+                RectF(rect.x, rect.y, rect.w, rect.h), matrix);
+            isIntersect = bufferDirtyRect.Intersect(filterRect);
+            RS_OPTIONAL_TRACE_FMT("RSUniHwcVisitor::IntersectHwcDamage "
+                "bufferDirtyRect: [%d,%d,%d,%d] filterRect: [%d,%d,%d,%d]",
+                bufferDirtyRect.GetLeft(), bufferDirtyRect.GetTop(),
+                bufferDirtyRect.GetWidth(), bufferDirtyRect.GetHeight(),
+                filterRect.GetLeft(), filterRect.GetTop(),
+                filterRect.GetWidth(), filterRect.GetHeight());
+        }
+    }
+#endif
+    RS_OPTIONAL_TRACE_FMT("RSUniHwcVisitor::IntersectHwcDamage isIntersect: %d", isIntersect);
+    return isIntersect;
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNode)
 {
@@ -1024,7 +1033,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
             if (renderNode->IsAIBarFilter()) {
                 intersectedWithAIBar = true;
                 bool intersectHwcDamage = IntersectHwcDamage(hwcNode, filter->second);
-                RS_TRACE_NAME_FMT("AIBarFilter intersectHwcDamage: %d", intersectHwcDamage);
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
                     ROSEN_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
                     continue;
@@ -1052,7 +1060,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     if (intersectedWithAIBar) {
         hwcNode.SetIntersectWithAIBar(intersectedWithAIBar);
     }
-    RS_TRACE_NAME_FMT("HwcNode checkDrawAIBar: %d intersectedWithAIBar: %d", checkDrawAIBar, intersectedWithAIBar);
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(

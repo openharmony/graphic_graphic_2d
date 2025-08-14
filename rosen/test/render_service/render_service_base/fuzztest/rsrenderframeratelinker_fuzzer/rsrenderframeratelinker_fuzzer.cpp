@@ -56,10 +56,6 @@ bool DoSetExpectedRange(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
     uint64_t id = GetData<uint64_t>();
     int min = GetData<int>();
     int max = GetData<int>();
@@ -76,10 +72,6 @@ bool DoSetFrameRate(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
     uint64_t id = GetData<uint64_t>();
     uint32_t rate = GetData<uint32_t>();
     RSRenderFrameRateLinker rsRenderFrameRateLinker(id);
@@ -93,10 +85,6 @@ bool DoSetAnimatorExpectedFrameRate(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
     int32_t animatorExpectedFrameRate = GetData<int32_t>();
     RSRenderFrameRateLinker rsRenderFrameRateLinker;
     rsRenderFrameRateLinker.SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
@@ -108,6 +96,11 @@ bool DoSetAnimatorExpectedFrameRate(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoSetExpectedRange(data, size);
     OHOS::Rosen::DoSetFrameRate(data, size);

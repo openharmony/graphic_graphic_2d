@@ -49,17 +49,20 @@ T GetData()
     return object;
 }
 
-bool DoCommitTransaction(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     DATA = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoCommitTransaction(const uint8_t* data, size_t size)
+{
     // test
     auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
     auto transactionData = std::make_unique<RSTransactionData>();
@@ -69,15 +72,6 @@ bool DoCommitTransaction(const uint8_t* data, size_t size)
 
 bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
@@ -90,6 +84,10 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoCommitTransaction(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);

@@ -408,8 +408,10 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         }
     }
 
-    if (enableVisibleRect_ && !drawMirrorCopy_) {
-        canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
+    if (enableVisibleRect_) {
+        if (!drawMirrorCopy_) {
+            canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
+        }
         RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed: Scale With VisibleRect, "
             "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f", mirrorScaleX_, mirrorScaleY_);
     } else {
@@ -550,6 +552,7 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
 
     canvas.Scale(mirrorScaleX_, mirrorScaleY_);
     canvas.Translate(startX, startY);
+    RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f", startX, startY);
 }
 
 bool RSUniRenderVirtualProcessor::EnableSlrScale()

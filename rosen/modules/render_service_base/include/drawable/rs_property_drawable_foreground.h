@@ -31,6 +31,7 @@ namespace Drawing {
 class GEShader;
 class RuntimeEffect;
 class RuntimeShaderBuilder;
+class GEVisualEffectContainer;
 } // namespace Drawing
 
 namespace DrawableV2 {

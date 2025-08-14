@@ -498,7 +498,21 @@ std::shared_ptr<RSScreenRenderNode> RSProfiler::GetScreenNode(const RSContext& c
         return nullptr;
     }
 
-    return RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(root->GetSortedChildren()->front());
+    const auto& children = *root->GetChildren();
+    if (children.empty()) {
+        return nullptr;
+    }
+    for (const auto& screenNode : children) {   // apply multiple screen nodes
+        if (!screenNode) {
+            continue;
+        }
+        const auto& screenNodeChildren = screenNode->GetChildren();
+        if (screenNodeChildren->empty()) {
+            continue;
+        }
+        return RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(screenNode);
+    }
+    return nullptr;
 }
 
 Vector4f RSProfiler::GetScreenRect(const RSContext& context)
@@ -1063,7 +1077,7 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
     return "";
 }
 
-static RenderModifier* UnmarshalRenderModifier(std::stringstream& data, std::string& errReason)
+static std::shared_ptr<RenderModifier> UnmarshalRenderModifier(std::stringstream& data, std::string& errReason)
 {
     errReason = "";
 
@@ -1144,7 +1158,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
             RSProfiler::SendMessageBase("LOADERROR: Modifier format changed [" + errModifierCode + "]");
             continue;
         }
-        node.AddModifier(std::shared_ptr<RenderModifier>(ptr));
+        node.AddModifier(ptr);
     }
 
 #ifndef MODIFIER_NG
@@ -1160,7 +1174,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
                 RSProfiler::SendMessageBase("LOADERROR: DrawModifier format changed [" + errModifierCode + "]");
                 continue;
             }
-            node.AddModifier(std::shared_ptr<RenderModifier>(ptr));
+            node.AddModifier(ptr);
         }
     }
 #endif

@@ -528,7 +528,13 @@ bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamag
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus \
         cacheUpdateInterval_:%d forceClearCacheForLastFrame_:%d",
         cacheUpdateInterval_, stagingForceClearCacheForLastFrame_);
-    if (cacheUpdateInterval_ == 0 || stagingForceClearCacheForLastFrame_) {
+    // Determines if the cache is invalid based on:
+    // - Cache update interval is less than or equal to 0
+    // - Staging force cache clear flag being set for last frame
+    // - The previous frame triggered a frame skipping
+    bool cacheInvalid = cacheUpdateInterval_ <= 0 || stagingForceClearCacheForLastFrame_ ||
+                        (!intersectHwcDamage && pendingPurge_);
+    if (cacheInvalid) {
         return false;
     } else {
         MarkFilterForceUseCache(true);

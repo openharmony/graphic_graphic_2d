@@ -80,7 +80,6 @@ class RSImplicitAnimator;
 class RSModifier;
 class RSObjAbsGeometry;
 class RSUIContext;
-class RSUIFilter;
 class RSNGFilterBase;
 class RSNGShaderBase;
 enum class CancelAnimationStatus;
@@ -1138,9 +1137,6 @@ public:
      */
     void SetVisualEffect(const VisualEffect* visualEffect);
 
-    void SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter);
-    void SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter);
-
     /**
      * @brief Sets the foreground effect radius.
      *
@@ -2076,7 +2072,6 @@ private:
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
-    friend class RSModifier;
     friend class ModifierNG::RSModifier;
     friend class ModifierNG::RSCustomModifier;
     friend class RSBackgroundUIFilterModifier;

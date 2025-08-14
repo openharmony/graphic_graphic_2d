@@ -75,7 +75,7 @@ using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigDa
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
-using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, int32_t)>;
+using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, const std::string&, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
@@ -173,8 +173,11 @@ public:
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
-    bool SetScreenFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig);
+    bool TaskSurfaceCaptureWithAllWindows(NodeId id,
+        std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+        bool checkDrmAndSurfaceLock);
+
+    bool FreezeScreen(NodeId id, bool isFreeze);
 
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);

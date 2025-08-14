@@ -18,7 +18,6 @@
 #include <securec.h>
 
 #include "modifier/rs_modifier_type.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "pipeline/rs_node_map.h"
 #include "ui/rs_node.h"
@@ -29,39 +28,6 @@ namespace Rosen {
 RSShowingPropertiesFreezer::RSShowingPropertiesFreezer(NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
     : id_(id), rsUIContext_(rsUIContext)
 {}
-
-template<typename T, RSModifierType Type>
-std::optional<T> RSShowingPropertiesFreezer::GetPropertyImpl() const
-{
-    auto rsUIContextPtr = rsUIContext_.lock();
-    auto node = rsUIContextPtr ? rsUIContextPtr->GetNodeMap().GetNode<RSNode>(id_)
-                               : RSNodeMap::Instance().GetNode<RSNode>(id_);
-    if (node == nullptr) {
-        return std::nullopt;
-    }
-    std::unique_lock<std::recursive_mutex> lock(node->propertyMutex_);
-    auto iter = node->propertyModifiers_.find(Type);
-    if (iter == node->propertyModifiers_.end()) {
-        ROSEN_LOGE(
-            "RSShowingPropertiesFreezer::GetPropertyImpl Type %{public}d failed, no such property!",
-            static_cast<int>(Type));
-        return std::nullopt;
-    }
-    auto property = std::static_pointer_cast<RSAnimatableProperty<T>>(iter->second->GetProperty());
-    if (property == nullptr) {
-        ROSEN_LOGE(
-            "RSShowingPropertiesFreezer::GetPropertyImpl Type %{public}d failed, property is null!",
-            static_cast<int>(Type));
-        return std::nullopt;
-    }
-    bool success = property->GetShowingValueAndCancelAnimation();
-    if (!success) {
-        ROSEN_LOGE("RSShowingPropertiesFreezer::GetPropertyImpl Type %{public}d failed, cancel animation failed!",
-            static_cast<int>(Type));
-        return std::nullopt;
-    }
-    return property->Get();
-}
 
 template<typename T, ModifierNG::RSModifierType ModifierType, ModifierNG::RSPropertyType PropertyType>
 std::optional<T> RSShowingPropertiesFreezer::GetPropertyImplNG() const

@@ -55,6 +55,7 @@ const std::string DISPLAYNODE = "DisplayNode";
 constexpr uint32_t API14 = 14;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
+constexpr int32_t SCREEN_SCAN_DIRECTION_VERTICAL = 1;
 
 inline int64_t GenerateCurrentTimeStamp()
 {
@@ -1335,7 +1336,7 @@ int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodePar
     uint32_t apiCompatibleVersion = nodeParams->GetApiCompatibleVersion();
     if (isCameraRotationCompensation && apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION &&
         apiCompatibleVersion < API14) {
-        if (RSSystemParameters::GetWindowScreenScanType() == 1) {
+        if (RSSystemParameters::GetWindowScreenScanType() == SCREEN_SCAN_DIRECTION_VERTICAL) {
             rotationDegree = RS_ROTATION_90;
         }
         return rotationDegree;

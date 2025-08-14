@@ -15,7 +15,6 @@
 
 #include "rs_vsync_rate_reduce_manager.h"
 #include <parameters.h>
-#include <memory>
 #include <ratio>
 #include <thread>
 #include <unordered_set>
@@ -34,7 +33,7 @@ namespace {
 // if frame rate is 120, ratio of 1 means 120, 2 means 60, 3 means 40, 4 means 30
 // vsync rate table, first dimension means the balance level as one frame duration increased
 // second dimension means the occlusion level
-constexpr int VSYNC_RATE_TABLE[][4] = {
+constexpr uint32_t VSYNC_RATE_TABLE[][4] = {
     {1, 1, 2, 2},
     {1, 2, 2, 3},
     {2, 2, 3, 3},
@@ -73,7 +72,7 @@ constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
-constexpr int32_t MIN_REFRESH_RATE = 30;
+constexpr uint32_t MIN_REFRESH_RATE = 30;
 constexpr int INVISBLE_WINDOW_VSYNC_RATIO = std::numeric_limits<int>::max();
 constexpr int V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO = std::numeric_limits<int>::max() >> 1;
 } // Anonymous namespace
@@ -147,6 +146,7 @@ void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenI
     if (surfaceNode.IsHardwareEnabledTopSurface()) {
         return;
     }
+
     if (!surfaceNode.IsSCBNode() || surfaceNode.GetDstRect().IsEmpty() || surfaceNode.IsLeashWindow()) {
         return;
     }
@@ -282,6 +282,7 @@ void RSVsyncRateReduceManager::NotifyVRates()
     if (vSyncRateMap_.empty() || !CheckNeedNotify()) {
         return;
     }
+
     linkersRateMap_.clear();
     for (const auto& [nodeId, rate]: vSyncRateMap_) {
         std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetSurfaceNodeLinkerIds(nodeId);
@@ -328,12 +329,12 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
         RS_LOGE("GetRateByBalanceLevel curRatesLevel error");
         return DEFAULT_RATE;
     }
-    int minRate = rsRefreshRate_ / static_cast<uint32_t>(MIN_REFRESH_RATE);
+    uint32_t minRate = rsRefreshRate_ / MIN_REFRESH_RATE;
     auto& rates = VSYNC_RATE_TABLE[curRatesLevel_];
     size_t intervalsSize = sizeof(V_VAL_INTERVALS) / sizeof(float);
     for (size_t i = 1; i < intervalsSize; ++i) {
         if (vVal > V_VAL_INTERVALS[i]) {
-            return std::min(minRate, rates[i - 1]);
+            return static_cast<int>(std::min(minRate, rates[i - 1]));
         }
     }
     return V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO;

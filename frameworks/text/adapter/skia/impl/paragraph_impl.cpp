@@ -590,6 +590,11 @@ void ParagraphImpl::SetLayoutState(size_t state)
     RecordDifferentPthreadCall(__FUNCTION__);
     paragraph_->setState(static_cast<skt::InternalState>(state));
 }
+
+std::string ParagraphImpl::GetDumpInfo() const
+{
+    return paragraph_->GetDumpInfo();
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

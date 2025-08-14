@@ -1727,6 +1727,36 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level
 }
 
 /**
+ * @tc.name: IntersectHwcDamage_001
+ * @tc.desc: Test IntersectHwcDamage function.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, IntersectHwcDamage_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    NodeId id = 1;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(rsSurfaceRenderNode->surfaceHandler_, nullptr);
+    rsSurfaceRenderNode->surfaceHandler_->buffer_.damageRect = {10, 10, 160, 160};
+
+    const RectI filterRect = {0, 0, 300, 300};
+
+    auto backupHandler = rsSurfaceRenderNode->GetMutableRSSurfaceHandler();
+    rsSurfaceRenderNode->surfaceHandler_ = nullptr;
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IntersectHwcDamage(*rsSurfaceRenderNode, filterRect));
+
+    rsSurfaceRenderNode->surfaceHandler_ = backupHandler;
+    rsSurfaceRenderNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = false;
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IntersectHwcDamage(*rsSurfaceRenderNode, filterRect));
+
+    rsSurfaceRenderNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = true;
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IntersectHwcDamage(*rsSurfaceRenderNode, filterRect));
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_001
  * @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when Intersect return false.
  * @tc.type: FUNC

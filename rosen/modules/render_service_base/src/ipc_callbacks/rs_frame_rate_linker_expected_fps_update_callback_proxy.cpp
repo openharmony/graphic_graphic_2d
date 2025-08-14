@@ -29,7 +29,7 @@ RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::RSFrameRateLinkerExpectedFpsUpd
 }
 
 void RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedFpsUpdate(
-    pid_t dstPid, int32_t expectedFps)
+    pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -45,6 +45,11 @@ void RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedF
     if (!data.WriteInt32(dstPid)) {
         ROSEN_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedFpsUpdate"
             "WriteInt32 dstPid failed");
+        return;
+    }
+    if (!data.WriteString(xcomponentId)) {
+        ROSEN_LOGE("RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedFpsUpdate"
+            "WriteString xcomponentId failed");
         return;
     }
     if (!data.WriteInt32(expectedFps)) {

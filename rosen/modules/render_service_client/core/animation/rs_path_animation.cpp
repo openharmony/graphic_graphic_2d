@@ -19,7 +19,6 @@
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_render_path_animation.h"
 #include "command/rs_animation_command.h"
-#include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "platform/common/rs_log.h"

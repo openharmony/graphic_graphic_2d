@@ -320,15 +320,24 @@ public:
         float blurRadius = 1E-6);
 
     /**
-     * @brief Take snapshot of displayNode, and freeze display.
-     * @param node Indicates a display node to be captured and freeze or unfreeze.
-     * @param isFreeze Indicates freeze or unfreeze the specified display node.
-     * @param callback Indicates callback to be triggered when trying to freeze display and snapshot is compeleted.
+     * @brief Take snapshot of displayNode.
+     * @param node Indicates a display node to be captured.
+     * @param callback Indicates callback to be triggered when snapshot is compeleted.
      * @param captureConfig Indicates the configrutation items required for snapshot.
-     * @return return true if snaphot success or display unfreezed, else return false.
+     * @param checkDrmAndSurfaceLock Indicates the flag to check existing drm or surface lock window.
+     * @return return true if snaphot success, else return false.
      */
-    bool SetScreenFreezeImmediately(std::shared_ptr<RSDisplayNode> node, bool isFreeze,
-        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+    bool TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
+        bool checkDrmAndSurfaceLock);
+
+    /**
+     * @brief Freeze or unfreeze screen.
+     * @param node Indicates a display node to freeze or unfreeze.
+     * @param isFreeze Indicates freeze or unfreeze the specified display node.
+     * @return return true if freeze or unfreeze success, else return false.
+     */
+    bool FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze);
 
     /**
      * @brief Get component snapshot Within the given node range.

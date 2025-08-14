@@ -18,6 +18,8 @@
 
 namespace {
     static constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
+    constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
+    constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
 }
 
 namespace OHOS {
@@ -31,7 +33,6 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSHgmConfigData();
     uint32_t size;
-    uint32_t pageNameSize;
     if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_) ||
         !parcel.ReadUint32(size)) {
         RS_LOGE("RSHgmConfigData Unmarshalling read failed");
@@ -39,7 +40,7 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
     }
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
     size_t len = static_cast<size_t>(size);
-    if (len > readableSize || len > data->configData_.max_size()) {
+    if (size > MAX_ANIM_DYNAMIC_ITEM_SIZE || len > readableSize) {
         RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
         return data;
     }
@@ -58,12 +59,13 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
         data->AddAnimDynamicItem(item);
     }
 
+    uint32_t pageNameSize;
     if (!parcel.ReadUint32(pageNameSize)) {
         RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
         return data;
     }
     len = static_cast<size_t>(pageNameSize);
-    if (len > readableSize || len > data->configData_.max_size()) {
+    if (pageNameSize > MAX_PAGE_NAME_SIZE || len > readableSize) {
         RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
         return data;
     }

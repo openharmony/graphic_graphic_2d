@@ -22,6 +22,9 @@
 #include "limit_number.h"
 #include "mock_hdi_device.h"
 #include "sandbox_utils.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -233,6 +236,15 @@ public:
     virtual ~RSScreenChangeCallbackStubMock() = default;
     void OnScreenChanged(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason) override {};
+};
+
+
+class RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
+public:
+    RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock() = default;
+    virtual ~RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock() = default;
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid,
+        const std::string& xcomponentId, int32_t expectedFps) override {};
 };
 
 void RSRenderServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,
@@ -667,6 +679,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub012
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE)),
         ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE)),
+        ERR_INVALID_DATA);
 }
 
 /**
@@ -891,6 +909,193 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub024
     data.WriteUint64(1);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub029
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub029, TestSize.Level1)
+{
+    int32_t dstPid = 1;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(dstPid);
+    data.WriteBool(true);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub031
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub031, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+    data.WriteBool(true);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub032
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub032, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+    data.WriteInt32(0);
+    data.WriteBool(true);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub033
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub033, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(0);
+    data.WriteBool(false);
+    data.WriteRemoteObject(callback->AsObject());
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub036
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub036, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIFrameRateLinkerExpectedFpsUpdateCallback::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(0);
+    data.WriteString("");
+    data.WriteInt32(0);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub037
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub037, TestSize.Level1)
+{
+    int32_t dstPid = 1;
+    int32_t expectedFps = 60;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIFrameRateLinkerExpectedFpsUpdateCallback::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE);
+    sptr<RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock> callback =
+        new RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock();
+
+    data.WriteInt32(dstPid);
+    data.WriteString("xcomponentId");
+    data.WriteInt32(expectedFps);
+    int32_t res = callback->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub034
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub034, TestSize.Level1)
+{
+    int32_t dstPid = 1;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    sptr<RSScreenChangeCallbackStubMock> callback = new RSScreenChangeCallbackStubMock();
+
+    data.WriteString("xcomponent");
+    data.WriteInt32(dstPid);
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub035
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub035, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    sptr<RSScreenChangeCallbackStubMock> callback = new RSScreenChangeCallbackStubMock();
+
+    data.WriteString("xcomponent");
+    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(res, NO_ERROR);
 }
 
 /**
@@ -1226,109 +1431,138 @@ HWTEST_F(RSRenderServiceConnectionStubTest, GetScreenHDRStatus003, TestSize.Leve
 }
 
 /**
- * @tc.name: SetScreenFreezeImmediatelyTest001
- * @tc.desc: Test SetScreenFreezeImmediately
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for success
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest001, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
 
-    bool isFreeze = false;
+    bool checkDrmAndSurfaceLock = false;
     NodeId displayNodeId = 123;
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     data.WriteUint64(displayNodeId);
-    data.WriteBool(isFreeze);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_PERMISSION_DENIED);
+    data.WriteBool(checkDrmAndSurfaceLock);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ASSERT_EQ(callback != nullptr, true);
+    data.WriteRemoteObject(callback->AsObject());
+    RSSurfaceCaptureConfig captureConfig;
+    data.WriteFloat(captureConfig.scaleX);
+    data.WriteFloat(captureConfig.scaleY);
+    data.WriteBool(captureConfig.useDma);
+    data.WriteBool(captureConfig.useCurWindow);
+    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data.WriteBool(captureConfig.isSync);
+    data.WriteBool(captureConfig.isHdrCapture);
+    data.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
+    data.WriteFloat(captureConfig.mainScreenRect.left_);
+    data.WriteFloat(captureConfig.mainScreenRect.top_);
+    data.WriteFloat(captureConfig.mainScreenRect.right_);
+    data.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data.WriteUInt64Vector(captureConfig.blackList);
+    data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteFloat(captureConfig.specifiedAreaRect.left_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.top_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.right_);
+    data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
+    data.WriteUint32(captureConfig.backGroundColor);
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_OK);
 }
 
 /**
- * @tc.name: SetScreenFreezeImmediatelyTest002
- * @tc.desc: Test SetScreenFreezeImmediately
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest002
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for task execution
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest002, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
+    auto runner = RSMainThread::Instance()->runner_;
+    auto handler = RSMainThread::Instance()->handler_;
+    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
+    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
+    RSMainThread::Instance()->runner_->Run();
     sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     auto mainThread = connection->mainThread_;
     connection->mainThread_ = nullptr;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCapturePermissions permissions;
-    auto ret = connection->SetScreenFreezeImmediately(0, false, nullptr, captureConfig, permissions);
+    auto ret = connection->TaskSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_NE(callback, nullptr);
-    ret = connection->SetScreenFreezeImmediately(0, false, callback, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
     ASSERT_NE(mainThread, nullptr);
     connection->mainThread_ = mainThread;
     permissions.screenCapturePermission = false;
     permissions.isSystemCalling = false;
-    ret = connection->SetScreenFreezeImmediately(0, false, nullptr, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     permissions.screenCapturePermission = true;
     permissions.isSystemCalling = false;
-    ret = connection->SetScreenFreezeImmediately(0, false, callback, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
     permissions.screenCapturePermission = true;
     permissions.isSystemCalling = true;
-    ret = connection->SetScreenFreezeImmediately(0, false, nullptr, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = connection->SetScreenFreezeImmediately(0, false, callback, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
     ASSERT_NE(connection->mainThread_, nullptr);
     NodeId displayNodeId = 111;
-    NodeId screenNodeId = 222;
-    ScreenId screenId = 1;
     RSDisplayNodeConfig displayNodeConfig;
     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
         new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
     ASSERT_NE(displayNode, nullptr);
-    std::shared_ptr<RSScreenRenderNode> screenNode = std::shared_ptr<RSScreenRenderNode>(
-        new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
-    ASSERT_NE(screenNode, nullptr);
-    displayNode->SetParent(screenNode);
     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
-    ret = connection->SetScreenFreezeImmediately(displayNodeId, false, nullptr, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = connection->SetScreenFreezeImmediately(displayNodeId, false, callback, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = connection->SetScreenFreezeImmediately(displayNodeId, true, callback, captureConfig, permissions);
+    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
+
+    RSMainThread::Instance()->runner_ = runner;
+    RSMainThread::Instance()->handler_ = handler;
 }
 
 /**
- * @tc.name: SetScreenFreezeImmediatelyTest003
- * @tc.desc: Test SetScreenFreezeImmediately
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest003
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for failures
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest003, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data1;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     data1.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     data1.WriteBool(false);
     int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
@@ -1367,6 +1601,80 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenFreezeImmediatelyTest003, T
     data5.WriteBool(false);
     res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: FreezeScreenTest001
+ * @tc.desc: Test FreezeScreen to freeze or unfreeze screen
+ * @tc.type: FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, FreezeScreenTest001, TestSize.Level2)
+{
+    constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    data1.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data1.WriteBool(false);
+    int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data2.WriteUint64(1);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data3.WriteUint64(1);
+    data3.WriteBool(true);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+
+    auto runner = RSMainThread::Instance()->runner_;
+    auto handler = RSMainThread::Instance()->handler_;
+    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
+    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
+    RSMainThread::Instance()->runner_->Run();
+    sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto mainThread = connection->mainThread_;
+    connection->mainThread_ = nullptr;
+    res = connection->FreezeScreen(0, false);
+    ASSERT_EQ(res, ERR_INVALID_OPERATION);
+
+    ASSERT_NE(mainThread, nullptr);
+    connection->mainThread_ = mainThread;
+    res = connection->FreezeScreen(0, false);
+    usleep(TIME_OF_FREEZE_TASK);
+    ASSERT_EQ(res, ERR_OK);
+
+    NodeId displayNodeId = 1123;
+    NodeId screenNodeId = 4456;
+    ScreenId screenId = 1;
+    RSDisplayNodeConfig displayNodeConfig;
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = std::shared_ptr<RSLogicalDisplayRenderNode>(
+        new RSLogicalDisplayRenderNode(displayNodeId, displayNodeConfig), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(displayNode, nullptr);
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::shared_ptr<RSScreenRenderNode>(
+        new RSScreenRenderNode(screenNodeId, screenId), RSRenderNodeGC::NodeDestructor);
+    ASSERT_NE(screenNode, nullptr);
+    displayNode->SetParent(screenNode);
+    auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(screenNode));
+    res = connection->FreezeScreen(displayNodeId, false);
+    usleep(TIME_OF_FREEZE_TASK);
+    ASSERT_EQ(res, ERR_OK);
+
+    RSMainThread::Instance()->runner_ = runner;
+    RSMainThread::Instance()->handler_ = handler;
 }
 
 /**

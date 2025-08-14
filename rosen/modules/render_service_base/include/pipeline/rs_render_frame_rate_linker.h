@@ -78,6 +78,7 @@ private:
     FrameRateLinkerId id_ = 0;
     ObserverType observer_ = nullptr; // will not be copied to other obj
     FrameRateRange expectedRange_;
+    const std::string xcomponentId_ = "";
     uint32_t frameRate_ = 0;
     int32_t animatorExpectedFrameRate_ = -1;
     std::string vsyncName_;

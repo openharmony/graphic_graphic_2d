@@ -38,10 +38,10 @@ public:
     bool IsAdaptiveColorGamutEnabled() const;
 
     void SetTvPlayerBundleName(const std::string& bundleName);
-    std::string GetTvPlayerBundleName() const;
+    const std::string& GetTvPlayerBundleName() const;
 
-    void SetFilterUnderHwcConfigByApp(std::string appName, std::string val);
-    const std::string& GetFilterUnderHwcConfigByApp(const std::string& appName);
+    void SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val);
+    std::string_view GetFilterUnderHwcConfigByApp(const std::string& appName);
 
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);

@@ -262,18 +262,33 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskMan
 }
 
 /**
- * @tc.name: IsSetScreenFreezeImmediately
- * @tc.desc: test SetScreenFreezeImmediately permission checking
+ * @tc.name: TaskSurfaceCaptureWithAllWindows
+ * @tc.desc: test TaskSurfaceCaptureWithAllWindows permission checking
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSetScreenFreezeImmediately,
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TaskSurfaceCaptureWithAllWindows,
     testing::ext::TestSize.Level1)
 {
     auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_FREEZE_IMMEDIATELY);
+        RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, false);
+}
+
+/**
+ * @tc.name: FreezeScreen
+ * @tc.desc: test FreezeScreen permission checking
+ * @tc.type: FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, FreezeScreen,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
+    ASSERT_EQ(hasPermission, true);
 }
 } // namespace OHOS::Rosen

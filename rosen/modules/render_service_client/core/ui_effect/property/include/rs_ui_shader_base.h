@@ -46,7 +46,11 @@ DECLARE_SHADER(ContourDiagonalFlowLight, CONTOUR_DIAGONAL_FLOW_LIGHT,
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Color),
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Start),
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Length),
-    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color)
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Thickness),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Radius),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Weight1),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Weight2)
 );
 
 DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
@@ -113,6 +117,15 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Strength11),
     ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
     ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber)
+);
+
+DECLARE_SHADER(LightCave, LIGHT_CAVE,
+    ADD_PROPERTY_TAG(LightCave, ColorA),
+    ADD_PROPERTY_TAG(LightCave, ColorB),
+    ADD_PROPERTY_TAG(LightCave, ColorC),
+    ADD_PROPERTY_TAG(LightCave, Position),
+    ADD_PROPERTY_TAG(LightCave, RadiusXY),
+    ADD_PROPERTY_TAG(LightCave, Progress)
 );
 
 #undef ADD_PROPERTY_TAG

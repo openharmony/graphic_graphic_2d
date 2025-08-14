@@ -132,15 +132,16 @@ bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInf
     if (!Fits(static_cast<size_t>(memory.bufferSize))) {
         return false;
     }
+    auto ret = true;
 
     if (IsSharedMemory(memory)) {
-        PushSharedMemory(id, info, memory, skipBytes);
+        ret = PushSharedMemory(id, info, memory, skipBytes);
     } else if (IsDmaMemory(memory)) {
-        PushDmaMemory(id, info, memory, skipBytes);
+        ret = PushDmaMemory(id, info, memory, skipBytes);
     } else {
-        PushHeapMemory(id, info, memory, skipBytes);
+        ret = PushHeapMemory(id, info, memory, skipBytes);
     }
-    return true;
+    return ret;
 }
 
 bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
@@ -172,25 +173,27 @@ bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, Pixel
     return true;
 }
 
-void PixelMapStorage::PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+bool PixelMapStorage::PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
     ImageProperties properties(info, AllocatorType::SHARE_MEM_ALLOC);
-    PushImage(id, GenerateImageData(0, info, memory), skipBytes, nullptr, &properties);
+    return PushImage(id, GenerateImageData(0, info, memory), skipBytes, nullptr, &properties);
 }
 
-void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
+bool PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
 {
     if (!map.GetFd()) {
-        return;
+        return false;
     }
 
     constexpr size_t skipBytes = 24u;
     const auto size = static_cast<size_t>(map.GetByteCount());
     const ImageProperties properties(map);
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
-        PushImage(id, GenerateImageData(0, image, size, map), skipBytes, nullptr, &properties);
+        auto ret = PushImage(id, GenerateImageData(0, image, size, map), skipBytes, nullptr, &properties);
         UnmapImage(image, size);
+        return ret;
     }
+    return false;
 }
 
 bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
@@ -229,7 +232,7 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
     return true;
 }
 
-void PixelMapStorage::PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+bool PixelMapStorage::PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
     auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(memory.context);
     auto buffer = surfaceBuffer ? surfaceBuffer->GetBufferHandle() : nullptr;
@@ -237,35 +240,36 @@ void PixelMapStorage::PushDmaMemory(uint64_t id, const ImageInfo& info, const Pi
         const auto pixels = GenerateImageData(id, reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()),
             buffer->size, memory.isAstc, GetBytesPerPixel(info));
         ImageProperties properties(info, AllocatorType::DMA_ALLOC);
-        PushImage(id, pixels, skipBytes, buffer, &properties);
+        return PushImage(id, pixels, skipBytes, buffer, &properties);
     }
+    return false;
 }
 
-void PixelMapStorage::PushDmaMemory(uint64_t id, PixelMap& map)
+bool PixelMapStorage::PushDmaMemory(uint64_t id, PixelMap& map)
 {
     const auto surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(map.GetFd());
     const auto buffer = surfaceBuffer ? surfaceBuffer->GetBufferHandle() : nullptr;
     if (!buffer) {
-        return;
+        return false;
     }
     const ImageProperties properties(map);
     const auto pixels =
         GenerateImageData(id, reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), buffer->size, map);
     MessageParcel parcel;
     surfaceBuffer->WriteToMessageParcel(parcel);
-    PushImage(id, pixels, parcel.GetReadableBytes(), buffer, &properties);
+    return PushImage(id, pixels, parcel.GetReadableBytes(), buffer, &properties);
 }
 
-void PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+bool PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
     ImageProperties properties(info, AllocatorType::HEAP_ALLOC);
-    PushImage(id, GenerateImageData(0, info, memory), skipBytes, nullptr, &properties);
+    return PushImage(id, GenerateImageData(0, info, memory), skipBytes, nullptr, &properties);
 }
 
-void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
+bool PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
 {
     if (!map.GetFd()) {
-        return;
+        return false;
     }
 
     constexpr size_t skipBytes = 24u;
@@ -274,8 +278,9 @@ void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
     const uint8_t *base = map.GetPixels();
     if (base && baseSize) {
         const auto pixels = GenerateImageData(0, base, baseSize, map);
-        PushImage(id, pixels, skipBytes, nullptr, &properties);
+        return PushImage(id, pixels, skipBytes, nullptr, &properties);
     }
+    return false;
 }
 
 bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
@@ -377,11 +382,11 @@ void PixelMapStorage::ExtractAlpha(const ImageData& image, ImageData& alpha, con
     }
 }
 
-void PixelMapStorage::PushImage(
+bool PixelMapStorage::PushImage(
     uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer, const ImageProperties* properties)
 {
     if (data.empty() || (buffer && ((buffer->width == 0) || (buffer->height == 0)))) {
-        return;
+        return false;
     }
 
     Image image;
@@ -434,7 +439,7 @@ void PixelMapStorage::PushImage(
         image.data = data;
     }
 
-    ImageCache::Add(id, std::move(image));
+    return ImageCache::Add(id, std::move(image));
 }
 
 EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties, const ImageData& data, Image& image)
