@@ -95,10 +95,11 @@ bool RSBorderLightShader::Marshalling(Parcel& parcel)
 bool RSBorderLightShader::Unmarshalling(Parcel& parcel, bool& needReset)
 {
     needReset = false;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightPosition_)
+    bool unmarshallingFailed = !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightPosition_)
         || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightColor_)
         || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightIntensity_)
-        || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightWidth_)) {
+        || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightWidth_);
+    if (unmarshallingFailed) {
         ROSEN_LOGE("unirender: RSBorderLightShader::Unmarshalling failed");
         return false;
     }
