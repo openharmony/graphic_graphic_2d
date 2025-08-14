@@ -263,8 +263,8 @@ bool ParseRadialGradientMask(
     std::vector<float> colors;
     std::vector<float> positions;
     if (ParseValueArray(env, argv[NUM_3], colors, positions)) {
-        mask->SetColors(colors);
-        mask->SetPositions(positions);
+        mask->SetColors(std::move(colors));
+        mask->SetPositions(std::move(positions));
         parseTimes++;
     }
     return (parseTimes == NUM_4);
@@ -312,7 +312,7 @@ napi_value MaskNapi::CreateWaveGradientMask(napi_env env, napi_callback_info inf
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireMinArgc <= realArgc && realArgc <= requireMaxArgc, nullptr,
         MASK_LOG_E("MaskNapi CreateWaveGradientMask parsing input fail."));
-    
+
     auto maskPara = std::make_shared<WaveGradientMaskPara>();
     UIEFFECT_NAPI_CHECK_RET_D(ParseWaveGradientMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateWaveGradientMask parsing mask input fail."));
@@ -360,7 +360,7 @@ napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info i
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing input fail."));
-    
+
     auto maskPara = std::make_shared<RadialGradientMaskPara>();
     UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing mask input fail."));
