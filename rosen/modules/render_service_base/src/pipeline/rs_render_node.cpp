@@ -5017,9 +5017,6 @@ void RSRenderNode::AddToPendingSyncList()
 
 void RSRenderNode::SetStartingWindowFlag(bool startingFlag)
 {
-    if (startingFlag) {
-        UpdateDrawingCacheInfoAfterChildren();
-    }
     if (startingWindowFlag_ == startingFlag) {
         return;
     }
@@ -5559,7 +5556,8 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
-    if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
+    if (IsUifirstArkTsCardNode()) {
+        // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
         stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
