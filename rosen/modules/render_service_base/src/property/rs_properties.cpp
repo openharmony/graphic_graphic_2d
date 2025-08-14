@@ -537,6 +537,9 @@ bool RSProperties::UpdateGeometryByParent(const Drawing::Matrix* parentMatrix,
     auto dirtyFlag = (rect != lastRect_.value()) || !(prevAbsMatrix == prevAbsMatrix_);
     lastRect_ = rect;
     bgShaderNeedUpdate_ = true;
+    if (fgNGRenderFilter_ && fgNGRenderFilter_->ContainsType(RSNGEffectType::CONTENT_LIGHT)) {
+        filterNeedUpdate_ = true;
+    }
     return dirtyFlag;
 }
 
