@@ -20,7 +20,6 @@
 #include <platform/ohos/rs_irender_service.h>
 #include <platform/ohos/rs_irender_service_ipc_interface_code.h>
 
-#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 
