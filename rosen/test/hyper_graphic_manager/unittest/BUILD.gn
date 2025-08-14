@@ -18,7 +18,7 @@ hgm_test_deps = [
   "$graphic_2d_root/rosen/modules/composer:libcomposer",
   "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
   "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_src",
+  "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   "$graphic_2d_root/utils/test_header:test_header",
 ]
 
@@ -70,7 +70,6 @@ ohos_unittest("frame_rate_manager_test") {
     "hgm_soft_vsync_manager_test.cpp",
     "hgm_voter_test.cpp",
     "hgm_one_shot_timer_test.cpp",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   deps = [ ":hgm_test" ]
@@ -90,25 +89,6 @@ ohos_unittest("hgm_pointer_manager_test") {
 
 ohos_unittest("hgm_touch_manager_test") {
   module_out_path = "graphic_2d/graphic_2d/hyper_graphic_manager"
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-    "-Dprivate=public",
-    "-Dprotected=public",
-  ]
-
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    if (!use_libfuzzer) {
-      cflags += [ "-flto=thin" ]
-    }
-    if (enhanced_opt) {
-      if (!use_libfuzzer) {
-        cflags += [ "-fwhole-program-vtables" ]
-      }
-    }
-  }
 
   sources = [ "hgm_touch_manager_test.cpp" ]
 
