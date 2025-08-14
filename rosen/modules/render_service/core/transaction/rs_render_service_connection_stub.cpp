@@ -1417,13 +1417,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (ExtractPid(id) != callingPid) {
-                RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY calling is no legal, "
-                        "id:%{public}" PRIu64 ", callingPid:%{public}d ",
-                    id, callingPid);
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
             bool isFreeze {false};
             if (!data.ReadBool(isFreeze)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY Read isFreeze failed!");
