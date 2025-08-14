@@ -32,7 +32,7 @@ hgm_test_external_deps = [
   "hilog:libhilog",
   "hisysevent:libhisysevent",
   "hitrace:hitrace_meter",
-  "ipc:ipc_single",
+  "ipc:ipc_core",
   "init:libbeget_proxy",
   "init:libbegetutil",
   "libxml2:libxml2",
