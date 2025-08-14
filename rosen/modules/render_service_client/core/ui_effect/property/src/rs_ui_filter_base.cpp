@@ -213,6 +213,7 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
     if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertContentLightFilterPara filter or filterPara is nullptr");
         return nullptr;
     }
     auto contentLightFilter = std::static_pointer_cast<RSNGContentLightFilter>(filter);
