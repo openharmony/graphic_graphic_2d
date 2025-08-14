@@ -126,7 +126,7 @@ public:
 
     RSRenderNodeDrawableType GetDrawableType() const override
     {
-        return RSRenderNodeDrawableType::DISPLAY_NODE_DRAWABLE;
+        return RSRenderNodeDrawableType::SCREEN_NODE_DRAWABLE;
     }
 
     ScreenRotation GetFirstBufferRotation() const

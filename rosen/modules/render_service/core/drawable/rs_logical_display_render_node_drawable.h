@@ -56,6 +56,11 @@ public:
         return isFirstTimeToProcessor_;
     }
 
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::LOGICAL_DISPLAY_NODE_DRAWABLE;
+    }
+
 protected:
     explicit RSLogicalDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 
@@ -143,6 +148,6 @@ private:
     // mirror display drawing path dfx
     std::optional<bool> mirrorRedraw_;
 };
-}
-}
+} // namespace DrawableV2
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_LOGICAL_DISPLAY_RENDER_NODE_DRAWABLE_H

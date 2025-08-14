@@ -253,7 +253,8 @@ enum class TpFeatureConfigType : uint8_t {
 enum class RSRenderNodeDrawableType : uint32_t {
     UNKNOW = 0,
     RS_NODE_DRAWABLE,
-    DISPLAY_NODE_DRAWABLE,
+    LOGICAL_DISPLAY_NODE_DRAWABLE,
+    SCREEN_NODE_DRAWABLE,
     SURFACE_NODE_DRAWABLE,
     CANVAS_NODE_DRAWABLE,
     EFFECT_NODE_DRAWABLE,

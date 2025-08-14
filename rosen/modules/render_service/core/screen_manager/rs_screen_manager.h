@@ -211,9 +211,9 @@ public:
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
     
-    virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
-
     virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
+    
+    virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
     virtual bool CheckPSurfaceChanged(ScreenId id) = 0;
 };
@@ -390,11 +390,10 @@ public:
     int32_t GetVirtualScreenSecLayerOption(ScreenId id) const override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
-    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
-
     // Get all whiteList and their screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
     bool CheckPSurfaceChanged(ScreenId id) override;
 private:
     RSScreenManager() = default;
