@@ -1189,6 +1189,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<EmitterUpdater> emitterUpdater;
         success &= Unmarshalling(parcel, emitterUpdater);
+        if (emitterUpdater == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling EmitterUpdater failed");
+            return false;
+        }
         emitterUpdaters.push_back(emitterUpdater);
     }
     if (success) {
@@ -1289,6 +1293,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleNoiseField> ParticleNoiseField;
         success &= Unmarshalling(parcel, ParticleNoiseField);
+        if (ParticleNoiseField == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseField failed.");
+            return false;
+        }
         noiseFields->AddField(ParticleNoiseField);
     }
     if (success) {
@@ -1618,6 +1626,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleRenderParams> particleRenderParams;
         success &= Unmarshalling(parcel, particleRenderParams);
+        if (particleRenderParams == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRenderParams failed");
+            return false;
+        }
         particlesRenderParams.push_back(particleRenderParams);
     }
     if (success) {
