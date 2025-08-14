@@ -53,7 +53,7 @@ void YuvInfoFuzzTest000(const uint8_t* data, size_t size)
     yuv1.GetConfig();
     yuv1.GetSampling();
     yuv1.GetColorSpace();
-    yuv1.GetWidth();
+    yuv.GetWidth();
 }
 } // namespace Drawing
 } // namespace Rosen
