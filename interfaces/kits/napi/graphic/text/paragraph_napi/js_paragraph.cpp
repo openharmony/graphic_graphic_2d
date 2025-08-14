@@ -835,7 +835,7 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_array(env, &array));
     uint32_t index = 0;
     for (std::unique_ptr<TextLineBase>& item : textlineArr) {
-        napi_value itemObject = JsTextLine::CreateTextLine(env, info);
+        napi_value itemObject = JsTextLine::CreateTextLine(env);
         if (!itemObject) {
             TEXT_LOGE("Failed to create text line");
             continue;

@@ -27,7 +27,8 @@ public:
     JsRun();
 
     void SetRun(std::unique_ptr<Run> run);
-    static napi_value CreateRun(napi_env env, napi_callback_info info);
+    std::unique_ptr<Run> GetRun();
+    static napi_value CreateRun(napi_env env);
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);

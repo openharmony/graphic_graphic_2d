@@ -100,7 +100,7 @@ void JsRun::Destructor(napi_env env, void* nativeObject, void* finalize)
     }
 }
 
-napi_value JsRun::CreateRun(napi_env env, napi_callback_info info)
+napi_value JsRun::CreateRun(napi_env env)
 {
     napi_value result = nullptr;
     napi_value constructor = nullptr;
@@ -125,6 +125,11 @@ JsRun::JsRun()
 void JsRun::SetRun(std::unique_ptr<Run> run)
 {
     run_ = std::move(run);
+}
+
+std::unique_ptr<Run> JsRun::GetRun()
+{
+    return std::move(run_);
 }
 
 napi_value JsRun::GetGlyphCount(napi_env env, napi_callback_info info)

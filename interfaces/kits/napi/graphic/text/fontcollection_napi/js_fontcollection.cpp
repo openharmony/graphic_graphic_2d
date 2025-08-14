@@ -127,18 +127,7 @@ JsFontCollection::JsFontCollection()
 
 napi_status JsFontCollection::CreateFontCollection(napi_env env, napi_value constructor, napi_value* obj)
 {
-    napi_value instance = nullptr;
-    napi_status status = napi_get_named_property(env, constructor, CLASS_NAME.c_str(), &instance);
-    if (status != napi_ok || instance == nullptr) {
-        TEXT_LOGE("Failed to get prototype, status: %{public}d", status);
-        return status;
-    }
-    status = napi_new_instance(env, instance, 0, nullptr, obj);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to create instance, status: %{public}d", status);
-        return status;
-    }
-    return napi_ok;
+    return NewInstanceFromConstructor(env, constructor, CLASS_NAME.c_str(), obj);
 }
 
 napi_status JsFontCollection::SetFontCollection(

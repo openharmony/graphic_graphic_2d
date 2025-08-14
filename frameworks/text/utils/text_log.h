@@ -27,24 +27,35 @@ namespace OHOS {
 namespace Rosen {
 #ifdef ENABLE_OHOS_ENHANCE
 
-#undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001408
+#undef TEXT_LOG_DOMAIN
+#define TEXT_LOG_DOMAIN 0xD001408
 
-#undef LOG_TAG
-#define LOG_TAG "Text"
+#undef TEXT_LOG_TAG
+#define TEXT_LOG_TAG "Text"
 
 #define TEXT_LOG_LIMIT_HOURS 3600
 #define TEXT_LOG_LIMIT_MINUTE 60
 #define TEXT_LOG_LIMIT_PRINT_FREQUENCY 3
 
+#undef TEXT_HILOG_DEBUG
+#undef TEXT_HILOG_INFO
+#undef TEXT_HILOG_WARN
+#undef TEXT_HILOG_ERROR
+#define TEXT_HILOG_DEBUG(type, ...) ((void)TEXT_HILOG_LEVEL(type, LOG_DEBUG, ##__VA_ARGS__))
+#define TEXT_HILOG_INFO(type, ...) ((void)TEXT_HILOG_LEVEL(type, LOG_INFO, ##__VA_ARGS__))
+#define TEXT_HILOG_WARN(type, ...) ((void)TEXT_HILOG_LEVEL(type, LOG_WARN, ##__VA_ARGS__))
+#define TEXT_HILOG_ERROR(type, ...) ((void)TEXT_HILOG_LEVEL(type, LOG_ERROR, ##__VA_ARGS__))
+
+#define TEXT_HILOG_LEVEL(type, level, ...) HILOG_IMPL((type), (level), TEXT_LOG_DOMAIN, TEXT_LOG_TAG, ##__VA_ARGS__)
+
 #define TEXT_LOGD(fmt, ...)              \
-    HILOG_DEBUG(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    TEXT_HILOG_DEBUG(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define TEXT_LOGI(fmt, ...)              \
-    HILOG_INFO(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    TEXT_HILOG_INFO(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define TEXT_LOGW(fmt, ...)              \
-    HILOG_WARN(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    TEXT_HILOG_WARN(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 #define TEXT_LOGE(fmt, ...)              \
-    HILOG_ERROR(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+    TEXT_HILOG_ERROR(LOG_CORE, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
 
 #define TEXT_PRINT_LIMIT(type, level, intervals, canPrint, frequency)                                    \
     do {                                                                                                 \
@@ -59,7 +70,7 @@ namespace Rosen {
             supressed = 0;                                                                               \
             printCount = 1;                                                                              \
             if (supressedCnt != 0) {                                                                     \
-                ((void)HILOG_IMPL((type), (level), LOG_DOMAIN, LOG_TAG,                        \
+                ((void)HILOG_IMPL((type), (level), TEXT_LOG_DOMAIN, TEXT_LOG_TAG,                        \
                     "%{public}s log suppressed cnt %{public}u", __func__, supressedCnt));                \
             }                                                                                            \
             (canPrint) = true;                                                                           \

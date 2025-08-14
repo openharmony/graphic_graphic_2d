@@ -26,7 +26,9 @@
 #include "ani_placeholder_converter.h"
 #include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
+#include "ani_transfer_util.h"
 #include "font_collection.h"
+#include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "text_style.h"
 #include "utils/text_log.h"
 
@@ -107,6 +109,10 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{
             "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
         ani_native_function{"addSymbol", "I:V", reinterpret_cast<void*>(AddSymbol)},
+                ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+            reinterpret_cast<void*>(NativeTransferStatic)},
+        ani_native_function{
+            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -236,5 +242,52 @@ void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_int sym
         return;
     }
     typographyCreate->AppendSymbol(static_cast<uint32_t>(symbolId));
+}
+
+ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
+{
+    return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        JsParagraphBuilder* jsParagraphBuilder = reinterpret_cast<JsParagraphBuilder*>(unwrapResult);
+        if (jsParagraphBuilder == nullptr) {
+            TEXT_LOGE("Null jsParagraphBuilder");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH_BUILDER, ":V");
+        std::unique_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
+        if (typographyCreatePtr == nullptr) {
+            TEXT_LOGE("Failed to get typographyCreate");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
+        ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyCreatePtr.get()));
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to create ani typographyCreate obj");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
+        return staticObj;
+    });
+}
+
+ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
+{
+     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+        objValue = JsParagraphBuilder::Init(napiEnv, objValue);
+        napi_value dynamicObj = nullptr;
+        napi_status status = JsParagraphBuilder::CreateTypographyCreate(napiEnv, objValue, &dynamicObj);
+        if (status != napi_ok || dynamicObj == nullptr) {
+            TEXT_LOGE("Failed to create paragraph builder, status: %{public}d", status);
+            return dynamicObj = nullptr;
+        }
+        TypographyCreate* typographyCreate = reinterpret_cast<TypographyCreate*>(nativeObj);
+        if (typographyCreate == nullptr) {
+            TEXT_LOGE("Null typographyCreate");
+            return dynamicObj = nullptr;
+        }
+        status = JsParagraphBuilder::SetTypographyCreate(napiEnv, dynamicObj, std::unique_ptr<TypographyCreate>(typographyCreate));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set inner paragraph builder, status: %{public}d", status);
+            return dynamicObj = nullptr;
+        }
+        return dynamicObj;
+    });
 }
 } // namespace OHOS::Text::ANI

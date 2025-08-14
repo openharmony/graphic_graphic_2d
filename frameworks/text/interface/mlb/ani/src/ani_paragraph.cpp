@@ -26,8 +26,10 @@
 #include "ani_line_metrics_converter.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
+#include "ani_transfer_util.h"
 #include "canvas_ani/ani_canvas.h"
 #include "font_collection.h"
+#include "paragraph_napi/js_paragraph.h"
 #include "text/font_metrics.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -113,6 +115,10 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "I:L@ohos/graphics/text/text/LineMetrics;",
             reinterpret_cast<void*>(GetLineMetricsAt)},
+        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+            reinterpret_cast<void*>(NativeTransferStatic)},
+        ani_native_function{
+            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -532,5 +538,41 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_i
         return AniTextUtils::CreateAniUndefined(env);
     }
     return AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
+}
+
+ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
+{
+    return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
+        JsParagraph* jsParagraph = reinterpret_cast<JsParagraph*>(unwrapResult);
+        if (jsParagraph == nullptr) {
+            TEXT_LOGE("Null jsParagraph");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
+        std::shared_ptr<Typography> typographyPtr = jsParagraph->GetParagraph();
+        if (typographyPtr == nullptr) {
+            TEXT_LOGE("Failed to get typography");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
+        ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyPtr.get()));
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to create ani typography obj");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
+        return staticObj;
+    });
+}
+
+ani_object AniParagraph::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
+{
+     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+        napi_value dynamicObj = nullptr;
+        Typography* typography = reinterpret_cast<Typography*>(nativeObj);
+        if (typography == nullptr) {
+            TEXT_LOGE("Null typography");
+            return dynamicObj;
+        }
+        return JsParagraph::CreateJsTypography(napiEnv, std::unique_ptr<Typography>(typography));
+    });
 }
 } // namespace OHOS::Text::ANI

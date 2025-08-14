@@ -29,7 +29,7 @@ public:
     JsTextLine();
 
     void SetTextLine(std::unique_ptr<TextLineBase> textLine);
-    static napi_value CreateTextLine(napi_env env, napi_callback_info info);
+    static napi_value CreateTextLine(napi_env env);
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);

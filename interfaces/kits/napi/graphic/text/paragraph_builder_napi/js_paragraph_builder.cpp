@@ -85,6 +85,34 @@ void JsParagraphBuilder::SetTypographyCreate(std::unique_ptr<TypographyCreate> t
     typographyCreate_ = std::move(typographyCreate);
 }
 
+std::unique_ptr<TypographyCreate> JsParagraphBuilder::GetTypographyCreate()
+{
+    return std::move(typographyCreate_);
+}
+
+napi_status JsParagraphBuilder::CreateTypographyCreate(napi_env env, napi_value constructor, napi_value* obj)
+{
+    return NewInstanceFromConstructor(env, constructor, CLASS_NAME.c_str(), obj);
+}
+
+napi_status JsParagraphBuilder::SetTypographyCreate(
+    napi_env env, napi_value obj, std::unique_ptr<TypographyCreate> typographyCreate)
+{
+    if (env == nullptr || obj == nullptr || typographyCreate == nullptr) {
+        TEXT_LOGE("Invalid arguments");
+        return napi_invalid_arg;
+    }
+    JsParagraphBuilder* jsParagraphBuilder = nullptr;
+    napi_status status = napi_unwrap(env, obj, reinterpret_cast<void**>(&jsParagraphBuilder));
+    if (status != napi_ok || jsParagraphBuilder == nullptr) {
+        TEXT_LOGE("Failed to unwrap jsParagraphBuilder, status: %{public}d", status);
+        return status;
+    }
+    jsParagraphBuilder->typographyCreate_ = std::move(typographyCreate);
+    return napi_ok;
+}
+
+
 napi_value JsParagraphBuilder::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {

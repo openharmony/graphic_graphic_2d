@@ -122,6 +122,30 @@ namespace text {
     native build(): Paragraph;
     native buildLineTypeset(): LineTypeset;
     native addSymbol(symbolId: int): void;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      if (input == null || input == undefined) {
+        throw new Error("Param is null or undefined");
+      }
+      return ParagraphBuilder.nativeTransferStatic(ESValue.wrap(input));
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (input instanceof ParagraphBuilder) {
+        let esValue: ESValue = ParagraphBuilder.nativeTransferDynamic((input as ParagraphBuilder).nativeObj);
+        if (esValue) {
+          return esValue.unwrap();
+        } else {
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer ParagraphBuilder to dynamic, input: ${JSON.stringify(input)}`);
+          return esValue;
+        }
+      } else {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not ParagraphBuilder`);
+        return undefined;
+      }
+    }
   }
 
   export class Paragraph {
@@ -175,6 +199,30 @@ namespace text {
     };
 
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      if (input == null || input == undefined) {
+        throw new Error("Param is null or undefined");
+      }
+      return Paragraph.nativeTransferStatic(ESValue.wrap(input));
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (input instanceof Paragraph) {
+        let esValue: ESValue = Paragraph.nativeTransferDynamic((input as Paragraph).nativeObj);
+        if (esValue) {
+          return esValue.unwrap();
+        } else {
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer Paragraph to dynamic, input: ${JSON.stringify(input)}`);
+          return esValue;
+        }
+      } else {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not Paragraph`);
+        return undefined;
+      }
+    }
   }
 
   enum FontWidth {
@@ -533,6 +581,30 @@ namespace text {
     native getOffsetForStringIndex(index: int): double;
     native enumerateCaretOffsets(callback: CaretOffsetsCallback): void;
     native getAlignmentOffset(alignmentFactor: double, alignmentWidth: double): double;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      if (input == null || input == undefined) {
+        throw new Error("Param is null or undefined");
+      }
+      return TextLine.nativeTransferStatic(ESValue.wrap(input));
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (input instanceof TextLine) {
+        let esValue: ESValue = TextLine.nativeTransferDynamic((input as TextLine).nativeObj);
+        if (esValue) {
+          return esValue.unwrap();
+        } else {
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer TextLine to dynamic, input: ${JSON.stringify(input)}`);
+          return esValue;
+        }
+      } else {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not TextLine`);
+        return undefined;
+      }
+    }
   }
 
   export class Run {
@@ -565,6 +637,30 @@ namespace text {
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      if (input == null || input == undefined) {
+        throw new Error("Param is null or undefined");
+      }
+      return Run.nativeTransferStatic(ESValue.wrap(input));
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (input instanceof Run) {
+        let esValue: ESValue = Run.nativeTransferDynamic((input as Run).nativeObj);
+        if (esValue) {
+          return esValue.unwrap();
+        } else {
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer Run to dynamic, input: ${JSON.stringify(input)}`);
+          return esValue;
+        }
+      } else {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not Run`);
+        return undefined;
+      }
+    }
   }
 
   export interface PlaceholderSpan {
