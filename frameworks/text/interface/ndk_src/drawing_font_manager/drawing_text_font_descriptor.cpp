@@ -21,20 +21,9 @@
 #include "font_descriptor_mgr.h"
 #include "font_utils.h"
 #include "text/common_utils.h"
+#include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
-namespace {
-bool ConvertToDrawingString(std::u16string& utf16String, OH_Drawing_String& fullNameString)
-{
-    if (utf16String.empty()) {
-        return false;
-    }
-    fullNameString.strLen = utf16String.size() * sizeof(char16_t);
-    fullNameString.strData = new uint8_t[fullNameString.strLen];
-    return memcpy_s(fullNameString.strData, fullNameString.strLen, utf16String.c_str(), fullNameString.strLen) == EOK;
-}
-}
-
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
 {
@@ -135,25 +124,32 @@ OH_Drawing_Array* OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontT
     auto systemFontType = static_cast<int32_t>(fontType);
     std::unordered_set<std::string> fullNameList;
     FontDescriptorMgrInstance.GetSystemFontFullNamesByType(systemFontType, fullNameList);
-    std::vector<std::u16string> utf16List;
+    std::unique_ptr array = std::make_unique<ObjectArray>();
+    std::unique_ptr addr = std::make_unique<OH_Drawing_String[]>(fullNameList.size());
+    array->type = ObjectType::STRING;
+    size_t num = 0;
     for (const auto& fullName : fullNameList) {
         std::u16string utf16String = OHOS::Str8ToStr16(fullName);
-        if (!utf16String.empty()) {
-            utf16List.push_back(utf16String);
+        if (utf16String.empty()) {
+            TEXT_LOGE("Failed to convert string to utf16: %{public}s", fullName);
+            continue;
         }
+        addr[num].strLen = utf16String.size() * sizeof(char16_t);
+        std::unique_ptr strData = std::make_unique<uint8_t[]>(addr[num].strLen);
+        if (memcpy_s(strData.get(), addr[num].strLen, utf16String.c_str(), addr[num].strLen) != EOK) {
+            TEXT_LOGE("Failed to memcpy_s length: %{public}u", addr[num].strLen);
+            continue;
+        }
+        addr[num].strData = strData.release();
+        num += 1;
     }
-    if (utf16List.empty()) {
+    if (num == 0) {
+        TEXT_LOGI("Failed to get font full name, font type: %{public}d", static_cast<int32_t>(fontType));
         return nullptr;
     }
-    ObjectArray* array = new ObjectArray;
-    array->type = ObjectType::STRING;
-    array->num = utf16List.size();
-    array->addr = new OH_Drawing_String[array->num];
-    memset_s(array->addr, sizeof(OH_Drawing_String) * array->num, 0, sizeof(OH_Drawing_String) * array->num);
-    for (size_t i = 0; i < utf16List.size(); ++i) {
-        ConvertToDrawingString(utf16List[i], reinterpret_cast<OH_Drawing_String*>(array->addr)[i]);
-    }
-    return reinterpret_cast<OH_Drawing_Array*>(array);
+    array->num = num;
+    array->addr = addr.release();
+    return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
 
 const OH_Drawing_String* OH_Drawing_GetSystemFontFullNameByIndex(OH_Drawing_Array* fullNameArray, size_t index)
