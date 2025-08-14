@@ -74,6 +74,7 @@ public:
     uint32_t Hash() const override;
     uint32_t ShaderHash() const;
     uint32_t ImageHash() const;
+    uint32_t RenderFilterHash() const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter> other) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<Drawing::ImageFilter> other, uint32_t hash) const;
     std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSRenderFilterParaBase> other) const;
