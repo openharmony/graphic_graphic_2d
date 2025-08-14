@@ -140,25 +140,4 @@ HWTEST_F(RSUISoundWaveFilterTest, CreateRSRenderFilter001, TestSize.Level1)
     auto rsRenderFilterParaBase = rsUISoundWaveFilterPara1->CreateRSRenderFilter();
     EXPECT_NE(rsRenderFilterParaBase, nullptr);
 }
-
-/**
- * @tc.name: CheckEnableHdrEffect001
- * @tc.desc: Test CheckEnableHdrEffect
- * @tc.type: FUNC
- */
-HWTEST_F(RSUISoundWaveFilterTest, CheckEnableHdrEffect001, TestSize.Level1)
-{
-    auto rsUISoundWaveFilterPara = std::make_shared<RSUISoundWaveFilterPara>();
-    EXPECT_FALSE(rsUISoundWaveFilterPara->CheckEnableHdrEffect());
-
-    Vector4f colorA = { 0.5f, 0.5f, 0.5f, 1.0f };
-    Vector4f colorB = { 0.5f, 0.5f, 0.5f, 1.0f };
-    Vector4f colorC = {0.5f, 0.5f, 0.5f, 1.0f};
-    rsUISoundWaveFilterPara->SetColors(colorA, colorB, colorC);
-    EXPECT_FALSE(rsUISoundWaveFilterPara->CheckEnableHdrEffect());
-
-    colorA = { 0.5f, 1.5f, 0.5f, 1.0f };
-    rsUISoundWaveFilterPara->SetColors(colorA, colorB, colorC);
-    EXPECT_TRUE(rsUISoundWaveFilterPara->CheckEnableHdrEffect());
-}
 } // namespace OHOS::Rosen

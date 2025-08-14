@@ -84,6 +84,29 @@ public:
     {
         pureCleanFilterDirtyRegion_.Reset();
     }
+    static bool GetValidCachePartialRender()
+    {
+        return enablePartialRender_;
+    }
+    static void SetValidCachePartialRender(bool enable)
+    {
+        enablePartialRender_ = enable;
+    }
+    static void RecordFilterCacheValidForOcclusion(NodeId id, bool isValid)
+    {
+        if (!isValid) {
+            return;
+        }
+        validOcclusionFilterCache_.insert(id);
+    }
+    static bool GetFilterCacheValidForOcclusion(NodeId id)
+    {
+        return validOcclusionFilterCache_.find(id) != validOcclusionFilterCache_.end();
+    }
+    static void ResetFilterCacheValidForOcclusion()
+    {
+        validOcclusionFilterCache_.clear();
+    }
 private:
     // Main thread filters affected by below dirty (may invalidate cache).
     FilterDirtyRegionInfoList filtersWithBelowDirty_;
@@ -93,6 +116,10 @@ private:
     //Blur that does not affect the display but intersects with dirty region
     //Only used to increase the dirty region of the current frame
     Occlusion::Region pureCleanFilterDirtyRegion_;
+
+    // if filter cache valid for occlusion, dirty region collection can be skipped.
+    static std::unordered_set<NodeId> validOcclusionFilterCache_;
+    static bool enablePartialRender_;
 };
 } // namespace Rosen
 } // namespace OHOS

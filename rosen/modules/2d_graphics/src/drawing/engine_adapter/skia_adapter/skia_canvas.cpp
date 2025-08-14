@@ -127,8 +127,19 @@ void SkiaCanvas::InheriteState(Canvas* canvas)
 {
 }
 
+void SkiaCanvas::RecordState(Canvas* canvas)
+{
+    LOGD("skia does not support RecordState.");
+}
+
 void SkiaCanvas::SetParallelRender(bool parallelEnable)
 {
+    LOGD("skia does not support subtree parallel render.");
+}
+
+void SkiaCanvas::BuildStateRecord(int32_t width, int32_t height)
+{
+    LOGD("skia does not support build state record.");
 }
 
 RectI SkiaCanvas::GetRoundInDeviceClipBounds() const

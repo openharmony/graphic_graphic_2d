@@ -411,7 +411,8 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Leve
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     composerAdapter_->output_ = nullptr;
     NodeId id = 1;
-    RSScreenRenderNode node(id, 1);
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode node(id, 0, rsContext->weak_from_this());
     auto infoPtr = composerAdapter_->CreateLayer(node);
     ASSERT_EQ(infoPtr, nullptr);
 }
@@ -428,8 +429,9 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
     uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    auto rsContext = std::make_shared<RSContext>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    auto node = std::make_shared<RSScreenRenderNode>(nodeId, 1);
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, 0, rsContext->weak_from_this());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(

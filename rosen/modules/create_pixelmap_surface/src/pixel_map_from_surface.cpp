@@ -64,7 +64,6 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
-#include "include/core/SkImage.h"
 #endif
 
 namespace OHOS {
@@ -72,6 +71,7 @@ namespace Rosen {
 using namespace OHOS::Media;
 
 #ifdef RS_ENABLE_GPU
+// LCOV_EXCL_START
 static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_t &height,
     const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
@@ -206,6 +206,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
     return skSurface;
 }
 #endif
+// LCOV_EXCL_STOP
 
 class PixelMapFromSurface {
 public:
@@ -299,6 +300,7 @@ void PixelMapFromSurface::Clear() noexcept
     }
 }
 
+// LCOV_EXCL_START
 #if defined(RS_ENABLE_VK)
 static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
@@ -777,6 +779,7 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     return false;
 #endif
 }
+// LCOV_EXCL_STOP
 
 std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, const OHOS::Media::Rect &srcRect)
 {
@@ -795,7 +798,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
         RS_LOGE("check GPUContext fail");
         return nullptr;
     }
-#endif
+#endif // LCOV_EXCL_START
     RS_LOGI("PixelMapFromSurface::Create in, srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
         srcRect.left, srcRect.top, srcRect.width, srcRect.height);
     surface_ = surface;
@@ -818,7 +821,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
         RS_LOGE("Create pixelMap fail");
         Clear();
     }
-    return pixelMap;
+    return pixelMap; // LCOV_EXCL_STOP
 }
 
 std::unique_ptr<PixelMap> PixelMapFromSurface::Create(

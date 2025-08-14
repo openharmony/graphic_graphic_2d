@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #ifndef ROSEN_RENDER_SERVICE_PIPELINE_RS_LPP_VIDEO_H
 #define ROSEN_RENDER_SERVICE_PIPELINE_RS_LPP_VIDEO_H
 #include <string>
 #include <vector>
-
+ 
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -26,18 +26,18 @@ class LppVideoHandler {
 private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> lowPowerSurfaceNode_;
     std::atomic_bool hasVirtualMirrorDisplay_ = false;
-
+    std::mutex mutex_;
+ 
     LppVideoHandler() = default;
-
+    ~LppVideoHandler() = default;
+ 
 public:
     static LppVideoHandler& Instance();
-    void AddLppSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void ConsumeAndUpdateLppBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-    void ClearLppSufraceNode();
-    void JudgeRsDrawLppState(bool isPostUniRender);
+    void ClearLppSurfaceNode();
+    void JudgeRsDrawLppState(bool needDrawFrame, bool doDirectComposition);
     void SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay);
-    ~LppVideoHandler();
 };
 } // namespace OHOS::Rosen
-
+ 
 #endif

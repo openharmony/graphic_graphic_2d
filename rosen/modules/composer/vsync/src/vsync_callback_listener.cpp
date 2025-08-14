@@ -20,6 +20,9 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync_delay.h"
+#endif
 #include "graphic_common.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
@@ -43,7 +46,21 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     if (ReadFdInternal(fileDescriptor, data, dataCount) != VSYNC_ERROR_OK) {
         return;
     }
+#if defined(RS_ENABLE_DVSYNC_2)
+    auto taskFunc = [now = data[0], period = data[1], vsyncId = data[2],
+            dataCount, fileDescriptor, weak = weak_from_this()]() {
+        if (auto self = weak.lock()) {
+            int64_t newData[3] = {now, period, vsyncId};
+            DVSyncDelay::Instance().UpdateDelayInfo();
+            self->HandleVsyncCallbacks(newData, dataCount, fileDescriptor);
+        } else {
+            VLOGE("VSyncCallBackListener::OnReadable, weak.lock error");
+        }
+    };
+    DVSyncDelay::Instance().ToDelay(taskFunc, name_, fileDescriptor);
+#else
     HandleVsyncCallbacks(data, dataCount, fileDescriptor);
+#endif
 }
 
 void VSyncCallBackListener::OnShutdown(int32_t fileDescriptor)

@@ -234,7 +234,7 @@ private:
     bool DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& rscanvas,
         bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        RSPaintFilterCanvas& rscanvas, NodeId id);
+        RSPaintFilterCanvas& rscanvas, NodeId startingWindowId);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
     void CheckSurfaceDrawableValidDfx(const DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr& drawable);

@@ -22,11 +22,8 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_extended_modifier_test.cpp",
     "rs_modifier_extractor_test.cpp",
     "rs_modifier_manager_test.cpp",
-    "rs_modifier_test.cpp",
-    "rs_property_modifier_test.cpp",
     "rs_property_test.cpp",
   ]
 
@@ -64,6 +61,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "opengles:libGLES",
+    "graphic_surface:surface_static",
   ]
 }
 

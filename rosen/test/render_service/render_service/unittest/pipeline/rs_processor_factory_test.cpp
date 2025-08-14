@@ -70,7 +70,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -82,31 +82,7 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE);
-    EXPECT_TRUE(nullptr != p);
-}
-
-/**
- * @tc.name: CreateProcessor004
- * @tc.desc: Create shared point of UniRenderProcessor.
- * @tc.type: FUNC
- * @tc.require: issueI6PXHH
- */
-HWTEST_F(RSProcessorFactoryTest, CreateProcessor004, TestSize.Level1)
-{
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
-    EXPECT_TRUE(nullptr != p);
-}
-
-/**
- * @tc.name: CreateProcessor005
- * @tc.desc: Create shared point of UniRenderProcessor.
- * @tc.type: FUNC
- * @tc.require: issueI6PXHH
- */
-HWTEST_F(RSProcessorFactoryTest, CreateProcessor005, TestSize.Level1)
-{
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
     EXPECT_TRUE(nullptr != p);
 }
 } // namespace OHOS::Rosen

@@ -42,6 +42,16 @@ public:
         return maskPara_;
     }
 
+    void SetMaskFactor(const float factor)
+    {
+        maskFactor_ = factor;
+    }
+
+    const float& GetMaskFactor() const
+    {
+        return maskFactor_;
+    }
+
     void SetLightDirection(const Vector3f& lightDirection)
     {
         lightDirection_ = lightDirection;
@@ -82,6 +92,7 @@ public:
 
 private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
+    float maskFactor_ = 1.0f;
     Vector3f lightDirection_ = Vector3f(0.0f, 0.0f, 1.0f);
     Vector4f lightColor_ = Vector4f(2.0f, 2.0f, 2.0f, 1.0f);
     float lightIntensity_ = 0.5f;

@@ -663,6 +663,34 @@ HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
 }
 
 /**
+
+ * @tc.name: RecordState
+ * @tc.desc: Test for Canvas Record State
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, RecordState, TestSize.Level1)
+{
+    Canvas canvas;
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->RecordState(&canvas);
+}
+
+/**
+ * @tc.name: BuildStateRecord
+ * @tc.desc: Test for Build Record State
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, BuildStateRecord, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->BuildStateRecord(100.0, 100.0);
+}
+
+/**
  * @tc.name: SetParallelRender
  * @tc.desc: Test for seting parallel render.
  * @tc.type: FUNC

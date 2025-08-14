@@ -427,6 +427,16 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
     ASSERT_FALSE(drawable->ShouldPaint());
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->OnCapture(canvas);
+
+    CaptureParam params;
+    drawable->renderParams_ = nullptr;
+    params.isMirror_ = true;
+    params.rootIdInWhiteList_ = INVALID_NODEID;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    RSUniRenderThread::SetCaptureParam(params);
+    drawable->OnCapture(canvas);
+    ASSERT_FALSE(drawable->ShouldPaint());
 }
 
 /**

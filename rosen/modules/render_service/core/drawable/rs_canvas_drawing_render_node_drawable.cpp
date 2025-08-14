@@ -160,13 +160,13 @@ void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::st
 
 void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 {
-    bool enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
-    if (!enabled) {
+    if (image_ == nullptr) {
+        RS_LOGD("No image to drawing");
         return;
     }
 
-    if (image_ == nullptr) {
-        RS_LOGE("No image to drawing");
+    bool enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
+    if (!enabled) {
         return;
     }
     std::string debugNodeId = std::to_string(GetId());
@@ -302,7 +302,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             };
             SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%llu]", nodeId);
+        RS_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%" PRIu64 "]", nodeId);
         RS_LOGI_LIMIT("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", nodeId);
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);

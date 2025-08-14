@@ -18,22 +18,12 @@
 
 #include "rs_graphic_test.h"
 
-#if defined(MODIFIER_NG)
 #include "modifier_ng/custom/rs_content_style_modifier.h"
-#else
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_modifier.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-#if defined(MODIFIER_NG)
 using ContentStyleModifier = ModifierNG::RSContentStyleModifier;
 using DrawingContext = ModifierNG::RSDrawingContext;
-#else
-using ContentStyleModifier = RSContentStyleModifier;
-using DrawingContext = RSDrawingContext;
-#endif
 class TextCustomModifier : public ContentStyleModifier {
 public:
     ~TextCustomModifier() = default;

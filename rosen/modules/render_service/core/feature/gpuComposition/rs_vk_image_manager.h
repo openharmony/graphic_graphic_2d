@@ -26,6 +26,7 @@
 #include "common/rs_common_def.h"
 #include "draw/surface.h"
 #include "native_window.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "surface.h"
@@ -90,8 +91,8 @@ public:
 
     void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
-        RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
+        RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
+        const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
     std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;

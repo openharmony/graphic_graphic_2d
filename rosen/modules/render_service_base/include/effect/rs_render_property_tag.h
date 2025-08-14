@@ -92,6 +92,8 @@ enum class RSNGEffectType : int16_t {
     WAVY_RIPPLE_LIGHT,
     AURORA_NOISE,
     PARTICLE_CIRCULAR_HALO,
+    COLOR_GRADIENT_EFFECT,
+    LIGHT_CAVE
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

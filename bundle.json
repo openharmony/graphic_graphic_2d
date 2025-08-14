@@ -55,14 +55,14 @@
         "graphic_2d_feature_enable_vulkan",
         "graphic_2d_feature_use_aps_igameservice_func",
         "graphic_2d_feature_use_igraphics_extend_hooks",
-        "graphic_2d_feature_vkqueue_priority_enable",
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
         "graphic_2d_feature_screenless_enable",
         "graphic_2d_feature_tv_metadata_enable",
         "graphic_2d_feature_upgrade_skia",
-        "graphic_2d_feature_enable_rdo"
+        "graphic_2d_feature_enable_rdo",
+        "graphic_2d_feature_enable_memory_info_manager"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -124,7 +124,8 @@
           "rust_cxx",
           "media_foundation",
           "selinux_adapter",
-          "runtime_core"
+          "runtime_core",
+          "graphic_2d_ext"
         ],
         "third_party": [
           "skia"
@@ -340,14 +341,11 @@
                 "ui/rs_canvas_node.h",
                 "ui/rs_display_node.h",
                 "ui/rs_root_node.h",
-                "modifier/rs_modifier.h",
                 "modifier/rs_modifier_manager_map.h",
                 "modifier/rs_modifier_extractor.h",
                 "modifier/rs_modifier_manager.h",
                 "modifier/rs_property.h",
                 "modifier/rs_showing_properties_freezer.h",
-                "modifier/rs_extended_modifier.h",
-                "modifier/rs_property_modifier.h",
                 "transaction/rs_interfaces.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core"
@@ -499,6 +497,40 @@
             "header": {
               "header_files": [],
               "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/export"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+            "header": {
+              "header_files": [
+                "ivsync_connection.h",
+                "vsync_connection_proxy.h",
+                "vsync_connection_stub.h",
+                "vsync_controller.h",
+                "vsync_distributor.h",
+                "vsync_generator.h",
+                "vsync_log.h",
+                "vsync_sampler.h",
+                "vsync_system_ability_listener.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/ani/color_manager:ani_color_space_object_convertor",
+            "header": {
+              "header_files": [ "ani_color_space_object_convertor.h" ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/color_manager/src/color_space_object_convertor"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/ani/drawing:drawing_ani",
+            "header": {
+              "header_files": [ "canvas_ani/ani_canvas.h" ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/drawing"
             }
           }
         ],

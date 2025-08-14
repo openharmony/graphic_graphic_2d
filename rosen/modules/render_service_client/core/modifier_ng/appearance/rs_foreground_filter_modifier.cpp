@@ -96,51 +96,6 @@ Vector2f RSForegroundFilterModifier::GetAttractionDstPoint() const
     return Getter(RSPropertyType::ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f));
 }
 
-void RSForegroundFilterModifier::SetUIFilter(std::shared_ptr<RSUIFilter> foregroundFilter)
-{
-    if (!foregroundFilter) {
-        return;
-    }
-    auto iter = properties_.find(RSPropertyType::FOREGROUND_UI_FILTER);
-    if (iter != properties_.end() && iter->second != nullptr) {
-        // static_pointer_cast will not return nullptr
-        auto oldProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(iter->second);
-        auto oldUIFilter = oldProperty->Get();
-        bool isValid = oldUIFilter && foregroundFilter->IsStructureSame(oldUIFilter);
-        if (isValid) {
-            oldUIFilter->SetValue(foregroundFilter);
-            return;
-        }
-    }
-    AttachUIFilterProperty(foregroundFilter);
-}
-
-void RSForegroundFilterModifier::AttachUIFilterProperty(std::shared_ptr<RSUIFilter> uiFilter)
-{
-    if (!uiFilter) {
-        return;
-    }
-    auto property = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(uiFilter);
-    auto node = node_.lock();
-    if (!node) {
-        return;
-    }
-    for (auto type : uiFilter->GetUIFilterTypes()) {
-        auto paraGroup = uiFilter->GetUIFilterPara(type);
-        if (!paraGroup) {
-            continue;
-        }
-        for (auto& prop : paraGroup->GetLeafProperties()) {
-            if (!prop) {
-                continue;
-            }
-            prop->target_ = node;
-            node->RegisterProperty(prop);
-        }
-    }
-    AttachProperty(RSPropertyType::FOREGROUND_UI_FILTER, property);
-}
-
 void RSForegroundFilterModifier::SetNGFilterBase(std::shared_ptr<RSNGFilterBase> filter)
 {
     Setter<RSProperty>(RSPropertyType::FOREGROUND_NG_FILTER, filter);

@@ -51,10 +51,8 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
-    if (config.screenId == INVALID_SCREEN_ID) {
-        return;
-    }
-    auto lambda = [&node](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
+
+    auto lambda = [&node](auto& screenRenderNode) {
         screenRenderNode->AddChild(node);
     };
     if (!TrySetScreenNodeByScreenId(context, config.screenId, lambda)) {
@@ -78,9 +76,9 @@ void DisplayNodeCommandHelper::AddDisplayNodeToTree(RSContext& context, NodeId i
     auto& nodeMap = context.GetMutableNodeMap();
     auto logicalDisplayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(id);
     if (logicalDisplayNode == nullptr) {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
     }
-    
     auto screenId = logicalDisplayNode->GetScreenId();
     if (screenId == INVALID_SCREEN_ID) {
         RS_LOGE("%{public}s failed, screenId must be set before display node add to true", __func__);
@@ -103,6 +101,7 @@ void DisplayNodeCommandHelper::RemoveDisplayNodeFromTree(RSContext& context, Nod
     auto& nodeMap = context.GetMutableNodeMap();
     auto logicalDisplayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(id);
     if (logicalDisplayNode == nullptr) {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
     }
 
@@ -126,9 +125,16 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
             "], screenId:[%{public}" PRIu64 "]", __func__, id, screenId);
         return;
     }
+
     logicalDisplayNode->SetScreenId(screenId);
     logicalDisplayNode->NotifyScreenNotSwitching();
-    AddDisplayNodeToTree(context, id);
+    auto lambda = [&logicalDisplayNode](auto& screenRenderNode) {
+        screenRenderNode->AddChild(logicalDisplayNode);
+    };
+    if (!TrySetScreenNodeByScreenId(context, screenId, lambda)) {
+        RS_LOGE("%{public}s Invalid ScreenId NodeId: %{public}" PRIu64
+            ", curNodeId: %{public}" PRIu64, __func__, screenId, id);
+    }
 }
 
 void DisplayNodeCommandHelper::SetForceCloseHdr(RSContext& context, NodeId id, bool isForceCloseHdr)
@@ -149,9 +155,10 @@ void DisplayNodeCommandHelper::SetForceCloseHdr(RSContext& context, NodeId id, b
 
 void DisplayNodeCommandHelper::SetScreenRotation(RSContext& context, NodeId id, const ScreenRotation& screenRotation)
 {
-    RS_LOGE("SetScreenRotation %{public}d", (int)screenRotation);
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
         node->SetScreenRotation(screenRotation);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
     }
 }
 
@@ -159,6 +166,8 @@ void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id,
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
         node->SetSecurityDisplay(isSecurityDisplay);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
     }
 }
 
@@ -166,6 +175,7 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
 {
     auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id);
     if (node == nullptr) {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
         return;
     }
 
@@ -190,6 +200,8 @@ void DisplayNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId)) {
         node->SetBootAnimation(isBootAnimation);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, nodeId);
     }
 }
 
@@ -197,8 +209,10 @@ void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
     const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId)) {
-        ROSEN_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
+        RS_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
         node->SetScbNodePid(oldScbPids, currentScbPid);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, nodeId);
     }
 }
 
@@ -206,10 +220,12 @@ void DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(RSContext& context, No
     bool virtualScreenMuteStatus)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId)) {
-        ROSEN_LOGI("SetVirtualScreenMuteStatus NodeId:[%{public}" PRIu64 "]"
+        RS_LOGI("SetVirtualScreenMuteStatus NodeId:[%{public}" PRIu64 "]"
             " screenId: %{public}" PRIu64 " virtualScreenMuteStatus: %{public}d",
             nodeId, node->GetScreenId(), virtualScreenMuteStatus);
         node->SetVirtualScreenMuteStatus(virtualScreenMuteStatus);
+    } else {
+        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, nodeId);
     }
 }
 

@@ -251,7 +251,9 @@ void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
     auto estimateDuration = std::max(duration * MULTIPLES_DURATION, MIN_DURATION);
     // Double-check the finish callback is called by the timing when the estimateDuration. This is a safety net
     // to ensure that the callback is executed even if the timing is not triggered due to some reason.
-    RSUIDirector::PostDelayTask(callbackSafetyNetLambda, estimateDuration);
+    auto rsUIContext = rsUIContext_.lock();
+    rsUIContext ? rsUIContext->PostDelayTask(callbackSafetyNetLambda, estimateDuration)
+        : RSUIDirector::PostDelayTask(callbackSafetyNetLambda, estimateDuration);
 }
 
 CancelAnimationStatus RSImplicitAnimator::CloseImplicitCancelAnimation()
@@ -696,18 +698,11 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         repeatCallback.reset();
     }
 
-#if defined(MODIFIER_NG)
     RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
         property->GetId(), animation->GetId(), params->GetType(), property->GetPropertyTypeNG(),
         startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
         animation->GetDuration(), protocol.GetRepeatCount(), protocol.GetInterfaceName(), target->GetFrameNodeId(),
         target->GetFrameNodeTag(), target->GetType());
-#else
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
-        property->GetId(), animation->GetId(), params->GetType(), property->type_, startValue->GetRenderProperty(),
-        endValue->GetRenderProperty(), animation->GetStartDelay(), animation->GetDuration(), protocol.GetRepeatCount(),
-        protocol.GetInterfaceName(), target->GetFrameNodeId(), target->GetFrameNodeTag(), target->GetType());
-#endif
 
     if (params->GetType() == ImplicitAnimationParamType::TRANSITION ||
         params->GetType() == ImplicitAnimationParamType::KEYFRAME) {
@@ -783,18 +778,11 @@ void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::s
     }
 
     auto protocol = std::get<RSAnimationTimingProtocol>(globalImplicitParams_.top());
-#if defined(MODIFIER_NG)
     RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
         property->GetId(), animation->GetId(), params->GetType(), property->GetPropertyTypeNG(),
         startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
         animation->GetDuration(), protocol.GetRepeatCount(), protocol.GetInterfaceName(), target->GetFrameNodeId(),
         target->GetFrameNodeTag(), target->GetType());
-#else
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(target->GetId(), target->GetNodeName(),
-        property->GetId(), animation->GetId(), params->GetType(), property->type_, startValue->GetRenderProperty(),
-        endValue->GetRenderProperty(), animation->GetStartDelay(), animation->GetDuration(), protocol.GetRepeatCount(),
-        protocol.GetInterfaceName(), target->GetFrameNodeId(), target->GetFrameNodeTag(), target->GetType());
-#endif
     target->AddAnimation(animation);
     implicitAnimations_.top().emplace_back(animation, target->GetId());
 }

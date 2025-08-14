@@ -42,6 +42,7 @@ ohos_fuzztest("RSSurfaceOhosFuzzTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "graphic_surface:surface_static",
   ]
 }
 

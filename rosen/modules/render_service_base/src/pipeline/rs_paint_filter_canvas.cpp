@@ -24,6 +24,20 @@
 #include "utils/rect.h"
 #include "utils/region.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -1014,12 +1028,12 @@ bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const D
     bool result = false;
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr) {
+        if ((*iter) != nullptr && OnFilter()) {
             result = ((*iter)->DrawBlurImage(image, blurParams) || result);
         }
     }
 #else
-    if (canvas_ != nullptr) {
+    if (canvas_ != nullptr && OnFilter()) {
         result = canvas_->DrawBlurImage(image, blurParams);
     }
 #endif
@@ -1062,14 +1076,16 @@ bool RSPaintFilterCanvasBase::IsClipRect()
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ 1.0f }),
-      envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })
+      envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } }),
+      threadId_(gettid())
 {
     (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
 }
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     : RSPaintFilterCanvasBase(surface ? surface->GetCanvas().get() : nullptr), surface_(surface), alphaStack_({ 1.0f }),
-      envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })
+      envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } }),
+      threadId_(gettid())
 {
     (void)alpha; // alpha is no longer used, but we keep it for backward compatibility
 }
@@ -1186,7 +1202,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 
 bool RSPaintFilterCanvas::OnFilter() const
 {
-    return alphaStack_.top() > 0.f;
+    return alphaStack_.top() > 0.f && !IsQuickGetDrawState();
 }
 
 Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
@@ -1560,7 +1576,6 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Dr
 
 std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
 {
-    // std::shared_ptr<Drawing::Image> cachedImage = cachedImage_;
     if (cachedImage_ == nullptr) {
         return "No valid cacheImage found.";
     }
@@ -1590,6 +1605,16 @@ void RSPaintFilterCanvas::SetParallelThreadIdx(uint32_t idx)
 uint32_t RSPaintFilterCanvas::GetParallelThreadIdx() const
 {
     return threadIndex_;
+}
+
+uint32_t RSPaintFilterCanvas::GetParallelThreadId()
+{
+    return threadId_;
+}
+
+void RSPaintFilterCanvas::SetParallelThreadId(uint32_t idx)
+{
+    threadId_ = idx;
 }
 
 void RSPaintFilterCanvas::SetDisableFilterCache(bool disable)
@@ -1658,6 +1683,21 @@ bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
 {
     hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
+}
+
+void RSPaintFilterCanvas::RecordState(const RSPaintFilterCanvas& other)
+{
+    canvas_->RecordState(other.canvas_);
+}
+
+std::weak_ptr<Drawing::Surface> RSPaintFilterCanvas::GetWeakSurface()
+{
+    return weakSurface_;
+}
+
+void RSPaintFilterCanvas::SetWeakSurface(std::shared_ptr<Drawing::Surface> surface)
+{
+    weakSurface_ = surface;
 }
 
 bool RSPaintFilterCanvas::GetHdrOn() const

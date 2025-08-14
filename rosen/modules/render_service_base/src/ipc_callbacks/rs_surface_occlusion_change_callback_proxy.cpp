@@ -15,10 +15,12 @@
 
 #include "rs_surface_occlusion_change_callback_proxy.h"
 
+#include "common/rs_common_def.h"
 #include <message_option.h>
 #include <message_parcel.h>
 
 #include "platform/common/rs_log.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,10 +48,11 @@ void RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged(flo
     }
     uint32_t code = static_cast<uint32_t>(
         RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged error = %d", err);
     }
 }
+
 } // namespace Rosen
 } // namespace OHOS

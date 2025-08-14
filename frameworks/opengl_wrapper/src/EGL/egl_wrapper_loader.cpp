@@ -127,6 +127,7 @@ void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, 
         (GetProcAddressType)dlsym(dlEglHandle_, "eglGetProcAddress");
     if (getProcAddr == nullptr) {
         WLOGE("can't find eglGetProcAddress() in EGL driver library.");
+        dlclose(dlHandle);
         return nullptr;
     }
 
@@ -178,7 +179,7 @@ bool EglWrapperLoader::LoadVendorDriver(EglWrapperDispatchTable *table)
 
     WLOGD("GLESV1");
     dlGlHandle1_ = LoadGl(LIB_GLESV1_NAME, gGlApiNames1, (FunctionPointerType *)&table->gl.table1);
-    if (!dlEglHandle_) {
+    if (!dlGlHandle1_) {
         WLOGE("LoadGl GLESV1 Failed.");
         return false;
     }

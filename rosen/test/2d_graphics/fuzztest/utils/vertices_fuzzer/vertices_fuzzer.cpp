@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,11 +32,6 @@ constexpr size_t MATH_THREE = 3;
 namespace Drawing {
 void VerticesFuzzTest000(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t mode = GetObject<uint32_t>();
     uint32_t arr_size = GetObject<uint32_t>() % ARRAY_MAX_SIZE;
     scalar xRad = GetObject<scalar>();
@@ -96,10 +91,6 @@ void VerticesFuzzTest000(const uint8_t* data, size_t size)
 
 void VerticesFuzzTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int vertexCount = GetObject<int>() % ARRAY_MAX_SIZE;
     int indexCount = GetObject<int>() % ARRAY_MAX_SIZE;
     uint32_t flags = GetObject<uint32_t>() % ARRAY_MAX_SIZE;
@@ -121,6 +112,11 @@ void VerticesFuzzTest001(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::VerticesFuzzTest000(data, size);
     OHOS::Rosen::Drawing::VerticesFuzzTest001(data, size);

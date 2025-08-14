@@ -86,7 +86,7 @@ public:
         screenRotation_ = screenRotation;
     }
 
-    ScreenRotation GetScreenRotation()
+    ScreenRotation GetScreenRotation() const
     {
         return screenRotation_;
     }
@@ -146,19 +146,16 @@ public:
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
 
+    Occlusion::Region GetTopSurfaceOpaqueRegion() const;
+
+    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
+    {
+        topSurfaceOpaqueRects_.push_back(rect);
+    }
+
     void SetHasCaptureWindow(bool hasCaptureWindow)
     {
         hasCaptureWindow_ = hasCaptureWindow;
-    }
-
-    void SetAncestorScreenNode(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
-    {
-        ancestorScreenNode_ = ancestorScreenNode;
-    }
-
-    RSBaseRenderNode::WeakPtr GetAncestorScreenNode()
-    {
-        return ancestorScreenNode_;
     }
 
     void NotifySetOnTreeFlag()
@@ -184,6 +181,7 @@ private:
     void InitRenderParams() override;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
 
     // bounds rotation
     bool preRotationStatus_ = false;
@@ -220,7 +218,6 @@ private:
     // Use in mirror screen visible rect projection
     std::vector<NodeId> securityVisibleLayerList_;  // surface node id
 
-    RSBaseRenderNode::WeakPtr ancestorScreenNode_;
     // window Container
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 

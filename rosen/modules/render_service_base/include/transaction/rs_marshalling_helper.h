@@ -52,7 +52,6 @@ namespace ModifierNG {
 class RSRenderModifier;
 }
 class RSFilter;
-class RSRenderFilter;
 class RSNGRenderFilterBase;
 class RSNGRenderMaskBase;
 class RSNGRenderShaderBase;
@@ -94,6 +93,7 @@ class RectT;
 template<typename T>
 class RRectT;
 struct PixelMapInfo;
+class RSRenderParticleVector;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
@@ -245,7 +245,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<EmitterUpdater>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderShaderBase>)
@@ -254,6 +253,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<AnnulusRegion>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Shape>)
+    DECLARE_FUNCTION_OVERLOAD(RSRenderParticleVector)
     DECLARE_FUNCTION_OVERLOAD(EmitterConfig)
     DECLARE_FUNCTION_OVERLOAD(ParticleVelocity)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleParaType<float>)

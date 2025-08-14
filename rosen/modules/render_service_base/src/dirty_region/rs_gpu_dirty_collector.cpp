@@ -16,11 +16,12 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 
 #include "common/rs_rect.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 #ifndef ROSEN_CROSS_PLATFORM
-BufferSelfDrawingData* RSGpuDirtyCollector::GpuDirtyRegionCompute(const sptr<SurfaceBuffer> &buffer)
+BufferSelfDrawingData* RSGpuDirtyCollector::GetBufferSelfDrawingData(const sptr<SurfaceBuffer> &buffer)
 {
     if (buffer == nullptr) {
         return nullptr;
@@ -38,11 +39,17 @@ BufferSelfDrawingData* RSGpuDirtyCollector::GpuDirtyRegionCompute(const sptr<Sur
 
 bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, Rect &rect)
 {
+    if (!RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()) {
+        return false;
+    }
+
     if (buffer == nullptr) {
         return false;
     }
-    auto src = RSGpuDirtyCollector::GpuDirtyRegionCompute(buffer);
-    if (src == nullptr || !src->curFrameDirtyEnable) {
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    // Determine whether current frame dirty region is valid and application enable self drawning dirty region
+    bool isSelfDrawingDirtyRegionEnable = src != nullptr && src->curFrameDirtyEnable && src->gpuDirtyEnable;
+    if (!isSelfDrawingDirtyRegionEnable) {
         return false;
     }
     // when layer don't have dirty region, the right and bottom of Gpu Dirty Region are initialized to minimum values
@@ -62,6 +69,17 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
     }
     rect = { src->left, src->top, src->right - src->left, src->bottom - src->top };
     return true;
+}
+
+void RSGpuDirtyCollector::SetGpuDirtyEnabled(const sptr<SurfaceBuffer> &buffer, bool gpuDirtyEnable)
+{
+    if (buffer == nullptr) {
+        return;
+    }
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    if (src != nullptr) {
+        src->gpuDirtyEnable = RSSystemProperties::GetGpuDirtyApsEnabled() && gpuDirtyEnable;
+    }
 }
 #endif
 } // namespace Rosen

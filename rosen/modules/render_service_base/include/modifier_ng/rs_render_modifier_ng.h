@@ -121,7 +121,7 @@ public:
     }
 
     bool Marshalling(Parcel& parcel) const;
-    [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
+    [[nodiscard]] static std::shared_ptr<RSRenderModifier> Unmarshalling(Parcel& parcel);
 
     inline bool HasProperty(RSPropertyType type) const
     {
@@ -176,13 +176,6 @@ protected:
     // sub-class should not directly access properties_, use GetPropertyValue instead
     std::map<RSPropertyType, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
-    virtual void AttachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type)
-    {}
-    virtual void DetachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type)
-    {}
-
     template<typename T, auto Setter>
     static void PropertyApplyHelper(RSProperties& properties, RSRenderPropertyBase& property)
     {
@@ -221,7 +214,7 @@ protected:
     };
 
 private:
-    using Constructor = std::function<RSRenderModifier*()>;
+    using Constructor = std::function<std::shared_ptr<RSRenderModifier>()>;
     static std::array<Constructor, MODIFIER_TYPE_COUNT> ConstructorLUT_;
 
     template<typename T>

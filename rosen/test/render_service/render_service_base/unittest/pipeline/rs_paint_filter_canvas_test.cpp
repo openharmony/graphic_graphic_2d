@@ -1587,6 +1587,47 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawBlurImageTest003, TestSize.Level1)
     paintFilterCanvasBase->DrawBlurImage(image, blurParams);
 }
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+/**
+ * @tc.name: SetParallelRender
+ * @tc.desc: Test SetParallelRender
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetParallelRender, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<PaintFilterCanvasBaseTest> paintFilterCanvasBase =
+        std::make_shared<PaintFilterCanvasBaseTest>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+    paintFilterCanvasBase->SetParallelRender(true);
+}
+
+/**
+ * @tc.name: DrawBlurImageTest004
+ * @tc.desc: DrawBlurImage Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9VT6E
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawBlurImageTest004, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+
+    Drawing::Image image;
+    Drawing::Rect s = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::Rect d = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::HpsBlurParameter blurParams = { s, d, 0.0f, 0.0f, 1.0f };
+    paintFilterCanvasBase->pCanvasList_.push_back(&canvas);
+    paintFilterCanvasBase->pCanvasList_.push_back(nullptr);
+    paintFilterCanvasBase->DrawBlurImage(image, blurParams);
+
+    paintFilterCanvasBase->isQuickDraw_ = true;
+    paintFilterCanvasBase->DrawBlurImage(image, blurParams);
+}
+#endif
+
 /**
  * @tc.name: AttachPenTest004
  * @tc.desc: AttachPen Test

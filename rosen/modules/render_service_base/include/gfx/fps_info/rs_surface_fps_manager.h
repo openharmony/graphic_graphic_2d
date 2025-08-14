@@ -25,7 +25,7 @@ namespace OHOS::Rosen {
 static const std::string PARAM_NAME = "-name";
 static const std::string PARAM_ID = "-id";
 static const std::unordered_set<std::string> options{PARAM_NAME, PARAM_ID};
-static const std::unordered_set<std::string> uniRenderArgs{"DisplayNode", "composer", "UniRender"};
+static const std::unordered_set<std::string> uniRenderArgs{"DisplayNode", "composer", "UniRender", "ScreenNode"};
 
 class RSB_EXPORT RSSurfaceFpsManager {
 public:

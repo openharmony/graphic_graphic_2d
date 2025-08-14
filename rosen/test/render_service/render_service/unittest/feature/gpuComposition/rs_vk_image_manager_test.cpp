@@ -14,8 +14,10 @@
  */
 
 #include "gtest/gtest.h"
-#include "surface_buffer_impl.h"
 #include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "recording/recording_canvas.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -57,7 +59,10 @@ static sptr<SurfaceBuffer> CreateBuffer()
     return buffer;
 }
 
-void RSVKImageManagerTest::SetUpTestCase() {}
+void RSVKImageManagerTest::SetUpTestCase()
+{
+}
+
 void RSVKImageManagerTest::TearDownTestCase() {}
 void RSVKImageManagerTest::SetUp()
 {
@@ -68,12 +73,12 @@ void RSVKImageManagerTest::SetUp()
 void RSVKImageManagerTest::TearDown() {}
 
 /**
- * @tc.name: MapAndUnMapVKImage001
- * @tc.desc: Map and UnMap VKImage, check CacheSeqs size
+ * @tc.name: MapAndUnMapVkImage001
+ * @tc.desc: Map And UnMap VkImage, check cacheSeq size
  * @tc.type: FUNC
- * @tc.require: issueI6QHNP
+ * @tc.require: issueI7A39J
  */
-HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage001, TestSize.Level1)
+HWTEST_F(RSVKImageManagerTest, MapAndUnMapVkImage001, TestSize.Level1)
 {
     auto size = vkImageManager_->imageCacheSeqs_.size();
     auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
@@ -89,13 +94,13 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MapAndUnMapVKImage002
- * @tc.desc: Map 10 VKImages, check cacheSeqs size is 10
- *           UnMap all VKImage, check cacheSeqs size is 0
+ * @tc.name: MapAndUnMapVkImage002
+ * @tc.desc: Map 10 VkImages, check cacheSeq size is 10,
+ *           UnMap all VkImage, check cacheSeq size is 0
  * @tc.type: FUNC
- * @tc.require: issueI6QHNP
+ * @tc.require: issueI7A39J
  */
-HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage002, TestSize.Level1)
+HWTEST_F(RSVKImageManagerTest, MapAndUnMapVkImage002, TestSize.Level1)
 {
     const uint32_t cacheNums = 10;
     uint32_t bufferSeqNums[10] = { 0 };
@@ -121,13 +126,13 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MapAndUnMapVKImage003
- * @tc.desc: Map 50 VKImages, check cacheSeqs size is not over MAX_CACHE_SIZE(40)
- *           UnMap all VKImage, check cacheSeqs size is 0
+ * @tc.name: MapAndUnMapVkImage003
+ * @tc.desc: Map 50 VkImages, check cacheSeq size is not over MAX_CACHE_SIZE(40),
+ *           UnMap all VkImage, check cacheSeq size is 0
  * @tc.type: FUNC
- * @tc.require: issueI6QHNP
+ * @tc.require: issueI7A39J
  */
-HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage003, TestSize.Level1)
+HWTEST_F(RSVKImageManagerTest, MapAndUnMapVkImage003, TestSize.Level1)
 {
     const uint32_t cacheNums = 50;
     uint32_t bufferSeqNums[50] = { 0 };
@@ -143,7 +148,7 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage003, TestSize.Level1)
         if (i <= MAX_CACHE_SIZE) {
             EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
         } else {
-            EXPECT_EQ(MAX_CACHE_SIZE + 1, vkImageManager_->imageCacheSeqs_.size());
+            EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->imageCacheSeqs_.size());
         }
     }
 
@@ -261,9 +266,9 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage006, TestSize.Level1)
 
 /**
  * @tc.name: CreateImageCacheFromBuffer001
- * @tc.desc: call CreateImageCacheFromBuffer, check Image will be created
+ * @tc.desc: call CreateImageCacheFromBuffer, check ImageCache will be created
  * @tc.type: FUNC
- * @tc.require: issueI6QHNP
+ * @tc.require: issueI7A39J
  */
 HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
 {
@@ -272,6 +277,8 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
     // invalid buffer
     EXPECT_EQ(vkImageManager_->CreateImageCacheFromBuffer(
         new SurfaceBufferImpl(), SyncFence::INVALID_FENCE), nullptr);
+
+    EXPECT_EQ(vkImageManaer_->CreateImageCacheFromBuffer(nullptr, SyncFence::INVALID_FENCE), nullptr);
 }
 
 /**
@@ -306,17 +313,46 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
     int canvasWidth = 10;
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = nullptr;
-    uint32_t threadIndex = 0;
+    BufferDrawParam params;
+    params.buffer = nullptr;
+    params.acquireFence = nullptr;
+    params.threadIndex = 0;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
-    auto res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
+    auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
     EXPECT_EQ(res, nullptr);
 
-    buffer = SurfaceBuffer::Create();
-    res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
-    EXPECT_NE(res, nullptr);
+    params.buffer = SurfaceBuffer::Create();
+    res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
+    EXPECT_EQ(res, nullptr);
+}
+
+/**
+ * @tc.name: CreateImageFromBufferTest002
+ * @tc.desc: Test RSVKImageManager Func CreateImageFromBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100,);
+    drawingRecordingCanvas->SetGrRecordingContext(std::make_shard<Drawing::GPUContext());
+    auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+    EXPECT_NE(recordingCanvas, nullptr);
+    BufferDrawParam params;
+    std::shared_ptr<Drawing::ColotSpace> drawingColorSpace = nullptr;
+    params.buffer = CreateBuffer();
+    EXPECT_NE(params.buffer, nullptr);
+    if (params.buffer && recordingCanvas) {
+        params.buffer->SetBufferDeleteFromCacheFlag(false);
+        EXPECT_EQ(image->CreateImageFromBuffer(
+            *recordingCanvas, params, drawingColorSpace), nullptr);
+
+        params.buffer->SetBufferDeleteFromCacheFlag(true);
+        EXPECT_EQ(image->CreateImageFromBuffer(
+            *recordingCanvas, params, drawingColorSpace), nullptr);
+    }
 }
 
 /**
@@ -333,8 +369,13 @@ HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
     sptr<OHOS::SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     pid_t threadIndex = 0;
-    buffer = SurfaceBuffer::Create();
     auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+    EXPECT_EQ(res, nullptr);
+    buffer = SurfaceBuffer::Create();
+    res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+    EXPECT_EQ(res, nullptr);
+
+    res = imageManager->GetIntersectImage(imgCutRect, context, buffer, BufferFence_, threadIndex);
     EXPECT_EQ(res, nullptr);
 }
 
@@ -344,19 +385,19 @@ HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QHNP
  */
-HWTEST_F(RSVkImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
+HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
 {
-    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
+    std::shared_ptr<RSVkImageManager> imageManager = std::make_shared<RSVkImageManager>();
     sptr<OHOS::SurfaceBuffer> buffer = nullptr;
     pid_t threadIndex = 0;
     bool isProtectedCondition = true;
-    auto res = imageManager->newImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+    auto res = imageManager->NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
     EXPECT_EQ(res, nullptr);
     buffer = SurfaceBuffer::Create();
-    res = imageManager->newImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
-    EXPECT_NE(res, nullptr);
+    res = imageManager->NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+    EXPECT_EQ(res, nullptr);
     isProtectedCondition = false;
-    res = imageManager->newImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
-    EXPECT_NE(res, nullptr);
+    res = imageManager->NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+    EXPECT_EQ(res, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -16,8 +16,8 @@
 #ifndef OHOS_ANI_COLOR_SPACE_MANAGER_H
 #define OHOS_ANI_COLOR_SPACE_MANAGER_H
 
-#include "color_space.h"
 #include "ani.h"
+#include "color_space.h"
 
 namespace OHOS {
 namespace ColorManager {
@@ -34,6 +34,7 @@ public:
     static ani_ref GetWhitePoint(ani_env *env, ani_object obj);
     static ani_double GetGamma(ani_env *env, ani_object obj);
     static bool ParseColorSpacePrimaries(ani_env *env, ani_object obj, ColorSpacePrimaries& primaries);
+    static AniColorSpaceManager* unwrap(ani_env *env, ani_object object);
     
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {

@@ -21,13 +21,6 @@
 #include "include/core/SkColor.h"
 #include "window.h"
 
-#include "accesstoken_kit.h"
-#ifdef SUPPORT_ACCESS_TOKEN
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
-#endif
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 #include "render/rs_border.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_display_node.h"
@@ -105,34 +98,10 @@ private:
     std::shared_ptr<RSAnimatableProperty<Vector2f>> translate_;
 };
 
-void InitNativeTokenInfo()
-{
-#ifdef SUPPORT_ACCESS_TOKEN
-    uint64_t tokenId;
-    const char *perms[1];
-    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .dcaps = NULL,
-        .perms = perms,
-        .acls = NULL,
-        .processName = "render_service_client_gesture_interrupt_animation_demo",
-        .aplStr = "system_basic",
-    };
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-    std::cout << "init native token for float window" << std::endl;
-#endif
-}
-
 int main()
 {
-#ifdef SUPPORT_ACCESS_TOKEN
     int cnt = 0;
-    InitNativeTokenInfo();
+
     // Init demo env
     std::cout << "rs app demo start!" << std::endl;
     sptr<WindowOption> option = new WindowOption();
@@ -141,7 +110,6 @@ int main()
     option->SetWindowRect({ 0, 0, 720, 1280 });
     auto window = Window::Create("app_demo", option);
     window->Show();
-    sleep(1);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         std::cout << "rs app demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
@@ -149,7 +117,6 @@ int main()
         window->Destroy();
         window = Window::Create("app_demo", option);
         window->Show();
-        sleep(1);
         rect = window->GetRect();
     }
     std::cout << "rs app demo create window " << rect.width_ << " " << rect.height_ << std::endl;
@@ -260,6 +227,5 @@ int main()
 
     window->Hide();
     window->Destroy();
-#endif
     return 0;
 }

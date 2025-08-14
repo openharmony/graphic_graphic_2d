@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-// 仅支持 Drawing NDK 接口
+// Only supports the Drawing NDK interface.
 class DRAWING_API ShaderEffectLazy : public ShaderEffect {
 public:
     static std::shared_ptr<ShaderEffectLazy> CreateBlendShader(const std::shared_ptr<ShaderEffect>& dst,

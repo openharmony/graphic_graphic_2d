@@ -350,7 +350,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddDurationKeyFrame_Test_1
     RSNode::CloseImplicitAnimation();
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_1)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_1)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -374,11 +374,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_1)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_1 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_1 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_2)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_2)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -402,11 +402,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_2)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_2 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_2 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_3)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_3)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -430,11 +430,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_3)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_3 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_3 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_4)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_4)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -460,11 +460,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_4)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_4 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_4 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_5)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_5)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -490,11 +490,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_5)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_5 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_5 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_6)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_6)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -520,11 +520,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_6)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_6 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_6 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_7)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_7)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -550,11 +550,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_7)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_7 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_7 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_8)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_8)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -580,11 +580,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_8)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_8 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_8 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_9)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_9)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -610,11 +610,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_9)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_9 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_9 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_10)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_10)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -639,11 +639,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_10)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_10 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_10 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_11)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_11)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -668,11 +668,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_11)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_11 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_11 animation finish callback" << std::endl;
         });
 }
 
-GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_12)
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_12)
 {
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ 0, 0, 500, 500 });
@@ -697,7 +697,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PahAnimation_Test_12)
             auto finishCallbackNode = FinishCallbackFunc();
             GetRootNode()->AddChild(finishCallbackNode);
             RegisterNode(finishCallbackNode);
-            std::cout << "Animation_PahAnimation_Test_12 animation finish callback" << std::endl;
+            std::cout << "Animation_PathAnimation_Test_12 animation finish callback" << std::endl;
         });
 }
 

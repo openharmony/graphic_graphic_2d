@@ -91,7 +91,12 @@ if (is_arkui_x) {
     ]
 
     defines = [ "ROSEN_ARKUI_X" ]
-    configs = [ ":local_drawing_config" ]
+    configs = [
+      ":local_drawing_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:abilitykit_native_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/appkit:appkit_native_config",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/inner_api/hilog:ability_cross_platform_hilog_config",
+    ]
     public_configs = [ ":drawing_config" ]
 
     include_dirs = [
@@ -103,7 +108,10 @@ if (is_arkui_x) {
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
+      "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
       "//foundation/arkui/napi:ace_napi",
+      "//foundation/appframework/resource_management:global_resmgr",
+      "//foundation/appframework/ability/ability_runtime/cross_platform/interfaces/kits/native/ability:cross_platform_abilitykit_native",
     ]
     public_deps = [
       "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",

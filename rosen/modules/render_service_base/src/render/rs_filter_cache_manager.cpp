@@ -59,7 +59,7 @@ std::string RSFilterCacheManager::GetCacheState() const
         return "Filtered image found in cache. Reusing cached result." +
             cachedFilteredSnapshot_->GetInfo();
     } else if (cachedSnapshot_ != nullptr) {
-        return "Snapshot found in cache. Generating filtered image using cached data"+
+        return "Snapshot found in cache. Generating filtered image using cached data." +
             cachedSnapshot_->GetInfo();
     } else {
         return "No valid cache found.";
@@ -294,7 +294,8 @@ void RSFilterCacheManager::TakeSnapshot(
     if ((aibarShaderFilter != nullptr) && (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0)) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
     } else {
-        // Take a screenshot
+        RS_TRACE_NAME_FMT("RSFilterCacheManager::TakeSnapshot surface wh: [%d, %d], snapshotIBounds: %s",
+            drawingSurface->Width(), drawingSurface->Height(), snapshotIBounds.ToString().c_str());
         snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     }
     if (snapshot == nullptr) {
@@ -527,7 +528,13 @@ bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamag
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus \
         cacheUpdateInterval_:%d forceClearCacheForLastFrame_:%d",
         cacheUpdateInterval_, stagingForceClearCacheForLastFrame_);
-    if (cacheUpdateInterval_ == 0 || stagingForceClearCacheForLastFrame_) {
+    // Determines if the cache is invalid based on:
+    // - Cache update interval is less than or equal to 0
+    // - Staging force cache clear flag being set for last frame
+    // - The previous frame triggered a frame skipping
+    bool cacheInvalid = cacheUpdateInterval_ <= 0 || stagingForceClearCacheForLastFrame_ ||
+                        (!intersectHwcDamage && pendingPurge_);
+    if (cacheInvalid) {
         return false;
     } else {
         MarkFilterForceUseCache(true);
@@ -899,13 +906,9 @@ void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
         return;
     }
     auto drawnRegion = canvas.GetDrawnRegion();
-    if (drawnRegion.IsEmpty()) {
-        return;
-    }
     Occlusion::Region filterRegion(
         Occlusion::Rect(filterBound.left_, filterBound.top_, filterBound.right_, filterBound.bottom_));
-    // if region belongs to filterRegion but not drawnRegion is not empty, the cache is invalid.
-    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty();
+    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty() && !filterRegion.And(drawnRegion).IsEmpty();
     if (isCacheInvalid) {
         InvalidateFilterCache(FilterCacheType::BOTH);
     }

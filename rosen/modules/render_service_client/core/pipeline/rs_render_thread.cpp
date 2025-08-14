@@ -85,6 +85,7 @@ static void SystemCallSetThreadName(const std::string& name)
 
 namespace OHOS {
 namespace Rosen {
+std::atomic_bool RSRenderThread::running_ = false;
 namespace {
     static constexpr uint64_t REFRESH_PERIOD = 16666667;
 }
@@ -99,7 +100,6 @@ void SendFrameEvent(bool start)
 RSRenderThread& RSRenderThread::Instance()
 {
     static RSRenderThread renderThread;
-    RSAnimationFraction::Init();
     return renderThread;
 }
 
@@ -141,6 +141,7 @@ RSRenderThread::RSRenderThread()
     };
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
+    RSAnimationFraction::Init();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
@@ -199,7 +200,7 @@ RSRenderThread::~RSRenderThread()
 void RSRenderThread::Start()
 {
     ROSEN_LOGD("RSRenderThread start.");
-    running_.store(true);
+    RSRenderThread::running_.store(true);
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
@@ -221,7 +222,7 @@ bool RSRenderThread::GetIsRunning()
 
 void RSRenderThread::Stop()
 {
-    running_.store(false);
+    RSRenderThread::running_.store(false);
 
     if (handler_) {
         handler_->RemoveAllEvents();
@@ -297,7 +298,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #ifdef RS_ENABLE_VK
     if (!cacheDir_.empty()) {
-        renderContex_->SetCacheDir(cacheDir_);
+        renderContext_->SetCacheDir(cacheDir_);
     }
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->SetUpGpuContext(nullptr);

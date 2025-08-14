@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <memory>
 #include "gtest/gtest.h"
 #include "surface_buffer_impl.h"
 
-#include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/gpuComposition/rs_egl_image_manager.h"
-#include "pipeline/rs_logical_display_render_node.h"
-#include "pipeline/rs_screen_render_node.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "render_context/render_context.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "render_context/render_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -84,30 +84,30 @@ HWTEST_F(RSEglImageManagerTest, CreateInvalidImageCache001, TestSize.Level1)
  */
 HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize.Level1)
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR || !RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    NodeId id = 0;
-    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
-    node->InitRenderParams();
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
-    surfaceHandler->SetConsumer(consumer);
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
-    Rect damage;
-    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
-    ASSERT_NE(node, nullptr);
-    if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
-        sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
-        // create cache from buffer directly
-        auto ret = eglImageManager_->CreateEglImageCacheFromBuffer(buffer, 0);
-        ASSERT_NE(ret, 0);
-        eglImageManager_->ShrinkCachesIfNeeded(false);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 0;
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+        node->InitRenderParams();
+        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+        auto screenDrawable =
+            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
+        auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+        surfaceHandler->SetConsumer(consumer);
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        Rect damage;
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        ASSERT_NE(node, nullptr);
+        if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
+            sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
+            // create cache from buffer directly
+            auto ret = eglImageManager_->CreateEglImageCacheFromBuffer(buffer, 0);
+            ASSERT_NE(ret, 0);
+            eglImageManager_->ShrinkCachesIfNeeded(false);
+        }
     }
 }
 
@@ -119,31 +119,31 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
  */
 HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR || !RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    NodeId id = 0;
-    auto node = std::make_shared<RSScreenRenderNode>(id, 1);
-    node->InitRenderParams();
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
-    surfaceHandler->SetConsumer(consumer);
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
-    Rect damage;
-    sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
-    ASSERT_NE(node, nullptr);
-    if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
-        sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
-        sptr<SyncFence> acquireFence;
-        auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, 0);
-        ASSERT_NE(ret, 0);
-        ret = eglImageManager_->MapEglImageFromSurfaceBuffer(nullptr, acquireFence, 0);
-        ASSERT_EQ(ret, 0);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 0;
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+        node->InitRenderParams();
+        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+        auto screenDrawable =
+            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
+        auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+        surfaceHandler->SetConsumer(consumer);
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        Rect damage;
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        ASSERT_NE(node, nullptr);
+        if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
+            sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
+            sptr<SyncFence> acquireFence;
+            auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, 0);
+            ASSERT_NE(ret, 0);
+            ret = eglImageManager_->MapEglImageFromSurfaceBuffer(nullptr, acquireFence, 0);
+            ASSERT_EQ(ret, 0);
+        }
     }
 }
 
@@ -239,66 +239,191 @@ HWTEST_F(RSEglImageManagerTest, CreateTest, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager;
     std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
-#ifdef RS_ENABLE_VK
-    imageManager = RSImageManager::Create(renderContext);
-    ASSERT_NE(imageManager, nullptr);
-#endif // RS_ENABLE_VK
-#ifdef RS_ENABLE_GL
-    imageManager = RSImageManager::Create(renderContext);
-    ASSERT_NE(imageManager, nullptr);
-    std::shared_ptr<RenderContext> renderContextNull = nullptr;
-    auto imageManagerNull = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
-    EXPECT_EQ(imageManagerNull, nullptr);
-#endif // RS_ENABLE_GL
+    if (RSSystemProperties::IsUseVulkan()) {
+        imageManager = RSImageManager::Create(renderContext);
+        ASSERT_NE(imageManager, nullptr);
+    } else {
+        imageManager = RSImageManager::Create(renderContext);
+        ASSERT_NE(imageManager, nullptr);
+    }
 }
 
 /**
  * @tc.name: CreateImageFromBufferTest
- * @tc.desc: CreateImageFromBuffer
+ * @tc.desc: Test RSEglImageManager Func CreateImageFromBuffer
  * @tc.type: FUNC
  * @tc.require: issueI6QHNP
  */
 HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
 {
-    int canvasHeight = 10;
-    int canvasWidth = 10;
-    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = nullptr;
-    uint32_t threadIndex = 0;
-    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
-    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
-    renderContext->InitializeEglContext();
-    renderContext->SetUpGpuContext();
-    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
-    auto res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
-    EXPECT_EQ(res, nullptr);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        int canvasHeight = 10;
+        int canvasWidth = 10;
+        auto drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
+        auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+        BufferDrawParam params;
+        params.buffer = nullptr;
+        params.acquireFence = nullptr;
+        params.threadIndex = 0;
+        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+        std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+        renderContext->InitializeEglContext();
+        renderContext->SetUpGpuContext();
+        auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
+        EXPECT_EQ(res, nullptr);
+    }
+}
 
-    buffer = SurfaceBuffer::Create();
-    res = imageManager->CreateImageFromBuffer(*canvas, buffer, acquireFence, threadIndex, drawingColorSpace);
-    EXPECT_NE(res, nullptr);
+/**
+ * @tc.name: CreateImageFromBufferTest
+ * @tc.desc: Test RSEglImageManager Func CreateImageFromBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        int canvasHeight = 10;
+        int canvasWidth = 10;
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+        renderEngine->Init();
+        auto drawingCanvas = std::make_unique<Drawing::RecordingCanvas>(canvasHeight, canvasWidth);
+        drawingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+        BufferDrawParam params;
+        params.buffer = nullptr;
+        params.acquireFence = nullptr;
+        params.threadIndex = 0;
+        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+        std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+        renderContext->InitializeEglContext();
+        renderContext->SetUpGpuContext();
+        auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
+        EXPECT_EQ(res, nullptr);
+        params.buffer = SurfaceBuffer::Create();
+        res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
+        EXPECT_EQ(res, nullptr); // MapEglImageFromSurfaceBuffer failed
+    }
+}
+
+/**
+ * @tc.name: CreateImageFromBufferTest
+ * @tc.desc: Test RSEglImageManager Func CreateImageFromBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest003, TestSize.Level1)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 3;
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+        node->InitRenderParams();
+        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("CreateImageFromBufferTest002");
+        auto screenDrawable =
+            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
+        auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+        surfaceHandler->SetConsumer(consumer);
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        Rect damage;
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        ASSERT_NE(node, nullptr);
+        if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
+            sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
+            sptr<SyncFence> acquireFence;
+            std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+            renderContext->InitializeEglContext();
+            renderContext->SetUpGpuContext();
+            auto eglImageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+            int canvasHeight = 10;
+            int canvasWidth = 10;
+            auto renderEngine = std::make_shared<RSRenderEngine>();
+            renderEngine->Init();
+            auto drawingCanvas = std::make_unique<Drawing::RecordingCanvas>(canvasHeight, canvasWidth);
+            drawingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+            auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+            BufferDrawParam params;
+            params.acquireFence = nullptr;
+            params.threadIndex = 0;
+            std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+            auto res = eglImageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
+            EXPECT_EQ(res, nullptr);
+        }
+    }
 }
 
 /**
  * @tc.name: GetIntersectImageTest
- * @tc.desc: GetIntersectImage
+ * @tc.desc: Test RSEglImageManager Func GetIntersectImage
  * @tc.type: FUNC
  * @tc.require: issueI6QHNP
  */
 HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest, TestSize.Level1)
 {
-    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
-    renderContext->InitializeEglContext();
-    renderContext->SetUpGpuContext();
-    std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
-    Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
-    std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
-    sptr<OHOS::SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = nullptr;
-    pid_t threadIndex = 0;
-    buffer = SurfaceBuffer::Create();
-    auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
-    EXPECT_EQ(res, nullptr);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+        renderContext->InitializeEglContext();
+        renderContext->SetUpGpuContext();
+        auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+        Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
+        std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
+        sptr<OHOS::SurfaceBuffer> buffer = nullptr;
+        sptr<SyncFence> acquireFence = nullptr;
+        pid_t threadIndex = 0;
+        auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+        EXPECT_EQ(res, nullptr);
+        buffer = SurfaceBuffer::Create();
+        res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+        EXPECT_EQ(res, nullptr);
+    }
+}
+
+/**
+ * @tc.name: GetIntersectImageTest002
+ * @tc.desc: Test RSEglImageManager Func GetIntersectImage
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest002, TestSize.Level1)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 2;
+        auto rsContext = std::make_shared<RSContext>();
+        auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+        node->InitRenderParams();
+        sptr<IConsumerSurface> consumer = IConsumerSurface::Create("GetIntersectImageTest002");
+        auto screenDrawable =
+            std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
+        auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+        surfaceHandler->SetConsumer(consumer);
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        Rect damage;
+        sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        ASSERT_NE(node, nullptr);
+        if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
+            sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
+            sptr<SyncFence> acquireFence;
+            std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+            renderContext->InitializeEglContext();
+            renderContext->SetUpGpuContext();
+            auto eglImageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+            Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
+            std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
+            pid_t threadIndex = 0;
+            auto res = eglImageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+            EXPECT_EQ(res, nullptr);
+        }
+    }
 }
 } // namespace OHOS::Rosen

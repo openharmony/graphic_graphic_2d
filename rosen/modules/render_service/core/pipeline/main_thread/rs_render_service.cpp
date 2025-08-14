@@ -55,6 +55,10 @@
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
 
+#ifdef TP_FEATURE_ENABLE
+#include "screen_manager/touch_screen.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -109,14 +113,10 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     // need called after GraphicFeatureParamManager::GetInstance().Init();
     FilterCCMInit();
 
-    // load optimization params init
-    LoadOptParams loadOptParams;
-    InitLoadOptParams(loadOptParams);
-
+#ifdef TP_FEATURE_ENABLE
+    TOUCH_SCREEN->InitTouchScreen();
+#endif
     screenManager_ = CreateOrGetScreenManager();
-    if (screenManager_ != nullptr) {
-        screenManager_->InitLoadOptParams(loadOptParams.loadOptParamsForScreen);
-    }
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         // screenManager initializtion executes in RSHHardwareThread under UNI_RENDER mode
         if (screenManager_ == nullptr || !screenManager_->Init()) {
@@ -185,7 +185,7 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     RSGfxDumpInit(); // Gfx Init
 
     RS_PROFILER_INIT(this);
- 
+
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
 #endif
@@ -212,17 +212,6 @@ void RSRenderService::InitDVSyncParams(DVSyncFeatureParam &dvsyncParam)
     };
     adaptiveConfigs = DVSyncParam::GetAdaptiveConfig();
     dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
-}
-
-void RSRenderService::InitLoadOptParams(LoadOptParams& loadOptParams)
-{
-    std::unordered_map<std::string, bool> tempSwitchParams = {};
-    auto& paramsForScreen = loadOptParams.loadOptParamsForScreen;
-    auto& paramsForHdiBackend = paramsForScreen.loadOptParamsForHdiBackend;
-    auto& paramsForHdiOutput = paramsForHdiBackend.loadOptParamsForHdiOutput;
-
-    tempSwitchParams[IS_MERGE_FENCE_SKIPPED] = LoadOptimizationParam::IsMergeFenceSkipped();
-    paramsForHdiOutput.switchParams = { tempSwitchParams };
 }
 
 void RSRenderService::Run()

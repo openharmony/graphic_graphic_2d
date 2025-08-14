@@ -20,9 +20,14 @@
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
 
-#include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_render_service.h"
+#include "common/rs_common_def.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_root_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,14 +42,21 @@ public:
         Network::outgoing_ = {};
         Network::incoming_ = {};
     };
-    void TearDown() override {};
+    void TearDown() override
+    {
+        RSProfiler::SetMode(Mode::NONE);
+    };
 };
 
-sptr<RSRenderService> GetAndInitRenderService()
+RSRenderService* GetAndInitRenderService()
 {
-    sptr<RSRenderService> renderService(new RSRenderService());
+    MemoryTrack::Instance();
+    MemorySnapshot::Instance();
+    RSRenderNodeGC::Instance();
+
+    auto renderService(new RSRenderService());
     if (renderService) {
-        renderService->mainThread_ = RSMainThread::Instance();
+        renderService->mainThread_ = new RSMainThread();
     }
     if (renderService->mainThread_) {
         renderService->mainThread_->context_ = std::make_shared<RSContext>();
@@ -136,7 +148,7 @@ bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std:
         const auto& drawCmdModifiers = patchedNode->GetDrawCmdModifiers();
 
         for (const auto& [modifierType, modifiers] : drawCmdModifiers) {
-            HRPI("TestDoubleReplay: For index %" PRIu64 " and modifierType %{public}hd count in buffer %" PRIu64, index,
+            HRPI("TestDoubleReplay: For index %" PRIu32 " and modifierType %{public}hd count in buffer %" PRIu32, index,
                 modifierType, bufferOfDrawCmdModifiers[index].count(modifierType));
             if (bufferOfDrawCmdModifiers[index].count(modifierType) == 0) {
                 isDrawCmdModifiersEqual = false;
@@ -144,7 +156,7 @@ bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std:
             }
 
             const auto& currentBufferList = bufferOfDrawCmdModifiers[index].at(modifierType);
-            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %" PRIu64 " buffer size %" PRIu64,
+            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %" PRIu32 " buffer size %" PRIu32,
                 modifierType, modifiers.size(), currentBufferList.size());
             if (currentBufferList.size() != modifiers.size()) {
                 isDrawCmdModifiersEqual = false;
@@ -232,25 +244,6 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
     });
 }
 
-
-/*
- * @tc.name: RSTreeTest
- * @tc.desc: Test SecureScreen
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerTest, SecureScreen, testing::ext::TestSize.Level1)
-{
-    RSProfiler::testing_ = true;
-
-    sptr<RSRenderService> renderService = GetAndInitRenderService();
-
-    EXPECT_NO_THROW({
-        RSProfiler::Init(renderService);
-        EXPECT_FALSE(RSProfiler::IsSecureScreen());
-    });
-}
-
 /*
  * @tc.name: RSDoubleTransformationTest
  * @tc.desc: Test double use of FirstFrameMarshalling & FirstFrameUnmarshalling with test tree
@@ -327,7 +320,7 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
     void* allocated = malloc(length);
     EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
 
-    auto* buffer = new[std::nothrow] uint8_t[sizeof(MessageParcel) + 1];
+    auto* buffer = new (std::nothrow) uint8_t[sizeof(MessageParcel) + 1];
     MessageParcel* messageParcel = new (buffer + 1) MessageParcel;
 
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(*messageParcel, data));
@@ -335,4 +328,191 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
     EXPECT_TRUE(RSProfiler::IfNeedToSkipDuringReplay(*messageParcel, position));
     EXPECT_EQ(messageParcel->GetWritePosition(), position);
 }
+
+/*
+ * @tc.name: LogEventStart
+ * @tc.desc: Test LogEventStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    sptr<RSRenderService> renderService = GetAndInitRenderService();
+    RSProfiler::Init(renderService);
+
+    ArgList argList;
+    RSProfiler::RecordStart(argList);
+
+    uint64_t curTime = 123;
+    double timeSinceRecordStart = 456.2f;
+    RSCaptureData captureData;
+    if (RSProfiler::IsRecording()) {
+        std::cout << "RSProfiler is recording right now" << std::endl;
+    } else {
+        std::cout << "RSProfiler is NOT recording right now" << std::endl;
+    }
+
+    RSProfiler::LogEventStart(curTime, captureData, timeSinceRecordStart);
+
+    uint64_t readTime = captureData.GetTime();
+    std::string readProperty = captureData.GetProperty(RSCaptureData::KEY_EVENT_TYPE);
+
+    RSProfiler::RecordStop(argList);
+    RSProfiler::SetMode(Mode::NONE);
+
+    EXPECT_DOUBLE_EQ(static_cast<double>(readTime), timeSinceRecordStart);
+    EXPECT_EQ(readProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
+}
+
+/*
+ * @tc.name: LogEventVSync
+ * @tc.desc: Test LogEventVSync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    sptr<RSRenderService> renderService = GetAndInitRenderService();
+    RSProfiler::Init(renderService);
+
+    ArgList argList;
+    RSProfiler::RecordStart(argList);
+
+    if (RSProfiler::IsRecording()) {
+        std::cout << "RSProfiler is recording right now" << std::endl;
+    } else {
+        std::cout << "RSProfiler is NOT recording right now" << std::endl;
+    }
+
+    uint64_t syncTime = Utils::Now() + Utils::ToNanoseconds(1.0f);
+    RSProfiler::LogEventVSync(syncTime);
+    RSProfiler::RecordStop(argList);
+
+    while (RSProfiler::GetMode() != Mode::NONE);
+
+    RSFile testFile;
+
+    testFile.Open("RECORD_IN_MEMORY");
+
+    EXPECT_TRUE(testFile.IsOpen());
+
+    std::vector<uint8_t> data;
+    double readTime;
+    EXPECT_EQ(testFile.ReadLogEvent(1e10f, 0, data, readTime), true);
+
+    testFile.Close();
+
+    std::vector<char> cdata;
+    cdata.assign(data.begin() + 1, data.end());
+
+    RSCaptureData captureData;
+    captureData.Deserialize(cdata);
+
+    float readCDTime = captureData.GetTime();
+    std::string readCDProperty = captureData.GetProperty(RSCaptureData::KEY_EVENT_TYPE);
+
+    EXPECT_EQ(readCDProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
+    EXPECT_NEAR(readCDTime, 1.f, 1e-2);
+
+    RSProfiler::SetMode(Mode::NONE);
+}
+
+class RSProfilerTestWithContext : public testing::Test {
+    static RSRenderService* renderService;
+
+public:
+    static void SetUpTestCase()
+    {
+        renderService = GetAndInitRenderService();
+        RSProfiler::Init(renderService);
+    };
+    static void TearDownTestCase()
+    {
+        delete renderService;
+        renderService = nullptr;
+        RSProfiler::Init(nullptr);
+    };
+    void SetUp() override {};
+    void TearDown() override {};
+};
+
+RSRenderService* RSProfilerTestWithContext::renderService;
+
+void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, bool isPatched = false)
+{
+    if (isPatched) {
+        EXPECT_EQ(rootNode->GetId(), Utils::PatchNodeId(0));
+    } else {
+        EXPECT_EQ(rootNode->GetId(), 0);
+    }
+
+    auto children = rootNode->GetChildren();
+    ASSERT_EQ(children->size(), 1);
+    auto screenNode = children->at(0);
+    auto shouldBeId = topNodeId;
+    if (isPatched) {
+        shouldBeId = Utils::PatchNodeId(topNodeId);
+    }
+    EXPECT_EQ(screenNode->GetId(), shouldBeId);
+    children = screenNode->GetChildren();
+    ASSERT_EQ(children->size(), 1);
+    auto displayNode = children->at(0);
+    shouldBeId++;
+    EXPECT_EQ(displayNode->GetId(), shouldBeId);
+}
+
+HWTEST_F(RSProfilerTestWithContext, HiddenSpaceTurnOnOff, Level1)
+{
+    EXPECT_NE(RSProfiler::context_, nullptr);
+    NodeId topNodeId = 12345000;
+    TestTreeBuilder treeBuilder;
+    std::cout << "Preparing to run test..." << std::endl;
+
+    treeBuilder.Build(*RSProfiler::context_, topNodeId, true, true);
+    std::cout << "Builded test tree" << std::endl;
+
+    treeBuilder.Build(*RSProfiler::context_, Utils::PatchNodeId(topNodeId), true, true, true);
+    std::cout << "Builded patched test tree" << std::endl;
+
+    GenerateFullChildrenListForAll(*RSProfiler::context_);
+    std::cout << "Generated children for all" << std::endl;
+
+    checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
+    std::cout << "Checked test tree first time" << std::endl;
+
+    RSProfiler::HiddenSpaceTurnOn();
+    std::cout << "Enabled HiddenSpace" << std::endl;
+
+    GenerateFullChildrenListForAll(*RSProfiler::context_);
+    std::cout << "Generated children for all" << std::endl;
+
+    checkTree(RSProfiler::context_->GetNodeMap().GetRenderNode(Utils::PatchNodeId(0)), topNodeId, true);
+    std::cout << "Checked test tree second time" << std::endl;
+
+    RSProfiler::HiddenSpaceTurnOff();
+    std::cout << "Disabled HiddenSpace" << std::endl;
+
+    GenerateFullChildrenListForAll(*RSProfiler::context_);
+    std::cout << "Generated children for all" << std::endl;
+
+    checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
+    std::cout << "Checked test tree third time" << std::endl;
+
+    std::cout << "End of test" << std::endl;
+}
+
+/*
+ * @tc.name: RSTreeTest
+ * @tc.desc: Test SecureScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTestWithContext, SecureScreen, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    EXPECT_FALSE(RSProfiler::IsSecureScreen());
+}
+
 } // namespace OHOS::Rosen

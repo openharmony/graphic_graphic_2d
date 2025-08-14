@@ -480,6 +480,19 @@ HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| 
 }
 
 /*
+ * Function: GetRsDelayTime001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetRsDelayTime
+ */
+HWTEST_F(VSyncDistributorTest, GetRsDelayTime001, Function | MediumTest| Level3)
+{
+    auto res = VSyncDistributorTest::vsyncDistributor->GetRsDelayTime(1);
+    ASSERT_EQ(res, 0);
+}
+
+/*
 * Function: SetUiDvsyncConfig001
 * Type: Function
 * Rank: Important(2)
@@ -673,6 +686,104 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+}
+
+
+/**
+ * Function: CollectConnections001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create different conn(rate = 1) and add them to the VSyncDistributor
+ *                  2. call CollectConnections001 with different parameters
+ *                  3. check if the result is correct
+ */
+HWTEST_F(VSyncDistributorTest, CollectConnections001, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    std::vector<sptr<VSyncConnection>> rsConns;
+    int64_t now = 1000000000;
+    int64_t timestamp = 100;
+    bool waitForVSync = false;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
+    conns[0]->rate_ = 1;
+    conns[0]->triggerThisTime_ = true;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
+    conns[1]->rate_ = 1;
+    conns[1]->triggerThisTime_ = false;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
+    conns[2]->rate_ = 1;
+    conns[2]->triggerThisTime_ = true;
+    conns[2]->AddRequestVsyncTimestamp(timestamp);
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
+    conns[3]->rate_ = 1;
+    conns[3]->triggerThisTime_ = false;
+    conns[3]->AddRequestVsyncTimestamp(timestamp);
+
+    for (size_t i = 0; i < conns.size(); i++) {
+        waitForVSync = false;
+        rsConns.clear();
+
+        ASSERT_EQ(vsyncDistributor->AddConnection(conns[i], 1), VSYNC_ERROR_OK);
+        vsyncDistributor->CollectConnections(waitForVSync, now, rsConns, 0, false);
+        EXPECT_EQ(rsConns.size(), 1);
+        EXPECT_TRUE(waitForVSync);
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/**
+ * Function: CollectConnections002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create different conn(rate = -1) and add them to the VSyncDistributor
+ *                  2. call CollectConnections001 with different parameters
+ *                  3. check if the result is correct
+ */
+HWTEST_F(VSyncDistributorTest, CollectConnections002, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    std::vector<sptr<VSyncConnection>> rsConns;
+    int64_t now = 1000000000;
+    int64_t timestamp = 100;
+    bool waitForVSync = false;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
+    conns[0]->rate_ = -1;
+    conns[0]->triggerThisTime_ = true;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
+    conns[1]->rate_ = -1;
+    conns[1]->triggerThisTime_ = false;
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
+    conns[2]->rate_ = -1;
+    conns[2]->triggerThisTime_ = true;
+    conns[2]->AddRequestVsyncTimestamp(timestamp);
+
+    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
+    conns[3]->rate_ = -1;
+    conns[3]->triggerThisTime_ = false;
+    conns[3]->AddRequestVsyncTimestamp(timestamp);
+
+    for (size_t i = 0; i < conns.size(); i++) {
+        waitForVSync = false;
+        rsConns.clear();
+        ASSERT_EQ(vsyncDistributor->AddConnection(conns[i], 1), VSYNC_ERROR_OK);
+        vsyncDistributor->CollectConnections(waitForVSync, now, rsConns, 0, false);
+        EXPECT_EQ(rsConns.size(), 0);
+        if (!conns[i]->triggerThisTime_ && !conns[i]->NeedTriggeredVsync(timestamp)) {
+            EXPECT_EQ(waitForVSync, !conns[i]->IsRequestVsyncTimestampEmpty());
+        } else {
+            EXPECT_FALSE(waitForVSync);
+        }
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
 }
 
 /*
@@ -1001,6 +1112,61 @@ HWTEST_F(VSyncDistributorTest, InitDVSyncTest001, Function | MediumTest| Level3)
     ASSERT_EQ(vsyncDistributor->isRs_, false);
 }
 
+/**
+ * @tc.name: SetQosVSyncRateByConnId001
+ * @tc.desc: SetQosVSyncRateByConnId Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByConnId001, Function | MediumTest| Level3)
+{
+    uint64_t connId = 1;
+    int32_t rate = 30;
+    auto ret = vsyncDistributor->SetQosVSyncRateByConnId(connId, rate);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/**
+ * @tc.name: GetVsyncConnection001
+ * @tc.desc: GetVsyncConnection Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, GetVsyncConnection001, Function | MediumTest| Level3)
+{
+    uint64_t id = -1;
+    auto ret = vsyncDistributor->GetVSyncConnection(id);
+    ASSERT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: PrintConnectionsStatus001
+ * @tc.desc: PrintConnectionsStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, PrintConnectionsStatus001, Function | MediumTest| Level3)
+{
+    int sizeStart = vsyncDistributor->connections_.size();
+    vsyncDistributor->PrintConnectionsStatus();
+    int sizeEnd = vsyncDistributor->connections_.size();
+    ASSERT_EQ(sizeStart, sizeEnd);
+}
+
+/**
+ * @tc.name: SetNativeDVSyncSwitch001
+ * @tc.desc: SetNativeDVSyncSwitch Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncDistributorTest, SetNativeDVSyncSwitch001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    bool dvsyncSwitch = true;
+    auto res = vsyncDistributor->SetNativeDVSyncSwitch(dvsyncSwitch, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
 /*
 * Function: DVSyncAddConnectionDVSyncDisableVSyncTest001
 * Type: Function
@@ -1149,21 +1315,6 @@ HWTEST_F(VSyncDistributorTest, HandleTouchEvent001, Function | MediumTest| Level
     int32_t touchCnt = 0;
     vsyncDistributor->HandleTouchEvent(touchStatus, touchCnt);
     ASSERT_EQ(touchStatus, 0);
-}
-
-/*
-* Function: AdaptiveDVSyncEnableTest001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. test AdaptiveDVSyncEnable
- */
-HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTest| Level3)
-{
-    std::string nodeName = "test";
-    bool needConsume = true;
-    vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0, needConsume);
-    ASSERT_EQ(needConsume, true);
 }
 
 /*
@@ -1609,6 +1760,20 @@ HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest023, Function | MediumTest| Le
     uint32_t pid = 0;
     ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(pid, 0);
+}
+
+/*
+* Function: ForceRsDVsync001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ForceRsDVsync
+ */
+HWTEST_F(VSyncDistributorTest, ForceRsDVsync001, Function | MediumTest| Level3)
+{
+    std::string sceneId = "APP_SWIPER_FLING";
+    vsyncDistributor->ForceRsDVsync(sceneId);
+    ASSERT_EQ(sceneId, "APP_SWIPER_FLING");
 }
 } // namespace
 } // namespace Rosen

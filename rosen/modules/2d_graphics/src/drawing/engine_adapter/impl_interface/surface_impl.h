@@ -44,6 +44,7 @@ struct FlushInfo;
 struct FrameBuffer;
 #endif
 enum class BackendAccess;
+enum class SemaphoresSubmited;
 
 class SurfaceImpl : public BaseImpl {
 public:
@@ -62,7 +63,7 @@ public:
     virtual std::shared_ptr<Surface> MakeSurface(const ImageInfo& imageInfo) const = 0;
     virtual BackendTexture GetBackendTexture(BackendAccess access) const = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
-    virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
+    virtual SemaphoresSubmited Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
 #ifdef RS_ENABLE_GL
     virtual void Wait(const std::vector<GrGLsync>& syncs) {};
 #endif

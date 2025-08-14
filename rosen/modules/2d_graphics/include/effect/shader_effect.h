@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,10 @@
 #include "utils/drawing_macros.h"
 #include "utils/extend_object.h"
 #include "draw/sdf_shaper_base.h"
+
+#ifdef ROSEN_OHOS
+#include <parcel.h>
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -45,7 +49,8 @@ public:
         SWEEP_GRADIENT,
         LIGHT_UP,
         EXTEND_SHADER,
-        SDF_SHADER
+        SDF_SHADER,
+        LAZY_SHADER
     };
 
     /**
@@ -110,6 +115,12 @@ public:
     virtual ~ShaderEffect() = default;
 
     ShaderEffectType GetType() const;
+    virtual bool IsLazy() const { return false; };
+
+#ifdef ROSEN_OHOS
+    virtual bool Marshalling(Parcel& parcel);
+    static std::shared_ptr<ShaderEffect> Unmarshalling(Parcel& parcel, bool& isValid);
+#endif
 
     virtual DrawingType GetDrawingType() const
     {
@@ -196,10 +207,11 @@ public:
     void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) const;
 #endif
 
-    std::shared_ptr<Data> Serialize() const;
-    bool Deserialize(std::shared_ptr<Data> data);
-private:
+    virtual std::shared_ptr<Data> Serialize() const;
+    virtual bool Deserialize(std::shared_ptr<Data> data);
+protected:
     ShaderEffectType type_;
+private:
     std::shared_ptr<ShaderEffectImpl> impl_;
     std::shared_ptr<ExtendObject> object_;
 };

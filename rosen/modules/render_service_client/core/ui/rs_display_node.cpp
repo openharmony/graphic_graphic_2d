@@ -271,7 +271,9 @@ void RSDisplayNode::SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
         "virtualScreenMuteStatus: %{public}d", GetId(), virtualScreenMuteStatus);
 }
 
-RSDisplayNode::~RSDisplayNode() = default;
-
+RSDisplayNode::~RSDisplayNode()
+{
+    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
+}
 } // namespace Rosen
 } // namespace OHOS

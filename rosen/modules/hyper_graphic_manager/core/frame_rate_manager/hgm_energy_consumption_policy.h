@@ -41,7 +41,7 @@ public:
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     
-    bool GetUiIdleFps(FrameRateRange& rsRange);
+    bool GetUiIdleFps(FrameRateRange& rsRange, pid_t pid = 0);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange& rsRange);
     void SetVideoCallSceneInfo(const EventInfo& eventInfo);
@@ -82,7 +82,8 @@ private:
     mutable std::mutex videoCallLock_;
     std::string videoCallLayerName_ = "";
     // concurrency protection <<<
-    std::atomic<bool> aceComponentEnable_ = { true };
+    std::atomic<bool> dragSceneEnable_ = { true };
+    std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;

@@ -16,8 +16,6 @@
 #include "rs_graphic_test_text.h"
 
 #include "draw/brush.h"
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 #include "text/font.h"
 #include "text/font_types.h"
 #include "text/text_blob.h"

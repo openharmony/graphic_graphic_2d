@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,9 @@
 #include "native_pixel_map_manager.h"
 
 #include "effect/shader_effect.h"
+#include "effect/shader_effect_lazy.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_pixel_map_shader_obj.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -250,16 +252,11 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreatePixelMapShader(OH_Drawing_
         return nullptr;
     }
 
-    std::shared_ptr<Drawing::Image> image = RSPixelMapUtil::ExtractDrawingImage(pixelMapPtr);
-    if (!image) {
-        return nullptr;
-    }
-
     Matrix defaultMatrix;
     const Matrix& matrixRef = matrix ? *CastToMatrix(matrix) : defaultMatrix;
 
-    return CastShaderEffect(ShaderEffect::CreateImageShader(
-        *image, static_cast<TileMode>(tileX), static_cast<TileMode>(tileY),
+    return CastShaderEffect(RSPixelMapShaderObj::CreatePixelMapShader(
+        pixelMapPtr, static_cast<TileMode>(tileX), static_cast<TileMode>(tileY),
         CastToSamplingOptions(*samplingOptions), matrixRef));
 #else
     return nullptr;
@@ -308,8 +305,8 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateCompose(OH_Drawing_ShaderE
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
-    return CastShaderEffect(ShaderEffect::CreateBlendShader(*dstHandle->value,
-        *srcHandle->value, static_cast<BlendMode>(mode)));
+    return CastShaderEffect(ShaderEffectLazy::CreateBlendShader(dstHandle->value,
+        srcHandle->value, static_cast<BlendMode>(mode)));
 }
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)

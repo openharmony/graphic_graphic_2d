@@ -68,7 +68,8 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const
 {
     // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
     // we currently disable hardware composer.
-    if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
+    if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT &&
+        !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by frameGravity[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int32_t>(frameGravity));
         node.SetHardwareForcedDisabledState(true);
@@ -336,6 +337,10 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo&
     RectI dstRectI(dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_);
     int32_t screenWidth = static_cast<int32_t>(screenInfo.phyWidth);
     int32_t screenHeight = static_cast<int32_t>(screenInfo.phyHeight);
+    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        screenWidth = static_cast<int32_t>(screenInfo.width);
+        screenHeight = static_cast<int32_t>(screenInfo.height);
+    }
     RectI screenRectI(0, 0, screenWidth, screenHeight);
     RectI resDstRect = dstRectI.IntersectRect(screenRectI);
     if (resDstRect == dstRectI) {
@@ -396,7 +401,8 @@ void RSUniHwcComputeUtil::CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, con
 bool RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode)
 {
     // We temporarily disabled HWC when scalingMode is freeze or no_scale_crop
-    if (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
+    if (!node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
+        (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP)) {
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by scalingMode[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int32_t>(scalingMode));
         node.SetHardwareForcedDisabledState(true);

@@ -314,7 +314,7 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
     }
 
 #ifdef RS_ENABLE_VK
-    if (RsSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::IsUseVulkan()) {
         context = EffectVulkanContext::GetSingleton().CreateDrawingContext();
     }
 #endif

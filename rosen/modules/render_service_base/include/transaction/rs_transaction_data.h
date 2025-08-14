@@ -185,6 +185,26 @@ public:
     bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const;
     void DumpCommand(std::string& dumpString);
 
+    void SetDVSyncUpdate(bool dvsyncTimeUpdate)
+    {
+        dvsyncTimeUpdate_ = dvsyncTimeUpdate;
+    }
+
+    bool GetDVSyncUpdate() const
+    {
+        return dvsyncTimeUpdate_;
+    }
+
+    void SetDVSyncTime(uint64_t dvsyncTime)
+    {
+        dvsyncTime_ = dvsyncTime;
+    }
+
+    uint64_t GetDVSyncTime() const
+    {
+        return dvsyncTime_;
+    }
+
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
@@ -214,6 +234,8 @@ private:
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;
     std::vector<uint32_t> commandOffsets_;
+    bool dvsyncTimeUpdate_ = false;
+    uint64_t dvsyncTime_ = 0;
 
     friend class RSTransactionProxy;
     friend class RSTransactionHandler;

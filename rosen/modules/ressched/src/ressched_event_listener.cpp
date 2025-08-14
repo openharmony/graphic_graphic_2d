@@ -77,8 +77,9 @@ void ResschedEventListener::ReportFrameToRSS()
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
         if (GetIsFirstReport() ||
-            lastReportTime_ == 0 || currTime - lastReportTime_ >= SAMPLE_TIME) {
-            RS_TRACE_BEGIN("ReportFrameToRSS");
+            lastReportTime_ == 0 || (currTime > lastReportTime_ &&
+            currTime - lastReportTime_ >= SAMPLE_TIME)) {
+            RS_TRACE_NAME("ReportFrameToRSS");
             uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
             int64_t value = 0;
             std::unordered_map<std::string, std::string> mapPayload;
@@ -87,7 +88,6 @@ void ResschedEventListener::ReportFrameToRSS()
             lastReportTime_ = static_cast<uint64_t>(
                 std::chrono::duration_cast<std::chrono::nanoseconds>(
                     std::chrono::steady_clock::now().time_since_epoch()).count());
-            RS_TRACE_END();
         }
     }
 }
@@ -223,16 +223,13 @@ bool ResschedEventListener::GetFfrtQueue()
     if (ffrtQueue_ != nullptr) {
         return true;
     }
+    std::lock_guard<std::mutex> lock(ffrtGetQueueMutex_);
     if (ffrtQueue_ == nullptr) {
-        std::lock_guard<std::mutex> lock(ffrtGetQueueMutex_);
-        if (ffrtQueue_ == nullptr) {
-            ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_LISTENER_QUEUE.c_str(),
-                ffrt::queue_attr().qos(ffrt::qos_default));
-        }
+        ffrtQueue_ = std::make_shared<ffrt::queue>(RS_RESSCHED_LISTENER_QUEUE.c_str(),
+            ffrt::queue_attr().qos(ffrt::qos_default));
     }
     if (ffrtQueue_ == nullptr) {
-        RS_TRACE_BEGIN("FrameRateStatistics Init ffrtqueue failed!");
-        RS_TRACE_END();
+        RS_TRACE_NAME("FrameRateStatistics Init ffrtqueue failed!");
         return false;
     }
     return true;
@@ -243,16 +240,13 @@ bool ResschedEventListener::GetFfrtHighPriorityQueue()
     if (ffrtHighPriorityQueue_ != nullptr) {
         return true;
     }
+    std::lock_guard<std::mutex> lock(ffrtGetHighFrequenceQueueMutex_);
     if (ffrtHighPriorityQueue_ == nullptr) {
-        std::lock_guard<std::mutex> lock(ffrtGetHighFrequenceQueueMutex_);
-        if (ffrtHighPriorityQueue_ == nullptr) {
-            ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
-                RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY.c_str(), ffrt::queue_attr().qos(ffrt::qos_user_interactive));
-        }
+        ffrtHighPriorityQueue_ = std::make_shared<ffrt::queue>(
+            RS_RESSCHED_LISTENER_QUEUE_HIGH_PRIOTITY.c_str(), ffrt::queue_attr().qos(ffrt::qos_user_interactive));
     }
     if (ffrtHighPriorityQueue_ == nullptr) {
-        RS_TRACE_BEGIN("FrameRateStatistics Init ffrtqueue failed!");
-        RS_TRACE_END();
+        RS_TRACE_NAME("FrameRateStatistics Init HighPriority ffrtqueue failed!");
         return false;
     }
     return true;

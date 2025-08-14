@@ -174,5 +174,8 @@ HWTEST_F(RSTransformModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
     modifier->SetTranslateZ(translateZValue);
     modifier->ApplyGeometry(geometry);
     EXPECT_FLOAT_EQ(geometry->GetPivotX(), 1.0f);
+
+    auto modifier01 = std::make_shared<ModifierNG::RSTransformModifier>();
+    EXPECT_EQ(modifier01->GetCameraDistance(), 0.f);
 }
 } // namespace OHOS::Rosen

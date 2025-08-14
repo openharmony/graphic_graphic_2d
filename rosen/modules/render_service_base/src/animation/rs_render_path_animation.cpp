@@ -35,7 +35,7 @@ RSRenderPathAnimation::RSRenderPathAnimation(AnimationId id, const PropertyId& p
 
 void RSRenderPathAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderPathAnimation";
+    out.append("Type:RSRenderPathAnimation");
 }
 
 void RSRenderPathAnimation::SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)

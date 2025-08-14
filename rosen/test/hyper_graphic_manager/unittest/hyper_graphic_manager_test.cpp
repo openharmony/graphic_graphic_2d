@@ -380,7 +380,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
  * @tc.name: SetScreenRefreshRate_002
  * @tc.desc: Verify the result of SetScreenRefreshRate function
  * @tc.type: FUNC
- * @tc.require: I7DMS1
+ * @tc.require: N/A
  */
 HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate_002, Function | MediumTest | Level0)
 {
@@ -828,14 +828,17 @@ HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Le
  * @tc.name: SetFastComposeTimeStampDiff
  * @tc.desc: Verify the result of SetFastComposeTimeStampDiff function
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIBGV2W
  */
 HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallTest | Level0)
 {
-    auto& hgmCore = HgmCore::Instance();
-    bool fastComposeTimeStampDiff = false;
+    auto &hgmCore = HgmCore::Instance();
+    uint64_t fastComposeTimeStampDiff = UINT64_MAX;
     hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
-    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff() == fastComposeTimeStampDiff, true);
+    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff(), fastComposeTimeStampDiff);
+    fastComposeTimeStampDiff = 0;
+    hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
+    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff(), fastComposeTimeStampDiff);
 }
 
 /**
@@ -851,23 +854,6 @@ HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest |
     int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
     hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
     EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
-}
-
-/**
- * @tc.name: IsSwitchDssEnable
- * @tc.desc: Verify the result of IsSwitchDssEnable function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, IsSwitchDssEnable, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    ScreenId screenId = 2;
-    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
-    hgmCore.SetScreenSwitchDssEnable(screenId, true);
-    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), true);
-    hgmCore.SetScreenSwitchDssEnable(screenId, false);
-    EXPECT_EQ(hgmCore.IsSwitchDssEnable(screenId), false);
 }
 } // namespace Rosen
 } // namespace OHOS

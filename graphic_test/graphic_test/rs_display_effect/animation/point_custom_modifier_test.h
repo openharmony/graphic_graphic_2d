@@ -16,24 +16,13 @@
 #ifndef ANIM_CUSTOM_POINT_MODIFIER_TEST_H
 #define ANIM_CUSTOM_POINT_MODIFIER_TEST_H
 
-#if defined(MODIFIER_NG)
 #include "modifier_ng/custom/rs_content_style_modifier.h"
-#else
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_modifier.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-#if defined(MODIFIER_NG)
 using ContentStyleModifier = ModifierNG::RSContentStyleModifier;
 using DrawingContext = ModifierNG::RSDrawingContext;
 using Modifier = ModifierNG::RSModifier;
-#else
-using ContentStyleModifier = RSContentStyleModifier;
-using DrawingContext = RSDrawingContext;
-using Modifier = RSModifier;
-#endif
 class PointCustomModifier : public ContentStyleModifier {
 public:
     ~PointCustomModifier() = default;

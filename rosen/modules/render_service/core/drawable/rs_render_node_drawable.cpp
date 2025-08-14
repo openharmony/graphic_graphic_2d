@@ -26,11 +26,14 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_effect_luminance_manager.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "string_utils.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#include "rs_parallel_misc.h"
+#endif
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -100,8 +103,11 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    UpdateFilterDisplayHeadroom(canvas);
-
+#ifdef SUBTREE_PARALLEL_ENABLE
+    if (RSParallelManager::Singleton().OnDrawNodeDrawable(canvas, bounds, this)) {
+        return;
+    }
+#endif
     DrawBackground(canvas, bounds);
 
     CollectInfoForUnobscuredUEC(canvas);
@@ -562,8 +568,7 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
     autoCacheRenderNodeInfos_.clear();
-    opincRootTotalCount_ = 0;
-    isOpincDropNodeExt_ = true;
+    ClearOpincState();
 #endif
 }
 
@@ -571,10 +576,6 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(
     RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
-        auto screenParams = static_cast<RSScreenRenderParams*>(params.get());
-        if (screenParams && screenParams->GetNeedOffscreen()) {
-            canvas.ConcatMatrix(screenParams->GetMatrix());
-        }
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(cacheInfo.second);
@@ -816,8 +817,8 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
         return;
     }
     if (rsFilter != nullptr) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::DrawCachedImage image width: %d, height: %d, %s",
-            cacheImage->GetWidth(), cacheImage->GetHeight(), rsFilter->GetDescription().c_str());
+        RS_OPTIONAL_TRACE_FMT("RSRenderNodeDrawable::DrawCachedImage image width: %d, height: %d, %s, nodeID = %llu",
+            cacheImage->GetWidth(), cacheImage->GetHeight(), rsFilter->GetDescription().c_str(), nodeId_);
         auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
         foregroundFilter->DrawImageRect(canvas, cacheImage, Drawing::Rect(0, 0, cacheImage->GetWidth(),
         cacheImage->GetHeight()), Drawing::Rect(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight()));
@@ -891,6 +892,11 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
+#ifdef SUBTREE_PARALLEL_ENABLE
+    // Adapt to the subtree feature to ensure the correct thread ID(TID) is set.
+    RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
+#endif
+
     bool isHdrOn = false;
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
@@ -982,28 +988,6 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, ctx, updateTimes);
 }
 
-void RSRenderNodeDrawable::UpdateFilterDisplayHeadroom(Drawing::Canvas& canvas)
-{
-    if (canvas.GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
-        return;
-    }
-
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    NodeId screenId = paintFilterCanvas->GetScreenId();
-    auto headroom = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenId);
-
-    const auto& params = GetRenderParams();
-    if (!params) {
-        return;
-    }
-    if (params->GetForegroundFilterCache()) {
-        params->GetForegroundFilterCache()->SetDisplayHeadroom(headroom);
-    }
-    if (params->GetBackgroundFilter()) {
-        params->GetBackgroundFilter()->SetDisplayHeadroom(headroom);
-    }
-}
-
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()
 {
     return totalProcessedNodeCount_;
@@ -1060,14 +1044,13 @@ bool RSRenderNodeDrawable::ShouldPaint() const
 std::string RSRenderNodeDrawable::GetNodeDebugInfo()
 {
     std::string ret("");
-#ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
     const auto& params = GetRenderParams();
     if (!params) {
         return ret;
     }
     auto& unionRect = opincDrawCache_.GetOpListUnionArea();
-    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d, isOpincDropNodeExt:%d",
-        params->GetId(), params->OpincGetRootFlag(),
+    AppendFormat(ret, "%" PRIu64 ", rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d,"
+        " isOpincDropNodeExt:%d", params->GetId(), params->OpincGetRootFlag(),
         opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
         opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), isOpincDropNodeExt_);
     auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();
@@ -1077,7 +1060,14 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
         0.f, 0.f, bounds.GetWidth(), bounds.GetHeight());
     AppendFormat(ret, ", ur{%.1f %.1f %.1f %.1f}",
         unionRect.GetLeft(), unionRect.GetTop(), unionRect.GetWidth(), unionRect.GetHeight());
-#endif
     return ret;
 }
+
+void RSRenderNodeDrawable::ClearOpincState()
+{
+    // Init opincRootTotalCount_ when the new thread init
+    opincRootTotalCount_ = 0;
+    isOpincDropNodeExt_ = true;
+}
+
 } // namespace OHOS::Rosen::DrawableV2

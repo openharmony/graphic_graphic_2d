@@ -103,6 +103,7 @@ struct BufferDrawParam {
     bool isHeterog = false;
     bool colorFollow = false;
     bool preRotation = false;
+    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
 };
 
 using WriteToPngParam = struct {
@@ -147,13 +148,12 @@ public:
 
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
-    static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
+    static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL);
 
-    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0,
-        bool adaptiveDVSyncEnable = false);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false,
-        bool needConsume = true, uint64_t parentNodeId = 0, bool deleteCacheDisable = false);
+    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
+        bool dropFrameByPidEnable = false, uint64_t parentNodeId = 0, bool deleteCacheDisable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
@@ -200,7 +200,6 @@ public:
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
     static pid_t GetLastSendingPid();
-    static bool PortraitAngle(int angle);
 
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,

@@ -22,6 +22,9 @@
 #include <hitrace_meter.h>
 
 #include "accesstoken_kit.h"
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync_delay.h"
+#endif
 #include "event_handler.h"
 #include "graphic_common.h"
 #include "ipc_skeleton.h"
@@ -298,6 +301,13 @@ VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->SetNativeDVSyncSwitch(dvsyncSwitch);
+}
+
+void VSyncReceiver::SetTouchEvent(int32_t touchType)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSyncDelay::Instance().SetTouchEvent(touchType);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

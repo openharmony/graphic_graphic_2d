@@ -20,6 +20,7 @@
 #include "rssurfaceohos_fuzzer.h"
 
 #include "iconsumer_surface.h"
+#include "surface.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"

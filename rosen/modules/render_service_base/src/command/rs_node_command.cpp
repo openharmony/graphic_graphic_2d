@@ -166,15 +166,6 @@ void RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(RSContext& context, NodeId
     }
 }
 
-void RSNodeCommandHelper::SetEnableHDREffect(RSContext& context, NodeId nodeId, bool enableHDREffect)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->SetEnableHdrEffect(enableHDREffect);
-    }
-}
-
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
     const bool isInSameWindow)
 {
@@ -201,10 +192,11 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     }
 }
 
-void RSNodeCommandHelper::DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId)
+void RSNodeCommandHelper::DumpClientNodeTree(
+    RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId)
 {
     if (gDumpNodeTreeProcessor) {
-        gDumpNodeTreeProcessor(nodeId, pid, taskId);
+        gDumpNodeTreeProcessor(nodeId, pid, token, taskId);
     }
 }
 

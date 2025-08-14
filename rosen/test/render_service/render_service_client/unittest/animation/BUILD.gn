@@ -25,7 +25,6 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   sources = [
     "rs_animation_group_test.cpp",
     "rs_animation_test.cpp",
-    "rs_curve_animation_test.cpp",
     "rs_implicit_animation_param_test.cpp",
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
@@ -57,6 +56,7 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     "image_framework:image_native",
     "opengles:libGLES",
     "hilog:libhilog",
+    "graphic_surface:surface_static",
   ]
 }
 

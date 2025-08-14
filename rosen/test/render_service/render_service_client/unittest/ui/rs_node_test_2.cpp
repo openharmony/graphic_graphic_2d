@@ -17,10 +17,6 @@
 
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
-#include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
-#include "ui_effect/property/include/rs_ui_blur_filter.h"
-#include "ui_effect/property/include/rs_ui_content_light_filter.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -29,9 +25,6 @@
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_modifier.h"
-#include "modifier/rs_property_modifier.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_blend_modifier.h"
@@ -70,14 +63,12 @@
 #include "ui/rs_ui_director.h"
 #include "ui_effect/property/include/rs_ui_dispersion_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
-#include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-#if defined(MODIFIER_NG)
 namespace {
 constexpr static float FLOAT_DATA_ZERO = 0.0f;
 constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
@@ -91,7 +82,6 @@ constexpr static float FLOAT_DATA[] = {
     FLOAT_DATA_MAX, FLOAT_DATA_MIN, FLOAT_DATA_INIT, FLOAT_DATA_UPDATE
 };
 }
-#endif // MODIFIER_NG
 
 class RSNodeTest2 : public testing::Test {
 public:
@@ -112,7 +102,6 @@ void RSNodeTest2::TearDownTestCase()
 void RSNodeTest2::SetUp() {}
 void RSNodeTest2::TearDown() {}
 
-#if defined(MODIFIER_NG)
 /**
  * @tc.name: SetUIBackgroundFilter
  * @tc.desc: test results of SetUIBackgroundFilter
@@ -136,22 +125,6 @@ HWTEST_F(RSNodeTest2, SetUIBackgroundFilter, TestSize.Level1)
     auto para3 = std::make_shared<EdgeLightPara>();
     filterObj->AddPara(para3);
     rsNode->SetUIBackgroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-}
-
-/**
- * @tc.name: SetBackgroundUIFilter
- * @tc.desc: test results of SetBackgroundUIFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest2, SetBackgroundUIFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto backgroundFilter = std::make_shared<RSUIFilter>();
-
-    rsNode->SetBackgroundUIFilter(backgroundFilter);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-    rsNode->SetBackgroundUIFilter(backgroundFilter);
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
 
@@ -247,32 +220,6 @@ HWTEST_F(RSNodeTest2, SetUIForegroundFilter, TestSize.Level1)
     filterObj->AddPara(para2);
     auto para3 = std::make_shared<EdgeLightPara>();
     filterObj->AddPara(para3);
-    rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-}
-
-/**
- * @tc.name: SetForegroundUIFilter
- * @tc.desc: test results of SetForegroundUIFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest2, SetForegroundUIFilter, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto rsUIFilter = std::make_shared<RSUIFilter>();
-    std::shared_ptr<RSUIFilter> nullUIFilter = nullptr;
-    rsNode->SetForegroundUIFilter(nullUIFilter);
-    rsNode->SetForegroundUIFilter(rsUIFilter);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
-
-    auto filterObj = std::make_unique<Filter>();
-    std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
-    para->SetRadius(FLOAT_DATA[1]);
-    filterObj->AddPara(para);
-    auto bz = std::make_shared<BezierWarpPara>();
-    filterObj->AddPara(bz);
-    rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     rsNode->SetUIForegroundFilter(filterObj.get());
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
@@ -616,35 +563,4 @@ HWTEST_F(RSNodeTest2, AttachProperty, TestSize.Level1)
     rsNode->AttachProperty(property4);
     EXPECT_EQ(property4->GetPropertyTypeNG(), ModifierNG::RSPropertyType::INVALID);
 }
-
-/**
- * @tc.name: DetachUIFilterProperties
- * @tc.desc: test results of DetachUIFilterProperties
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest2, DetachUIFilterProperties, TestSize.Level1)
-{
-    auto backgroundFilterModifier = std::make_shared<ModifierNG::RSBackgroundFilterModifier>();
-    auto rsUIFilter = std::make_shared<RSUIFilter>();
-    float radius = 1.0f;
-    auto filterBlurPara = std::make_shared<FilterBlurPara>();
-    filterBlurPara->SetRadius(radius);
-    auto rsUIBlurFilterPara = std::make_shared<RSUIBlurFilterPara>();
-    rsUIBlurFilterPara->SetBlurPara(filterBlurPara);
-    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIBlurFilterPara);
-    rsUIFilter->Insert(rsUIFilterParaBase);
-    backgroundFilterModifier->SetUIFilter(rsUIFilter);
-    auto rsNode = RSCanvasNode::Create();
-    auto property1 = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
-        backgroundFilterModifier->GetProperty(ModifierNG::RSPropertyType::BACKGROUND_UI_FILTER));
-    rsNode->DetachUIFilterProperties(backgroundFilterModifier);
-    EXPECT_TRUE(property1 == nullptr);
-
-    auto foregroundFilterModifier = std::make_shared<ModifierNG::RSForegroundFilterModifier>();
-    auto property2 = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
-        foregroundFilterModifier->GetProperty(ModifierNG::RSPropertyType::FOREGROUND_UI_FILTER));
-    rsNode->DetachUIFilterProperties(foregroundFilterModifier);
-    EXPECT_TRUE(property2 == nullptr);
-}
-#endif // MODIFIER_NG
 } // namespace OHOS::Rosen

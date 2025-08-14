@@ -33,6 +33,7 @@ void RSProfilerNetworkTest::SetUp()
 {
     Network::outgoing_ = {};
     Network::incoming_ = {};
+    Network::isRunning_ = true;
 }
 
 /*
@@ -88,6 +89,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendBinaryTest, testing::ext::T
 
     auto type = static_cast<char>(Packet::BINARY);
     std::vector<char> sendData { type, 11, 0, 0, 0, 0, 1, 2, 3, 4, 5 };
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 
@@ -104,6 +106,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendMessageTest, testing::ext::
     Network::SendMessage("hello");
     auto type = static_cast<char>(Packet::LOG);
     std::vector<char> sendData { type, 10, 0, 0, 0, 'h', 'e', 'l', 'l', 'o' };
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 
@@ -121,6 +124,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendRdcPathTest, testing::ext::
     auto type = static_cast<char>(Packet::BINARY);
     auto subtype = static_cast<char>(PackageID::RS_PROFILER_RDC_BINARY);
     std::vector<char> sendData { type, 10, 0, 0, 0, subtype, 'p', 'a', 't', 'h' };
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 
@@ -138,6 +142,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendDclPathTest, testing::ext::
     auto type = static_cast<char>(Packet::BINARY);
     auto subtype = static_cast<char>(PackageID::RS_PROFILER_DCL_BINARY);
     std::vector<char> sendData { type, 10, 0, 0, 0, subtype, 'p', 'a', 't', 'h' };
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 
@@ -158,6 +163,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendSkpTest, testing::ext::Test
     auto type = static_cast<char>(Packet::BINARY);
     auto subtype = static_cast<char>(PackageID::RS_PROFILER_SKP_BINARY);
     std::vector<char> sendData { type, 12, 0, 0, 0, subtype, 0, 1, 2, 3, 4, 5 };
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 
@@ -174,11 +180,13 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendPerfNodeListTest, testing::
     auto subtype = static_cast<char>(PackageID::RS_PROFILER_RSTREE_PERF_NODE_LIST);
     std::vector<char> sendData { type, 6, 0, 0, 0, subtype };
     Network::SendRSTreePerfNodeList(nodelist);
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 
     nodelist = { 1, 2 };
     sendData = { type, 22, 0, 0, 0, subtype, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 };
     Network::SendRSTreePerfNodeList(nodelist);
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 
@@ -194,6 +202,7 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkSendSingleNodePerfTest, testing
     auto subtype = static_cast<char>(PackageID::RS_PROFILER_RSTREE_SINGLE_NODE_PERF);
     std::vector<char> sendData { type, 22, 0, 0, 0, subtype, 10, 0, 0, 0, 0, 0, 0, 0, 80, 0, 0, 0, 0, 0, 0, 0 };
     Network::SendRSTreeSingleNodePerf(10, 80);
+    ASSERT_FALSE(Network::outgoing_.empty());
     EXPECT_EQ(Network::outgoing_.back(), sendData);
 }
 

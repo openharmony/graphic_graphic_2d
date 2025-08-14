@@ -47,9 +47,6 @@ RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContex
     }
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     Drawing::GPUResourceTag tag = gpuContext_->GetCurrentGpuResourceTag();
-    if (tag.fFid == 0) {
-        ROSEN_LOGE("RSTagTracker::RSTagTracker GpuResourceTag is Empty, sourceType is %{public}d", sourceType);
-    }
     tag.fSid = sourceType;
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif

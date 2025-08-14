@@ -43,14 +43,10 @@
 namespace OHOS::Rosen {
 
 const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
-    { "rstree_contains", DumpTree },
-    { "rstree_fix", PatchNode },
     { "rstree_kill_node", KillNode },
     { "rstree_setparent", AttachChild },
-    { "rstree_getroot", GetRoot },
     { "rstree_node_mod", DumpNodeModifiers },
     { "rstree_node_prop", DumpNodeProperties },
-    { "rstree_pid", DumpSurfaces },
     { "rstree_kill_pid", KillPid },
     { "rstree_prepare_replay", PlaybackPrepare },
     { "rstree_save_frame", TestSaveFrame },
@@ -75,6 +71,7 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rsrecord_pause_resume", PlaybackResume },
     { "rsrecord_pause_clear", PlaybackPauseClear },
     { "rsrecord_sendbinary", RecordSendBinary },
+    { "rsrecord_metrics", RecordMetrics },
     { "rssurface_pid", DumpNodeSurface },
     { "rscon_print", DumpConnections },
     { "save_rdc", SaveRdc },
@@ -86,7 +83,6 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "save_extended", SaveSkpExtended },
     { "info", GetDeviceInfo },
     { "freq", GetDeviceFrequency },
-    { "fixenv", FixDeviceEnv },
     { "set", SetSystemParameter },
     { "get", GetSystemParameter },
     { "params", DumpSystemParameters },
@@ -96,7 +92,6 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "socket_shutdown", SocketShutdown },
     { "version", Version },
     { "file_version", FileVersion },
-    { "reset", Reset },
     { "drawing_canvas", DumpDrawingCanvasNodes },
     { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
     { "keep_draw_cmd", RenderNodeKeepDrawCmd },
@@ -252,25 +247,10 @@ void RSProfiler::GetSystemParameter(const ArgList& args)
     Respond(parameter ? parameter->ToString() : "There is no such a system parameter");
 }
 
-void RSProfiler::Reset(const ArgList& args)
-{
-    const ArgList dummy;
-    RecordStop(dummy);
-    PlaybackStop(dummy);
-
-    Utils::FileDelete(RSFile::GetDefaultPath());
-
-    SendMessage("Reset");
-
-    RSSystemProperties::SetProfilerDisabled();
-    HRPI("Reset: persist.graphic.profiler.enabled 0");
-}
-
 void RSProfiler::DumpSystemParameters(const ArgList& args)
 {
     Respond(SystemParameter::Dump());
 }
-
 
 void RSProfiler::DumpNodeModifiers(const ArgList& args)
 {
@@ -353,13 +333,6 @@ void RSProfiler::GetDeviceFrequency(const ArgList& args)
     Respond(RSTelemetry::GetCpuAffinityString());
 }
 
-void RSProfiler::FixDeviceEnv(const ArgList& args)
-{
-    constexpr int32_t cpu = 8;
-    Utils::SetCpuAffinity(cpu);
-    Respond("OK");
-}
-
 void RSProfiler::PrintNodeCache(const ArgList& args)
 {
     NodeId nodeId = args.Uint64();
@@ -424,5 +397,18 @@ void RSProfiler::PlaybackResume(const ArgList& args)
     ResetAnimationStamp();
     Respond("OK");
 }
+
+std::string RSProfiler::RsMetricGetList()
+{
+    auto& customMetrics = GetCustomMetrics();
+    return customMetrics.GetList();
+}
+
+void RSProfiler::RecordMetrics(const ArgList& args)
+{
+    std::string response = RsMetricGetList();
+    Respond("METRICS: " + response);
+}
+
 
 } // namespace OHOS::Rosen

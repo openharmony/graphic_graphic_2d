@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
+constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 std::unique_ptr<RSIRenderClient> RSIRenderClient::CreateRenderThreadClient()
 {
     return std::make_unique<RSRenderThreadClient>();
@@ -45,7 +45,7 @@ void RSRenderThreadClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
         task->Process(renderThread.GetContext());
         cv->notify_all();
     });
-    cv->wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
+    cv->wait_for(lock, std::chrono::nanoseconds(std::min(task->GetTimeout(), MAX_TIME_OUT_NS)));
 }
 
 } // namespace Rosen

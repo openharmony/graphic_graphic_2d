@@ -76,6 +76,7 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
 {
     // read mainScreenRect only to reduce ipc data size
     if (!data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||

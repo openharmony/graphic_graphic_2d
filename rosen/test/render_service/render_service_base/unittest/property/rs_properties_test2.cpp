@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "property/rs_properties.h"
@@ -22,9 +23,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
-#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_edge_light_filter.h"
-#include "render/rs_render_sound_wave_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -551,30 +550,30 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     NodeId screenRenderNodeId = 2;
     ScreenId screenId = 0;
     auto context = std::make_shared<RSContext>();
-    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
 
-    properties.backref_ = displayRenderNode;
-    displayRenderNode->InsertHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(screenRenderNodeId), displayRenderNode->hdrNodeList_.end());
+    properties.backref_ = screenRenderNode;
+    screenRenderNode->InsertHDRNode(screenRenderNodeId);
+    EXPECT_NE(screenRenderNode->hdrNodeList_.find(screenRenderNodeId), screenRenderNode->hdrNodeList_.end());
     properties.SetHDRBrightnessFactor(0.5f);
 
     NodeId nodeId1 = 0;
     auto node1 = std::make_shared<RSRenderNode>(nodeId1);
     pid_t pid1 = ExtractPid(nodeId1);
     context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayRenderNode->InsertHDRNode(nodeId1);
+    screenRenderNode->InsertHDRNode(nodeId1);
     properties.SetHDRBrightnessFactor(0.6f);
 
     pid_t pid = ExtractPid(screenRenderNodeId);
-    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = displayRenderNode;
+    context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
     properties.SetHDRBrightnessFactor(0.8f);
 
     ScreenId screenId2 = 1;
     std::shared_ptr<RSContext> context2;
     auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, screenId2, context2);
     properties.backref_ = screenNode2;
-    displayRenderNode->InsertHDRNode(3);
-    EXPECT_NE(displayRenderNode->hdrNodeList_.find(3), displayRenderNode->hdrNodeList_.end());
+    screenRenderNode->InsertHDRNode(3);
+    EXPECT_NE(screenRenderNode->hdrNodeList_.find(3), screenRenderNode->hdrNodeList_.end());
     properties.SetHDRBrightnessFactor(0.9f);
 }
 
@@ -1168,270 +1167,6 @@ HWTEST_F(PropertiesTest, TransformFactor, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateRenderFilter_001
- * @tc.desc: test GenerateRenderFilter
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, GenerateRenderFilter_001, TestSize.Level1)
-{
-    RSProperties properties;
-    auto renderFilter = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BLUR);
-    renderFilter->Insert(RSUIFilterType::BLUR, renderFilterBase);
-    properties.backgroundRenderFilter_ = renderFilter;
-    properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto renderFilter1 = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase1 = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
-    renderFilter1->Insert(RSUIFilterType::COLOR_GRADIENT, renderFilterBase1);
-    properties.backgroundRenderFilter_ = renderFilter1;
-    properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto renderFilter2 = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase2 = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
-    properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    properties.backgroundRenderFilter_ = renderFilter2;
-    properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    renderFilter2->Insert(RSUIFilterType::SOUND_WAVE, renderFilterBase2);
-    properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-}
-
-/**
- * @tc.name: GenerateRenderFilterColorGradient_001
- * @tc.desc: test GenerateRenderFilterColorGradient
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, GenerateRenderFilterColorGradient_001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.GenerateRenderFilterColorGradient();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto renderFilter1 = std::make_shared<RSRenderFilter>();
-    properties.backgroundRenderFilter_ = renderFilter1;
-    properties.GenerateRenderFilterColorGradient();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    std::vector<float> colors = { 1.0f, 0.0f, 0.0f, 1.0f };
-    std::vector<float> positions = { 1.0f, 1.0f }; // 1.0, 1.0 is position xy params
-    std::vector<float> strengths = { 0.5f };       // 0.5 is strength params
-    auto filter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
-    renderFilter1->Insert(RSUIFilterType::COLOR_GRADIENT, filter);
-
-    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(colors, 0);
-    filter->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, colorsProperty);
-
-    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(positions, 0);
-    filter->Setter(RSUIFilterType::COLOR_GRADIENT_POSITION, positionsProperty);
-    properties.GenerateRenderFilterColorGradient();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(strengths, 0);
-    filter->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strengthsProperty);
-    properties.GenerateRenderFilterColorGradient();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-
-    properties.GenerateRenderFilterColorGradient();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-}
-
-/**
- * @tc.name: GenerateRenderFilterEdgeLight_001
- * @tc.desc: test GenerateRenderFilterEdgeLight
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.GenerateRenderFilterEdgeLight();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto renderFilter = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BLUR);
-    renderFilter->Insert(RSUIFilterType::BLUR, renderFilterBase);
-    properties.backgroundRenderFilter_ = renderFilter;
-    properties.GenerateRenderFilterEdgeLight();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    renderFilter = std::make_shared<RSRenderFilter>();
-    renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
-    renderFilter->Insert(RSUIFilterType::EDGE_LIGHT, renderFilterBase);
-    properties.backgroundRenderFilter_ = renderFilter;
-    properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto renderFilterEdgeLight = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(renderFilterBase);
-
-    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
-    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
-    auto renderBloom = std::make_shared<RSRenderProperty<bool>>(true, 0);
-    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_BLOOM, renderBloom);
-    properties.GenerateRenderFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-    properties.backgroundFilter_ = nullptr;
-
-    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0);
-    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
-    properties.GenerateRenderFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-
-    properties.GenerateRenderFilter(); // different branch if call again
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-}
-
-/**
- * @tc.name: GenerateSoundWaveFilter_001
- * @tc.desc: test GenerateSoundWaveFilter
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, GenerateSoundWaveFilter_001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-
-    auto renderFilter = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
-    properties.backgroundRenderFilter_ = renderFilter;
-    auto waveColorA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_A);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_A] = waveColorA;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto waveColorB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_B);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_B] = waveColorB;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto waveColorC = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_C);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_C] = waveColorC;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto waveColorProgress =
-        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS] = waveColorProgress;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto soundIntensity = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_INTENSITY);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_INTENSITY] = soundIntensity;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto shockWaveAlphaA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_A);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_A] = shockWaveAlphaA;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto shockWaveAlphaB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_B);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_B] = shockWaveAlphaB;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto shockWaveProgressA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_A);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_A] = shockWaveProgressA;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto shockWaveProgressB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_B);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_B] = shockWaveProgressB;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    auto shockWaveTotalAlpha =
-        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA] = shockWaveTotalAlpha;
-    properties.GenerateSoundWaveFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
-}
-
-/**
- * @tc.name: GenerateSoundWaveFilter_002
- * @tc.desc: test GenerateSoundWaveFilter
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, GenerateSoundWaveFilter_002, TestSize.Level1)
-{
-    RSProperties properties;
-    auto renderFilter = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
-    properties.backgroundRenderFilter_ = renderFilter;
-    auto waveColorA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_A);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_A] = waveColorA;
-    auto waveColorB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_B);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_B] = waveColorB;
-    auto waveColorC = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_C);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_C] = waveColorC;
-    auto waveColorProgress =
-        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS] = waveColorProgress;
-    auto soundIntensity = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_INTENSITY);
-    renderFilterBase->properties_[RSUIFilterType::SOUND_INTENSITY] = soundIntensity;
-    auto shockWaveAlphaA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_A);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_A] = shockWaveAlphaA;
-    auto shockWaveAlphaB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_B);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_B] = shockWaveAlphaB;
-    auto shockWaveProgressA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_A);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_A] = shockWaveProgressA;
-    auto shockWaveProgressB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_B);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_B] = shockWaveProgressB;
-    auto shockWaveTotalAlpha =
-        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA);
-    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA] = shockWaveTotalAlpha;
-
-    renderFilter->Insert(RSUIFilterType::SOUND_WAVE, renderFilterBase);
-    properties.GenerateSoundWaveFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-    properties.GenerateSoundWaveFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-}
-
-/**
- * @tc.name: GenerateBezierWarpFilter_001
- * @tc.desc: test GenerateBezierWarpFilter
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.GenerateBezierWarpFilter();
-    EXPECT_EQ(properties.foregroundFilter_, nullptr);
-
-    auto renderFilter = std::make_shared<RSRenderFilter>();
-    properties.foregroundRenderFilter_ = renderFilter;
-    renderFilter->Insert(RSUIFilterType::BEZIER_WARP, nullptr);
-    properties.GenerateBezierWarpFilter();
-    EXPECT_EQ(properties.foregroundFilter_, nullptr);
-
-    auto rsBezierWarpFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BEZIER_WARP);
-    std::array<RSUIFilterType, BEZIER_WARP_POINT_NUM> ctrlPointsType = {
-        RSUIFilterType::BEZIER_CONTROL_POINT0,
-        RSUIFilterType::BEZIER_CONTROL_POINT1,
-        RSUIFilterType::BEZIER_CONTROL_POINT2,
-        RSUIFilterType::BEZIER_CONTROL_POINT3,
-        RSUIFilterType::BEZIER_CONTROL_POINT4,
-        RSUIFilterType::BEZIER_CONTROL_POINT5,
-        RSUIFilterType::BEZIER_CONTROL_POINT6,
-        RSUIFilterType::BEZIER_CONTROL_POINT7,
-        RSUIFilterType::BEZIER_CONTROL_POINT8,
-        RSUIFilterType::BEZIER_CONTROL_POINT9,
-        RSUIFilterType::BEZIER_CONTROL_POINT10,
-    };
-    for (int i = 0; i < BEZIER_WARP_POINT_NUM; i++) {
-        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
-        rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
-    }
-    renderFilter->Insert(RSUIFilterType::BEZIER_WARP, rsBezierWarpFilter);
-    properties.GenerateBezierWarpFilter();
-    EXPECT_EQ(properties.foregroundFilter_, nullptr);
-
-    auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
-    rsBezierWarpFilter->Setter(RSUIFilterType::BEZIER_CONTROL_POINT11, renderProperty);
-    properties.GenerateBezierWarpFilter();
-    EXPECT_NE(properties.foregroundFilter_, nullptr);
-
-    properties.GenerateBezierWarpFilter();
-    EXPECT_NE(properties.foregroundFilter_, nullptr);
-}
-
-/**
  * @tc.name: SetShadowColorTest
  * @tc.desc: test SetShadowColor with shadow mask
  * @tc.type: FUNC
@@ -1502,21 +1237,6 @@ HWTEST_F(PropertiesTest,  GenerateAlwaysSnapshotFilterTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetEnableHDREffect Test
- * @tc.desc: test SetEnableHDREffect Get, Set and UpdateFilter
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest, SetEnableHDREffectTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.SetEnableHDREffect(true);
-    properties.SetEnableHDREffect(true); // different branch if call again
-    EXPECT_EQ(properties.GetEnableHDREffect(), true);
-    properties.UpdateFilter();
-    EXPECT_FALSE(properties.needFilter_);
-}
-
-/**
  * @tc.name: ShadowBlenderTest
  * @tc.desc: test ShadowBlender SetParams, GetParams, Invalid and Description.
  * @tc.type: FUNC
@@ -1545,5 +1265,6 @@ HWTEST_F(PropertiesTest, ShadowBlenderTest, TestSize.Level1)
         ", constant: " + std::to_string(constant);
     EXPECT_EQ(description, properties.GetShadowBlenderDescription());
 }
+
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -69,14 +70,19 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
         symbolInfo.symbolGlyphId = symbolInfoOrign.symbolGlyphId;
     }
 
-    if (symbolText.GetSymbolColor().colorType == SymbolColorType::GRADIENT_TYPE) {
-        SetGradientColor(renderMode, symbolInfo);
-    }
-
-    bool isNeed = symbolText.GetSymbolColor().colorType == SymbolColorType::COLOR_TYPE ||
-        gradients_.empty();
-    if (isNeed) {
-        SetRenderColor(renderMode, symbolInfo);
+    switch (symbolText.GetSymbolColor().colorType) {
+        case SymbolColorType::GRADIENT_DEFAULT_COLOR:
+            SetGradientOrDefinedColor(symbolInfo);
+            break;
+        case SymbolColorType::GRADIENT_TYPE:
+            SetGradientColor(renderMode, symbolInfo);
+            if (gradients_.empty()) {
+                SetRenderColor(renderMode, symbolInfo);
+            }
+            break;
+        default:
+            SetRenderColor(renderMode, symbolInfo);
+            break;
     }
     return symbolInfo;
 }
@@ -130,7 +136,30 @@ void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, 
             gradients.push_back(gradient);
         }
     }
-    gradients_ = gradients;
+    gradients_ = std::move(gradients);
+}
+
+void HMSymbolRun::SetGradientOrDefinedColor(const RSSymbolLayers& symbolInfo)
+{
+    auto symbolColor = symbolTxt_.GetSymbolColor();
+    const size_t n = symbolColor.gradients.size();
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    for (size_t i = 0; i < symbolInfo.renderGroups.size(); i++) {
+        if (i < n && symbolColor.gradients[i]) {
+            gradients.push_back(symbolColor.gradients[i]);
+        } else {
+            auto gradient = std::make_shared<SymbolGradient>();
+            Drawing::Color color;
+            const auto& group = symbolInfo.renderGroups[i];
+            color.SetRgb(group.color.r, group.color.g, group.color.b);
+            color.SetAlphaF(group.color.a);
+            std::vector<Drawing::ColorQuad> colorQuads;
+            colorQuads.push_back(color.CastToColorQuad());
+            gradient->SetColors(colorQuads);
+            gradients.push_back(gradient);
+        }
+    }
+    gradients_ = std::move(gradients);
 }
 
 void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
@@ -193,6 +222,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
 
 void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
+    TEXT_TRACE_FUNC();
     if (!textBlob_) {
         TEXT_LOGD("Null text blob");
         return;
@@ -265,6 +295,7 @@ void HMSymbolRun::SetAnimationMode(uint16_t animationMode)
 void HMSymbolRun::SetAnimationStart(bool animationStart)
 {
     symbolTxt_.SetAnimationStart(animationStart);
+    currentAnimationHasPlayed_ = false;
 }
 
 void HMSymbolRun::SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
@@ -363,6 +394,7 @@ void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPat
 
 void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate)
 {
+    TEXT_TRACE_FUNC();
     RSPath path(symbolData.path_);
 
     // 1.0 move path
@@ -434,6 +466,7 @@ void HMSymbolRun::DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& 
 
 bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset)
 {
+    TEXT_TRACE_FUNC();
     RSEffectStrategy effectMode = symbolTxt_.GetEffectStrategy();
     uint16_t animationMode = symbolTxt_.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {

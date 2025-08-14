@@ -161,6 +161,7 @@ public:
     void OnSync() override;
     void RemovePixelStretch();
     bool FuzePixelStretch(const RSRenderNode& node);
+
 private:
     static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
     template<typename T>

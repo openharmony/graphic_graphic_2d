@@ -140,7 +140,7 @@ std::shared_ptr<ShaderEffectLazy> ShaderEffectLazy::Unmarshalling(Parcel& parcel
         return nullptr;
     }
 
-    // Create ShaderEffectLazy to wrap ExtendObject
+    // Create ShaderEffectLazy to wrap DrawingObject
     auto shaderEffectObj = std::static_pointer_cast<ShaderEffectObj>(obj);
     auto lazyShader = CreateFromShaderEffectObj(shaderEffectObj);
     if (!lazyShader) {

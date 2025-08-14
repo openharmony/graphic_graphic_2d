@@ -114,6 +114,7 @@ public:
     virtual int32_t ClearLayerBuffer(uint32_t screenId, uint32_t layerId) = 0;
     virtual int32_t ClearClientBuffer(uint32_t screenId) = 0;
     virtual void Destroy() = 0;
+    virtual int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) = 0;
 
 private:
     HdiDevice(const HdiDevice& rhs) = delete;

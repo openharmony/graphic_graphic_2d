@@ -28,6 +28,7 @@
 #include "GLES/gl.h"
 #include "GLES/glext.h"
 #include "GLES3/gl32.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -73,8 +74,8 @@ public:
 
     void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
-        RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
+        RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
+        const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
     std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;

@@ -183,6 +183,8 @@ private:
     RSUIContext& operator=(const RSUIContext&) = delete;
     RSUIContext& operator=(const RSUIContext&&) = delete;
 
+    void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
+
     uint64_t token_;
 
     RSNodeMapV2 nodeMap_;
@@ -199,6 +201,7 @@ private:
     std::mutex implicitAnimatorMutex_;
 
     friend class RSUIContextManager;
+    friend class RSUIDirector;
 };
 
 } // namespace Rosen

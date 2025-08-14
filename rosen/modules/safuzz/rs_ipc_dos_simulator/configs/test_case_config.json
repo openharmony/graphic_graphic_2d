@@ -2330,5 +2330,26 @@
     "inputParams": "",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_SCREEN_HDR_STATUS_TEST_001",
+    "interfaceName": "GET_SCREEN_HDR_STATUS",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS_TEST_001",
+    "interfaceName": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS",
+    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "FREEZE_SCREEN_TEST_001",
+    "interfaceName": "FREEZE_SCREEN",
+    "inputParams": "WriteUint64;WriteBool;",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
   }
 ]

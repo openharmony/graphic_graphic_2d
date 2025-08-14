@@ -152,7 +152,7 @@ void DoCreateVirtualScreen()
         NodeId nodeId = GetData<NodeId>();
         whiteList.push_back(nodeId);
     }
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+
     dataParcel.WriteString("name");
     dataParcel.WriteUint32(width);
     dataParcel.WriteUint32(height);
@@ -459,14 +459,14 @@ void DoSetVirtualScreenTypeBlackList()
     if (!dataP.WriteUInt8Vector(typeBlackListVector)) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
     connectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();

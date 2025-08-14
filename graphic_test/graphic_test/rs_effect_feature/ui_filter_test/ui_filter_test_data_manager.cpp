@@ -15,6 +15,9 @@
 
 #include "ui_filter_test_data_manager.h"
 
+#include "draw/surface.h"
+#include "image/bitmap.h"
+
 namespace OHOS {
 namespace Rosen {
 

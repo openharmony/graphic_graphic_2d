@@ -72,8 +72,8 @@ public:
             isGeometryInitialized_ = true;
             properties.SetBounds({0, 0, info.width, info.height});
             properties.SetFrame({0, 0, info.width, info.height});
-            screenInfo_ = std::move(info);
         }
+        screenInfo_ = std::move(info);
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -89,21 +89,6 @@ public:
     RectI GetScreenRect() const
     {
         return screenRect_;
-    }
-
-    void SetBootAnimation(bool isBootAnimation) override
-    {
-        ROSEN_LOGD("SetBootAnimation:: id:[%{public}" PRIu64 ", isBootAnimation:%{public}d",
-            GetId(), isBootAnimation);
-        isBootAnimation_ = isBootAnimation;
-
-        auto parent = GetParent().lock();
-        if (parent == nullptr) {
-            return;
-        }
-        if (isBootAnimation) {
-            parent->SetContainBootAnimation(true);
-        }
     }
 
     static void SetReleaseTask(ReleaseDmaBufferTask callback);
@@ -157,7 +142,10 @@ public:
         return RSRenderNodeType::SCREEN_NODE;
     }
 
-    bool IsMirrorScreen() const;
+    bool IsMirrorScreen() const
+    {
+        return isMirroredScreen_;
+    }
 
     inline bool HasMirroredScreenChanged() const noexcept
     {
@@ -169,10 +157,19 @@ public:
         hasMirroredScreenChanged_ = false;
     }
 
-    void SetCompositeType(CompositeType type);
-    CompositeType GetCompositeType() const;
+    void SetCompositeType(CompositeType type)
+    {
+        compositeType_ = type;
+    }
+    CompositeType GetCompositeType() const
+    {
+        return compositeType_;
+    }
     void SetForceSoftComposite(bool flag);
-    bool IsForceSoftComposite() const;
+    bool IsForceSoftComposite() const
+    {
+        return forceSoftComposite_;
+    }
     void SetMirrorSource(SharedPtr node);
     void ResetMirrorSource();
     void SetIsMirrorScreen(bool isMirror);
@@ -254,9 +251,10 @@ public:
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams();
-    Occlusion::Region GetTopSurfaceOpaqueRegion() const;
-    void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
-    void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
+    void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
+    {
+        curMainAndLeashSurfaceNodes_.push_back(surface);
+    }
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
 
     std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
@@ -291,7 +289,7 @@ public:
 
     bool GetHasUniRenderHdrSurface() const
     {
-        return hasUniRenderHdrSurface_;
+        return hasUniRenderHdrSurface_ && !GetForceCloseHdr();
     }
 
     void SetIsLuminanceStatusChange(bool isLuminanceStatusChange)
@@ -324,30 +322,31 @@ public:
         return pixelFormat_;
     }
 
-    void SetEnabledHDRCast(bool isEnabledHDRCast)
+    bool GetFirstFrameVirtualScreenInit() const
     {
-        isEnabledHDRCast_ = isEnabledHDRCast;
+        return isFirstFrameVirtualScreenInit_;
     }
 
-    bool GetEnabledHDRCast() const
+    void SetFirstFrameVirtualScreenInit(bool isFirstFrameVirtualScreenInit)
     {
-        return isEnabledHDRCast_;
+        isFirstFrameVirtualScreenInit_ = isFirstFrameVirtualScreenInit;
     }
 
-    bool IsFirstFrameOfInit() const
-    {
-        return isFirstFrameOfInit_;
-    }
+    void SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit);
 
-    void SetFirstFrameOfInit(bool isFirstFrameOfInit)
-    {
-        isFirstFrameOfInit_ = isFirstFrameOfInit;
-    }
+    bool GetFixVirtualBuffer10Bit() const;
+
+    void SetExistHWCNode(bool existHWCNode);
+
+    bool GetExistHWCNode() const;
 
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     void UpdateColorSpace(const GraphicColorGamut& newColorSpace);
     void SelectBestGamut(const std::vector<ScreenColorGamut>& mode);
-    GraphicColorGamut GetColorSpace() const;
+    GraphicColorGamut GetColorSpace() const
+    {
+        return colorSpace_;
+    }
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
@@ -430,7 +429,10 @@ public:
         curZoomState_ = state;
     }
 
-    bool IsZoomStateChange() const;
+    bool IsZoomStateChange() const
+    {
+        return preZoomState_ != curZoomState_;
+    }
     void HandleCurMainAndLeashSurfaceNodes();
 
     void CollectHdrStatus(HdrStatus hdrStatus)
@@ -445,7 +447,13 @@ public:
 
     HdrStatus GetDisplayHdrStatus() const
     {
+        lastDisplayTotalHdrStatus_ = displayTotalHdrStatus_;
         return displayTotalHdrStatus_;
+    }
+
+    HdrStatus GetLastDisplayHDRStatus() const
+    {
+        return lastDisplayTotalHdrStatus_;
     }
 
     void InsertHDRNode(NodeId id)
@@ -503,6 +511,9 @@ public:
     // Enable HWCompose
     RSHwcDisplayRecorder& HwcDisplayRecorder() { return hwcDisplayRecorder_; }
 
+    void SetForceFreeze(bool forceFreeze);
+    bool GetForceFreeze() const;
+
 protected:
     void OnSync() override;
 private:
@@ -515,12 +526,15 @@ private:
     bool hasMirroredScreenChanged_ = false;
     bool isSecurityDisplay_ = false;
     bool isForceCloseHdr_ = false;
-    bool isFirstFrameOfInit_ = true;
-    bool isEnabledHDRCast_ = false;
+    bool isFirstFrameVirtualScreenInit_ = true;
+    bool isFixVirtualBuffer10Bit_ = false;
+    bool existHWCNode_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
     bool isGeometryInitialized_ = false;
+
+    bool forceFreeze_ = false;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
@@ -531,6 +545,7 @@ private:
     int32_t currentScbPid_ = -1;
     int32_t lastScbPid_ = -1;
     HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
+    mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
     RectI screenRect_;
     // save children hdr canvasNode id
@@ -552,7 +567,6 @@ private:
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
-    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::vector<std::string> windowsName_;

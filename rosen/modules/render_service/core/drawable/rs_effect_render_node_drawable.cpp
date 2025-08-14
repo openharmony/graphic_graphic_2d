@@ -17,6 +17,9 @@
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
 
 namespace OHOS::Rosen::DrawableV2 {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
@@ -64,8 +67,16 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+    if (paintFilterCanvas->IsQuickGetDrawState()) {
+        RSParallelManager::Singleton().OnQuickDraw(this, canvas, false);
+        return;
+    }
+#endif
+
     const Drawing::Rect& bounds = effectParams->GetFrameRect();
-    
+
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
@@ -94,7 +105,7 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         return false;
     } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 ||
         !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
-        !effectParams->GetHasEffectChildren()) {
+        (!effectParams->GetHasEffectChildren() && !canvas.GetUICapture())) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

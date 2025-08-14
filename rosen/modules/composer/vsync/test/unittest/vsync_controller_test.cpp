@@ -196,6 +196,24 @@ HWTEST_F(VSyncControllerTest, ResetOffset, Function | MediumTest | Level2)
     ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_,
         VSyncControllerTest::vsyncController_->normalPhaseOffset_);
 }
+
+/*
+* Function: ResetOffset
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call ResetOffset
+ */
+HWTEST_F(VSyncControllerTest, ResetOffset002, Function | MediumTest | Level2)
+{
+    VSyncControllerTest::vsyncController_->phaseOffset_ = 10;
+    VSyncControllerTest::vsyncController_->normalPhaseOffset_ = 20;
+    VSyncControllerTest::vsyncController_->ResetOffset();
+    VSyncControllerTest::vsyncController_->generator_ = nullptr;
+    VSyncControllerTest::vsyncController_->ResetOffset();
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->phaseOffset_,
+        VSyncControllerTest::vsyncController_->normalPhaseOffset_);
+}
  
 /*
 * Function: NeedPreexecuteAndUpdateTs

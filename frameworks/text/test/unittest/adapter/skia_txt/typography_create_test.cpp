@@ -65,7 +65,6 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest002, Te
     typographyCreate->AppendPlaceholder(placeholderSpan);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     EXPECT_EQ(typography != nullptr, true);
-    typographyCreate->AppendSymbol(0);
 }
 
 /*
@@ -107,6 +106,29 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest004, Te
 
     std::unique_ptr<OHOS::Rosen::LineTypography> graphy = typographyCreate->CreateLineTypography();
     EXPECT_EQ(graphy, nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyCreateTest005
+ * @tc.desc: test for invalid symbolId
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    ASSERT_NE(fontCollection, nullptr);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle txtStyle;
+    typographyCreate->PushStyle(txtStyle);
+    typographyCreate->AppendSymbol(0);
+
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(100); // 100.0 for unit test
+    EXPECT_LT(typography->GetActualWidth(), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

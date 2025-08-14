@@ -45,6 +45,11 @@ class RSContext;
 class RSDirtyRegionManager;
 class RSDrawWindowCache;
 class RSRenderNodeGC;
+#ifdef SUBTREE_PARALLEL_ENABLE
+class RSParallelRBPolicy;
+struct RSSubtreeDrawElement;
+#endif
+
 namespace Drawing {
 class Canvas;
 }
@@ -53,14 +58,23 @@ class RSUseEffectRenderModifier;
 }
 
 struct DrawCmdIndex {
+    int8_t transitionIndex_            = -1;
     int8_t envForeGroundColorIndex_    = -1;
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
+    int8_t bgSaveBoundsIndex_          = -1;
+    int8_t clipToBoundsIndex_          = -1;
     int8_t backgroundColorIndex_       = -1;
     int8_t backgroundImageIndex_       = -1;
     int8_t backgroundFilterIndex_      = -1;
     int8_t useEffectIndex_             = -1;
+    int8_t backgroudStyleIndex_        = -1;
+    int8_t envForegroundColorStrategyIndex_ = -1;
+    int8_t bgRestoreBoundsIndex_       = -1;
+    int8_t frameOffsetIndex_           = -1;
+    int8_t clipToFrameIndex_           = -1;
+    int8_t customClipToFrameIndex_     = -1;
     int8_t backgroundEndIndex_         = -1;
     int8_t childrenIndex_              = -1;
     int8_t contentIndex_               = -1;
@@ -113,6 +127,7 @@ enum class DrawSkipType : uint8_t {
     NO_DISPLAY_NODE = 33,
     HARDWARE_HDR_CACHE_SKIP = 34,
     SCREEN_STATE_INVALID = 35,
+    SCREEN_FREEZE = 36,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -133,6 +148,9 @@ public:
     virtual void Draw(Drawing::Canvas& canvas) = 0;
     virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+    void DrawQuickImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+#endif
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
     static std::vector<RSRenderNodeDrawableAdapter::SharedPtr> GetDrawableVectorById(
@@ -140,6 +158,11 @@ public:
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
+    static void ClearResource();
+    using DrawableVec = std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>>;
+    static void AddToClearDrawables(DrawableVec &vec);
+    using CmdListVec = std::vector<std::shared_ptr<Drawing::DrawCmdList>>;
+    static void AddToClearCmdList(CmdListVec &vec);
     inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
         return renderParams_;
@@ -180,11 +203,11 @@ public:
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
 
-    bool IsFilterCacheValidForOcclusion() const;
-    const RectI GetFilterCachedRegion() const;
-
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
     void SetChildInBlackList(bool hasChildInBlackList);
+
+    bool IsFilterCacheValidForOcclusion() const;
+    const RectI GetFilterCachedRegion() const;
 
     size_t GetFilterNodeSize() const
     {
@@ -229,12 +252,6 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
-    virtual void Purge()
-    {
-        if (purgeFunc_) {
-            purgeFunc_();
-        }
-    }
 
     virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
 
@@ -244,11 +261,18 @@ public:
     }
 
     void SetDrawSkipType(DrawSkipType type) {
-        drawSkipType_ = type;
+        drawSkipType_.store(type);
     }
 
     DrawSkipType GetDrawSkipType() {
-        return drawSkipType_;
+        return drawSkipType_.load();
+    }
+
+    virtual void Purge()
+    {
+        if (purgeFunc_) {
+            purgeFunc_();
+        }
     }
 
     inline bool DrawableTryLockForDraw()
@@ -354,9 +378,11 @@ private:
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
+    static DrawableVec toClearDrawableVec_;
+    static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
-    DrawSkipType drawSkipType_ = DrawSkipType::NONE;
+    std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
@@ -371,6 +397,10 @@ private:
     friend class OHOS::Rosen::RSDrawWindowCache;
     friend class ModifierNG::RSUseEffectRenderModifier;
     friend class OHOS::Rosen::RSRenderNodeGC;
+#ifdef SUBTREE_PARALLEL_ENABLE
+    friend class OHOS::Rosen::RSParallelRBPolicy;
+    friend struct OHOS::Rosen::RSSubtreeDrawElement;
+#endif
 };
 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.

@@ -33,9 +33,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
+class RSTransactionHandler;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 class RSB_EXPORT RSTransactionProxy final {
 public:
     static RSB_EXPORT RSTransactionProxy* GetInstance();
@@ -46,7 +48,8 @@ public:
                     FollowType followType = FollowType::NONE, NodeId nodeId = 0);
     void AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType = FollowType::FOLLOW_TO_PARENT);
 
-    void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
+    void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "",
+        bool dvsyncTimeUpdate = false, uint64_t dvsyncTime = 0);
     void FlushImplicitTransactionFromRT(uint64_t timestamp);
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);

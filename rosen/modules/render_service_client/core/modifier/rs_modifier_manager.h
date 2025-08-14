@@ -41,19 +41,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderAnimation;
-#if defined(MODIFIER_NG)
 namespace ModifierNG {
 class RSModifier;
 }
-#else
-class RSModifier;
-#endif
 
-#if defined(MODIFIER_NG)
 using Modifier = ModifierNG::RSModifier;
-#else
-using Modifier = RSModifier;
-#endif
 
 /**
  * @class RSModifierManager

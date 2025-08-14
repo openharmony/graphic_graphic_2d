@@ -73,6 +73,10 @@ std::vector<uint16_t> TypographyCreate::SymbolToUTF16(const std::vector<uint32_t
 void TypographyCreate::AppendSymbol(const uint32_t& symbolId)
 {
     TEXT_TRACE_FUNC();
+    // 0xFFFF is the max value of uint16_t
+    if (symbolId <= 0xFFFF) {
+        return;
+    }
     std::vector<uint32_t> symbolUnicode = {symbolId};
     std::vector<uint16_t> symbolUnicode16 = SymbolToUTF16(symbolUnicode);
     std::u16string text;

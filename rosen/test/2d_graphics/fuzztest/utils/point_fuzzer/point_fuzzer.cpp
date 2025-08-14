@@ -41,11 +41,6 @@ namespace Drawing {
  */
 void PointFuzzTest000(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar x = GetObject<scalar>();
     scalar y = GetObject<scalar>();
     scalar scale = GetObject<scalar>();
@@ -81,10 +76,6 @@ void PointFuzzTest000(const uint8_t* data, size_t size)
  */
 void PointFuzzTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar x = GetObject<scalar>();
     scalar y = GetObject<scalar>();
     scalar scale = GetObject<scalar>();
@@ -118,10 +109,6 @@ void PointFuzzTest001(const uint8_t* data, size_t size)
  */
 void PointFuzzTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int x = GetObject<int>();
     int y = GetObject<int>();
     scalar scale = GetObject<scalar>();
@@ -154,10 +141,6 @@ void PointFuzzTest002(const uint8_t* data, size_t size)
  */
 void PointFuzzTest003(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int x = GetObject<int>();
     int y = GetObject<int>();
     scalar scale = GetObject<scalar>();
@@ -183,6 +166,11 @@ void PointFuzzTest003(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::PointFuzzTest000(data, size);
     OHOS::Rosen::Drawing::PointFuzzTest001(data, size);

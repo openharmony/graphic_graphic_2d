@@ -19,11 +19,11 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_aibar_filter.h"
-#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_render_light_blur_filter.h"
+#include "render/rs_render_water_ripple_filter.h"
 #include "ge_visual_effect_container.h"
 using namespace testing;
 using namespace testing::ext;
@@ -270,29 +270,6 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Compose001
- * @tc.desc: test results of Compose
- * @tc.type: FUNC
- * @tc.require: issuesI9PH4G
- */
-HWTEST_F(RSDrawingFilterTest, Compose001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
-    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
-    shaderFilters.push_back(filterPtr);
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
-    std::shared_ptr<RSDrawingFilter> other = nullptr;
-    drawingFilter.Compose(other);
-    EXPECT_TRUE(imageFilter != nullptr);
-
-    other = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
-    drawingFilter.Compose(other);
-    EXPECT_TRUE(other != nullptr);
-}
-
-/**
  * @tc.name: Compose002
  * @tc.desc: test results of Compose
  * @tc.type: FUNC
@@ -472,6 +449,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     auto image = std::make_shared<Drawing::Image>();
     Drawing::Rect src;
     Drawing::Rect dst;
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
 
@@ -479,6 +457,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     EXPECT_TRUE(image != nullptr);
 
     filterPtr->type_ = RSUIFilterType::NONE;
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
 
@@ -488,6 +467,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(0, RSColor());
     colorShaderFilter->maskColor_.SetAlpha(102);
     drawingFilter.InsertShaderFilter(colorShaderFilter);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 
@@ -719,21 +699,28 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
     int radius0 = 0;
     auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
 
+    float progress = 0.1f;
+    uint32_t waveCount = 2;
+    float rippleCenterX = 0.3f;
+    float rippleCenterY = 0.5f;
+    uint32_t rippleMode = 1;
+
     /* go to hps 1.0 kawase ApplyColorFilter branch */
     auto visualEffectContainer1 = std::make_shared<Drawing::GEVisualEffectContainer>();
     auto kawaseShaderFilter2 = std::make_shared<RSKawaseBlurShaderFilter>(radius0);
     RSDrawingFilter drawingFilter2(kawaseShaderFilter2);
     kawaseShaderFilter2->GenerateGEVisualEffect(visualEffectContainer1);
-    auto rsRenderBezierWarpFilterPara = std::make_shared<RSRenderBezierWarpFilterPara>(0);
-    drawingFilter2.InsertShaderFilter(rsRenderBezierWarpFilterPara);
-    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer1);
+    auto waterRippleFilter = std::make_shared<RSWaterRippleShaderFilter>(
+        progress, waveCount, rippleCenterX, rippleCenterY, rippleMode);
+    drawingFilter2.InsertShaderFilter(waterRippleFilter);
+    waterRippleFilter->GenerateGEVisualEffect(visualEffectContainer1);
     drawingFilter2.ApplyImageEffect(canvas, image, visualEffectContainer1, attr);
 
     /* go to hps 1.0 kawase branch */
     auto visualEffectContainer3 = std::make_shared<Drawing::GEVisualEffectContainer>();
     RSDrawingFilter drawingFilter3(kawaseShaderFilter);
-    drawingFilter3.InsertShaderFilter(rsRenderBezierWarpFilterPara);
-    rsRenderBezierWarpFilterPara->GenerateGEVisualEffect(visualEffectContainer3);
+    drawingFilter3.InsertShaderFilter(waterRippleFilter);
+    waterRippleFilter->GenerateGEVisualEffect(visualEffectContainer3);
     drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
     /* go to ge kawase branch */
     drawingFilter3.SetFilterType(RSFilter::WATER_RIPPLE);
@@ -800,5 +787,38 @@ HWTEST_F(RSDrawingFilterTest, DrawKawaseEffect, TestSize.Level1)
     drawingFilter.DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
 
     EXPECT_FALSE(kawaseShaderFilter == nullptr);
+}
+
+/**
+ * @tc.name: SetGeometryTest001
+ * @tc.desc: test results of SetGeometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, SetGeometryTest001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(filter);
+    drawingFilter.SetGeometry(canvas, 0, 0);
+    EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
+    drawingFilter.SetGeometry(canvas, 0, 0);
+    EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisplayHeadroom001
+ * @tc.desc: test results of SetDisplayHeadroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, SetDisplayHeadroom001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(filter);
+    drawingFilter.SetDisplayHeadroom(2.0f);
+    EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
+    drawingFilter.SetDisplayHeadroom(2.0f);
+    EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
 }
 } // namespace OHOS::Rosen

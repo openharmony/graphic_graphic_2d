@@ -88,7 +88,7 @@ int32_t DVSyncParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &nam
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("DVSyncParamParse stop parsing, no children nodes");
+        RS_LOGE("DVSyncParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
     currNode = currNode->xmlChildrenNode;

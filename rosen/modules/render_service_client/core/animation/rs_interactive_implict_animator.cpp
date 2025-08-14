@@ -15,7 +15,6 @@
 
 #include "animation/rs_interactive_implict_animator.h"
 
-#include "modifier/rs_extended_modifier.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
 
@@ -60,8 +59,9 @@ std::shared_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::Crea
         new RSInteractiveImplictAnimator(rsUIContext, timingProtocol, timingCurve));
 }
 
-RSInteractiveImplictAnimator::RSInteractiveImplictAnimator(const std::shared_ptr<RSUIContext> rsUIContext,
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
+RSInteractiveImplictAnimator::RSInteractiveImplictAnimator(
+    const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+    const RSAnimationTimingCurve& timingCurve)
     : id_(GenerateId()), rsUIContext_(rsUIContext), timingProtocol_(timingProtocol), timingCurve_(timingCurve)
 {
     InitUniRenderEnabled();
@@ -114,7 +114,6 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
         ROSEN_LOGE("AddAnimation failed, state_ is error");
         return 0;
     }
-
     auto rsUIContext = rsUIContext_.lock();
     auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
         RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
@@ -335,10 +334,6 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
         std::shared_ptr<RSPropertyBase> property = nullptr;
         if (auto prop = node->GetPropertyById(propertyId)) {
             property = prop;
-        } else if (auto modifier = node->GetModifier(propertyId)) {
-            property = modifier->GetProperty();
-        } else {
-            // do nothing
         }
         if (property == nullptr) {
             continue;

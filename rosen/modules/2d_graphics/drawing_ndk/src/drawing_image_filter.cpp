@@ -19,6 +19,7 @@
 #include "drawing_helper.h"
 
 #include "effect/image_filter.h"
+#include "effect/image_filter_lazy.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -37,7 +38,7 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateBlur(float sigmaX, float sig
         inputHandle = Helper::CastTo<OH_Drawing_ImageFilter*, NativeHandle<ImageFilter>*>(input);
     }
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
-    imageFilterHandle->value = ImageFilter::CreateBlurImageFilter(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
+    imageFilterHandle->value = ImageFilterLazy::CreateBlur(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
         inputHandle ? inputHandle->value : nullptr, ImageBlurType::GAUSS);
     if (imageFilterHandle->value == nullptr) {
         delete imageFilterHandle;
@@ -55,10 +56,10 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateBlurWithCrop(float sigmaX, f
     }
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
     if (rect == nullptr) {
-        imageFilterHandle->value = ImageFilter::CreateBlurImageFilter(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
+        imageFilterHandle->value = ImageFilterLazy::CreateBlur(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
             inputHandle ? inputHandle->value : nullptr, ImageBlurType::GAUSS);
     } else {
-        imageFilterHandle->value = ImageFilter::CreateBlurImageFilter(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
+        imageFilterHandle->value = ImageFilterLazy::CreateBlur(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
             inputHandle ? inputHandle->value : nullptr, ImageBlurType::GAUSS, CatsToRect(*rect));
     }
     
@@ -83,7 +84,7 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromColorFilter(
         inputHandle = Helper::CastTo<OH_Drawing_ImageFilter*, NativeHandle<ImageFilter>*>(input);
     }
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
-    imageFilterHandle->value = ImageFilter::CreateColorFilterImageFilter(*colorFilterHandle->value,
+    imageFilterHandle->value = ImageFilterLazy::CreateColorFilter(colorFilterHandle->value,
         inputHandle ? inputHandle->value : nullptr);
     if (imageFilterHandle->value == nullptr) {
         delete imageFilterHandle;
@@ -98,7 +99,7 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateOffset(float x, float y, OH_
         NativeHandle<ImageFilter>*>(imageFilter) : nullptr;
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
     imageFilterHandle->value =
-        ImageFilter::CreateOffsetImageFilter(x, y, inputHandle ? inputHandle->value : nullptr);
+        ImageFilterLazy::CreateOffset(x, y, inputHandle ? inputHandle->value : nullptr);
     if (imageFilterHandle->value == nullptr) {
         delete imageFilterHandle;
         return nullptr;
@@ -117,7 +118,7 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromShaderEffect(OH_Drawing_
         return nullptr;
     }
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
-    imageFilterHandle->value = ImageFilter::CreateShaderImageFilter(shaderFilterHandle->value);
+    imageFilterHandle->value = ImageFilterLazy::CreateShader(shaderFilterHandle->value);
     if (imageFilterHandle->value == nullptr) {
         delete imageFilterHandle;
         return nullptr;

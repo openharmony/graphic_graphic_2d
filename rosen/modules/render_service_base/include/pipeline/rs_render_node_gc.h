@@ -67,8 +67,10 @@ public:
     void SetMainTask(gcTask hook) {
         mainTask_ = hook;
     }
-    
+
     void AddToOffTreeNodeBucket(const std::shared_ptr<RSBaseRenderNode>& node);
+    void AddToOffTreeNodeBucket(pid_t pid,
+        std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>& renderNodeMap);
     void ReleaseOffTreeNodeBucket();
     void ReleaseFromTree();
 
@@ -87,6 +89,8 @@ public:
 
 private:
     GCLevel JudgeGCLevel(uint32_t remainBucketSize);
+    void ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack &callBack);
+    void ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack &callBack);
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
@@ -95,6 +99,9 @@ private:
     gcTask renderTask_ = nullptr;
 
     std::queue<std::vector<std::shared_ptr<RSBaseRenderNode>>> offTreeBucket_;
+    std::queue<std::pair<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>> offTreeBucketMap_;
+    uint64_t renderNodeNumsInBucketMap_ = 0;
+
     RSThresholdDetector<uint32_t> offTreeBucketThrDetector_ = RSThresholdDetector<uint32_t>(
         OFFTREE_BUCKET_THR_LOW, OFFTREE_BUCKET_THR_HIGH);
     std::queue<std::vector<RSRenderNode*>> nodeBucket_;

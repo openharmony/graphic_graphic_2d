@@ -14,9 +14,11 @@
  */
 
 #include <gtest/gtest.h>
+#include <parameters.h>
 
 #if defined(MODIFIER_NG)
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #endif
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
@@ -27,6 +29,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -49,6 +52,7 @@ const Rect DEFAULT_RECT = { 0, 0, 200, 200 };
 const RectF DEFAULT_SELF_DRAW_RECT = { 0, 0, 200, 200 };
 
 const int DEFAULT_NODE_ID = 1;
+const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 class RSRenderNodeTest2 : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -63,7 +67,7 @@ public:
         .height = 200,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_GPU_RENDER_DIRTY,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
@@ -77,13 +81,6 @@ public:
         .bottom = 100,
     };
 
-    static inline BlobDataType defaultBlobDataType = {
-        .offset = 0,
-        .length = 0,
-        .capacity = 0,
-        .vaddr = 0,
-        .cacheop = CacheOption::CACHE_NOOP,
-    };
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -336,22 +333,19 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     auto ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
  
-    std::vector<uint8_t> metaData;
-    BufferSelfDrawingData data = defaultSelfDrawingRect;
-    BufferSelfDrawingData *src = &data;
-    BlobDataType test = defaultBlobDataType;
-    test.vaddr = reinterpret_cast<uintptr_t>(src);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    (*src) = defaultSelfDrawingRect;
  
-    ret = MetadataHelper::ConvertMetadataToVec(test, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
-    ret = buffer->SetMetadata(RSGpuDirtyCollectorConst::ATTRKEY_GPU_DIRTY_REGION, metaData);
-    ASSERT_EQ(ret, GSERROR_OK);
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
     surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     surfaceNode->UpdateBufferDirtyRegion();
     ASSERT_EQ(surfaceNode->selfDrawingNodeDirtyRect_.width_, 100);
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 
 /**
@@ -1287,12 +1281,12 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
 }
 
 /**
- * @tc.name: IsSubTreeNeedPrepareTest034
- * @tc.desc: Prepare QuickPrepare IsSubTreeNeedPrepare IsUifirstArkTsCardNode test
+ * @tc.name: IsUifirstArkTsCardNodeTest034
+ * @tc.desc: Prepare QuickPrepare IsUifirstArkTsCardNode test
  * @tc.type: FUNC
  * @tc.require: issueIA5Y41
  */
-HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, IsUifirstArkTsCardNodeTest034, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
@@ -1300,19 +1294,6 @@ HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     nodeTest->Prepare(visitor);
     nodeTest->QuickPrepare(visitor);
-
-    nodeTest->shouldPaint_ = false;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->shouldPaint_ = true;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, true));
-    nodeTest->isSubTreeDirty_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->isSubTreeDirty_ = false;
-    nodeTest->childHasSharedTransition_ = true;
-    EXPECT_TRUE(nodeTest->IsSubTreeNeedPrepare(false, false));
-    nodeTest->childHasSharedTransition_ = false;
-    nodeTest->childHasVisibleFilter_ = true;
-    EXPECT_FALSE(nodeTest->IsSubTreeNeedPrepare(false, false));
 
     nodeTest->nodeGroupType_ = RSRenderNode::NONE;
     EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
@@ -2471,6 +2452,60 @@ HWTEST_F(RSRenderNodeTest2, DumpModifiersTest, TestSize.Level1)
     nodeTest->modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifier);
     nodeTest->DumpModifiers(outTest);
     EXPECT_NE(outTest, "");
+}
+
+/**
+ * @tc.name: ApplyPositionZModifierTest
+ * @tc.desc: ApplyPositionZModifier test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
+{
+    constexpr auto transformModifierType = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM);
+    auto node = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(node, nullptr);
+    node->ApplyPositionZModifier();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
+    node->dirtyTypesNG_.set(transformModifierType, true);
+    node->ApplyPositionZModifier();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(transformModifierType));
+
+    auto transformModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
+    node->AddModifier(transformModifier);
+    node->ApplyPositionZModifier();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(transformModifierType));
+
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 2;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    displayNode->AddModifier(transformModifier);
+    displayNode->currentScbPid_ = 0;
+    displayNode->ApplyPositionZModifier();
+    EXPECT_FALSE(displayNode->dirtyTypesNG_.test(transformModifierType));
+    displayNode->currentScbPid_ = 1;
+    displayNode->dirtyTypesNG_.set(transformModifierType, true);
+    displayNode->ApplyPositionZModifier();
+    EXPECT_FALSE(displayNode->dirtyTypesNG_.test(transformModifierType));
+}
+
+/**
+ * @tc.name: FilterModifiersByPidTest
+ * @tc.desc: FilterModifiersByPid test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, FilterModifiersByPidTest, TestSize.Level1)
+{
+    constexpr auto transformModifierType = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM);
+    auto node = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(node, nullptr);
+    auto transformModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
+    node->AddModifier(transformModifier);
+    node->FilterModifiersByPid(1);
+    EXPECT_FALSE(node->modifiersNG_[transformModifierType].empty());
+    node->FilterModifiersByPid(0);
+    EXPECT_TRUE(node->modifiersNG_[transformModifierType].empty());
 }
 #endif
 } // namespace Rosen

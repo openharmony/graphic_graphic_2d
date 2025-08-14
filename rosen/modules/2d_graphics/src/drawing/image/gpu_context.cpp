@@ -204,6 +204,11 @@ void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPU
     impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
 }
 
+uint64_t GPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
+{
+    return impl_->NewDumpMemoryStatisticsByTag(traceMemoryDump, tag);
+}
+
 void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
 {
     impl_->DumpMemoryStatistics(traceMemoryDump);
@@ -234,11 +239,15 @@ void GPUContext::ResetContext()
     impl_->ResetContext();
 }
 
+// subtree parallel feature interface
+// generate submit information
 void GPUContext::GenerateSubmitInfo(int seq)
 {
     impl_->GenerateSubmitInfo(seq);
 }
 
+// subtree parallel feature interface
+// generate draw op
 void GPUContext::FlushCommands()
 {
     impl_->FlushCommands();

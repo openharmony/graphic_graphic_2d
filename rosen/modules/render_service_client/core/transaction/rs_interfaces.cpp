@@ -268,6 +268,27 @@ bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> nod
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
+bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
+    bool checkDrmAndSurfaceLock)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->TaskSurfaceCaptureWithAllWindows(
+        node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
+}
+
+bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->FreezeScreen(node->GetId(), isFreeze);
+}
+
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
@@ -339,7 +360,7 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 
 uint32_t RSInterfaces::GetRealtimeRefreshRate(ScreenId id)
 {
-    RS_LOGD("GetRealtimeRefreshRate: screenId[%{public}" PRIu64"]", id);
+    RS_LOGD("RSInterfaces::GetRealtimeRefreshRate: id[%{public}" PRIu64"]", id);
     return renderServiceClient_->GetRealtimeRefreshRate(id);
 }
 
@@ -746,6 +767,11 @@ int32_t RSInterfaces::GetScreenSupportedHDRFormats(ScreenId id, std::vector<Scre
 int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
 {
     return renderServiceClient_->GetScreenHDRFormat(id, hdrFormat);
+}
+
+int32_t RSInterfaces::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
+{
+    return renderServiceClient_->GetScreenHDRStatus(id, hdrStatus);
 }
 
 int32_t RSInterfaces::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)

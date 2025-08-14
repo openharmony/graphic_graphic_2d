@@ -24,6 +24,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+#include "sandbox_utils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -156,14 +157,19 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
         isRenderServiceTask);
 }
 
-void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName)
+void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName,
+    bool dvsyncTimeUpdate, uint64_t dvsyncTime)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction failed, DataStack not empty");
         return;
     }
-    timestamp_ = std::max(timestamp, timestamp_);
+    if (dvsyncTimeUpdate) {
+        timestamp_ = timestamp;
+    } else {
+        timestamp_ = std::max(timestamp, timestamp_);
+    }
     thread_local pid_t tid = gettid();
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
@@ -187,9 +193,12 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     std::swap(implicitRemoteTransactionData_, transactionData);
     transactionData->timestamp_ = timestamp_;
     transactionData->tid_ = tid;
+    transactionData->dvsyncTimeUpdate_ = dvsyncTimeUpdate;
+    transactionData->dvsyncTime_ = dvsyncTime;
     if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
+        RS_TRACE_NAME_FMT("HybridRender transactionFlag:[%d,%" PRIu64 "]", GetRealPid(), transactionDataIndex_ + 1);
         commitTransactionCallback_(renderServiceClient_,
-            std::move(transactionData), transactionDataIndex_);
+            std::move(transactionData), transactionDataIndex_, nullptr);
         return;
     }
     renderServiceClient_->CommitTransaction(transactionData);

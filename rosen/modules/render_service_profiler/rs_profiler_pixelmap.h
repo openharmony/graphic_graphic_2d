@@ -16,6 +16,7 @@
 #ifndef HRP_PIXELMAP_H
 #define HRP_PIXELMAP_H
 
+#include "common/rs_macros.h"
 namespace OHOS::Rosen {
 
 using OHOS::sptr;
@@ -28,16 +29,32 @@ using OHOS::Media::AllocatorType;
 
 using ImageData = std::vector<uint8_t>;
 
-struct ImageProperties {
+struct RSB_EXPORT ImageProperties {
     explicit ImageProperties(PixelMap& map);
-    explicit ImageProperties(const ImageInfo& info);
+    explicit ImageProperties(const ImageInfo& info, AllocatorType type);
 
-    Media::PixelFormat format;
+    int16_t format;
+    int8_t allocType;
 
     int32_t width;
     int32_t height;
 
     int32_t stride;
+
+    AllocatorType GetAllocType() const
+    {
+        return static_cast<AllocatorType>(allocType);
+    }
+
+    void SetFormat(Media::PixelFormat pf)
+    {
+        format = static_cast<int16_t>(pf);
+    }
+
+    Media::PixelFormat GetFormat() const
+    {
+        return static_cast<Media::PixelFormat>(format);
+    }
 };
 
 struct TextureHeader {
@@ -57,7 +74,7 @@ enum class EncodedType : int {
     XLZ4 = 2,
 };
 
-class PixelMapStorage final {
+class RSB_EXPORT PixelMapStorage final {
 public:
     static bool Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
     static bool Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
@@ -68,15 +85,15 @@ private:
     static bool Fits(size_t size);
 
     static bool PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
-    static void PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
-    static void PushSharedMemory(uint64_t id, PixelMap& map);
+    static bool PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
+    static bool PushSharedMemory(uint64_t id, PixelMap& map);
 
     static bool PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
-    static void PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
-    static void PushDmaMemory(uint64_t id, PixelMap& map);
+    static bool PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
+    static bool PushDmaMemory(uint64_t id, PixelMap& map);
 
-    static void PushImage(AllocatorType allocType, uint64_t id, const ImageData& data, size_t skipBytes,
-        BufferHandle* buffer = nullptr, const ImageProperties* properties = nullptr);
+    static bool PushImage(uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer = nullptr,
+        const ImageProperties* properties = nullptr);
 
     static bool IsSharedMemory(const PixelMap& map);
     static bool IsSharedMemory(const PixelMemInfo& memory);
@@ -86,8 +103,8 @@ private:
     static bool IsDmaMemory(AllocatorType type);
 
     static bool PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
-    static void PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
-    static void PushHeapMemory(uint64_t id, PixelMap& map);
+    static bool PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
+    static bool PushHeapMemory(uint64_t id, PixelMap& map);
 
     static bool DefaultHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
 
@@ -121,10 +138,11 @@ private:
 
     static ImageData GenerateRawCopy(const uint8_t* data, size_t size);
     static ImageData GenerateMiniatureAstc(const uint8_t* data, size_t size);
-    static ImageData GenerateMiniature(const uint8_t* data, size_t size, uint32_t pixelBytes);
-    static ImageData GenerateImageData(const uint8_t* data, size_t size, const PixelMap& map);
-    static ImageData GenerateImageData(const ImageInfo& info, const PixelMemInfo& memory);
-    static ImageData GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes);
+    static ImageData GenerateMiniature(uint64_t uniqueId, const uint8_t* data, size_t size, uint32_t pixelBytes);
+    static ImageData GenerateImageData(uint64_t uniqueId, const uint8_t* data, size_t size, const PixelMap& map);
+    static ImageData GenerateImageData(uint64_t uniqueId, const ImageInfo& info, const PixelMemInfo& memory);
+    static ImageData GenerateImageData(
+        uint64_t uniqueId, const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes);
 };
 
 } // OHOS::Rosen

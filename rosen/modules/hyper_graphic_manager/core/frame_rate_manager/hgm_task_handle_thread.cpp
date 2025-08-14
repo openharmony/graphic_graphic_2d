@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 
+#include "ffrt_inner.h"
 #include "hgm_log.h"
 #include "xcollie/watchdog.h"
 
@@ -24,6 +25,14 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t WATCHDOG_TIMEVAL = 30000;
 constexpr uint32_t WATCHDOG_DELAY_TIME = 600000;
+constexpr uint64_t MILLISECONDS_TO_MICROSECONDS = 1000;
+constexpr uint64_t MAX_ALLOWED_DELAY = UINT64_MAX / 1000;
+
+uint64_t ConvertMillisecondsToMicroseconds(int64_t delayTime)
+{
+    return (delayTime < 0) ? 0 :
+        std::min(static_cast<uint64_t>(delayTime), MAX_ALLOWED_DELAY) * MILLISECONDS_TO_MICROSECONDS;
+}
 }
 
 HgmTaskHandleThread& HgmTaskHandleThread::Instance()
@@ -32,53 +41,49 @@ HgmTaskHandleThread& HgmTaskHandleThread::Instance()
     return instance;
 }
 
-HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Create("HgmTaskHandleThread"))
+HgmTaskHandleThread::HgmTaskHandleThread()
 {
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    if (handler_ != nullptr) {
-        auto task = []() {
-            auto& hgmTaskHandleThread = HgmTaskHandleThread::Instance();
-            int ret = HiviewDFX::Watchdog::GetInstance().AddThread(
-                "HgmTaskHandle", hgmTaskHandleThread.handler_, WATCHDOG_TIMEVAL);
-            if (ret != 0) {
-                HGM_LOGW("Add watchdog thread failed");
-            }
-        };
-        handler_->PostTask(task, WATCHDOG_DELAY_TIME);
-    }
-}
-
-std::shared_ptr<AppExecFwk::EventHandler> HgmTaskHandleThread::CreateHandler()
-{
-    return std::make_shared<AppExecFwk::EventHandler>(runner_);
+    queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "HgmTaskHandleThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+    PostTask([]() { HiviewDFX::Watchdog::GetInstance().InitFfrtWatchdog(); }, WATCHDOG_DELAY_TIME);
 }
 
 void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t delayTime)
 {
-    if (handler_) {
-        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (queue_) {
+        auto microDelayTime = ConvertMillisecondsToMicroseconds(delayTime);
+        queue_->submit(
+            std::move(task), ffrt::task_attr()
+                                 .delay(microDelayTime)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
     }
 }
 
 bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
 {
-    if (handler_) {
-        return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::VIP);
+    if (queue_) {
+        auto handle = queue_->submit_h(std::move(task),
+            ffrt::task_attr().priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_vip)));
+        queue_->wait(handle);
+        return true;
     }
     return false;
 }
 
 void HgmTaskHandleThread::PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime)
 {
-    if (handler_) {
-        handler_->PostTask(task, eventId, delayTime);
+    if (queue_) {
+        auto microDelayTime = ConvertMillisecondsToMicroseconds(delayTime);
+        queue_->submit(std::move(task), ffrt::task_attr().name(eventId.c_str()).delay(microDelayTime));
     }
 }
 
 void HgmTaskHandleThread::RemoveEvent(std::string eventId)
 {
-    if (handler_) {
-        handler_->RemoveTask(eventId);
+    if (queue_) {
+        ffrt_queue_t* queue = reinterpret_cast<ffrt_queue_t*>(queue_.get());
+        ffrt_queue_cancel_by_name(*queue, eventId.c_str());
     }
 }
 
@@ -87,7 +92,7 @@ void HgmTaskHandleThread::DetectMultiThreadingCalls()
     if (auto newTid = gettid(); curThreadId_ != newTid) {
         // -1 means default curThreadId
         if (curThreadId_ != -1) {
-            HGM_LOGE("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
+            HGM_LOGD("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
         }
         curThreadId_ = newTid;
     }

@@ -291,6 +291,8 @@ template<typename T>
 Matrix3<T>& Matrix3<T>::operator=(const Matrix3<T>& other)
 {
     const T* oMat3Data = other.data_;
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     T data0 = oMat3Data[0];
     T data1 = oMat3Data[1];
     T data2 = oMat3Data[2];

@@ -25,7 +25,13 @@ export interface BrightnessBlenderParam {
 }
 namespace uiEffect {
   loadLibrary('uiEffect_ani')
-  export type Blender = BrightnessBlender;
+  export type Blender = BrightnessBlender | HdrBrightnessBlender;
+  export enum TileMode {
+    CLAMP,
+    REPEAT,
+    MIRROR,
+    DECAL
+  }
   export interface BrightnessBlender {
     cubicRate: number;
     quadraticRate: number;
@@ -36,7 +42,12 @@ namespace uiEffect {
     negativeCoefficient: [number, number, number];
     fraction: number;
   }
+  export interface HdrBrightnessBlender extends BrightnessBlender {}
   export class BrightnessBlenderInternal implements BrightnessBlender {
+    private brightnessBlenderNativeObj: long = 0;
+    constructor(context: long) {
+      this.brightnessBlenderNativeObj = context;
+    }
     cubicRate: number;
     quadraticRate: number;
     linearRate: number;
@@ -45,6 +56,11 @@ namespace uiEffect {
     positiveCoefficient: [number, number, number];
     negativeCoefficient: [number, number, number];
     fraction: number;
+  }
+  export class HdrBrightnessBlenderInternal extends BrightnessBlenderInternal implements HdrBrightnessBlender {
+    constructor(context: long) {
+      super(context);
+    }
   }
   export interface VisualEffect {
     backgroundColorBlender(blender: BrightnessBlender): VisualEffect;
@@ -58,9 +74,29 @@ namespace uiEffect {
     public backgroundColorBlender(blender: BrightnessBlender): VisualEffect {
       return this.backgroundColorBlenderNative(blender);
     }
-  }  
+  }
+  export interface Filter {
+    pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter;
+    blur(blurRadius: number): Filter;
+  }
+  export class FilterInternal implements Filter {
+    private filterNativeObj: long = 0;
+    constructor(context: long) {
+      this.filterNativeObj = context;
+    }
+    public native pixelStretchNative(stretchSizes: Array<number>, tileMode: TileMode): Filter;
+    public native blurNative(blurRadius: number): Filter;
+    public pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter {
+      return this.pixelStretchNative(stretchSizes, tileMode);
+    }
+    public blur(blurRadius: number): Filter {
+      return this.blurNative(blurRadius);
+    }
+  }
   export native function createEffect(): VisualEffect;
   export native function createBrightnessBlender(param: BrightnessBlenderParam): BrightnessBlender;
+  export native function createHdrBrightnessBlender(param: BrightnessBlenderParam): HdrBrightnessBlender;
+  export native function createFilter(): Filter;
 }
 
 export default uiEffect;

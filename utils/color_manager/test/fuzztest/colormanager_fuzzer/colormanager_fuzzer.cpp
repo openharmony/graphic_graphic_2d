@@ -49,17 +49,20 @@ T GetData()
     return object;
 }
 
-bool ColorFuzzTest(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool ColorFuzzTest(const uint8_t* data, size_t size)
+{
     Color randomColor = Color(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
     ColorSpace csObject = ColorSpace(GetData<ColorSpaceName>());
     ColorSpaceConvertor convertor = ColorSpaceConvertor(GetData<ColorSpaceName>(), GetData<ColorSpaceName>(),
@@ -76,15 +79,6 @@ bool ColorFuzzTest(const uint8_t* data, size_t size)
 
 bool ColorSpaceFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     ColorSpace csObject = ColorSpace(GetData<ColorSpaceName>());
     // colorspace test
     ColorSpacePrimaries primaries = GetData<ColorSpacePrimaries>();
@@ -112,15 +106,6 @@ bool ColorSpaceFuzzTest(const uint8_t* data, size_t size)
 
 bool ColorSpaceConvertorFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     ColorSpaceConvertor convertor = ColorSpaceConvertor(GetData<ColorSpaceName>(), GetData<ColorSpaceName>(),
                                         GetData<GamutMappingMode>());
     // convertor test
@@ -139,6 +124,10 @@ bool ColorSpaceConvertorFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::ColorManager::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::ColorManager::ColorFuzzTest(data, size);
     OHOS::ColorManager::ColorSpaceFuzzTest(data, size);

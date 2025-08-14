@@ -33,7 +33,7 @@ RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, const Prope
 
 void RSRenderParticleAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderParticleAnimation";
+    out.append("Type:RSRenderParticleAnimation");
 }
 
 bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)

@@ -556,10 +556,10 @@ HWTEST_F(SkiaImageTest, MakeFromRaster, TestSize.Level1)
 }
 
 /**
- * @tc.name: SupportOpaqueOptTest
- * @tc.desc: test for SupportOpaqueOptTest success for YUV YCRCB_P010.
+ * @tc.name: SupportOpaqueOpt
+ * @tc.desc: Test SupportOpaqueOpt
  * @tc.type: FUNC
- * @tc.require: I782P9
+ * @tc.require: I91EH1
  */
 HWTEST_F(SkiaImageTest, SupportOpaqueOpt, TestSize.Level1)
 {

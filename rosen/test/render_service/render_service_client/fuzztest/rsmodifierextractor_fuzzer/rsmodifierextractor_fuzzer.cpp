@@ -50,17 +50,20 @@ T GetData()
     return object;
 }
 
-bool DoGet001(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoGet001(const uint8_t* data, size_t size)
+{
     // test
     RSModifierExtractor modifierExtractor(1);
     modifierExtractor.GetBounds();
@@ -101,15 +104,6 @@ bool DoGet001(const uint8_t* data, size_t size)
 
 bool DoGet002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSModifierExtractor modifierExtractor(1);
     modifierExtractor.GetHDRUIBrightness();
@@ -149,15 +143,6 @@ bool DoGet002(const uint8_t* data, size_t size)
 
 bool DoGet003(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSModifierExtractor modifierExtractor(1);
     modifierExtractor.GetForegroundBlurSaturation();
@@ -184,6 +169,10 @@ bool DoGet003(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoGet001(data, size);
     OHOS::Rosen::DoGet002(data, size);

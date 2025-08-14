@@ -432,3 +432,33 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest012, TestSize.Level0)
     effect_->NoEffect(mockCanvas_.get(), x, y);
     EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
 }
+
+/*
+ * @tc.name: TextFlipEffectTest013
+ * @tc.desc: Test for no path ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest013, TestSize.Level0)
+{
+    double x = 100.0;
+    double y = 100.0;
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
+    EXPECT_CALL(*mockTypography_, GetAnimation()).Times(1);
+
+    const char* text = "\uffff";
+    OHOS::Rosen::Drawing::Font font;
+    std::shared_ptr<Drawing::TextBlob> blob = Drawing::TextBlob::MakeFromString(text, font);
+    TypographyConfig config = CreateConfig();
+    effect_->AppendTypography({config});
+    EXPECT_CALL(*mockCanvas_, DrawTextBlob(blob.get(), x, y)).Times(1);
+    TextBlobRecordInfo blobInfo;
+    blobInfo.blob = blob;
+    std::vector<TextBlobRecordInfo> infos;
+    infos.emplace_back(blobInfo);
+    effect_->DrawTextFlip(infos, mockCanvas_.get(), x, y);
+    EXPECT_TRUE(effect_->lastAllBlobGlyphIds_.empty());
+    effect_->DrawTextFlip(infos, nullptr, x, y);
+    effect_->RemoveTypography({config});
+    EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
+}

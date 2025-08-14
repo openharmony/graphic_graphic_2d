@@ -65,6 +65,13 @@ enum class VulkanInterfaceType : uint32_t {
     UNPROTECTED_REDRAW,
     MAX_INTERFACE_TYPE,
 };
+
+enum class VulkanDeviceStatus : uint32_t {
+    UNINITIALIZED = 0,
+    CREATE_SUCCESS,
+    CREATE_FAIL,
+    MAX_DEVICE_STATUS,
+};
 class MemoryHandler;
 class RsVulkanInterface {
 public:
@@ -74,6 +81,8 @@ public:
         int mFenceFd;
         
         int mRefs = 2; // 2 : both skia and rs hold fence fd
+        int mRSRefs = 1; // 1 : rs hold fence fd
+        int m2DEngineRefs = 1; // 1 : skia or ddgr hold fence fd
         CallbackSemaphoreInfo(RsVulkanInterface& vkContext, VkSemaphore semaphore, int fenceFd)
             : mVkContext(vkContext),
             mSemaphore(semaphore),
@@ -87,7 +96,15 @@ public:
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
-            DestroyCallbackRefsInner(info);
+            --info->mRefs;
+            if (info->mRefs > 1 || info->mRefs < 0) {
+                RS_LOGE("Destory CallBackSemphoreInfo error, mRefs=%{public}d", info->mRefs);
+            }
+            if (info->mRefs <= 0) {
+                info->mVkContext.SendSemaphoreWithFd(info->mSemaphore, info->mFenceFd);
+                delete info;
+                info = nullptr;
+            }
         }
 
         static void DestroyCallbackRefsFromRS(void* context)
@@ -96,33 +113,37 @@ public:
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
-            if (DestroyCallbackRefsInner(info)) {
-                RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
-            }
+            --info->mRSRefs;
+            RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+            DestroyCallbackRefsInner(info);
         }
 
         static void DestroyCallbackRefsFrom2DEngine(void* context)
         {
+            RsVulkanInterface::callbackSemaphoreInfo2DEngineCallCnt_.fetch_add(+1, std::memory_order_relaxed);
             if (context == nullptr) {
                 return;
             }
             CallbackSemaphoreInfo* info = reinterpret_cast<CallbackSemaphoreInfo*>(context);
-            if (DestroyCallbackRefsInner(info)) {
-                RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
-            }
+            --info->m2DEngineRefs;
+            RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_.fetch_add(+1, std::memory_order_relaxed);
+            DestroyCallbackRefsInner(info);
         }
 
-        static bool DestroyCallbackRefsInner(CallbackSemaphoreInfo* info)
+        static void DestroyCallbackRefsInner(CallbackSemaphoreInfo* info)
         {
             if (info == nullptr) {
-                return false;
+                return;
             }
-            --info->mRefs;
-            if (!info->mRefs) {
+            if (info->mRSRefs > 1 || info->mRSRefs < 0 || info->m2DEngineRefs > 1 || info->m2DEngineRefs < 0) {
+                RS_LOGE("Destroy CallBackSemphoreInfo error, mRSRefs=%{public}d, m2DEngineRefs=%{public}d",
+                    info->mRSRefs, info->m2DEngineRefs);
+            }
+            if (info->mRSRefs <= 0 && info->m2DEngineRefs <= 0) {
                 info->mVkContext.SendSemaphoreWithFd(info->mSemaphore, info->mFenceFd);
                 delete info;
+                info = nullptr;
             }
-            return true;
         }
     };
     template <class T>
@@ -283,9 +304,13 @@ public:
     VkSemaphore RequireSemaphore();
     void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
     void DestroyAllSemaphoreFence();
-    static std::atomic<uint64_t> callbackSemaphoreInfoCnt_;
+    VulkanDeviceStatus GetVulkanDeviceStatus();
+    static std::atomic<uint64_t> callbackSemaphoreInfofdDupCnt_;
     static std::atomic<uint64_t> callbackSemaphoreInfoRSDerefCnt_;
     static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineDerefCnt_;
+    static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineDefensiveDerefCnt_;
+    static std::atomic<uint64_t> callbackSemaphoreInfoFlushCnt_;
+    static std::atomic<uint64_t> callbackSemaphoreInfo2DEngineCallCnt_;
 
 friend class RsVulkanContext;
 private:
@@ -324,6 +349,7 @@ private:
     RsVulkanInterface(RsVulkanInterface &&) = delete;
     RsVulkanInterface &operator=(RsVulkanInterface &&) = delete;
 
+    void SetVulkanDeviceStatus(VulkanDeviceStatus status);
     bool OpenLibraryHandle();
     bool SetupLoaderProcAddresses();
     bool CloseLibraryHandle();
@@ -343,6 +369,7 @@ private:
     };
     std::list<semaphoreFence> usedSemaphoreFenceList_;
     std::mutex semaphoreLock_;
+    std::atomic<VulkanDeviceStatus> deviceStatus_ = VulkanDeviceStatus::UNINITIALIZED;
 };
 
 class RsVulkanContext {
@@ -423,9 +450,14 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
+    VulkanDeviceStatus GetVulkanDeviceStatus()
+    {
+        return GetRsVulkanInterface().GetVulkanDeviceStatus();
+    }
+
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> GetDrawingContext(const std::string& cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext(const std::string& cacheDir = "");
     static void ReleaseDrawingContextMap();
     static void ReleaseRecyclableDrawingContext();
     static void ReleaseDrawingContextForThread(int tid);
@@ -458,6 +490,7 @@ public:
 private:
     static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
+    static bool CheckDrawingContextRecyclable();
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;

@@ -58,17 +58,8 @@ namespace OHOS {
         return object;
     }
 
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+    bool DoSomethingInterestingWithMyAPI()
     {
-        if (data == nullptr) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         // get data
         OHOS::Media::Rect rect = {
             .left = GetData<uint32_t>(),
@@ -127,17 +118,8 @@ namespace OHOS {
         }
     }
 
-    bool DoSomethingInterestingWithMyAPI2(const uint8_t* data, size_t size)
+    bool DoSomethingInterestingWithMyAPI2()
     {
-        if (data == nullptr) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         int32_t width = 100;
         int32_t height = 100;
         sptr<IConsumerSurface> cSurface = nullptr;
@@ -169,17 +151,8 @@ namespace OHOS {
         return true;
     }
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_VK)
-    bool DoSomethingInterestingWithMyAPI3(const uint8_t* data, size_t size)
+    bool DoSomethingInterestingWithMyAPI3()
     {
-        if (data == nullptr) {
-            return false;
-        }
-
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         int32_t width = 100;
         int32_t height = 100;
         sptr<IConsumerSurface> cSurface = nullptr;
@@ -212,11 +185,18 @@ namespace OHOS {
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return 0;
+    }
+    // initialize
+    OHOS::data_ = data;
+    OHOS::size_ = size;
+    OHOS::pos = 0;
     /* Run your code on data */
-    OHOS::DoSomethingInterestingWithMyAPI(data, size);
-    OHOS::DoSomethingInterestingWithMyAPI2(data, size);
+    OHOS::DoSomethingInterestingWithMyAPI();
+    OHOS::DoSomethingInterestingWithMyAPI2();
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_VK)
-    OHOS::DoSomethingInterestingWithMyAPI3(data, size);
+    OHOS::DoSomethingInterestingWithMyAPI3();
 #endif
     return 0;
 }

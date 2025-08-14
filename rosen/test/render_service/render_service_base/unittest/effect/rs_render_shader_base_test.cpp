@@ -49,6 +49,9 @@ HWTEST_F(RSNGRenderShaderBaseTest, Create001, TestSize.Level1)
 
     auto aurora = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     EXPECT_NE(aurora, nullptr);
+
+    auto lightCave = RSNGRenderShaderBase::Create(RSNGEffectType::LIGHT_CAVE);
+    EXPECT_NE(lightCave, nullptr);
 }
 
 /**
@@ -77,6 +80,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, GetShaderTypeString001, TestSize.Level1)
         "ContourDiagonalFlowLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT), "WavyRippleLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::AURORA_NOISE), "AuroraNoise");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::LIGHT_CAVE), "LightCave");
     // Unknown type
     RSNGEffectType unknownType = static_cast<RSNGEffectType>(999); // 999 is random value
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(unknownType), "UNKNOWN");
@@ -168,6 +172,31 @@ HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling001, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling002, TestSize.Level1)
+{
+    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    auto next = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    EXPECT_NE(head, nullptr);
+    EXPECT_NE(next, nullptr);
+    head->nextEffect_ = next;
+    Parcel parcel;
+    EXPECT_TRUE(head->Marshalling(parcel));
+    std::shared_ptr<RSNGRenderShaderBase> val;
+    bool result = RSNGRenderShaderBase::Unmarshalling(parcel, val);
+    EXPECT_TRUE(result);
+    // Verify head and next are correctly linked
+    EXPECT_NE(val, nullptr);
+    EXPECT_EQ(val->GetType(), RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    auto chained = val->nextEffect_;
+    EXPECT_NE(chained, nullptr);
+    EXPECT_EQ(chained->GetType(), RSNGEffectType::AURORA_NOISE);
+}
+
+/**
+ * @tc.name: CheckEnableEDR001
+ * @tc.desc: 验证 Unmarshalling 方法在链式Parcel（两节点）时返回true并正确链接两个实例
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CheckEnableEDR001, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     auto next = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);

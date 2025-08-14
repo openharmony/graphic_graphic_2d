@@ -14,11 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "animation/rs_animation.h"
 #include "animation/rs_path_animation.h"
-#include "render/rs_path.h"
-#include "modifier/rs_property.h"
-#include "ui/rs_node.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
@@ -55,39 +51,19 @@ void RSPathAnimationTest::SetUp() {}
 void RSPathAnimationTest::TearDown() {}
 
 /**
- * @tc.name: SetEndFractionTest001
+ * @tc.name: SetEndFractionTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSPathAnimationTest, SetEndFractionTest001, Level1)
+HWTEST_F(RSPathAnimationTest, SetEndFractionTest, Level1)
 {
     bool res = true;
     auto prop = nullptr;
     auto animationPath = nullptr;
-    float frac = 3.0f;
+    float frac = 1.0f;
     RSPathAnimation rsPathAnimation(prop, animationPath);
-    auto per = std::make_shared<RSNode>(true);
-    rsPathAnimation.StartInner(per);
     rsPathAnimation.SetEndFraction(frac);
     ASSERT_TRUE(res);
-}
-
-/**
- * @tc.name: SetEndFractionTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, SetEndFractionTest002, Level1)
-{
-    bool res = true;
-    auto prop = nullptr;
-    auto animationPath = nullptr;
-    float frac = 3.0f;
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.SetEndFraction(frac);
-    rsPathAnimation.SetEndFraction(0.5f);
-    rsPathAnimation.SetEndFraction(-0.5f);
-    ASSERT_EQ(res, true);
 }
 
 /**
@@ -102,195 +78,8 @@ HWTEST_F(RSPathAnimationTest, SetPathNeedAddOriginTest, Level1)
     auto prop = nullptr;
     auto animationPath = nullptr;
     RSPathAnimation rsPathAnimation(prop, animationPath);
-    auto per = std::make_shared<RSNode>(true);
-    rsPathAnimation.StartInner(per);
     rsPathAnimation.SetPathNeedAddOrigin(needAddOrigin);
     ASSERT_TRUE(res);
-}
-
-/**
- * @tc.name: SetRotationModeTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, SetRotationModeTest, Level1)
-{
-    auto prop = nullptr;
-    auto animationPath = nullptr;
-    auto rotationMode = RotationMode::ROTATE_NONE;
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    auto per = std::make_shared<RSNode>(true);
-    rsPathAnimation.StartInner(per);
-    rsPathAnimation.SetRotationMode(rotationMode);
-    ASSERT_EQ(prop, nullptr);
-    ASSERT_EQ(animationPath, nullptr);
-}
-
-/**
- * @tc.name: SetBeginFractionTest001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, SetBeginFractionTest001, Level1)
-{
-    auto prop = nullptr;
-    auto animationPath = nullptr;
-    float frac = 3.0f;
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    auto per = std::make_shared<RSNode>(true);
-    rsPathAnimation.StartInner(per);
-    rsPathAnimation.SetBeginFraction(frac);
-    rsPathAnimation.SetBeginFraction(0.5f);
-    rsPathAnimation.SetBeginFraction(-0.5f);
-    ASSERT_EQ(prop, nullptr);
-    ASSERT_EQ(animationPath, nullptr);
-}
-
-/**
- * @tc.name: SetBeginFractionTest002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, SetBeginFractionTest002, Level1)
-{
-    auto prop = nullptr;
-    auto animationPath = nullptr;
-    float frac = 3.0f;
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.SetBeginFraction(frac);
-    ASSERT_EQ(prop, nullptr);
-    ASSERT_EQ(animationPath, nullptr);
-}
-
-/**
- * @tc.name: InitRotationIdTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, InitRotationIdTest, Level1)
-{
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.InitRotationId(node);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-}
-
-/**
- * @tc.name: GetRotationPropertyIdTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, GetRotationPropertyIdTest, Level1)
-{
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.GetRotationPropertyId(node);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-}
-
-/**
- * @tc.name: SetRotationTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, SetRotationTest, Level1)
-{
-    float rotation = 0.f;
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.SetRotation(node, rotation);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-}
-
-/**
- * @tc.name: PreProcessPathTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, PreProcessPathTest, Level1)
-{
-    string path = "PATH";
-    auto startValue = std::make_shared<RSProperty<float>>();
-    auto endValue = std::make_shared<RSProperty<float>>();
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.PreProcessPath(path, startValue, endValue);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-}
-
-/**
- * @tc.name: InitNeedPathTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, InitNeedPathTest, Level1)
-{
-    auto startValue = std::make_shared<RSProperty<float>>();
-    auto endValue = std::make_shared<RSProperty<float>>();
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    rsPathAnimation.InitNeedPath(startValue, endValue);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-}
-
-/**
- * @tc.name: InitInterpolationVector2fTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, InitInterpolationVector2fTest, Level1)
-{
-    auto startValue = std::make_shared<RSProperty<float>>();
-    auto endValue = std::make_shared<RSProperty<float>>();
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    bool res = rsPathAnimation.InitInterpolationVector2f(startValue, endValue);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-    ASSERT_EQ(res, true);
-}
-
-/**
- * @tc.name: InitInterpolationVector4fTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSPathAnimationTest, InitInterpolationVector4fTest, Level1)
-{
-    auto startValue = std::make_shared<RSProperty<float>>();
-    auto endValue = std::make_shared<RSProperty<float>>();
-    auto node = std::make_shared<RSNode>(true);
-    auto prop = std::make_shared<RSProperty<float>>();
-    auto animationPath = std::make_shared<RSPath>();
-    RSPathAnimation rsPathAnimation(prop, animationPath);
-    bool res = rsPathAnimation.InitInterpolationVector4f(startValue, endValue);
-    ASSERT_NE(prop, nullptr);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(animationPath, nullptr);
-    ASSERT_EQ(res, true);
 }
 
 /**

@@ -101,11 +101,12 @@ void RSTransactionData::AlarmRsNodeLog() const
 
 bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
+    bool success = true;
     parcel.SetMaxCapacity(PARCEL_MAX_CPACITY);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
     std::unique_lock<std::mutex> lock(commandMutex_);
-    bool success = parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
+    success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
     size_t marshaledSize = 0;
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
     success = success && parcel.WriteBool(isUniRender);
@@ -160,9 +161,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        if ((RSSystemProperties::GetUnmarshParallelFlag() &&
-            parcel.GetDataSize() > RSSystemProperties::GetUnMarshParallelSize()) ||
-            parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
+        if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
             break;
         }
     }
@@ -185,6 +184,8 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteUint64(index_);
     success = success && parcel.WriteUint64(syncId_);
     success = success && parcel.WriteInt32(parentPid_);
+    success = success && parcel.WriteBool(dvsyncTimeUpdate_);
+    success = success && parcel.WriteUint64(dvsyncTime_);
     if (!success) {
         ROSEN_LOGE("RSTransactionData::Marshalling failed");
     }
@@ -353,7 +354,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadInt32(syncTransactionCount_) && parcel.ReadUint64(token_) &&
         parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
         parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) &&
-        parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);
+        parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_) &&
+        parcel.ReadBool(dvsyncTimeUpdate_) && parcel.ReadUint64(dvsyncTime_);
     if (!flag) {
         RS_LOGE("RSTransactionData::UnmarshallingCommand failed");
     }

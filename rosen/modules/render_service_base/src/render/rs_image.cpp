@@ -73,10 +73,10 @@ std::shared_ptr<Drawing::ShaderEffect> RSImage::GenerateImageShaderForDrawRect(
     }
 
     Drawing::Matrix matrix;
-    auto sx = rectForDrawShader_.GetWidth() / src_.GetWidth();
-    auto sy = rectForDrawShader_.GetHeight() / src_.GetHeight();
-    auto tx = rectForDrawShader_.GetLeft() - src_.GetLeft() * sx;
-    auto ty = rectForDrawShader_.GetTop() - src_.GetTop() * sy;
+    auto sx = dstRect_.GetWidth() / src_.GetWidth();
+    auto sy = dstRect_.GetHeight() / src_.GetHeight();
+    auto tx = dstRect_.GetLeft() - src_.GetLeft() * sx;
+    auto ty = dstRect_.GetTop() - src_.GetTop() * sy;
     matrix.SetScaleTranslate(sx, sy, tx, ty);
 
     return Drawing::ShaderEffect::CreateImageShader(
@@ -183,7 +183,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
         }
-        rectForDrawShader_ = dst_;
         if (isFitMatrixValid_) {
             canvas.ConcatMatrix(fitMatrix_.value());
         }
@@ -223,7 +222,7 @@ void RSImage::ApplyImageOrientation(Drawing::Canvas& canvas)
 void RSImage::DrawImageRect(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions)
 {
-    bool needCanvasRestore = (rotateDegree_ != 0) || isOrientationValid_;
+    bool needCanvasRestore = rotateDegree_ || isOrientationValid_;
     Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
     if (rotateDegree_ != 0) {
         canvas.Rotate(rotateDegree_);
@@ -234,7 +233,6 @@ void RSImage::DrawImageRect(
     if (isOrientationValid_) {
         ApplyImageOrientation(canvas);
     }
-
     auto imageShader = GenerateImageShaderForDrawRect(canvas, samplingOptions);
     if (imageShader != nullptr) {
         DrawImageShaderRectOnCanvas(canvas, imageShader);
@@ -248,8 +246,7 @@ void RSImage::DrawImageRect(
         DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
         return;
     }
-    canvas.DrawImageRect(
-        *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DrawImageRect(*image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
 
 struct ImageParameter {
@@ -341,9 +338,10 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
     }
     constexpr float horizontalAlignmentFactor = 2.f;
     constexpr float verticalAlignmentFactor = 2.f;
-    tempRectF.SetAll((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor,
-                     (imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor,
-                     imageParameter.dstW, imageParameter.dstH);
+    tempRectF.SetAll(std::floor((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor),
+                     std::floor((imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor),
+                     std::ceil(imageParameter.dstW),
+                     std::ceil(imageParameter.dstH));
     return tempRectF;
 }
 
@@ -533,7 +531,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             if (isAstc) {
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
             }
-            rectForDrawShader_ = dst_;
+
             if (isOrientationValid_) {
                 ApplyImageOrientation(canvas);
             }
@@ -912,15 +910,6 @@ void RSImage::ProcessImageAfterCreation(
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-#if defined(RS_ENABLE_UNI_RENDER)
-        if (pixelMap != nullptr && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
-            rsImage->ConvertPixelMapToDrawingImage(true);
-        }
-#endif
-    }
-#endif
 }
 #endif
 } // namespace Rosen

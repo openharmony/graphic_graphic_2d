@@ -201,7 +201,8 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
         return imageCache;
     }
 
-    if (imageCacheSeqSize <= MAX_CACHE_SIZE_FOR_REUSE) {
+    RS_LOGD("RSVkImageManager::NewImageCacheFromBuffer %{public}u", bufferId);
+    if (imageCacheSeqSize < MAX_CACHE_SIZE_FOR_REUSE) {
         imageCacheSeqs_.emplace(bufferId, imageCache);
     }
 
@@ -249,9 +250,14 @@ void RSVkImageManager::DumpVkImageInfo(std::string &dumpString)
 }
 
 std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
-    RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-    const pid_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+    RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
+    const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
+    const sptr<SurfaceBuffer>& buffer = params.buffer;
+    const sptr<SyncFence>& acquireFence = params.acquireFence;
+    const pid_t threadIndex = params.threadIndex;
+    const Drawing::AlphaType alphaType = params.alphaType;
+
     auto image = std::make_shared<Drawing::Image>();
     if (buffer == nullptr) {
         RS_LOGE("RSVkImageManager::CreateImageFromBuffer: buffer is nullptr");
@@ -268,8 +274,8 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
             buffer->GetSeqNum());
         UnMapImageFromSurfaceBuffer(buffer->GetSeqNum());
     }
-    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
-    auto screenColorSpace = GetCanvasColorSpace(canvas);
+    auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
+    auto screenColorSpace = RSBaseRenderEngine::GetCanvasColorSpace(canvas);
     if (screenColorSpace && drawingColorSpace &&
         drawingColorSpace->IsSRGB() != screenColorSpace->IsSRGB()) {
         bitmapFormat.alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE;
@@ -279,8 +285,8 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
     auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Texture origin: %{public}d", static_cast<int>(surfaceOrigin));
     auto contextDrawingVk = canvas.GetGPUContext();
-    if (contextDrawingVk == nullptr || image == nullptr) {
-        RS_LOGE("contextDrawingVk or image is nullptr.");
+    if (contextDrawingVk == nullptr) {
+        RS_LOGE("contextDrawingVk is nullptr.");
         return nullptr;
     }
     auto& backendTexture = imageCache->GetBackendTexture();

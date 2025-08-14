@@ -37,6 +37,21 @@ public:
     inline static const std::string KEY_RS_CPU_ID = "rs_cpu_id";
     inline static const std::string KEY_RS_VSYNC_ID = "rs_vsync_id";
 
+    // events
+    inline static const std::string KEY_EVENT_TYPE = "evt_type"; // event type
+
+    inline static const std::string VAL_EVENT_TYPE_VSYNC = "val_vsync";
+    inline static const std::string VAL_EVENT_TYPE_MSGERR = "val_msgerr";
+    inline static const std::string VAL_EVENT_TYPE_MSGWARN = "val_msgwarn";
+    inline static const std::string VAL_EVENT_TYPE_PIXELMAP = "val_pixelmap";
+    inline static const std::string VAL_EVENT_TYPE_INFO = "val_info";
+    inline static const std::string VAL_EVENT_TYPE_PARCEL_UNMARSHALLING_START = "val_pustart";
+    inline static const std::string VAL_EVENT_TYPE_PARCEL_UNMARSHALLING_END = "val_puend";
+    inline static const std::string VAL_EVENT_TYPE_DEBUG = "val_debug";
+    inline static const std::string VAL_EVENT_TYPE_PIXELMAP_YUV = "val_pixelmap_uv";
+
+    inline static const std::string KEY_EVENT_MSG = "evt_msg"; // event param
+
     // every frame rendered
     inline static const std::string KEY_RENDER_FRAME_NUMBER = "render_frame_number";
     inline static const std::string KEY_RENDER_FRAME_LEN = "render_frame_len";

@@ -62,11 +62,6 @@ bool DoGenerateGEVisualEffect(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
     rsAIBarShaderFilter->GenerateGEVisualEffect(geContainer);
@@ -78,12 +73,7 @@ bool DoIsAiInvertCoefValid(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
- 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
+   
     std::vector<float> aiInvertCoef;
     aiInvertCoef.reserve(g_number);
     for (int i = 0; i < g_number; i++) {
@@ -100,11 +90,6 @@ bool DoGetAiInvertCoef(const uint8_t* data, size_t size)
         return false;
     }
     
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
     rsAIBarShaderFilter->GetAiInvertCoef();
     return true;
@@ -117,6 +102,11 @@ bool DoGetAiInvertCoef(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+    
     /* Run your code on data */
     OHOS::Rosen::DoGenerateGEVisualEffect(data, size);
     OHOS::Rosen::DoIsAiInvertCoefValid(data, size);

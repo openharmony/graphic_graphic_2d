@@ -57,10 +57,6 @@ bool DoInline(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     float valuex = GetData<float>();
     float valuey = GetData<float>();
     float epsilon = GetData<float>();
@@ -89,11 +85,6 @@ bool DoMemObject(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     size_t size1 = GetData<size_t>();
     MemObject obj3(size1);
     MemObject* obj1 = new MemObject(size1);
@@ -110,6 +101,11 @@ bool DoMemObject(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoInline(data, size);    // inline
     OHOS::Rosen::DoMemObject(data, size); // MemObject

@@ -25,6 +25,7 @@
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_settings.h"
+#include "rs_profiler_utils.h"
 
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_drawing_node_command.h"
@@ -44,11 +45,12 @@
 #include "image/image.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_modifier.h"
-#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -84,14 +86,34 @@ Drawing::Image TestTreeBuilder::GenerateRandomImage(int width, int height)
     return image;
 }
 
-TestTreeBuilder::TestTreeBuilder() : mt_(std::random_device()()), insideId_(0), withDisplay_(false) {}
+TestTreeBuilder::TestTreeBuilder()
+    : mt_(std::random_device()()), insideId_(0), withDisplay_(false), withScreenNode_(false),
+      withPatchedGlobalRoot_(false)
+{}
 
 void TestTreeBuilder::CreateNode00(RSContext& context, std::vector<std::shared_ptr<RSRenderNode>>& tree)
 {
     // DISPLAY or ROOT node +0
+    NodeId screenNodeId = insideId_++;
     NodeId currentId = insideId_++;
     if (withDisplay_) {
-        const auto displayNodeConfig = RSDisplayNodeConfig();
+        if (withPatchedGlobalRoot_) {
+            RootNodeCommandHelper::Create(context, Utils::PatchNodeId(0));
+        }
+        if (withScreenNode_) {
+            auto node = std::make_shared<RSScreenRenderNode>(screenNodeId, screenNodeId, context.weak_from_this());
+            context.GetMutableNodeMap().RegisterRenderNode(node);
+
+            if (withPatchedGlobalRoot_) {
+                BaseNodeCommandHelper::AddChild(context, Utils::PatchNodeId(0), screenNodeId, 0);
+            } else {
+                context.GetGlobalRootRenderNode()->AddChild(node);
+            }
+
+            HRPIDN("BuildTestTree: Builded Render Screen node wit id: %" PRIu64, screenNodeId);
+        }
+        RSDisplayNodeConfig displayNodeConfig {};
+        displayNodeConfig.screenId = screenNodeId;
         DisplayNodeCommandHelper::Create(context, currentId, displayNodeConfig);
 
         HRPIDN("BuildTestTree: Builded Display node wit id: %" PRIu64, currentId);
@@ -227,8 +249,13 @@ void TestTreeBuilder::CreateNode05(RSContext& context, std::vector<std::shared_p
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmds->AddDrawOp(drawRoundRect);
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
+#endif
 
     auto boundsPropertyV120 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0, 0, width13, height));
     auto boundsModifierV120 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV120);
@@ -261,8 +288,13 @@ void TestTreeBuilder::CreateNode06(RSContext& context, std::vector<std::shared_p
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
+#endif
 
     BaseNodeCommandHelper::AddChild(context, currentId - three, currentId, zero);
 
@@ -288,9 +320,13 @@ void TestTreeBuilder::CreateNode07(RSContext& context, std::vector<std::shared_p
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::BACKGROUND_STYLE));
+#endif
     BaseNodeCommandHelper::AddChild(context, currentId - four, currentId, zero);
 
     auto node = RSProfiler::GetRenderNode(currentId);
@@ -331,12 +367,21 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
     auto clipAdaptiveRoundRectOpItemPtr =
         std::make_shared<Drawing::ClipAdaptiveRoundRectOpItem>(clipAdaptiveRoundRectOpItem);
     drawCmds->AddDrawOp(clipAdaptiveRoundRectOpItemPtr);
+#if defined(MODIFIER_NG)
+    RSCanvasNodeCommandHelper::UpdateRecording(
+        context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
+
+    RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
+        std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
+        static_cast<uint16_t>(ModifierNG::RSModifierType::OVERLAY_STYLE));
+#else
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
 
     RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
         static_cast<uint16_t>(RSModifierType::OVERLAY_STYLE));
+#endif
 
     BaseNodeCommandHelper::AddChild(context, currentId - five, currentId, zero);
 
@@ -349,7 +394,8 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
     HRPIDN("BuildTestTree: Builded Canvas node wit id: %" PRIu64, currentId);
 }
 
-std::vector<std::shared_ptr<RSRenderNode>> TestTreeBuilder::Build(RSContext& context, NodeId topId, bool withDisplay)
+std::vector<std::shared_ptr<RSRenderNode>> TestTreeBuilder::Build(
+    RSContext& context, NodeId topId, bool withDisplay, bool withScreenNode, bool withPatchedGlobalRoot)
 {
     using OHOS::Rosen::DisplayNodeCommandHelper;
     using OHOS::Rosen::EffectNodeCommandHelper;
@@ -359,6 +405,8 @@ std::vector<std::shared_ptr<RSRenderNode>> TestTreeBuilder::Build(RSContext& con
     std::vector<std::shared_ptr<RSRenderNode>> tree;
     insideId_ = topId;
     withDisplay_ = withDisplay;
+    withScreenNode_ = withScreenNode;
+    withPatchedGlobalRoot_ = withPatchedGlobalRoot;
 
     /* graph structure of tree:
 

@@ -15,11 +15,14 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
-#include "render/rs_drawing_filter.h"
-#include "render/rs_effect_luminance_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#include "rs_parallel_misc.h"
+#include "rs_parallel_multiwin_policy.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -775,31 +778,25 @@ HWTEST_F(RSRenderNodeDrawableTest, ProcessedNodeCountTest, TestSize.Level1)
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 0);
 }
 
+
+#ifdef SUBTREE_PARALLEL_ENABLE
 /**
- * @tc.name: UpdateFilterDisplayHeadroomTest
- * @tc.desc: Test UpdateFilterDisplayHeadroom
+ * @tc.name: OnDrawTest
+ * @tc.desc: Test OnDraw
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderNodeDrawableTest, UpdateFilterDisplayHeadroomTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 {
-    NodeId id = 0;
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(id, 1.5f);
-
     Drawing::Canvas canvas;
-    drawable->UpdateFilterDisplayHeadroom(canvas);
+    auto pCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    ASSERT_TRUE(pCanvas != nullptr);
 
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    paintFilterCanvas.SetScreenId(id);
-    drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
-    EXPECT_NE(drawable->GetRenderParams(), nullptr);
-
-    const auto& params = drawable->GetRenderParams();
-    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    params->foregroundFilterCache_ = filter;
-    params->backgroundFilter_ = filter;
-
-    drawable->UpdateFilterDisplayHeadroom(paintFilterCanvas);
-    EXPECT_EQ(filter->shaderFilters_.size(), 1);
+    RSParallelManager::Singleton().state_ = RSParallelManager::FrameType::PARALLEL;
+    RSParallelManager::Singleton().workingPolicy_ = std::make_shared<RSParallelPolicy>();
+    drawable->OnDraw(*pCanvas);
+    pCanvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
+    drawable->OnDraw(*pCanvas);
 }
+#endif
 }

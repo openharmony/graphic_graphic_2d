@@ -37,7 +37,7 @@ constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
 constexpr double SAMPLE_VARIANCE_THRESHOLD = 250000000000.0; // 500 usec squared
-constexpr int64_t INSPECTION_PERIOD = 5000000000;
+constexpr int64_t INSPECTION_PERIOD = 5000000000; //5s
 
 static int64_t SystemTime()
 {
@@ -74,11 +74,12 @@ void VSyncSampler::ResetErrorLocked()
 
 void VSyncSampler::SetAdaptive(bool isAdaptive)
 {
-    if (isAdaptive_.load() == isAdaptive) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (isAdaptive_ == isAdaptive) {
         return;
     }
     lastAdaptiveTime_ = 0;
-    isAdaptive_.store(isAdaptive);
+    isAdaptive_ = isAdaptive;
 }
 
 void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
@@ -185,23 +186,15 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     }
     if (numSamples_ > 0) {
         auto preSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
-        auto intervalStamp = timeStamp - preSample;
-
-        if (intervalStamp <= 0) {
+        
+        if (auto intervalStamp = timeStamp - preSample; intervalStamp <= 0) {
             RS_TRACE_NAME_FMT("VSyncSampler::AddSample, invalid sample, preSample is larger");
             numSamples_ = 0;
             return true;
         }
-        
-        if (isAdaptive_.load() && CreateVSyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
-            RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
-            numSamples_ = 0;
-            lastAdaptiveTime_.store(SystemTime());
-            return true;
-        }
     }
 
-    if (isAdaptive_.load() && SystemTime() - lastAdaptiveTime_.load() < INSPECTION_PERIOD) {
+    if (isAdaptive_ && SystemTime() - lastAdaptiveTime_ < INSPECTION_PERIOD) {
         return true;
     }
 
@@ -238,7 +231,7 @@ void VSyncSampler::UpdateReferenceTimeLocked()
 {
     bool isFrameRateChanging = CreateVSyncGenerator()->GetFrameRateChaingStatus();
     // update referenceTime at the first sample, unless in adaptive sync mode
-    if (!isFrameRateChanging && (numSamples_ == 1) && !isAdaptive_.load()) {
+    if (!isFrameRateChanging && (numSamples_ == 1) && !isAdaptive_) {
         phase_ = 0;
         referenceTime_ = samples_[firstSampleIndex_];
         CheckIfFirstRefreshAfterIdleLocked();
@@ -343,6 +336,14 @@ bool VSyncSampler::AddPresentFenceTime(uint32_t screenId, int64_t timestamp)
         return false;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (isAdaptive_) {
+        auto prePresentFenceTime = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
+        auto interval = timestamp - prePresentFenceTime;
+        if (CreateVSyncGenerator()->CheckSampleIsAdaptive(interval)) {
+            RS_TRACE_NAME_FMT("VSyncSampler::AddPresentFenceTime, adaptive sample");
+            lastAdaptiveTime_ = SystemTime();
+        }
+    }
     if (screenId != vsyncEnabledScreenId_) {
         return false;
     }

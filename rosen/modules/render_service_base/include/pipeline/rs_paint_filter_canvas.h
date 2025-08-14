@@ -139,9 +139,36 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    /**
+     * @brief DDK Draw HPS Effect on image
+     *
+     * DDK provides an interface for high-performance implementation of certain 2D visual effects
+     *
+     * @param image                 the image needed to draw
+     * @param hpsEffectParams       the params of different effects needed to excute on image
+     * @return true if DDK excute HPS Effect success; false when failed.
+     */
     bool DrawImageEffectHPS(const Drawing::Image& image,
         const std::vector<std::shared_ptr<Drawing::HpsEffectParameter>>& hpsEffectParams) override;
+    /**
+     * @brief DDK Draw Gaussian Blur on image
+     *
+     * DDK provides an interface for high-performance implementation of Gaussian Blur
+     *
+     * @param image                 the image needed to draw
+     * @param blurParams            the params of Gaussian Blur which will excute on image
+     * @return true if DDK excute Blur success; false when failed.
+     */
     bool DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams) override;
+    /**
+     * @brief DDK calculate the size of the off-screen canvas that Blur Effect excute on
+     *
+     * DDK will excute Blur Effect on an off-screen canvas, the size of the off-screen canvas
+     *  will be calculated in DDK.
+     *
+     * @param blurParams            the params of Gaussian Blur which will excute on image
+     * @return size of the off-screen canvas.
+     */
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
     bool IsClipRect() override;
@@ -197,6 +224,12 @@ public:
         int envSaveCount = -1;
     };
 
+    enum SubTreeStatus : uint8_t {
+        DEFAULT_STATE = 0x00,
+        SUBTREE_PARALLEL_STATE = 0x01,
+        SUBTREE_QUICK_DRAW_STATE = 0x02
+    };
+
     enum class ScreenshotType {
         NON_SHOT = 0,
         SDR_SCREENSHOT,
@@ -250,8 +283,27 @@ public:
 
     void SetParallelThreadIdx(uint32_t idx);
     uint32_t GetParallelThreadIdx() const;
+    uint32_t GetParallelThreadId();
+    void SetParallelThreadId(uint32_t idx);
     void SetIsParallelCanvas(bool isParallel);
     bool GetIsParallelCanvas() const;
+
+    void RecordState(const RSPaintFilterCanvas& other);
+    std::weak_ptr<Drawing::Surface> GetWeakSurface();
+    // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
+    void SetWeakSurface(std::shared_ptr<Drawing::Surface> surface);
+    inline void SetSubTreeParallelState(SubTreeStatus state)
+    {
+        subTreeDrawStatus_ = state;
+    }
+    inline bool IsQuickGetDrawState() const
+    {
+        return subTreeDrawStatus_ == SUBTREE_QUICK_DRAW_STATE;
+    }
+    inline bool IsSubTreeInParallel() const
+    {
+        return subTreeDrawStatus_ != DEFAULT_STATE;
+    }
 
     void SetDisableFilterCache(bool disable);
     bool GetDisableFilterCache() const;
@@ -394,14 +446,13 @@ protected:
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
     {
+        if (IsQuickGetDrawState()) {
+            return false;
+        }
         float alpha = alphaStack_.top();
         // foreground color and foreground color strategy identification
         if (brush.GetColor().CastToColorQuad() == 0x00000001) {
             brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
-        }
-
-        if (envStack_.top().blender_) {
-            brush.SetBlender(envStack_.top().blender_);
         }
 
         // use alphaStack_.top() to multiply alpha
@@ -462,8 +513,10 @@ private:
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
-
     Occlusion::Region drawnRegion_;
+    uint32_t threadId_;
+    std::weak_ptr<Drawing::Surface> weakSurface_;
+    uint8_t subTreeDrawStatus_ = DEFAULT_STATE;
 };
 
 #ifdef RS_ENABLE_VK

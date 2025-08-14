@@ -19,8 +19,6 @@
 #include <condition_variable>
 #include <thread>
 
-#include "event_handler.h"
-
 namespace OHOS::Rosen {
 class ChronoSteadyClock {
 public:
@@ -54,8 +52,6 @@ public:
     void SetInterval(Interval valueMs);
 private:
     void Loop();
-
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     std::string name_;
     std::atomic<Interval> interval_;

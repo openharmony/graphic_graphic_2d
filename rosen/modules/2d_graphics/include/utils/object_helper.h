@@ -42,7 +42,7 @@ public:
 #ifdef ROSEN_OHOS
     bool Register(int32_t type, int32_t subType, UnmarshallingFunc func) {
         std::unique_lock<std::shared_mutex> lock(mapMutex_);
-        uint64_t key = (static_cast<uint64_t>(type) << 32) | subType;
+        uint64_t key = (static_cast<uint64_t>(type) << 32) | static_cast<uint64_t>(subType);
         funcMap_[key] = func;
         return true;
     }
@@ -55,7 +55,7 @@ public:
      */
     UnmarshallingFunc GetFunc(int32_t type, int32_t subType) const {
         std::shared_lock<std::shared_mutex> lock(mapMutex_);
-        uint64_t key = (static_cast<uint64_t>(type) << 32) | subType;
+        uint64_t key = (static_cast<uint64_t>(type) << 32) | static_cast<uint64_t>(subType);
         auto it = funcMap_.find(key);
         return (it != funcMap_.end()) ? it->second : nullptr;
     }

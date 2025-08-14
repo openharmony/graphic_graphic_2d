@@ -56,11 +56,6 @@ bool DoDisplayNode(const uint8_t* data, size_t size, RSContext& context)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
@@ -86,11 +81,6 @@ bool DoSetDisplayMode(const uint8_t* data, size_t size, RSContext& context)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<NodeId>();
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
@@ -114,11 +104,6 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size, RSContext& context)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<NodeId>();
     NodeId rID = GetData<NodeId>();
     RSDisplayNodeConfig config { 0, true, 0 };
@@ -133,11 +118,6 @@ bool DoSetScbNodePid(const uint8_t* data, size_t size, RSContext& context)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     NodeId id = GetData<NodeId>();
     std::vector<int32_t> oldScbPids = {};
@@ -160,11 +140,6 @@ bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size, RSContext& c
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     NodeId id = GetData<NodeId>();
     bool muteStatus = GetData<bool>();
     DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, muteStatus);
@@ -177,6 +152,11 @@ bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size, RSContext& c
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     std::shared_ptr<OHOS::Rosen::RSContext> context = std::make_shared<OHOS::Rosen::RSContext>();
 
     /* Run your code on data */

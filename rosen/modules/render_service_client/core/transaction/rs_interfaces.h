@@ -318,7 +318,27 @@ public:
     bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
         float blurRadius = 1E-6);
-    
+
+    /**
+     * @brief Take snapshot of displayNode.
+     * @param node Indicates a display node to be captured.
+     * @param callback Indicates callback to be triggered when snapshot is compeleted.
+     * @param captureConfig Indicates the configrutation items required for snapshot.
+     * @param checkDrmAndSurfaceLock Indicates the flag to check existing drm or surface lock window.
+     * @return return true if snaphot success, else return false.
+     */
+    bool TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
+        bool checkDrmAndSurfaceLock);
+
+    /**
+     * @brief Freeze or unfreeze screen.
+     * @param node Indicates a display node to freeze or unfreeze.
+     * @param isFreeze Indicates freeze or unfreeze the specified display node.
+     * @return return true if freeze or unfreeze success, else return false.
+     */
+    bool FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze);
+
     /**
      * @brief Get component snapshot Within the given node range.
      * @param beginNode Indicates first child of snapshot.
@@ -673,6 +693,14 @@ public:
      * @return 0 success, others failed.
      */
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
+
+    /**
+     * @brief Get the HDR status of the current screen.
+     * @param id Id of the screen.
+     * @param hdrStatus The HDR status of the current screen.
+     * @return 0 success, others failed.
+     */
+    int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     /**
      * @brief Set the HDR format of the current screen.

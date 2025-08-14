@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -208,6 +208,40 @@ uint32_t CmdList::SetupExtendObject(const std::vector<std::shared_ptr<ExtendObje
         extendObjectVec_.emplace_back(object);
     }
     return extendObjectVec_.size();
+}
+
+uint32_t CmdList::AddDrawingObject(const std::shared_ptr<Object>& object)
+{
+    std::lock_guard<std::mutex> lock(drawingObjectMutex_);
+    drawingObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(drawingObjectVec_.size()) - 1;
+}
+
+std::shared_ptr<Object> CmdList::GetDrawingObject(uint32_t index)
+{
+    std::lock_guard<std::mutex> lock(drawingObjectMutex_);
+    if (index >= drawingObjectVec_.size()) {
+        return nullptr;
+    }
+    return drawingObjectVec_[index];
+}
+
+uint32_t CmdList::GetAllDrawingObject(std::vector<std::shared_ptr<Object>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(drawingObjectMutex_);
+    for (const auto &object : drawingObjectVec_) {
+        objectList.emplace_back(object);
+    }
+    return objectList.size();
+}
+
+uint32_t CmdList::SetupDrawingObject(const std::vector<std::shared_ptr<Object>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(drawingObjectMutex_);
+    for (const auto &object : objectList) {
+        drawingObjectVec_.emplace_back(object);
+    }
+    return drawingObjectVec_.size();
 }
 
 uint32_t CmdList::AddRecordCmd(const std::shared_ptr<RecordCmd>& recordCmd)

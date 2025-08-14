@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,18 +22,18 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_REPORT_JANK_STATS = 0;
-const uint8_t DO_REPORT_EVENT_RESPONSE = 1;
-const uint8_t DO_REPORT_EVENT_COMPLETE = 2;
-const uint8_t DO_REPORT_EVENT_JANK_FRAME = 3;
-const uint8_t DO_REPORT_RS_SCENE_JANK_START = 4;
-const uint8_t DO_REPORT_RS_SCENE_JANK_END = 5;
-const uint8_t DO_REPORT_EVENT_GAMESTATE = 6;
-const uint8_t TARGET_SIZE = 7;
+const uint8_t DO_REPORT_EVENT_RESPONSE = 0;
+const uint8_t DO_REPORT_EVENT_COMPLETE = 1;
+const uint8_t DO_REPORT_EVENT_JANK_FRAME = 2;
+const uint8_t DO_REPORT_RS_SCENE_JANK_START = 3;
+const uint8_t DO_REPORT_RS_SCENE_JANK_END = 4;
+const uint8_t DO_REPORT_EVENT_GAMESTATE = 5;
+const uint8_t TARGET_SIZE = 6;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr size_t STR_LEN = 10;
 
 template<class T>
 T GetData()
@@ -51,17 +51,25 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
+/*
+ * get a string from g_data
+ */
+std::string GetStringFromData(int strlen)
 {
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
+    if (strlen <= 0) {
+        return "fuzz";
     }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
 }
 
 bool Init(const uint8_t* data, size_t size)
@@ -77,30 +85,115 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-
-} // namespace Mock
-
-void DoReportJankStats()
-{}
-
 void DoReportEventResponse()
-{}
+{
+    DataBaseRs info;
+    info.appPid = GetData<int32_t>();
+    info.eventType = GetData<int32_t>();
+    info.versionCode = GetData<int32_t>();
+    info.uniqueId = GetData<int64_t>();
+    info.inputTime = GetData<int64_t>();
+    info.beginVsyncTime = GetData<int64_t>();
+    info.endVsyncTime = GetData<int64_t>();
+    info.isDisplayAnimator = GetData<bool>();
+    info.sceneId = GetStringFromData(STR_LEN);
+    info.versionName = GetStringFromData(STR_LEN);
+    info.bundleName = GetStringFromData(STR_LEN);
+    info.processName = GetStringFromData(STR_LEN);
+    info.abilityName = GetStringFromData(STR_LEN);
+    info.pageUrl = GetStringFromData(STR_LEN);
+    info.sourceType = GetStringFromData(STR_LEN);
+    info.note = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ReportEventResponse(info);
+}
 
 void DoReportEventComplete()
-{}
+{
+    DataBaseRs info;
+    info.appPid = GetData<int32_t>();
+    info.eventType = GetData<int32_t>();
+    info.versionCode = GetData<int32_t>();
+    info.uniqueId = GetData<int64_t>();
+    info.inputTime = GetData<int64_t>();
+    info.beginVsyncTime = GetData<int64_t>();
+    info.endVsyncTime = GetData<int64_t>();
+    info.isDisplayAnimator = GetData<bool>();
+    info.sceneId = GetStringFromData(STR_LEN);
+    info.versionName = GetStringFromData(STR_LEN);
+    info.bundleName = GetStringFromData(STR_LEN);
+    info.processName = GetStringFromData(STR_LEN);
+    info.abilityName = GetStringFromData(STR_LEN);
+    info.pageUrl = GetStringFromData(STR_LEN);
+    info.sourceType = GetStringFromData(STR_LEN);
+    info.note = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ReportEventComplete(info);
+}
 
 void DoReportEventJankFrame()
-{}
+{
+    DataBaseRs info;
+    info.appPid = GetData<int32_t>();
+    info.eventType = GetData<int32_t>();
+    info.versionCode = GetData<int32_t>();
+    info.uniqueId = GetData<int64_t>();
+    info.inputTime = GetData<int64_t>();
+    info.beginVsyncTime = GetData<int64_t>();
+    info.endVsyncTime = GetData<int64_t>();
+    info.isDisplayAnimator = GetData<bool>();
+    info.sceneId = GetStringFromData(STR_LEN);
+    info.versionName = GetStringFromData(STR_LEN);
+    info.bundleName = GetStringFromData(STR_LEN);
+    info.processName = GetStringFromData(STR_LEN);
+    info.abilityName = GetStringFromData(STR_LEN);
+    info.pageUrl = GetStringFromData(STR_LEN);
+    info.sourceType = GetStringFromData(STR_LEN);
+    info.note = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ReportEventJankFrame(info);
+}
 
 void DoReportRsSceneJankStart()
-{}
+{
+    AppInfo info;
+    info.startTime = GetData<int64_t>();
+    info.endTime = GetData<int64_t>();
+    info.pid = GetData<int32_t>();
+    info.versionName = GetStringFromData(STR_LEN);
+    info.versionCode = GetData<int32_t>();
+    info.bundleName = GetStringFromData(STR_LEN);
+    info.processName = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ReportRsSceneJankStart(info);
+}
 
 void DoReportRsSceneJankEnd()
-{}
+{
+    AppInfo info;
+    info.startTime = GetData<int64_t>();
+    info.endTime = GetData<int64_t>();
+    info.pid = GetData<int32_t>();
+    info.versionName = GetStringFromData(STR_LEN);
+    info.versionCode = GetData<int32_t>();
+    info.bundleName = GetStringFromData(STR_LEN);
+    info.processName = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ReportRsSceneJankEnd(info);
+}
 
 void DoReportGameStateData()
-{}
+{
+    GameStateData info = {
+        .pid = GetData<int32_t>(),
+        .uid = GetData<int32_t>(),
+        .state = GetData<int32_t>(),
+        .renderTid = GetData<int32_t>(),
+        .bundleName = GetStringFromData(STR_LEN),
+    };
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ReportGameStateData(info);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -113,9 +206,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case OHOS::Rosen::DO_REPORT_JANK_STATS:
-            OHOS::Rosen::DoReportJankStats();
-            break;
         case OHOS::Rosen::DO_REPORT_EVENT_RESPONSE:
             OHOS::Rosen::DoReportEventResponse();
             break;

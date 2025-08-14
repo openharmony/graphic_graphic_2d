@@ -20,12 +20,19 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr uint32_t MAX_FRAME_RATE_LINKER_SIZE = 2048;
+}
 RSRenderFrameRateLinkerMap::RSRenderFrameRateLinkerMap()
 {
 }
 
 bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr)
 {
+    if (frameRateLinkerMap_.size() >= MAX_FRAME_RATE_LINKER_SIZE) {
+        return false;
+    }
+
     FrameRateLinkerId id = linkerPtr->GetId();
     if (frameRateLinkerMap_.count(id)) {
         return false;

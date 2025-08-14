@@ -15,32 +15,20 @@
 
 #include "drawing_add_text_fuzzer.h"
 
-namespace {
-std::unique_ptr<char[]> GetRandomString(const char* data, size_t size)
-{
-    std::unique_ptr<char[]> dest = std::make_unique<char[]>(size);
-    if (memcpy_s(dest.get(), size, data, size) != EOK) {
-        return nullptr;
-    }
-    return dest;
-}
-} // namespace
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS::Rosen::Drawing {
 void OHDrawingAddTextTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
-
-    std::unique_ptr str = GetRandomString(reinterpret_cast<const char*>(data), size);
+    FuzzedDataProvider fdp(data, size);
+    std::string str = fdp.ConsumeRandomLengthString();
 
     OH_Drawing_FontCollection* fc = OH_Drawing_GetFontCollectionGlobalInstance();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
-    OH_Drawing_TypographyHandlerAddEncodedText(handler, str.get(), size, TEXT_ENCODING_UTF8);
-    OH_Drawing_TypographyHandlerAddEncodedText(handler, str.get(), size, TEXT_ENCODING_UTF16);
-    OH_Drawing_TypographyHandlerAddEncodedText(handler, str.get(), size, TEXT_ENCODING_UTF32);
+    OH_Drawing_TypographyHandlerAddEncodedText(handler, str.c_str(), str.size(), TEXT_ENCODING_UTF8);
+    OH_Drawing_TypographyHandlerAddEncodedText(handler, str.c_str(), str.size(), TEXT_ENCODING_UTF16);
+    OH_Drawing_TypographyHandlerAddEncodedText(handler, str.c_str(), str.size(), TEXT_ENCODING_UTF32);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     OH_Drawing_TypographyLayout(typography, 1000.0f);
 

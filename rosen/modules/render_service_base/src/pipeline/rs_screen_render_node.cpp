@@ -109,30 +109,19 @@ void RSScreenRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, No
         logicalDisplayNodeId);
 }
 
-CompositeType RSScreenRenderNode::GetCompositeType() const
-{
-    return compositeType_;
-}
-
-void RSScreenRenderNode::SetCompositeType(CompositeType type)
-{
-    compositeType_ = type;
-}
-
 void RSScreenRenderNode::SetForceSoftComposite(bool flag)
 {
     forceSoftComposite_ = flag;
 }
 
-bool RSScreenRenderNode::IsForceSoftComposite() const
-{
-    return forceSoftComposite_;
-}
-
 void RSScreenRenderNode::SetMirrorSource(SharedPtr node)
 {
-    if (!isMirroredScreen_ || node == nullptr) {
+    if (!isMirroredScreen_ || node == nullptr || node == mirrorSource_.lock()) {
         return;
+    }
+
+    if (auto mirrorSource = mirrorSource_.lock()) {
+        mirrorSource->SetHasMirrorScreen(false);
     }
     node->SetHasMirrorScreen(true);
     mirrorSource_ = node;
@@ -144,11 +133,6 @@ void RSScreenRenderNode::ResetMirrorSource()
         mirrorSource->SetHasMirrorScreen(false);
     }
     mirrorSource_.reset();
-}
-
-bool RSScreenRenderNode::IsMirrorScreen() const
-{
-    return isMirroredScreen_;
 }
 
 void RSScreenRenderNode::SetIsMirrorScreen(bool isMirror)
@@ -213,26 +197,6 @@ void RSScreenRenderNode::HandleCurMainAndLeashSurfaceNodes()
         surfaceCountForMultiLayersPerf_++;
     }
     curMainAndLeashSurfaceNodes_.clear();
-    topSurfaceOpaqueRects_.clear();
-}
-
-void RSScreenRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface)
-{
-    curMainAndLeashSurfaceNodes_.push_back(surface);
-}
-
-Occlusion::Region RSScreenRenderNode::GetTopSurfaceOpaqueRegion() const
-{
-    Occlusion::Region topSurfaceOpaqueRegion;
-    for (const auto& rect : topSurfaceOpaqueRects_) {
-        topSurfaceOpaqueRegion.OrSelf(rect);
-    }
-    return topSurfaceOpaqueRegion;
-}
-
-void RSScreenRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
-{
-    topSurfaceOpaqueRects_.push_back(rect);
 }
 
 void RSScreenRenderNode::UpdateRenderParams()
@@ -284,7 +248,6 @@ void RSScreenRenderNode::UpdatePartialRenderParams()
         return;
     }
     screenParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
-    screenParams->SetTopSurfaceOpaqueRects(std::move(topSurfaceOpaqueRects_));
 }
 
 bool RSScreenRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
@@ -390,6 +353,50 @@ void RSScreenRenderNode::SetFingerprint(bool hasFingerprint)
 #endif
 }
 
+void RSScreenRenderNode::SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit)
+{
+    if (isFixVirtualBuffer10Bit_ == isFixVirtualBuffer10Bit) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    screenParams->SetFixVirtualBuffer10Bit(isFixVirtualBuffer10Bit);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit;
+}
+
+bool RSScreenRenderNode::GetFixVirtualBuffer10Bit() const
+{
+    return isFixVirtualBuffer10Bit_;
+}
+
+void RSScreenRenderNode::SetExistHWCNode(bool existHWCNode)
+{
+    if (existHWCNode_ == existHWCNode) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    screenParams->SetExistHWCNode(existHWCNode);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    existHWCNode_ = existHWCNode;
+}
+
+bool RSScreenRenderNode::GetExistHWCNode() const
+{
+    return existHWCNode_;
+}
+
 void RSScreenRenderNode::SetHDRPresent(bool hdrPresent)
 {
 #ifdef RS_ENABLE_GPU
@@ -491,11 +498,6 @@ void RSScreenRenderNode::SelectBestGamut(const std::vector<ScreenColorGamut>& mo
     SetColorSpace(finalGamut);
 }
 
-GraphicColorGamut RSScreenRenderNode::GetColorSpace() const
-{
-    return colorSpace_;
-}
-
 void RSScreenRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
 {
     isForceCloseHdr_ = isForceCloseHdr;
@@ -530,11 +532,6 @@ Occlusion::Region RSScreenRenderNode::GetDisappearedSurfaceRegionBelowCurrent(No
     return result;
 }
 
-bool RSScreenRenderNode::IsZoomStateChange() const
-{
-    return preZoomState_ != curZoomState_;
-}
-
 void RSScreenRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -559,6 +556,25 @@ void RSScreenRenderNode::SetHasMirrorScreen(bool hasMirrorScreen)
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+}
+
+void RSScreenRenderNode::SetForceFreeze(bool forceFreeze)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetForceFreeze screenParams is null");
+        return;
+    }
+    forceFreeze_ = forceFreeze;
+    screenParams->SetForceFreeze(forceFreeze);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSScreenRenderNode::GetForceFreeze() const
+{
+    return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
 } // namespace Rosen
 } // namespace OHOS

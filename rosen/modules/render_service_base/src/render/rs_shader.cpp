@@ -20,6 +20,7 @@
 #include "render/rs_dot_matrix_shader.h"
 #include "render/rs_flow_light_sweep_shader.h"
 #include "ge_visual_effect_impl.h"
+#include "effect/shader_effect_lazy.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,6 +58,7 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(const ShaderType& type)
         }
         case ShaderType::BORDER_LIGHT: {
             shader = std::make_shared<RSBorderLightShader>();
+            break;
         }
         default:
             break;
@@ -71,6 +73,14 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(const ShaderType& type)
 
 void RSShader::SetDrawingShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader)
 {
+    // Materialize Lazy ShaderEffect objects immediately for RSShader compatibility
+    if (drShader && drShader->IsLazy()) {
+        auto lazyShader = std::static_pointer_cast<Drawing::ShaderEffectLazy>(drShader);
+        auto materializedShader = lazyShader->Materialize();
+        drShader_ = materializedShader;
+        ROSEN_LOGD("RSShader::SetDrawingShader materialized Lazy ShaderEffect");
+        return;
+    }
     drShader_ = drShader;
 }
 

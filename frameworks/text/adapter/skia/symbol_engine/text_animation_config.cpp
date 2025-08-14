@@ -17,6 +17,7 @@
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS::Rosen::SPText {
 
@@ -60,6 +61,7 @@ void TextAnimationConfig::SetEffectStrategy(RSEffectStrategy effectStrategy)
 bool TextAnimationConfig::DrawTextEffect(RSCanvas* canvas,
     const std::vector<TextEngine::TextEffectElement>& effectElements)
 {
+    TEXT_TRACE_FUNC();
     if (canvas == nullptr) {
         TEXT_LOGE("Invalid input, canvas is nullptr.");
         return false;
@@ -83,6 +85,7 @@ bool TextAnimationConfig::DrawTextEffect(RSCanvas* canvas,
 
 bool TextAnimationConfig::TextAnimationRun(const std::vector<TextEngine::TextEffectElement>& effectElements)
 {
+    TEXT_TRACE_FUNC();
     if (animationFunc_ == nullptr) {
         return false;
     }
@@ -106,6 +109,7 @@ bool TextAnimationConfig::TextAnimationRun(const std::vector<TextEngine::TextEff
 void TextAnimationConfig::OnDrawTextEffect(RSCanvas* canvas,
     const std::vector<TextEngine::TextEffectElement>& effectElements)
 {
+    TEXT_TRACE_FUNC();
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
     brush.SetColor(color_.CastToColorQuad());
@@ -137,6 +141,7 @@ void TextAnimationConfig::AnimationUnchange(bool isUnchange)
 
 void TextAnimationConfig::ClearAllTextAnimation()
 {
+    TEXT_TRACE_FUNC();
     if (animationFunc_ == nullptr) {
         return;
     }

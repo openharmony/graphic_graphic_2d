@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,10 @@
 #include "draw/color.h"
 #include "drawing/engine_adapter/impl_interface/color_filter_impl.h"
 #include "utils/drawing_macros.h"
+
+#ifdef ROSEN_OHOS
+#include <parcel.h>
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -94,6 +98,11 @@ public:
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
     bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const;
+
+#ifdef ROSEN_OHOS
+    bool Marshalling(Parcel& parcel);
+    static std::shared_ptr<ColorFilter> Unmarshalling(Parcel& parcel, bool& isValid);
+#endif
 
     void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp = Clamp::YES_CLAMP);
 

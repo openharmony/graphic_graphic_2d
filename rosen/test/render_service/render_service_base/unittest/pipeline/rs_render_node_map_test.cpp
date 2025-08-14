@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -127,24 +127,6 @@ HWTEST_F(RSRenderNodeMapTest, RegisterRenderNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterDisplayRenderNode
- * @tc.desc: test results of RegisterDisplayRenderNode
- * @tc.type:FUNC
- * @tc.require: issueI9H4AD
- */
-HWTEST_F(RSRenderNodeMapTest, RegisterDisplayRenderNode, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSScreenRenderNode* screenRenderNode = new RSScreenRenderNode(id, 1);
-    std::shared_ptr<RSScreenRenderNode> node(screenRenderNode);
-    RSRenderNodeMap rsRenderNodeMap;
-    auto result = rsRenderNodeMap.RegisterRenderNode(node);
-    EXPECT_TRUE(result);
-    result = rsRenderNodeMap.RegisterRenderNode(node);
-    EXPECT_FALSE(result);
-}
-
-/**
  * @tc.name: UnregisterRenderNodeTest
  * @tc.desc: test results of UnregisterRenderNode
  * @tc.type:FUNC
@@ -191,6 +173,7 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 {
     NodeId id = 0;
+    ScreenId screenId = 1;
     pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
@@ -198,7 +181,7 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 
     rsRenderNodeMap.renderNodeMap_[pid][id] = node;
     rsRenderNodeMap.FilterNodeByPid(1);
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(id, 1);
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     rsRenderNodeMap.screenNodeMap_.emplace(id, screenRenderNode);
     rsRenderNodeMap.FilterNodeByPid(1);
     rsRenderNodeMap.renderNodeMap_.clear();
@@ -215,8 +198,7 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPidImmediate, Level1)
 {
     auto renderNodeMap = RSRenderNodeMap();
     auto displayId = 1;
-    RSDisplayNodeConfig config;
-    auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayId, config);
+    auto displayRenderNode = std::make_shared<RSScreenRenderNode>(displayId, 0, context);
     renderNodeMap.RegisterRenderNode(displayRenderNode);
 
     constexpr uint32_t bits = 32u;

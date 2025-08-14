@@ -21,7 +21,6 @@ group("fuzztest") {
     "drawcmdlist_fuzzer:fuzztest",
     "maskcmdlist_fuzzer:fuzztest",
     "memallocator_fuzzer:fuzztest",
-    "opitem_fuzzer:fuzztest",
     "recordingcanvas_fuzzer:fuzztest",
   ]
 }

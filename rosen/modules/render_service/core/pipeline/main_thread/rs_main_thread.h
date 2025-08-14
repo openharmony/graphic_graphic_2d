@@ -121,6 +121,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    void SetForceRsDVsync(const std::string& sceneId);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -229,7 +230,8 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void ClearWatermark(pid_t pid);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
@@ -298,6 +300,8 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     void AddPidNeedDropFrame(std::vector<int32_t> pid);
     void ClearNeedDropframePidList();
+    void SetSelfDrawingGpuDirtyPidList(const std::vector<int32_t>& pid);
+    bool IsGpuDirtyEnable(NodeId nodeId);
     bool IsNeedDropFrameByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus(ScreenId id);
@@ -370,6 +374,8 @@ public:
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
+    static bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode);
+
     bool GetMultiDisplayChange() const
     {
         return isMultiDisplayChange_;
@@ -437,6 +443,7 @@ public:
     void SetTaskEndWithTime(int64_t time);
 
     uint32_t GetVsyncRefreshRate();
+    void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -531,7 +538,6 @@ private:
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
     void ProcessScreenHotPlugEvents();
-    void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
@@ -574,6 +580,9 @@ private:
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
     bool ExistBufferIsVisibleAndUpdate();
+    bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
+    bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
+        std::vector<std::unique_ptr<RSTransactionData>>& transactionVec);
     class RSScreenNodeListener : public RSIScreenNodeListener {
     public:
         ~RSScreenNodeListener() override = default;
@@ -736,14 +745,6 @@ private:
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;
 
-#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
-    RSTaskMessage::RSTask uploadTextureBarrierTask_;
-    std::condition_variable uploadTextureTaskCond_;
-    std::mutex uploadTextureMutex_;
-    int32_t uploadTextureFinishedCount_ = 0;
-    EGLSyncKHR uploadTextureFence;
-#endif
-
     mutable std::mutex uniRenderMutex_;
 
     // Used to refresh the whole display when luminance is changed
@@ -787,7 +788,8 @@ private:
     std::condition_variable nodeTreeDumpCondVar_;
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
-    std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::map<std::pair<pid_t, std::string>, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
@@ -833,6 +835,8 @@ private:
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
+    std::unordered_set<int32_t> selfDrawingGpuDirtyPidList_;
+    std::mutex pidListMutex_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
 
     // for record fastcompose time change
@@ -851,6 +855,7 @@ private:
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     HgmContext hgmContext_;
+    std::mutex dumpInfoMutex_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

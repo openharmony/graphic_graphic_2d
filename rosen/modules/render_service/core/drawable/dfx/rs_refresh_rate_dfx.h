@@ -34,7 +34,7 @@ public:
 
 private:
     bool RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
-        ScreenRotation rotation, uint32_t translateWidth, uint32_t translateHeight);
+        ScreenRotation rotation, float translateWidth, float translateHeight);
     
     const DrawableV2::RSLogicalDisplayRenderNodeDrawable& logicalDisplayDrawable_;
     const std::unique_ptr<RSRenderParams>& logicalDisplayParams_;

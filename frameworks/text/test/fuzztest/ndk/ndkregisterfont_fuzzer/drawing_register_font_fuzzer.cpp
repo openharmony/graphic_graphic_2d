@@ -40,9 +40,8 @@ void OHDrawingRegisterFontTest(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
     OH_Drawing_FontCollection* fc = OH_Drawing_GetFontCollectionGlobalInstance();
-    std::string familySrc = fdp.ConsumeRandomLengthString();
     std::string familyName = fdp.ConsumeRandomLengthString();
-    OH_Drawing_RegisterFont(fc, familyName.c_str(), familySrc.c_str());
+    OH_Drawing_RegisterFont(fc, familyName.c_str(), "random path");
     UseCustomFontToLayout(fc, familyName);
     OH_Drawing_UnregisterFont(fc, familyName.c_str());
     std::vector<uint8_t> fontBuffer = fdp.ConsumeRemainingBytes<uint8_t>();

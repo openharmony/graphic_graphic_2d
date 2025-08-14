@@ -39,10 +39,6 @@ void RSRenderParams::SetAlpha(float alpha)
     alpha_ = alpha;
     needSync_ = true;
 }
-float RSRenderParams::GetAlpha() const
-{
-    return alpha_;
-}
 
 void RSRenderParams::SetAlphaOffScreen(bool alphaOffScreen)
 {
@@ -63,21 +59,6 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
     matrix_ = matrix;
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::MATRIX_DIRTY);
-}
-
-const Drawing::Matrix& RSRenderParams::GetMatrix() const
-{
-    return matrix_;
-}
-
-bool RSRenderParams::HasUnobscuredUEC() const
-{
-    return hasUnobscuredUEC_;
-}
-
-void RSRenderParams::SetHasUnobscuredUEC(bool flag)
-{
-    hasUnobscuredUEC_ = flag;
 }
 
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
@@ -113,11 +94,6 @@ void RSRenderParams::SetBoundsRect(const Drawing::RectF& boundsRect)
     needSync_ = true;
 }
 
-const Drawing::Rect& RSRenderParams::GetBounds() const
-{
-    return boundsRect_;
-}
-
 void RSRenderParams::SetFrameRect(const Drawing::RectF& frameRect)
 {
     if (frameRect_ == frameRect) {
@@ -126,11 +102,6 @@ void RSRenderParams::SetFrameRect(const Drawing::RectF& frameRect)
 
     frameRect_ = frameRect;
     needSync_ = true;
-}
-
-const Drawing::Rect& RSRenderParams::GetFrameRect() const
-{
-    return frameRect_;
 }
 
 bool RSRenderParams::SetLocalDrawRect(const RectF& localDrawRect)
@@ -143,11 +114,6 @@ bool RSRenderParams::SetLocalDrawRect(const RectF& localDrawRect)
     return true;
 }
 
-const RectF& RSRenderParams::GetLocalDrawRect() const
-{
-    return localDrawRect_;
-}
-
 void RSRenderParams::SetHasSandBox(bool hasSandbox)
 {
     if (hasSandBox_ == hasSandbox) {
@@ -155,11 +121,6 @@ void RSRenderParams::SetHasSandBox(bool hasSandbox)
     }
     hasSandBox_ = hasSandbox;
     needSync_ = true;
-}
-
-bool RSRenderParams::HasSandBox() const
-{
-    return hasSandBox_;
 }
 
 void RSRenderParams::SetShouldPaint(bool shouldPaint)
@@ -180,11 +141,6 @@ void RSRenderParams::SetContentEmpty(bool empty)
     needSync_ = true;
 }
 
-bool RSRenderParams::GetShouldPaint() const
-{
-    return shouldPaint_ && !contentEmpty_;
-}
-
 void RSRenderParams::SetChildHasVisibleFilter(bool val)
 {
     if (childHasVisibleFilter_ == val) {
@@ -194,11 +150,6 @@ void RSRenderParams::SetChildHasVisibleFilter(bool val)
     needSync_ = true;
 }
 
-bool RSRenderParams::ChildHasVisibleFilter() const
-{
-    return childHasVisibleFilter_;
-}
-
 void RSRenderParams::SetChildHasVisibleEffect(bool val)
 {
     if (childHasVisibleEffect_ == val) {
@@ -206,11 +157,6 @@ void RSRenderParams::SetChildHasVisibleEffect(bool val)
     }
     childHasVisibleEffect_ = val;
     needSync_ = true;
-}
-
-bool RSRenderParams::ChildHasVisibleEffect() const
-{
-    return childHasVisibleEffect_;
 }
 
 void RSRenderParams::SetCacheSize(Vector2f size)
@@ -239,21 +185,6 @@ void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced
     }
 }
 
-bool RSRenderParams::GetDrawingCacheChanged() const
-{
-    return isDrawingCacheChanged_;
-}
-
-void RSRenderParams::SetNeedUpdateCache(bool needUpdateCache)
-{
-    isNeedUpdateCache_ = needUpdateCache;
-}
-
-bool RSRenderParams::GetNeedUpdateCache() const
-{
-    return isNeedUpdateCache_;
-}
-
 void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     if (drawingCacheType_ == cacheType) {
@@ -262,11 +193,6 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     dirtyType_.set(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     drawingCacheType_ = cacheType;
     needSync_ = true;
-}
-
-RSDrawingCacheType RSRenderParams::GetDrawingCacheType() const
-{
-    return drawingCacheType_;
 }
 
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
@@ -278,11 +204,6 @@ void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
     needSync_ = true;
 }
 
-bool RSRenderParams::GetDrawingCacheIncludeProperty() const
-{
-    return drawingCacheIncludeProperty_;
-}
-
 void RSRenderParams::SetRSFreezeFlag(bool freezeFlag)
 {
     if (freezeFlag_ == freezeFlag) {
@@ -290,11 +211,6 @@ void RSRenderParams::SetRSFreezeFlag(bool freezeFlag)
     }
     freezeFlag_ = freezeFlag;
     needSync_ = true;
-}
-
-bool RSRenderParams::GetRSFreezeFlag() const
-{
-    return freezeFlag_;
 }
 
 void RSRenderParams::OpincSetIsSuggest(bool isSuggest)
@@ -306,11 +222,6 @@ void RSRenderParams::OpincSetIsSuggest(bool isSuggest)
     needSync_ = true;
 }
 
-bool RSRenderParams::OpincIsSuggest() const
-{
-    return isOpincSuggestFlag_;
-}
-
 void RSRenderParams::OpincUpdateSupportFlag(bool supportFlag)
 {
     if (isOpincSupportFlag_ == supportFlag) {
@@ -320,11 +231,6 @@ void RSRenderParams::OpincUpdateSupportFlag(bool supportFlag)
     needSync_ = true;
 }
 
-bool RSRenderParams::OpincGetSupportFlag() const
-{
-    return isOpincSupportFlag_;
-}
-
 void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
 {
     if (isOpincRootFlag_ == suggestFlag) {
@@ -332,11 +238,6 @@ void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
     }
     isOpincRootFlag_ = suggestFlag;
     needSync_ = true;
-}
-
-bool RSRenderParams::OpincGetRootFlag() const
-{
-    return isOpincRootFlag_;
 }
 
 void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
@@ -350,13 +251,6 @@ void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
     }
 }
 
-bool RSRenderParams::OpincGetCacheChangeState()
-{
-    bool state = isOpincStateChanged_;
-    isOpincStateChanged_ = false;
-    return state;
-}
-
 void RSRenderParams::SetShadowRect(Drawing::Rect rect)
 {
     if (shadowRect_ == rect) {
@@ -364,11 +258,6 @@ void RSRenderParams::SetShadowRect(Drawing::Rect rect)
     }
     shadowRect_ = rect;
     needSync_ = true;
-}
-
-Drawing::Rect RSRenderParams::GetShadowRect() const
-{
-    return shadowRect_;
 }
 
 void RSRenderParams::SetNeedSync(bool needSync)
@@ -457,16 +346,6 @@ void RSRenderParams::SetVirtualScreenWhiteListInfo(const std::unordered_map<Scre
     needSync_ = true;
 }
 
-const std::unordered_map<ScreenId, bool>& RSRenderParams::GetVirtualScreenWhiteListInfo() const
-{
-    return hasVirtualScreenWhiteList_;
-}
-
-bool RSRenderParams::NeedSync() const
-{
-    return needSync_;
-}
-
 void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target)
 {
     if (!canvasDrawingNodeSurfaceChanged_) {
@@ -480,11 +359,6 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
         return;
     }
     canvasDrawingNodeSurfaceChanged_ = false;
-}
-
-bool RSRenderParams::GetCanvasDrawingSurfaceChanged() const
-{
-    return canvasDrawingNodeSurfaceChanged_;
 }
 
 void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
@@ -505,11 +379,6 @@ void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
     isRepaintBoundary_ = isRepaintBoundary;
 }
 
-const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
-{
-    return foregroundFilterCache_;
-}
-
 void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
 {
     if (foregroundFilterCache_ == foregroundFilterCache) {
@@ -517,25 +386,6 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     }
     foregroundFilterCache_ = foregroundFilterCache;
     needSync_ = true;
-}
-
-const std::shared_ptr<RSFilter>& RSRenderParams::GetBackgroundFilter() const
-{
-    return backgroundFilter_;
-}
-
-void RSRenderParams::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
-{
-    if (backgroundFilter_ == backgroundFilter) {
-        return;
-    }
-    backgroundFilter_ = backgroundFilter;
-    needSync_ = true;
-}
-
-RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
-{
-    return surfaceParams_;
 }
 
 void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height, GraphicColorGamut colorSpace)
@@ -572,7 +422,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
-    target->isNodeGroupHasChildInBlackList_ = isNodeGroupHasChildInBlackList_;
+    target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
@@ -584,7 +434,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasGlobalCorner_ = hasGlobalCorner_;
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
-    target->backgroundFilter_ = backgroundFilter_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
     target->isOpincSupportFlag_ = isOpincSupportFlag_;
@@ -630,9 +479,6 @@ std::string RSRenderParams::ToString() const
     if (foregroundFilterCache_ != nullptr) {
         ret += foregroundFilterCache_->GetDescription();
     }
-    if (backgroundFilter_ != nullptr) {
-        ret += backgroundFilter_->GetDescription();
-    }
     return ret;
 }
 
@@ -655,11 +501,6 @@ bool RSRenderParams::SetFirstLevelNode(NodeId firstLevelNodeId)
     return true;
 }
 
-NodeId RSRenderParams::GetFirstLevelNodeId() const
-{
-    return firstLevelNodeId_;
-}
-
 bool RSRenderParams::SetUiFirstRootNode(NodeId uifirstRootNodeId)
 {
     if (uifirstRootNodeId_ == uifirstRootNodeId) {
@@ -668,11 +509,6 @@ bool RSRenderParams::SetUiFirstRootNode(NodeId uifirstRootNodeId)
     uifirstRootNodeId_ = uifirstRootNodeId;
     needSync_ = true;
     return true;
-}
-
-NodeId RSRenderParams::GetUifirstRootNodeId() const
-{
-    return uifirstRootNodeId_;
 }
 
 // overrided surface params
@@ -694,11 +530,6 @@ DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSource
     return defaultPtr;
 }
 
-DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetCloneSourceDrawable() const
-{
-    return cloneSourceDrawable_;
-}
-
 void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
     cloneSourceDrawable_ = drawable;
@@ -716,22 +547,10 @@ void RSRenderParams::EnableWindowKeyFrame(bool enable)
 }
 
 // [Attention] Only used in PC window resize scene now
-bool RSRenderParams::IsWindowKeyFrameEnabled() const
-{
-    return windowKeyframeEnabled_;
-}
-
-// [Attention] Only used in PC window resize scene now
 void RSRenderParams::SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
     linkedRootNodeDrawable_ = drawable;
     needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetLinkedRootNodeDrawable()
-{
-    return linkedRootNodeDrawable_;
 }
 
 // [Attention] Only used in PC window resize scene now
@@ -745,12 +564,6 @@ void RSRenderParams::SetNeedSwapBuffer(bool needSwapBuffer)
 }
 
 // [Attention] Only used in PC window resize scene now
-bool RSRenderParams::GetNeedSwapBuffer() const
-{
-    return needSwapBuffer_;
-}
-
-// [Attention] Only used in PC window resize scene now
 void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect)
 {
     if (cacheNodeFrameRect_ == cacheNodeFrameRect) {
@@ -758,12 +571,6 @@ void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameR
     }
     cacheNodeFrameRect_ = cacheNodeFrameRect;
     needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-const Drawing::RectF& RSRenderParams::GetCacheNodeFrameRect() const
-{
-    return cacheNodeFrameRect_;
 }
 
 // used for DFX

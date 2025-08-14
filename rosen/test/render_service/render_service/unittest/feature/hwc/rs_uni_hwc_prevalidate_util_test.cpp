@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
@@ -216,6 +217,30 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo002, TestSize.Lev
 }
 
 /**
+ * @tc.name: CreateScreenNodeLayerInfo003
+ * @tc.desc: CreateScreenNodeLayerInfo, input displayNode has drawable
+ * @tc.type: FUNC
+ * @tc.require: issueICNEE1
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateScreenNodeLayerInfo003, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    ScreenInfo screenInfo;
+    NodeId id = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    if (screenNode->GetRenderDrawable() == nullptr) {
+        screenNode->renderDrawable_ = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(screenNode);
+    }
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateScreenNodeLayerInfo(
+        DEFAULT_Z_ORDER, screenNode, screenInfo, DEFAULT_FPS, info);
+    ASSERT_EQ(ret, false);
+}
+
+/**
  * @tc.name: CreateRCDLayerInfo001
  * @tc.desc: CreateRCDLayerInfo, input nullptr
  * @tc.type: FUNC
@@ -248,6 +273,24 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateRCDLayerInfo002, TestSize.Level1)
     bool ret = uniHwcPrevalidateUtil.CreateRCDLayerInfo(node, screenInfo, DEFAULT_FPS, info);
     ASSERT_EQ(info.fps, DEFAULT_FPS);
     ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CreateRCDLayerInfo003
+ * @tc.desc: CreateRCDLayerInfo, input RCDSurfaceNode has buffer
+ * @tc.type: FUNC
+ * @tc.require: issueICNEE1
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateRCDLayerInfo003, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto node = RSTestUtil::CreateRcdNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    ScreenInfo screenInfo;
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateRCDLayerInfo(node, screenInfo, DEFAULT_FPS, info);
+    ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, true);
 }
 
 /**
@@ -382,7 +425,12 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit001, TestSize.Level1)
     ASSERT_NE(bufferHandle, nullptr);
     bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     RequestLayerInfo info;
+    uniHwcPrevalidateUtil.isCopybitSupported_ = false;
     uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
+    uniHwcPrevalidateUtil.isCopybitSupported_ = true;
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    ASSERT_EQ(surfaceNode->GetCopybitTag(), true);
 }
 
 /**
@@ -397,7 +445,35 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit002, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RequestLayerInfo info;
+    uniHwcPrevalidateUtil.isCopybitSupported_ = false;
     uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
+    uniHwcPrevalidateUtil.isCopybitSupported_ = true;
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
+}
+
+/**
+ * @tc.name: CheckIfDoCopybit004
+ * @tc.desc: CheckIfDoCopybit, input normal surfacenode
+ * @tc.type: FUNC
+ * @tc.require: issueICNEE1
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit004, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    RequestLayerInfo info;
+    uniHwcPrevalidateUtil.isCopybitSupported_ = true;
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_NONE, info);
+    ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+    ASSERT_EQ(surfaceNode->GetCopybitTag(), false);
 }
 
 /**

@@ -45,10 +45,6 @@ bool TypefaceFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
     typeface->GetFamilyName();
@@ -76,10 +72,6 @@ bool TypefaceFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* path = new char[length];
@@ -106,10 +98,6 @@ bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     size_t index = GetObject<size_t>() % MAX_SIZE + 1;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -153,10 +141,6 @@ bool TypefaceFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
     FontArguments arg;
@@ -200,10 +184,6 @@ bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* familyName = new char[count];
@@ -230,6 +210,11 @@ bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::TypefaceFuzzTest001(data, size);
     OHOS::Rosen::Drawing::TypefaceFuzzTest002(data, size);

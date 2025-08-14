@@ -1005,6 +1005,13 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
 #endif
         int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
                                                              connections_[i]->rate_;
+        // when this connection is not triggered this time and this connection should be triggered in future,
+        // only keep waiting for next vsync but do not post event to render service
+        if (rate <= 0 && (!connections_[i]->triggerThisTime_ && !connections_[i]->NeedTriggeredVsync(timestamp))) {
+            SCOPED_DEBUG_TRACE_FMT("CollectConnections, i:%d, name:%s", i, connections_[i]->info_.name_.c_str());
+            waitForVSync = (waitForVSync || !connections_[i]->IsRequestVsyncTimestampEmpty());
+            continue;
+        }
 
         if (rate < 0) {
             continue;
@@ -1197,7 +1204,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         }
         EnableVSync(isUrgent);
         // Start of DVSync
-        DVSyncRecordRNV(connection, fromWhom, lastVSyncTS);
+        DVSyncRecordRNV(connection, fromWhom, lastVSyncTS, requestVsyncTime);
         // adaptive sync game mode, urgent scenario don't need to preexecute
         if (!isUrgent) {
             NeedPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
@@ -1694,6 +1701,15 @@ int64_t VSyncDistributor::GetUiCommandDelayTime()
 #endif
 }
 
+int64_t VSyncDistributor::GetRsDelayTime(const int32_t pid)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    return DVSync::Instance().GetRsDelayTime(pid);
+#else
+    return 0;
+#endif
+}
+
 void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -1804,10 +1820,10 @@ void VSyncDistributor::RecordEnableVsync()
 }
 
 void VSyncDistributor::DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom,
-    int64_t lastVSyncTS)
+    int64_t lastVSyncTS, int64_t requestVsyncTime)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().RecordRNV(connection, fromWhom, vsyncMode_, lastVSyncTS);
+    DVSync::Instance().RecordRNV(connection, fromWhom, vsyncMode_, lastVSyncTS, requestVsyncTime);
 #endif
 }
 
@@ -1858,16 +1874,6 @@ void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packag
 #endif
 }
 
-bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount,
-    bool &needConsume)
-{
-#if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount, needConsume);
-#else
-    return false;
-#endif
-}
-
 void VSyncDistributor::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
 #if defined(RS_ENABLE_DVSYNC)
@@ -1885,9 +1891,9 @@ void VSyncDistributor::SetBufferInfo(uint64_t id, const std::string &name, uint3
     int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
-    if (isUrgent) {
-        RS_TRACE_NAME("SetBufferInfo, isUrgent");
+    bool isNativeDVSyncEnable = DVSync::Instance().SetBufferInfo(id, name, queueSize,
+        bufferCount, lastConsumeTime);
+    if (isUrgent || !isNativeDVSyncEnable) {
         return;
     }
     bool isAppRequested = DVSync::Instance().IsAppRequested();
@@ -1948,6 +1954,46 @@ bool VSyncDistributor::NeedSkipForSurfaceBuffer(uint64_t id)
     return DVSync::Instance().NeedSkipForSurfaceBuffer(id);
 #else
     return false;
+#endif
+}
+
+bool VSyncDistributor::NeedUpdateVSyncTime(int32_t& pid)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    return DVSync::Instance().NeedUpdateVSyncTime(pid);
+#else
+    return false;
+#endif
+}
+
+void VSyncDistributor::SetVSyncTimeUpdated()
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().SetVSyncTimeUpdated();
+#endif
+}
+
+int64_t VSyncDistributor::GetLastUpdateTime()
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    return DVSync::Instance().GetLastUpdateTime();
+#else
+    return 0;
+#endif
+}
+
+void VSyncDistributor::DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().DVSyncUpdate(dvsyncTime, vsyncTime);
+#endif
+}
+
+void VSyncDistributor::ForceRsDVsync(const std::string &sceneId)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    RS_TRACE_NAME("VSyncDistributor::ForceRsDVsync");
+    DVSync::Instance().ForceRsDVsync(sceneId);
 #endif
 }
 }

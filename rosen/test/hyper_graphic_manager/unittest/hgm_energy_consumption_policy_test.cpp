@@ -200,6 +200,27 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level0
 }
 
 /**
+ * @tc.name: StartNewAnimationTest2
+ * @tc.desc: test results of StartNewAnimationTest2
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level1)
+{
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 0;
+    SetConfigEnable("true");
+    SetIdleStateEnable(true);
+    std::string componentName = "";
+    HgmCore::Instance().SetActualTimestamp(0);
+    for (int i = 0; i < 2000; i++) {
+        RsCommonHook::Instance().OnStartNewAnimation(componentName);
+    }
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_,
+        HgmCore::Instance().GetActualTimestamp() / NS_PER_MS);
+}
+
+
+/**
  * @tc.name: GetAnimationIdleFpsTest1
  * @tc.desc: test results of GetAnimationIdleFpsTest1
  * @tc.type: FUNC
@@ -342,23 +363,31 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
 }
 
 /**
- * @tc.name: SetAceComponentEnableTest
- * @tc.desc: test results of SetAceComponentEnableTest
+ * @tc.name: EnergyConsumptionAssureanceTest
+ * @tc.desc: test drag scene
  * @tc.type: FUNC
  * @tc.require: issuesICH496
  */
-HWTEST_F(HgmEnergyConsumptionPolicyTest, SetAceComponentEnableTest, TestSize.Level0)
+HWTEST_F(HgmEnergyConsumptionPolicyTest, EnergyConsumptionAssureanceTest, TestSize.Level0)
 {
     SetConfigEnable("true");
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DRAG_SCENE_FRAME_RATE_TYPE };
     EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
-        .description = "DRAG_SCENE" };
+        .description = "DRAG_SCENE:1000" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
-    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange, 1000));
     eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = true,
-        .description = "DRAG_SCENE" };
+        .description = "TEST" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
-    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange, 1000));
+    eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = true,
+        .description = "DRAG_SCENE:1000" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange, 1000));
+    eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
+        .description = "DRAG_SCENE:2000" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange, 1000));
 }
 
 /**
@@ -540,6 +569,41 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level0)
     std::vector<std::string> pkgNames;
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "");
+}
+
+/**
+ * @tc.name: HgmFrameRateManager
+ * @tc.desc: test results of HgmFrameRateManager
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, HgmFrameRateManager, TestSize.Level1)
+{
+    HgmFrameRateManager mgr;
+    mgr.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>();
+    std::shared_ptr<RSRenderFrameRateLinker> linker = std::make_shared<RSRenderFrameRateLinker>();
+    FrameRateLinkerMap appFrameRateLinkers_;
+    mgr.currRefreshRate_ = DEFAULT_MAX_FPS;
+    appFrameRateLinkers_[((NodeId)1000) << 32] = linker;
+    mgr.appFrameRateLinkers_ = appFrameRateLinkers_;
+    linker->SetExpectedRange(FrameRateRange(0, 0, 0,
+        ACE_COMPONENT_FRAME_RATE_TYPE));
+    HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
+    mgr.UpdateSoftVSync(true);
+    EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
+        .description = "DRAG_SCENE:1000" };
+    HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+    linker->SetExpectedRange(FrameRateRange(0, 0, 0,
+        DRAG_SCENE_FRAME_RATE_TYPE));
+    mgr.UpdateSoftVSync(true);
+    HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
+    linker->SetExpectedRange(FrameRateRange(0, 0, 0,
+        ANIMATION_STATE_FIRST_FRAME));
+    mgr.UpdateSoftVSync(true);
+    linker->SetExpectedRange(FrameRateRange(DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS,
+        ANIMATION_STATE_FIRST_FRAME));
+    mgr.UpdateSoftVSync(true);
+    EXPECT_EQ(mgr.currRefreshRate_, DEFAULT_MAX_FPS);
 }
 } // namespace Rosen
 } // namespace OHOS

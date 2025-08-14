@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "render/rs_render_maskcolor_filter.h"
-
 #ifdef USE_M133_SKIA
 #include "include/core/SkColor.h"
 #include "src/core/SkChecksum.h"
@@ -49,6 +48,11 @@ int RSMaskColorShaderFilter::GetColorMode() const
 RSColor RSMaskColorShaderFilter::GetMaskColor() const
 {
     return maskColor_;
+}
+
+bool RSMaskColorShaderFilter::NeedForceSubmit() const
+{
+    return colorMode_ == AVERAGE;
 }
 
 Drawing::ColorQuad RSMaskColorShaderFilter::CalcAverageColor(std::shared_ptr<Drawing::Image> image)

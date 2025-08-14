@@ -20,6 +20,7 @@
 
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,7 +47,7 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("RSApplicationAgentProxy::OnTransaction error = %{public}d", err);
     }

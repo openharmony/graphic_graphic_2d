@@ -158,11 +158,11 @@ void DoRegisterTransactionDataCallback()
     if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    auto pid = GetData<int32_t>();
+    uint64_t token = GetData<uint64_t>();
     auto timeStamp = GetData<uint64_t>();
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    dataP.WriteInt32(pid);
+    dataP.WriteUint64(token);
     dataP.WriteUint64(timeStamp);
     dataP.WriteRemoteObject(remoteObject);
     uint32_t code = static_cast<uint32_t>(
@@ -177,7 +177,7 @@ void DoRegisterTransactionDataCallback()
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();

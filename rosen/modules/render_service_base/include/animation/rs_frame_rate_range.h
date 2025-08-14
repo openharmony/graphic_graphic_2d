@@ -36,7 +36,6 @@ constexpr uint32_t ANIMATION_STATE_FIRST_FRAME = 0x1000;
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
     SWIPER_FLING = 1,
-    WEBVIEW = 2,
 };
 
 class FrameRateRange {
@@ -141,8 +140,6 @@ public:
         switch (componentScene_) {
             case ComponentScene::SWIPER_FLING:
                 return "SWIPER_FLING";
-            case ComponentScene::WEBVIEW:
-                return "WEBVIEW";
             default:
                 return "UNKNOWN_SCENE";
         }

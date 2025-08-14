@@ -58,11 +58,6 @@ bool DoCalculateFeatherEffect(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int r = GetData<int>();
     ShapeType type = ShapeType::CIRCLE;
     float b = GetData<float>();
@@ -85,11 +80,6 @@ bool DoApplyField(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     int r = GetData<int>();
     ShapeType type = ShapeType::CIRCLE;
@@ -116,11 +106,6 @@ bool DoApplyCurlNoise(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int r = GetData<int>();
     ShapeType type = ShapeType::CIRCLE;
     float b = GetData<float>();
@@ -145,11 +130,6 @@ bool DoPerlinNoise2D(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float a = GetData<float>();
     float b = GetData<float>();
     float c = GetData<float>();
@@ -168,6 +148,11 @@ bool DoPerlinNoise2D(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoCalculateFeatherEffect(data, size);
     OHOS::Rosen::DoApplyField(data, size);

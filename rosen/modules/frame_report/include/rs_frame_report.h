@@ -50,6 +50,7 @@ using FrameGetEnableFunc = int (*)();
 using ReportSchedEventFunc = void (*)(FrameSchedEvent, const std::unordered_map<std::string, std::string>&);
 using SendCommandsStartFunc = void(*)();
 using SetFrameParamFunc = void(*)(int, int, int, int);
+
 class RsFrameReport final {
 public:
     static RsFrameReport& GetInstance();
@@ -63,15 +64,15 @@ public:
     void DirectRenderEnd();
     void UniRenderStart();
     void UniRenderEnd();
-    void UnblockMainThread();
-    void PostAndWait();
+    void CheckUnblockMainThreadPoint();
+    void CheckPostAndWaitPoint();
     void CheckBeginFlushPoint();
     void ReportBufferCount(int count);
     void ReportHardwareInfo(int tid);
     void ReportFrameDeadline(int deadline, uint32_t currentRate);
     void ReportUnmarshalData(int unmarshalTid, size_t dataSize);
     void ReportDDGRTaskInfo();
-    void ReportScbSceneInfo(std::string description, bool eventStatus);
+    void ReportScbSceneInfo(const std::string& description, bool eventStatus);
 
 private:
     RsFrameReport();

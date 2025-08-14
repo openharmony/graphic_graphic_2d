@@ -56,6 +56,7 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
+constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 const std::string FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 void SensorPostureDataCallback(SensorEvent* event)
 {
@@ -87,8 +88,6 @@ bool RSScreenManager::Init() noexcept
         RS_LOGE("%{public}s: Failed to get composer.", __func__);
         return false;
     }
-
-    composer_->InitLoadOptParams(loadOptParamsForScreen_.loadOptParamsForHdiBackend);
 
     if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) != 0) {
         RS_LOGE("%{public}s: Failed to register OnHotPlug Func to composer.", __func__);
@@ -1166,11 +1165,21 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
     return SUCCESS;
 }
 
+static inline bool IsBlackListExceeded(const std::vector<uint64_t>& blackList,
+    const std::unordered_set<uint64_t>& screenBlacklist)
+{
+    return blackList.size() + screenBlacklist.size() > MAX_BLACK_LIST_NUM;
+}
+
 int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
-        RS_LOGI("%{public}s: Cast screen blacklists", __func__);
         std::lock_guard<std::mutex> lock(blackListMutex_);
+        if (IsBlackListExceeded(blackList, castScreenBlackList_)) {
+            RS_LOGW("%{public}s: blacklist is over max size!", __func__);
+            return INVALID_ARGUMENTS;
+        }
+        RS_LOGI("%{public}s: Cast screen blacklists", __func__);
         castScreenBlackList_.insert(blackList.cbegin(), blackList.cend());
         return SUCCESS;
     }
@@ -1178,6 +1187,10 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
+    }
+    if (IsBlackListExceeded(blackList, virtualScreen->GetBlackList())) {
+        RS_LOGW("%{public}s: blacklist is over max size!", __func__);
+        return INVALID_ARGUMENTS;
     }
     RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->AddBlackList(blackList);
@@ -1194,6 +1207,10 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
         if (mainScreen == nullptr) {
             RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, mainId);
             return SCREEN_NOT_FOUND;
+        }
+        if (IsBlackListExceeded(blackList, mainScreen->GetBlackList())) {
+            RS_LOGW("%{public}s: blacklist is over max size!", __func__);
+            return INVALID_ARGUMENTS;
         }
         mainScreen->AddBlackList(blackList);
     }
@@ -1465,9 +1482,23 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     RS_LOGI("%{public}s: set virtual screen surface success!", __func__);
     RS_TRACE_NAME("RSScreenManager::SetVirtualScreenSurface, ForceRefreshOneFrame.");
     ForceRefreshOneFrame();
+    screen->SetPSurfaceChange(true);
     return SUCCESS;
 }
 
+// only used in dirtyRegion
+bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return false;
+    }
+    if (!screen->IsVirtual()) {
+        return false;
+    }
+    return screen->GetAndResetPSurfaceChange();
+}
 bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 {
     auto virtualScreen = GetScreen(id);
@@ -1544,7 +1575,6 @@ uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& a
                 output->SetActiveRectSwitchStatus(true);
             }
         }
-        HgmCore::Instance().SetScreenSwitchDssEnable(id, false);
     }).wait();
     return StatusCode::SUCCESS;
 }
@@ -2280,7 +2310,7 @@ int32_t RSScreenManager::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFr
     }
     screen->SetScreenSkipFrameInterval(skipFrameInterval);
     screen->SetEqualVsyncPeriod(skipFrameInterval == 1);
-    RS_LOGI("%{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
+    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), skipFrameInterval(%{public}d).",
         __func__, id, skipFrameInterval);
     return StatusCode::SUCCESS;
 }
@@ -2304,7 +2334,7 @@ int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRe
         maxRefreshRate = MAX_VIRTUAL_SCREEN_REFRESH_RATE;
     }
     screen->SetScreenExpectedRefreshRate(maxRefreshRate);
-    RS_LOGI("%{public}s: screen(id %" PRIu64 "), maxRefreshRate(%d).",
+    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), maxRefreshRate(%{public}d).",
         __func__, id, maxRefreshRate);
     actualRefreshRate = maxRefreshRate;
     return StatusCode::SUCCESS;
@@ -2464,6 +2494,11 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
 {
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return;
+    }
     std::lock_guard<std::mutex> lock(renderControlMutex_);
     RS_LOGI("%{public}s: Add Screen_%{public}" PRIu64 " for disable power-off render control.", __func__, id);
     disableRenderControlScreens_.insert(id);
@@ -2600,11 +2635,6 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) c
         return nullptr;
     }
     return iter->second;
-}
-
-void RSScreenManager::InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen)
-{
-    loadOptParamsForScreen_ = loadOptParamsForScreen;
 }
 } // namespace impl
 

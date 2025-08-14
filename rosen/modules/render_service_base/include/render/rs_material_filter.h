@@ -83,6 +83,7 @@ public:
     bool CanSkipFrame() const override;
 
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
+    bool NeedForceSubmit() const override;
 
 private:
     BLUR_COLOR_MODE colorMode_;

@@ -81,12 +81,23 @@ public:
     static void SnapshotProcessedNodeCountInc();
     static void ClearSnapshotProcessedNodeCount();
 
+    static void ClearOpincState();
     // opinc dfx
     std::string GetNodeDebugInfo();
 
     void SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image);
 
     std::shared_ptr<Drawing::Image> GetCacheImageByCapture() const;
+    
+    inline void SetSubTreeParallel(bool isParallel)
+    {
+        subTreeParallel_ = isParallel;
+    }
+
+    inline bool GetSubTreeParallel() const
+    {
+        return subTreeParallel_;
+    }
 
     // dfx
     static void InitDfxForCacheInfo();
@@ -105,7 +116,8 @@ protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
     static Registrar instance_;
-
+    // indicate whether this drawable is generate from parallel node.
+    bool subTreeParallel_ = false;
     // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
@@ -151,6 +163,8 @@ protected:
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
     static thread_local bool drawBlurForCache_;
+    // Used to skip nodes or entire subtree that were culled by the control-level occlusion.
+    bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 
 private:
     std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
@@ -196,12 +210,6 @@ private:
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
     RSOpincDrawCache opincDrawCache_;
-
-    // Used to skip nodes or entire subtree that were culled by the control-level occlusion.
-    bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
-
-    // update hdr brightness for all effect filter applied
-    void UpdateFilterDisplayHeadroom(Drawing::Canvas& canvas);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

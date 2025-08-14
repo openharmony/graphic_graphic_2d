@@ -490,16 +490,6 @@ uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
     return 0;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    return UINT32_MAX;
-}
-
 bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     return false;
@@ -511,6 +501,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 }
 
 bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
 {
     return false;
 }

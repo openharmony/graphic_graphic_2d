@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 
 #include "skia_paint.h"
 
+#include "effect/image_filter_lazy.h"
+#include "effect/shader_effect_lazy.h"
 #include "skia_blender.h"
 #include "skia_color_filter.h"
 #include "skia_color_space.h"
@@ -32,6 +34,51 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+// Helper function to apply shader effect on SkPaint with lazy handling
+static void ApplyShaderEffect(SkPaint& skPaint, std::shared_ptr<ShaderEffect> shaderEffect)
+{
+    if (!shaderEffect) {
+        return;
+    }
+
+    std::shared_ptr<ShaderEffect> actualShader = shaderEffect;
+    // Handle Lazy ShaderEffect: materialize to get actual implementation
+    if (shaderEffect->IsLazy()) {
+        auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(shaderEffect);
+        actualShader = lazyShader->Materialize();
+    }
+
+    if (actualShader) {
+        auto skShaderImpl = actualShader->GetImpl<SkiaShaderEffect>();
+        if (skShaderImpl) {
+            skPaint.setShader(skShaderImpl->GetShader());
+        }
+    }
+}
+
+// Helper function to apply image filter on SkPaint with lazy handling
+static void ApplyImageFilter(SkPaint& skPaint, std::shared_ptr<ImageFilter> imageFilter)
+{
+    if (!imageFilter) {
+        return;
+    }
+
+    std::shared_ptr<ImageFilter> actualImageFilter = imageFilter;
+    // Handle Lazy ImageFilter: materialize to get actual implementation
+    if (imageFilter->IsLazy()) {
+        auto lazyImageFilter = std::static_pointer_cast<ImageFilterLazy>(imageFilter);
+        actualImageFilter = lazyImageFilter->Materialize();
+    }
+
+    if (actualImageFilter) {
+        auto skImageFilterImpl = actualImageFilter->GetImpl<SkiaImageFilter>();
+        if (skImageFilterImpl) {
+            skPaint.setImageFilter(skImageFilterImpl->GetImageFilter());
+        }
+    }
+}
+
 void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
 {
     if (const ColorSpace* cs = brush.GetColorSpacePtr()) {
@@ -47,11 +94,7 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
     }
     paint.setAntiAlias(brush.IsAntiAlias());
 
-    if (const ShaderEffect* s = brush.GetShaderEffectPtr()) {
-        if (SkiaShaderEffect* skShaderImpl = s->GetImpl<SkiaShaderEffect>()) {
-            paint.setShader(skShaderImpl->GetShader());
-        }
-    }
+    ApplyShaderEffect(paint, brush.GetShaderEffect());
 
     if (const Blender* b = brush.GetBlenderPtr()) {
         if (SkiaBlender* skBlenderImpl = b->GetImpl<SkiaBlender>()) {
@@ -90,11 +133,7 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
         }
     }
 
-    if (const ShaderEffect* se = pen.GetShaderEffectPtr()) {
-        if (SkiaShaderEffect* skShaderImpl = se->GetImpl<SkiaShaderEffect>()) {
-            paint.setShader(skShaderImpl->GetShader());
-        }
-    }
+    ApplyShaderEffect(paint, pen.GetShaderEffect());
 
     if (const Blender* blender = pen.GetBlenderPtr()) {
         if (SkiaBlender* skBlenderImpl = blender->GetImpl<SkiaBlender>()) {
@@ -124,11 +163,7 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
 
     skPaint.setAntiAlias(paint.IsAntiAlias());
 
-    if (const ShaderEffect* se = paint.GetShaderEffectPtr()) {
-        if (SkiaShaderEffect* skShaderImpl = se->GetImpl<SkiaShaderEffect>()) {
-            skPaint.setShader(skShaderImpl->GetShader());
-        }
-    }
+    ApplyShaderEffect(skPaint, paint.GetShaderEffect());
 
     if (paint.HasFilter()) {
         ApplyFilter(skPaint, paint.GetFilter());
@@ -178,11 +213,7 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
         }
     }
 
-    if (const ImageFilter* imageFilter = filter.GetImageFilterPtr()) {
-        if (SkiaImageFilter* skImageFilterImpl = imageFilter->GetImpl<SkiaImageFilter>()) {
-            paint.setImageFilter(skImageFilterImpl->GetImageFilter());
-        }
-    }
+    ApplyImageFilter(paint, filter.GetImageFilter());
 
     if (const MaskFilter* mf = filter.GetMaskFilterPtr()) {
         if (SkiaMaskFilter* skMaskFilterImpl = mf->GetImpl<SkiaMaskFilter>()) {

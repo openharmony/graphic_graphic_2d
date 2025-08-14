@@ -473,6 +473,11 @@ void RSObjAbsGeometry::SetContextMatrix(const std::optional<Drawing::Matrix>& ma
     contextMatrix_ = matrix;
 }
 
+void RSObjAbsGeometry::SetAbsMatrix(const std::optional<Drawing::Matrix>& matrix)
+{
+    absMatrix_ = matrix;
+}
+
 const Drawing::Matrix& RSObjAbsGeometry::GetMatrix() const
 {
     return matrix_;

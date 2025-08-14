@@ -67,7 +67,8 @@ public:
 
     bool Run(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
     bool RunHDR(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam);
-    bool DrawHDRSurfaceContent(std::shared_ptr<Drawing::Surface> surface, bool isOnHDR);
+    bool DrawHDRSurfaceContent(
+        std::shared_ptr<Drawing::Surface> surface, bool isOnHDR, const RSSurfaceCaptureParam& captureParam);
     bool UseScreenShotWithHDR() const
     {
         return useScreenShotWithHDR_;
@@ -75,7 +76,7 @@ public:
 
     void SetUseScreenShotWithHDR(bool enableHdrCapture)
     {
-        useScreenShotWithHDR_ = enableHdrCapture && displayNodeDrawable_ && pixelMapHDR_;
+        useScreenShotWithHDR_ = enableHdrCapture;
     }
 
     static void ClearCacheImageByFreeze(NodeId id);
@@ -84,7 +85,7 @@ private:
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapBySurfaceNode(std::shared_ptr<RSSurfaceRenderNode> node,
-        bool isHDRCapture = false);
+        bool isF16Capture = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
         bool isHDRCapture = false);
@@ -97,6 +98,9 @@ private:
 
     int32_t CalPixelMapRotation();
 
+    void CaptureDisplayNode(DrawableV2::RSRenderNodeDrawable& displayNodeDrawable, RSPaintFilterCanvas& canvas,
+        const RSSurfaceCaptureParam& captureParam, RSPaintFilterCanvas::ScreenshotType type);
+
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::unique_ptr<Media::PixelMap> pixelMapHDR_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
@@ -108,6 +112,8 @@ private:
     RSSurfaceCaptureConfig captureConfig_;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
+    float boundsX_ = 0;
+    float boundsY_ = 0;
     int32_t finalRotationAngle_ = RS_ROTATION_0;
     // only used for RSUniRenderThread
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;

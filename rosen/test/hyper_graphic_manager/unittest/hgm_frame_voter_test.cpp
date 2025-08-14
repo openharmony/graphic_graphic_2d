@@ -234,7 +234,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
 
     HgmCore::Instance().mPolicyConfigData_ = std::make_unique<PolicyConfigData>();
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
-    range = {0, 0};
+    range = { 0, 0 };
     hgmFrameVoter.DeliverVote({ "VOTER_TOUCH", OLED_30_HZ, OLED_90_HZ, 1 }, true);
     hgmFrameVoter.multiAppStrategy_.pkgs_.push_back("testPkg");
     auto result = hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
@@ -242,7 +242,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     
     HgmCore::Instance().mPolicyConfigData_->videoFrameRateList_["testPkg"] = "1";
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
-    range = {0, 0};
+    range = { 0, 0 };
     hgmFrameVoter.isDragScene_ = false;
     hgmFrameVoter.DeliverVote({ "VOTER_POINTER", OLED_120_HZ, OLED_120_HZ, 4 }, true);
     hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(4);
@@ -253,7 +253,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     hgmFrameVoter.multiAppStrategy_.foregroundPidAppMap_[3] = { 1, "testPkg" };
     hgmFrameVoter.voters_.insert(hgmFrameVoter.voters_.end() - 2, "NULL");
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
-    range = {0, 0};
+    range = { 0, 0 };
     hgmFrameVoter.DeliverVote({ "VOTER_SCENE", OLED_60_HZ, OLED_120_HZ, 2 }, true);
     hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
@@ -291,37 +291,37 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote02, Function | SmallTest | Lev
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
 
-    range = {0, 0};
+    range = { 0, 0 };
     voterIter = std::find(mgr.frameVoter_.voters_.begin(), mgr.frameVoter_.voters_.end(), "VOTER_LTPO");
     mgr.touchManager_.ChangeState(TouchState::UP_STATE);
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
 
-    range = {0, 0};
+    range = { 0, 0 };
     voterIter = std::find(mgr.frameVoter_.voters_.begin(), mgr.frameVoter_.voters_.end(), "VOTER_LTPO");
     mgr.frameVoter_.SetTouchUpLTPOFirstDynamicMode(DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST);
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_90_HZ);
 
-    range = {0, 0};
+    range = { 0, 0 };
     voterIter = std::find(mgr.frameVoter_.voters_.begin(), mgr.frameVoter_.voters_.end(), "VOTER_LTPO");
     mgr.touchManager_.ChangeState(TouchState::DOWN_STATE);
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
 
-    range = {0, 0};
+    range = { 0, 0 };
     voterIter = std::find(mgr.frameVoter_.voters_.begin(), mgr.frameVoter_.voters_.end(), "VOTER_LTPO");
     mgr.touchManager_.ChangeState(TouchState::UP_STATE);
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_90_HZ);
 
-    range = {0, 0};
+    range = { 0, 0 };
     voterIter = std::find(mgr.frameVoter_.voters_.begin(), mgr.frameVoter_.voters_.end(), "VOTER_LTPO");
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_120Ms));
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(range.second, OLED_120_HZ);
 
-    range = {0, 0};
+    range = { 0, 0 };
     voterIter = std::find(mgr.frameVoter_.voters_.begin(), mgr.frameVoter_.voters_.end(), "VOTER_LTPO");
     mgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
     mgr.frameVoter_.MergeLtpo2IdleVote(voterIter, info, range);

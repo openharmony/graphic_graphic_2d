@@ -29,11 +29,6 @@
 #include "graphic_common_c.h"
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
-#ifdef USE_M133_SKIA
-#include "include/gpu/ganesh/GrDirectContext.h"
-#else
-#include "include/gpu/GrDirectContext.h"
-#endif
 #include "memory/rs_memory_manager.h"
 #include "mem_param.h"
 #include "params/rs_screen_render_params.h"
@@ -58,7 +53,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
-
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
 #include "if_system_ability_manager.h"
@@ -72,6 +67,11 @@
 #include <sched.h>
 #include "res_sched_client.h"
 #include "res_type.h"
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_utils.h"
+#include "rs_parallel_manager.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -139,6 +139,11 @@ bool RSUniRenderThread::IsInCaptureProcess()
 bool RSUniRenderThread::IsExpandScreenMode()
 {
     return !captureParam_.isSnapshot_ && !captureParam_.isMirror_;
+}
+
+bool RSUniRenderThread::IsEndNodeIdValid()
+{
+    return captureParam_.endNodeId_ != INVALID_NODEID;
 }
 
 RSUniRenderThread& RSUniRenderThread::Instance()
@@ -218,6 +223,9 @@ void RSUniRenderThread::Start()
         return;
     }
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+#ifdef SUBTREE_PARALLEL_ENABLE
+    RSParallelUtils::SetFFrtConfig();
+#endif
     runner_->Run();
     auto postTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
@@ -313,6 +321,12 @@ void RSUniRenderThread::RunImageReleaseTask()
     for (auto task : tasks) {
         task();
     }
+}
+
+void RSUniRenderThread::ClearResource()
+{
+    RunImageReleaseTask();
+    DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
 }
 
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
@@ -431,6 +445,20 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
             }
         }
     }
+}
+
+void RSUniRenderThread::ReleaseSurfaceBufferOpItemBuffer()
+{
+    auto fence = GetAcquireFence();
+    int32_t fenceFd = fence->Dup();
+    RSSurfaceBufferCallbackManager::Instance().SetReleaseFence(fenceFd);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
+    ::close(fenceFd);
+}
+
+sptr<SyncFence> RSUniRenderThread::GetAcquireFence()
+{
+    return acquireFence_;
 }
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
@@ -870,6 +898,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         } else {
             MemoryManager::ReleaseUnlockGpuResource(grContext, this->exitedPidSet_);
         }
+#ifdef SUBTREE_PARALLEL_ENABLE
+        RSParallelManager::Singleton().ClearMemoryCache();
+#endif
         auto screenManager_ = CreateOrGetScreenManager();
         screenManager_->ClearFrameBufferIfNeed();
         grContext->FlushAndSubmit(true);

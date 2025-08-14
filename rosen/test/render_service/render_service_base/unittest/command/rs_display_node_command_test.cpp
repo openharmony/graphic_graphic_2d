@@ -165,23 +165,6 @@ HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRogSize001
- * @tc.desc: SetScreenId test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSDisplayNodeCommandTest, SetRogSize001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
-
-    RSDisplayNodeConfig config { 0, false, 0 };
-    DisplayNodeCommandHelper::Create(context, id, config);
-    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
-}
-
-/**
  * @tc.name: SetForceCloseHdrTest
  * @tc.desc: SetForceCloseHdr test.
  * @tc.type: FUNC
@@ -282,24 +265,20 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetVirtualScreenMuteStatus
+ * @tc.name: SetVirtualScreenMuteStatus001
  * @tc.desc: SetVirtualScreenMuteStatus test.
  * @tc.type: FUNC
- * @tc.require: issueIBTNC3
+ * @tc.require: issueIA61E9
  */
-HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus, TestSize.Level1)
+HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
-
-    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, true);
-    if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
-        ASSERT_TRUE(node->GetVirtualScreenMuteStatus());
-    }
-
-    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, id, false);
-    if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
-        ASSERT_FALSE(node->GetVirtualScreenMuteStatus());
-    }
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+    
+    bool virtualScreenMuteStatus = false;
+    DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, 5, virtualScreenMuteStatus);
 }
 } // namespace OHOS::Rosen

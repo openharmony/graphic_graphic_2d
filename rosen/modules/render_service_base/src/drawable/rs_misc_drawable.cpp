@@ -131,7 +131,7 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
-    stagingChildrenDrawableVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearDrawables(stagingChildrenDrawableVec_);
     needSync_ = false;
 }
 
@@ -260,7 +260,7 @@ void RSCustomModifierDrawable::OnSync()
     gravity_ = stagingGravity_;
     isCanvasNode_ = stagingIsCanvasNode_;
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
-    stagingDrawCmdListVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingDrawCmdListVec_);
     needSync_ = false;
 }
 
@@ -356,6 +356,14 @@ RSDrawable::Ptr RSBeginBlenderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 }
 
+void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
+{
+    enableEDREffect_ = node.GetRenderProperties().GetFgBrightnessEnableEDR();
+    if (enableEDREffect_) {
+        screenNodeId_ = node.GetScreenNodeId();
+    }
+}
+
 bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
 {
     // the order of blender and blendMode cannot be considered currently
@@ -389,6 +397,7 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
     }
 
     needSync_ = true;
+    PostUpdate(node);
 
     return true;
 }
@@ -409,10 +418,10 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        if (paintFilterCanvas == nullptr) {
+        if (canvas->GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
             return;
         }
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
         RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
             RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE);

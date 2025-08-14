@@ -22,6 +22,7 @@
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
 #include "skia_adapter/skia_surface.h"
+#include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
@@ -252,6 +253,14 @@ HWTEST_F(RSPropertyDrawableUtilsTest, BDrawForegroundFilterTest007, testing::ext
     rsPropertyDrawableUtils->DrawForegroundFilter(paintFilterCanvas, rsFilter);
     Drawing::Surface surface;
     paintFilterCanvas.surface_ = &surface;
+    rsPropertyDrawableUtils->DrawForegroundFilter(paintFilterCanvas, rsFilter);
+
+    auto surfacePtr = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    rsFilter = std::make_shared<RSFlyOutShaderFilter>(1.0, 0);
+    rsPropertyDrawableUtils->DrawForegroundFilter(paintFilterCanvas, rsFilter);
+    rsFilter = std::make_shared<RSDrawingFilter>();
+    rsFilter->type_ = RSFilter::COMPOUND_EFFECT;
     rsPropertyDrawableUtils->DrawForegroundFilter(paintFilterCanvas, rsFilter);
 }
 
@@ -500,6 +509,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest015, testing
     EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 1);
     rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 1, true);
     EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 2);
+    rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 2, true);
+    EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 3);
+    rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 3, true);
+    EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 4);
 
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest2, nullptr);

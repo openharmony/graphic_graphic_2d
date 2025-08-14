@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,13 +23,15 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const uint8_t DO_GET_MEMORY_GRAPHIC = 0;
-const uint8_t DO_GET_MEMORY_GRAPHICS = 1;
-const uint8_t DO_GET_TOTAL_APP_MEM_SIZE = 2;
-const uint8_t TARGET_SIZE = 3;
+const uint8_t DO_GET_TOTAL_APP_MEM_SIZE = 1;
+const uint8_t DO_SET_WINDOW_EXPECTED_REFRESH_RATE = 2;
+const uint8_t DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK = 3;
+const uint8_t TARGET_SIZE = 4;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr size_t STR_LEN = 10;
 
 template<class T>
 T GetData()
@@ -47,17 +49,25 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
+/*
+ * get a string from g_data
+ */
+std::string GetStringFromData(int strlen)
 {
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
+    if (strlen <= 0) {
+        return "fuzz";
     }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
 }
 
 bool Init(const uint8_t* data, size_t size)
@@ -78,13 +88,47 @@ namespace Mock {
 } // namespace Mock
 
 void DoGetMemoryGraphic()
-{}
-
-void DoGetMemoryGraphics()
-{}
+{
+    int pid = GetData<int>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetMemoryGraphic(pid);
+}
 
 void DoGetTotalAppMemSize()
-{}
+{
+    float cpuMemSize = GetData<float>();
+    float gpuMemSize = GetData<float>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+}
+
+void DoSetWindowExpectedRefreshRate()
+{
+    uint64_t winId = GetData<uint64_t>();
+    EventInfo eventInfo;
+    eventInfo.eventName = GetStringFromData(STR_LEN);
+    eventInfo.eventStatus = GetData<bool>();
+    eventInfo.minRefreshRate = GetData<uint32_t>();
+    eventInfo.maxRefreshRate = GetData<uint32_t>();
+    eventInfo.description = GetStringFromData(STR_LEN);
+    std::unordered_map<uint64_t, EventInfo> addVotes;
+    addVotes.insert({winId, eventInfo});
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetWindowExpectedRefreshRate(addVotes);
+    std::unordered_map<uint64_t, EventInfo> delVotes;
+    std::string vsyncName = GetStringFromData(STR_LEN);
+    delVotes.insert({vsyncName, eventInfo});
+    rsInterfaces.SetWindowExpectedRefreshRate(delVotes);
+}
+
+void DoRegisterSelfDrawingNodeRectChangeCallback()
+{
+    SelfDrawingNodeRectChangeCallback callback =
+        [](std::shared_ptr<RSSelfDrawingNodeRectData> SelfDrawingNodeRectData) {};
+    RectConstraint constraint;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterSelfDrawingNodeRectChangeCallback(constraint, callback);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -100,11 +144,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_GET_MEMORY_GRAPHIC:
             OHOS::Rosen::DoGetMemoryGraphic();
             break;
-        case OHOS::Rosen::DO_GET_MEMORY_GRAPHICS:
-            OHOS::Rosen::DoGetMemoryGraphics();
-            break;
         case OHOS::Rosen::DO_GET_TOTAL_APP_MEM_SIZE:
             OHOS::Rosen::DoGetTotalAppMemSize();
+            break;
+        case OHOS::Rosen::DO_SET_WINDOW_EXPECTED_REFRESH_RATE:
+            OHOS::Rosen::DoSetWindowExpectedRefreshRate();
+            break;
+        case OHOS::Rosen::DO_REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK:
+            OHOS::Rosen::DoRegisterSelfDrawingNodeRectChangeCallback();
             break;
         default:
             return -1;

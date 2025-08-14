@@ -147,6 +147,11 @@ public:
         return isSplitScreenScene_.load();
     }
 
+    bool IsSnapshotRotationScene() const
+    {
+        return isSnapshotRotationScene_;
+    }
+
     void AddCapturedNodes(NodeId id);
 
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
@@ -201,6 +206,10 @@ public:
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
     void AddMarkedClearCacheNode(NodeId id);
     void ProcessMarkedNodeSubThreadCache();
+    bool IsUiFirstWorking() const
+    {
+        return !subthreadProcessingNode_.empty();
+    }
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
@@ -303,6 +312,7 @@ private:
     std::atomic<bool> isRecentTaskScene_ = false;
     std::atomic<bool> isMissionCenterScene_ = false;
     std::atomic<bool> isSplitScreenScene_ = false;
+    std::atomic<bool> isSnapshotRotationScene_ = false;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;

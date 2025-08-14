@@ -121,7 +121,7 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 
 /**
  * @tc.name: ProcessSurface002
- * @tc.desc: call ProcessDisplaySurface
+ * @tc.desc: call ProcessScreenSurface
  * @tc.type: FUNC
  * @tc.require: IssueI5VYCA
  */
@@ -234,12 +234,12 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface008, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessDisplaySurface
+ * @tc.name: ProcessScreenSurface
  * @tc.desc: call ProcessSurface
  * @tc.type: FUNC
  * @tc.require: issuesI6Q871
  */
-HWTEST_F(RSPhysicalScreenProcessorTest, ProcessDisplaySurface, TestSize.Level1)
+HWTEST_F(RSPhysicalScreenProcessorTest, ProcessScreenSurface, TestSize.Level1)
 {
     NodeId id = 0;
     ScreenId screenId = 1;

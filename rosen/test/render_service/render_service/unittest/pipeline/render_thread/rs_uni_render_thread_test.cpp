@@ -492,6 +492,7 @@ HWTEST_F(RSUniRenderThreadTest, WaitUntilScreenNodeBufferReleased001, TestSize.L
 
     screenRenderNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
     screenRenderNodeDrawable->surfaceHandler_->consumer_ = IConsumerSurface::Create();
+    screenRenderNodeDrawable->surfaceCreated_ = true;
     res = instance.WaitUntilScreenNodeBufferReleased(*screenRenderNodeDrawable);
     EXPECT_TRUE(res);
 }

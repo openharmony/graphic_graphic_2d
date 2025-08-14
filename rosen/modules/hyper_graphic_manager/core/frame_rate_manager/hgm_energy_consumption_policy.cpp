@@ -45,6 +45,7 @@ constexpr int64_t DESCISION_VIDEO_CALL_TIME = 1000;
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
     RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string& componentName) {
+        // called by RSMainthread
         if (isAnimationEnergyConsumptionAssuranceMode_) {
             StartNewAnimation(componentName);
         }
@@ -125,8 +126,10 @@ void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
 
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo)
 {
-    if (eventInfo.description == "DRAG_SCENE") {
-        aceComponentEnable_.store(eventInfo.eventStatus);
+    auto [sceneName, pid, _] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
+    if (sceneName == "DRAG_SCENE") {
+        dragSceneEnable_.store(eventInfo.eventStatus);
+        dragSceneDisablePid_.store(pid);
     }
 }
 
@@ -205,13 +208,14 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
     SetEnergyConsumptionRateRange(rsRange, animationIdleFps_);
 }
 
-bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
+bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange, pid_t pid)
 {
     if (!isTouchIdle_) {
         return false;
     }
     auto type = rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME;
-    if (type == DRAG_SCENE_FRAME_RATE_TYPE && !aceComponentEnable_.load()) {
+    if (type == DRAG_SCENE_FRAME_RATE_TYPE && !dragSceneEnable_.load() &&
+        pid == dragSceneDisablePid_.load()) {
         return false;
     }
     auto it = uiEnergyAssuranceMap_.find(type);

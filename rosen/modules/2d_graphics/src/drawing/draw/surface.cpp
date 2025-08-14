@@ -131,13 +131,13 @@ void Surface::FlushAndSubmit(bool syncCpu)
     impl_->FlushAndSubmit(syncCpu);
 }
 
-void Surface::Flush(FlushInfo *drawingflushInfo)
+SemaphoresSubmited Surface::Flush(FlushInfo *drawingflushInfo)
 {
     if (!impl_) {
         LOGE("surfaceImpl Flush failed impl nullptr, but not callback rs finishedProc");
-        return;
+        return SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO;
     }
-    impl_->Flush(drawingflushInfo);
+    return impl_->Flush(drawingflushInfo);
 }
 
 #ifdef RS_ENABLE_GL

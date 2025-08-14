@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,24 +22,19 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 0;
-const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 1;
-const uint8_t DO_SET_SCREEN_REFRESH_RATE = 2;
-const uint8_t DO_SET_REFRESH_RATE_MODE = 3;
-const uint8_t DO_SYNC_FRAME_RATE_RANGE = 4;
-const uint8_t DO_UNREGISTER_FRAME_RATE_LINKER = 5;
-const uint8_t DO_GET_SCREEN_CURRENT_REFRESH_RATE = 6;
-const uint8_t DO_GET_CURRENT_REFRESH_RATE_MODE = 7;
-const uint8_t DO_GET_SCREEN_SUPPORTED_REFRESH_RATES = 8;
-const uint8_t DO_GET_SHOW_REFRESH_RATE_ENABLED = 9;
-const uint8_t DO_SET_SHOW_REFRESH_RATE_ENABLED = 10;
-const uint8_t DO_GET_REALTIME_REFRESH_RATE = 11;
-const uint8_t DO_GET_REFRESH_INFO = 12;
-const uint8_t DO_REFRESH_RATE_UPDATE_CALLBACK = 13;
-const uint8_t DO_REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK = 14;
-const uint8_t DO_REFRESH_RATE_MODE_CHANGE_CALLBACK = 15;
-const uint8_t DO_GET_REFRESH_INFO_TO_SP = 16;
-const uint8_t TARGET_SIZE = 17;
+const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 0;
+const uint8_t DO_SET_SCREEN_REFRESH_RATE = 1;
+const uint8_t DO_SET_REFRESH_RATE_MODE = 2;
+const uint8_t DO_SYNC_FRAME_RATE_RANGE = 3;
+const uint8_t DO_GET_SCREEN_CURRENT_REFRESH_RATE = 4;
+const uint8_t DO_GET_SCREEN_SUPPORTED_REFRESH_RATES = 5;
+const uint8_t DO_SET_SHOW_REFRESH_RATE_ENABLED = 6;
+const uint8_t DO_GET_REALTIME_REFRESH_RATE = 7;
+const uint8_t DO_GET_REFRESH_INFO = 8;
+const uint8_t DO_REFRESH_RATE_UPDATE_CALLBACK = 9;
+const uint8_t DO_REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK = 10;
+const uint8_t DO_REFRESH_RATE_MODE_CHANGE_CALLBACK = 11;
+const uint8_t TARGET_SIZE = 12;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -61,19 +56,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -87,60 +69,98 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-
-} // namespace Mock
-
-void DoSetScreenChangeCallback()
-{}
-
 void DoSetScreenActiveMode()
-{}
+{
+#ifndef ROSEN_ARKUI_X
+    ScreenId id = GetData<uint64_t>();
+    uint32_t modeId = GetData<uint32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenActiveMode(id, modeId);
+#endif
+}
 
 void DoSetScreenRefreshRate()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    int32_t sceneId = GetData<int32_t>();
+    int32_t rate = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenRefreshRate(id, sceneId, rate);
+}
 
 void DoSetRefreshRateMode()
-{}
+{
+    int32_t refreshRateMode = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetRefreshRateMode(refreshRateMode);
+}
 
 void DoSyncFrameRateRange()
-{}
-
-void DoUnregisterFrameRateLinker()
-{}
+{
+    uint64_t id = GetData<uint64_t>();
+    FrameRateRange range;
+    int32_t animatorExpectedFrameRate = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SyncFrameRateRange(id, range, animatorExpectedFrameRate);
+}
 
 void DoGetScreenCurrentRefreshRate()
-{}
-
-void DoGetCurrentRefreshRateMode()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenCurrentRefreshRate(id);
+}
 
 void DoGetScreenSupportedRefreshRates()
-{}
-
-void DoGetShowRefreshRateEnabled()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetScreenSupportedRefreshRates(id);
+}
 
 void DoSetShowRefreshRateEnabled()
-{}
+{
+    bool enabled = GetData<bool>();
+    int32_t type = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetShowRefreshRateEnabled(enabled, type);
+}
 
 void DoGetRealtimeRefreshRate()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetRealtimeRefreshRate(id);
+}
 
 void DoGetRefreshInfo()
-{}
+{
+    pid_t pid = GetData<pid_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetRefreshInfo(pid);
+}
 
 void DoRegisterHgmRefreshRateUpdateCallback()
-{}
+{
+    HgmRefreshRateUpdateCallback callback;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterHgmRefreshRateUpdateCallback(callback);
+}
 
 void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
-{}
+{
+    uint32_t dstPid = GetData<uint32_t>();
+    FrameRateLinkerExpectedFpsUpdateCallback callback;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+}
 
 void DoRegisterHgmRefreshRateModeChangeCallback()
-{}
-
-void DoGetRefreshInfoToSP()
-{}
+{
+    HgmRefreshRateModeChangeCallback callback;
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RegisterHgmRefreshRateModeChangeCallback(callback);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -153,9 +173,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case OHOS::Rosen::DO_SET_SCREEN_CHANGE_CALLBACK:
-            OHOS::Rosen::DoSetScreenChangeCallback();
-            break;
         case OHOS::Rosen::DO_SET_SCREEN_ACTIVE_MODE:
             OHOS::Rosen::DoSetScreenActiveMode();
             break;
@@ -168,20 +185,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SYNC_FRAME_RATE_RANGE:
             OHOS::Rosen::DoSyncFrameRateRange();
             break;
-        case OHOS::Rosen::DO_UNREGISTER_FRAME_RATE_LINKER:
-            OHOS::Rosen::DoUnregisterFrameRateLinker();
-            break;
         case OHOS::Rosen::DO_GET_SCREEN_CURRENT_REFRESH_RATE:
             OHOS::Rosen::DoGetScreenCurrentRefreshRate();
             break;
-        case OHOS::Rosen::DO_GET_CURRENT_REFRESH_RATE_MODE:
-            OHOS::Rosen::DoGetCurrentRefreshRateMode();
-            break;
         case OHOS::Rosen::DO_GET_SCREEN_SUPPORTED_REFRESH_RATES:
             OHOS::Rosen::DoGetScreenSupportedRefreshRates();
-            break;
-        case OHOS::Rosen::DO_GET_SHOW_REFRESH_RATE_ENABLED:
-            OHOS::Rosen::DoGetShowRefreshRateEnabled();
             break;
         case OHOS::Rosen::DO_SET_SHOW_REFRESH_RATE_ENABLED:
             OHOS::Rosen::DoSetShowRefreshRateEnabled();
@@ -200,9 +208,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REFRESH_RATE_MODE_CHANGE_CALLBACK:
             OHOS::Rosen::DoRegisterHgmRefreshRateModeChangeCallback();
-            break;
-        case OHOS::Rosen::DO_GET_REFRESH_INFO_TO_SP:
-            OHOS::Rosen::DoGetRefreshInfoToSP();
             break;
         default:
             return -1;

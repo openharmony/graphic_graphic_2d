@@ -50,6 +50,8 @@ public:
 
     std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() override
     {
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderMaskTemplate::GenerateGEVisualEffect, Type: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str());
         auto geMask = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geMask);
         std::apply([&geMask](const auto&... propTag) {
@@ -105,7 +107,8 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, Center2),
     ADD_PROPERTY_TAG(DoubleRippleMask, Radius),
     ADD_PROPERTY_TAG(DoubleRippleMask, Width),
-    ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence)
+    ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence),
+    ADD_PROPERTY_TAG(DoubleRippleMask, HaloThickness)
 );
 
 #undef ADD_PROPERTY_TAG

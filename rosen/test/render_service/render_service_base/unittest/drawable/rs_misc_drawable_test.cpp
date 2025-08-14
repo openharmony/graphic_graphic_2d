@@ -290,6 +290,33 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSBeginBlenderDrawable003
+ * @tc.desc: Test CreateDrawFunc for RSBeginBlenderDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().SetColorBlendMode(12);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSEndBlenderDrawable>(
+        DrawableV2::RSEndBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    drawable->OnSync();
+    auto drawFunc = drawable->CreateDrawFunc();
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawFunc(canvas.get(), rect.get());
+    EXPECT_NE(canvas, nullptr);
+
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    drawFunc(filterCanvas.get(), rect.get());
+    EXPECT_NE(filterCanvas->envStack_.top().blender_, nullptr);
+}
+
+/**
  * @tc.name: RSEndBlenderDrawable001
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC

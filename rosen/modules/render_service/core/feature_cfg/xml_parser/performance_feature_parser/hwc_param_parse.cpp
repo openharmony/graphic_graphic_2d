@@ -105,6 +105,9 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& 
             hwcParam_->SetSourceTuningForApp(appName, val);
         } else if (name == "RsSolidColorLayerConfig") {
             hwcParam_->SetSolidColorLayerForApp(appName, val);
+        } else if (name == "FilterUnderHwcConfig") {
+            RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(appName, val);
+            RS_LOGD("parse FilterUnderHwcConfig ok");
         } else {
             RS_LOGD("ParseFeatureMultiParam cannot find name");
             return PARSE_NO_PARAM;

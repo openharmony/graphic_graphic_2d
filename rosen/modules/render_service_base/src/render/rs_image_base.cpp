@@ -19,10 +19,10 @@
 #include "image_type.h"
 #include "image/image.h"
 #include "common/rs_background_thread.h"
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "render/rs_resource_manager.h"
-#endif
 #include "common/rs_common_def.h"
+#ifdef RS_MEMORY_INFO_MANAGER
+#include "feature/memory_info_manager/rs_memory_info_manager.h"
+#endif
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
@@ -33,6 +33,9 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_misc.h"
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "native_buffer_inner.h"
@@ -70,9 +73,9 @@ RSImageBase::~RSImageBase()
             }
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+    if (RSSystemProperties::IsUseVulkan()) {
+        pid_t targetTid = RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR ? 0 : tid_;
+        RSTaskDispatcher::GetInstance().PostTask(targetTid, [nativeWindowBuffer = nativeWindowBuffer_,
             cleanupHelper = cleanUpHelper_]() {
             if (nativeWindowBuffer != nullptr) {
                 DestroyNativeWindowBuffer(nativeWindowBuffer);
@@ -294,6 +297,9 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
 void RSImageBase::Purge()
 {
 #ifdef ROSEN_OHOS
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap_);
+#endif
     if (canPurgeShareMemFlag_ != CanPurgeFlag::ENABLED ||
         uniqueId_ <= 0 || !pixelMap_ || pixelMap_->IsUnMap()) {
         return;
@@ -302,8 +308,9 @@ void RSImageBase::Purge()
     constexpr int USE_COUNT_FOR_PURGE = 2; // one in this RSImage, one in RSImageCache
     auto imageUseCount = image_.use_count();
     auto pixelMapCount = pixelMap_.use_count();
-    if (!(imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount == USE_COUNT_FOR_PURGE + 1) &&
-        !(imageUseCount == 0 && pixelMapCount == USE_COUNT_FOR_PURGE)) {
+    if (imageUseCount > USE_COUNT_FOR_PURGE || imageUseCount == 1 ||
+        (imageUseCount == 0 && pixelMapCount > USE_COUNT_FOR_PURGE) ||
+        (imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount > USE_COUNT_FOR_PURGE + 1)) {
         return;
     }
     // skip purge if multi RsImage Holds this PixelMap
@@ -322,6 +329,9 @@ void RSImageBase::Purge()
 void RSImageBase::DePurge()
 {
 #ifdef ROSEN_OHOS
+#ifdef RS_MEMORY_INFO_MANAGER
+    RSMemoryInfoManager::SetImageMemoryInfo(pixelMap_);
+#endif
     if (canPurgeShareMemFlag_ != CanPurgeFlag::ENABLED ||
         uniqueId_ <= 0 || !pixelMap_ || !pixelMap_->IsUnMap()) {
         return;
@@ -512,28 +522,28 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
 }
 #endif
 
-void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
+void RSImageBase::ConvertPixelMapToDrawingImage()
 {
-#if defined(ROSEN_OHOS)
-    // paraUpload only enable in render_service or UnmarshalThread
-    pid_t tid = paraUpload ? getpid() : gettid();
-#endif
     if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
 #if defined(ROSEN_OHOS)
-            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, tid);
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
+            } else {
+                image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+            }
 #else
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
 #endif
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
 #if defined(ROSEN_OHOS)
-            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, tid);
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
+            } else {
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+            }
 #else
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
-#endif
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-            RSResourceManager::Instance().UploadTexture(paraUpload && renderServiceImage_, image_,
-                pixelMap_, uniqueId_);
 #endif
         }
     }
@@ -551,12 +561,20 @@ void RSImageBase::GenUniqueId(uint32_t id)
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext)
+void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext, Drawing::Canvas& canvas)
 {
     if (!gpuContext) {
         return;
     }
-    auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+
+    std::shared_ptr<Drawing::Image> cache;
+    pid_t threadId = gettid();
+#ifdef SUBTREE_PARALLEL_ENABLE
+    // Adapt to the subtree feature to ensure the correct thread ID(TID) is set.
+    RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
+#endif
+    cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
+
     std::lock_guard<std::mutex> lock(mutex_);
     if (cache) {
         image_ = cache;
@@ -567,7 +585,7 @@ void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContex
     if (image) {
         image_ = image;
         SKResourceManager::Instance().HoldResource(image);
-        RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
+        RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, threadId);
     } else {
         RS_LOGE("make yuv image %{public}d (%{public}d, %{public}d) failed",
             (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
@@ -678,8 +696,13 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
     if (pixelMap_ && !pixelMap_->IsAstc()) {
         std::shared_ptr<Drawing::Image> imageCache = nullptr;
+        pid_t threadId = gettid();
+#ifdef SUBTREE_PARALLEL_ENABLE
+        // Adapt to the subtree feature to ensure the correct thread ID (TID) is set.
+        RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
+#endif
         if (!pixelMap_->IsEditable()) {
-            imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+            imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
         }
         if (imageCache) {
             image_ = imageCache;
@@ -687,7 +710,7 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
             image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));
             if (image_) {
                 SKResourceManager::Instance().HoldResource(image_);
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, threadId);
             }
         }
     }
@@ -735,6 +758,12 @@ static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorM
             return Drawing::ColorSpace::CreateSRGBLinear();
         case ColorManager::ColorSpaceName::SRGB:
             return Drawing::ColorSpace::CreateSRGB();
+        case ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+        case ColorManager::ColorSpaceName::ADOBE_RGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
         default:
             return Drawing::ColorSpace::CreateSRGB();
     }
@@ -745,7 +774,12 @@ void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
 {
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (compressData_) {
-        auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+        std::shared_ptr<Drawing::Image> cache;
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
+        } else {
+            cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+        }
         std::lock_guard<std::mutex> lock(mutex_);
         if (cache) {
             image_ = cache;
@@ -767,7 +801,11 @@ void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
             if (result) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image);
+                } else {
+                    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
+                }
             } else {
                 RS_LOGE("make astc image %{public}d (%{public}d, %{public}d) failed",
                     (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
@@ -777,7 +815,7 @@ void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
         return;
     }
     if (isYUVImage_) {
-        ProcessYUVImage(canvas.GetGPUContext());
+        ProcessYUVImage(canvas.GetGPUContext(), canvas);
     }
 #endif
 }

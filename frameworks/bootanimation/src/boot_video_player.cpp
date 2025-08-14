@@ -64,7 +64,6 @@ void BootVideoPlayer::Play()
         return;
     }
     std::string path = GetResPath(TYPE_VIDEO);
-    LOGI("video res path: %{public}s", path.c_str());
     ret = mediaPlayer_->SetSource(path);
     if (ret != 0) {
         LOGE("PlayVideo SetSource fail, errorCode: %{public}d", ret);

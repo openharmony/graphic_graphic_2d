@@ -85,8 +85,6 @@ public:
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
 #endif
 
-    void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
-
     /*
      * This function is used to reduce memory usage by unmap the memory of the pixelMap_.
      * Only the pixelMap_ with one RefCount and one UseCount can be purged.
@@ -95,10 +93,11 @@ public:
     void DePurge();
 
 protected:
+    void ConvertPixelMapToDrawingImage();
     void GenUniqueId(uint32_t id);
     void UploadGpu(Drawing::Canvas& canvas);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
+    void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext, Drawing::Canvas& canvas);
     bool SetCompressedDataForASTC();
 #if defined(RS_ENABLE_VK)
     void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);

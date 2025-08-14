@@ -33,7 +33,11 @@ static const std::set<std::string> g_rbPattenVec = {
     "Stack",
     "Swiper",
     "FlowItem",
-    "WaterFlow"
+    "WaterFlow",
+    "Scroll",
+    "TabBar",
+    "Custom",
+    "__Common__"
 };
 
 inline bool CheckRbPatten(const std::string& tag)

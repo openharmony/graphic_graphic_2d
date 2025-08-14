@@ -22,10 +22,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_EXECUTE_SYNCHRONOUS_TASK = 0;
-const uint8_t DO_NOTIFY_TOUCH_EVENT = 1;
-const uint8_t DO_SET_HARDWARE_ENABLED = 2;
-const uint8_t TARGET_SIZE = 3;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -47,19 +43,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -77,14 +60,14 @@ namespace Mock {
 
 } // namespace Mock
 
-void DoExecuteSynchronousTask()
-{}
-
 void DoNotifyTouchEvent()
-{}
+{
+    int32_t touchStatus = GetData<int32_t>();
+    int32_t touchCnt = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.NotifyTouchEvent(touchStatus, touchCnt);
+}
 
-void DoSetHardwareEnabled()
-{}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -95,19 +78,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return -1;
     }
     /* Run your code on data */
-    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-    switch (tarPos) {
-        case OHOS::Rosen::DO_EXECUTE_SYNCHRONOUS_TASK:
-            OHOS::Rosen::DoExecuteSynchronousTask();
-            break;
-        case OHOS::Rosen::DO_NOTIFY_TOUCH_EVENT:
-            OHOS::Rosen::DoNotifyTouchEvent();
-            break;
-        case OHOS::Rosen::DO_SET_HARDWARE_ENABLED:
-            OHOS::Rosen::DoSetHardwareEnabled();
-            break;
-        default:
-            return -1;
-    }
+    OHOS::Rosen::DoNotifyTouchEvent();
     return 0;
 }

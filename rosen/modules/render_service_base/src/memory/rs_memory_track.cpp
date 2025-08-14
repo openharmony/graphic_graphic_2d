@@ -429,5 +429,55 @@ void MemoryTrack::RemovePictureRecord(const void* addr)
     memPicRecord_.erase(addr);
 }
 
+#ifdef RS_MEMORY_INFO_MANAGER
+void MemoryTrack::SetGlobalRootNodeStatusChangeFlag(bool flag)
+{
+    globalRootNodeStatusChangeFlag.store(flag);
+}
+
+bool MemoryTrack::GetGlobalRootNodeStatusChangeFlag()
+{
+    return globalRootNodeStatusChangeFlag.load();
+}
+
+NODE_ON_TREE_STATUS MemoryTrack::GetNodeOnTreeStatus(const void* address)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto picRecordIt = memPicRecord_.find(address);
+    if (picRecordIt == memPicRecord_.end()) {
+        return NODE_ON_TREE_STATUS::STATUS_INVALID;
+    }
+
+    NodeId nodeId = picRecordIt->second.nid;
+    auto nodeInfoIt = memNodeMap_.find(nodeId);
+    if (nodeInfoIt == memNodeMap_.end()) {
+        return NODE_ON_TREE_STATUS::STATUS_INVALID;
+    }
+
+    const auto& nodeInfo = nodeInfoIt->second;
+    if (nodeInfo.isOnTree && !nodeInfo.rootNodeStatusChangeFlag) {
+        return NODE_ON_TREE_STATUS::STATUS_ON_TREE;
+    } else if (nodeInfo.isOnTree) {
+        return NODE_ON_TREE_STATUS::STATUS_ON_TREE_IN_ROOT;
+    } else if (!nodeInfo.isOnTree && !nodeInfo.rootNodeStatusChangeFlag) {
+        return NODE_ON_TREE_STATUS::STATUS_OFF_TREE;
+    } else {
+        return NODE_ON_TREE_STATUS::STATUS_OFF_TREE_IN_ROOT;
+    }
+}
+
+void MemoryTrack::SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFlag, bool isOnTree)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto itr = memNodeMap_.find(nodeId);
+    if (itr == memNodeMap_.end()) {
+        return;
+    }
+    itr->second.rootNodeStatusChangeFlag = rootNodeStatusChangeFlag;
+    itr->second.isOnTree = isOnTree;
+}
+#endif
 }
 }

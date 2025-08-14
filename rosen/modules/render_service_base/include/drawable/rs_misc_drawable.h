@@ -212,12 +212,21 @@ public:
     ~RSBeginBlenderDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    void PostUpdate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
+    bool GetEnableEDR() const override
+    {
+        return enableEDREffect_;
+    }
+
 private:
+    NodeId screenNodeId_ = INVALID_NODEID;
+
     bool needSync_ = false;
+    bool enableEDREffect_ = false;
     std::shared_ptr<Drawing::Blender> blender_ = nullptr;
     int blendApplyType_ = 0;
     bool isDangerous_ = false;

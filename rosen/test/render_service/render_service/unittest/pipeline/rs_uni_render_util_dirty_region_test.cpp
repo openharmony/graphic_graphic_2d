@@ -80,11 +80,7 @@ void RSUniRenderUtilDirtyRegionTest::InitForMergeDirtyHistory(
     auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
 
-    drawableParam->isAppWindow_ = isAppWindow;
-    drawableParam->isLeashWindow_ = isAppWindow;
-    drawableParam->isMainWindowType_ = isAppWindow;
-    drawableParam->isLeashorMainWindow_ = isAppWindow;
-
+    drawableParam->SetWindowInfo(isAppWindow, isAppWindow, isAppWindow);
     drawableParam->dstRect_ = WHOLE_SCREEN_RECT;
     drawableParam->SetVisibleRegion(visibleRegion);
     drawableParam->SetVisibleRegionInVirtual(visibleRegion);
@@ -121,21 +117,18 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual002, Function
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    drawableParam->isMainWindowType_ = true;
-    drawableParam->isLeashWindow_ = true;
-    drawableParam->isAppWindow_ = true;
-    drawableParam->isLeashorMainWindow_ = true;
+    drawableParam->SetWindowInfo(true, true, true);
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(nullptr);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
-    displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0);
-    ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
+    screenNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, 0);
+    ASSERT_NE(screenNodeDrawable.renderParams_, nullptr);
 }
 
 /*
@@ -148,19 +141,17 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual003, Function
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    drawableParam->isMainWindowType_ = false;
-    drawableParam->isLeashWindow_ = false;
-    drawableParam->isAppWindow_ = false;
+    drawableParam->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
-    displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0);
-    ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
+    screenNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, 0);
+    ASSERT_NE(screenNodeDrawable.renderParams_, nullptr);
 }
 
 /*
@@ -173,16 +164,13 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest001
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->isMainWindowType_ = true;
-    param->isLeashWindow_ = true;
-    param->isAppWindow_ = true;
-    param->isLeashorMainWindow_ = true;
+    param->SetWindowInfo(true, true, true);
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(drawable);
@@ -201,15 +189,13 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest002
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->isMainWindowType_ = false;
-    param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
+    param->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(drawable);
     RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, *displayNodeDrawableParam);
@@ -227,8 +213,8 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest003
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
@@ -318,10 +304,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionTest001, Functio
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = true;
-    param->isLeashWindow_ = true;
-    param->isAppWindow_ = true;
-    param->isLeashorMainWindow_ = true;
+    param->SetWindowInfo(true, true, true);
     param->dstRect_ = WHOLE_SCREEN_RECT;
     param->SetVisibleRegion(visibleRegion);
     drawable->renderParams_ = std::move(param);
@@ -386,9 +369,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionTest003, Functio
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = false;
-    param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
+    param->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -418,7 +399,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleAdvancedDirtyRegionTest004,
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isLeashorMainWindow_ = true;
+    param->SetWindowInfo(true, false, false);
     drawable->renderParams_ = std::move(param);
     auto surfaceDrawable =
         std::shared_ptr<RSSurfaceRenderNodeDrawable>(static_cast<RSSurfaceRenderNodeDrawable*>(drawable));
@@ -448,10 +429,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleAdvancedDirtyRegionTest001,
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = true;
-    param->isLeashWindow_ = true;
-    param->isAppWindow_ = true;
-    param->isLeashorMainWindow_ = true;
+    param->SetWindowInfo(true, true, true);
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -503,9 +481,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleAdvancedDirtyRegionTest003,
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = false;
-    param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
+    param->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -534,7 +510,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetDrawRegionForQuickRejectTest001, Fun
     Occlusion::Region testRegion(DEFAULT_RECT1);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = false;
+    param->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -562,7 +538,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetDrawRegionForQuickRejectTest002, Fun
     Occlusion::Region testRegion(DEFAULT_RECT1);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = true;
+    param->SetWindowInfo(true, false, false);
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -615,7 +591,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetDrawRegionForQuickRejectTest004, Fun
     Occlusion::Region testRegion(DEFAULT_RECT1);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->isMainWindowType_ = true;
+    param->SetWindowInfo(true, false, false);
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -637,16 +613,13 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest004
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->isMainWindowType_ = true;
-    param->isLeashWindow_ = true;
-    param->isAppWindow_ = true;
-    param->isLeashorMainWindow_ = true;
+    param->SetWindowInfo(true, true, true);
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(drawable);
@@ -664,15 +637,13 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest005
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->isMainWindowType_ = false;
-    param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
+    param->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(drawable);
     RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables, *displayNodeDrawableParam, true);
@@ -689,8 +660,8 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest006
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
@@ -725,24 +696,21 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual005, Function
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    drawableParam->isMainWindowType_ = true;
-    drawableParam->isLeashWindow_ = true;
-    drawableParam->isAppWindow_ = true;
-    drawableParam->isLeashorMainWindow_ = true;
+    drawableParam->SetWindowInfo(false, false, true);
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(nullptr);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
-    displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
+    screenNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
     ScreenInfo screenInfo;
     screenInfo.isSamplingOn = true;
     screenInfo.samplingScale = 1.f;
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0, screenInfo);
-    ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, 0, screenInfo);
+    ASSERT_NE(screenNodeDrawable.renderParams_, nullptr);
 }
 
 /*
@@ -755,20 +723,18 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual006, Function
 {
     NodeId nodeId = 1;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
-    DrawableV2::RSScreenRenderNodeDrawable displayNodeDrawable(topNode);
-    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(displayNodeDrawable.nodeId_);
+    DrawableV2::RSScreenRenderNodeDrawable screenNodeDrawable(topNode);
+    auto displayNodeDrawableParam = std::make_unique<RSScreenRenderParams>(screenNodeDrawable.nodeId_);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    drawableParam->isMainWindowType_ = false;
-    drawableParam->isLeashWindow_ = false;
-    drawableParam->isAppWindow_ = false;
+    drawableParam->SetWindowInfo(false, false, false);
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
-    displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
+    screenNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
     ScreenInfo screenInfo;
-    RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0, screenInfo);
-    ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
+    RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, 0, screenInfo);
+    ASSERT_NE(screenNodeDrawable.renderParams_, nullptr);
 }
 
 /*
@@ -784,7 +750,6 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
     NodeId screenParamsId = 10000;
     ScreenInfo screenInfo;
     int32_t bufferAge = 1;
-    ScreenId mainId = 1000;
     ScreenId otherId = 1001;
     auto topNode = std::make_shared<RSRenderNode>(nodeId++);
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
@@ -815,11 +780,9 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
     ASSERT_NE(screenManager, nullptr);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.SetDefaultScreenId(mainId);
     screenManagerImpl.screens_[screenId] = std::make_shared<impl::RSScreen>(screenId, true, nullptr, nullptr);
-    screenManagerImpl.screens_[mainId] = std::make_shared<impl::RSScreen>(mainId, false, nullptr, nullptr);
     int32_t result = screenManager->AddVirtualScreenBlackList(screenId, blockList);
-    ASSERT_EQ(result, SUCCESS);
+    ASSERT_EQ(result, SCREEN_NOT_FOUND);
 
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, false);
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(screenNodeDrawable, bufferAge, screenInfo);

@@ -38,6 +38,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "png.h"
 #include "rs_frame_rate_vote.h"
+#include "rs_profiler.h"
 #include "rs_trace.h"
 #include "rs_uni_render_thread.h"
 #include "rs_uni_render_util.h"
@@ -50,9 +51,11 @@ namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
+const std::string DISPLAYNODE = "DisplayNode";
 constexpr uint32_t API14 = 14;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
+constexpr int32_t SCREEN_SCAN_DIRECTION_VERTICAL = 1;
 
 inline int64_t GenerateCurrentTimeStamp()
 {
@@ -884,8 +887,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool adaptiveDVSyncEnable)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     const auto surfaceConsumer = surfaceHandler.GetConsumer();
@@ -897,10 +899,6 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
 
     // maxDirtyListSize should minus one buffer used for displaying, and another one that has just been acquried.
     int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1 - 1;
-    if (adaptiveDVSyncEnable) {
-        // adaptiveDVSync need more buffer
-        maxDirtyListSize++;
-    }
     // maxDirtyListSize > 1 means QueueSize >3 too
     if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
@@ -969,9 +967,8 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
     surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
 }
 
-CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume,
-    uint64_t parentNodeId, bool deleteCacheDisable)
+CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
+    bool dropFrameByPidEnable, uint64_t parentNodeId, bool deleteCacheDisable)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -981,16 +978,11 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
         return false;
     }
-    if (adaptiveDVSyncEnable && !needConsume) {
-        RS_LOGI("adaptiveDVSyncEnable and not needConsume");
-        return false;
-    }
 
     // check presentWhen conversion validation range
     bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
-        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled() &&
-            !adaptiveDVSyncEnable;
+        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     uint64_t acquireTimeStamp = presentWhen;
     if (!presentWhenValid || !acqiureWithPTSEnable) {
         acquireTimeStamp = CONSUME_DIRECTLY;
@@ -1059,8 +1051,10 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     }
     RSJankStats::GetInstance().AvcodecVideoCollect(consumer->GetUniqueId(), surfaceBuffer->buffer->GetSeqNum());
     surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
-        consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
+    if (consumer->GetName() != DISPLAYNODE) {
+        DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
+            consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
+    }
     if (consumer->GetSurfaceSourceType() == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
         RS_TRACE_NAME_FMT("lpp node: %" PRIu64 "", surfaceHandler.GetNodeId());
         surfaceHandler.SetSourceType(static_cast<uint32_t>(consumer->GetSurfaceSourceType()));
@@ -1068,7 +1062,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
-    DropFrameProcess(surfaceHandler, acquireTimeStamp, adaptiveDVSyncEnable);
+    DropFrameProcess(surfaceHandler, acquireTimeStamp);
 #ifdef RS_ENABLE_GPU
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine || deleteCacheDisable) {
@@ -1342,7 +1336,7 @@ int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodePar
     uint32_t apiCompatibleVersion = nodeParams->GetApiCompatibleVersion();
     if (isCameraRotationCompensation && apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION &&
         apiCompatibleVersion < API14) {
-        if (RSSystemParameters::GetWindowScreenScanType() == 1) {
+        if (RSSystemParameters::GetWindowScreenScanType() == SCREEN_SCAN_DIRECTION_VERTICAL) {
             rotationDegree = RS_ROTATION_90;
         }
         return rotationDegree;
@@ -1526,14 +1520,18 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::B
     return true;
 }
 
-Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer)
+Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,\
+    const Drawing::AlphaType alphaType)
 {
     Drawing::BitmapFormat format;
     if (buffer == nullptr) {
         return format;
     }
     Drawing::ColorType colorType = GetColorTypeFromBufferFormat(buffer->GetFormat());
-    Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
+    if (alphaType == Drawing::AlphaType::ALPHATYPE_OPAQUE
+        && colorType == Drawing::ColorType::COLORTYPE_RGBA_8888) {
+        colorType = Drawing::ColorType::COLORTYPE_RGB_888X;
+    }
     format = { colorType, alphaType };
     return format;
 }
@@ -1560,6 +1558,7 @@ pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     MessageParcel& parcel, uint32_t parcelNumber)
 {
+    RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
     auto transactionData = parcel.ReadParcelable<RSTransactionData>();
     if (!transactionData) {
@@ -1938,11 +1937,6 @@ void RSBaseRenderUtil::DecAcquiredBufferCount()
 pid_t RSBaseRenderUtil::GetLastSendingPid()
 {
     return lastSendingPid_;
-}
-
-bool RSBaseRenderUtil::PortraitAngle(int angle)
-{
-    return angle == RS_ROTATION_90 || angle == RS_ROTATION_270;
 }
 } // namespace Rosen
 } // namespace OHOS

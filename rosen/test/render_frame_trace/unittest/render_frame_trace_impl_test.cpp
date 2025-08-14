@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,10 +15,8 @@
 
 #include <gtest/gtest.h>
 
-#define private public
 #include "render_frame_trace.h"
 #include "render_frame_trace_impl.h"
-#undef private
 
 namespace OHOS {
 namespace Rosen {

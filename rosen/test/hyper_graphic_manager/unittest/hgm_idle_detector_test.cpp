@@ -181,7 +181,7 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
 
 /**
  * @tc.name: GetTouchUpExpectedFPS001
- * @tc.desc: Verify the result of ThirdFrameNeedHighRefresh function
+ * @tc.desc: Verify the result of GetTouchUpExpectedFPS function
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */

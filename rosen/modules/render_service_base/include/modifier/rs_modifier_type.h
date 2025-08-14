@@ -170,14 +170,12 @@ enum class RSModifierType : uint16_t {
     ATTRACTION_DSTPOINT = 133,
     ALWAYS_SNAPSHOT = 134,
     COMPLEX_SHADER_PARAM = 135,
-    BACKGROUND_UI_FILTER = 136,
-    HDR_UI_BRIGHTNESS = 137,
-    FOREGROUND_UI_FILTER = 138,
-    HDR_BRIGHTNESS_FACTOR = 139,
-    FOREGROUND_NG_FILTER = 140,
-    BACKGROUND_NG_FILTER = 141,
-    FG_BRIGHTNESS_HDR = 142,
-    SHADOW_BLENDER_PARAMS = 143,
+    HDR_UI_BRIGHTNESS = 136,
+    HDR_BRIGHTNESS_FACTOR = 137,
+    FOREGROUND_NG_FILTER = 138,
+    BACKGROUND_NG_FILTER = 139,
+    FG_BRIGHTNESS_HDR = 140,
+    SHADOW_BLENDER_PARAMS = 141,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -348,9 +346,7 @@ public:
             case RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
             case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
             case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
-            case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
             case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
-            case RSModifierType::FOREGROUND_UI_FILTER: return "ForegroundUIFilter";
             case RSModifierType::HDR_BRIGHTNESS_FACTOR: return "HDRBrightnessFactor";
             case RSModifierType::BACKGROUND_NG_FILTER: return "BackgroundNgFilter";
             case RSModifierType::FOREGROUND_NG_FILTER: return "ForegroundNgFilter";

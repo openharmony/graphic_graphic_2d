@@ -15,12 +15,17 @@
 
 #include "gtest/gtest.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
-#include "drawable/rs_logical_display_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_system_properties.h"
+
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -32,7 +37,7 @@ constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 class RSSkpCaptureDFXTest : public testing::Test {
 public:
     std::shared_ptr<RSSurfaceRenderNode> renderNode_;
-    std::shared_ptr<RSLogicalDisplayRenderNode> displayRenderNode_;
+    std::shared_ptr<RSScreenRenderNode> displayRenderNode_;
     std::shared_ptr<RSSurfaceRenderNodeDrawable> surfaceDrawable_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
@@ -75,6 +80,15 @@ HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
         rtThread.uniRenderEngine_->renderContext_ = std::shared_ptr<RenderContext>();
         RSSkpCaptureDfx capture(canvas);
         ASSERT_EQ(capture.recordingCanvas_, nullptr);
+    }
+    {
+#ifdef RS_PROFILER_ENABLED
+        RSCaptureRecorder::testingTriggering_ = true;
+        RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::DEFAULT);
+        RSSkpCaptureDfx capture(canvas);
+        ASSERT_EQ(capture.recordingCanvas_, nullptr);
+        RSCaptureRecorder::testingTriggering_ = false;
+#endif
     }
 }
 }

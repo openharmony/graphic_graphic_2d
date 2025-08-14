@@ -53,6 +53,8 @@
 #include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
+#include "subtree_parallel_param.h"
+#include "subtree_parallel_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "vrate_param_parse.h"
@@ -67,8 +69,6 @@
 #include "surface_capture_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
-#include "loadoptimization_param_parse.h"
-#include "loadoptimization_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -121,8 +121,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
-    {FEATURE_CONFIGS[LOAD_OPTIMIZATION], [] { return std::make_unique<LoadOptimizationParamParse>(); },
-        [] { return std::make_unique<LoadOptimizationParam>(); }},
+    {FEATURE_CONFIGS[SUBTREEPARALLEL], [] { return std::make_unique<SubtreeParallelParamParse>(); },
+        [] { return std::make_unique<SubtreeParallelParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

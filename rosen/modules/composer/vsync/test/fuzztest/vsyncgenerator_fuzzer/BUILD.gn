@@ -42,7 +42,8 @@ ohos_fuzztest("VsyncGeneratorFuzzTest") {
     "-Dprotected=public",
   ]
   sources = [ "vsyncgenerator_fuzzer.cpp" ]
-  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+           "$graphic_2d_root/utils:socketpair", ]
   external_deps = [
     "c_utils:utils",
     "samgr:samgr_proxy",

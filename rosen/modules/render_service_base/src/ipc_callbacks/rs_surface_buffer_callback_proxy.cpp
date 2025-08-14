@@ -17,6 +17,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include "platform/common/rs_log.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,9 +62,9 @@ void RSSurfaceBufferCallbackProxy::OnFinish(const FinishCallbackRet& ret)
 #endif
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSSurfaceBufferCallbackProxy: Remote()->SendRequest() error");
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy: SendRequest() error");
     }
 }
 
@@ -86,10 +87,11 @@ void RSSurfaceBufferCallbackProxy::OnAfterAcquireBuffer(const AfterAcquireBuffer
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_AFTER_ACQUIRE_BUFFER);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSSurfaceBufferCallbackProxy: Remote()->SendRequest() error");
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy: SendRequest() error");
     }
 }
+
 } // namespace Rosen
 } // namespace OHOS

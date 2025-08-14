@@ -23,6 +23,7 @@
 #include "effect/runtime_shader_builder.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -123,6 +124,7 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
     if (!offscreenCanvas->DrawBlurImage(*image, offscreenHpsParam)) {
         return false;
     }
+    RS_PROFILER_ADD_HPS_BLUR_METRICS(static_cast<uint32_t>(image->GetWidth() * image->GetHeight()));
 
     alpha = ApplyMaskColorFilter(*offscreenCanvas, alpha, maskColor);
 

@@ -27,9 +27,7 @@ namespace Drawing {
 
 void SkiaUtils::SetVmaCacheStatus(bool flag)
 {
-#ifndef TODO_M133_SKIA
     SkSetVmaCacheFlag(flag);
-#endif
 }
 } // namespace Drawing
 } // namespace Rosen

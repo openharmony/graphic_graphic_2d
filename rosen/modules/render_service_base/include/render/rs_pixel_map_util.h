@@ -45,6 +45,7 @@ public:
     static bool IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::SamplingOptions& sampling);
     static std::shared_ptr<Drawing::Image> ConvertYUVPixelMapToDrawingImage(
         std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap);
+    static bool CheckFormatConsistency(std::shared_ptr<Media::PixelMap> pixelMap);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -44,10 +44,12 @@ class RSSurfaceNode;
 class RSRootNode;
 class RSTransactionData;
 class RSUIContext;
+class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 
 /**
  * @class RSUIDirector
@@ -96,8 +98,9 @@ public:
 
     /**
      * @brief Initiates the process of exporting texture data.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set.
      */
-    void StartTextureExport();
+    void StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Destroy RSUIDirector instance.
@@ -169,14 +172,9 @@ public:
     void SendMessages();
     
     /**
-     * @brief Sets the timestamp and associates it with a specific ability name.
-     *
-     * @param timeStamp The timestamp value to be set.
-     * @param abilityName The name of the ability to associate with the timestamp.
-     */
-
-      /**
-     * @brief Post messages to render thread.
+     * @brief Post messages to render thread with callback.
+     * 
+     * @param callback The callback value to be set.
      */
     void SendMessages(std::function<void()> callback);
     
@@ -320,16 +318,25 @@ public:
      */
     static uint32_t GetHybridRenderTextBlobLenCount();
 
+    /**
+     * @brief Sets the dvsynctime to command which will update the dvsync time.
+     *
+     * @param dvsyncTime the time which need send to dvsync.
+     */
+    void SetDVSyncUpdate(uint64_t dvsyncTime);
 private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
-    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
+    static void ProcessInstanceMessages(
+        std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
+    static void ProcessUIContextMessages(
+        std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
-    static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance);
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
         AnimationCallbackEvent event);
-    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId); // DFX to do
+    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);        // DFX to do
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
@@ -366,6 +373,8 @@ private:
     bool isHgmConfigChangeCallbackReg_ = false;
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
     std::weak_ptr<RSRootNode> rootNode_;
+    bool dvsyncUpdate_ = false;
+    uint64_t dvsyncTime_ = 0;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

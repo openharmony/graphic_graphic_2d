@@ -506,56 +506,17 @@ HWTEST_F(RSSurfaceRenderParamsTest, LayerLinearMatrixTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSourceDisplayRenderNodeDrawable
- * @tc.desc: Test function GetSourceDisplayRenderNodeDrawable
+ * @tc.name: GetSourceScreenRenderNodeDrawable
+ * @tc.desc: Test function GetSourceScreenRenderNodeDrawable
  * @tc.type:FUNC
  * @tc.require: issueIBKU7U
  */
-HWTEST_F(RSSurfaceRenderParamsTest, GetSourceDisplayRenderNodeDrawable, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderParamsTest, GetSourceScreenRenderNodeDrawable, TestSize.Level1)
 {
     constexpr NodeId id = 124;
     RSSurfaceRenderParams params(id);
     params.sourceDisplayRenderNodeDrawable_ = std::weak_ptr<DrawableV2::RSRenderNodeDrawableAdapter>();
     EXPECT_TRUE(params.GetSourceDisplayRenderNodeDrawable().expired());
-}
-
-/**
- * @tc.name: SetOffsetXTest
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetXTest, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(125);
-    params.SetOffsetX(1);
-    EXPECT_EQ(params.GetOffsetX(), 1);
-}
-
-/**
- * @tc.name: SetOffsetY
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetYTest, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(126);
-    params.SetOffsetY(1);
-    EXPECT_EQ(params.GetOffsetY(), 1);
-}
-
-/**
- * @tc.name: SetOffsetY
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetRogWidthRatioTest, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(127);
-    params.SetRogWidthRatio(1.0);
-    EXPECT_EQ(params.GetRogWidthRatio(), 1.0);
 }
 
 /**

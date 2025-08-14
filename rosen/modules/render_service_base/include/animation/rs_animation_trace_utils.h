@@ -53,9 +53,9 @@ public:
         const int repeat, const std::string& interfaceName, const int32_t frameNodeId, const std::string& frameNodeTag,
         RSUINodeType nodeType) const;
 
-    void AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t animationId, const uint64_t propertyId,
-        const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur,
-        const int repeat) const;
+    void AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t nodeId, const std::string& nodeName,
+        const uint64_t animationId, const uint64_t propertyId, const float fraction,
+        const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur, const int repeat) const;
 
     void AddSpringInitialVelocityTrace(const uint64_t propertyId, const uint64_t animationId,
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,

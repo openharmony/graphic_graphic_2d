@@ -33,7 +33,8 @@ namespace OHOS::Rosen {
 #define RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED 0x240723
 #define RSFILE_VERSION_RENDER_TYPEFACE_FIX 0x240801
 #define RSFILE_VERSION_ISREPAINT_BOUNDARY 0x250516
-#define RSFILE_VERSION_LATEST RSFILE_VERSION_ISREPAINT_BOUNDARY
+#define RSFILE_VERSION_LOG_EVENTS_ADDED 0x250519
+#define RSFILE_VERSION_LATEST RSFILE_VERSION_LOG_EVENTS_ADDED
 
 struct RSFileLayer final {
     std::pair<uint32_t, uint32_t> layerHeader; // to put in GLOBAL HEADER
@@ -49,6 +50,7 @@ struct RSFileLayer final {
     TrackMarkup oglMetrics;
     TrackMarkup gfxMetrics;
     TrackMarkup renderMetrics;
+    TrackMarkup logEvents;
 
     uint32_t readindexRsData = 0;
     uint32_t readindexOglData = 0;
@@ -56,13 +58,14 @@ struct RSFileLayer final {
     uint32_t readindexOglMetrics = 0;
     uint32_t readindexGfxMetrics = 0;
     uint32_t readindexRenderMetrics = 0;
+    uint32_t readindexLogEvents = 0;
 };
 
 class RSFile final {
 public:
     RSFile();
 
-    void Create(const std::string& fname);
+    bool Create(const std::string& fname);
     bool Open(const std::string& fname);
 
     bool IsOpen() const;
@@ -90,6 +93,7 @@ public:
     void WriteRenderMetrics(uint32_t layer, double time, const void* data, size_t size);
     void WriteOGLMetrics(uint32_t layer, double time, uint32_t frame, const void* data, size_t size);
     void WriteGFXMetrics(uint32_t layer, double time, uint32_t frame, const void* data, size_t size);
+    void WriteLogEvent(uint32_t layer, double time, const void* data, size_t size);
 
     void ReadRSDataRestart();
     void ReadOGLDataRestart(uint32_t layer);
@@ -97,6 +101,7 @@ public:
     void ReadRenderMetricsRestart(uint32_t layer);
     void ReadOGLMetricsRestart(uint32_t layer);
     void ReadGFXMetricsRestart(uint32_t layer);
+    void ReadLogEventRestart(uint32_t layer);
 
     bool RSDataEOF() const;
     bool OGLDataEOF(uint32_t layer) const;
@@ -104,6 +109,7 @@ public:
     bool RenderMetricsEOF(uint32_t layer) const;
     bool OGLMetricsEOF(uint32_t layer) const;
     bool GFXMetricsEOF(uint32_t layer) const;
+    bool LogEventEOF(uint32_t layer) const;
 
     bool ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime);
     bool ReadOGLData(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
@@ -111,6 +117,7 @@ public:
     bool ReadRenderMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadOGLMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
+    bool ReadLogEvent(double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);
     bool GetDataCopy(std::vector<uint8_t>& data); // copy the content of RSFile so far
 
     bool HasLayer(uint32_t layer) const;
@@ -126,6 +133,7 @@ public:
     static const std::string& GetDefaultPath();
 
     void CacheVsyncId2Time(uint32_t layer);
+    int64_t GetClosestVsyncId(int64_t vsyncId);
     double ConvertVsyncId2Time(int64_t vsyncId);
     int64_t ConvertTime2VsyncId(double time) const;
 

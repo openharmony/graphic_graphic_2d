@@ -1555,6 +1555,7 @@ HWTEST_F(RSInterfacesTest, NotifyXComponentExpectedFrameRate, Function | SmallTe
     std::string id = "xcomponent";
     int32_t expectedFrameRate = 5;
     rsInterfaces->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1595,12 +1596,16 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level0)
+HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
 {
+    int32_t invalidArguments = 5;
     ASSERT_NE(rsInterfaces, nullptr);
-    FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, int32_t fps){};
+    FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, const std::string& xcomponentId, int32_t fps){};
+
     int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
     ASSERT_EQ(ret, 0);
+    ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, cb);
+    ASSERT_EQ(ret, invalidArguments);
     ret = rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(1);
     ASSERT_EQ(ret, 0);
 }
@@ -2613,6 +2618,36 @@ HWTEST_F(RSInterfacesTest, ClearUifirstCache, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     NodeId nodeId = 1;
     rsInterfaces->ClearUifirstCache(nodeId);
+}
+
+/*
+ * @tc.name: GetScreenHDRStatus001
+ * @tc.desc: Test GetScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSInterfacesTest, GetScreenHDRStatus001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    HdrStatus hdrStatus = HdrStatus::NO_HDR;
+    int ret = rsInterfaces->GetScreenHDRStatus(screenId, hdrStatus);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenHDRStatus002
+ * @tc.desc: Test GetScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSInterfacesTest, GetScreenHDRStatus002, Function | SmallTest | Level2)
+{
+    HdrStatus hdrStatus = HdrStatus::NO_HDR;
+    int ret = rsInterfaces->GetScreenHDRStatus(INVALID_SCREEN_ID, hdrStatus);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(hdrStatus, HdrStatus::NO_HDR);
 }
 } // namespace Rosen
 } // namespace OHOS

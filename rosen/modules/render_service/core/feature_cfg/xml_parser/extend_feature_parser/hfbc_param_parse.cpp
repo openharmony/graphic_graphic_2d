@@ -60,7 +60,7 @@ int32_t HFBCParamParse::ParseHfbcInternal(xmlNode &node)
                 HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
                 RS_LOGI("HFBCParamParse postTask about hfbcConfig");
                 hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
-                // 0: enable list mode, other: disable list mode
+                // val 0: enable list mode, other: disable list mode
                 hfbcConfig.SetHfbcControlMode(val != "0");
             });
         }
@@ -80,15 +80,15 @@ int32_t HFBCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string 
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        auto appName = ExtractPropertyValue("name", *currNode);
+        auto property = ExtractPropertyValue("name", *currNode);
         auto val = ExtractPropertyValue("value", *currNode);
         if (!IsNumber(val)) {
             return PARSE_ERROR;
         }
-        RS_LOGI("HFBCParamParse %{public}s: appName:%{public}s, value:%{public}s",
-            __func__, appName.c_str(), val.c_str());
+        RS_LOGI("HFBCParamParse %{public}s: property:%{public}s, value:%{public}s",
+            __func__, property.c_str(), val.c_str());
         if (name == "HfbcDisable") {
-            HFBCParam::SetHfbcConfigForApp(appName, val);
+            HFBCParam::SetHfbcConfigForApp(property, val);
         } else {
             RS_LOGE("HFBCParamParse ParseFeatureMultiParam cannot find name:%s", name.c_str());
             return PARSE_NO_PARAM;

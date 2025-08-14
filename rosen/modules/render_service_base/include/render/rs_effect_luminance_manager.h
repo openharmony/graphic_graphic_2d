@@ -18,9 +18,9 @@
 #include <map>
 
 #include "common/rs_common_def.h"
-#include "common/rs_vector2.h"
-#include "common/rs_vector4.h"
 #include "draw/color.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,23 +29,20 @@ constexpr float EFFECT_MAX_LUMINANCE = 2.0f;
 
 class RSB_EXPORT RSEffectLuminanceManager {
 public:
-    virtual ~RSEffectLuminanceManager() = default;
-
     static RSEffectLuminanceManager& GetInstance();
+
+    virtual ~RSEffectLuminanceManager() = default;
 
     void SetDisplayHeadroom(NodeId id, float brightness);
 
     float GetDisplayHeadroom(NodeId id) const;
 
-    static Vector4f GetBrightnessMapping(float brightness, Vector4f& input);
+    static bool GetEnableHdrEffect(std::shared_ptr<RSNGRenderFilterBase> renderFilter);
 
-    static Drawing::Color4f GetBrightnessMapping(float brightness, Drawing::Color4f& input);
-
-    static float GetBrightnessMapping(float brightness, float input);
+    static bool GetEnableHdrEffect(std::shared_ptr<RSNGRenderShaderBase> renderShader);
 
 private:
-    static bool CalcBezierResultY(
-        const Vector2f& start, const Vector2f& end, const Vector2f& control, float x, float& y);
+    RSEffectLuminanceManager() = default;
 
     std::map<uint64_t, float> displayHeadroomMap_;
 };

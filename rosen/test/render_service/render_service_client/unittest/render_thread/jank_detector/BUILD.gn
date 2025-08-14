@@ -39,6 +39,10 @@ ohos_unittest("RSRenderServiceClientJankDetectorTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "graphic_surface:surface_static",
+    "graphic_surface:buffer_handle",
+    "graphic_surface:surface",
+    "cJSON:cjson_static",
   ]
 
   cflags = [

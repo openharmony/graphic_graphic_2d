@@ -16,6 +16,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 
 #include "app_mgr_client.h"
+#include "ffrt_inner.h"
 #include "hisysevent.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -59,33 +60,27 @@ RSUnmarshalThread& RSUnmarshalThread::Instance()
 
 void RSUnmarshalThread::Start()
 {
-    runner_ = AppExecFwk::EventRunner::Create("RSUnmarshalThread");
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-#ifdef RES_SCHED_ENABLE
-    PostTask([this]() {
-        auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
-        unmarshalTid_ = gettid();
-        RS_LOGI("RSUnmarshalThread: SetThreadQos retcode = %{public}d", ret);
-    });
-#endif
+    queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "RSUnmarshalThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
 }
 
 void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
-    if (handler_) {
-        handler_->PostTask(
-            [task, taskName = name]() mutable {
-                auto handle = RSUnmarshalTaskManager::Instance().BeginTask(std::move(taskName));
-                std::invoke(task);
-                RSUnmarshalTaskManager::Instance().EndTask(handle);
-            }, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    if (queue_) {
+        queue_->submit(
+            std::move(task), ffrt::task_attr()
+                                 .name(name.c_str())
+                                 .delay(0)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
     }
 }
 
 void RSUnmarshalThread::RemoveTask(const std::string& name)
 {
-    if (handler_) {
-        handler_->RemoveTask(name);
+    if (queue_) {
+        ffrt_queue_t* queue = reinterpret_cast<ffrt_queue_t*>(queue_.get());
+        ffrt_queue_cancel_by_name(*queue, name.c_str());
     }
 }
 
@@ -93,9 +88,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     std::unique_ptr<AshmemFdWorker> ashmemFdWorker, std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit,
     uint32_t parcelNumber)
 {
-    if (!handler_ || !parcel) {
-        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
-            (!handler_), (!parcel));
+    if (!queue_ || !parcel) {
+        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, queue_: %{public}d, parcel: %{public}d",
+            (!queue_), (!parcel));
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
@@ -130,6 +125,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         int64_t time = transData == nullptr ? 0 : static_cast<int64_t>(transData->GetTimestamp());
+        if (transData && transData->GetDVSyncUpdate()) {
+            RSMainThread::Instance()->DVSyncUpdate(transData->GetDVSyncTime(), transData->GetTimestamp());
+        }
         {
             std::lock_guard<std::mutex> lock(transactionDataMutex_);
             cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
@@ -139,7 +137,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         } else {
             const auto &now = std::chrono::steady_clock::now().time_since_epoch();
             int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-            constexpr int64_t ONE_PERIOD = 8000000;
+            constexpr int64_t ONE_PERIOD = 8333333;
             if (currentTime - time > ONE_PERIOD && time != 0) {
                 RSMainThread::Instance()->RequestNextVSync("UI", time);
             }
@@ -148,20 +146,12 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
-        ffrt::task_handle handle;
-        if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
-        } else {
-            PostTask(task, std::to_string(callingPid));
-        }
+        PostTask(task);
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
          */
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         willHaveCachedData_ = true;
-        if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            cachedDeps_.push_back(std::move(handle));
-        }
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
@@ -186,16 +176,6 @@ bool RSUnmarshalThread::CachedTransactionDataEmpty()
      * and whether cachedTransactionDataMap_ will be empty later
      */
     return cachedTransactionDataMap_.empty() && !willHaveCachedData_;
-}
-
-void RSUnmarshalThread::Wait()
-{
-    std::vector<ffrt::dependence> deps;
-    {
-        std::lock_guard<std::mutex> lock(transactionDataMutex_);
-        std::swap(deps, cachedDeps_);
-    }
-    ffrt::wait(deps);
 }
 
 bool RSUnmarshalThread::IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const

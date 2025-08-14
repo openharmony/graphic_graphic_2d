@@ -15,6 +15,7 @@
 
 #include "rs_uni_render_processor.h"
 
+#include <parameters.h>
 #include <vector>
 
 #include "hdi_layer.h"
@@ -24,6 +25,7 @@
 #include "string_utils.h"
 #include "surface_type.h"
 
+#include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
@@ -241,7 +243,16 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence)
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    auto& layerInfo = params.layerInfo_;
+    auto layerInfo = params.layerInfo_;
+    if (params.GetHwcGlobalPositionEnabled()) {
+        // dst and matrix transform to screen position
+        layerInfo.matrix.PostTranslate(-offsetX_, -offsetY_);
+        layerInfo.dstRect.x -= offsetX_;
+        layerInfo.dstRect.y -= offsetY_;
+    }
+    if (params.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        ScaleLayerIfNeeded(layerInfo);
+    }
     layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
@@ -264,13 +275,6 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR &&
         ((layerInfo.dstRect.w != layerInfo.srcRect.w) || (layerInfo.dstRect.h != layerInfo.srcRect.h))) {
         dstRect = {layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h};
-    }
-    if (params.GetOffsetX() != 0 || params.GetOffsetY() != 0 || !ROSEN_EQ(params.GetRogWidthRatio(), 1.0f)) {
-        dstRect = {
-            static_cast<int>(std::round((layerInfo.dstRect.x - params.GetOffsetX()) * params.GetRogWidthRatio())),
-            static_cast<int>(std::round((layerInfo.dstRect.y - params.GetOffsetY()) * params.GetRogWidthRatio())),
-            static_cast<int>(std::round((layerInfo.dstRect.w * params.GetRogWidthRatio()))),
-            static_cast<int>(std::round((layerInfo.dstRect.h * params.GetRogWidthRatio())))};
     }
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
@@ -298,16 +302,19 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
         const auto& bufferDamage = params.GetBufferDamage();
-        GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
-            bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
-        Rect selfDrawingDirtyRect;
-        bool isDirtyRectValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
-        if (isDirtyRectValid) {
-            dirtyRect = { selfDrawingDirtyRect.x, selfDrawingDirtyRect.y,
-                selfDrawingDirtyRect.w, selfDrawingDirtyRect.h };
+        Rect selfDrawingDirtyRect = bufferDamage;
+        // When the size of the damage region equals that of the buffer, use dirty region from gpu crc
+        bool isUseSelfDrawingDirtyRegion = buffer != nullptr && buffer->GetSurfaceBufferWidth() == bufferDamage.w &&
+            buffer->GetSurfaceBufferHeight() == bufferDamage.h && bufferDamage.x == 0 && bufferDamage.y == 0;
+        if (isUseSelfDrawingDirtyRegion) {
+            RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
             RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]",
-                dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h);
+                selfDrawingDirtyRect.x, selfDrawingDirtyRect.y, selfDrawingDirtyRect.w, selfDrawingDirtyRect.h);
         }
+        bool isTargetedHwcDirtyRegion = params.GetIsBufferFlushed() ||
+            RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
+        GraphicIRect dirtyRect = isTargetedHwcDirtyRegion ? GraphicIRect { selfDrawingDirtyRect.x,
+            selfDrawingDirtyRect.y, selfDrawingDirtyRect.w, selfDrawingDirtyRect.h } : GraphicIRect { 0, 0, 0, 0 };
         auto intersectRect = RSUniDirtyComputeUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
         RS_OPTIONAL_TRACE_NAME_FMT("intersectRect:[%d, %d, %d, %d]",
             intersectRect.x, intersectRect.y, intersectRect.w, intersectRect.h);
@@ -319,7 +326,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
 
     layer->SetBlendType(layerInfo.blendType);
     layer->SetAncoFlags(layerInfo.ancoFlags);
-    RSAncoManager::UpdateLayerSrcRectForAnco(layerInfo.ancoFlags, layerInfo.ancoCropRect, buffer, layerInfo.srcRect);
+    RSAncoManager::UpdateLayerSrcRectForAnco(layerInfo.ancoFlags, layerInfo.ancoCropRect, layerInfo.srcRect);
     layer->SetCropRect(layerInfo.srcRect);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
@@ -329,11 +336,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layer->SetZorder(static_cast<int32_t>(TopLayerZOrder::POINTER_WINDOW));
     }
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
-        layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X),
-        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_X) - params.GetOffsetX(),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X), layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_X),
         layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_Y),
-        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y) - params.GetOffsetY(),
-        layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
+        layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
@@ -341,6 +346,24 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetLayerCopybit(layerInfo.copybitTag);
     HandleTunnelLayerParameters(params, layer);
     return layer;
+}
+
+void RSUniRenderProcessor::ScaleLayerIfNeeded(RSLayerInfo& layerInfo)
+{
+    // dstRect transforms to physical screen
+    if (!screenInfo_.isSamplingOn) {
+        return;
+    }
+    Drawing::Matrix matrix;
+    matrix.PostTranslate(screenInfo_.samplingTranslateX, screenInfo_.samplingTranslateY);
+    matrix.PostScale(screenInfo_.samplingScale, screenInfo_.samplingScale);
+    Drawing::Rect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.x + layerInfo.dstRect.w,
+        layerInfo.dstRect.y + layerInfo.dstRect.h };
+    matrix.MapRect(dstRect, dstRect);
+    layerInfo.dstRect.x = static_cast<int>(std::floor(dstRect.left_));
+    layerInfo.dstRect.y = static_cast<int>(std::floor(dstRect.top_));
+    layerInfo.dstRect.w = static_cast<int>(std::ceil(dstRect.right_ - dstRect.left_));
+    layerInfo.dstRect.h = static_cast<int>(std::ceil(dstRect.bottom_ - dstRect.top_));
 }
 
 bool RSUniRenderProcessor::ProcessOfflineLayer(
@@ -401,17 +424,6 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNo
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     RS_LOGE("It is update to DrawableV2 to process node now!!");
-}
-
-void RSUniRenderProcessor::ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
-{
-    auto layer = uniComposerAdapter_->CreateLayer(surfaceDrawable);
-    if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
-            surfaceDrawable.GetId());
-        return;
-    }
-    layers_.emplace_back(layer);
 }
 
 void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)

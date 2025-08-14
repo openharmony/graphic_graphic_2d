@@ -61,6 +61,7 @@ ohos_unittest("hyper_graphic_manager_test") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   deps = [
@@ -81,7 +82,6 @@ ohos_unittest("hyper_graphic_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
-    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -114,6 +114,7 @@ ohos_unittest("frame_rate_manager_test") {
     "hgm_frame_rate_manager_test.cpp",
     "hgm_soft_vsync_manager_test.cpp",
     "hgm_voter_test.cpp",
+    "hgm_one_shot_timer_test.cpp",
   ]
 
   include_dirs = [
@@ -144,7 +145,6 @@ ohos_unittest("frame_rate_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
-    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -204,7 +204,6 @@ ohos_unittest("hgm_pointer_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
-    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -264,7 +263,6 @@ ohos_unittest("hgm_touch_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
-    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"

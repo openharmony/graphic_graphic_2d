@@ -41,7 +41,7 @@ HWTEST_F(RSDisplayNodeCommandTypeTest, FixDisplayNodeCommand, Level1 | Standard)
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_CREATE), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ID), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SECURITY_DISPLAY), value++);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_DISPLAY_MODE), value++);
+    value++;
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ROTATION), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_BOOT_ANIMATION), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_ADD_TO_TREE), value++);

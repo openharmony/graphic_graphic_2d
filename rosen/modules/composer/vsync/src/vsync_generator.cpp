@@ -61,6 +61,7 @@ constexpr int64_t REMAINING_TIME_THRESHOLD = 100000; // 100000ns == 0.1ms
 constexpr int64_t REMAINING_TIME_THRESHOLD_FOR_LISTENER = 1000000; // 1000000ns == 1ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
+constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
 
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
@@ -376,15 +377,23 @@ int64_t VSyncGenerator::SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t
     return delayTime;
 }
 
-void VSyncGenerator::DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged)
+bool VSyncGenerator::DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged,
+    bool needChangeDssRefreshRate)
 {
+    bool isNeedDvsyncDelay = false;
 #if defined(RS_ENABLE_DVSYNC_2)
     uint32_t dvsyncRate = 0;
     bool dvsyncRateChanged = DVSync::Instance().DVSyncRateChanged(currRefreshRate, dvsyncRate);
-    if (dvsyncRate != 0) {
+    if (dvsyncRate == 0) {
+        isNeedDvsyncDelay = needChangeDssRefreshRate;
+    } else {
         frameRateChanged = dvsyncRateChanged;
+        isNeedDvsyncDelay = dvsyncRateChanged;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("isNeedDvsyncDelay: %d, frameRateChanged: %d, needChangeDssRefreshRate: %d.",
+        isNeedDvsyncDelay, frameRateChanged, needChangeDssRefreshRate);
 #endif
+    return isNeedDvsyncDelay;
 }
 
 int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t now,
@@ -1173,7 +1182,8 @@ void VSyncGenerator::Dump(std::string &result)
 bool VSyncGenerator::CheckSampleIsAdaptive(int64_t hardwareVsyncInterval)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    return hardwareVsyncInterval > period_ + PERIOD_CHECK_THRESHOLD;
+    return hardwareVsyncInterval > period_ + PERIOD_CHECK_THRESHOLD
+        && hardwareVsyncInterval < MAX_ADAPTIVE_PERIOD * period_;
 }
 
 void VSyncGenerator::PrintGeneratorStatus()

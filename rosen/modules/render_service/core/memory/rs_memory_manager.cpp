@@ -15,6 +15,8 @@
 
 #include "memory/rs_memory_manager.h"
 
+#include <dirent.h>
+#include <filesystem>
 #include <fstream>
 #include <malloc.h>
 #include <sstream>
@@ -89,6 +91,7 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
+constexpr int RETAIN_FILE_NUM = 10;
 }
 
 std::mutex MemoryManager::mutex_;
@@ -304,9 +307,8 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
     if (gpuContext) {
         Drawing::TraceMemoryDump gpuTracer("category", true);
         Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
-        gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, tag);
-        float gpuMem = gpuTracer.GetGLMemorySize();
-        totalMemGraphic.IncreaseGpuMemory(gpuMem);
+        uint64_t totalGpuSize = gpuContext->NewDumpMemoryStatisticsByTag(&gpuTracer, tag);
+        totalMemGraphic.IncreaseGpuMemory(totalGpuSize);
     }
 #endif
 
@@ -716,7 +718,7 @@ void MemoryManager::MemoryOverForReport(std::unordered_map<pid_t, MemorySnapshot
             }
         }
         if (needReport) {
-            MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING);
+            MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
         }
         if (needReportKill) {
             MemoryOverflow(pid, memoryInfo.gpuMemory + memoryInfo.subThreadGpuMemory, true);
@@ -775,19 +777,13 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     if (isGpu) {
         info.gpuMemory = overflowMemory;
     }
-    RSMainThread::Instance()->PostTask([]() {
+    RSMainThread::Instance()->PostTask([pid, info]() mutable {
         RS_TRACE_NAME_FMT("RSMem Dump Task");
         std::unordered_set<std::u16string> argSets;
         std::string dumpString = "";
-        std::string type = MEM_SNAPSHOT;
+        std::string type = MEM_GPU_TYPE;
         RSMainThread::Instance()->DumpMem(argSets, dumpString, type, 0);
-        RS_LOGI("=======================RSMem Dump Info=======================");
-        std::istringstream stream(dumpString);
-        std::string line;
-        while (std::getline(stream, line)) {
-            RS_LOGI("%{public}s", line.c_str());
-        }
-        RS_LOGI("=============================================================");
+        MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dumpString);
     });
     std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
         + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
@@ -797,7 +793,6 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
         auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
         appMgrClient.GetBundleNameByPid(pid, info.bundleName, info.uid);
     }
-    MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR);
     KillProcessByPid(pid, info, reason);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -807,7 +802,8 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
-void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName)
+void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
+    const std::string& hidumperReport)
 {
     std::string gpuMemInfo;
     std::ifstream gpuMemInfoFile;
@@ -823,16 +819,104 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
     }
 
     RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
+
+    auto now = std::chrono::system_clock::now();
+    uint64_t currentTime = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(now));
+    std::string filePath = "/data/service/el0/render_service/renderservice_mem_" +
+        std::to_string(pid) + "_" + std::to_string(currentTime) + ".txt";
+    WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
         "PID", pid,
         "BUNDLE_NAME", info.bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(),
-        "GPU_PROCESS_INFO", gpuMemInfo);
+        "GPU_PROCESS_INFO", filePath);
     RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
         "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
         ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+    
+    std::vector<std::string> needCleanFileName;
+    if (NeedCleanNow(needCleanFileName)) {
+        CleanFiles(needCleanFileName);
+    }
+}
+
+void MemoryManager::WriteInfoToFile(std::string& filePath, std::string& gpuMemInfo, const std::string& hidumperReport)
+{
+    std::ofstream tempFile(filePath);
+    if (tempFile.is_open()) {
+        tempFile << "\n******************************\n";
+        tempFile << gpuMemInfo;
+        tempFile << "\n************ endl ************\n";
+        tempFile.close();
+    } else {
+        RS_LOGE("MemoryOverReport::file open fail!");
+    }
+    if (!hidumperReport.empty()) {
+        std::ofstream tempFile(filePath, std::ios::app);
+        if (tempFile.is_open()) {
+            tempFile << "\n******************************\n";
+            tempFile << "LOGGER_RENDER_SERVICE_MEM\n";
+            tempFile << hidumperReport;
+            tempFile.close();
+        } else {
+            RS_LOGE("MemoryOverReport::file open fail!");
+        }
+    }
+}
+
+bool MemoryManager::NeedCleanNow(std::vector<std::string>& needCleanFileName)
+{
+    const std::string filePath = "/data/service/el0/render_service";
+    DIR* dir = opendir(filePath.c_str());
+    if (dir == nullptr) {
+        RS_LOGE("filePath open fail!");
+        return false;
+    }
+
+    std::string prefix = "renderservice_mem_";
+    size_t prefixLen = prefix.length();
+    struct dirent* entry;
+    int fileNum = 0;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_REG) {
+            std::string fileName = entry->d_name;
+            if (fileName.substr(0, prefixLen) == prefix) {
+                fileNum++;
+                needCleanFileName.push_back(fileName);
+            }
+        }
+    }
+    if (fileNum < RETAIN_FILE_NUM) {
+        return false;
+    }
+    std::sort(needCleanFileName.begin(), needCleanFileName.end(), []
+        (const std::string& firstFile, const std::string& secondFile) {
+        int offset = 1;
+        std::string firstFileTime = firstFile.substr(firstFile.rfind('_') + offset,
+            firstFile.rfind('.') - firstFile.rfind('_') - offset);
+        std::string secondFileTime = secondFile.substr(secondFile.rfind('_') + offset,
+            secondFile.rfind('.') - secondFile.rfind('_') - offset);
+        return std::stoi(firstFileTime) < std::stoi(secondFileTime);
+    });
+    needCleanFileName.erase(needCleanFileName.begin() + (needCleanFileName.size() - RETAIN_FILE_NUM),
+                            needCleanFileName.end());
+    return true;
+}
+
+void MemoryManager::CleanFiles(std::vector<std::string>& needCleanFileName)
+{
+    for (const auto& entry : std::filesystem::directory_iterator("/data/service/el0/render_service")) {
+        if (entry.is_regular_file()) {
+            std::string fileName = entry.path().filename().string();
+            if (std::find(needCleanFileName.begin(), needCleanFileName.end(), fileName) !=
+                needCleanFileName.end()) {
+                std::filesystem::remove(entry.path());
+            }
+        }
+    }
 }
 
 void MemoryManager::TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)

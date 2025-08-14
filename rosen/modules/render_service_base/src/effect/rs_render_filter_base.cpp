@@ -23,6 +23,7 @@
 
 #include "effect/rs_render_mask_base.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_effect_luminance_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +66,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderVariableRadiusBlurFilter>();
         }
     },
+    {RSNGEffectType::BEZIER_WARP, [] {
+            return std::make_shared<RSNGRenderBezierWarpFilter>();
+        }
+    }
 };
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
@@ -113,8 +118,15 @@ void RSNGRenderFilterBase::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffe
     RSUIFilterHelper::UpdateCacheData(src, dest);
 }
 
-void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
-    std::shared_ptr<Drawing::GEVisualEffectContainer> container)
+void RSUIFilterHelper::GenerateGEVisualEffect(std::shared_ptr<RSNGRenderFilterBase>& filter)
+{
+    if (filter) {
+        filter->GenerateGEVisualEffect();
+    }
+}
+
+void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
+    std::shared_ptr<Drawing::GEVisualEffectContainer>& container)
 {
     if (!container) {
         RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: container nullptr");
@@ -128,20 +140,16 @@ void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>
     }
 }
 
-void RSUIFilterHelper::SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
-    const Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+bool RSUIFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter)
 {
     auto current = filter;
-    auto dst = canvas.GetDeviceClipBounds();
-    Drawing::CanvasInfo info { std::ceil(geoWidth), std::ceil(geoHeight),
-        dst.GetLeft(), dst.GetTop(), canvas.GetTotalMatrix() };
     while (current) {
-        if (current->geFilter_) {
-            // note: need calculte hash here when reopen filter cache
-            current->geFilter_->SetCanvasInfo(info);
+        if (RSEffectLuminanceManager::GetEnableHdrEffect(current)) {
+            return true;
         }
         current = current->nextEffect_;
     }
+    return false;
 }
 
 void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,

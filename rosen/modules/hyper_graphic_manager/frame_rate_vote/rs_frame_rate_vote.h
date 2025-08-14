@@ -38,6 +38,7 @@ public:
      */
     void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, sptr<SurfaceBuffer>& buffer);
     void SetTransactionFlags(const std::string& transactionFlags);
+    void CheckSurfaceAndUi();
 
 private:
     void ReleaseSurfaceMap(uint64_t surfaceNodeId);
@@ -45,12 +46,12 @@ private:
     void VoteRate(pid_t pid, std::string eventName, uint32_t rate);
     void CancelVoteRate(pid_t pid, std::string eventName);
     void NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo);
-    bool CheckSurfaceAndUi(OHSurfaceSource sourceType);
 
 private:
     bool isSwitchOn_{ false };
     pid_t lastVotedPid_{ DEFAULT_PID };
     std::atomic<uint32_t> lastVotedRate_{ OLED_NULL_HZ };
+    bool hasUiOrSurface = true;
     bool isVoted_{ false };
     std::atomic<uint64_t> lastSurfaceNodeId_ {0};
     uint64_t currentUpdateTime_{ 0 };

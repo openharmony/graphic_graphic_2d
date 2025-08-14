@@ -24,7 +24,7 @@ namespace Rosen {
 class RSSurfaceNode;
 class RSCompositeLayerUtils {
 public:
-    RSCompositeLayerUtils(std::shared_ptr<RSNode> rootNode, uint32_t zOrder);
+    RSCompositeLayerUtils(const std::shared_ptr<RSNode>& rootNode, uint32_t zOrder);
     ~RSCompositeLayerUtils();
     bool CreateCompositeLayer();
     void UpdateVirtualNodeBounds(const Vector4f& bounds);

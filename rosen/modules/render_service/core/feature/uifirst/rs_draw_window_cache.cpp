@@ -76,8 +76,10 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
     if (uniParams) {
         uniParams->SetOpDropped(false); // temporarily close partial render
     }
+    DrawableV2::RSRenderNodeDrawable::ClearTotalProcessedNodeCount();
     surfaceDrawable->DrawContent(*windowCanvas, bounds); // draw content
     surfaceDrawable->DrawChildren(*windowCanvas, bounds); // draw children
+    RS_TRACE_NAME_FMT("total ProcessedNodes: %d", DrawableV2::RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     if (uniParams) {
         uniParams->SetOpDropped(isOpDropped);
     }
@@ -107,9 +109,11 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
         ClearCache();
         return false;
     }
-    // Non-CrosNode not cache for uifirst need clear cahce
+    // Non-CrosNode not cache for uifirst need clear cache,
+    // and if node not execute prepre process in the second frame, cache type will still be MultiThreadCacheType::NONE,
+    // we should avoid clear cache by checking GetNeedCacheSurface
     if (!surfaceParams.IsCrossNode() && surfaceParams.GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE
-        && !surfaceParams.ClonedSourceNode()) {
+        && !surfaceParams.ClonedSourceNode() && !surfaceParams.GetNeedCacheSurface()) {
         ClearCache();
         return false;
     }

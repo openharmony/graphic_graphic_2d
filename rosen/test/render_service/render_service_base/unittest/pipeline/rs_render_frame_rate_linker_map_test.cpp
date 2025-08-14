@@ -23,6 +23,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr uint32_t MAX_FRAME_RATE_LINKER_SIZE = 2048;
+
 class RSRenderFrameRateLinkerMapTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -40,7 +42,8 @@ class CustomFrameRateLinkerCallback : public IRemoteStub<RSIFrameRateLinkerExpec
 public:
     CustomFrameRateLinkerCallback() = default;
     ~CustomFrameRateLinkerCallback() = default;
-    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override {};
+    void OnFrameRateLinkerExpectedFpsUpdate(
+        pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) override {};
 };
 
 /**
@@ -59,6 +62,14 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinker, TestSize.Level
     EXPECT_FALSE(frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker));
     EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id), frameRateLinker);
     EXPECT_EQ(frameRateLinkerMap.Get().size(), 1);
+
+    for (FrameRateLinkerId linkId = 2; linkId <= MAX_FRAME_RATE_LINKER_SIZE; linkId++) {
+        auto frameRateLinker2 = std::make_shared<RSRenderFrameRateLinker>(linkId);
+        EXPECT_TRUE(frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker2));
+    }
+    EXPECT_EQ(frameRateLinkerMap.Get().size(), MAX_FRAME_RATE_LINKER_SIZE);
+    auto frameRateLinker3 = std::make_shared<RSRenderFrameRateLinker>(MAX_FRAME_RATE_LINKER_SIZE + 1);
+    EXPECT_FALSE(frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker3));
 }
 
 /**

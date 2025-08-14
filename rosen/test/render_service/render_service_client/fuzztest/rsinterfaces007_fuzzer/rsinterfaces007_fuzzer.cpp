@@ -33,6 +33,9 @@ const uint8_t TARGET_SIZE = 6;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr uint8_t SCREEN_ROTATION_SIZE = 5;
+constexpr uint8_t SCREEN_SCALE_MODE_SIZE = 3;
+constexpr uint8_t SCREEN_GAMUT_MAP_SIZE = 4;
 
 template<class T>
 T GetData()
@@ -50,19 +53,6 @@ T GetData()
     return object;
 }
 
-template<>
-std::string GetData()
-{
-    size_t objectSize = GetData<uint8_t>();
-    std::string object(objectSize, '\0');
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    object.assign(reinterpret_cast<const char*>(DATA + g_pos), objectSize);
-    g_pos += objectSize;
-    return object;
-}
-
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -76,27 +66,52 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-namespace Mock {
-
-} // namespace Mock
-
 void DoSetScreenColorGamut()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    int32_t modeIdx = GetData<int32_t>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenColorGamut(id, modeIdx);
+}
 
 void DoSetScreenGamutMap()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenGamutMap mode = static_cast<ScreenGamutMap>(GetData<uint8_t>() % SCREEN_GAMUT_MAP_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenGamutMap(id, mode);
+}
 
 void DoSetScreenCorrection()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenGamutMap mode = static_cast<ScreenGamutMap>(GetData<uint8_t>() % SCREEN_ROTATION_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetScreenCorrection(id, mode);
+}
 
 void DoSetVirtualMirrorScreenCanvasRotation()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    bool canvasRotation = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+}
 
 void DoSetVirtualMirrorScreenScaleMode()
-{}
+{
+    ScreenId id = GetData<ScreenId>();
+    ScreenScaleMode mode = static_cast<ScreenScaleMode>(GetData<uint8_t>() % SCREEN_SCALE_MODE_SIZE);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetVirtualMirrorScreenScaleMode(id, mode);
+}
 
 void DoSetGlobalDarkColorMode()
-{}
+{
+    bool isDark = GetData<bool>();
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetGlobalDarkColorMode(isDark);
+}
 } // namespace Rosen
 } // namespace OHOS
 

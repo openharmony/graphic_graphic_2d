@@ -16,8 +16,6 @@
 #include "anim_custom_modifier_test.h"
 
 #include "drawing/draw/core_canvas.h"
-#include "modifier/rs_extended_modifier.h"
-#include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {

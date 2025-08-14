@@ -220,6 +220,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     }
     residentSurfaceNodeMap_.erase(id);
     screenNodeMap_.erase(id);
+    logicalDisplayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
 }
 
@@ -248,6 +249,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         (unsigned long long)pid);
     bool useBatchRemoving = !immediate &&
         RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
+    bool optMode = RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     auto iter = renderNodeMap_.find(pid);
     if (iter != renderNodeMap_.end()) {
@@ -256,6 +258,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             if (subIter->second == nullptr) {
                 subIter = subMap.erase(subIter);
                 continue;
+            }
+            if (optMode && useBatchRemoving) {
+                RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(iter->first, iter->second);
+                break;
             }
             if (useBatchRemoving) {
                 RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(subIter->second);
@@ -297,7 +303,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         return pair.first == pid;
     });
 
-    EraseIf(screenNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(logicalDisplayNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
                 (unsigned long long)pid);

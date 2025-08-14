@@ -129,9 +129,13 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level0)
 HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeAdaptiveStatus, TestSize.Level0)
 {
     ASSERT_NE(controller, nullptr);
-    controller->ChangeAdaptiveStatus(true);
+    controller->rsController_->normalPhaseOffset_ = 0;
+    controller->rsController_->phaseOffset_ = 1;
+    controller->ChangeAdaptiveStatus(false);
+    ASSERT_EQ(controller->rsController_->normalPhaseOffset_, controller->rsController_->phaseOffset_);
+    controller->rsController_->phaseOffset_ = 1;
     controller->rsController_ = nullptr;
-    controller->ChangeAdaptiveStatus(true);
+    controller->ChangeAdaptiveStatus(false);
     controller->rsController_ = rsController;
 }
 } // namespace Rosen

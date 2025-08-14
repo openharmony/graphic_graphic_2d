@@ -1058,6 +1058,32 @@ HWTEST_F(CanvasTest, GetGPUContext001, TestSize.Level1)
     overDrawCanvas->SetGrContext(gpuContext);
     ASSERT_TRUE(overDrawCanvas->GetGPUContext() == gpuContext);
 }
+
+/**
+ * @tc.name: RecordStateTest
+ * @tc.desc: Test Inherite State
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(CanvasTest, RecordStateTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->RecordState(canvas.get());
+}
+
+/**
+ * @tc.name: SetParallelRenderTest
+ * @tc.desc: Test Set Parallel
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(CanvasTest, SetParallelRenderTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->SetParallelRender(true);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

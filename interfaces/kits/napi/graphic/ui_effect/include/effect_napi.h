@@ -22,9 +22,13 @@
 #include "effect/include/blender.h"
 #include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
+#include "effect/include/color_gradient_effect_para.h"
 #include "effect/include/shadow_blender.h"
+
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
+
+#include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -63,7 +67,11 @@ private:
     static napi_value CreateBorderLight(napi_env env, napi_callback_info info);
     static bool GetBorderLight(napi_env env, napi_value* param, size_t length,
         std::shared_ptr<BorderLightEffectPara>& para);
+    static napi_value CreateColorGradientEffect(napi_env env, napi_callback_info info);
+    static bool GetColorGradientArray(napi_env env, napi_value* argValue,
+        std::shared_ptr<ColorGradientEffectPara>& para, uint32_t arraySize);
     static float GetSpecialValue(napi_env env, napi_value argValue);
+
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };
 } // namespace Rosen

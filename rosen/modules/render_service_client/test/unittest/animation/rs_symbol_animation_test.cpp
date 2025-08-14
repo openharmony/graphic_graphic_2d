@@ -130,7 +130,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
 
 /**
  * @tc.name: SetSymbolAnimation003
- * @tc.desc: SetSymbolAnimation of RSSymbolAnimationTest
+ * @tc.desc: Test SetSymbolAnimation when the input effect strategy is TEXT_FLIP
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation003, TestSize.Level1)
@@ -1366,34 +1366,6 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest001 end";
 }
 
-#ifndef MODIFIER_NG
-/**
- * @tc.name: SetNodePivotTest002
- * @tc.desc: move the scale center to the center of a node
- * @tc.type: FUNC
- */
-HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 start";
-    /**
-     * @tc.steps: step1. init data if scale center not equals the center of a node
-     */
-    auto symbolAnimation = RSSymbolAnimation();
-    auto newCanvasNode = RSCanvasNode::Create();
-    Vector2f pivotOffset = Vector2f(0.1f, 0.1f); // 0.1f is offset on x-axis and y-axis
-    auto pivotProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(pivotOffset);
-    auto pivotModifier = std::make_shared<RSPivotModifier>(pivotProperty);
-    newCanvasNode->AddModifier(pivotModifier);
-    symbolAnimation.SetNodePivot(newCanvasNode);
-    /**
-     * @tc.steps: step2. start SetNodePivot test
-     */
-    NotifyStartAnimation();
-    EXPECT_FALSE(symbolAnimation.rsNode_);
-    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 end";
-}
-#endif
-
 /**
  * @tc.name: SpliceAnimation001
  * @tc.desc: implement animation according to type
@@ -1837,8 +1809,9 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation004, TestSize.Level1) {
     symbolAnimation.SetNode(rootNode);
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     symbolAnimationConfig->symbolNodes.resize(3); // symbolNodes size is 3
-    symbolAnimationConfig->numNodes = 3;
+    symbolAnimationConfig->numNodes = 3; // numNodes size is 3
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::DISABLE;
+
     bool result = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
     EXPECT_FALSE(result);
 }
@@ -1984,7 +1957,7 @@ HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
 
 /**
  * @tc.name: SetDisableAnimation003
- * @tc.desc: Test SetDisableAnimation by symbolNodes with path and parameters
+ * @tc.desc: Test SetDisableAnimation by check disable symbol
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation003, TestSize.Level1) {

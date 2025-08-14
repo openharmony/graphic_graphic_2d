@@ -39,6 +39,10 @@ public:
 
 void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...);
 
+void RSB_EXPORT RSLogEOutput(const char* format, ...);
+void RSB_EXPORT RSLogWOutput(const char* format, ...);
+void RSB_EXPORT RSLogDOutput(const char* format, ...);
+
 enum RSLogFlag {
     // screen
     FLAG_DEBUG_SCREEN = 0x00000001,
@@ -110,27 +114,47 @@ private:
 #undef LOG_TAG
 #define LOG_TAG "OHOS::RS"
 
-#define ROSEN_LOGI(format, ...) \
-    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGD(format, ...) \
-    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGE(format, ...) \
-    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGW(format, ...) \
-    HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGF(format, ...) \
-    HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+#if defined(MODULE_RSB) || defined(MODULE_RS)
 
-#define RS_LOGI(format, ...) \
-    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
-#define RS_LOGD(format, ...) \
-    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
-#define RS_LOGE(format, ...) \
-    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
-#define RS_LOGW(format, ...) \
-    HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
-#define RS_LOGF(format, ...) \
-    HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGI(format, ...) HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGD(format, ...)                   \
+    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__); \
+    OHOS::Rosen::RSLogDOutput(format, ##__VA_ARGS__)
+#define ROSEN_LOGE(format, ...)                   \
+    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__); \
+    OHOS::Rosen::RSLogEOutput(format, ##__VA_ARGS__)
+#define ROSEN_LOGW(format, ...)                  \
+    HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__); \
+    OHOS::Rosen::RSLogWOutput(format, ##__VA_ARGS__)
+#define ROSEN_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#define RS_LOGI(format, ...) HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGD(format, ...)                      \
+    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__); \
+    OHOS::Rosen::RSLogDOutput(format, ##__VA_ARGS__)
+#define RS_LOGE(format, ...)                      \
+    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__); \
+    OHOS::Rosen::RSLogEOutput(format, ##__VA_ARGS__)
+#define RS_LOGW(format, ...)                     \
+    HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__); \
+    OHOS::Rosen::RSLogWOutput(format, ##__VA_ARGS__)
+#define RS_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#else
+
+#define ROSEN_LOGI(format, ...) HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGD(format, ...) HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGE(format, ...) HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGW(format, ...) HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
+#define ROSEN_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#define RS_LOGI(format, ...) HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGD(format, ...) HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGE(format, ...) HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGW(format, ...) HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__)
+#define RS_LOGF(format, ...) HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
+
+#endif
 
 #define CONDITION(cond)     (__builtin_expect((cond) != 0, 0))
 

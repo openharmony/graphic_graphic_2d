@@ -806,4 +806,55 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
     int32_t res = instance.GetPidGpuMemoryInMB(pid, gpuMemInMB);
     EXPECT_NE(res, 0);
 }
+
+/**
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows to capture display
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSInterfacesTest, TaskSurfaceCaptureWithAllWindowsTest001, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        explicit TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+    };
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<RSDisplayNode> displayNode;
+    std::shared_ptr<TestSurfaceCapture> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    bool checkDrmAndSurfaceLock = true;
+    bool ret = instance.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    EXPECT_EQ(ret, false);
+
+    RSDisplayNodeConfig config;
+    displayNode = RSDisplayNode::Create(config);
+    callback = std::make_shared<TestSurfaceCapture>();
+    ret = instance.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: FreezeScreenTest001
+ * @tc.desc: Test FreezeScreen to freeze display
+ * @tc.type: FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSInterfacesTest, FreezeScreenTest001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<RSDisplayNode> displayNode;
+    bool isFreeze = true;
+    bool ret = instance.FreezeScreen(displayNode, isFreeze);
+    EXPECT_EQ(ret, false);
+
+    RSDisplayNodeConfig config;
+    displayNode = RSDisplayNode::Create(config);
+    ret = instance.FreezeScreen(displayNode, isFreeze);
+    EXPECT_EQ(ret, true);
+}
 } // namespace OHOS::Rosen

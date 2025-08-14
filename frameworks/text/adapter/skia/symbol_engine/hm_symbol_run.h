@@ -90,6 +90,8 @@ private:
 
     void SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo);
 
+    void SetGradientOrDefinedColor(const RSSymbolLayers& symbolInfo);
+
     void UpdateSymbolLayersGroups(uint16_t glyphId);
 
     bool SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);

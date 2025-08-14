@@ -40,8 +40,14 @@ ohos_fuzztest("NdkTypographyFuzzTest") {
   sources = [ "drawing_text_typography_fuzzer.cpp" ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
+  if (ohos_indep_compiler_enable) {
+    include_dirs +=
+        [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+  }
+  external_deps = [ "icu:shared_icuuc" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

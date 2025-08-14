@@ -19,7 +19,6 @@
 #include "pipeline/main_thread/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
-#include "graphic_feature_param_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -211,31 +210,6 @@ HWTEST_F(RSRenderServiceUnitTest, RSGfxDumpInit001, TestSize.Level1)
     ASSERT_EQ(RSDumpManager::GetInstance().rsDumpHanderMap_.size(), 1);
     renderService->RSGfxDumpInit();
     ASSERT_NE(RSDumpManager::GetInstance().rsDumpHanderMap_.size(), 1);
-}
-
-/**
- * @tc.name: InitLoadOptParams001
- * @tc.desc: test InitLoadOptParams
- * @tc.type: FUNC
- * @tc.require: issueIC2UGT
- */
-HWTEST_F(RSRenderServiceUnitTest, InitLoadOptParams001, TestSize.Level1)
-{
-    auto renderService = GetAndInitRenderService();
-    ASSERT_NE(renderService, nullptr);
-
-    LoadOptParams params;
-    renderService->InitLoadOptParams(params);
-
-    auto& paramsForScreen = params.loadOptParamsForScreen;
-    auto& paramsForHdiBackend = paramsForScreen.loadOptParamsForHdiBackend;
-    auto& paramsForHdiOutput = paramsForHdiBackend.loadOptParamsForHdiOutput;
-    auto& switchParams = paramsForHdiOutput.switchParams;
-    ASSERT_NE(switchParams.size(), 0);
-    ASSERT_TRUE(switchParams.find(IS_MERGE_FENCE_SKIPPED) != switchParams.end());
-
-    auto isMergeFenceSkipped = switchParams.at(IS_MERGE_FENCE_SKIPPED);
-    EXPECT_EQ(isMergeFenceSkipped, LoadOptimizationParam::IsMergeFenceSkipped());
 }
 
 } // namespace OHOS::Rosen

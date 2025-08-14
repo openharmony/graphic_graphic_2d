@@ -82,7 +82,6 @@ std::string BootAnimationController::GetConfigFilePath()
     char buf[MAX_PATH_LEN] = {0};
     char *path = GetOneCfgFile(BOOT_CUSTOM_CONFIG_PATH_SUFFIX.c_str(), buf, MAX_PATH_LEN);
     if (path != nullptr) {
-        LOGI("boot config path: %{public}s", path);
         return path;
     }
     LOGW("path not find %{public}s", BOOT_CUSTOM_CONFIG_PATH_SUFFIX.c_str());

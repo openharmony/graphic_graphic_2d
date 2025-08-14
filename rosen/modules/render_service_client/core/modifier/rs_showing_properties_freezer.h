@@ -180,14 +180,14 @@ public:
 
     /**
      * @brief Gets the perspective of modifier.
-     * 
+     *
      * @return A Vector4f object representing the perspective.
      */
     std::optional<Vector4f> GetPersp() const;
 
     /**
      * @brief Gets the alpha of modifier.
-     * 
+     *
      * @return The alpha of the modifier.
      */
     std::optional<float> GetAlpha() const;
@@ -342,8 +342,6 @@ public:
 private:
     NodeId id_;
     std::weak_ptr<RSUIContext> rsUIContext_;
-    template<typename T, RSModifierType Type>
-    std::optional<T> GetPropertyImpl() const;
     template<typename T, ModifierNG::RSModifierType ModifierType, ModifierNG::RSPropertyType PropertyType>
     std::optional<T> GetPropertyImplNG() const;
 };

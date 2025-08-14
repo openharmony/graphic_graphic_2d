@@ -56,10 +56,13 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
         return;
     }
     preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
-    if (preValidateFunc_ == nullptr) {
+    handleEventFunc_ = reinterpret_cast<HandleEventFunc>(dlsym(preValidateHandle_, "HandleHWCEvent"));
+    if (preValidateFunc_ == nullptr || handleEventFunc_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
+        preValidateFunc_ = nullptr;
+        handleEventFunc_ = nullptr;
         return;
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
@@ -69,11 +72,34 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
 }
 
+void RSUniHwcPrevalidateUtil::Init()
+{
+    if (handleEventFunc_ == nullptr) {
+        return;
+    }
+    auto hdiBackend = HdiBackend::GetInstance();
+    if (hdiBackend && hdiBackend->RegHwcEventCallback(&RSUniHwcPrevalidateUtil::OnHwcEvent, this) != 0) {
+        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
+    }
+}
+ 
+void RSUniHwcPrevalidateUtil::OnHwcEvent(
+    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+{
+    if (!GetInstance().handleEventFunc_) {
+        RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::HandleEvent handleEventFunc is null");
+        return;
+    }
+    GetInstance().handleEventFunc_(devId, eventId, eventData);
+}
+
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
 {
     if (preValidateHandle_) {
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
+        preValidateFunc_ = nullptr;
+        handleEventFunc_ = nullptr;
     }
 }
 

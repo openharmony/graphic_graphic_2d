@@ -59,11 +59,6 @@ bool DoRegisterLightSource(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     auto node = std::make_shared<RSRenderNode>(id);
     instance->RegisterLightSource(node);
@@ -74,11 +69,6 @@ bool DoRegisterIlluminated(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint64_t id = GetData<uint64_t>();
     auto node = std::make_shared<RSRenderNode>(id);
@@ -92,11 +82,6 @@ bool DoUnRegisterLightSource(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     auto node = std::make_shared<RSRenderNode>(id);
     instance->UnRegisterLightSource(node);
@@ -108,11 +93,6 @@ bool DoUnRegisterIlluminated(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     auto node = std::make_shared<RSRenderNode>(id);
     instance->UnRegisterIlluminated(node);
@@ -123,11 +103,6 @@ bool DoAddDirtyLightSource(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint64_t id = GetData<uint64_t>();
     auto node = std::make_shared<RSRenderNode>(id);
@@ -142,11 +117,6 @@ bool DoAddDirtyIlluminated(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t id = GetData<uint64_t>();
     auto node = std::make_shared<RSRenderNode>(id);
     std::weak_ptr<RSRenderNode> renderNode = node;
@@ -158,11 +128,6 @@ bool DoPrepareLight(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     instance->GetScreenRotation();
     instance->PrepareLight();
@@ -187,10 +152,6 @@ bool DoSetScreenRotation(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     uint32_t value = GetData<uint32_t>();
     ScreenRotation screenRotation = (ScreenRotation)value;
     instance->SetScreenRotation(screenRotation);
@@ -207,10 +168,6 @@ bool DoCheckIlluminated(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     uint64_t id = GetData<uint64_t>();
     auto lightSourcePtr = std::make_shared<RSRenderNode>(id);
     auto illuminatedGeoPtr = std::make_shared<RSRenderNode>(id);
@@ -233,6 +190,11 @@ bool DoCheckIlluminated(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoRegisterLightSource(data, size);             // RegisterLightSource
     OHOS::Rosen::DoRegisterIlluminated(data, size);             // RegisterIlluminated

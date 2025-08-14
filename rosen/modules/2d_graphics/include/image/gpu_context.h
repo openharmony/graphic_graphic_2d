@@ -148,7 +148,14 @@ public:
      */
     void Flush();
 
+    /**
+     * @brief   subtree parallel feature interface to generate draw op.
+     */
     void FlushCommands();
+
+    /**
+     * @brief   subtree parallel feature interface to generate submit information.
+     */
     void GenerateSubmitInfo(int seq);
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
@@ -276,6 +283,13 @@ public:
      * @param tag               GPU resource tag used to dump memory statistics.
      */
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
+
+    /**
+     * @brief                   Enumerates all cached GPU resources and return their memory.
+     * @param traceMemoryDump   A trace to memory dump.
+     * @param tag               GPU resource tag used to dump memory statistics.
+     */
+    uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
 
     /**
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.

@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
@@ -641,4 +640,52 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawableOnDrawMultiAccessEventReportTest
     singleLocker.DrawableOnDrawMultiAccessEventReport(" ");
 }
 
-} // namespace OHOS::Rosen
+#ifdef SUBTREE_PARALLEL_ENABLE
+/**
+ * @tc.name: DrawQuickImplTest
+ * @tc.desc: Test RSRenderNodeSingleDrawableLocker::DrawQuickImpl
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
+{
+    NodeId id = 21;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    Drawing::RecordingCanvas::DrawFunc drawFuncCallBack = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        printf("DrawQuickImplTest drawFuncCallBack\n");
+    };
+    adapter->drawCmdList_.emplace_back(drawFuncCallBack);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    adapter->DrawQuickImpl(canvas, rect);
+
+    ASSERT_EQ(adapter->drawCmdList_.size(), 1);
+    adapter->drawCmdIndex_.transitionIndex_ = 0;
+    adapter->DrawQuickImpl(canvas, rect);
+
+    adapter->drawCmdIndex_.envForeGroundColorIndex_ = 0;
+    adapter->drawCmdIndex_.bgSaveBoundsIndex_ = 0;
+    adapter->DrawQucikImpl(canvas, rect);
+
+    adapter->drawCmdIndex_.bgRestoreBoundsIndex_ = 0;
+    adapter->DrawQuickImpl(canvas, rect);
+
+    adapter->drawCmdIndex_.bgSaveBoundsIndex_ = -1;
+    adapter->drawCmdIndex_.clipToBoundsIndex_ = 0;
+    adapter->drawCmdIndex_.backgroudStyleIndex_ = 0;
+    adapter->drawCmdIndex_.envForegroundColorStrategyIndex_ = 0;
+    adapter->DrawQuickImpl(canvas, rect);
+
+    adapter->drawCmdIndex_.contentIndex_ = 0;
+    adapter->DrawQuickImpl(canvas, rect);
+    adapter->drawCmdIndex_.frameOffsetIndex_ = 0;
+    adapter->drawCmdIndex_.clipToFrameIndex_ = 0;
+    adapter->drawCmdIndex_.customClipToFrameIndex_ = 0;
+    adapter->DrawQuickImpl(canvas, rect);
+
+    adapter->drawCmdList_.clear();
+    adapter->DrawQuickImpl(canvas, rect);
+}
+#endif
+}

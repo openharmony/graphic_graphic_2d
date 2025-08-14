@@ -16,6 +16,7 @@
 #ifndef RS_TEST_UTIL_H
 #define RS_TEST_UTIL_H
 
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "iconsumer_surface.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -28,6 +29,7 @@ class RSTestUtil {
 public:
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNode(const RSSurfaceRenderNodeConfig surfaceConfig = {});
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNodeWithBuffer();
+    static std::shared_ptr<RSRcdSurfaceRenderNode> CreateRcdNodeWithBuffer();
     static void InitRenderNodeGC();
 private:
     static inline BufferRequestConfig requestConfig = {

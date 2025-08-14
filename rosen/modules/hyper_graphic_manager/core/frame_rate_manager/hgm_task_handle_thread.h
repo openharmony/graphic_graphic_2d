@@ -21,8 +21,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "event_handler.h"
 #include "refbase.h"
+
+namespace ffrt {
+class queue;
+}
 
 namespace OHOS::Rosen {
 namespace HgmDetail {
@@ -52,8 +55,12 @@ private:
 class HgmTaskHandleThread {
 public:
     static HgmTaskHandleThread& Instance();
-    const std::shared_ptr<AppExecFwk::EventRunner>& GetRunner() const { return runner_; }
-    std::shared_ptr<AppExecFwk::EventHandler> CreateHandler();
+    const std::shared_ptr<ffrt::queue> GetQueue() const
+    {
+        return queue_;
+    }
+    // IMPORTANT: std::move transfers ownership of the task to the queue_
+    // After this call, the original task object is moved-from and must not be reused
     void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
     bool PostSyncTask(const std::function<void()>& task);
     void PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime = 0);
@@ -69,15 +76,17 @@ public:
 
 private:
     HgmTaskHandleThread();
-    ~HgmTaskHandleThread() = default;
+    ~HgmTaskHandleThread()
+    {
+        queue_ = nullptr;
+    }
     HgmTaskHandleThread(const HgmTaskHandleThread&);
     HgmTaskHandleThread(const HgmTaskHandleThread&&);
     HgmTaskHandleThread& operator=(const HgmTaskHandleThread&);
     HgmTaskHandleThread& operator=(const HgmTaskHandleThread&&);
 
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     int32_t curThreadId_ = -1;
+    std::shared_ptr<ffrt::queue> queue_ = nullptr;
 };
 }
 #endif // HGM_TASK_HANDLE_THREAD_H

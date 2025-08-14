@@ -27,11 +27,11 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-// 仅支持 Drawing NDK 接口
+// Only supports the Drawing NDK interface.
 class DRAWING_API ImageFilterLazy : public ImageFilter {
 public:
     static std::shared_ptr<ImageFilterLazy> CreateBlur(scalar sigmaX, scalar sigmaY,
-        TileMode tileMode = TileMode::DECAL, const std::shared_ptr<ImageFilter>& input = nullptr,
+        TileMode tileMode, const std::shared_ptr<ImageFilter>& input = nullptr,
         ImageBlurType blurType = ImageBlurType::GAUSS, const Rect& cropRect = noCropRect);
     static std::shared_ptr<ImageFilterLazy> CreateColorFilter(const std::shared_ptr<ColorFilter>& colorFilter,
         const std::shared_ptr<ImageFilter>& input = nullptr, const Rect& cropRect = noCropRect);
@@ -45,7 +45,6 @@ public:
 
     bool IsLazy() const override { return true; }
 
-    std::shared_ptr<ImageFilterObj> GetImageFilterObj() { return imageFilterObj_; }
     std::shared_ptr<ImageFilterObj> GetImageFilterObj() const { return imageFilterObj_; }
     std::shared_ptr<ImageFilter> Materialize();
 

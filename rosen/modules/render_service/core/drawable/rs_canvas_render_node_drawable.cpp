@@ -29,6 +29,9 @@
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "rs_root_render_node_drawable.h"
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
 namespace OHOS::Rosen::DrawableV2 {
 RSCanvasRenderNodeDrawable::Registrar RSCanvasRenderNodeDrawable::instance_;
 
@@ -48,6 +51,29 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
     return RSRenderNodeAllocator::Instance().CreateRSRenderNodeDrawable(node, generator);
 }
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+bool RSCanvasRenderNodeDrawable::QuickGetDrawState(RSPaintFilterCanvas* rscanvas)
+{
+    if (!rscanvas->IsQuickGetDrawState()) {
+        return false;
+    }
+    Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    if (SkipCulledNodeOrEntireSubtree(*rscanvas, bounds)) {
+        return true;
+    }
+
+    RSParallelManager::Singleton().OnQuickDraw(this, *rscanvas);
+    return true;
+}
+#endif
+
+bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode(Drawing::Canvas& canvas)
+{
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    return (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID &&
+        GetId() == captureParam.endNodeId_);
+}
+
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */
@@ -55,11 +81,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
-    auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool shouldPaint = ShouldPaint();
-    if (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID) {
-        shouldPaint = true;
-    }
+    bool shouldPaint = ShouldPaint() || IsUiRangeCaptureEndNode(canvas);
     if (!shouldPaint) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
@@ -92,6 +114,12 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+    if (QuickGetDrawState(paintFilterCanvas)) {
+        return;
+    }
+#endif
 
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
@@ -133,10 +161,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool shouldPaint = ShouldPaint();
-    if (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID) {
-        shouldPaint = true;
-    }
+    bool shouldPaint = ShouldPaint() || IsUiRangeCaptureEndNode(canvas);
     if (!shouldPaint) {
         return;
     }
