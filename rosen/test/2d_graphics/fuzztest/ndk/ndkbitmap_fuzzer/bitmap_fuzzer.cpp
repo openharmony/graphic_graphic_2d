@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,11 +39,11 @@ void BitmapFuzzTest000(const uint8_t* data, size_t size)
 {
     uint32_t width = GetObject<uint32_t>();
     uint32_t height = GetObject<uint32_t>();
-    int32_t enum_1 = GetObject<int32_t>();
+    int32_t enum1 = GetObject<int32_t>();
   
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat bitmapFormat { static_cast<OH_Drawing_ColorFormat>(enum_1 % PATH_FIX),
-        static_cast<OH_Drawing_AlphaFormat>(enum_1 % PATH_FOUR) };
+    OH_Drawing_BitmapFormat bitmapFormat { static_cast<OH_Drawing_ColorFormat>(enum1 % PATH_FIX),
+        static_cast<OH_Drawing_AlphaFormat>(enum1 % PATH_FOUR) };
     OH_Drawing_BitmapBuild(nullptr, width, height, nullptr);
     OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
     OH_Drawing_BitmapGetHeight(nullptr);
@@ -74,9 +74,9 @@ void BitmapFuzzTest001(const uint8_t* data, size_t size)
     OH_Drawing_BitmapGetImageInfo(nullptr, nullptr);
     OH_Drawing_BitmapGetImageInfo(bitmap, &imageInfo);
 
-    uint32_t size_pix = width * height;
-    uint32_t* pixels = new uint32_t[size_pix];
-    for (size_t i = 0; i < size_pix; i++) {
+    uint32_t sizePix = width * height;
+    uint32_t* pixels = new uint32_t[sizePix];
+    for (size_t i = 0; i < sizePix; i++) {
         pixels[i] = GetObject<uint32_t>();
     }
     uint32_t rowBytes = GetObject<uint32_t>();
@@ -108,9 +108,9 @@ void BitmapFuzzTest002(const uint8_t* data, size_t size)
     OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
     OH_Drawing_Image_Info imageInfo = {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL};
     
-    uint32_t size_pix = width * height;
-    uint32_t* pixels1 = new uint32_t[size_pix];
-    for (size_t i = 0; i < size_pix; i++) {
+    uint32_t sizePix = width * height;
+    uint32_t* pixels1 = new uint32_t[sizePix];
+    for (size_t i = 0; i < sizePix; i++) {
         pixels1[i] = GetObject<uint32_t>();
     }
 
