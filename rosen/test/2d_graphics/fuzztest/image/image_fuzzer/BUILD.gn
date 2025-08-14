@@ -36,7 +36,9 @@ ohos_fuzztest("ImageFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
   ]
+  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
+  external_deps = [ "image_framework:image_native" ]
   external_deps += [ "bounds_checking_function:libsec_shared" ]
 
   deps = [
