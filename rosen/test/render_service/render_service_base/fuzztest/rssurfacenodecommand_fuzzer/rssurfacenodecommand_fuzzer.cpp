@@ -109,7 +109,7 @@ bool DoCreateWithConfig(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -130,7 +130,7 @@ bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
