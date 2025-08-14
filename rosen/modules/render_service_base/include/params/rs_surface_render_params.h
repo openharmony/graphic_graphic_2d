@@ -331,6 +331,7 @@ public:
 
     void SetFilterCacheFullyCovered(bool val);
     bool GetFilterCacheFullyCovered() const;
+    bool GetAttractionAnimation() const;
 
     const std::vector<NodeId>& GetVisibleFilterChild() const;
     bool IsTransparent() const;
@@ -575,6 +576,7 @@ private:
     bool isOccludedByFilterCache_ = false;
     // if current surfaceNode has filter cache to occlude the back surfaceNode
     bool isFilterCacheFullyCovered_ = false;
+    bool isAttractionAnimation_ = false;
     std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
     RSWindowInfo windowInfo_;

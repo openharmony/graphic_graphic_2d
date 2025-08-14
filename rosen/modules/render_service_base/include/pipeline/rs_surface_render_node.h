@@ -997,6 +997,16 @@ public:
         isFilterCacheFullyCovered_ = val;
     }
 
+    bool IsAttractionAnimation() const
+    {
+        return isAttractionAnimation_;
+    }
+
+    void SetAttractionAnimation(bool isAttractionAnimation)
+    {
+        isAttractionAnimation_ = isAttractionAnimation;
+    }
+
     bool GetFilterCacheValidForOcclusion() const
     {
         return isFilterCacheValidForOcclusion_;
@@ -1480,6 +1490,7 @@ private:
 
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
+    bool isAttractionAnimation_ = false;
     bool isFilterCacheValidForOcclusion_ = false;
     bool isOccludedByFilterCache_ = false;
     bool isFilterCacheStatusChanged_ = false;
