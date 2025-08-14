@@ -396,7 +396,7 @@ void RSHardwareThread::EndCheck(RSTimer timer)
         exceptionCheck_.exceptionMoment_ = timer.GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
         RS_LOGE("RSHardwareThread::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
-            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}lld, EXCEPTION_POINT:%{public}s",
+            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}" PRId64", EXCEPTION_POINT:%{public}s",
             getpid(), getuid(), PROCESS_NAME_FOR_HISYSEVENT.c_str(), hardwareCount_,
             exceptionCheck_.exceptionMoment_, HARDWARE_PIPELINE_TIMEOUT.c_str());
     }
