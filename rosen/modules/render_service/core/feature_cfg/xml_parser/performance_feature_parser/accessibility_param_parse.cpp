@@ -43,12 +43,12 @@ int32_t AccessibilityParamParse::ParseFeatureParam(FeatureParamMapType &featureM
 int32_t AccessibilityParamParse::ParseAccessibilityInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
-    
+
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
-    if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+    if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "HighContrastEnabled") {
             AccessibilityParam::SetHighContrastEnabled(isEnabled);
