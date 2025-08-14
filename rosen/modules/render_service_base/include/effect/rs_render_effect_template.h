@@ -136,7 +136,7 @@ private:
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value);
 
-    #ifdef USE_M133_SKIA
+#ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;
 #else
     static constexpr auto hashFunc_ = SkOpts::hash;

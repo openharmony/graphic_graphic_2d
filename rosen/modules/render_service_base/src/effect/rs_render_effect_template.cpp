@@ -117,8 +117,8 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const VectorVector2F& value)
 {
-    for (size_t i = 0; i < value.size(); i++) {
-        hash = hashFunc_(value[i].data_, Vector2f::DATA_SIZE, hash);
+    for (const auto& vec : value) {
+        hash = hashFunc_(vec.data_, Vector2f::DATA_SIZE, hash);
     }
 }
 
