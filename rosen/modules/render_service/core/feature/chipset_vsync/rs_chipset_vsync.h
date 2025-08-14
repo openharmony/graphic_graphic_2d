@@ -28,7 +28,8 @@ using SetVsyncFunc = int32_t (*)(int64_t, uint64_t, int64_t, bool);
 class RsChipsetVsync {
 public:
     RsChipsetVsync() = default;
-    ~RsChipsetVsync() {
+    ~RsChipsetVsync()
+    {
         CloseLibrary();
     }
     static RsChipsetVsync& Instance();
