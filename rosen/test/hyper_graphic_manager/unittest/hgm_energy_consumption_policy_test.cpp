@@ -200,6 +200,27 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest1, TestSize.Level0
 }
 
 /**
+ * @tc.name: StartNewAnimationTest2
+ * @tc.desc: test results of StartNewAnimationTest2
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, StartNewAnimationTest2, TestSize.Level1)
+{
+    HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_ = 0;
+    SetConfigEnable("true");
+    SetIdleStateEnable(true);
+    std::string componentName = "";
+    HgmCore::Instance().SetActualTimestamp(0);
+    for (int i = 0; i < 2000; i++) {
+        RsCommonHook::Instance().OnStartNewAnimation(componentName);
+    }
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().lastAnimationTimestamp_,
+        HgmCore::Instance().GetActualTimestamp() / NS_PER_MS);
+}
+
+
+/**
  * @tc.name: GetAnimationIdleFpsTest1
  * @tc.desc: test results of GetAnimationIdleFpsTest1
  * @tc.type: FUNC
@@ -552,9 +573,9 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level0)
 
 /**
  * @tc.name: HgmFrameRateManager
- * @tc.desc: test results of HgmFrameRareManager
+ * @tc.desc: test results of HgmFrameRateManager
  * @tc.type: FUNC
- * @tc.require: issuesICJ086
+ * @tc.require:issuesIA96Q3
  */
 HWTEST_F(HgmEnergyConsumptionPolicyTest, HgmFrameRateManager, TestSize.Level1)
 {
@@ -570,7 +591,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, HgmFrameRateManager, TestSize.Level1)
     HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
     mgr.UpdateSoftVSync(true);
     EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
-        .description = "DRAG_SCENE:1000"};
+        .description = "DRAG_SCENE:1000" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
     linker->SetExpectedRange(FrameRateRange(0, 0, 0,
         DRAG_SCENE_FRAME_RATE_TYPE));

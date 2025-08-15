@@ -109,22 +109,27 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     if (colorMode_ == FASTAVERAGE) {
         colorMode_ = AVERAGE;
     }
+
     float radiusForHash = DecreasePrecision(radius_);
     float saturationForHash = DecreasePrecision(saturation_);
     float brightnessForHash = DecreasePrecision(brightness_);
-
 #ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&radiusForHash, sizeof(radiusForHash), hash_);
+    hash_ = SkChecksum::Hash32(&saturationForHash, sizeof(saturationForHash), hash_);
+    hash_ = SkChecksum::Hash32(&brightnessForHash, sizeof(brightnessForHash), hash_);
+    hash_ = SkChecksum::Hash32(&maskColor_, sizeof(maskColor_), hash_);
+    hash_ = SkChecksum::Hash32(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkChecksum::Hash32(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
 #else
-    const auto hashFunc = SkOpts::hash;
+    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+    hash_ = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), hash_);
+    hash_ = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash_);
+    hash_ = SkOpts::hash(&brightnessForHash, sizeof(brightnessForHash), hash_);
+    hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
+    hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkOpts::hash(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
 #endif
-    hash_ = hashFunc(&type_, sizeof(type_), 0);
-    hash_ = hashFunc(&radiusForHash, sizeof(radiusForHash), hash_);
-    hash_ = hashFunc(&saturationForHash, sizeof(saturationForHash), hash_);
-    hash_ = hashFunc(&brightnessForHash, sizeof(brightnessForHash), hash_);
-    hash_ = hashFunc(&maskColor_, sizeof(maskColor_), hash_);
-    hash_ = hashFunc(&colorMode_, sizeof(colorMode_), hash_);
-    hash_ = hashFunc(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
 }
 
 RSMaterialFilter::~RSMaterialFilter() = default;

@@ -69,6 +69,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::BEZIER_WARP, [] {
             return std::make_shared<RSNGRenderBezierWarpFilter>();
         }
+    },
+    {RSNGEffectType::CONTENT_LIGHT, [] {
+            return std::make_shared<RSNGRenderContentLightFilter>();
+        }
     }
 };
 
@@ -176,5 +180,17 @@ void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> 
     }
 }
 
+void RSUIFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+    const Vector3f& rotationAngle)
+{
+    auto current = filter;
+    while (current) {
+        if (current->GetType() == RSNGEffectType::CONTENT_LIGHT) {
+            auto contentLightFilter = std::static_pointer_cast<RSNGRenderContentLightFilter>(current);
+            contentLightFilter->Setter<ContentLightRotationAngleRenderTag>(rotationAngle);
+        }
+        current =  current->nextEffect_;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

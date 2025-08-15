@@ -68,7 +68,7 @@ const int ERROR_CONFIG_FORMAT_NOT_SUPPORTED = 2; // the formation of configurati
 std::unique_ptr<char[]> GetDataFromFile(const char* fname, std::streamsize& size)
 {
     char tmpPath[PATH_MAX] = {0};
-    if (strlen(fname) > PATH_MAX) {
+    if (strlen(fname) >= PATH_MAX) {
         TEXT_LOGE("File path is too long, file: %{public}s", fname);
         return nullptr;
     }

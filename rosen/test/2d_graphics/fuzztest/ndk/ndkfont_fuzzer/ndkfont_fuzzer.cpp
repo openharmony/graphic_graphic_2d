@@ -110,15 +110,15 @@ void NativeDrawingFontTest003(const uint8_t* data, size_t size)
     }
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
-    uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* str = new char[str_size];
-    for (size_t i = 0; i < str_size; i++) {
+    uint32_t strSize = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    char* str = new char[strSize];
+    for (size_t i = 0; i < strSize; i++) {
         str[i] = GetObject<char>();
     }
     uint32_t encoding = GetObject<uint32_t>();
-    OH_Drawing_FontCountText(nullptr, str, str_size,
+    OH_Drawing_FontCountText(nullptr, str, strSize,
         static_cast<OH_Drawing_TextEncoding>(encoding % TEXTENCODING_SIZE));
-    OH_Drawing_FontCountText(font, str, str_size, static_cast<OH_Drawing_TextEncoding>(encoding % TEXTENCODING_SIZE));
+    OH_Drawing_FontCountText(font, str, strSize, static_cast<OH_Drawing_TextEncoding>(encoding % TEXTENCODING_SIZE));
     if (str != nullptr) {
         delete [] str;
         str = nullptr;

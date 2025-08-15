@@ -496,7 +496,7 @@ bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
     }
     stagingEnvFGColor_ = modifier->Getter<Color>(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, Color());
 #else
-    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(RSModifierType::ENV_FOREGROUND_COLOR);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return false;
@@ -548,7 +548,7 @@ bool RSEnvFGColorStrategyDrawable::OnUpdate(const RSRenderNode& node)
     stagingEnvFGColorStrategy_ = static_cast<ForegroundColorStrategyType>(
         modifier->Getter<int>(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, 0));
 #else
-    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return false;
@@ -614,7 +614,7 @@ bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     }
     const auto& clipRectV4f = modifier->Getter<Vector4f>(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME, Vector4f());
 #else
-    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(RSModifierType::CUSTOM_CLIP_TO_FRAME);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return false;

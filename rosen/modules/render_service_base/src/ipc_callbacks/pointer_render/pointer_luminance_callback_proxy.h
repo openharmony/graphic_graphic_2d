@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback_ipc_interface_code.h"
-#include "ipc_callbacks/rs_ipc_callbacks_check.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSPointerLuminanceChangeCallbackProxy : public IRemoteProxy<RSIPointerLuminanceChangeCallback> {

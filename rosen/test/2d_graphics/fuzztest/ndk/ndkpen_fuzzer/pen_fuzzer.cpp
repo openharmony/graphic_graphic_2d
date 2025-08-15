@@ -164,13 +164,13 @@ void PenFuzzTest003(const uint8_t* data, size_t size)
     OH_Drawing_Pen* pen1 = OH_Drawing_PenCopy(nullptr);
     pen1 = OH_Drawing_PenCopy(pen);
 
-    uint32_t size_temp = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    uint32_t size_path = size_temp - (size_temp % PATH_CONST) + PATH_CONST;
-    float* intervals = new float[size_path];
-    for (size_t i = 0; i < size_path; i++) {
+    uint32_t sizeTemp = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    uint32_t sizePath = sizeTemp - (sizeTemp % PATH_CONST) + PATH_CONST;
+    float* intervals = new float[sizePath];
+    for (size_t i = 0; i < sizePath; i++) {
         intervals[i] = GetObject<float>();
     }
-    OH_Drawing_PathEffect* PathEffect = OH_Drawing_CreateDashPathEffect(intervals, size_path, phase);
+    OH_Drawing_PathEffect* PathEffect = OH_Drawing_CreateDashPathEffect(intervals, sizePath, phase);
     OH_Drawing_PenSetPathEffect(nullptr, PathEffect);
     OH_Drawing_PenSetPathEffect(pen, nullptr);
     OH_Drawing_PenSetPathEffect(pen, PathEffect);

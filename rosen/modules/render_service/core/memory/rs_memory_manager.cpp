@@ -508,7 +508,6 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
         log.AppendFormat("%s", statSubStr.c_str());
     }
     log.AppendFormat("\ndumpGpuStats end\n---------------\n");
-#if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_RECORD_VKIMAGE)
     {
         static thread_local int tid = gettid();
         log.AppendFormat("\n------------------\n[%s:%d] dumpAllResource:\n", GetThreadName(), tid);
@@ -519,7 +518,6 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
             log.AppendFormat("%s\n", s.c_str());
         }
     }
-#endif
 }
 
 void ProcessJemallocString(std::string* sp, const char* str)
@@ -880,17 +878,19 @@ bool MemoryManager::NeedCleanNow(std::vector<std::string>& needCleanFileName)
     size_t prefixLen = prefix.length();
     struct dirent* entry;
     int fileNum = 0;
-    while ((entry = readdir(dir)) != nullptr && entry->d_type == DT_REG) {
-        std::string fileName = entry->d_name;
-        if (fileName.substr(0, prefixLen) == prefix) {
-            fileNum++;
-            needCleanFileName.push_back(fileName);
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_REG) {
+            std::string fileName = entry->d_name;
+            if (fileName.substr(0, prefixLen) == prefix) {
+                fileNum++;
+                needCleanFileName.push_back(fileName);
+            }
         }
     }
     if (fileNum < RETAIN_FILE_NUM) {
         return false;
     }
-    sort(needCleanFileName.begin(), needCleanFileName.end(), []
+    std::sort(needCleanFileName.begin(), needCleanFileName.end(), []
         (const std::string& firstFile, const std::string& secondFile) {
         int offset = 1;
         std::string firstFileTime = firstFile.substr(firstFile.rfind('_') + offset,

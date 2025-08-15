@@ -172,14 +172,9 @@ public:
     void SendMessages();
     
     /**
-     * @brief Sets the timestamp and associates it with a specific ability name.
-     *
-     * @param timeStamp The timestamp value to be set.
-     * @param abilityName The name of the ability to associate with the timestamp.
-     */
-
-      /**
-     * @brief Post messages to render thread.
+     * @brief Post messages to render thread with callback.
+     * 
+     * @param callback The callback value to be set.
      */
     void SendMessages(std::function<void()> callback);
     

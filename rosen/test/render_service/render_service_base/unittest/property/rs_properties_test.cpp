@@ -18,6 +18,7 @@
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
@@ -883,6 +884,42 @@ HWTEST_F(RSPropertiesTest, UpdateGeometryByParent001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateGeometryByParent003
+ * @tc.desc: test results of UpdateGeometryByParent
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, UpdateGeometryByParent003, TestSize.Level1)
+{
+    RSProperties properties;
+    Drawing::Matrix* parentMatrix = new Drawing::Matrix();
+    Drawing::Point point;
+    std::optional<Drawing::Point> offset = point;
+    RectI rect;
+    properties.lastRect_ = rect;
+    {
+        std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+        properties.fgNGRenderFilter_ = nullptr;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_FALSE(properties.filterNeedUpdate_);
+    }
+    {
+        std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+        properties.fgNGRenderFilter_ = filter;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_FALSE(properties.filterNeedUpdate_);
+    }
+    {
+        std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+        properties.fgNGRenderFilter_ = filter;
+        properties.UpdateGeometryByParent(parentMatrix, offset);
+        EXPECT_TRUE(properties.filterNeedUpdate_);
+    }
+    delete parentMatrix;
+    parentMatrix = nullptr;
+}
+
+/**
  * @tc.name: SandBox001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -1193,6 +1230,29 @@ HWTEST_F(RSPropertiesTest, SetGet003, TestSize.Level1)
     properties.shadow_ = shadow;
     properties.SetCornerRadius(corner);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
+}
+
+/**
+ * @tc.name: UpdateBackgroundShader003
+ * @tc.desc: test results of UpdateBackgroundShader
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, UpdateBackgroundShader003, TestSize.Level1)
+{
+    RSProperties properties;
+    std::vector<float> param = {0.5f, 0.5f};
+    properties.SetComplexShaderParam(param);
+    properties.bgNGRenderShader_ = nullptr;
+    properties.UpdateBackgroundShader();
+ 
+    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    properties.bgNGRenderShader_ = head;
+    properties.UpdateBackgroundShader();
+ 
+    head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    properties.bgNGRenderShader_ = head;
+    properties.UpdateBackgroundShader();
+    EXPECT_FALSE(properties.bgShaderNeedUpdate_);
 }
 
 /**
@@ -1955,6 +2015,26 @@ HWTEST_F(RSPropertiesTest, SetShadowColorStrategy002, TestSize.Level1)
     shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
     properties.SetShadowColorStrategy(shadowColorStrategy);
     EXPECT_EQ(properties.GetShadowColorStrategy(), shadowColorStrategy);
+}
+
+
+/**
+ * @tc.name: ComposeNGRenderFilter001
+ * @tc.desc: test results of GenerateAIBarFilter
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, ComposeNGRenderFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.fgNGRenderFilter_ = filter;
+    std::shared_ptr<RSFilter> originFilter = nullptr;
+    properties.ComposeNGRenderFilter(originFilter, filter);
+    filter = RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+    properties.fgNGRenderFilter_ = filter;
+    properties.ComposeNGRenderFilter(originFilter, filter);
+    EXPECT_NE(filter, nullptr);
 }
 
 /**

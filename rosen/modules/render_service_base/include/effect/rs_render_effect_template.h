@@ -81,6 +81,8 @@ public:
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
+            case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
+            case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             default:
                 return "UNKNOWN";
         }
@@ -136,7 +138,7 @@ private:
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value);
 
-    #ifdef USE_M133_SKIA
+#ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;
 #else
     static constexpr auto hashFunc_ = SkOpts::hash;
@@ -158,6 +160,18 @@ public:
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
+    bool ContainsType(RSNGEffectType type)
+    {
+        auto current = this;
+        while (current) {
+            if (current->GetType() == type) {
+                return true;
+            }
+            current = current->nextEffect_.get();
+        }
+        return false;
+    }
+
 protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 

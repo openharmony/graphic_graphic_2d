@@ -120,6 +120,48 @@ void NdkTypographyStyleTest::TearDown()
 }
 
 /*
+ * @tc.name: ParagraphTestGlyphPositionAtCoordinateWithCluster001
+ * @tc.desc: test for GlyphPositionAtCoordinate with dash
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, ParagraphTestGlyphPositionAtCoordinateWithCluster001, TestSize.Level0)
+{
+    std::string text3 = "————————";
+
+    double maxWidth3 = 1000.0;
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
+
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 30);
+    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+
+    OH_Drawing_TypographyHandlerAddText(handler, text3.c_str());
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, maxWidth3);
+
+    float xCoords[] = { 0, 20, 30, 45, 60, 75, 100 };
+    int expectedPositions[] = { 0, 1, 1, 2, 2, 3, 3 };
+    int expectedAffinities[] = { 1, 0, 1, 0, 1, 0, 1 };
+    OH_Drawing_PositionAndAffinity* results[7];
+    for (int i = 0; i < 7; i++) {
+        results[i] = OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, xCoords[i], 0);
+        EXPECT_EQ(OH_Drawing_GetPositionFromPositionAndAffinity(results[i]), expectedPositions[i]);
+        EXPECT_EQ(OH_Drawing_GetAffinityFromPositionAndAffinity(results[i]), expectedAffinities[i]);
+    }
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    for (int i = 0; i < 7; i++) {
+        free(results[i]);
+    }
+}
+
+/*
  * @tc.name: SetTypographyTextAutoSpaceTest001
  * @tc.desc: test for set auto space when paragraph with single run
  * @tc.type: FUNC
@@ -419,24 +461,22 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest008, TestSize.Lev
     // compare paragraph1 and paragraph2
     std::vector<float> leftAddArr = { 0, 0, DEFAULT_FONT_SIZE / 8 };
     std::vector<float> rightAddArr = { 0, DEFAULT_FONT_SIZE / 8, DEFAULT_FONT_SIZE / 8 * 2 };
-    OH_Drawing_Rect* rect = nullptr;
-    OH_Drawing_Rect* rect2 = nullptr;
     for (int i = 0; i < runsSize; i++) {
         OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
         OH_Drawing_Run* run2 = OH_Drawing_GetRunByIndex(runs2, i);
         ASSERT_NE(run, nullptr);
         ASSERT_NE(run2, nullptr);
-        rect = OH_Drawing_GetRunImageBounds(run);
-        rect2 = OH_Drawing_GetRunImageBounds(run2);
+        OH_Drawing_Rect* rect = OH_Drawing_GetRunImageBounds(run);
+        OH_Drawing_Rect* rect2 = OH_Drawing_GetRunImageBounds(run2);
         // It will accumulate as the number of autospaces needs to be increased.
         EXPECT_NEAR(OH_Drawing_RectGetLeft(rect), OH_Drawing_RectGetLeft(rect2) + leftAddArr[i], FLOAT_DATA_EPSILON);
         EXPECT_NEAR(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetRight(rect2) + rightAddArr[i], FLOAT_DATA_EPSILON);
+        OH_Drawing_DestroyRunImageBounds(rect);
+        OH_Drawing_DestroyRunImageBounds(rect2);
     }
     OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLines(textLines);
     OH_Drawing_DestroyRuns(runs2);
     OH_Drawing_DestroyTextLines(textLines2);
-    OH_Drawing_DestroyRunImageBounds(rect);
-    OH_Drawing_DestroyRunImageBounds(rect2);
 }
 } // namespace OHOS

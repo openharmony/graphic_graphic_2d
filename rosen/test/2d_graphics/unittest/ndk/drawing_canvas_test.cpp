@@ -2130,262 +2130,6 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawRecordCmdNes
 }
 
 /*
- * @tc.name: NativeOH_Drawing_CanvasQuickRejectPath001
- * @tc.desc: test for OH_Drawing_CanvasQuickRejectPath.
- * @tc.type: FUNC
- * @tc.require: IBHFF5
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeOH_Drawing_CanvasQuickRejectPath001, TestSize.Level1)
-{
-    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
-    constexpr uint32_t width = 200; // 200 means bitmap width
-    constexpr uint32_t height = 200; // 200 means bitmap height
-    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
-    OH_Drawing_CanvasBind(canvas, bitmap);
-    bool quickReject = false;
-    OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    EXPECT_TRUE(path != nullptr);
-    auto result = OH_Drawing_CanvasQuickRejectPath(nullptr, path, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    result = OH_Drawing_CanvasQuickRejectPath(canvas, nullptr, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    result = OH_Drawing_CanvasQuickRejectPath(canvas, path, nullptr);
-    EXPECT_EQ(result, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    // rect left[50], top[50],right[250], bottom[250]
-    OH_Drawing_PathAddRect(path, 50, 50, 250, 250, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
-    result = OH_Drawing_CanvasQuickRejectPath(canvas, path, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_SUCCESS);
-    EXPECT_FALSE(quickReject);
-    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
-    // rect left[300], top[350],right[450], bottom[550]
-    OH_Drawing_PathAddRect(path2, 300, 350, 450, 550, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
-    result = OH_Drawing_CanvasQuickRejectPath(canvas, path2, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_SUCCESS);
-    EXPECT_TRUE(quickReject);
-    OH_Drawing_Path* path3 = OH_Drawing_PathCreate();
-    // rect left[-100], top[-100],right[0], bottom[0]
-    OH_Drawing_PathAddRect(path3, -100, -100, 0, 0, OH_Drawing_PathDirection::PATH_DIRECTION_CW);
-    result = OH_Drawing_CanvasQuickRejectPath(canvas, path3, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_SUCCESS);
-    EXPECT_FALSE(quickReject);
-
-    OH_Drawing_CanvasDestroy(canvas);
-    OH_Drawing_PathDestroy(path);
-    OH_Drawing_PathDestroy(path2);
-    OH_Drawing_PathDestroy(path3);
-    OH_Drawing_BitmapDestroy(bitmap);
-}
-
-/*
- * @tc.name: NativeOH_Drawing_CanvasQuickRejectRect001
- * @tc.desc: test for OH_Drawing_CanvasQuickRejectRect.
- * @tc.type: FUNC
- * @tc.require: IBHFF5
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeOH_Drawing_CanvasQuickRejectRect001, TestSize.Level1)
-{
-    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat{COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
-    constexpr uint32_t width = 200; // 200 means bitmap width
-    constexpr uint32_t height = 200; // 200 means bitmap height
-    OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
-    OH_Drawing_CanvasBind(canvas, bitmap);
-    bool quickReject = false;
-    // rect left[50], top[50],right[250], bottom[250]
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(50, 50, 250, 250);
-    auto result = OH_Drawing_CanvasQuickRejectRect(nullptr, rect, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    result = OH_Drawing_CanvasQuickRejectRect(canvas, nullptr, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    result = OH_Drawing_CanvasQuickRejectRect(canvas, rect, nullptr);
-    EXPECT_EQ(result, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    result = OH_Drawing_CanvasQuickRejectRect(canvas, rect, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_SUCCESS);
-    EXPECT_FALSE(quickReject);
-    // rect left[300], top[350],right[450], bottom[550]
-    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(300, 350, 450, 550);
-    result = OH_Drawing_CanvasQuickRejectRect(canvas, rect2, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_SUCCESS);
-    EXPECT_TRUE(quickReject);
-    // rect left[-100], top[-100],right[450], bottom[550]
-    OH_Drawing_Rect* rect3 = OH_Drawing_RectCreate(-100, -100, 450, 550);
-    result = OH_Drawing_CanvasQuickRejectRect(canvas, rect3, &quickReject);
-    EXPECT_EQ(result, OH_DRAWING_SUCCESS);
-    EXPECT_FALSE(quickReject);
-    OH_Drawing_CanvasDestroy(canvas);
-    OH_Drawing_RectDestroy(rect);
-    OH_Drawing_RectDestroy(rect2);
-    OH_Drawing_RectDestroy(rect3);
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_CanvasDrawArcWithCenter001
- * @tc.desc: test for OH_Drawing_CanvasDrawArcWithCenter.
- * @tc.type: FUNC
- * @tc.require: IBHFF5
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawArcWithCenter001, TestSize.Level1)
-{
-    // rect left[20], top[20],right[120], bottom[120]
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(20, 20, 120, 120);
-    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
-    // 180 means sweepAngle
-    EXPECT_EQ(OH_Drawing_CanvasDrawArcWithCenter(nullptr, rect, 0, 180, false),
-        OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawArcWithCenter(canvas, nullptr, 0, 180, false),
-        OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawArcWithCenter(canvas, rect, 0, 180, true),
-        OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_CanvasDrawArcWithCenter(canvas, rect, -10.0, 650, true),
-        OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_CanvasDrawArcWithCenter(canvas, rect, 66, -120, false),
-        OH_DRAWING_SUCCESS);
-    OH_Drawing_CanvasDestroy(canvas);
-    OH_Drawing_RectDestroy(rect);
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_CanvasDrawNestedRoundRect001
- * @tc.desc: test for OH_Drawing_CanvasDrawNestedRoundRect.
- * @tc.type: FUNC
- * @tc.require: IBHFF5
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawNestedRoundRect001, TestSize.Level1)
-{
-    // rect left[100], top[100],right[300], bottom[300]
-    OH_Drawing_Rect* rectOuter = OH_Drawing_RectCreate(100, 100, 300, 300);
-    OH_Drawing_RoundRect* outer = OH_Drawing_RoundRectCreate(rectOuter, 10, 10); // 10 means xRad yRad
-    // rect left[120], top[120],right[280], bottom[280]
-    OH_Drawing_Rect* rectInner = OH_Drawing_RectCreate(120, 120, 280, 280);
-    OH_Drawing_RoundRect* inner = OH_Drawing_RoundRectCreate(rectInner, 10, 10); // 10 means xRad yRad
-    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
-    EXPECT_EQ(OH_Drawing_CanvasDrawNestedRoundRect(nullptr, outer, inner),
-        OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawNestedRoundRect(canvas, nullptr, inner),
-        OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, nullptr),
-        OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawNestedRoundRect(canvas, outer, inner),
-        OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_CanvasDrawNestedRoundRect(canvas, inner, outer),
-        OH_DRAWING_SUCCESS);
-    OH_Drawing_CanvasDestroy(canvas);
-    OH_Drawing_RectDestroy(rectOuter);
-    OH_Drawing_RectDestroy(rectInner);
-    OH_Drawing_RoundRectDestroy(outer);
-    OH_Drawing_RoundRectDestroy(inner);
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_CanvasDrawPixelMapNine001
- * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapNine.
- * @tc.type: FUNC
- * @tc.require: IBHFF5
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawPixelMapNine001, TestSize.Level1)
-{
-    OH_Pixelmap_InitializationOptions *options = nullptr;
-    OH_PixelmapNative *pixelMap = nullptr;
-    OH_PixelmapInitializationOptions_Create(&options);
-    // 4 means width
-    OH_PixelmapInitializationOptions_SetWidth(options, 4);
-    // 4 means height
-    OH_PixelmapInitializationOptions_SetHeight(options, 4);
-    // 4 means RGBA format
-    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
-    // 2 means ALPHA_FORMAT_PREMUL format
-    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
-    // 255 means rgba data
-    uint8_t data[] = {
-        255, 255, 0, 255,
-        255, 255, 0, 255,
-        255, 255, 0, 255,
-        255, 255, 0, 255
-    };
-    // 16 means data length
-    size_t dataLength = 16;
-    OH_PixelmapNative_CreatePixelmap(data, dataLength, options, &pixelMap);
-    EXPECT_NE(pixelMap, nullptr);
-    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
-    EXPECT_NE(drPixelMap, nullptr);
-
-    auto recordingCanvas = new RecordingCanvas(100, 100);
-    OH_Drawing_Canvas *cCanvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
-    EXPECT_NE(cCanvas, nullptr);
-
-    OH_Drawing_Rect* srcRect = OH_Drawing_RectCreate(0, 0, 4, 4);
-    OH_Drawing_Rect* dstRect = OH_Drawing_RectCreate(0, 0, 4, 4);
-
-    EXPECT_EQ(OH_Drawing_CanvasDrawPixelMapNine(nullptr, drPixelMap, srcRect, dstRect,
-        OH_Drawing_FilterMode::FILTER_MODE_NEAREST), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawPixelMapNine(cCanvas, nullptr, srcRect, dstRect,
-        OH_Drawing_FilterMode::FILTER_MODE_NEAREST), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawPixelMapNine(cCanvas, drPixelMap, nullptr, dstRect,
-        OH_Drawing_FilterMode::FILTER_MODE_NEAREST), OH_DRAWING_SUCCESS);
-    EXPECT_EQ(OH_Drawing_CanvasDrawPixelMapNine(cCanvas, drPixelMap, srcRect, nullptr,
-        OH_Drawing_FilterMode::FILTER_MODE_NEAREST), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_CanvasDrawPixelMapNine(cCanvas, drPixelMap, srcRect, dstRect,
-        OH_Drawing_FilterMode::FILTER_MODE_NEAREST), OH_DRAWING_SUCCESS);
-
-    auto drawCmdList = recordingCanvas->GetDrawCmdList();
-    EXPECT_NE(drawCmdList, nullptr);
-    Canvas canvas;
-    drawCmdList->Playback(canvas);
-    OH_Drawing_PixelMapDissolve(drPixelMap);
-    OH_PixelmapNative_Release(pixelMap);
-    OH_PixelmapInitializationOptions_Release(options);
-    OH_Drawing_RectDestroy(srcRect);
-    OH_Drawing_RectDestroy(dstRect);
-    delete recordingCanvas;
-}
-
-/*
- * @tc.name: NativeDrawingCanvasTest_CanvasCreateWithPixelMap001
- * @tc.desc: test for OH_Drawing_CanvasCreateWithPixelMap.
- * @tc.type: FUNC
- * @tc.require: IBHFF5
- */
-HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasCreateWithPixelMap001, TestSize.Level1)
-{
-    OH_Pixelmap_InitializationOptions *options = nullptr;
-    OH_PixelmapInitializationOptions_Create(&options);
-    EXPECT_NE(options, nullptr);
-
-    // 1 means width
-    OH_PixelmapInitializationOptions_SetWidth(options, 1);
-    // 1 means height
-    OH_PixelmapInitializationOptions_SetHeight(options, 1);
-    // 3 means RGBA format
-    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
-    // 2 means ALPHA_FORMAT_PREMUL format
-    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
-    // 4 means data length
-    size_t bufferSize = 4;
-    void *buffer = malloc(bufferSize);
-    EXPECT_NE(buffer, nullptr);
-
-    OH_PixelmapNative *pixelMap = nullptr;
-    OH_PixelmapNative_CreatePixelmap(static_cast<uint8_t *>(buffer), bufferSize, options, &pixelMap);
-    EXPECT_NE(pixelMap, nullptr);
-    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
-    EXPECT_NE(drPixelMap, nullptr);
-
-    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(nullptr);
-    EXPECT_EQ(canvas, nullptr);
-    canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
-    EXPECT_NE(canvas, nullptr);
-
-    OH_Drawing_CanvasDestroy(canvas);
-    OH_Drawing_PixelMapDissolve(drPixelMap);
-    OH_PixelmapNative_Release(pixelMap);
-    OH_PixelmapInitializationOptions_Release(options);
-    free(buffer);
-}
-
-/*
  * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateOffsetImageFilter001
  * @tc.desc: test for creates an OH_Drawing_ImageFilter object that instance with the provided x and y offset.
  * @tc.type: FUNC
@@ -2474,6 +2218,50 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateLight
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 100, 100);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
 }
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_CanvasCreateWithPixelMap001
+ * @tc.desc: test for OH_Drawing_CanvasCreateWithPixelMap.
+ * @tc.type: FUNC
+ * @tc.require: IBHFF5
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasCreateWithPixelMap001, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    EXPECT_NE(options, nullptr);
+
+    // 1 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 1);
+    // 1 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 1);
+    // 3 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 4 means data length
+    size_t bufferSize = 4;
+    void *buffer = malloc(bufferSize);
+    EXPECT_NE(buffer, nullptr);
+
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapNative_CreatePixelmap(static_cast<uint8_t *>(buffer), bufferSize, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(nullptr);
+    EXPECT_EQ(canvas, nullptr);
+    canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    free(buffer);
+}
+
 /*
  * @tc.name: NativeDrawingCanvasTest_DrawSingleCharacterWithFeatures001
  * @tc.desc: test for draw single character with Features
@@ -2503,7 +2291,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawSingleCharacterWit
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HarmonyOS_Sans.ttf", 0);
     EXPECT_NE(typeface, nullptr);
     OH_Drawing_FontSetTypeface(fontWithTypeface, typeface);
-    
+
     EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacterWithFeatures(canvas_, strOne, font, x, y, featuresEmpty),
         OH_DRAWING_SUCCESS);
     OH_Drawing_FontSetSubpixel(font, true);

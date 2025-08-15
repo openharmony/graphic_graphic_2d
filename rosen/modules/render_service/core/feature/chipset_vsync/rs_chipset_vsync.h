@@ -18,8 +18,8 @@
 
 #include <cinttypes>
 #include <functional>
-#include <vector>
 #include <shared_mutex>
+#include <vector>
 
 namespace OHOS::Rosen {
 using InitChipsetVsyncFunc = int32_t (*)();
@@ -27,6 +27,11 @@ using SetVsyncFunc = int32_t (*)(int64_t, uint64_t, int64_t, bool);
 
 class RsChipsetVsync {
 public:
+    RsChipsetVsync() = default;
+    ~RsChipsetVsync()
+    {
+        CloseLibrary();
+    }
     static RsChipsetVsync& Instance();
     void LoadLibrary();
     void CloseLibrary();
@@ -41,6 +46,7 @@ private:
     SetVsyncFunc setVsyncFunc_ = nullptr;
     bool chipsetVsyncFuncLoaded = false;
     mutable std::shared_mutex mutex_;
+    mutable std::shared_mutex funcMutex_;
 };
 
 } // OHOS rosen

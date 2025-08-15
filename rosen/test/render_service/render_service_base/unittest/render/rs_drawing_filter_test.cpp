@@ -270,29 +270,6 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Compose001
- * @tc.desc: test results of Compose
- * @tc.type: FUNC
- * @tc.require: issuesI9PH4G
- */
-HWTEST_F(RSDrawingFilterTest, Compose001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
-    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
-    shaderFilters.push_back(filterPtr);
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
-    std::shared_ptr<RSDrawingFilter> other = nullptr;
-    drawingFilter.Compose(other);
-    EXPECT_TRUE(imageFilter != nullptr);
-
-    other = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
-    drawingFilter.Compose(other);
-    EXPECT_TRUE(other != nullptr);
-}
-
-/**
  * @tc.name: Compose002
  * @tc.desc: test results of Compose
  * @tc.type: FUNC

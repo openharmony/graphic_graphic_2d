@@ -146,20 +146,12 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
-        ffrt::task_handle handle;
-        if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
-        } else {
-            PostTask(task, std::to_string(callingPid));
-        }
+        PostTask(task);
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
          */
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         willHaveCachedData_ = true;
-        if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            cachedDeps_.push_back(std::move(handle));
-        }
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
@@ -184,16 +176,6 @@ bool RSUnmarshalThread::CachedTransactionDataEmpty()
      * and whether cachedTransactionDataMap_ will be empty later
      */
     return cachedTransactionDataMap_.empty() && !willHaveCachedData_;
-}
-
-void RSUnmarshalThread::Wait()
-{
-    std::vector<ffrt::dependence> deps;
-    {
-        std::lock_guard<std::mutex> lock(transactionDataMutex_);
-        std::swap(deps, cachedDeps_);
-    }
-    ffrt::wait(deps);
 }
 
 bool RSUnmarshalThread::IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const

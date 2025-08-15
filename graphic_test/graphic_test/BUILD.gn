@@ -177,6 +177,7 @@ ohos_unittest("RenderServiceRenderProfilerTest") {
   }
 
   deps = [
+    "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",

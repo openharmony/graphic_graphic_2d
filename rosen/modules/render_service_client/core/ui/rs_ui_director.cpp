@@ -344,7 +344,6 @@ void RSUIDirector::Destroy(bool isTextureExport)
         rootNode_.reset();
     }
     GoBackground(isTextureExport);
-    SendMessages();
     if (rsUIContext_ != nullptr) {
         RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
         rsUIContext_ = nullptr;
@@ -574,7 +573,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
 {
     if (rsUIContext_) {
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "multi-intance SendCommands With Callback");
-        RS_TRACE_NAME_FMT("SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
+        RS_TRACE_NAME_FMT("multi-instance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr && !transaction->IsEmpty()) {
             if (callback != nullptr) {
@@ -583,7 +582,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
                 RSInterfaces::GetInstance().RegisterTransactionDataCallback(rsUIContext_->GetToken(),
                     timeStamp_, callback);
             }
-            transaction->FlushImplicitTransaction(timeStamp_, abilityName_);
+            transaction->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);
             index_ = transaction->GetTransactionDataIndex();
         } else {
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector:: multi-intance SendMessages failed, \
@@ -600,7 +599,7 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
                     PRIu64 " pid: %{public}" PRIu64, timeStamp_, pid);
                 RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
             }
-            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);
             index_ = transactionProxy->GetTransactionDataIndex();
         } else {
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
@@ -682,7 +681,7 @@ void RSUIDirector::ProcessUIContextMessages(
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
-            ROSEN_LOGE(
+            ROSEN_LOGI(
                 "RSUIDirector::ProcessUIContextMessages, can not get rsUIContext with token:%{public}" PRIu64, token);
             continue;
         }

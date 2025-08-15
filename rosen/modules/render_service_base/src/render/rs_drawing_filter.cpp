@@ -271,7 +271,7 @@ uint32_t RSDrawingFilter::Hash() const
     const auto hashFunc = SkOpts::hash;
 #endif
     auto hash = hashFunc(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
-    hash = hashFunc(&renderFilterHash_, sizeof(renderFilterHash_), hash_);
+    hash = hashFunc(&renderFilterHash_, sizeof(renderFilterHash_), hash);
     return hash;
 }
 
@@ -285,28 +285,9 @@ uint32_t RSDrawingFilter::ImageHash() const
     return imageFilterHash_;
 }
 
-std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<RSDrawingFilter> other) const
+uint32_t RSDrawingFilter::RenderFilterHash() const
 {
-    std::shared_ptr<RSDrawingFilter> result =
-        std::make_shared<RSDrawingFilter>(imageFilter_, shaderFilters_, imageFilterHash_);
-    result->hash_ = hash_;
-    if (other == nullptr) {
-        return result;
-    }
-    result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
-    for (auto item : other->GetShaderFilters()) {
-        result->InsertShaderFilter(item);
-    }
-    auto otherShaderHash = other->ShaderHash();
-    auto otherImageHash = other->ImageHash();
-#ifdef USE_M133_SKIA
-    const auto hashFunc = SkChecksum::Hash32;
-#else
-    const auto hashFunc = SkOpts::hash;
-#endif
-    result->hash_ = hashFunc(&otherShaderHash, sizeof(otherShaderHash), hash_);
-    result->imageFilterHash_ = hashFunc(&otherImageHash, sizeof(otherImageHash), imageFilterHash_);
-    return result;
+    return renderFilterHash_;
 }
 
 std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<RSRenderFilterParaBase> other) const
@@ -350,6 +331,11 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(
 void RSDrawingFilter::SetNGRenderFilter(std::shared_ptr<RSNGRenderFilterBase> filter)
 {
     renderFilter_ = filter;
+
+    if (!renderFilterHash_) {
+        renderFilterHash_ = 0;
+        return;
+    }
     renderFilterHash_ = renderFilter_->CalculateHash();
 }
 

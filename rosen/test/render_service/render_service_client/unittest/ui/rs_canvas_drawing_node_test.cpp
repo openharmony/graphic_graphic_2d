@@ -73,6 +73,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     res = canvasNode->ResetSurface(width, height);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_EQ(res, false);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }

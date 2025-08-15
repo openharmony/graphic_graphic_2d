@@ -300,8 +300,8 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable003, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     node.GetMutableRenderProperties().SetColorBlendMode(12);
-    auto drawable = std::static_pointer_cast<DrawableV2::RSEndBlenderDrawable>(
-        DrawableV2::RSEndBlenderDrawable::OnGenerate(node));
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);
     drawable->OnSync();
     auto drawFunc = drawable->CreateDrawFunc();

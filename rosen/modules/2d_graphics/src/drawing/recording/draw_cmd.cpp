@@ -338,13 +338,13 @@ size_t DrawOpItem::GetOpSize()
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)
     : canvas_(canvas), rect_(rect), cmdList_(cmdList) {}
 
-bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handle, size_t avaliableSize)
+bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handle, size_t availableSize)
 {
     if (handle == nullptr) {
         return false;
     }
 
-    if (type == DrawOpItem::TEXT_BLOB_OPITEM && avaliableSize >= sizeof(DrawTextBlobOpItem::ConstructorHandle)) {
+    if (type == DrawOpItem::TEXT_BLOB_OPITEM && availableSize >= sizeof(DrawTextBlobOpItem::ConstructorHandle)) {
         auto* op = static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
         return op->GenerateCachedOpItem(cmdList_, canvas_);
     }

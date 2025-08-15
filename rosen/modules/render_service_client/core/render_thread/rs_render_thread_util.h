@@ -16,19 +16,10 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_THREAD_RS_RENDER_THREAD_UTIL_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_THREAD_RS_RENDER_THREAD_UTIL_H
 
-#include "pipeline/rs_surface_render_node.h"
 #include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
-struct TextureExportBufferDrawParam {
-#ifdef ROSEN_OHOS
-    sptr<OHOS::SurfaceBuffer> buffer;
-#endif
-    Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
-    Drawing::Rect srcRect; // surface's bufferSize
-    Drawing::Rect dstRect; // surface's boundsSize
-};
 
 #ifdef ROSEN_OHOS
 namespace {
@@ -39,20 +30,8 @@ constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 
 class RSRenderThreadUtil {
 public:
-    static void SrcRectScaleDown(TextureExportBufferDrawParam& params, const RectF& localBounds);
-    static void SrcRectScaleFit(TextureExportBufferDrawParam& params, const RectF& localBounds);
-    static GraphicTransformType GetRotateTransform(GraphicTransformType transform);
-    static GraphicTransformType GetFlipTransform(GraphicTransformType transform);
-    static Drawing::Matrix GetGravityMatrix(Gravity gravity, const RectF& bufferBounds, const RectF& bounds);
-    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bufferBounds);
-    static void FlipMatrix(GraphicTransformType transform, TextureExportBufferDrawParam& params);
-    
-#ifdef ROSEN_OHOS
-    static TextureExportBufferDrawParam CreateTextureExportBufferDrawParams(
-        RSSurfaceRenderNode& surfaceNode, GraphicTransformType graphicTransformType, sptr<OHOS::SurfaceBuffer> buffer);
-    static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-        RectF& localBounds, TextureExportBufferDrawParam& params);
-#endif
+    static void SrcRectScaleDown(Drawing::Rect& srcRect, const Drawing::Rect& localBounds);
+    static void SrcRectScaleFit(const Drawing::Rect& srcRect, Drawing::Rect& dstRect, const Drawing::Rect& localBounds);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -83,6 +83,12 @@ protected:
 class RSB_EXPORT RSNGRenderShaderHelper {
 public:
     static bool CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase> shader);
+
+    static void SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase> shader,
+        const Vector3f& rotationAngle);
+
+    static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
+        float cornerRadius);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
@@ -168,6 +174,15 @@ DECLARE_SHADER(LightCave, LIGHT_CAVE,
     ADD_PROPERTY_TAG(LightCave, Position),
     ADD_PROPERTY_TAG(LightCave, RadiusXY),
     ADD_PROPERTY_TAG(LightCave, Progress)
+);
+
+DECLARE_SHADER(BorderLight, BORDER_LIGHT,
+    ADD_PROPERTY_TAG(BorderLight, Position),
+    ADD_PROPERTY_TAG(BorderLight, Color),
+    ADD_PROPERTY_TAG(BorderLight, Intensity),
+    ADD_PROPERTY_TAG(BorderLight, Width),
+    ADD_PROPERTY_TAG(BorderLight, RotationAngle),
+    ADD_PROPERTY_TAG(BorderLight, CornerRadius)
 );
 
 #undef ADD_PROPERTY_TAG

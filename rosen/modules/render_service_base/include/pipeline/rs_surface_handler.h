@@ -245,6 +245,7 @@ public:
 
     int64_t GetTimestamp() const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return buffer_.timestamp;
     }
 

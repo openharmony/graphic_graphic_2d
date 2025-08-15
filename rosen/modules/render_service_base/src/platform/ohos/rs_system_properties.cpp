@@ -246,7 +246,8 @@ bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
     static bool isMultiInstance = system::GetParameter("persist.rosen.rsclientmultiinstance.enabled", "1") != "0";
-    return isMultiInstance;
+    static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
+    return isMultiInstance && isPhone;
 }
 
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
@@ -299,11 +300,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "-1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<StencilPixelOcclusionCullingType>(ConvertToInt(enable,
-        static_cast<int>(StencilPixelOcclusionCullingType::DISABLED)));
+        static_cast<int>(StencilPixelOcclusionCullingType::DEFAULT)));
 }
 
 AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
@@ -380,7 +381,7 @@ bool RSSystemProperties::GetReleaseResourceEnabled()
 
 bool RSSystemProperties::GetReclaimMemoryEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.reclaim.memory.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("persist.relcaim.memory.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1299,18 +1300,6 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
 }
 
-bool RSSystemProperties::GetHdrImageEnabled()
-{
-    static bool isHdrImageEnabled = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);
-    return isHdrImageEnabled;
-}
-
-bool RSSystemProperties::GetHdrVideoEnabled()
-{
-    static bool isHdrVideoEnabled = system::GetBoolParameter("persist.sys.graphic.hdrvideo.enabled", true);
-    return isHdrVideoEnabled;
-}
-
 bool RSSystemProperties::IsForceClient()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.client_composition.enabled", "0");
@@ -1326,18 +1315,16 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return pixelMapEnabled;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
+bool RSSystemProperties::GetHdrImageEnabled()
 {
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
-    return flag;
+    static bool isHdrImageEnabled = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);
+    return isHdrImageEnabled;
 }
 
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
+bool RSSystemProperties::GetHdrVideoEnabled()
 {
-    static uint32_t size =
-        static_cast<uint32_t>(std::atoi(
-            (system::GetParameter("rosen.graphic.UnmashParallelSize", "102400")).c_str())); // 100K
-    return size;
+    static bool isHdrVideoEnabled = system::GetBoolParameter("persist.sys.graphic.hdrvideo.enabled", true);
+    return isHdrVideoEnabled;
 }
 
 bool RSSystemProperties::GetJankLoadOptimizeEnabled()

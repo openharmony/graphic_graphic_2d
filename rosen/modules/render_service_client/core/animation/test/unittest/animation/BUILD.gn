@@ -71,6 +71,8 @@ ohos_unittest("RSAnimationTest") {
     #ipc_callbacks
     "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_change_callback_stub.cpp",
+    "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_switching_notify_callback_proxy.cpp",
+    "$rosen_root/modules/render_service_base/src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
 
     #pipeline
     "$rosen_root/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",

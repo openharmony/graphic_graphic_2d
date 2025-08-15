@@ -25,6 +25,7 @@
 #include <sys/un.h>
 #include <thread>
 #include <unistd.h>
+#include "rs_graphic_test.h"
 
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_packet.h"
@@ -39,8 +40,9 @@ constexpr int MAX_WAITING_TIMES = 1000;
 [[maybe_unused]] constexpr int SOCKET_REFRESH_TIME = 20;
 [[maybe_unused]] constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
 
-class RenderServiceRenderProfilerTest {
+class RenderServiceRenderProfilerTest : public OHOS::Rosen::RSGraphicTest {
 public:
+    void TestBody() override {}
 #ifdef RS_PROFILER_ENABLED
     ~RenderServiceRenderProfilerTest()
     {
@@ -322,16 +324,19 @@ void ReplayStop()
     std::cout << "Stop replaying flag created." << std::endl;
 }
 
+TEST(RenderServiceRenderProfilerTest, Test1)
+{
+    auto profilerThread = std::make_shared<RenderServiceRenderProfilerTest>();
+    EXPECT_EQ(profilerThread->IsSocketActive(), false);
+}
 
 int main(int argc, char * argv[])
 {
     const int minArgNum = 2;
     if (argc < minArgNum) {
-        std::cout << "缺少命令参数, 请指定操作类型:\n"
-            "1. record_start 开始录制\n"
-            "2. record_stop 结束录制\n"
-            "3. replay_start -f filePath 开始回放\n"
-            "4. replay_stop 结束回放" << std::endl;
+        testing::GTEST_FLAG(output) = "xml:./";
+        testing::InitGoogleTest(&argc, argv);
+        return RUN_ALL_TESTS();
     }
 
     std::cout << "render service client render profiler demo start!" << std::endl;

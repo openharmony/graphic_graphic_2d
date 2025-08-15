@@ -711,7 +711,6 @@ napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontF
         }
         napi_set_named_property(env, jsObject, "name", CreateStringJsValue(env, Str8ToStr16(feature.first)));
         napi_set_named_property(env, jsObject, "value", CreateJsNumber(env, feature.second));
-        napi_set_element(env, jsArray, i, jsObject);
         status = napi_set_element(env, jsArray, i, jsObject);
         if (status != napi_ok) {
             TEXT_LOGE("Failed to set fontFeature, ret %{public}d", status);
@@ -1017,8 +1016,7 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
     if (!isStartOk || !isEndOk || start < 0 || end < 0) {
         TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}" PRId64
-        ", end %{public}" PRId64,
-            isStartOk, isEndOk, start, end);
+        ", end %{public}" PRId64, isStartOk, isEndOk, start, end);
         return false;
     }
 

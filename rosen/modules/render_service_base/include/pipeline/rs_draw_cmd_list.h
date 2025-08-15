@@ -24,7 +24,5 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "memory/rs_dfx_string.h"
 #include <parcel.h>
-
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_LIST_H

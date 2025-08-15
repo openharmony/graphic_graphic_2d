@@ -39,7 +39,8 @@ public:
     RSColor() noexcept : alpha_(0), blue_(0), green_(0), red_(0) {}
     explicit RSColor(uint32_t rgba) noexcept;
     RSColor(int16_t red, int16_t green, int16_t blue) noexcept;
-    RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha) noexcept;
+    RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha,
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) noexcept;
 
     RSColor(const RSColor& rhs) noexcept
     {

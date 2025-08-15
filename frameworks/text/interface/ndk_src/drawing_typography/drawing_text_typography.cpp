@@ -463,7 +463,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
 void OH_Drawing_TypographyHandlerAddEncodedText(
     OH_Drawing_TypographyCreate* handler, const void* text, size_t byteLength, OH_Drawing_TextEncoding textEncodingType)
 {
-    if (!text || !handler || byteLength == 0) {
+    if (text == nullptr || handler == nullptr || byteLength == 0) {
         LOGE("null text");
         return;
     }
@@ -2258,7 +2258,8 @@ void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* 
     }
 
     TextStyle textStyleTemplate;
-    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    textStyleTemplate.relayoutChangeBitmap.set(
+        static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
     textStyleTemplate.decorationThicknessScale = decorationThicknessScale;
     ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }

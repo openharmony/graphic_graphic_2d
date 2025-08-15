@@ -74,6 +74,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
@@ -920,6 +921,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
+            sptr<RSIScreenSwitchingNotifyCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            bool readRemoteObject{false};
+            if (!data.ReadBool(readRemoteObject)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Read parcel "
+                        "failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+
+            if (readRemoteObject) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+            }
+
+            int32_t status = SetScreenSwitchingNotifyCallback(callback);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG): {
             float darkBuffer { 0.f };
@@ -1415,13 +1441,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY Read id failed!");
                 ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (ExtractPid(id) != callingPid) {
-                RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY calling is no legal, "
-                        "id:%{public}" PRIu64 ", callingPid:%{public}d ",
-                    id, callingPid);
-                ret = ERR_INVALID_REPLY;
                 break;
             }
             bool isFreeze {false};

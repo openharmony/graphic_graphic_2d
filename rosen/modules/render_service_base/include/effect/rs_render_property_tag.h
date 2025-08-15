@@ -81,6 +81,7 @@ enum class RSNGEffectType : int16_t {
     ALWAYS_SNAPSHOT,
     MASK_TRANSITION,
     VARIABLE_RADIUS_BLUR,
+    CONTENT_LIGHT,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
@@ -93,7 +94,8 @@ enum class RSNGEffectType : int16_t {
     AURORA_NOISE,
     PARTICLE_CIRCULAR_HALO,
     COLOR_GRADIENT_EFFECT,
-    LIGHT_CAVE
+    LIGHT_CAVE,
+    BORDER_LIGHT,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

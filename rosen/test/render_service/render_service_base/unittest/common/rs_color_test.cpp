@@ -375,4 +375,32 @@ HWTEST_F(RSColorTest, MultiplyAlphaTest, TestSize.Level1)
     color.MultiplyAlpha(1.0f);
     EXPECT_EQ(color.GetAlpha(), 0);
 }
+
+/**
+ * @tc.name: ConvertToP3ColorSpaceTest
+ * @tc.desc: Verify function ConvertToP3ColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesIC90UH
+ */
+HWTEST_F(RSColorTest, ConvertToP3ColorSpaceTest, TestSize.Level1)
+{
+    RSColor color;
+    color.ConvertToP3ColorSpace();
+    EXPECT_EQ(color.GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: ConvertToSRGBColorSpaceTest
+ * @tc.desc: Verify function ConvertToSRGBColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesIC90UH
+ */
+HWTEST_F(RSColorTest, ConvertToSRGBColorSpaceTest, TestSize.Level1)
+{
+    RSColor color;
+    color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(color.GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    color.ConvertToSRGBColorSpace();
+    EXPECT_EQ(color.GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
 } // namespace OHOS::Rosen

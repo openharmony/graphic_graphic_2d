@@ -1181,7 +1181,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level0)
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     hmSymbolRun.SetSymbolEffect(RSEffectStrategy::DISABLE);
     RSHMSymbolData symbol;
-    std::pair<float, float> offsetXY(10.0f, 15.0f);
+    std::pair<float, float> offsetXY(10.0f, 15.0f); // 10.0f is x, 15.0f is y of offset
     Drawing::DrawingAnimationSetting animationSettingOne = {
         // animationTypes
         {

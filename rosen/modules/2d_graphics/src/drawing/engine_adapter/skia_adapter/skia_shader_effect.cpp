@@ -471,7 +471,7 @@ void SkiaShaderEffect::SetSkShader(const sk_sp<SkShader>& skShader)
 void SkiaShaderEffect::SetGPUContext(std::shared_ptr<GPUContext> gpuContext)
 {
     if (gpuContext_ != nullptr && gpuContext_ != gpuContext) {
-        LOGE("SkiaShaderEffect::SetGPUContext, gpuContext_ is overwritten!");
+        LOGD("SkiaShaderEffect::SetGPUContext, gpuContext_ is overwritten!");
         return;
     }
     gpuContext_ = gpuContext;

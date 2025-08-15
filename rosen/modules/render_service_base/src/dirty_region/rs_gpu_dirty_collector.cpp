@@ -54,16 +54,16 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
     }
     // when layer don't have dirty region, the right and bottom of Gpu Dirty Region are initialized to minimum values
     // the left and top are initialized to maximum values, Gpu Dirty Region can't set to (0, 0, 0, 0)
-    bool isNotDirty = src->left == buffer->GetWidth() &&
-        src->top == buffer->GetHeight() && src->right == 0 && src->bottom == 0;
+    bool isNotDirty = src->left == static_cast<uint32_t>(buffer->GetWidth()) &&
+        src->top == static_cast<uint32_t>(buffer->GetHeight()) && src->right == 0 && src->bottom == 0;
     if (isNotDirty) {
         rect = { 0, 0, 0, 0 };
         return true;
     }
-    bool isDirtyRegionInvalid = src->left < 0 || src->left > buffer->GetWidth() || src->right < 0 ||
-        src->right > buffer->GetWidth() || src->top < 0 || src->top > buffer->GetHeight() ||
-        src->bottom < 0 || src->bottom > buffer->GetHeight() || src->left >= src->right ||
-        src->top >= src->bottom;
+    bool isDirtyRegionInvalid = src->left < 0 || src->left > static_cast<uint32_t>(buffer->GetWidth()) ||
+        src->right < 0 || src->right > static_cast<uint32_t>(buffer->GetWidth()) || src->top < 0 ||
+        src->top > static_cast<uint32_t>(buffer->GetHeight()) || src->bottom < 0 || src->bottom >
+        static_cast<uint32_t>(buffer->GetHeight()) || src->left >= src->right || src->top >= src->bottom;
     if (isDirtyRegionInvalid) {
         return false;
     }
