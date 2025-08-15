@@ -164,7 +164,9 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Strength10),
     ADD_PROPERTY_TAG(ColorGradientEffect, Strength11),
     ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
-    ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber)
+    ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Blend),
+    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
 );
 
 DECLARE_SHADER(LightCave, LIGHT_CAVE,

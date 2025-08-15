@@ -54,163 +54,52 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     }
 };
 
-const size_t MAX_GRADIENT_SIZE = 12;
-static std::vector<std::function<void(std::shared_ptr<RSNGColorGradientEffect>&, const Vector4f&)>>
-    g_gradientColorSetVec = {
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor0Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor1Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor2Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor3Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor4Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor5Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor6Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor7Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor8Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor9Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor10Tag>(setColor);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector4f& setColor)
-        {
-            target->Setter<ColorGradientEffectColor11Tag>(setColor);
-        }
-    };
-
-static std::vector<std::function<void(std::shared_ptr<RSNGColorGradientEffect>&, const Vector2f&)>>
-    g_gradientPosSetVec = {
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition0Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition1Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition2Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition3Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition4Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition5Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition6Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition7Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition8Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition9Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition10Tag>(setPos);
-        },
-        [](std::shared_ptr<RSNGColorGradientEffect>& target, const Vector2f& setPos)
-        {
-            target->Setter<ColorGradientEffectPosition11Tag>(setPos);
-        }
-    };
-
-static std::vector<std::function<void(std::shared_ptr<RSNGColorGradientEffect>&, float)>> g_gradientStrengthSetVec = {
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength0Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength1Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength2Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength3Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength4Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength5Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength6Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength7Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength8Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength9Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength10Tag>(setValue);
-    },
-    [](std::shared_ptr<RSNGColorGradientEffect>& target, float setValue)
-    {
-        target->Setter<ColorGradientEffectStrength11Tag>(setValue);
-    }
-};
-
 namespace {
+
+// for type inference
+using ColorGradientEffectColorTags = std::tuple<
+    ColorGradientEffectColor0Tag,
+    ColorGradientEffectColor1Tag,
+    ColorGradientEffectColor2Tag,
+    ColorGradientEffectColor3Tag,
+    ColorGradientEffectColor4Tag,
+    ColorGradientEffectColor5Tag,
+    ColorGradientEffectColor6Tag,
+    ColorGradientEffectColor7Tag,
+    ColorGradientEffectColor8Tag,
+    ColorGradientEffectColor9Tag,
+    ColorGradientEffectColor10Tag,
+    ColorGradientEffectColor11Tag>;
+
+// for type inference
+using ColorGradientEffectPositionTags = std::tuple<
+    ColorGradientEffectPosition0Tag,
+    ColorGradientEffectPosition1Tag,
+    ColorGradientEffectPosition2Tag,
+    ColorGradientEffectPosition3Tag,
+    ColorGradientEffectPosition4Tag,
+    ColorGradientEffectPosition5Tag,
+    ColorGradientEffectPosition6Tag,
+    ColorGradientEffectPosition7Tag,
+    ColorGradientEffectPosition8Tag,
+    ColorGradientEffectPosition9Tag,
+    ColorGradientEffectPosition10Tag,
+    ColorGradientEffectPosition11Tag>;
+
+// for type inference
+using ColorGradientEffectStrengthTags = std::tuple<
+    ColorGradientEffectStrength0Tag,
+    ColorGradientEffectStrength1Tag,
+    ColorGradientEffectStrength2Tag,
+    ColorGradientEffectStrength3Tag,
+    ColorGradientEffectStrength4Tag,
+    ColorGradientEffectStrength5Tag,
+    ColorGradientEffectStrength6Tag,
+    ColorGradientEffectStrength7Tag,
+    ColorGradientEffectStrength8Tag,
+    ColorGradientEffectStrength9Tag,
+    ColorGradientEffectStrength10Tag,
+    ColorGradientEffectStrength11Tag>;
 
 std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
@@ -220,23 +109,39 @@ std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<V
 
     std::vector<Vector4f> colors = colorGradientEffectPara->GetColors();
     std::vector<Vector2f> positions = colorGradientEffectPara->GetPositions();
-    std::vector<float> strengths = colorGradientEffectPara->GetStrengths();
+    std::vector<float> strths = colorGradientEffectPara->GetStrengths();
 
-    for (size_t i = 0; i < MAX_GRADIENT_SIZE; i++) {
-        auto setColor = i < colors.size() ? colors[i] : Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
-        g_gradientColorSetVec[i](colorGradientEffect, setColor);
+    float blend = colorGradientEffectPara->GetDefaultBlend();
+    float blendK = colorGradientEffectPara->GetDefaultBlendK();
+    Vector4f color4 = colorGradientEffectPara->GetDefaultColor4f();
+    Vector2f pos2 = colorGradientEffectPara->GetDefaultPoint();
+    float strth = colorGradientEffectPara->GetDefaultStrength();
 
-        auto setPos = i < positions.size() ? positions[i] : Vector2f(1.0f, 1.0f);
-        g_gradientPosSetVec[i](colorGradientEffect, setPos);
+    colorGradientEffect->Setter<ColorGradientEffectBlendTag>(blend);
+    colorGradientEffect->Setter<ColorGradientEffectBlendKTag>(blendK);
 
-        auto setValue = i < strengths.size() ? strengths[i] : 0.0f;
-        g_gradientStrengthSetVec[i](colorGradientEffect, setValue);
-    }
+    ColorGradientEffectColorTags colorTag{};
+    std::apply([&colorGradientEffect, &colors, color4] (auto&&... args) {
+        size_t i = 0;
+        (colorGradientEffect->Setter<std::decay_t<decltype(args)>>(i < colors.size() ? colors[i++] : color4), ...);
+        }, colorTag);
+
+    ColorGradientEffectPositionTags posTag{};
+    std::apply([&colorGradientEffect, &positions, pos2] (auto&&... args) {
+        size_t i = 0;
+        (colorGradientEffect->Setter<std::decay_t<decltype(args)>>(i < positions.size() ? positions[i++] : pos2), ...);
+        }, posTag);
+
+    ColorGradientEffectStrengthTags strthTag{};
+    std::apply([&colorGradientEffect, &strths, strth] (auto&&... args) {
+        size_t i = 0;
+        (colorGradientEffect->Setter<std::decay_t<decltype(args)>>(i < strths.size() ? strths[i++] : strth), ...);
+        }, strthTag);
 
     colorGradientEffect->Setter<ColorGradientEffectMaskTag>(
         RSNGMaskBase::Create(colorGradientEffectPara->GetMask()));
 
-    colorGradientEffect->Setter<ColorGradientEffectColorNumberTag>(static_cast<float>(strengths.size()));
+    colorGradientEffect->Setter<ColorGradientEffectColorNumberTag>(static_cast<float>(strths.size()));
 
     return colorGradientEffect;
 }
