@@ -58,7 +58,8 @@ public:
         SOURCE_DRAWSELFDRAWINGNODEBUFFER,
         SOURCE_ONCAPTURE,
         SOURCE_INITCACHEDSURFACE,
-        SOURCE_DRAWRENDERCONTENT
+        SOURCE_DRAWRENDERCONTENT,
+        SOURCE_FILTERCACHEENABLEVMA = 100,
     };
     RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::TAGTYPE tagType);
     RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::SOURCETYPE sourceType);

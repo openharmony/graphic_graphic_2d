@@ -914,6 +914,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             {
                 RS_TRACE_NAME_FMT("Purge unlocked resources when clear memory");
                 grContext->PerformDeferredCleanup(std::chrono::seconds(TIME_OF_PERFORM_DEFERRED_CLEAR_GPU_CACHE));
+                MemoryManager::VmaDefragment(grContext);
             }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
