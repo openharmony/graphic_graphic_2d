@@ -14,6 +14,10 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build libEGL.so {{{
+declare_args() {
+  egl_use_aps_plugin = true
+}
+
 config("egl_config") {
   visibility = [ ":*" ]
 
@@ -36,6 +40,9 @@ config("egl_config") {
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
   }
+  if (egl_use_aps_plugin) {
+    defines += [ "EGL_USE_APS_PLUGIN" ]
+  }
   cflags = [
     "-Wall",
     "-Werror",
@@ -52,8 +59,10 @@ config("egl_public_config") {
     include_dirs += egl_igraphics_extend_hooks_include_dirs
   }
   if (graphic_2d_feature_use_aps_igameservice_func) {
-    include_dirs += aps_client_include_dirs
     include_dirs += gameservice_render_slice_report_include_dirs
+  }
+  if (egl_use_aps_plugin) {
+    include_dirs += [ "//foundation/graphic/graphic_2d/frameworks/aps_monitor/include" ]
   }
 }
 
@@ -87,7 +96,6 @@ if (current_os != "ohos") {
       sources += egl_igraphics_extend_hooks_sources
     }
     if (graphic_2d_feature_use_aps_igameservice_func) {
-      sources += aps_client_sources
       sources += gameservice_render_slice_report_sources
     }
     if (graphic_2d_feature_product == "wearable") {
@@ -116,7 +124,6 @@ if (current_os != "ohos") {
     ]
 
     if (graphic_2d_feature_use_aps_igameservice_func) {
-      external_deps += aps_client_external_deps
       external_deps += gameservice_render_slice_report_external_deps
     }
 

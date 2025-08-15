@@ -14,6 +14,10 @@ import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build libvulkan_swapchain.so {{{
+declare_args() {
+  vulkan_use_aps_plugin = true
+}
+
 config("vulkan_config") {
   defines = [
     "VK_USE_PLATFORM_OHOS",
@@ -23,6 +27,9 @@ config("vulkan_config") {
     defines += [ "USE_APS_IGAMESERVICE_FUNC=1" ]
   } else {
     defines += [ "USE_APS_IGAMESERVICE_FUNC=0" ]
+  }
+  if (vulkan_use_aps_plugin) {
+    defines += [ "VULKAN_USE_APS_PLUGIN" ]
   }
 
   cflags = [
@@ -40,6 +47,9 @@ config("vulkan_public_config") {
   ]
   if (graphic_2d_feature_use_aps_igameservice_func) {
     include_dirs += gameservice_render_slice_report_include_dirs
+  }
+  if (vulkan_use_aps_plugin) {
+    include_dirs += [ "//foundation/graphic/graphic_2d/frameworks/aps_monitor/include" ]
   }
 }
 

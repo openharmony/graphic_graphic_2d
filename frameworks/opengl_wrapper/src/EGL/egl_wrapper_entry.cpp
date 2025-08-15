@@ -31,7 +31,9 @@
 #include "egl_blob_cache.h"
 #if USE_APS_IGAMESERVICE_FUNC
 #include "egl_slice_report.h"
-#include "aps_game_fps_controller.h"
+#endif
+#ifdef EGL_USE_APS_PLUGIN
+#include "iaps_plugin.h"
 #endif
 
 using namespace OHOS;
@@ -352,6 +354,9 @@ EGLBoolean EglInitializeImpl(EGLDisplay dpy, EGLint *major, EGLint *minor)
 #if USE_APS_IGAMESERVICE_FUNC
     OHOS::GameService::EglSliceReport::GetInstance().InitSliceReport();
 #endif
+#ifdef EGL_USE_APS_PLUGIN
+    OHOS::Rosen::IApsPlugin::Instance()->InitGameFpsCtrol();
+#endif
     EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
     if (!display) {
         WLOGE("EGLDislay is invalid.");
@@ -459,7 +464,9 @@ EGLBoolean EglSwapBuffersImpl(EGLDisplay dpy, EGLSurface surf)
     WLOGD("");
 #if USE_APS_IGAMESERVICE_FUNC
     OHOS::GameService::EglSliceReport::GetInstance().AddGraphicCount();
-    OHOS::Rosen::ApsGameFpsController::GetInstance().PowerCtrllofEglswapbuffer();
+#endif
+#ifdef EGL_USE_APS_PLUGIN
+    OHOS::Rosen::IApsPlugin::Instance()->PowerCtrllofSwapbuffer();
 #endif
     EglWrapperDisplay *display = ValidateDisplay(dpy);
     if (!display) {
