@@ -844,7 +844,7 @@ HWTEST_F(VSyncGeneratorTest, AddListener005, Function | MediumTest| Level0)
     ASSERT_TRUE(generatorImpl->isUseFfrt_);
     ASSERT_NE(generatorImpl->ffrtThread_, nullptr);
     sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(generatorImpl->AddListener(callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(generatorImpl->AddListener(callback, false, false), VSYNC_ERROR_OK);
     ASSERT_EQ(generatorImpl->listeners_.size(), 1);
     generatorImpl = nullptr;
 }
