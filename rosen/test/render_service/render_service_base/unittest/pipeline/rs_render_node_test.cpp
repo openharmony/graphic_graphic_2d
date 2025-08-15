@@ -2410,6 +2410,76 @@ HWTEST_F(RSRenderNodeTest, ClearChildrenTest011, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenTest012
+ * @tc.desc: UpdateDrawingCacheInfoAfterChildrenTest_001
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+ 
+    std::shared_ptr<RSRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+    nodeTest->AddChild(childNode, 1);
+ 
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+ 
+    childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
+    if (nodeTest->IsUifirstArkTsCardNode()) {
+        nodeTest->UpdateDrawingCacheInfoAfterChildren();
+        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    } else {
+        nodeTest->UpdateDrawingCacheInfoAfterChildren();
+        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    }
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenTest012
+ * @tc.desc: UpdateDrawingCacheInfoAfterChildrenTest_002
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    nodeTest->SetStartingWindowFlag(true);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenTest012
+ * @tc.desc: UpdateDrawingCacheInfoAfterChildrenTest_003
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(true);
+    auto& stagingRenderParams = nodeTest->GetStagingRenderParams();
+    EXPECT_NE(stagingRenderParams, nullptr);
+    EXPECT_EQ(stagingRenderParams->NodeGroupHasChildInBlacklist(), true);
+}
+
+/**
  * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest013
  * @tc.desc: CheckDrawingCacheType and UpdateDrawingCacheInfoBeforeChildren test
  * @tc.type: FUNC
