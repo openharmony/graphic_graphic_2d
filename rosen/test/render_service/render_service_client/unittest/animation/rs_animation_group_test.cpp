@@ -56,7 +56,7 @@ HWTEST_F(RSAnimationGroupTest, AddAnimationTest, Level1)
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest, Level3)
+HWTEST_F(RSAnimationGroupTest, RemoveAnimationTest, Level1)
 {
     int res = 1;
     auto animation = nullptr;
