@@ -37,6 +37,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+const Rect DEFAULT_RECT = {0, 0, 200, 200};
 const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 class RSUniRenderProcessorTest : public testing::Test {
@@ -639,12 +640,16 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_NE(src, nullptr);
     (*src) = RSUniRenderProcessorTest::defaultSelfDrawingRect;
- 
+
     EXPECT_EQ(params.GetTunnelLayerId(), 1);
+    params.SetBuffer(buffer, DEFAULT_RECT);
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
+    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+    result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
 /**

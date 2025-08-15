@@ -33,6 +33,7 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
@@ -491,7 +492,8 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
     bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
-        mainThread_->IsGpuDirtyEnable(nodeId) && config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
+        RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
+        config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
         defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
     }
@@ -3265,7 +3267,7 @@ ErrCode RSRenderServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vecto
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
-            connection->mainThread_->SetSelfDrawingGpuDirtyPidList(pidList);
+            RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList);
         }
     );
     return ERR_OK;

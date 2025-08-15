@@ -306,8 +306,11 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         // When the size of the damage region equals that of the buffer, use dirty region from gpu crc
         bool isUseSelfDrawingDirtyRegion = buffer != nullptr && buffer->GetSurfaceBufferWidth() == bufferDamage.w &&
             buffer->GetSurfaceBufferHeight() == bufferDamage.h && bufferDamage.x == 0 && bufferDamage.y == 0;
+        bool isSelfDrawingDirtyRegionValid = false;
         if (isUseSelfDrawingDirtyRegion) {
-            RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
+            isSelfDrawingDirtyRegionValid = RSGpuDirtyCollector::DirtyRegionCompute(buffer, selfDrawingDirtyRect);
+        }
+        if (isSelfDrawingDirtyRegionValid) {
             RS_OPTIONAL_TRACE_NAME_FMT("selfDrawingDirtyRect:[%d, %d, %d, %d]",
                 selfDrawingDirtyRect.x, selfDrawingDirtyRect.y, selfDrawingDirtyRect.w, selfDrawingDirtyRect.h);
         }
