@@ -656,14 +656,13 @@ void RSImage::SetCompressData(
     const std::shared_ptr<Drawing::Data> data, const uint32_t id, const int width, const int height)
 {
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    compressData_ = data;
-    if (compressData_) {
-        srcRect_.SetAll(0.0, 0.0, width, height);
-        GenUniqueId(image_ ? image_->GetUniqueID() : id);
-        image_ = nullptr;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        compressData_ = data;
+        if (compressData_) {
+            srcRect_.SetAll(0.0, 0.0, width, height);
+            GenUniqueId(image_ ? image_->GetUniqueID() : id);
+            image_ = nullptr;
+        }
     }
 #endif
 }
