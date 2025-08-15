@@ -91,7 +91,7 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
         src->top > static_cast<uint32_t>(buffer->GetHeight()) || src->bottom < 0 || src->bottom >
         static_cast<uint32_t>(buffer->GetHeight()) || src->left >= src->right || src->top >= src->bottom;
     if (isDirtyRegionInvalid) {
-    RS_OPTIONAL_TRACE_NAME_FMT("invalidBufferSelfDrawingData:[%d, %d, %d, %d]",
+        RS_OPTIONAL_TRACE_NAME_FMT("invalidBufferSelfDrawingData:[%d, %d, %d, %d]",
             src->left, src->top, src->right, src->bottom);
         return false;
     }

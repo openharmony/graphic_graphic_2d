@@ -63,6 +63,10 @@ public:
 private:
     RSGpuDirtyCollector() = default;
     ~RSGpuDirtyCollector() = default;
+    RSGpuDirtyCollector(const RSGpuDirtyCollector&) = delete;
+    RSGpuDirtyCollector(const RSGpuDirtyCollector&&) = delete;
+    RSGpuDirtyCollector& operator=(const RSGpuDirtyCollector&) = delete;
+    RSGpuDirtyCollector& operator=(const RSGpuDirtyCollector&&) = delete;
 
     std::unordered_set<int32_t> selfDrawingGpuDirtyPidList_;
     std::mutex pidListMutex_;
