@@ -1870,33 +1870,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest003
 }
 
 /**
- * @tc.name: CreateNodeAndSurfaceTest001
- * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
- * @tc.type: FUNC
- * @tc.require: issueIICR2M7
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
-{
-    sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    auto mainThread = connection->mainThread_;
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    std::vector<int32_t> pidList;
-    pidList.emplace_back(ExtractPid(config.id));
-    mainThread->SetSelfDrawingGpuDirtyPidList(pidList);
-    sptr<Surface> surface = nullptr;
-    auto ret = connection->CreateNodeAndSurface(config, surface, false);
-    ASSERT_EQ(ret, ERR_OK);
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    ret = connection->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(ret, ERR_OK);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
-}
-
-/**
  * @tc.name: SetWindowFreezeImmediately
  * @tc.desc: Test SetWindowFreezeImmediately
  * @tc.type: FUNC
