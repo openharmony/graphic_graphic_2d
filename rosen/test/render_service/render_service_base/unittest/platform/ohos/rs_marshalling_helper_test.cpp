@@ -599,7 +599,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 
     Parcel parcel2;
-    std::shared_ptr<ParticleNoiseFields> marshVal = std::maked_shared<ParticleNoiseFields>();
+    std::shared_ptr<ParticleNoiseFields> marshVal = std::make_shared<ParticleNoiseFields>();
     Vector2f fieldSize;
     Vector2f fieldCenter;
     auto field = std::make_shared<ParticleNoiseFields>(1, ShapeType::RECT,
