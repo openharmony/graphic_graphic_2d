@@ -31,11 +31,12 @@ ani_status AniColorFilter::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "createBlendModeColorFilter", "L@ohos/graphics/common2D/common2D/Color;"
-            "L@ohos/graphics/drawing/drawing/BlendMode;:L@ohos/graphics/drawing/drawing/ColorFilter;",
+        ani_native_function { "createBlendModeColorFilter", "C{@ohos/graphics/common2D/common2D/Color}"
+            "C{@ohos/graphics/drawing/drawing/BlendMode}:C{@ohos/graphics/drawing/drawing/ColorFilter}",
             reinterpret_cast<void*>(CreateBlendModeColorFilter) },
-        ani_native_function { "createBlendModeColorFilter", "Lstd/core/Object;"
-            "L@ohos/graphics/drawing/drawing/BlendMode;:L@ohos/graphics/drawing/drawing/ColorFilter;",
+        ani_native_function { "createBlendModeColorFilter",
+            "X{C{@ohos/graphics/common2D/common2D/Color}C{std.core.Int}}"
+            "C{@ohos/graphics/drawing/drawing/BlendMode}:C{@ohos/graphics/drawing/drawing/ColorFilter}",
             reinterpret_cast<void*>(CreateBlendModeColorFilterWithNumber) },
     };
 
