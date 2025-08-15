@@ -368,7 +368,8 @@ VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
     return distributor->SetNativeDVSyncSwitch(dvsyncSwitch, this);
 }
 
-VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
+VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+    bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList)
 {
     sptr<VSyncDistributor> distributor;
     {
@@ -385,7 +386,7 @@ VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount, bool delayEna
             return VSYNC_ERROR_NULLPTR;
         }
     }
-    return distributor->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+    return distributor->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
 }
 
 void VSyncConnection::RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback)
@@ -1631,14 +1632,16 @@ VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSy
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
+VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+    bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList)
 {
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
     dvsync_->SetUiDvsyncConfig(bufferCount);
 #endif
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().SetUiDVSyncConfig(bufferCount, bool delayEnable, bool nativeDelayEnable);
+    DVSync::Instance().SetUiDVSyncConfig(bufferCount, bool compositeSceneEnable,
+        bool nativeDelayEnable, rsDvsyncAnimationList);
 #endif
     return VSYNC_ERROR_OK;
 }

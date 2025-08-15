@@ -414,7 +414,23 @@ HWTEST_F(VsyncReceiverTest, SetUiDvsyncSwitchTest, Function | MediumTest| Level3
 HWTEST_F(VsyncReceiverTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
 {
     vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_OK);
+    std::vector<std::string> rsDvsyncAnimationList {};
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: SetUiDvsyncConfigTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetUiDvsyncConfig
+ */
+HWTEST_F(VsyncReceiverTest, SetUiDvsyncConfigTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->AddConnection(conn);
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 

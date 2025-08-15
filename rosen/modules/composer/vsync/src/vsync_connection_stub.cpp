@@ -24,6 +24,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     const std::string RSS_PROCESS_NAME = "resource_schedule_service";
+    constexpr unsigned int DVSYNC_ANIMATION_LIST_SIZE_MAX = 20;
 }
 
 int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
@@ -103,9 +104,9 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read bufferCount failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
-            bool delayEnable{false};
-            if (!data.ReadBool(delayEnable)) {
-                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read delayEnable failed");
+            bool compositeSceneEnable{false};
+            if (!data.ReadBool(compositeSceneEnable)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read compositeSceneEnable failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
             bool nativeDelayEnable{false};
@@ -113,7 +114,17 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read nativeDelayEnable failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;
             }
-            int32_t ret = SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+            std::vector<std::string> rsDvsyncAnimationList = {};
+            if (!data.ReadStringVector(&rsDvsyncAnimationList)) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Read rsDvsyncAnimationList failed");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            if (rsDvsyncAnimationList.size() > DVSYNC_ANIMATION_LIST_SIZE_MAX) {
+                VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG DvsyncAnimationList size exceeds maximum allowed size");
+                return VSYNC_ERROR_INVALID_ARGUMENTS;
+            }
+            int32_t ret = SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
+                nativeDelayEnable, rsDvsyncAnimationList);
             if (!reply.WriteInt32(ret)) {
                 VLOGE("IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG Write ret failed");
                 return VSYNC_ERROR_INVALID_ARGUMENTS;

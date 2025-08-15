@@ -502,7 +502,24 @@ HWTEST_F(VSyncDistributorTest, GetRsDelayTime001, Function | MediumTest| Level3)
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
 {
     uint32_t bufferCount = 2;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false), VSYNC_ERROR_OK);
+    std::vector<std::string> rsDvsyncAnimationList {};
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false,
+        rsDvsyncAnimationList), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncConfig002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig002, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 2;
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false,
+        rsDvsyncAnimationList), VSYNC_ERROR_OK);
 }
 
 /*
@@ -545,7 +562,8 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest001, Function | MediumTest| 
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_OK);
+    std::vector<std::string> rsDvsyncAnimationList {};
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_OK);
 }
 
 /*
@@ -560,7 +578,8 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Lev
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest001, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_NULLPTR);
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_NULLPTR);
 }
 
 /*

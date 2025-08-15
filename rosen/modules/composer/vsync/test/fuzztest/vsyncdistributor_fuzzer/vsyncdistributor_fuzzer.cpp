@@ -99,8 +99,9 @@ namespace OHOS {
         bool isSystemAnimateScene = GetData<bool>();
         uint64_t id = GetData<uint64_t>();
         bool isRender = GetData<bool>();
-        bool delayEnable = GetData<bool>();
+        bool compositeSceneEnable = GetData<bool>();
         bool nativeDelayEnable = GetData<bool>();
+        std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -110,7 +111,8 @@ namespace OHOS {
         vsyncDistributor->SetVSyncRate(rate, conn);
         vsyncDistributor->SetNativeDVSyncSwitch(nativeDVSyncSwitch, conn);
         vsyncDistributor->SetUiDvsyncSwitch(uiDVSyncSwitch, conn);
-        vsyncDistributor->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+        vsyncDistributor->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
+            nativeDelayEnable, rsDvsyncAnimationList);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
         vsyncDistributor->AddConnection(conn, windowNodeId);
         vsyncDistributor->RemoveConnection(conn);

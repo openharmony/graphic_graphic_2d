@@ -247,11 +247,13 @@ public:
      * @brief set Dvsync dynamic configuration.
      *
      * @param bufferCount is buffer count.
-     * @param delayEnable is dvsync delay enable.
+     * @param compositeSceneEnable is dvsync compositeScene enable.
      * @param nativeDelayEnable is dvsync native delay enable.
+     * @param rsDvsyncAnimationList is a animation vector which will enable force rs dvsync feature.
      * @return Returns an error code.
      */
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable = false,
+        bool nativeDelayEnable = false, const std::vector<std::string> &rsDvsyncAnimationList = {});
 
     /**
      * @brief request next vsync signal.
