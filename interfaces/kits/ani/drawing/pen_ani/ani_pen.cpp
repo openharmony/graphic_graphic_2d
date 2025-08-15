@@ -32,9 +32,9 @@ ani_status AniPen::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Pen;:V",
             reinterpret_cast<void*>(ConstructorWithPen) },
-        ani_native_function { "getAlpha", ":D", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "getAlpha", ":I", reinterpret_cast<void*>(GetAlpha) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "D:V", reinterpret_cast<void*>(SetAlpha) },
+        ani_native_function { "setAlpha", "I:V", reinterpret_cast<void*>(SetAlpha) },
         ani_native_function { "setBlendMode", "L@ohos/graphics/drawing/drawing/BlendMode;:V",
             reinterpret_cast<void*>(SetBlendMode) },
         ani_native_function { "setColorFilter", "L@ohos/graphics/drawing/drawing/ColorFilter;:V",
@@ -76,7 +76,7 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
     }
 }
 
-ani_double AniPen::GetAlpha(ani_env* env, ani_object obj)
+ani_int AniPen::GetAlpha(ani_env* env, ani_object obj)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
     if (aniPen == nullptr) {
@@ -98,7 +98,7 @@ void AniPen::Reset(ani_env* env, ani_object obj)
     aniPen->GetPen().Reset();
 }
 
-void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_double alpha)
+void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
     if (aniPen == nullptr) {

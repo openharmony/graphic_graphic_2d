@@ -39,9 +39,9 @@ ani_status AniColorFilter::AniInit(ani_env *env)
             reinterpret_cast<void*>(CreateBlendModeColorFilterWithNumber) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_COLORFILTER_NAME);
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_COLORFILTER_NAME, ret);
         return ANI_NOT_FOUND;
     }
 

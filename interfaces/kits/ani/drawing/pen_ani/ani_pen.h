@@ -32,8 +32,8 @@ public:
     static void Constructor(ani_env* env, ani_object obj);
     static void ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenObj);
 
-    static ani_double GetAlpha(ani_env* env, ani_object obj);
-    static void SetAlpha(ani_env* env, ani_object obj, ani_double alpha);
+    static ani_int GetAlpha(ani_env* env, ani_object obj);
+    static void SetAlpha(ani_env* env, ani_object obj, ani_int alpha);
     static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);
     static void Reset(ani_env*  env, ani_object obj);

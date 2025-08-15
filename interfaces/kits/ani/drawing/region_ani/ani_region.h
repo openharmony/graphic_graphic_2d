@@ -31,8 +31,8 @@ public:
 
     static void Constructor(ani_env* env, ani_object obj);
     static void ConstructorWithRegion(ani_env* env, ani_object obj, ani_object aniRegionObj);
-    static void ConstructorWithRect(ani_env* env, ani_object obj, ani_double left, ani_double top, ani_double right,
-        ani_double bottom);
+    static void ConstructorWithRect(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+        ani_int bottom);
 
     Region& GetRegion();
 

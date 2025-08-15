@@ -50,7 +50,7 @@ namespace drawing {
    * Enumerate blending modes for colors.
    * Blend is a operation that use 4 components(red, green, blue, alpha) to generate
    * a new color from two colors(source, destination).
-   * @enum { number }
+   * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
    * @since 11
    */
@@ -234,7 +234,7 @@ namespace drawing {
 
   /**
    * Enumerates of operations when two paths are combined.
-   * @enum { number }
+   * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
    * @since 12
    */
@@ -277,7 +277,7 @@ namespace drawing {
 
   /**
    * Enumerates storage filter mode.
-   * @enum { number }
+   * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
    * @since 12
    */
@@ -378,16 +378,16 @@ namespace drawing {
     /**
      * If rectangle is stroked, use pen to stroke width describes the line thickness,
      * else use brush to fill the rectangle.
-     * @param { number } left - Indicates the left position of the rectangle.
-     * @param { number } top - Indicates the top position of the rectangle.
-     * @param { number } right - Indicates the right position of the rectangle.
-     * @param { number } bottom - Indicates the bottom position of the rectangle.
+     * @param { double } left - Indicates the left position of the rectangle.
+     * @param { double } top - Indicates the top position of the rectangle.
+     * @param { double } right - Indicates the right position of the rectangle.
+     * @param { double } bottom - Indicates the bottom position of the rectangle.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native drawRect(left: number, top: number, right: number, bottom: number): void;
+    native drawRect(left: double, top: double, right: double, bottom: double): void;
 
     /**
      * Draws the specified source image onto the canvas,
@@ -405,19 +405,19 @@ namespace drawing {
     /**
      * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
      * @param { image.PixelMap } pixelmap - The pixelmap to draw using the mesh.
-     * @param { number } meshWidth - The number of columns in the mesh.
-     * @param { number } meshHeight - The number of rows in the mesh.
-     * @param { Array<number> } vertices - Array of vertices, specifying where the mesh should be drawn.
-     * @param { number } vertOffset - Number of vert elements to skip before drawing.
-     * @param { Array<number> } colors - Array of colors, specifying a color at each vertex.
-     * @param { number } colorOffset - Number of color elements to skip before drawing.
+     * @param { int } meshWidth - The number of columns in the mesh.
+     * @param { int } meshHeight - The number of rows in the mesh.
+     * @param { Array<double> } vertices - Array of vertices, specifying where the mesh should be drawn.
+     * @param { int } vertOffset - Number of vert elements to skip before drawing.
+     * @param { Array<int> } colors - Array of colors, specifying a color at each vertex.
+     * @param { int } colorOffset - Number of color elements to skip before drawing.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: number, meshHeight: number,
-      vertices: Array<number>, vertOffset: number, colors: Array<number>, colorOffset: number): void;
+    native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: int, meshHeight: int,
+      vertices: Array<double>, vertOffset: int, colors: Array<int>, colorOffset: int): void;
 
     /**
      * Set pen to a canvas.
@@ -455,23 +455,23 @@ namespace drawing {
 
     /**
      * Saves the current canvas status (canvas matrix) to the top of the stack.
-     * @returns { number } Return the number of saved states.
+     * @returns { int } Return the number of saved states.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native save(): number;
+    native save(): int;
 
     /**
      * Saves matrix and clip, and allocates a bitmap for subsequent drawing.
      * Calling restore discards changes to matrix and clip, and draws the bitmap.
      * @param { common2D.Rect | null} rect - Optional layer size. The default value is null.
      * @param { Brush | null} brush - Optional brush effect used to draw the layer. The default value is null.
-     * @returns { number } Return the number of saved states before this call.
+     * @returns { long } Return the number of saved states before this call.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: Mandatory parameters are left unspecified.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native saveLayer(rect?: common2D.Rect | null, brush?: Brush | null): number;
+    native saveLayer(rect?: common2D.Rect | null, brush?: Brush | null): long;
 
     /**
      * Restores the canvas status (canvas matrix) saved on the top of the stack.
@@ -482,29 +482,29 @@ namespace drawing {
 
     /**
      * Gets the number of the canvas status (canvas matrix) saved in the stack.
-     * @returns { number } Return represent depth of save state stack.
+     * @returns { int } Return represent depth of save state stack.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native getSaveCount(): number;
+    native getSaveCount(): int;
 
     /**
      * Rotates by degrees, positive degrees rotates clockwise.
-     * @param { number } degrees - Indicates the amount to rotate, in degrees.
-     * @param { number } sx - Indicates the x-axis value of the point to rotate about.
-     * @param { number } sy - Indicates the y-axis value of the point to rotate about.
+     * @param { double } degrees - Indicates the amount to rotate, in degrees.
+     * @param { double } sx - Indicates the x-axis value of the point to rotate about.
+     * @param { double } sy - Indicates the y-axis value of the point to rotate about.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native rotate(degrees: number, sx: number, sy: number) : void;
+    native rotate(degrees: double, sx: double, sy: double) : void;
   }
 
   /**
    * Enumerates clip operations.
    *
-   * @enum { number }
+   * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
    * @since 12
    */
@@ -561,7 +561,7 @@ namespace drawing {
 
     /**
      * Makes a color filter with the give n ARGB color of hexadecimal format and blend mode.
-     * @param { common2D.Color | number } color - Number must be ARGB color of hexadecimal format.
+     * @param { common2D.Color | int } color - Number must be ARGB color of hexadecimal format.
      * @param { BlendMode } mode - BlendMode.
      * @returns { ColorFilter } Colorfilter object.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
@@ -570,7 +570,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 18
      */
-    static native createBlendModeColorFilter(color: common2D.Color | number, mode: BlendMode): ColorFilter;
+    static native createBlendModeColorFilter(color: common2D.Color | int, mode: BlendMode): ColorFilter;
   }
 
   /**
@@ -618,21 +618,21 @@ namespace drawing {
     /**
     * Replaces alpha, leaving RGB
     *
-    * @param { number } alpha - Alpha channel of color. The range of alpha must be [0, 255].
+    * @param { int } alpha - Alpha channel of color. The range of alpha must be [0, 255].
     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
     * @syscap SystemCapability.Graphics.Drawing
     * @since 11
     */
-    native setAlpha(alpha: number): void;
+    native setAlpha(alpha: int): void;
 
     /**
      * Obtains the alpha of a pen. The alpha is used by the pen to outline a shape.
-     * @returns { number } Returns a 8-bit variable that describes the alpha.
+     * @returns { int } Returns a 8-bit variable that describes the alpha.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native getAlpha(): number;
+    native getAlpha(): int;
 
     /**
     * Sets ColorFilter to pen
@@ -708,21 +708,21 @@ namespace drawing {
 
     /**
      * Replaces alpha, leaving RGB
-     * @param { number } alpha - Alpha channel of color. The range of alpha must be [0, 255].
+     * @param { int } alpha - Alpha channel of color. The range of alpha must be [0, 255].
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    native setAlpha(alpha: number): void;
+    native setAlpha(alpha: int): void;
 
     /**
      * Obtains the alpha of a brush. The alpha is used by the brush to fill in a shape.
-     * @returns { number } Returns a 8-bit variable that describes the alpha.
+     * @returns { int } Returns a 8-bit variable that describes the alpha.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native getAlpha(): number;
+    native getAlpha(): int;
 
     /**
      * Sets ColorFilter to brush
@@ -849,21 +849,21 @@ namespace drawing {
 
     /**
      * Sets text size in points. Has no effect if textSize is not greater than or equal to zero.
-     * @param { number } textSize - Typographic height of text. The height of the text must be greater than 0.
+     * @param { double } textSize - Typographic height of text. The height of the text must be greater than 0.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    native setSize(textSize: number): void;
+    native setSize(textSize: double): void;
 
     /**
      * Obtains the text size.
-     * @returns { number } Text size.
+     * @returns { double } Text size.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    native getSize(): number;
+    native getSize(): double;
 
     /**
      * Sets Typeface to font.
@@ -901,43 +901,43 @@ namespace drawing {
   export interface FontMetrics {
     /**
      * Maximum range above the glyph bounding box.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    top: number;
+    top: double;
 
     /**
      * Distance Retained Above Baseline.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    ascent: number;
+    ascent: double;
 
     /**
      * The distance that remains below the baseline.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    descent: number;
+    descent: double;
 
     /**
      * Maximum range below the glyph bounding box.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    bottom: number;
+    bottom: double;
 
     /**
      * Line Spacing.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    leading: number;
+    leading: double;
   }
 
   /**
@@ -949,43 +949,43 @@ namespace drawing {
   export class FontMetricsInner implements FontMetrics {
     /**
      * Maximum range above the glyph bounding box.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    top: number = 0;
+    top: double = 0;
 
     /**
      * Distance Retained Above Baseline.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    ascent: number = 0;
+    ascent: double = 0;
 
     /**
      * The distance that remains below the baseline.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    descent: number = 0;
+    descent: double = 0;
 
     /**
      * Maximum range below the glyph bounding box.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    bottom: number = 0;
+    bottom: double = 0;
 
     /**
      * Line Spacing.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    leading: number = 0;
+    leading: double = 0;
   }
 
   /**
@@ -1015,10 +1015,10 @@ namespace drawing {
      * these entries are always drawn at their original size if the destination is large enough. If the destination
      * side is too small to hold the fixed entries, all fixed entries are scaled down to fit.
      * The grid entries not on even columns and rows are scaled to fit the remaining space, if any.
-     * @param { Array<number> } xDivs - X coordinate of values used to divide the image.
-     * @param { Array<number> } yDivs - Y coordinate of values used to divide the image.
-     * @param { number } fXCount - Number of x coordinates. Must be >= 0.
-     * @param { number } fYCount - Number of y coordinates. Must be >= 0.
+     * @param { Array<int> } xDivs - X coordinate of values used to divide the image.
+     * @param { Array<int> } yDivs - Y coordinate of values used to divide the image.
+     * @param { int } fXCount - Number of x coordinates. Must be >= 0.
+     * @param { int } fYCount - Number of y coordinates. Must be >= 0.
      * @param { common2D.Rect | null } fBounds - Source bounds to draw from. The default value is null.
      * @param { Array<RectType> | null } fRectTypes - Array of fill types. The default value is null.
      * @param { Array<common2D.Color> | null } fColors - Array of colors. The default value is null.
@@ -1029,8 +1029,8 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    static native createImageLattice(xDivs: Array<number>, yDivs: Array<number>, fXCount: number, fYCount: number,
-      fBounds?: common2D.Rect | null, fRectTypes?: Array<RectType> | null, fColors?: Array<common2D.Color> | Array<number> | null): Lattice;
+    static native createImageLattice(xDivs: Array<int>, yDivs: Array<int>, fXCount: int, fYCount: int,
+      fBounds?: common2D.Rect | null, fRectTypes?: Array<RectType> | null, fColors?: Array<common2D.Color> | Array<int> | null): Lattice;
   }
 
   /**
@@ -1084,27 +1084,27 @@ namespace drawing {
 
     /**
      * Sets this matrix as an identity matrix and translates it by a given distance (dx, dy).
-     * @param { number } dx - Horizontal distance to translate. A positive number indicates a translation towards the positive direction of the X axis,
+     * @param { double } dx - Horizontal distance to translate. A positive number indicates a translation towards the positive direction of the X axis,
      * and a negative number indicates a translation towards the negative direction of the X axis. The value is a floating point number.
-     * @param { number } dy - Vertical distance to translate. A positive number indicates a translation towards the positive direction of the Y axis,
+     * @param { double } dy - Vertical distance to translate. A positive number indicates a translation towards the positive direction of the Y axis,
      * and a negative number indicates a translation towards the negative direction of the Y axis. The value is a floating point number.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native setTranslation(dx: number, dy: number): void;
+    native setTranslation(dx: double, dy: double): void;
 
     /**
      * Obtains the value of a given index in this matrix. The index ranges from 0 to 8.
-     * @param { number } index - Index. The value is an integer ranging from 0 to 8.
-     * @returns { number } Returns value corresponding to index.Returns 0 if out of range.
+     * @param { int } index - Index. The value is an integer ranging from 0 to 8.
+     * @returns { double } Returns value corresponding to index.Returns 0 if out of range.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native getValue(index: number): number;
+    native getValue(index: int): double;
   }
 
   /**
@@ -1182,19 +1182,19 @@ namespace drawing {
      * Draws an arc to this path using angle arc mode. This mode first defines a rectangle and takes its inscribed ellipse.
      * Then, it specifies a start angle and a sweep angle. The arc is the portion of the ellipse's circumference defined by the start angle
      * and the sweep angle. By default, a line segment from the last point of the path to the start point of the arc is also added.
-     * @param { number } x1 - X coordinate of the upper left corner of the rectangle. The value is a floating point number.
-     * @param { number } y1 - Y coordinate of the upper left corner of the rectangle. The value is a floating point number.
-     * @param { number } x2 - X coordinate of the lower right corner of the rectangle. The value is a floating point number.
-     * @param { number } y2 - Y coordinate of the lower right corner of the rectangle. The value is a floating point number.
-     * @param { number } startDeg - Start angle. The start direction (0°) of the angle is the positive direction of the X axis.
-     * @param { number } sweepDeg - Angle to sweep, in degrees. A positive number indicates a clockwise sweep,
+     * @param { double } x1 - X coordinate of the upper left corner of the rectangle. The value is a floating point number.
+     * @param { double } y1 - Y coordinate of the upper left corner of the rectangle. The value is a floating point number.
+     * @param { double } x2 - X coordinate of the lower right corner of the rectangle. The value is a floating point number.
+     * @param { double } y2 - Y coordinate of the lower right corner of the rectangle. The value is a floating point number.
+     * @param { double } startDeg - Start angle. The start direction (0°) of the angle is the positive direction of the X axis.
+     * @param { double } sweepDeg - Angle to sweep, in degrees. A positive number indicates a clockwise sweep,
      * and a negative value indicates a counterclockwise swipe. The actual swipe degree is the modulo operation result of the input parameter by 360.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    native arcTo(x1: number, y1: number, x2: number, y2: number, startDeg: number, sweepDeg: number): void;
+    native arcTo(x1: double, y1: double, x2: double, y2: double, startDeg: double, sweepDeg: double): void;
 
     /**
      * Resets the path data.
@@ -1229,7 +1229,7 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
-    constructor(left: number, top: number, right: number, bottom: number) {
+    constructor(left: int, top: int, right: int, bottom: int) {
       this.constructorNative(left, top, right, bottom);
       this.registerCleaner(this.nativeObj);
     };
@@ -1253,15 +1253,15 @@ namespace drawing {
 
     /**
      * Creates a region with a rectangle.
-     * @param { number } left - Indicates the left edge of the rectangle.
-     * @param { number } top - Indicates the top edge of the rectangle.
-     * @param { number } right - Indicates the right edge of the rectangle.
-     * @param { number } bottom - Indicates the bottom edge of the rectangle.
+     * @param { int } left - Indicates the left edge of the rectangle.
+     * @param { int } top - Indicates the top edge of the rectangle.
+     * @param { int } right - Indicates the right edge of the rectangle.
+     * @param { int } bottom - Indicates the bottom edge of the rectangle.
      * @syscap SystemCapability.Graphics.Drawing
      * @crossplatform
      * @since 20
      */
-    native constructorNative(left: number, top: number, right: number, bottom: number): void;
+    native constructorNative(left: int, top: int, right: int, bottom: int): void;
   }
 
   /**
@@ -1285,7 +1285,7 @@ namespace drawing {
       this.registerCleaner(this.nativeObj);
     };
 
-    constructor(rect: common2D.Rect, xRadii: number, yRadii: number) {
+    constructor(rect: common2D.Rect, xRadii: double, yRadii: double) {
       this.constructorNative(rect, xRadii, yRadii);
       this.registerCleaner(this.nativeObj);
     };
@@ -1302,14 +1302,14 @@ namespace drawing {
     /**
      * A constructor used to create a RoundRect object. A rounded rectangle is created when both xRadii and yRadii are greater than 0. Otherwise, only a rectangle is created.
      * @param { common2D.Rect } rect - Rectangle that encloses the rounded rectangle to create.
-     * @param { number } xRadii - Radius of the rounded corner on the X axis. The value is a floating point number. A negative number is invalid.
-     * @param { number } yRadii - Radius of the rounded corner on the Y axis. The value is a floating point number. A negative number is invalid.
+     * @param { double } xRadii - Radius of the rounded corner on the X axis. The value is a floating point number. A negative number is invalid.
+     * @param { double } yRadii - Radius of the rounded corner on the Y axis. The value is a floating point number. A negative number is invalid.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructorNative(rect: common2D.Rect, xRadii: number, yRadii: number): void;
+    native constructorNative(rect: common2D.Rect, xRadii: double, yRadii: double): void;
   }
 
   /**
@@ -1345,7 +1345,7 @@ namespace drawing {
   /**
    * Enumerate rect types. Optional setting per rectangular grid entry to make it transparent,
    * or to fill the grid entry with a color. only used in Lattice.
-   * @enum { number }
+   * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
    * @since 12
    */
@@ -1374,7 +1374,7 @@ namespace drawing {
 
    /**
    * Enumerates of operations when two regions are combined.
-   * @enum { number }
+   * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
    * @since 12
    */
