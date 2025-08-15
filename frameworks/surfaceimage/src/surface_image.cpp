@@ -538,16 +538,11 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
     return ret;
 }
 
-SurfaceError SurfaceImage::SetDropBufferMode(bool enableDrop)
+SurfaceError SurfaceImage::SetDropBufferSwitch(bool isOpen)
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    BLOGI("SetDropBufferMode switch: %{public}d", enableDrop);
-    SurfaceError ret = ConsumerSurface::SetDropBufferMode(enableDrop);
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGE("ConsumerSurface::SetDropBufferMode ret: %{public}d", ret);
-        return ret;
-    }
-    dropFrameMode_ = enableDrop;
+    BLOGI("SetDropBufferSwitch switch: %{public}d", isOpen);
+    dropFrameMode_ = isOpen;
     return SURFACE_ERROR_OK;
 }
 
