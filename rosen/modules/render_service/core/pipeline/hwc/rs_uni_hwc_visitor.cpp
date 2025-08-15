@@ -152,7 +152,8 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
     auto surfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
     ((surfaceParams != nullptr && surfaceParams->GetIsHwcEnabledBySolidLayer()) || apiCompatibleVersion >= API18 ||
         node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ||
-        node.GetName().find("RenderFitSurface") != std::string::npos) ?
+        node.GetName().find("RenderFitSurface") != std::string::npos ||
+        node.GetFrameGravityNewVersionEnabled()) ?
         RSUniHwcComputeUtil::DealWithNodeGravity(node, totalMatrix) :
         RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, uniRenderVisitor_.curScreenNode_->GetScreenInfo());
     RSUniHwcComputeUtil::DealWithScalingMode(node, totalMatrix);
