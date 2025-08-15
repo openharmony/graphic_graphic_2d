@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef ROSEN_RENDER_SERVICE_BASE_ISCREEN_SWITCHING_NOTIFY_CALLBACK_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_ISCREEN_SWITCHING_NOTIFY_CALLBACK_PROXY_H
+
+#include <iremote_proxy.h>
+
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
+#include "ipc_callbacks/screen_switching_notify_callback.h"
+#include "ipc_callbacks/screen_switching_notify_callback_ipc_interface_code.h"
+
+namespace OHOS {
+namespace Rosen {
+class RSScreenSwitchingNotifyCallbackProxy : public IRemoteProxy<RSIScreenSwitchingNotifyCallback> {
+public:
+    explicit RSScreenSwitchingNotifyCallbackProxy(const sptr<IRemoteObject>& impl);
+    virtual ~RSScreenSwitchingNotifyCallbackProxy() noexcept = default;
+
+    void OnScreenSwitchingNotify(bool status) override;
+
+private:
+    static inline BrokerDelegator<RSScreenSwitchingNotifyCallbackProxy> delegator_;
+};
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // ROSEN_RENDER_SERVICE_BASE_ISCREEN_SWITCHING_NOTIFY_CALLBACK_PROXY_H

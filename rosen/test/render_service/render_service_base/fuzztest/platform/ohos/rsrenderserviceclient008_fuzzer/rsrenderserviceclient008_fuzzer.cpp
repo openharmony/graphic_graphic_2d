@@ -271,6 +271,7 @@ bool DoSetCastScreenEnableSkipWindow002()
     int32_t refreshRateMode = GetData<int32_t>();
     sptr<Surface> surface;
     ScreenChangeCallback cb;
+    ScreenSwitchingNotifyCallback switchingCb;
     uint32_t modeId = GetData<uint32_t>();
     int32_t sceneId = GetData<int32_t>();
     int32_t rate = GetData<int32_t>();
@@ -279,6 +280,7 @@ bool DoSetCastScreenEnableSkipWindow002()
     client->SetVirtualScreenSurface(id, surface);
     client->RemoveVirtualScreen(id);
     client->SetScreenChangeCallback(cb);
+    client->SetScreenSwitchingNotifyCallback(switchingCb);
     client->SetScreenActiveMode(id, modeId);
     client->SetScreenRefreshRate(id, sceneId, rate);
     client->SetRefreshRateMode(refreshRateMode);

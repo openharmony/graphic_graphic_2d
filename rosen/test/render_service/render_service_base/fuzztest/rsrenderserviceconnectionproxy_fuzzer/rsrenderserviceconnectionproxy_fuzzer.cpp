@@ -126,6 +126,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<RSISurfaceCaptureCallback> callback1;
     sptr<RSIBufferAvailableCallback> callback2;
     sptr<RSIBufferClearCallback> callback3;
+    sptr<RSIScreenSwitchingNotifyCallback> switchingNotifyCallback;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> rsIOcclusionChangeCallback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
@@ -143,6 +144,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::vector<std::string> packageList;
     OnRemoteDiedCallback onRemoteDiedCallback = []() {};
     callback = iface_cast<RSIScreenChangeCallback>(remoteObject);
+    switchingNotifyCallback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
@@ -205,6 +207,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetVirtualScreenSurface(id1, surface);
     rsRenderServiceConnectionProxy.RemoveVirtualScreen(id1);
     rsRenderServiceConnectionProxy.SetScreenChangeCallback(callback);
+    rsRenderServiceConnectionProxy.SetScreenSwitchingNotifyCallback(switchingNotifyCallback);
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
     rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect, retureCode);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);

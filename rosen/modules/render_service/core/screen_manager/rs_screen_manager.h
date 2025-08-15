@@ -28,6 +28,7 @@
 
 #include <hdi_backend.h>
 #include <ipc_callbacks/screen_change_callback.h>
+#include <ipc_callbacks/screen_switching_notify_callback.h>
 #include <refbase.h>
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 #include <sensor_agent.h>
@@ -74,6 +75,7 @@ public:
 
     virtual int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) = 0;
     virtual void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) = 0;
+    virtual int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback) = 0;
     virtual void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) = 0;
 
     virtual void DisplayDump(std::string& dumpString) = 0;
@@ -256,6 +258,7 @@ public:
 
     int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) override;
     void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) override;
+    int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback) override;
     void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) override;
 
     void DisplayDump(std::string& dumpString) override;
@@ -446,6 +449,7 @@ private:
     void TriggerCallbacks(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT) const;
     void NotifyScreenNodeChange(ScreenId id, bool connected) const;
+    void NotifySwitchingCallback(bool status) const;
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
@@ -466,6 +470,8 @@ private:
 
     mutable std::shared_mutex screenChangeCallbackMutex_;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
+    mutable std::shared_mutex screenSwitchingNotifyCallbackMutex_;
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback_;
     std::shared_ptr<RSIScreenNodeListener> screenNodeListener_;
 
     std::atomic<bool> mipiCheckInFirstHotPlugEvent_ = false;

@@ -867,6 +867,30 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
 }
 
 /*
+* Function: SetScreenSwitchingNotifyCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenSwitchingNotifyCallback
+*                  2. wait 2s and check the ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenSwitchingNotifyCallback, Function | SmallTest | Level2)
+{
+    bool status = false;
+    auto callback = [&status](bool switchingStatus) {
+        status = switchingStatus;
+    };
+    int32_t callbackStatus = rsInterfaces->SetScreenSwitchingNotifyCallback(callback);
+    EXPECT_EQ(callbackStatus, StatusCode::SUCCESS);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
+    if (status == StatusCode::SUCCESS) {
+        EXPECT_NE(status, false);
+    } else {
+        EXPECT_EQ(status, false);
+    }
+}
+
+/*
 * Function: GetScreenSupportedColorGamuts
 * Type: Function
 * Rank: Important(2)
