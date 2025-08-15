@@ -156,7 +156,7 @@ public:
 
     void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) override;
 
-    void SetEarlyZFlag(bool flag) override;
+    void SetEarlyZEnabled(bool flag) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

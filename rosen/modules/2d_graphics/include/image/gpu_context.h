@@ -344,7 +344,7 @@ public:
 
     void FlushGpuMemoryInWaitQueue();
 
-    void SetEarlyZFlag(bool flag);
+    void SetEarlyZEnabled(bool flag);
     
     void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions);
 
