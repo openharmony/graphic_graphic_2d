@@ -139,12 +139,12 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Image01)
 }
 
 /*
- * @tc.name: DrawRgeion01
+ * @tc.name: DrawRegion01
  * @tc.desc: test self draw rect changed, set draw region
  * @tc.type: FUNC
  * @tc.require: issueICLUP1
  */
-GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, DrawRgeion01)
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, DrawRegion01)
 {
     std::shared_ptr<RectF> drawRegion = std::make_shared<RectF>(-100, 400, 700, 700);
     Drawing::PointF point1 = { 0, 450 };
