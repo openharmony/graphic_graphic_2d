@@ -832,6 +832,21 @@ HWTEST_F(RSHardwareThreadTest, DumpEventQueue001, TestSize.Level1)
     hardwareThread.DumpEventQueue();
 }
 
+#ifdef RES_SCHED_ENABLE
+/**
+ * @tc.name: SubScribeSystemAbility001
+ * @tc.desc: Test RSHardwareThreadTest.SubScribeSystemAbility
+ * @tc.type: FUNC
+ * @tc.require: issuesICS6JF
+ */
+HWTEST_F(RSHardwareThreadTest, SubScribeSystemAbility001, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.SubScribeSystemAbility();
+    ASSERT_NE(hardwareThread.saStatusChangeListener_, nullptr);
+}
+#endif
+
 #ifdef RS_ENABLE_VK
 /*
  * Function: ComputeTargetColorGamut
