@@ -24,6 +24,7 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_memory_track.h"
@@ -6469,13 +6470,14 @@ HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
     std::vector<int32_t> pidList;
     pidList.emplace_back(ExtractPid(config.id));
     RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList);
-    auto ret = connection->CreateNodeAndSurface(config, false);
-    ASSERT_NE(ret, nullptr);
+    sptr<Surface> surface = nullptr;
+    auto ret = connection->CreateNodeAndSurface(config, surface, false);
+    ASSERT_EQ(ret, ERR_OK);
 
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    ret = connection->CreateNodeAndSurface(config, false);
-    ASSERT_NE(ret, nullptr);
+    ret = connection->CreateNodeAndSurface(config, surface, false);
+    ASSERT_EQ(ret, ERR_OK);
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
 }
 } // namespace OHOS::Rosen

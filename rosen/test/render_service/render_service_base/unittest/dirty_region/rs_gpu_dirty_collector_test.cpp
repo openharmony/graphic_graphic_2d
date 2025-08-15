@@ -245,7 +245,7 @@ HWTEST_F(RSGpuDirtyCollectorTest, SetGpuDirtyEnabled002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueICSVLG
  */
-HWTEST_F(RSMainThreadTest, SetSelfDrawingGpuDirtyPidList, TestSize.Level1)
+HWTEST_F(RSGpuDirtyCollectorTest, SetSelfDrawingGpuDirtyPidList, TestSize.Level1)
 {
     NodeId id = 0;
     RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList({ExtractPid(id)});
@@ -258,7 +258,7 @@ HWTEST_F(RSMainThreadTest, SetSelfDrawingGpuDirtyPidList, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueICSVLG
  */
-HWTEST_F(RSMainThreadTest, IsGpuDirtyEnable001, TestSize.Level1)
+HWTEST_F(RSGpuDirtyCollectorTest, IsGpuDirtyEnable001, TestSize.Level1)
 {
     NodeId id = 0;
     RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList({});
