@@ -42,6 +42,9 @@
 #if USE_APS_IGAMESERVICE_FUNC
 #include "vulkan_slice_report.h"
 #endif
+#ifdef VULKAN_USE_APS_PLUGIN
+#include "iaps_plugin.h"
+#endif
 
 #define SWAPCHAIN_SURFACE_NAME "VK_LAYER_OHOS_surface"
 using namespace OHOS;
@@ -1246,6 +1249,9 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
 #if USE_APS_IGAMESERVICE_FUNC
     OHOS::GameService::VulkanSliceReport::GetInstance().ReportVulkanRender();
 #endif
+#ifdef VULKAN_USE_APS_PLUGIN
+    OHOS::Rosen::IApsPlugin::Instance()->PowerCtrllofSwapbuffer();
+#endif
     return ret;
 }
 
@@ -1570,6 +1576,9 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     }
 #if USE_APS_IGAMESERVICE_FUNC
     OHOS::GameService::VulkanSliceReport::GetInstance().InitVulkanReport();
+#endif
+#ifdef VULKAN_USE_APS_PLUGIN
+    OHOS::Rosen::IApsPlugin::Instance()->InitGameFpsCtrol();
 #endif
 
     LayerData* instanceLayerData = GetLayerDataPtr(GetDispatchKey(*pInstance));
