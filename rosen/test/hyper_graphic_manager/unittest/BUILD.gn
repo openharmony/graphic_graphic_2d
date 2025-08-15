@@ -66,17 +66,6 @@ ohos_unittest("hyper_graphic_manager_test") {
 ohos_unittest("frame_rate_manager_test") {
   module_out_path = "graphic_2d/graphic_2d/hyper_graphic_manager"
 
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    if (!use_libfuzzer) {
-      cflags += [ "-flto=thin" ]
-    }
-    if (enhanced_opt) {
-      if (!use_libfuzzer) {
-        cflags += [ "-fwhole-program-vtables" ]
-      }
-    }
-  }
-
   sources = [
     "hgm_frame_rate_manager_test.cpp",
     "hgm_soft_vsync_manager_test.cpp",
