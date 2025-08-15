@@ -77,7 +77,7 @@ static void SetThreadHighPriority()
     sched_setscheduler(0, SCHED_FIFO, &param);
 }
 
-static bool isUseFfrt()
+static bool IsUseFfrt()
 {
     bool result = false;
     std::ifstream procFile("/proc/self/cmdline");
@@ -132,7 +132,7 @@ void VSyncGenerator::DeleteInstance() noexcept
     instance_ = nullptr;
 }
 
-VSyncGenerator::VSyncGenerator() : VSyncGenerator(isUseFfrt()) {}
+VSyncGenerator::VSyncGenerator() : VSyncGenerator(IsUseFfrt()) {}
 
 VSyncGenerator::VSyncGenerator(bool isUseFfrt) : isUseFfrt_(isUseFfrt)
 {
@@ -144,11 +144,9 @@ VSyncGenerator::VSyncGenerator(bool isUseFfrt) : isUseFfrt_(isUseFfrt)
             ffrt_this_task_set_legacy_mode(true);
             this->ThreadLoop();
         });
-
         if (ffrtThread_ != nullptr) {
             return;
         }
-
         isUseFfrt_ = false;
     }
 
