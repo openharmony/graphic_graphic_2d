@@ -602,7 +602,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
     std::shared_ptr<ParticleNoiseFields> marshVal = std::make_shared<ParticleNoiseFields>();
     Vector2f fieldSize;
     Vector2f fieldCenter;
-    auto field = std::make_shared<ParticleNoiseFields>(1, ShapeType::RECT,
+    auto field = std::make_shared<ParticleNoiseField>(1, ShapeType::RECT,
         fieldSize, fieldCenter, 1, 1.0f, 1.0f, 1.0f);
     marshVal->AddField(field);
     RSMarshallingHelper::Marshalling(parcel2, marshVal);
