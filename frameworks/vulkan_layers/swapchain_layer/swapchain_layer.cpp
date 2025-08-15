@@ -1250,7 +1250,7 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     OHOS::GameService::VulkanSliceReport::GetInstance().ReportVulkanRender();
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
-    OHOS::Rosen::IApsPlugin::Instance()->PowerCtrllofSwapbuffer();
+    OHOS::Rosen::IApsPlugin::Instance()->PowerControlOfSwapbuffer();
 #endif
     return ret;
 }
@@ -1578,7 +1578,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     OHOS::GameService::VulkanSliceReport::GetInstance().InitVulkanReport();
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
-    OHOS::Rosen::IApsPlugin::Instance()->InitGameFpsCtrol();
+    OHOS::Rosen::IApsPlugin::Instance()->InitGameFpsCtrl();
 #endif
 
     LayerData* instanceLayerData = GetLayerDataPtr(GetDispatchKey(*pInstance));
