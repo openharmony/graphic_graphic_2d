@@ -69,6 +69,8 @@ public:
         const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
     bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, HDIV::CM_ColorSpaceInfo& colorSpaceInfo);
     static GraphicColorGamut ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name);
+    static GraphicColorGamut PrimariesToGraphicGamut(HDI::Display::Graphic::Common::V1_0::CM_ColorPrimaries primary);
+    static GraphicColorGamut SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2);
 
 private:
     RSColorSpaceConvert();

@@ -317,8 +317,34 @@ HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut001, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetColorGamut(3); // 3 is DISPLAY_P3
-    EXPECT_EQ(rsCanvasRenderNode.GetColorGamut(), 3); // 3 is DISPLAY_P3
+    rsCanvasRenderNode.SetColorGamut(ColorManager::ColorSpaceName::DISPLAY_P3); // 3 is DISPLAY_P3
+    EXPECT_EQ(rsCanvasRenderNode.GetColorGamut(), ColorManager::ColorSpaceName::DISPLAY_P3); // 3 is DISPLAY_P3
+}
+
+/**
+ * @tc.name: SetColorGamut002
+ * @tc.desc: test true of SetColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueICGKPE
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut002, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->context_ = context;
+    EXPECT_TRUE(node->GetContext().lock() != nullptr);
+    NodeId nodeId = 2;
+    SurfaceNodeCommandHelper::Create(*context, surfaceNodeId);
+    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceNode>(surfaceNodeId);
+    node->IsInstanceRootNodeId_ = surfaceNodeId;
+    node->isOnTheTree_ = true;
+    node->SetColorGamut(ColorManager::ColorSpaceName::DISPLAY_P3);
+    EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->SetColorGamut(ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB);
+    EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->SetColorGamut(ColorManager::ColorSpaceName::SRGB);
+    EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
@@ -345,14 +371,14 @@ HWTEST_F(RSCanvasRenderNodeTest, ModifyWindowWideColorGamutNum001, TestSize.Leve
     node->instanceRootNodeId_ = surfaceNodeId;
     
     node->ModifyWindowWideColorGamutNum(true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ASSERT_EQ(surfaceNode->p3Num_, 1);
+    ASSERT_EQ(surfaceNode->gamutCollector_.p3Num_, 1);
     node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ASSERT_EQ(surfaceNode->p3Num_, 0);
+    ASSERT_EQ(surfaceNode->gamutCollector_.p3Num_, 0);
 
     node->ModifyWindowWideColorGamutNum(true, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
-    ASSERT_EQ(surfaceNode->bt2020Num_, 1);
+    ASSERT_EQ(surfaceNode->gamutCollector_.bt2020Num_, 1);
     node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
-    ASSERT_EQ(surfaceNode->bt2020Num_, 0);
+    ASSERT_EQ(surfaceNode->gamutCollector_.bt2020Num_, 0);
 }
 
 /**

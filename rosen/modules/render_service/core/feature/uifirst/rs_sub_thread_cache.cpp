@@ -354,8 +354,9 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             RS_LOGD("InitCacheSurface colorType is FP16, take colorspace to sRGB");
         } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
-            colorSpace =
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+            colorSpace = (targetColorGamut_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) ?
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3) :
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC_2020);
         }
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             width, height, ExtractPid(nodeDrawable->nodeId_), format);

@@ -379,13 +379,14 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
         return;
     }
-    std::vector<ScreenColorGamut> mode;
+    std::vector<ScreenColorGamut> mode{};
     int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
     if (ret != SUCCESS) {
         RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
-        mode = std::vector<ScreenColorGamut>{GRAPHIC_COLOR_GAMUT_SRGB};
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    } else {
+        node.SelectBestGamut(mode);
     }
-    node.SelectBestGamut(mode);
 
     if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
