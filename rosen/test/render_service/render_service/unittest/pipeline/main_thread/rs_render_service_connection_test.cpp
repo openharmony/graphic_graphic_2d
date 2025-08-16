@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,12 +49,32 @@ void RSRenderServiceConnectionTest::TearDown() {}
  */
 HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic001, TestSize.Level1)
 {
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
     MemoryGraphic mem1;
-    renderService->GetMemoryGraphic(123, mem1);
+    rsRenderServiceConnection->GetMemoryGraphic(123, mem1);
     ASSERT_EQ(mem1.GetGpuMemorySize(), 0);
     MemoryGraphic mem2;
-    renderService->GetMemoryGraphic(0, mem2);
+    rsRenderServiceConnection->GetMemoryGraphic(0, mem2);
     ASSERT_EQ(mem2.GetGpuMemorySize(), 0);
+}
+
+/**
+ * @tc.name: GetMemoryGraphic002
+ * @tc.desc: GetMemoryGraphic
+ * @tc.type: FUNC
+ * @tc.require:issueI590LM
+ */
+HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    std::vector<MemoryGraphic> memoryGraphics;
+    rsRenderServiceConnection->GetMemoryGraphics(memoryGraphics);
+    ASSERT_EQ(memoryGraphics.size(), 0);
 }
 } // namespace OHOS::Rosen

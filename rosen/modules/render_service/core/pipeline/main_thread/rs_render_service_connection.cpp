@@ -1728,23 +1728,9 @@ ErrCode RSRenderServiceConnection::GetMemoryGraphics(std::vector<MemoryGraphic>&
         return ERR_INVALID_VALUE;
     }
     
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    std::vector<pid_t> pids;
-    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
-        auto pid = ExtractPid(node->GetId());
-        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
-            pids.emplace_back(pid);
-        }
-    });
-    renderThread_.PostSyncTask(
-        [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphics, &pids] {
-            sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr) {
-                return;
-            }
-            MemoryManager::CountMemory(pids,
-                connection->renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), memoryGraphics);
-        });
+    mainThread_->ScheduleTask([mainThread = mainThread_, &memoryGraphics]() {
+            mainThread->CountMem(memoryGraphics);
+        }).wait();
     return ERR_OK;
 }
 
