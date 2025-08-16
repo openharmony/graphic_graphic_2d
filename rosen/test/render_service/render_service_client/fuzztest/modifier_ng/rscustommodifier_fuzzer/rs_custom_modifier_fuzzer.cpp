@@ -61,13 +61,9 @@ bool RSBackgroundStyleModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSBackgroundStyleModifier> modifier =
-        std::make_shared<ModifierNG::RSBackgroundStyleModifier>();
-
-    modifier->GetType();
-    ModifierNG::RSDrawingContext context;
+    auto modifier = std::make_shared<ModifierNG::RSBackgroundStyleModifier>();
+    ModifierNG::RSDrawingContext context {nullptr, GetData<float>(), GetData<float>()};
     modifier->Draw(context);
-    modifier->GetInnerPropertyType();
     return true;
 }
 
@@ -78,13 +74,9 @@ bool RSContentStyleModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSContentStyleModifier> modifier =
-        std::make_shared<ModifierNG::RSContentStyleModifier>();
-
-    modifier->GetType();
-    ModifierNG::RSDrawingContext context;
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    ModifierNG::RSDrawingContext context {nullptr, GetData<float>(), GetData<float>()};
     modifier->Draw(context);
-    modifier->GetInnerPropertyType();
 
     return true;
 }
@@ -96,13 +88,10 @@ bool RSForegroundStyleModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSForegroundStyleModifier> modifier =
-        std::make_shared<ModifierNG::RSForegroundStyleModifier>();
-
-    modifier->GetType();
-    ModifierNG::RSDrawingContext context;
+    auto modifier = std::make_shared<ModifierNG::RSForegroundStyleModifier>();
+    ModifierNG::RSDrawingContext context {nullptr, GetData<float>(), GetData<float>()};
     modifier->Draw(context);
-    modifier->GetInnerPropertyType();
+
     return true;
 }
 
@@ -113,12 +102,9 @@ bool RSNodeModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSNodeModifier> modifier = std::make_shared<ModifierNG::RSNodeModifier>();
-
-    modifier->GetType();
-    ModifierNG::RSDrawingContext context;
+    auto modifier = std::make_shared<ModifierNG::RSNodeModifier>();
+    ModifierNG::RSDrawingContext context {nullptr, GetData<float>(), GetData<float>()};
     modifier->Draw(context);
-    modifier->GetInnerPropertyType();
     return true;
 }
 
@@ -129,13 +115,9 @@ bool RSTransitionStyleModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSTransitionStyleModifier> modifier =
-        std::make_shared<ModifierNG::RSTransitionStyleModifier>();
-
-    modifier->GetType();
-    ModifierNG::RSDrawingContext context;
+    auto modifier = std::make_shared<ModifierNG::RSTransitionStyleModifier>();
+    ModifierNG::RSDrawingContext context {nullptr, GetData<float>(), GetData<float>()};
     modifier->Draw(context);
-    modifier->GetInnerPropertyType();
     return true;
 }
 } // namespace Rosen

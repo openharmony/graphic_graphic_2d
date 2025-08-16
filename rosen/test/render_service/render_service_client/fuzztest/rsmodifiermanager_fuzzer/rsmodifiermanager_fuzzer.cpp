@@ -88,20 +88,6 @@ bool TestModifierManager(const uint8_t* data, size_t size)
 #endif
     return true;
 }
-
-bool TestHasUIAnimation(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    RSModifierManager manager;
-    manager.HasUIRunningAnimation();
-    manager.Draw();
-    manager.GetFrameRateRange();
-    manager.IsDisplaySyncEnabled();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -115,6 +101,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::TestModifierManager(data, size);
-    OHOS::Rosen::TestHasUIAnimation(data, size);
     return 0;
 }

@@ -29,6 +29,19 @@ const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 constexpr size_t STRING_LEN = 10;
+
+bool Init(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    return true;
+}
 } // namespace
 
 /*
@@ -53,15 +66,6 @@ T GetData()
 
 bool DoSurfacenodecommand(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSContext context;
@@ -104,15 +108,6 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
 
 bool DoCreateWithConfig(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSContext context;
@@ -125,15 +120,6 @@ bool DoCreateWithConfig(const uint8_t* data, size_t size)
 
 bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     NodeId id = GetData<NodeId>();
     RSContext context;
@@ -157,6 +143,10 @@ bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoSurfacenodecommand(data, size);
     OHOS::Rosen::DoCreateWithConfig(data, size);

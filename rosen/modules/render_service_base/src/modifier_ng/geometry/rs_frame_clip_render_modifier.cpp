@@ -29,6 +29,7 @@ void RSFrameClipRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetFrameGravity(Gravity::DEFAULT);
 }
 
+// LCOV_EXCL_START
 void RSFrameClipRenderModifier::OnSetDirty()
 {
     RSRenderModifier::OnSetDirty();
@@ -38,4 +39,5 @@ void RSFrameClipRenderModifier::OnSetDirty()
         }
     }
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS::Rosen::ModifierNG

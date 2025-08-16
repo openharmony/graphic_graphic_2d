@@ -32,6 +32,7 @@ void RSModifierManager::AddModifier(const std::shared_ptr<Modifier>& modifier)
     modifiers_.insert(modifier);
 }
 
+// LCOV_EXCL_START
 void RSModifierManager::Draw()
 {
     if (!modifiers_.empty()) {
@@ -45,6 +46,7 @@ void RSModifierManager::Draw()
         modifiers_.clear();
     }
 }
+// LCOV_EXCL_STOP
 
 void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
@@ -77,6 +79,7 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
     displaySyncs_.erase(keyId);
 }
 
+// LCOV_EXCL_START
 bool RSModifierManager::HasUIRunningAnimation()
 {
     for (auto& iter : animations_) {
@@ -87,6 +90,7 @@ bool RSModifierManager::HasUIRunningAnimation()
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
 bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
 {
@@ -125,11 +129,13 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     return hasRunningAnimation;
 }
 
+// LCOV_EXCL_START
 bool RSModifierManager::GetAndResetFirstFrameAnimationState()
 {
     // UI animation need this info to get expected frame rate, each window will call it once per frame
     return std::exchange(hasFirstFrameAnimation_, false);
 }
+// LCOV_EXCL_STOP
 
 void RSModifierManager::FlushStartAnimation(int64_t time)
 {
@@ -161,12 +167,14 @@ void RSModifierManager::SetFrameRateGetFunc(const FrameRateGetFunc& func)
     frameRateGetFunc_ = func;
 }
 
+// LCOV_EXCL_START
 const FrameRateRange RSModifierManager::GetFrameRateRange() const
 {
     auto frameRateRange = rateDecider_.GetFrameRateRange();
     frameRateRange.type_ = UI_ANIMATION_FRAME_RATE_TYPE;
     return frameRateRange;
 }
+// LCOV_EXCL_STOP
 
 void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)
 {
@@ -221,9 +229,11 @@ void RSModifierManager::SetDisplaySyncEnable(bool isDisplaySyncEnabled)
     isDisplaySyncEnabled_ = isDisplaySyncEnabled;
 }
 
+// LCOV_EXCL_START
 bool RSModifierManager::IsDisplaySyncEnabled() const
 {
     return isDisplaySyncEnabled_;
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

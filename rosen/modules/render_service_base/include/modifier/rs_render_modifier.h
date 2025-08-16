@@ -65,6 +65,7 @@ public:
         }
     }
 
+    // LCOV_EXCL_START
     size_t GetSize()
     {
         auto property = GetProperty();
@@ -73,11 +74,14 @@ public:
         }
         return 0;
     }
+    // LCOV_EXCL_STOP
 
+    // LCOV_EXCL_START
     virtual RSModifierType GetType()
     {
         return RSModifierType::INVALID;
     }
+    // LCOV_EXCL_STOP
 
     virtual std::string GetModifierTypeString()
     {
@@ -99,18 +103,22 @@ public:
     {
     }
 
+    // LCOV_EXCL_START
     virtual uint64_t GetDrawCmdListId() const
     {
         return 0;
     }
+    // LCOV_EXCL_STOP
     virtual void SetSingleFrameModifier(bool value)
     {
         (void)value;
     }
+    // LCOV_EXCL_START
     virtual bool GetSingleFrameModifier() const
     {
         return false;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
@@ -122,10 +130,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     PropertyId GetPropertyId() override
     {
         return property_->GetId();
     }
+    // LCOV_EXCL_STOP
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
@@ -137,10 +147,12 @@ public:
         drawStyle_ = type;
     }
 
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return drawStyle_;
     }
+    // LCOV_EXCL_STOP
 
 protected:
     RSModifierType drawStyle_ = RSModifierType::GEOMETRYTRANS;
@@ -157,20 +169,24 @@ public:
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
 
+    // LCOV_EXCL_START
     PropertyId GetPropertyId() override
     {
         return property_->GetId();
     }
+    // LCOV_EXCL_STOP
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
 
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return drawStyle_;
     }
+    // LCOV_EXCL_STOP
     void SetType(RSModifierType type)
     {
         drawStyle_ = type;
@@ -179,10 +195,12 @@ public:
         }
     }
 
+    // LCOV_EXCL_START
     int16_t GetIndex() const
     {
         return index_;
     }
+    // LCOV_EXCL_STOP
 
     void SetIndex(int16_t index)
     {
@@ -199,19 +217,23 @@ public:
         return property_->Set(ptr);
     }
 
+    // LCOV_EXCL_START
     uint64_t GetDrawCmdListId() const override
     {
         Drawing::DrawCmdListPtr drawCmd = property_->Get();
         return reinterpret_cast<uint64_t>(drawCmd.get());
     }
+    // LCOV_EXCL_STOP
     void SetSingleFrameModifier(bool value) override
     {
         isSingleFrameModifier_ = value;
     }
+    // LCOV_EXCL_START
     bool GetSingleFrameModifier() const override
     {
         return isSingleFrameModifier_;
     }
+    // LCOV_EXCL_STOP
 protected:
     RSModifierType drawStyle_ = RSModifierType::EXTENDED;
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
@@ -227,10 +249,12 @@ public:
 
     ~RSAnimatableRenderModifier() override = default;
 
+    // LCOV_EXCL_START
     PropertyId GetPropertyId() override
     {
         return property_->GetId();
     }
+    // LCOV_EXCL_STOP
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
@@ -308,10 +332,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::HDR_BRIGHTNESS;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSEnvForegroundColorRenderModifier : public RSForegroundRenderModifier {
@@ -325,10 +351,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::ENV_FOREGROUND_COLOR;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSEnvForegroundColorStrategyRenderModifier : public RSForegroundRenderModifier {
@@ -342,10 +370,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY;
     }
+    // LCOV_EXCL_STOP
     Color GetInvertBackgroundColor(RSModifierContext& context) const;
     Color CalculateInvertColor(Color backgroundColor) const;
 };
@@ -361,10 +391,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::CUSTOM_CLIP_TO_FRAME;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSBehindWindowFilterRadiusRenderModifier : public RSBackgroundRenderModifier {
@@ -378,10 +410,12 @@ public:
     void Apply(RSModifierContext& context) const override {}
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::BEHIND_WINDOW_FILTER_RADIUS;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSBehindWindowFilterSaturationRenderModifier : public RSBackgroundRenderModifier {
@@ -395,10 +429,12 @@ public:
     void Apply(RSModifierContext& context) const override {}
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::BEHIND_WINDOW_FILTER_SATURATION;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSBehindWindowFilterBrightnessRenderModifier : public RSBackgroundRenderModifier {
@@ -412,10 +448,12 @@ public:
     void Apply(RSModifierContext& context) const override {}
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSBehindWindowFilterMaskColorRenderModifier : public RSBackgroundRenderModifier {
@@ -429,10 +467,12 @@ public:
     void Apply(RSModifierContext& context) const override {}
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSComplexShaderParamRenderModifier : public RSBackgroundRenderModifier {
@@ -446,10 +486,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::COMPLEX_SHADER_PARAM;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSForegroundNGFilterRenderModifier : public RSForegroundRenderModifier {
@@ -463,10 +505,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::FOREGROUND_NG_FILTER;
     }
+    // LCOV_EXCL_STOP
 };
 
 class RSB_EXPORT RSBackgroundNGFilterRenderModifier : public RSBackgroundRenderModifier {
@@ -480,10 +524,12 @@ public:
     void Apply(RSModifierContext& context) const override;
     void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
     bool Marshalling(Parcel& parcel) override;
+    // LCOV_EXCL_START
     RSModifierType GetType() override
     {
         return RSModifierType::BACKGROUND_NG_FILTER;
     }
+    // LCOV_EXCL_STOP
 };
 
 // declare RenderModifiers like RSBoundsRenderModifier

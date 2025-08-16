@@ -30,6 +30,39 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+
+/*
+ * get a string from g_data
+ */
+std::string GetStringFromData(int strlen)
+{
+    if (strlen <= 0) {
+        return "fuzz";
+    }
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
+}
+
+inline RSSurfaceNodeConfig GetRSSurfaceNodeConfigFromData()
+{
+    constexpr int len = 10;
+    std::string SurfaceNodeName = GetStringFromData(len);
+    bool isTextureExportNode = GetData<bool>();
+    SurfaceId surfaceId = GetData<uint64_t>();
+    bool isSync = GetData<bool>();
+    SurfaceWindowType  surfaceWindowType = static_cast<SurfaceWindowType>(GetData<uint8_t>());
+    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode, surfaceId, isSync, surfaceWindowType, nullptr };
+    return config;
+}
 } // namespace
 
 /*
@@ -66,7 +99,7 @@ bool Init(const uint8_t* data, size_t size)
 
 bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
 {
-    RSSurfaceNodeConfig surfaceNodeConfig;
+    RSSurfaceNodeConfig surfaceNodeConfig = GetRSSurfaceNodeConfigFromData();
     std::shared_ptr<RSBaseNode> child = RSCanvasNode::Create();
     int index = GetData<int>();
     GraphicColorGamut colorSpace = GetData<GraphicColorGamut>();
