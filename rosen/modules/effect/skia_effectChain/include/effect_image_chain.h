@@ -23,6 +23,7 @@
 #include "include/draw/surface.h"
 #include "include/effect/image_filter.h"
 #include "pixel_map.h"
+#include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
 enum class DrawingError {
@@ -77,6 +78,7 @@ private:
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
 
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::shared_ptr<Drawing::Canvas> canvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
 };
