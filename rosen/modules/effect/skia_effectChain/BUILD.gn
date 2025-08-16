@@ -28,6 +28,10 @@ config("effect_SKeffectChian_config") {
     "-Wno-c++11-narrowing",
   ]
 
+  if (target_os == "ios") {
+    cflags += ["-Wno-ignored-qualifiers"]
+  }
+
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
