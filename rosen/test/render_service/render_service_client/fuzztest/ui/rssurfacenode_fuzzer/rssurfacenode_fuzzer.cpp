@@ -90,7 +90,8 @@ inline RSSurfaceNodeConfig GetRSSurfaceNodeConfigFromData()
     SurfaceId surfaceId = GetData<uint64_t>();
     bool isSync = GetData<bool>();
     SurfaceWindowType  surfaceWindowType = static_cast<SurfaceWindowType>(GetData<uint8_t>());
-    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode, surfaceId, isSync, surfaceWindowType, nullptr };
+    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode,
+        surfaceId, isSync, surfaceWindowType, nullptr };
     return config;
 }
 

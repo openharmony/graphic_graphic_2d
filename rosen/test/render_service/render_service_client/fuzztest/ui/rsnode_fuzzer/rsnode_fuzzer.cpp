@@ -32,6 +32,26 @@ size_t g_size = 0;
 size_t g_pos;
 
 /*
+ * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
+ * tips: only support basic type
+ */
+template<class T>
+T GetData()
+{
+    T object {};
+    size_t objectSize = sizeof(object);
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    if (ret != EOK) {
+        return {};
+    }
+    g_pos += objectSize;
+    return object;
+}
+
+/*
  * get a string from g_data
  */
 std::string GetStringFromData(int strlen)
@@ -60,30 +80,11 @@ inline RSSurfaceNodeConfig GetRSSurfaceNodeConfigFromData()
     SurfaceId surfaceId = GetData<uint64_t>();
     bool isSync = GetData<bool>();
     SurfaceWindowType  surfaceWindowType = static_cast<SurfaceWindowType>(GetData<uint8_t>());
-    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode, surfaceId, isSync, surfaceWindowType, nullptr };
+    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode,
+        surfaceId, isSync, surfaceWindowType, nullptr };
     return config;
 }
 } // namespace
-
-/*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
-{
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
-}
 
 bool Init(const uint8_t* data, size_t size)
 {

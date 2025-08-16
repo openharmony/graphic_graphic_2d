@@ -50,7 +50,6 @@ T GetData()
 
 inline RSDisplayNodeConfig GetRSDisplayNodeConfigFromData()
 {
-
     uint64_t screenId = GetData<uint64_t>();
     bool isMirrored = GetData<bool>();
     NodeId mirrorNodeId = GetData<uint64_t>();
