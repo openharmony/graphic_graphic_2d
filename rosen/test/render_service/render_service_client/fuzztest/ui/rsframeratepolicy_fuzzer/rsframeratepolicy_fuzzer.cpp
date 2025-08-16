@@ -28,7 +28,7 @@ namespace Rosen {
 namespace {
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
-size_t g_pos;
+size_t g_pos = 0;
 constexpr size_t STR_LEN = 10;
 } // namespace
 
@@ -79,7 +79,6 @@ bool DoGetPreferredFps(const uint8_t* data, size_t size)
     // initialize
     DATA = data;
     g_size = size;
-    g_pos = 0;
 
     // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
@@ -126,7 +125,6 @@ bool DoGetExpectedFrameRate(const uint8_t* data, size_t size)
     // initialize
     DATA = data;
     g_size = size;
-    g_pos = 0;
 
     // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
@@ -155,7 +153,6 @@ bool DoHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
     // initialize
     DATA = data;
     g_size = size;
-    g_pos = 0;
 
     // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
