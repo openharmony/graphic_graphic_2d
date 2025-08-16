@@ -100,15 +100,15 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
         return false;
     }
     
-    ani_double alpha;
-    ani_double red;
-    ani_double green;
-    ani_double blue;
+    ani_int alpha;
+    ani_int red;
+    ani_int green;
+    ani_int blue;
 
-    if ((env->Object_GetPropertyByName_Double(obj, "alpha", &alpha) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "red", &red) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "green", &green) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "blue", &blue) != ANI_OK)) {
+    if ((env->Object_GetPropertyByName_Int(obj, "alpha", &alpha) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Int(obj, "red", &red) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Int(obj, "green", &green) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Int(obj, "blue", &blue) != ANI_OK)) {
         ROSEN_LOGE("GetColorQuadFromParam failed by Color class");
         return false;
     }
