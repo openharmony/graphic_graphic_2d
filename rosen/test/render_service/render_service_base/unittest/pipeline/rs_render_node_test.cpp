@@ -2442,19 +2442,21 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest001, TestSize.
     EXPECT_NE(childNode, nullptr);
     childNode->InitRenderParams();
     nodeTest->AddChild(childNode, 1);
+    nodeTest->GenerateFullChildrenList();
  
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
  
     childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
-    if (nodeTest->IsUifirstArkTsCardNode()) {
-        nodeTest->UpdateDrawingCacheInfoAfterChildren();
-        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-    } else {
-        nodeTest->UpdateDrawingCacheInfoAfterChildren();
-        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-    }
+    // ArkTsCard disable render group
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+
+    childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    nodeTest->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 }
 
 /**
@@ -2471,7 +2473,12 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest002, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-    nodeTest->SetStartingWindowFlag(true);
+
+    nodeTest->hasChildrenOutOfRect_ = true;
+    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+
+    nodeTest->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
