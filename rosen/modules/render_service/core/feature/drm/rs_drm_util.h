@@ -45,7 +45,7 @@ private:
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes);
     static bool IsDRMBelowFilter(const std::shared_ptr<RSScreenRenderNode>& curScreenNode,
         const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode,
-        const std::shared_ptr<RSSurfaceRenderNode>& drmNodes);
+        const std::shared_ptr<RSSurfaceRenderNode>& drmNode);
     static bool GetDarkColorMode(const std::shared_ptr<RSRenderNode>& node,
         const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode);
     inline static std::unordered_map<NodeId, // map<first level node ID, drm surface node>
