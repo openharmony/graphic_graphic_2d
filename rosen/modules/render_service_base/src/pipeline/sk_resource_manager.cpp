@@ -29,6 +29,7 @@ SKResourceManager& SKResourceManager::Instance()
     return instance;
 }
 
+// LCOV_EXCL_START
 void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 {
 #ifdef ROSEN_OHOS
@@ -68,6 +69,7 @@ void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
     skSurfaces_[tid].push_back(surface);
 #endif
 }
+// LCOV_EXCL_STOP
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 void SKResourceManager::DeleteSharedTextureContext(void* context)

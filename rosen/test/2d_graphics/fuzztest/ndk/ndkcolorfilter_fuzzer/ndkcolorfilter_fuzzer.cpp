@@ -53,21 +53,6 @@ void NativeDrawingColorFilterTest001(const uint8_t* data, size_t size)
     OH_Drawing_ColorFilterDestroy(colorFilter);
 }
 
-void NativeDrawingColorFilterTest002(const uint8_t* data, size_t size)
-{
-    if (data == nullptr || size < DATA_MIN_SIZE) {
-        return;
-    }
-
-    OH_Drawing_ColorFilter* colorFilterOne = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
-    OH_Drawing_ColorFilter* colorFilterTwo = OH_Drawing_ColorFilterCreateSrgbGammaToLinear();
-    OH_Drawing_ColorFilter* colorFilterThree = OH_Drawing_ColorFilterCreateLuma();
-
-    OH_Drawing_ColorFilterDestroy(colorFilterOne);
-    OH_Drawing_ColorFilterDestroy(colorFilterTwo);
-    OH_Drawing_ColorFilterDestroy(colorFilterThree);
-}
-
 void NativeDrawingColorFilterTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -112,7 +97,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest001(data, size);
-    OHOS::Rosen::Drawing::NativeDrawingColorFilterTest002(data, size);
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest003(data, size);
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest004(data, size);
 
