@@ -16,6 +16,8 @@
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
 #include <cstdint>
+#include "c/ffrt_ipc.h"
+#include "ffrt_inner.h"
 #include <fstream>
 #include <mutex>
 #include <scoped_bytrace.h>
@@ -28,8 +30,6 @@
 #include <vsync_sampler.h>
 #include <rs_trace.h>
 #include "scoped_trace_fmt.h"
-#include "ffrt_inner.h"
-#include "c/ffrt_ipc.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
 #include "if_system_ability_manager.h"
@@ -69,6 +69,9 @@ constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
 
+constexpr char CMDLINE_PATH[] = "/proc/self/cmdline";
+constexpr char RENDER_SERVICE_PATH[] = "/system/bin/render_service";
+
 static void SetThreadHighPriority()
 {
     setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
@@ -80,11 +83,11 @@ static void SetThreadHighPriority()
 static bool IsUseFfrt()
 {
     bool result = false;
-    std::ifstream procFile("/proc/self/cmdline");
+    std::ifstream procFile(CMDLINE_PATH);
     if (procFile.is_open()) {
         std::string processName;
         std::getline(procFile, processName);
-        std::string target = "/system/bin/render_service";
+        std::string target = RENDER_SERVICE_PATH;
         result = (processName.find(target) == 0);
     }
 
@@ -141,6 +144,7 @@ VSyncGenerator::VSyncGenerator(bool isUseFfrt) : isUseFfrt_(isUseFfrt)
     if (isUseFfrt_) {
         ffrtThread_ = std::make_shared<ffrt::thread>("VSyncGenerator", static_cast<int>(ffrt::qos_default), [this] {
             pthread_setname_np(pthread_self(), "VSyncGenerator");
+            VLOGI("VSyncGenerator uses ffrt.");
             ffrt_this_task_set_legacy_mode(true);
             this->ThreadLoop();
         });
