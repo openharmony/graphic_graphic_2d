@@ -4647,6 +4647,37 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
 HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM003, TestSize.Level2)
 {
     DRMParam::AddWhiteList("SCBBannerNotification");
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "SCBBannerNotification";
+    surfaceConfig.surfaceWindowType = SurfaceWindowType::SCB_BANNER_NOTIFICATION;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+
+    // let drm not intersect with blur
+    surfaceNode->filterRegion_ = RectT(2, 2, 3, 3);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
+    rsUniRenderVisitor->MarkBlurIntersectWithDRM(surfaceNode);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/*
+ * @tc.name: MarkBlurIntersectWithDRM004
+ * @tc.desc: Test MarkBlurIntersectWithDRM while appWindowNode isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM004, TestSize.Level2)
+{
+    DRMParam::AddWhiteList("SCBBannerNotification");
     auto rsContext = std::make_shared<RSContext>();
     NodeId id = 1;
     auto effectNode = std::make_shared<RSEffectRenderNode>(id, rsContext->weak_from_this());
@@ -4669,8 +4700,41 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM003, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
-    rsUniRenderVisitor->MarkBlurIntersectWithDRM(surfaceNode);
+    rsUniRenderVisitor->MarkBlurIntersectWithDRM(effectNode);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(21);
+}
+
+/*
+ * @tc.name: MarkBlurIntersectWithDRM005
+ * @tc.desc: Test MarkBlurIntersectWithDRM while appWindowNode isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM005, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId id = 1;
+    auto effectNode = std::make_shared<RSEffectRenderNode>(id, rsContext->weak_from_this());
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 22;
+    surfaceConfig.name = "SCBCloneWallpaper";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    effectNode->instanceRootNodeId_ = surfaceNode->GetId();
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+
+    // let drm intersect with blur
+    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
+    rsUniRenderVisitor->MarkBlurIntersectWithDRM(effectNode);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(22);
 }
 
 /*
