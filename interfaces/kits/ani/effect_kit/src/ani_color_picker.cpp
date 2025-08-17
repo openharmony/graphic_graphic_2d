@@ -141,20 +141,15 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
     unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0, PROPORTION_COLORS_NUM_LIMIT));
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
-    ani_class cls;
-    if (env->FindClass(ANI_CLASS_COLOR.c_str(), &cls) != ANI_OK) {
-        EFFECT_LOG_E("[GetTopProportionColors] Error3, failed to find Color class");
-        return AniEffectKitUtils::CreateAniUndefined(env);
-    }
 
     uint32_t arrLen = std::max(1u, static_cast<uint32_t>(colors.size()));
-    ani_array_ref arrayValue = nullptr;
+    ani_array arrayValue = nullptr;
     ani_ref nullRef = nullptr;
     if (env->GetUndefined(&nullRef) != ANI_OK) {
         EFFECT_LOG_E("GetUndefined failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    if (env->Array_New_Ref(cls, arrLen, nullRef, &arrayValue) != ANI_OK) {
+    if (env->Array_New(arrLen, nullRef, &arrayValue) != ANI_OK) {
         EFFECT_LOG_E("[GetTopProportionColors] Error4, failed to create array");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
@@ -166,7 +161,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
             colorValue = AniEffectKitUtils::CreateAniUndefined(env);
         }
         ani_ref colorRef = static_cast<ani_ref>(colorValue);
-        if (env->Array_Set_Ref(arrayValue, i, colorRef) != ANI_OK) {
+        if (env->Array_Set(arrayValue, i, colorRef) != ANI_OK) {
             EFFECT_LOG_E("[GetTopProportionColors] Error5, failed to set array element");
             return AniEffectKitUtils::CreateAniUndefined(env);
         }
