@@ -847,7 +847,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curCanvas_->PopDirtyRegion();
         }
         int processedNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
-        AcquireFenceTracker::SetContainerNodeNum(processedNodes);
         RS_TRACE_NAME_FMT("RSUniRenderThread::Render() the number of total ProcessedNodes: %d",
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
         const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
