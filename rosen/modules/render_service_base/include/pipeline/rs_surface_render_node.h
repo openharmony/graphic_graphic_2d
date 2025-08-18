@@ -1946,8 +1946,7 @@ private:
         GraphicColorGamut GetFirstLevelNodeGamut() const;
         static GraphicColorGamut MapGamutToStandard(GraphicColorGamut gamut);
         static GraphicColorGamut DetermineGamutStandard(int pt2020Num, int p3Num);
-
-    }
+    };
     GamutCollector gamutCollector_;
     // UIFirst
     int64_t uifirstStartTime_ = -1;
