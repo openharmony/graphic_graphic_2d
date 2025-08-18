@@ -348,8 +348,10 @@ void RSUniHwcComputeUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo&
         0 : std::floor((resDstRect.left_ - dstRectI.left_) * originSrcRect.width_ / dstRectI.width_);
     srcRect.top_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
         0 : std::floor((resDstRect.top_ - dstRectI.top_) * originSrcRect.height_ / dstRectI.height_);
-    srcRect.width_ = dstRectI.IsEmpty() ? 0 : std::ceil(originSrcRect.width_ * resDstRect.width_ / dstRectI.width_);
-    srcRect.height_ = dstRectI.IsEmpty() ? 0 : std::ceil(originSrcRect.height_ * resDstRect.height_ / dstRectI.height_);
+    srcRect.width_ = (dstRectI.IsEmpty() || dstRectI.width_ == 0) ?
+        0 : std::ceil(originSrcRect.width_ * resDstRect.width_ / dstRectI.width_);
+    srcRect.height_ = (dstRectI.IsEmpty() || dstRectI.height_ == 0) ?
+        0 : std::ceil(originSrcRect.height_ * resDstRect.height_ / dstRectI.height_);
     node.SetDstRect(dstRect);
     node.SetSrcRect(srcRect);
 }
@@ -579,7 +581,7 @@ void RSUniHwcComputeUtil::UpdateHwcEnableByProperty(const std::shared_ptr<RSSurf
     const HwcPropertyContext& ctx)
 {
     if (ctx.isNodeRenderByDrawingCache || ctx.isNodeRenderByChildNode) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug:: name:%s id:%" PRIu64 " disabled by drawing cache or need blend with "
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or need blend with "
             "childNode, isNodeRenderByDrawingCache[%d], isNodeRenderByChildNode[%d]",
             hwcNode->GetName().c_str(), hwcNode->GetId(), ctx.isNodeRenderByDrawingCache, ctx.isNodeRenderByChildNode);
         hwcNode->SetHardwareForcedDisabledState(true);
@@ -800,7 +802,6 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
         property.GetColorFilter() != nullptr;
 }
 
-#if defined(MODIFIER_NG)
 template<typename T>
 std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
     const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
@@ -810,30 +811,11 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifie
     }
     return nullptr;
 }
-#else
-template<typename T>
-std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
-    const RSRenderNode& node, RSModifierType type)
-{
-    auto& drawCmdModifiers = node.GetDrawCmdModifiers();
-    auto itr = drawCmdModifiers.find(type);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return nullptr;
-    }
-    const auto& modifier = itr->second.back();
-    return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty());
-}
-#endif
 
 bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
 {
-#if defined(MODIFIER_NG)
     auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(node,
         ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
-#else
-    auto property =
-        GetPropertyFromModifier<ForegroundColorStrategyType>(node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
-#endif
     return (property == nullptr) ? false : property->Get() != ForegroundColorStrategyType::INVALID;
 }
 

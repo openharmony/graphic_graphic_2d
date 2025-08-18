@@ -133,7 +133,7 @@ HWTEST_F(RSHwcRecorderTest, UpdatePositionZ_001, TestSize.Level1)
     ASSERT_FALSE(node.GetHwcRecorder().GetZorderChanged());
     node.GetMutableRenderProperties().SetPositionZ(2.0);
     node.GetHwcRecorder().UpdatePositionZ(node.GetRenderProperties().GetPositionZ());
-    ASSERT_TRUE(node.GetHwcRecorder(), GetZorderChanged());
+    ASSERT_TRUE(node.GetHwcRecorder().GetZorderChanged());
 }
 
 /**

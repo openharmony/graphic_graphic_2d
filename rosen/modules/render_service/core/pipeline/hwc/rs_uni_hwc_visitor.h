@@ -88,10 +88,11 @@ public:
 
     // DRM
     void UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hwcNode);
+    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix,
+        bool subTreeSkipped = false);
 
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
-    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix, bool subTreeSkipped = false);
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
@@ -109,6 +110,7 @@ private:
     void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
     void UpdateRenderResolutionDstRectForDrm(RSSurfaceRenderNode& node, RectI& dstRect);
+    bool IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

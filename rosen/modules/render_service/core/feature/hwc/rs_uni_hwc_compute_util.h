@@ -106,14 +106,9 @@ private:
     static void UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
     static void UpdateHwcEnableByProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
         const HwcPropertyContext& ctx);
-    #if defined(MODIFIER_NG)
     template<typename T>
     static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(
         const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType);
-#else
-    template<typename T>
-    static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type);
-#endif
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);

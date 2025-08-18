@@ -2659,53 +2659,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha005, TestSize.
 }
 
 /**
- * @tc.name: UpdateHwcNodeInfoForAppNode_001
- * @tc.desc: Test UpdateHwcNodeInfo with multi-params
- * @tc.type: FUNC
- * @tc.require: IAHFXD
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_001, TestSize.Level2)
-{
-    Drawing::Matrix absMatrix;
-    RectI absRect;
-    RectI rect = {0, 80, 1000, 1000};
-
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    rsSurfaceRenderNode->HwcSurfaceRecorder().SetIntersectWithPreviousFilter(true);
-    rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
-
-    NodeId surfaceNodeId = 1;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->needCollectHwcNode_ = true;
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-
-    rsSurfaceRenderNode->isFixRotationByUser_ = false;
-    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = true;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = false;
-    rsSurfaceRenderNode->dynamicHardwareEnable_ = false;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    rsSurfaceRenderNode->dynamicHardwareEnable_ = true;
-    surfaceNode->visibleRegion_.Reset();
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    surfaceNode->visibleRegion_.rects_.push_back(rect);
-    surfaceNode->visibleRegion_.bound_ = rect;
-    rsSurfaceRenderNode->isFixRotationByUser_ = true;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    rsSurfaceRenderNode->isFixRotationByUser_ = false;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect, true);
-}
-
-/**
  * @tc.name: GetHwcVisibleEffectDirty001
  * @tc.desc: Test GetHwcVisibleEffectDirty Function
  * @tc.type: FUNC
