@@ -72,6 +72,7 @@ ohos_source_set("text_ndk") {
   external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   if (platform_is_ohos) {
+    defines += [ "ENABLE_OHOS_ENHANCE" ]
     external_deps += [
       "c_utils:utils",
       "hilog:libhilog",
