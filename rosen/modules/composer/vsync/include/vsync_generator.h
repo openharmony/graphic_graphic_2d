@@ -212,7 +212,7 @@ private:
     std::condition_variable waitForTimeoutCon_;
     std::thread thread_;
     std::shared_ptr<ffrt::thread> ffrtThread_ = nullptr;
-    bool isUseFfrt_;
+    bool isUseFfrt_ = false;
     bool vsyncThreadRunning_;
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::VSyncGenerator> instance_;
