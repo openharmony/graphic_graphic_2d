@@ -52,17 +52,17 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-bool RSCanvasRenderNodeDrawable::QuickGetDrawState(RSPaintFilterCanvas* rscanvas)
+bool RSCanvasRenderNodeDrawable::QuickGetDrawState(RSPaintFilterCanvas& rscanvas)
 {
-    if (!rscanvas->IsQuickGetDrawState()) {
+    if (!rscanvas.IsQuickGetDrawState()) {
         return false;
     }
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
-    if (SkipCulledNodeOrEntireSubtree(*rscanvas, bounds)) {
+    if (SkipCulledNodeOrEntireSubtree(rscanvas, bounds)) {
         return true;
     }
 
-    RSParallelManager::Singleton().OnQuickDraw(this, *rscanvas);
+    RSParallelManager::Singleton().OnQuickDraw(this, rscanvas);
     return true;
 }
 #endif
@@ -116,7 +116,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (QuickGetDrawState(paintFilterCanvas)) {
+    if (QuickGetDrawState(*paintFilterCanvas)) {
         return;
     }
 #endif

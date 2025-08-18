@@ -462,7 +462,7 @@ void RSRenderNode::MergeSubtreeParallelNodes(RSRenderNode& childNode)
     subtreeParallelNodes_.insert(childSubtreeParallelNodes.begin(), childSubtreeParallelNodes.end());
 }
 
-std::unordered_set<NodeId>& RSRenderNode::GetSubtreeParallelNodes()
+const std::unordered_set<NodeId>& RSRenderNode::GetSubtreeParallelNodes()
 {
     return subtreeParallelNodes_;
 }

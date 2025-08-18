@@ -34,7 +34,7 @@ protected:
     explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 private:
 #ifdef SUBTREE_PARALLEL_ENABLE
-    bool QuickGetDrawState(RSPaintFilterCanvas* rscanvas);
+    bool QuickGetDrawState(RSPaintFilterCanvas& rscanvas);
 #endif
     bool IsUiRangeCaptureEndNode(Drawing::Canvas& canvas);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
