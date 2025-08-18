@@ -544,15 +544,37 @@ void RSDrawingFilter::DrawKawaseEffect(Drawing::Canvas& canvas, const std::share
     RS_OPTIONAL_TRACE_NAME("ApplyKawaseBlur " + std::to_string(tmpFilter->GetRadius()));
 }
 
+bool RSDrawingFilter::ApplyGEImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
+    std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush)
+{
+    if (outImage != nullptr) {
+        return false;
+    }
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    auto kawaseShaderFilter = GetShaderFilterWithType(RSUIFilterType::KAWASE);
+    auto lightBlurShaderFilter = GetShaderFilterWithType(RSUIFilterType::LIGHT_BLUR);
+    if (kawaseShaderFilter == nullptr && lightBlurShaderFilter == nullptr) {
+        // If the below condition is false, the outImage is the same as the result of geRender->ApplyImageEffect.
+        if (geRender->DrawImageEffectToCanvas(canvas, *visualEffectContainer, image, outImage,
+            attr.src, attr.dst, brush)) {
+            ProfilerLogImageEffect(visualEffectContainer, image, attr.src, outImage);
+            return true;
+        }
+    } else {
+        // Here dst should be attr.src to be compatible with the following operations
+        auto imageDst = attr.src;
+        outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, attr.src, imageDst,
+            Drawing::SamplingOptions());
+    }
+    ProfilerLogImageEffect(visualEffectContainer, image, attr.src, outImage);
+    return false;
+}
+
 void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
     const DrawImageRectAttributes& attr)
 {
-    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    if (geRender == nullptr) {
-        ROSEN_LOGE("RSDrawingFilter::DrawImageRect geRender is null");
-        return;
-    }
     std::shared_ptr<Drawing::Image> outImage = nullptr;
     auto brush = GetBrush(attr.brushAlpha);
     /*
@@ -572,17 +594,15 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     if (ApplyHpsImageEffect(canvas, image, outImage, attr, brush)) {
         return;
     }
-    if (outImage == nullptr) {
-        outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, attr.src, attr.src,
-            Drawing::SamplingOptions());
 
-        ProfilerLogImageEffect(visualEffectContainer, image, attr.src, outImage);
-
-        if (outImage == nullptr) {
-            ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
-            return;
-        }
+    if (ApplyGEImageEffect(canvas, image, visualEffectContainer, outImage, attr, brush)) {
+        return;
     }
+    if (outImage == nullptr) {
+        ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
+        return;
+    }
+
     if (ApplyImageEffectWithLightBlur(canvas, outImage, attr, brush)) {
         return;
     }

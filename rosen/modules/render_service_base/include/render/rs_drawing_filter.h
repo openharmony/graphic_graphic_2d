@@ -166,6 +166,21 @@ private:
      */
     bool ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush);
+
+    /**
+     * @brief Apply GE Effect on image
+     *
+     * @param canvas                the canvas that draw all shader filters in the container
+     * @param image                 the image that needed to apply all shader filters in the container
+     * @param visualEffectContainer the container containing all shader filters
+     * @param outImage              the output image after applying all shader filters
+     * @param attr                  the Attributes of canvas
+     * @param brush                 the brush that will be attached on canvas
+     * @return  true when GE effects are drawn to canvas, false otherwise.
+     */
+    bool ApplyGEImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
+        std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush);
     bool ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush);
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
