@@ -1478,7 +1478,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     }
     GraphicColorGamut selfGamut = GamutCollector::MapGamutToStandard(colorSpace_);
     GamutCollector::IncreaseInner(selfGamut, bt2020Num, p3Num);
-    return JGamutCollector::DetermineGamutStandard(bt2020Num, p3Num);
+    return GamutCollector::DetermineGamutStandard(bt2020Num, p3Num);
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
