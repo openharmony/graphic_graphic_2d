@@ -1374,6 +1374,10 @@ void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
         return;
     }
     surfaceParams->SetAncoFlags(flags);
+    if (static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE) ==
+        (flags & static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE))) {
+        surfaceParams->SetForceRefresh(true);
+    }
 }
 
 void RSSurfaceRenderNode::SetAncoSrcCrop(const Rect& srcCrop)
