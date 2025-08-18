@@ -148,6 +148,7 @@ VSyncGenerator::VSyncGenerator(bool isUseFfrt) : isUseFfrt_(isUseFfrt)
             ffrt_this_task_set_legacy_mode(true);
             this->ThreadLoop();
         });
+        // FFRT线程创建成功时返回；如果FFRT线程创建失败，设置isUseFfrt_为false，保留原逻辑通路，创建std::thread
         if (ffrtThread_ != nullptr) {
             return;
         }
