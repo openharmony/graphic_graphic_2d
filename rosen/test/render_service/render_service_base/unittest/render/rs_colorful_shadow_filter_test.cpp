@@ -56,10 +56,7 @@ HWTEST_F(RSColorfulShadowFilterTest, GetDescriptionTest, TestSize.Level1)
     float blurRadius = 1.f;
     float offsetX = 0.1f;
     float offsetY = 0.1f;
-    Drawing::Path path;
-    Drawing::Rect rect(2.0f, 2.0f, 5.0f, 5.0f);
-    path.AddRect(rect);
-    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, false);
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY);
     std::string expectRes = "RSColorfulShadowFilter " + std::to_string(blurRadius);
     EXPECT_EQ(shadowFilter.GetDescription(), expectRes);
 }
@@ -75,10 +72,7 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest001, TestSize.Level1)
     float blurRadius = 1.f;
     float offsetX = 0.1f;
     float offsetY = 0.1f;
-    Drawing::Path path;
-    Drawing::Rect rect(2.0f, 2.0f, 5.0f, 5.0f);
-    path.AddRect(rect);
-    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, false);
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY);
 
     Drawing::Canvas canvas;
     std::shared_ptr<Drawing::Image> image;
@@ -99,10 +93,7 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest002, TestSize.Level1)
     float blurRadius = 1.f;
     float offsetX = 0.1f;
     float offsetY = 0.1f;
-    Drawing::Path path;
-    Drawing::Rect rect(2.0f, 2.0f, 5.0f, 5.0f);
-    path.AddRect(rect);
-    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, false);
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY);
 
     Drawing::Canvas canvas;
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();;
@@ -122,35 +113,10 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest002, TestSize.Level1)
  */
 HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest003, TestSize.Level1)
 {
-    float blurRadius = 1.f;
-    float offsetX = 0.1f;
-    float offsetY = 0.1f;
-    Drawing::Path path;
-    Drawing::Rect rect(2.0f, 2.0f, 5.0f, 5.0f);
-    path.AddRect(rect);
-    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, true);
-
-    Drawing::Canvas canvas;
-    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();;
-    Drawing::Rect src;
-    Drawing::Rect dst;
-    shadowFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(shadowFilter.IsValid());
-}
-
-/**
- * @tc.name: DrawImageRectTest004
- * @tc.desc: test DrawImageRect
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectTest004, TestSize.Level1)
-{
     float blurRadius = 10.0f; // 10.0f is radius
     float offsetX = 10.0f; // 10.0f offset x
     float offsetY = 10.0f; // 10.0f offset y
-    Drawing::Path path;
-    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, true);
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY);
 
     Drawing::Canvas canvas;
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
@@ -174,7 +140,7 @@ HWTEST_F(RSColorfulShadowFilterTest, DrawImageRectWithColorTest001, TestSize.Lev
     float offsetX = 10.0f; // 10.0f offset x
     float offsetY = 10.0f; // 10.0f offset y
     Drawing::Path path;
-    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY, path, true);
+    RSColorfulShadowFilter shadowFilter(blurRadius, offsetX, offsetY);
 
     Drawing::Canvas canvas;
     Drawing::Bitmap bmp;

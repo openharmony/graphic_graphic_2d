@@ -26,10 +26,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSColorfulShadowFilter::RSColorfulShadowFilter(
-    float blurRadius, float offsetX, float offsetY, Drawing::Path path, bool isFill)
-    : RSForegroundEffectFilter(blurRadius), blurRadius_(blurRadius), offsetX_(offsetX), offsetY_(offsetY), path_(path),
-      isFilled_(isFill)
+RSColorfulShadowFilter::RSColorfulShadowFilter(float blurRadius, float offsetX, float offsetY)
+    : RSForegroundEffectFilter(blurRadius), blurRadius_(blurRadius), offsetX_(offsetX), offsetY_(offsetY)
 {
     type_ = FilterType::COLORFUL_SHADOW;
 #ifdef USE_M133_SKIA
@@ -54,7 +52,6 @@ bool RSColorfulShadowFilter::IsValid() const
 void RSColorfulShadowFilter::SetShadowColorMask(Color color)
 {
     isColorMask_ = true;
-    isFilled_ = true;
     color_ = color;
 }
 
@@ -100,10 +97,6 @@ void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::s
     }
 
     if (IsValid()) {
-        Drawing::AutoCanvasRestore acr(canvas, true);
-        if (!isFilled_) {
-            canvas.ClipPath(path_, Drawing::ClipOp::DIFFERENCE, true);
-        }
         // draw blur image
         canvas.Translate(offsetX_, offsetY_);
         std::shared_ptr<Drawing::Image> imageTemp = image;
@@ -112,6 +105,7 @@ void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::s
             imageTemp = imageTemp == nullptr ? image : imageTemp;
         }
         RSForegroundEffectFilter::DrawImageRect(canvas, imageTemp, src, dst);
+        canvas.Translate(-offsetX_, -offsetY_);
     }
 
     // draw clear image
