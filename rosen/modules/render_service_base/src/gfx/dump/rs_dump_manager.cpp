@@ -121,7 +121,7 @@ void RSDumpManager::DoDump(RSDumpID rsDumpId, const std::u16string &cmd, std::un
     auto it = rsDumpHanderMap_.find(rsDumpId);
     if (it != rsDumpHanderMap_.end()) {
         RSDumpHander hander = it->second;
-        if (!hander.tag.empty() && hander.tag.size() > 0) {
+        if (!hander.tag.empty()) {
             out.append("\n\n-- ").append(hander.tag).append("\n");
         }
         hander.func(cmd, argSets, out);
@@ -142,9 +142,14 @@ void RSDumpManager::DumpHelpInfo(std::string &out)
             continue;
         }
         std::string cmd_str = std::string(cmd.begin(), cmd.end());
-        out.append(cmd_str)
-            .append(HELPINFO_CMD_FIXED_LENGTH - cmd_str.length(), ' ')
-            .append("|")
+        out.append(cmd_str);
+
+        if (HELPINFO_CMD_FIXED_LENGTH - cmd_str.length() > 0) {
+            // Append the necessary number of spaces to make up the difference
+            out.append(HELPINFO_CMD_FIXED_LENGTH - cmd_str.length(), ' ');
+        }
+
+        out.append("|")
             .append(entry.second.helpInfo)
             .append("\n");
     }
