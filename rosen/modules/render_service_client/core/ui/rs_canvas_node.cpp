@@ -34,20 +34,6 @@
 #include "media_errors.h"
 #endif
 
-#ifdef _WIN32
-#include <windows.h>
-#define gettid GetCurrentThreadId
-#endif
-
-#ifdef __APPLE__
-#define gettid getpid
-#endif
-
-#ifdef __gnu_linux__
-#include <sys/types.h>
-#include <sys/syscall.h>
-#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
-#endif
 namespace OHOS {
 namespace Rosen {
 RSCanvasNode::SharedPtr RSCanvasNode::Create(
@@ -67,21 +53,14 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
 }
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext)
-{
-    tid_ = gettid();
-}
+    : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext) {}
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode,
     std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, id, isTextureExportNode, rsUIContext)
-{
-    tid_ = gettid();
-}
+    : RSNode(isRenderServiceNode, id, isTextureExportNode, rsUIContext) {}
 
 RSCanvasNode::~RSCanvasNode()
 {
-    CheckThread();
 #ifdef RS_ENABLE_VK
     if (IsHybridRenderCanvas()) {
         RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
@@ -91,7 +70,6 @@ RSCanvasNode::~RSCanvasNode()
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
 {
-    CheckThread();
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
     if (AddCommand(command, true)) {
         ROSEN_LOGD("RSCanvasNode::SetHDRPresent HDRClient set hdr true");
@@ -106,8 +84,6 @@ void RSCanvasNode::SetColorGamut(uint32_t colorGamut)
 
 ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
-    CheckThread();
-
     if (recordingCanvas_) {
         delete recordingCanvas_;
         recordingCanvas_ = nullptr;
@@ -146,8 +122,6 @@ void RSCanvasNode::RegisterNodeMap()
 
 void RSCanvasNode::CreateRenderNodeForTextureExportSwitch()
 {
-    CheckThread();
-
     if (IsRenderServiceNode()) {
         hasCreateRenderNodeInRS_ = true;
     } else {
@@ -159,7 +133,6 @@ void RSCanvasNode::CreateRenderNodeForTextureExportSwitch()
 
 void RSCanvasNode::FinishRecording()
 {
-    CheckThread();
     if (!IsRecording()) {
         return;
     }
@@ -184,7 +157,6 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
-    CheckThread();
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas->SetIsCustomTypeface(isCustomTypeface_);
@@ -229,7 +201,6 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasNode::SetFreeze id:%llu", GetId());
-    CheckThread();
     RSNode::SetDrawNode();
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
     AddCommand(command, true);
@@ -316,13 +287,6 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
 #endif
     return false;
-}
-
-void RSCanvasNode::CheckThread()
-{
-    if (tid_ != gettid()) {
-        ROSEN_LOGE("RSCanvasNode::CheckThread Must be called on same thread");
-    }
 }
 
 // [Attention] Only used in PC window resize scene now

@@ -798,7 +798,7 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        napi_value argv;
+        napi_value argv = nullptr;
         napi_create_external(
             env, typography.release(), [](napi_env env, void* finalizeData, void* finalizeHint) {}, nullptr, &argv);
         status = napi_new_instance(env, constructor, ARGC_ONE, &argv, &result);

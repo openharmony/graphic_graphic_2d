@@ -15,7 +15,6 @@
 
 #include "animation/rs_interactive_implict_animator.h"
 
-#include "modifier/rs_extended_modifier.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
 
@@ -335,10 +334,6 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
         std::shared_ptr<RSPropertyBase> property = nullptr;
         if (auto prop = node->GetPropertyById(propertyId)) {
             property = prop;
-        } else if (auto modifier = node->GetModifier(propertyId)) {
-            property = modifier->GetProperty();
-        } else {
-            // do nothing
         }
         if (property == nullptr) {
             continue;

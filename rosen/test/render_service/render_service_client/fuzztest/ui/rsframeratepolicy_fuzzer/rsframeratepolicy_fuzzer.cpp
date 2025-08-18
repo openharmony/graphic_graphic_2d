@@ -52,6 +52,18 @@ T GetData()
     return object;
 }
 
+bool Init(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+    return true;
+}
+
 std::string GetStringFromData(size_t strlen)
 {
     if (strlen <= 0) {
@@ -72,16 +84,6 @@ std::string GetStringFromData(size_t strlen)
 
 bool DoGetPreferredFps(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
     std::shared_ptr<RSHgmConfigData> rsHgmConfigData = std::make_shared<RSHgmConfigData>();
 
@@ -119,16 +121,6 @@ bool DoGetPreferredFps(const uint8_t* data, size_t size)
 
 bool DoGetExpectedFrameRate(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
     std::vector<RSPropertyUnit> units = {
         RSPropertyUnit::UNKNOWN,
@@ -148,16 +140,6 @@ bool DoGetExpectedFrameRate(const uint8_t* data, size_t size)
 
 bool DoHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
     int32_t refreshRateMode = GetData<int32_t>();
     instance->HgmRefreshRateModeChangeCallback(refreshRateMode);
@@ -170,6 +152,10 @@ bool DoHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoGetPreferredFps(data, size);
     OHOS::Rosen::DoGetExpectedFrameRate(data, size);

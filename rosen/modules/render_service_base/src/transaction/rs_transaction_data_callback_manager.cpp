@@ -53,7 +53,7 @@ bool RSTransactionDataCallbackManager::PushTransactionDataCallback(uint64_t toke
 {
     std::lock_guard<std::mutex> lock{ transactionDataCbMutex_ };
     if (transactionDataCallbacks_.size() >= MAX_TRANSACTION_DATA_CALLBACKS) {
-        RS_LOGD("RSTransactionDataCallbackManager: transactionDataCallbacks_ has reached maximus size, cannot add new "
+        RS_LOGE("RSTransactionDataCallbackManager: transactionDataCallbacks_ has reached maximus size, cannot add new "
                 "callback");
         return false;
     }

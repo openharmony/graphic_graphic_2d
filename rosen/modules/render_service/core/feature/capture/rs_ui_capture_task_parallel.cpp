@@ -359,8 +359,9 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         nodeDrawable_->OnCapture(canvas);
     }
     RS_LOGI("RSUiCaptureTaskParallel::Run: NodeId: [%{public}" PRIu64 "], "
-        "the number of total processedNodes: [%{public}d]",
-        nodeId_, DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());
+        "the number of total processedNodes: [%{public}d]; ExistCapturePixelMapOP: %{public}s",
+        nodeId_, DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount(),
+        canvas.GetExistCapturePixelMapFlag() ? "true" : "false");
     DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
     RSUniRenderThread::ResetCaptureParam();
 #ifdef RS_PROFILER_ENABLED

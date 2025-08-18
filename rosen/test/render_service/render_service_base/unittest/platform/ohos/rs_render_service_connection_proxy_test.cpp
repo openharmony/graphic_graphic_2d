@@ -384,6 +384,23 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenChangeCallback, TestSize.L
 }
 
 /**
+ * @tc.name: SetScreenSwitchingNotifyCallback Test
+ * @tc.desc: SetScreenSwitchingNotifyCallback Test
+ * @tc.type:FUNC
+ * @tc.require
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenSwitchingNotifyCallback, TestSize.Level1)
+{
+    sptr<RSIScreenSwitchingNotifyCallback> callback;
+    proxy->SetScreenSwitchingNotifyCallback(callback);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+    ASSERT_EQ(proxy->SetScreenSwitchingNotifyCallback(callback), 0);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
@@ -1549,6 +1566,21 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, DropFrameByPidWithInvalidParameter,
     // MAX_DROP_FRAME_PID_LIST_SIZE = 1024
     std::vector<int32_t> vec(1025);
     ASSERT_EQ(proxy->DropFrameByPid(vec), ERR_INVALID_VALUE);
+}
+
+/*
+ * @tc.name: SetOptimizeCanvasDirtyPidList Test
+ * @tc.desc: SetOptimizeCanvasDirtyPidList Test whether the result is ERR_INVALID_VALUE
+ * @tc.type:FUNC
+ * @tc.require: issueICSPON
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetOptimizeCanvasDirtyPidList, TestSize.Level1)
+{
+    std::vector<pid_t> pidList;
+    pidList.emplace_back(ExtractPid(1));
+
+    auto ret = proxy->SetOptimizeCanvasDirtyPidList(pidList);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -88,6 +88,7 @@ ohos_shared_library("drawing_ani_core") {
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_taihe",
+    "ipc:ipc_single",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
   ]
@@ -174,6 +175,7 @@ ohos_shared_library("drawing_ani") {
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_taihe",
+    "ipc:ipc_single",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
   ]

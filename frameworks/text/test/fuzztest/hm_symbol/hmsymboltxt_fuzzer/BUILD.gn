@@ -13,7 +13,6 @@
 
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
-import("//build/ohos_var.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
@@ -51,14 +50,10 @@ ohos_fuzztest("HmSymbolTxtFuzzTest") {
     "skia:skia_canvaskit",
   ]
   if (graphic_2d_feature_upgrade_skia) {
-    external_deps += [
-      "skia:skia_paragraph_ohos_new",
-    ]
+    external_deps += [ "skia:skia_paragraph_ohos_new" ]
   } else {
-    external_deps += [
-      "skia:skia_paragraph_ohos",
-    ]
-  }      
+    external_deps += [ "skia:skia_paragraph_ohos" ]
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

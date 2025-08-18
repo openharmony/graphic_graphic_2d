@@ -80,7 +80,7 @@ void BrushFuzzTest001(const uint8_t* data, size_t size)
     float blurRadius = GetObject<float>();
     float x = GetObject<float>();
     float y = GetObject<float>();
-    uint32_t enum_1 = GetObject<uint32_t>();
+    uint32_t enum1 = GetObject<uint32_t>();
 
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
 
@@ -94,8 +94,8 @@ void BrushFuzzTest001(const uint8_t* data, size_t size)
     OH_Drawing_BrushSetShadowLayer(brush, nullptr);
     OH_Drawing_BrushSetShadowLayer(brush, ShadowLayer);
 
-    OH_Drawing_BrushSetBlendMode(nullptr, static_cast<OH_Drawing_BlendMode>(enum_1 % PATH_TWENTY_NINE));
-    OH_Drawing_BrushSetBlendMode(brush, static_cast<OH_Drawing_BlendMode>(enum_1 % PATH_TWENTY_NINE));
+    OH_Drawing_BrushSetBlendMode(nullptr, static_cast<OH_Drawing_BlendMode>(enum1 % PATH_TWENTY_NINE));
+    OH_Drawing_BrushSetBlendMode(brush, static_cast<OH_Drawing_BlendMode>(enum1 % PATH_TWENTY_NINE));
      
     OH_Drawing_ShadowLayerDestroy(ShadowLayer);
     OH_Drawing_ShaderEffectDestroy(ShaderEffect);

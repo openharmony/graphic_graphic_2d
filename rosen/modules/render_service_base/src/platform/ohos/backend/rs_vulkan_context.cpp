@@ -29,6 +29,7 @@
 #include "include/gpu/vk/GrVkExtensions.h"
 #endif
 #include "unistd.h"
+#include "utils/system_properties.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_ohos.h"
 #include "sync_fence.h"
@@ -80,6 +81,13 @@ static std::vector<const char*> gMandatoryDeviceExtensions = {
 static std::vector<const char*> gOptionalDeviceExtensions = {
     VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
     VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+};
+
+// enabled when persist.sys.graphic.openVkImageMemoryDfx is true
+static std::vector<const char*> gOptionalDeviceExtensionsDebug = {
+    VK_KHR_MAINTENANCE_5_EXTENSION_NAME,
+    VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
+    VK_EXT_DEVICE_ADDRESS_BINDING_REPORT_EXTENSION_NAME,
 };
 
 static const int GR_CHUNK_SIZE = 1048576;
@@ -283,6 +291,17 @@ void RsVulkanInterface::ConfigureExtensions()
             deviceExtensions_.emplace_back(ext);
         }
     }
+#ifdef ROSEN_OHOS
+    if (Drawing::SystemProperties::IsVkImageDfxEnabled()) {
+        for (auto& ext: gOptionalDeviceExtensionsDebug) {
+            if (extensionNames.find(ext) == extensionNames.end()) {
+                ROSEN_LOGE("Optional device extension %{public}s not found! Skip it.", ext);
+                continue;
+            }
+            deviceExtensions_.emplace_back(ext);
+        }
+    }
+#endif
     for (auto& ext: gMandatoryDeviceExtensions) {
         if (extensionNames.find(ext) == extensionNames.end()) {
             ROSEN_LOGE("Mandatory device extension %{public}s not found! Try to enable it anyway.", ext);

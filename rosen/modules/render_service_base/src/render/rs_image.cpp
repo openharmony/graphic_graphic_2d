@@ -143,9 +143,11 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& samplingOptions, bool isBackground)
 {
+#ifdef ROSEN_OHOS
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
+#endif
     isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
                                 fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
     isOrientationValid_ = orientationFit_ != OrientationFit::NONE;
@@ -153,9 +155,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
-    if (pixelMap_ && image_) {
-        image_->SetSupportOpaqueOpt(pixelMap_->GetSupportOpaqueOpt());
-    }
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);
@@ -338,9 +337,10 @@ RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, Re
     }
     constexpr float horizontalAlignmentFactor = 2.f;
     constexpr float verticalAlignmentFactor = 2.f;
-    tempRectF.SetAll((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor,
-                     (imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor,
-                     imageParameter.dstW, imageParameter.dstH);
+    tempRectF.SetAll(std::floor((imageParameter.frameW - imageParameter.dstW) / horizontalAlignmentFactor),
+                     std::floor((imageParameter.frameH - imageParameter.dstH) / verticalAlignmentFactor),
+                     std::ceil(imageParameter.dstW),
+                     std::ceil(imageParameter.dstH));
     return tempRectF;
 }
 
@@ -655,14 +655,13 @@ void RSImage::SetCompressData(
     const std::shared_ptr<Drawing::Data> data, const uint32_t id, const int width, const int height)
 {
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    compressData_ = data;
-    if (compressData_) {
-        srcRect_.SetAll(0.0, 0.0, width, height);
-        GenUniqueId(image_ ? image_->GetUniqueID() : id);
-        image_ = nullptr;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        compressData_ = data;
+        if (compressData_) {
+            srcRect_.SetAll(0.0, 0.0, width, height);
+            GenUniqueId(image_ ? image_->GetUniqueID() : id);
+            image_ = nullptr;
+        }
     }
 #endif
 }

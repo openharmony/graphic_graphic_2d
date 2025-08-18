@@ -15,12 +15,14 @@
 
 #include <ostream>
 #include "gtest/gtest.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "animation/rs_animation.h"
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -748,6 +750,261 @@ HWTEST_F(RSPropertyTest, GetRenderProperty012, TestSize.Level1)
     property.renderProperty_ = nullptr;
     auto rsRenderProperty3 = property.GetRenderProperty();
     EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty013
+ * @tc.desc: test template value is std::shared_ptr<RSNGFilterBase>
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty013, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    auto result = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>(
+        nullProp->GetRenderProperty());
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->stagingValue_, nullptr);
+
+    auto blurFilter = std::make_shared<RSNGBlurFilter>();
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    prop->stagingValue_ = blurFilter;
+    result = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>>(
+        prop->GetRenderProperty());
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: OnAttachAndOnDetach001
+ * @tc.desc: Test OnAttach and OnDetach for RSProperty<std::shared_ptr<RSNGFilterBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, OnAttachAndOnDetach001, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    auto node = RSCanvasNode::Create();
+    nullProp->OnAttach(*node, {});
+    nullProp->OnDetach();
+
+    auto blurFilter = std::make_shared<RSNGBlurFilter>();
+    auto filterProp = blurFilter->Getter<BlurRadiusXTag>();
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    prop->Set(blurFilter);
+
+    prop->OnAttach(*node, {});
+    EXPECT_NE(filterProp->target_.lock(), nullptr);
+    prop->OnDetach();
+}
+
+/**
+ * @tc.name: Set001
+ * @tc.desc: Test Set for RSProperty<std::shared_ptr<RSNGFilterBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Set001, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    auto blurFilter1 = std::make_shared<RSNGBlurFilter>();
+    prop1->Set(blurFilter1);
+    EXPECT_EQ(prop1->stagingValue_, blurFilter1);
+    prop1->Set(blurFilter1);
+    EXPECT_EQ(prop1->stagingValue_, blurFilter1);
+
+    // without node
+    auto prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    auto blurFilter2 = std::make_shared<RSNGBlurFilter>();
+    prop2->Set(blurFilter2);
+    EXPECT_EQ(prop2->stagingValue_, blurFilter2);
+
+    prop2->Set(blurFilter1);
+    EXPECT_EQ(prop2->stagingValue_, blurFilter1);
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+
+    // with node
+    auto node = RSCanvasNode::Create();
+    prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGFilterBase>>>();
+    prop2->target_ = node;
+    blurFilter2 = std::make_shared<RSNGBlurFilter>();
+    prop2->Set(blurFilter2);
+    EXPECT_EQ(prop2->stagingValue_, blurFilter2);
+
+    prop2->Set(blurFilter1);
+    EXPECT_EQ(prop2->stagingValue_, blurFilter2); // Update value only
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: OnAttachAndOnDetach002
+ * @tc.desc: Test OnAttach and OnDetach for RSProperty<std::shared_ptr<RSNGShaderBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, OnAttachAndOnDetach002, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    auto node = RSCanvasNode::Create();
+    nullProp->OnAttach(*node, {});
+    nullProp->OnDetach();
+
+    auto shader = std::make_shared<RSNGContourDiagonalFlowLight>();
+    auto shaderProp = shader->Getter<ContourDiagonalFlowLightContourTag>();
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    prop->Set(shader);
+
+    prop->OnAttach(*node, {});
+    EXPECT_NE(shaderProp->target_.lock(), nullptr);
+    prop->OnDetach();
+}
+
+/**
+ * @tc.name: Set002
+ * @tc.desc: Test Set for RSProperty<std::shared_ptr<RSNGShaderBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Set002, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    auto shader1 = std::make_shared<RSNGContourDiagonalFlowLight>();
+    prop1->Set(shader1);
+    EXPECT_EQ(prop1->stagingValue_, shader1);
+    prop1->Set(shader1);
+    EXPECT_EQ(prop1->stagingValue_, shader1);
+
+    // without node
+    auto prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    auto shader2 = std::make_shared<RSNGContourDiagonalFlowLight>();
+    prop2->Set(shader2);
+    EXPECT_EQ(prop2->stagingValue_, shader2);
+
+    prop2->Set(shader1);
+    EXPECT_EQ(prop2->stagingValue_, shader1);
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+
+    // with node
+    auto node = RSCanvasNode::Create();
+    prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    prop2->target_ = node;
+    shader2 = std::make_shared<RSNGContourDiagonalFlowLight>();
+    prop2->Set(shader2);
+    EXPECT_EQ(prop2->stagingValue_, shader2);
+
+    prop2->Set(shader1);
+    EXPECT_EQ(prop2->stagingValue_, shader2); // Update value only
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: OnAttachAndOnDetach003
+ * @tc.desc: Test OnAttach and OnDetach for RSProperty<std::shared_ptr<RSNGMaskBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, OnAttachAndOnDetach003, TestSize.Level1)
+{
+    auto nullProp = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    auto node = RSCanvasNode::Create();
+    nullProp->OnAttach(*node, {});
+    nullProp->OnDetach();
+
+    auto mask = std::make_shared<RSNGRippleMask>();
+    auto maskProp = mask->Getter<RippleMaskCenterTag>();
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    prop->Set(mask);
+
+    prop->OnAttach(*node, {});
+    EXPECT_NE(maskProp->target_.lock(), nullptr);
+    prop->OnDetach();
+}
+
+/**
+ * @tc.name: Set003
+ * @tc.desc: Test Set for RSProperty<std::shared_ptr<RSNGMaskBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Set003, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    auto mask1 = std::make_shared<RSNGRippleMask>();
+    prop1->Set(mask1);
+    EXPECT_EQ(prop1->stagingValue_, mask1);
+    prop1->Set(mask1);
+    EXPECT_EQ(prop1->stagingValue_, mask1);
+
+    // without node
+    auto prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    auto mask2 = std::make_shared<RSNGRippleMask>();
+    prop2->Set(mask2);
+    EXPECT_EQ(prop2->stagingValue_, mask2);
+
+    prop2->Set(mask1);
+    EXPECT_EQ(prop2->stagingValue_, mask1);
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+
+    // with node
+    auto node = RSCanvasNode::Create();
+    prop2 = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    prop2->target_ = node;
+    mask2 = std::make_shared<RSNGRippleMask>();
+    prop2->Set(mask2);
+    EXPECT_EQ(prop2->stagingValue_, mask2);
+
+    prop2->Set(mask1);
+    EXPECT_EQ(prop2->stagingValue_, mask2); // Update value only
+
+    prop2->Set(nullptr);
+    EXPECT_EQ(prop2->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: RSNGShaderBaseGetRenderPropertyTest
+ * @tc.desc: Test GetRenderPropertyTest for RSProperty<std::shared_ptr<RSNGShaderBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, RSNGShaderBaseGetRenderPropertyTest, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGShaderBase>>>();
+    auto result = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>(
+        prop->GetRenderProperty());
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->stagingValue_, nullptr);
+
+    auto shader = std::make_shared<RSNGContourDiagonalFlowLight>();
+    prop->Set(shader);
+    result = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>>(
+        prop->GetRenderProperty());
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->stagingValue_, nullptr);
+}
+
+/**
+ * @tc.name: RSNGMaskBaseGetRenderPropertyTest
+ * @tc.desc: Test GetRenderPropertyTest for RSProperty<std::shared_ptr<RSNGMaskBase>>
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, RSNGMaskBaseGetRenderPropertyTest, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<std::shared_ptr<RSNGMaskBase>>>();
+    auto result = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(
+        prop->GetRenderProperty());
+    EXPECT_NE(result, nullptr);
+
+    EXPECT_EQ(result->stagingValue_, nullptr);
+
+    auto mask = std::make_shared<RSNGRippleMask>();
+    prop->Set(mask);
+    result = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(
+        prop->GetRenderProperty());
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->stagingValue_, nullptr);
 }
 
 /**

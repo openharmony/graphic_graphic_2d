@@ -3072,6 +3072,42 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetScreenSwitchingNotifyCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIScreenSwitchingNotifyCallback> rsIScreenSwitchingNotifyCallback_ =
+        iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteRemoteObject(rsIScreenSwitchingNotifyCallback_->AsObject());
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoRegisterApplicationAgent(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -3626,6 +3662,34 @@ bool DoSetGpuCrcDirtyEnabledPidList()
     rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
+
+bool DoSetOptimizeCanvasDirtyPidList()
+{
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    }
+
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteInt32Vector(pidList)) {
+        return false;
+    }
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -3705,6 +3769,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetCacheEnabledForRotation();
     OHOS::Rosen::DoSetVirtualScreenUsingStatus();
     OHOS::Rosen::DoSetGpuCrcDirtyEnabledPidList();
+    OHOS::Rosen::DoSetOptimizeCanvasDirtyPidList();
     OHOS::Rosen::DoCreatePixelMapFromSurface(data, size);
     OHOS::Rosen::DoNotifyTouchEvent();
     OHOS::Rosen::DoGetMemoryGraphics();
@@ -3749,6 +3814,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoCreateVSyncConnection(data, size);
     OHOS::Rosen::DoCommitTransaction(data, size);
     OHOS::Rosen::DoSetScreenChangeCallback(data, size);
+    OHOS::Rosen::DoSetScreenSwitchingNotifyCallback(data, size);
     OHOS::Rosen::DoRegisterApplicationAgent(data, size);
     OHOS::Rosen::DoGetScreenPowerStatus(data, size);
     OHOS::Rosen::DoRegisterBufferAvailableListener(data, size);

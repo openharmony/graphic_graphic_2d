@@ -23,7 +23,6 @@ TextStyle TypographyStyle::GetTextStyle() const
     style.fontWeight = fontWeight;
     style.fontStyle = fontStyle;
     style.fontFamilies = { fontFamily };
-    style.fontSize = fontSize;
     style.heightScale = heightScale;
     style.halfLeading = halfLeading;
     style.heightOnly = heightOnly;

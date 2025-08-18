@@ -14,9 +14,9 @@
  */
 
 /**
-* @file rs_sync_transaction_handle.h
-* @brief This file is used to control the execution of synchronous transctios.
-*/
+ * @file rs_sync_transaction_handle.h
+ * @brief This file is used to control the execution of synchronous transctions.
+ */
 
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SYNC_TRANSACTION_HANDLER_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SYNC_TRANSACTION_HANDLER_H
@@ -40,15 +40,15 @@ public:
     /**
      * @brief Open a synchronous transaction.
      * @details This function is used to open a synchronous transaction, which will block other operation until
-     * transaction is compelete.
-     * @param handler Event handle, used to handle events related to the transaction, if it is empty
+     * transaction is complete.
+     * @param handler Event handler, used to handle events related to the transaction, if it is empty
      * then no events will be processed.
      */
     void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
     /**
      * @brief Close a synchronous transaction.
      * @details This function is used to close a synchronous transaction, and commit it to the server.
-     * @param handler An event handle for the fallback mechanism of synchronous transaction, if it is empty,
+     * @param handler An event handler for the fallback mechanism of synchronous transaction, if it is empty,
      * then no fallback for synchronous transactions will be performed.
      */
     void CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);

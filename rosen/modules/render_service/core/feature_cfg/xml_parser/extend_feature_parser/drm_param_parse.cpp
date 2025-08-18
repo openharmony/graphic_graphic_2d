@@ -60,14 +60,14 @@ int32_t DRMParamParse::ParseDrmInternal(xmlNode &node)
             RS_LOGI("DRMParamParse parse DrmMaskBlurEnabled %{public}d", DRMParam::IsDrmMarkAllParentBlurEnable());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
-        if (ParseFeatureMultiParam(*currNode, name) != PARSE_EXEC_SUCCESS) {
+        if (ParseFeatureMultiParam(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("parse MultiParam fail");
         }
     }
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t DRMParamParse::ParseFeatureMultiParam(xmlNode &node, std::string &name)
+int32_t DRMParamParse::ParseFeatureMultiParam(xmlNode &node)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {

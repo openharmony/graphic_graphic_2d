@@ -35,7 +35,8 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable) override;
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+        bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
 
 private:

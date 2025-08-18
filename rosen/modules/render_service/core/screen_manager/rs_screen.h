@@ -66,11 +66,6 @@ public:
     // physical screen resolution
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
-
-    virtual void SetScreenOffset(int32_t offsetX, int32_t offsetY) = 0;
-    virtual int32_t GetOffsetX() const = 0;
-    virtual int32_t GetOffsetY() const = 0;
-
     virtual bool IsSamplingOn() const = 0;
     virtual float GetSamplingTranslateX() const = 0;
     virtual float GetSamplingTranslateY() const = 0;
@@ -183,6 +178,10 @@ public:
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
     virtual int32_t GetVirtualSecLayerOption() const = 0;
+
+    virtual void SetScreenOffset(int32_t offsetX, int32_t offsetY) = 0;
+    virtual int32_t GetOffsetX() const = 0;
+    virtual int32_t GetOffsetY() const = 0;
     virtual bool GetAndResetPSurfaceChange() = 0;
     virtual void SetPSurfaceChange(bool pSurfaceChange) = 0;
 };
@@ -214,9 +213,6 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
-    void SetScreenOffset(int32_t offsetX, int32_t offsetY) override;
-    int32_t GetOffsetX() const override;
-    int32_t GetOffsetY() const override;
     bool IsSamplingOn() const override;
     float GetSamplingTranslateX() const override;
     float GetSamplingTranslateY() const override;
@@ -328,10 +324,14 @@ public:
     Rect GetMainScreenVisibleRect() const override;
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
+
     int32_t GetVirtualSecLayerOption() const override;
+    void SetScreenOffset(int32_t offsetX, int32_t offsetY) override;
+    int32_t GetOffsetX() const override;
+    int32_t GetOffsetY() const override;
+
     bool GetAndResetPSurfaceChange() override;
     void SetPSurfaceChange(bool pSurfaceChange) override;
-
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;

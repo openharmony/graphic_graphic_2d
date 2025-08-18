@@ -31,6 +31,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -2147,7 +2148,7 @@ void RSRenderNode::SetTreeStateChangeDirty(bool val)
 void RSRenderNode::SetParentTreeStateChangeDirty()
 {
     auto parentNode = parent_.lock();
-    if (parentNode && !parentNode->IsSubTreeDirty()) {
+    if (parentNode && !parentNode->IsTreeStateChangeDirty()) {
         parentNode->SetTreeStateChangeDirty(true);
         parentNode->SetParentTreeStateChangeDirty();
     }
@@ -2938,6 +2939,7 @@ void RSRenderNode::ResetAndApplyModifiers()
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(shared_from_this());
     int32_t currentScbPid = displayNode == nullptr ? -1 : displayNode->GetCurrentScbPid();
 #if defined(MODIFIER_NG)
+    bool needUseCmdlistDrawRegion = GetNeedUseCmdlistDrawRegion();
     for (const auto& [modifierType, resetFunc] : ModifierNG::RSRenderModifier::GetResetFuncMap()) {
         if (dirtyTypesNG_.test(static_cast<size_t>(modifierType))) {
             resetFunc(GetMutableRenderProperties());
@@ -2951,7 +2953,10 @@ void RSRenderNode::ResetAndApplyModifiers()
         for (auto modifier : slot) {
             if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
                 modifier->ApplyLegacyProperty(GetMutableRenderProperties());
-                CalcCmdlistDrawRegionFromOpItem(modifier);
+                if (needUseCmdlistDrawRegion) {
+                    cmdlistDrawRegion_ =
+                        RSOptimizeCanvasDirtyCollector::GetInstance().CalcCmdlistDrawRegionFromOpItem(modifier);
+                }
             }
         }
     }
@@ -2975,29 +2980,6 @@ void RSRenderNode::ResetAndApplyModifiers()
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
-}
-
-void RSRenderNode::CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
-{
-    if (!GetNeedUseCmdlistDrawRegion()) {
-        return;
-    }
-
-    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
-    auto propertyPtr =
-        std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty(propertyType));
-    auto drawCmdlistPtr = propertyPtr ? propertyPtr->Get() : nullptr;
-    if (drawCmdlistPtr == nullptr) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::CalcCmdlistDrawRegionFromOpItem id:%llu drawCmdlistPtr is nullptr",
-            GetId());
-        return;
-    }
-
-    auto rect = drawCmdlistPtr->GetCmdlistDrawRegion();
-    RectF cmdlistDrawRegion = RectF { rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight() };
-    cmdlistDrawRegion_ = cmdlistDrawRegion_.JoinRect(cmdlistDrawRegion);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::CalcCmdlistDrawRegionFromOpItem id:%llu cmdlistDrawRegion is %s",
-        GetId(), cmdlistDrawRegion_.ToString().c_str());
 }
 
 CM_INLINE void RSRenderNode::ApplyModifiers()
@@ -5017,9 +4999,6 @@ void RSRenderNode::AddToPendingSyncList()
 
 void RSRenderNode::SetStartingWindowFlag(bool startingFlag)
 {
-    if (startingFlag) {
-        UpdateDrawingCacheInfoAfterChildren();
-    }
     if (startingWindowFlag_ == startingFlag) {
         return;
     }
@@ -5479,7 +5458,9 @@ void RSRenderNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
 
 bool RSRenderNode::GetNeedUseCmdlistDrawRegion()
 {
-    return RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled() && needUseCmdlistDrawRegion_;
+    // Only the target node of the target scene can usd the cmdlistDrawRegion when optimize open.
+    return RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled() && needUseCmdlistDrawRegion_ &&
+           RSOptimizeCanvasDirtyCollector::GetInstance().IsOptimizeCanvasDirtyEnabled(GetId());
 }
 
 void RSRenderNode::SubTreeSkipPrepare(
@@ -5559,7 +5540,8 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
-    if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
+    if (IsUifirstArkTsCardNode()) {
+        // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
         stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);

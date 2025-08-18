@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "render_thread/rs_render_thread_visitor.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_root_render_node.h"
 namespace OHOS {
 namespace Rosen {
@@ -79,7 +80,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRootRenderNode.SetEnableRender(true);
     rsRootRenderNode.GetEnableRender();
 
-    rsRootRenderNode.InitRenderParams();
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    rsRootRenderNode.stagingRenderParams_ = std::move(stagingRenderParams);
     rsRootRenderNode.UpdateRenderParams();
     bool enable = GetData<bool>();
     rsRootRenderNode.EnableWindowKeyFrame(enable);

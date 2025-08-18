@@ -238,4 +238,33 @@ HWTEST_F(RSGpuDirtyCollectorTest, SetGpuDirtyEnabled002, TestSize.Level1)
     RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, true);
     ASSERT_EQ(src->gpuDirtyEnable, false);
 }
+
+/**
+ * @tc.name: SetSelfDrawingGpuDirtyPidList
+ * @tc.desc: Test SetSelfDrawingGpuDirtyPidList
+ * @tc.type: FUNC
+ * @tc.require: issueICSVLG
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, SetSelfDrawingGpuDirtyPidList, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList({ExtractPid(id)});
+    ASSERT_EQ(RSGpuDirtyCollector::GetInstance().selfDrawingGpuDirtyPidList_.size(), 1);
+}
+
+/**
+ * @tc.name: IsGpuDirtyEnable001
+ * @tc.desc: Test IsGpuDirtyEnable while pid satisfy
+ * @tc.type: FUNC
+ * @tc.require: issueICSVLG
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, IsGpuDirtyEnable001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList({});
+    ASSERT_FALSE(RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(id));
+
+    RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList({ExtractPid(id)});
+    ASSERT_TRUE(RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(id));
+}
 } // namespace OHOS::Rosen

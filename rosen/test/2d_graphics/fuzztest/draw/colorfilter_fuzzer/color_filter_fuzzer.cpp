@@ -59,7 +59,6 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     colorFilter->Serialize();
     colorFilter->GetType();
     colorFilter->GetDrawingType();
-    const size_t MATRIX_SIZE = 20;
     float matrix[MATRIX_SIZE];
     colorFilter->AsAColorMatrix(matrix);
     float f1[MATRIX_SIZE];

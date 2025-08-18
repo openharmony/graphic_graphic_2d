@@ -201,8 +201,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
-    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
-        MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(config.id)};
+    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));

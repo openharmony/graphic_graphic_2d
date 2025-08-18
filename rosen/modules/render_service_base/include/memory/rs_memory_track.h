@@ -51,7 +51,6 @@ struct MemoryInfo {
     uint64_t nid = 0;
     uint64_t uid = 0;
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
-    int initialPid = 0; // Do not update it
     OHOS::Media::AllocatorType allocType;
     OHOS::Media::PixelFormat pixelMapFormat;
 #ifdef RS_MEMORY_INFO_MANAGER
@@ -82,7 +81,6 @@ public:
         std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void RemovePictureRecord(const void* addr);
-    bool GetPictureRecordMemInfo(const void* addr, MemoryInfo& info);
     void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
     // count memory for hidumper
     MemoryGraphic CountRSMemory(const pid_t pid);

@@ -33,6 +33,8 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/capture/rs_ui_capture.h"
@@ -490,7 +492,8 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
     bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
-        mainThread_->IsGpuDirtyEnable(nodeId) && config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
+        RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
+        config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
         defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
     }
@@ -946,6 +949,18 @@ int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeC
     // update
     int32_t status = screenManager_->AddScreenChangeCallback(callback);
     screenChangeCallback_ = callback;
+    return status;
+}
+
+int32_t RSRenderServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
+{
+    if (screenManager_ == nullptr) {
+        RS_LOGE("%{public}s: screenManager_ is nullptr", __func__);
+        return SCREEN_NOT_FOUND;
+    }
+
+    // update
+    int32_t status = screenManager_->SetScreenSwitchingNotifyCallback(callback);
     return status;
 }
 
@@ -1713,23 +1728,9 @@ ErrCode RSRenderServiceConnection::GetMemoryGraphics(std::vector<MemoryGraphic>&
         return ERR_INVALID_VALUE;
     }
     
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    std::vector<pid_t> pids;
-    nodeMap.TraverseSurfaceNodes([&pids] (const std::shared_ptr<RSSurfaceRenderNode>& node) {
-        auto pid = ExtractPid(node->GetId());
-        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
-            pids.emplace_back(pid);
-        }
-    });
-    renderThread_.PostSyncTask(
-        [weakThis = wptr<RSRenderServiceConnection>(this), &memoryGraphics, &pids] {
-            sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr) {
-                return;
-            }
-            MemoryManager::CountMemory(pids,
-                connection->renderThread_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), memoryGraphics);
-        });
+    mainThread_->ScheduleTask([mainThread = mainThread_, &memoryGraphics]() {
+            mainThread->CountMem(memoryGraphics);
+        }).wait();
     return ERR_OK;
 }
 
@@ -3252,9 +3253,18 @@ ErrCode RSRenderServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vecto
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
-            connection->mainThread_->SetSelfDrawingGpuDirtyPidList(pidList);
+            RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList(pidList);
         }
     );
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList)
+{
+    if (pidList.size() > PIDLIST_SIZE_MAX) {
+        return ERR_INVALID_VALUE;
+    }
+    RSOptimizeCanvasDirtyCollector::GetInstance().SetOptimizeCanvasDirtyPidList(pidList);
     return ERR_OK;
 }
 

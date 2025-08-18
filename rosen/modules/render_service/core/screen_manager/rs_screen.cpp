@@ -266,7 +266,7 @@ uint32_t RSScreen::PhyHeight() const
 
 void RSScreen::SetScreenOffset(int32_t offsetX, int32_t offsetY)
 {
-    std::shared_lock<std::shared_mutex> lock(screenMutex_);
+    std::lock_guard<std::shared_mutex> lock(screenMutex_);
     offsetX_ = offsetX;
     offsetY_ = offsetY;
 }

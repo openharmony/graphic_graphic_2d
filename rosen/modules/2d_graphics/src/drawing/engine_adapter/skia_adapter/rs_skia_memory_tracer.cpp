@@ -41,6 +41,7 @@ static const std::unordered_map<RSTagTracker::SOURCETYPE, std::string> sourceToS
     {RSTagTracker::SOURCE_ONCAPTURE, "source_oncapture"},
     {RSTagTracker::SOURCE_INITCACHEDSURFACE, "source_initcachedsurface"},
     {RSTagTracker::SOURCE_DRAWRENDERCONTENT, "source_drawrendercontent"},
+    {RSTagTracker::SOURCE_FILTERCACHEENABLEVMA, "source_filtercacheenablevma"},
 };
 
 SkiaMemoryTracer::SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap, bool itemizeType)

@@ -100,7 +100,6 @@ uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
-std::unordered_set<pid_t> MemoryManager::processKillReportPidSet_;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
@@ -508,7 +507,6 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
         log.AppendFormat("%s", statSubStr.c_str());
     }
     log.AppendFormat("\ndumpGpuStats end\n---------------\n");
-#if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_RECORD_VKIMAGE)
     {
         static thread_local int tid = gettid();
         log.AppendFormat("\n------------------\n[%s:%d] dumpAllResource:\n", GetThreadName(), tid);
@@ -519,7 +517,6 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
             log.AppendFormat("%s\n", s.c_str());
         }
     }
-#endif
 }
 
 void ProcessJemallocString(std::string* sp, const char* str)
@@ -674,56 +671,38 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
     auto task = [gpuMemory = std::move(gpuMemory)]() {
         std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
         bool isTotalOver = false;
-        std::unordered_map<pid_t, size_t> subThreadGpuMemoryOfPid;
-        RSSubThreadManager::Instance()->GetGpuMemoryForReport(subThreadGpuMemoryOfPid);
-        MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, subThreadGpuMemoryOfPid, infoMap, isTotalOver);
-        MemoryOverForReport(infoMap, isTotalOver);
+        MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, infoMap, isTotalOver);
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+        // total memory overflow of all processes in renderservice
+        if (isTotalOver && currentTime > totalMemoryReportTime_) {
+            TotalMemoryOverReport(infoMap);
+            totalMemoryReportTime_ = currentTime + MEMORY_REPORT_INTERVAL;
+        }
+
+        bool needReport = false;
+        for (const auto& [pid, memoryInfo] : infoMap) {
+            if (memoryInfo.TotalMemory() <= memoryWarning_) {
+                continue;
+            }
+            needReport = false;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                auto it = pidInfo_.find(pid);
+                if (it == pidInfo_.end()) {
+                    pidInfo_.emplace(pid, currentTime + MEMORY_REPORT_INTERVAL);
+                    needReport = true;
+                } else if (currentTime > it->second) {
+                    it->second = currentTime + MEMORY_REPORT_INTERVAL;
+                    needReport = true;
+                }
+            }
+            if (needReport) {
+                MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
+            }
+        }
     };
     RSBackgroundThread::Instance().PostTask(task);
-#endif
-}
-
-void MemoryManager::MemoryOverForReport(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap, bool isTotalOver)
-{
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    auto now = std::chrono::steady_clock::now().time_since_epoch();
-    uint64_t currentTime =
-        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
-    // total memory overflow of all processes in renderservice
-    if (isTotalOver && currentTime > totalMemoryReportTime_) {
-        TotalMemoryOverReport(infoMap);
-        totalMemoryReportTime_ = currentTime + MEMORY_REPORT_INTERVAL;
-    }
-    bool needReport = false;
-    bool needReportKill = false;
-    for (const auto& [pid, memoryInfo] : infoMap) {
-        if (memoryInfo.TotalMemory() <= memoryWarning_) {
-            continue;
-        }
-        needReport = false;
-        needReportKill = false;
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            auto it = pidInfo_.find(pid);
-            if (it == pidInfo_.end()) {
-                pidInfo_.emplace(pid, currentTime + MEMORY_REPORT_INTERVAL);
-                needReport = true;
-            } else if (currentTime > it->second) {
-                it->second = currentTime + MEMORY_REPORT_INTERVAL;
-                needReport = true;
-            }
-            if (memoryInfo.gpuMemory + memoryInfo.subThreadGpuMemory> gpuMemoryControl_ &&
-                processKillReportPidSet_.find(pid) == processKillReportPidSet_.end()) {
-                needReportKill = true;
-            }
-        }
-        if (needReport) {
-            MemoryOverReport(pid, memoryInfo, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
-        }
-        if (needReportKill) {
-            MemoryOverflow(pid, memoryInfo.gpuMemory + memoryInfo.subThreadGpuMemory, true);
-        }
-    }
 #endif
 }
 
@@ -794,11 +773,6 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
         appMgrClient.GetBundleNameByPid(pid, info.bundleName, info.uid);
     }
     KillProcessByPid(pid, info, reason);
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        processKillReportPidSet_.emplace(pid);
-    }
-
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
@@ -880,17 +854,19 @@ bool MemoryManager::NeedCleanNow(std::vector<std::string>& needCleanFileName)
     size_t prefixLen = prefix.length();
     struct dirent* entry;
     int fileNum = 0;
-    while ((entry = readdir(dir)) != nullptr && entry->d_type == DT_REG) {
-        std::string fileName = entry->d_name;
-        if (fileName.substr(0, prefixLen) == prefix) {
-            fileNum++;
-            needCleanFileName.push_back(fileName);
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_REG) {
+            std::string fileName = entry->d_name;
+            if (fileName.substr(0, prefixLen) == prefix) {
+                fileNum++;
+                needCleanFileName.push_back(fileName);
+            }
         }
     }
     if (fileNum < RETAIN_FILE_NUM) {
         return false;
     }
-    sort(needCleanFileName.begin(), needCleanFileName.end(), []
+    std::sort(needCleanFileName.begin(), needCleanFileName.end(), []
         (const std::string& firstFile, const std::string& secondFile) {
         int offset = 1;
         std::string firstFileTime = firstFile.substr(firstFile.rfind('_') + offset,
@@ -932,7 +908,6 @@ void MemoryManager::ErasePidInfo(const std::set<pid_t>& exitedPidSet)
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto pid : exitedPidSet) {
         pidInfo_.erase(pid);
-        processKillReportPidSet_.erase(pid);
     }
 }
 

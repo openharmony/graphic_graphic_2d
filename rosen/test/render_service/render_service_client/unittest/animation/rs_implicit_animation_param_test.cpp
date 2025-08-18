@@ -22,7 +22,6 @@
 #include "ui/rs_canvas_node.h"
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_keyframe_animation.h"
-#include "modifier/rs_property_modifier.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"

@@ -279,7 +279,7 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
 
     if (argCount != NUM_4) {
         UIEFFECT_LOG_E("Args number less than 4");
-        return thisVar;
+        return nullptr;
     }
     std::shared_ptr<BorderLightEffectPara> para = std::make_shared<BorderLightEffectPara>();
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,

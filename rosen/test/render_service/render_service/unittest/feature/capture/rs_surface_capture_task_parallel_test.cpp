@@ -107,7 +107,7 @@ public:
     {
         return nullptr;
     };
-    std::shared_ptr<Drawing::Surface> MakeSurface(int width, int height) const override {return nullptr;};
+    std::shared_ptr<Drawing::Surface> MakeSurface(int width, int height) const override { return nullptr; };
     std::shared_ptr<Drawing::Surface> MakeSurface(const Drawing::ImageInfo& imageInfo) const override
     {
         return nullptr;
@@ -117,10 +117,10 @@ public:
         return Drawing::BackendTexture(returnValidTexture_);
     }
     void FlushAndSubmit(bool syncCpu) override {};
-    Drawing::SemaphoresSubmited Flush(Drawing::FlushInfo* drawingflushInfo = nullptr) override
+    Drawing::SemaphoresSubmited Flush(Drawing::FlushInfo *drawingflushInfo = nullptr) override
     {
         return Drawing::SemaphoresSubmited::DRAWING_SUBMIT_NO;
-    };
+    }
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore) override {};
     void SetDrawingArea(const std::vector<Drawing::RectI>& rects) override {};
@@ -270,8 +270,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
     node->GetGravityTranslate(imgWidth, imgHeight);
     task.surfaceNode_ = node;
     auto pxiemap = task.CreatePixelMapBySurfaceNode(node, false);
-    ASSERT_EQ(pxiemap, nullptr);
-    pxiemap = task.CreatePixelMapBySurfaceNode(node, true);
     EXPECT_EQ(pxiemap, nullptr);
 
     node->renderProperties_.SetBoundsWidth(1.0f);
@@ -279,7 +277,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
     pxiemap = task.CreatePixelMapBySurfaceNode(node, false);
     EXPECT_NE(pxiemap, nullptr);
     pxiemap = task.CreatePixelMapBySurfaceNode(node, true);
-    ASSERT_EQ(pxiemap, nullptr);
+    EXPECT_NE(pxiemap, nullptr);
 }
 
 /*
@@ -312,7 +310,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode002, TestS
 
 /*
  * @tc.name: CreatePixelMapByDisplayNode003
- * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode003 with pixelmap is nullptr
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreatePixelMapByDisplayNode with pixelmap not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAHND9
 */
@@ -327,7 +325,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestS
     ScreenId screenId = 1;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    ASSERT_EQ(screenNode, nullptr);
+    ASSERT_NE(screenNode, nullptr);
     screenNode->AddChild(node);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, true));
@@ -754,7 +752,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     RSSurfaceCaptureParam captureParam;
     captureParam.id = nodeId;
     captureParam.config.isHdrCapture = true;
-    captureParam.config.mainScreenRect = { 0.f, 0.f, 480.f, 320.f };
+    captureParam.config.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 
     // Reset
@@ -794,7 +792,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     RSSurfaceCaptureParam captureParam;
     captureParam.id = nodeId;
     captureParam.config.isHdrCapture = true;
-    captureParam.config.mainScreenRect = { 0.f, 0.f, 480.f, 320.f };
+    captureParam.config.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 
     // Reset
@@ -885,7 +883,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
 
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.isHdrCapture = true;
-    captureConfig.mainScreenRect = { 0.f, 0.f, 480.f, 320.f };
+    captureConfig.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     bool ret = task.CreateResources();
     EXPECT_EQ(ret, false);
@@ -895,15 +893,15 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     RSSurfaceCaptureParam captureParam;
     captureParam.id = nodeId;
     captureParam.config.isHdrCapture = true;
-    captureParam.config.mainScreenRect = { 0.f, 0.f, 480.f, 320.f };
+    captureParam.config.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     ret = task.RunHDR(callback, captureParam);
     EXPECT_EQ(ret, false);
 
     task.finalRotationAngle_ = RS_ROTATION_90;
     ret = task.RunHDR(callback, captureParam);
     EXPECT_EQ(ret, false);
-    
-    //Reset
+
+    // Reset
     impl::RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
@@ -970,27 +968,27 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR003, TestSize.Level2)
     int32_t rowDataSize = 200;
     // 300 means height
     uint32_t bufferSize = rowDataSize * 300;
-    void* buffer = malloc(bufferSize);
-    char* ch = static_cast<char*>(buffer);
+    void *buffer = malloc(bufferSize);
+    char *ch = static_cast<char *>(buffer);
     for (unsigned int i = 0; i < bufferSize; i++) {
         *(ch++) = (char)i;
     }
 
-    task.pixelMap_->data_ = static_cast<uint8_t*>(buffer);
+    task.pixelMap_->data_ = static_cast<uint8_t *>(buffer);
     EXPECT_TRUE(task.pixelMap_->data_ != nullptr);
 
-    task.captureConfig_.mainScreenRect = { 0.f, 0.f, 480.f, 320.f };
+    task.captureConfig_.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     task.captureConfig_.isHdrCapture = true;
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
     EXPECT_EQ(task.RunHDR(callback, captureParam), false);
 
-    void* bufferHDR = malloc(bufferSize);
-    char* ch1 = static_cast<char*>(bufferHDR);
+    void *bufferHDR = malloc(bufferSize);
+    char *ch1 = static_cast<char *>(bufferHDR);
     for (unsigned int i = 0; i < bufferSize; i++) {
         *(ch1++) = (char)i;
     }
-    task.pixelMapHDR_->data_ = static_cast<uint8_t*>(bufferHDR);
+    task.pixelMapHDR_->data_ = static_cast<uint8_t *>(bufferHDR);
     EXPECT_TRUE(task.pixelMapHDR_->data_ != nullptr);
     EXPECT_EQ(task.RunHDR(callback, captureParam), false);
 }
@@ -1285,12 +1283,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, DrawHDRSurfaceContent001, TestSize.Le
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = nullptr;
 
-    task.captureConfig_.mainScreenRect = { 0.f, 0.f, -1.f, 1.f };
+    task.captureConfig_.mainScreenRect = {0.f, 0.f, -1.f, 1.f};
 
     task.captureConfig_.mainScreenRect = {0.f, 0.f, 1.f, -1.f};
 
 
-    task.captureConfig_.mainScreenRect = { 0.f, 0.f, 480.f, 320.f };
+    task.captureConfig_.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
 }

@@ -69,12 +69,13 @@ public:
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable) override;
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+        bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
     bool AddRequestVsyncTimestamp(const int64_t& timestamp);
-    void RemoveTriggeredVsync(const int64_t &currentTime);
-    bool NeedTriggeredVsync(const int64_t& currentTime);
-    bool IsRequestVsyncTimestampEmpty();
+    bool CheckIsReadyByTime(const int64_t& currentTime);
+    bool IsRequestVsyncTimestampEmpty(); // must use it in OnVsyncTrigger
+    void MarkRequestWithTimestampOnlyFlag(); // must use it in OnVsyncTrigger
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
     inline void SetGCNotifyTask(GCNotifyTask hook)
     {
@@ -96,6 +97,8 @@ public:
     int32_t proxyPid_;
     bool rnvTrigger_ = false;
 private:
+    bool NeedTriggeredVsyncLocked(const int64_t& currentTime);
+    void RemoveTriggeredVsyncLocked(const int64_t& currentTime);
     VsyncError CleanAllLocked();
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
@@ -122,6 +125,7 @@ private:
     bool isFirstSendVsync_ = true;
     RequestNativeVSyncCallback requestNativeVSyncCallback_ = nullptr;
     bool isRsConn_ = false;
+    bool isRequestWithTimestampOnly_ = false; // must use it in OnVsyncTrigger
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -159,8 +163,9 @@ public:
     void RecordVsyncModeChange(uint32_t refreshRate, int64_t period);
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
-    VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
-    virtual int64_t GetUiCommandDelayTime();
+    VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+        bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList);
+    int64_t GetUiCommandDelayTime();
     // no input scene delay rs
     int64_t GetRsDelayTime(const int32_t pid);
     void UpdatePendingReferenceTime(int64_t &timeStamp);
@@ -279,6 +284,7 @@ private:
         int64_t &period, int64_t &vsyncCount);
     bool VSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
         int64_t &period, int64_t &vsyncCount);
+    bool NeedForceUpdateRate(sptr<VSyncConnection> connection, int32_t &rate);
     sptr<VSyncController> dvsyncController_ = nullptr;
     bool dvsyncControllerEnabled_ = false;
     std::map<pid_t, std::vector<sptr<VSyncConnection>>> unalliedWindowConnectionsMap_;

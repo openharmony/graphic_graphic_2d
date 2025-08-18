@@ -646,6 +646,16 @@ bool DoSetScreenChangeCallback()
     return true;
 }
 
+bool DoSetScreenSwitchingNotifyCallback()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    sptr<RSIScreenSwitchingNotifyCallback> callback = nullptr;
+    rsConn_->SetScreenSwitchingNotifyCallback(callback);
+    return true;
+}
+
 bool DoSetFocusAppInfo()
 {
     if (rsConn_ == nullptr) {
@@ -1578,6 +1588,7 @@ void DoFuzzerTest1()
     DoTakeSurfaceCapture();
     DoSetHwcNodeBounds();
     DoSetScreenChangeCallback();
+    DoSetScreenSwitchingNotifyCallback();
     DoSetFocusAppInfo();
     DoSetAncoForceDoDirect();
     DoGetActiveDirtyRegionInfo();

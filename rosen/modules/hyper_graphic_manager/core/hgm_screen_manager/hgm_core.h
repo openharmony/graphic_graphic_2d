@@ -27,6 +27,7 @@
 
 #include <event_handler.h>
 
+#include "hdi_display_type.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_hfbc_config.h"
 #include "hgm_screen.h"
@@ -263,9 +264,9 @@ public:
     void NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect);
 
     // screen interface
-    int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
+    int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize,
+        const std::vector<GraphicDisplayModeInfo>& supportedModes = {});
     int32_t RemoveScreen(ScreenId id);
-    int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
     int32_t GetCurrentRefreshRateModeName() const;
@@ -346,7 +347,7 @@ private:
         return mPolicyConfigData_ != nullptr && !mPolicyConfigData_->refreshRateForSettings_.empty();
     }
 
-    static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+    static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
     std::shared_ptr<PolicyConfigVisitor> mPolicyConfigVisitor_ = nullptr;

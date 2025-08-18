@@ -253,11 +253,10 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
 
     DrawAdditionalContent(*curCanvas_);
-
     if (needOffscreen && canvasBackup_) {
-        Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
+        Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
         if (params->GetNeedOffscreen()) {
-            params->ApplyAlphaAndMatrixToCanvas(*curCanvas_);
+            params->ApplyAlphaAndMatrixToCanvas(*canvasBackup_);
         }
         ClearTransparentBeforeSaveLayer();
 #ifdef RS_PROFILER_ENABLED
@@ -279,7 +278,6 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (!ShouldPaint()) {
         return;
     }
-
     const auto& params = static_cast<RSLogicalDisplayRenderParams*>(GetRenderParams().get());
     if (!params) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::OnCapture params is null!");

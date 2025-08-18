@@ -183,14 +183,11 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int index)
 {
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
-
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-
     skTypeface->setIsCustomTypeface(true);
-
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
@@ -221,12 +218,11 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const Fo
 
 std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
 {
-    std::vector<std::shared_ptr<Typeface>> typefaces;
     std::vector<sk_sp<SkTypeface>> skTypefaces = SkTypeface::GetSystemFonts();
     if (skTypefaces.empty()) {
         return {};
     }
-
+    std::vector<std::shared_ptr<Typeface>> typefaces;
     typefaces.reserve(skTypefaces.size());
     for (auto& item : skTypefaces) {
         item->setIsCustomTypeface(false);

@@ -835,8 +835,6 @@ private:
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
-    std::unordered_set<int32_t> selfDrawingGpuDirtyPidList_;
-    std::mutex pidListMutex_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
 
     // for record fastcompose time change

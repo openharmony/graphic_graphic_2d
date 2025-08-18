@@ -59,16 +59,16 @@ void RSDrawFrame::SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& s
 bool RSDrawFrame::debugTraceEnabled_ =
     std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
 
-void RSDrawFrame::SetEarlyZFlag(Drawing::GPUContext* gpuContext)
+void RSDrawFrame::SetEarlyZEnabled(Drawing::GPUContext* gpuContext)
 {
     if (UNLIKELY(gpuContext == nullptr)) {
-        RS_LOGE("RSDrawFrame::SetEarlyZFlag gpuContext is nullptr!");
+        RS_LOGE("RSDrawFrame::SetEarlyZEnabled gpuContext is nullptr!");
         return;
     }
     bool isFlushEarlyZFlag = RSJankStats::GetInstance().GetFlushEarlyZ();
     if (isFlushEarlyZFlag) {
         bool earlyZEnableFlag = RSJankStats::GetInstance().GetEarlyZEnableFlag();
-        gpuContext->SetEarlyZFlag(earlyZEnableFlag);
+        gpuContext->SetEarlyZEnabled(earlyZEnableFlag);
     }
 }
 
@@ -104,8 +104,7 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.PurgeShaderCacheAfterAnimate();
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
-    auto gpuContext = unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-    SetEarlyZFlag(gpuContext);
+    SetEarlyZEnabled(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
     RsFrameReport::GetInstance().UniRenderEnd();
     EndCheck();
@@ -138,7 +137,7 @@ void RSDrawFrame::EndCheck()
         exceptionCheck_.exceptionMoment_ = timer_->GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
         RS_LOGE("RSDrawFrame::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
-            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}lld, EXCEPTION_POINT:%{public}s",
+            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}" PRId64", EXCEPTION_POINT:%{public}s",
             getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }

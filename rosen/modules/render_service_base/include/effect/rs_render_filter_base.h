@@ -104,6 +104,9 @@ public:
     
     static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                 std::shared_ptr<Drawing::GEVisualEffect> target);
+    
+    static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+        const Vector3f& rotationAngle);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
@@ -189,6 +192,13 @@ DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
 DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
     ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
     ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
+);
+
+DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
+    ADD_PROPERTY_TAG(ContentLight, Position),
+    ADD_PROPERTY_TAG(ContentLight, Color),
+    ADD_PROPERTY_TAG(ContentLight, Intensity),
+    ADD_PROPERTY_TAG(ContentLight, RotationAngle)
 );
 
 #undef ADD_PROPERTY_TAG

@@ -553,7 +553,7 @@ HWTEST_F(MatrixTest, SetConcat001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSinCos
+ * @tc.name: SetSinCos001
  * @tc.desc: the test Set matrix rotation .
  * @tc.type: FUNC
  * @tc.require: I73WU0
@@ -568,7 +568,7 @@ HWTEST_F(MatrixTest, SetSinCos001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MapRadius
+ * @tc.name: MapRadius001
  * @tc.desc: the test geometric radius.
  * @tc.type: FUNC
  * @tc.require: I73WU0
@@ -582,7 +582,7 @@ HWTEST_F(MatrixTest, MapRadius001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsAffine
+ * @tc.name: isAffine001
  * @tc.desc: the test a matrix is affine or not.
  * @tc.type: FUNC
  * @tc.require: I73WU0
@@ -595,7 +595,7 @@ HWTEST_F(MatrixTest, isAffine001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RectStaysRect
+ * @tc.name: rectStaysRect001
  * @tc.desc: the test matrix make rect stay rect or not.
  * @tc.type: FUNC
  * @tc.require: I73WU0

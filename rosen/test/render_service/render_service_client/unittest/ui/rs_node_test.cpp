@@ -33,9 +33,6 @@
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
 #include "feature/composite_layer/rs_composite_layer_utils.h"
-#include "modifier/rs_modifier.h"
-#include "modifier/rs_property_modifier.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "render/rs_filter.h"
@@ -97,14 +94,6 @@ public:
         auto borderOutlineGap = rsNode->GetStagingProperties().GetOutlineDashGap();
         EXPECT_TRUE(borderOutlineWidth.IsNearEqual(params));
         EXPECT_TRUE(borderOutlineGap.IsNearEqual(params));
-    }
-};
-
-class ContentStyleModifierTest : public RSContentStyleModifier {
-public:
-    void Draw(RSDrawingContext& context) const override
-    {
-        return;
     }
 };
 
@@ -3823,6 +3812,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter001, TestSize.Level1)
     }
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetUICompositingFilter002
  * @tc.desc: test results of SetUICompositingFilter
@@ -3882,6 +3872,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
     EXPECT_EQ(linearGradientBlurPara->fractionStops_, fractionStops);
     EXPECT_EQ(linearGradientBlurPara->direction_, direction);
 }
+#endif // !MODIFIER_NG
 
 /**
  * @tc.name: SetUICompositingFilter004
@@ -8449,6 +8440,7 @@ HWTEST_F(RSNodeTest, SetPerspY, TestSize.Level1)
     rsNode->SetPerspY(1.f);
     EXPECT_TRUE(!rsNode->propertyModifiers_.empty());
 }
+
 /**
  * @tc.name: SetModifier001
  * @tc.desc:
@@ -8562,7 +8554,7 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
     node1->DumpNode(0);
     ASSERT_TRUE(node1->GetModifierIds().size() == 1);
 }
-#endif
+
 /**
  * @tc.name: SetMagnifierParams
  * @tc.desc: test results of SetMagnifierParams
@@ -8583,7 +8575,7 @@ HWTEST_F(RSNodeTest, SetMagnifierParams, TestSize.Level1)
     ASSERT_TRUE(property != nullptr);
     EXPECT_EQ(property->Get(), para);
 }
-
+#endif
 /**
  * @tc.name: SetIsCustomTextType
  * @tc.desc: test results of SetIsCustomTextType

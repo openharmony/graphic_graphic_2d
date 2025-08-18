@@ -23,7 +23,6 @@
 #include "animation/rs_transition.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_animation_callback.h"
-#include "modifier/rs_property_modifier.h"
 #include "render/rs_path.h"
 
 using namespace testing;

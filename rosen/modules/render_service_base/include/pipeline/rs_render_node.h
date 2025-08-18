@@ -1453,8 +1453,6 @@ private:
 
     void ResetAndApplyModifiers();
 
-    void CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
-
     friend class DrawFuncOpItem;
     friend class RSContext;
     friend class RSMainThread;

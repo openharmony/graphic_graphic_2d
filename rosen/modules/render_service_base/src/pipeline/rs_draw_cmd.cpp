@@ -204,6 +204,9 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (isPurgeable) {
         rsImage_->DePurge();
     }
+    if (pixelmap && canvas.GetUICapture()) {
+        canvas.SetExistCapturePixelMapFlag(true);
+    }
     if (pixelmap && pixelmap->IsAstc()) {
         if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas())) {
             Drawing::AdaptiveImageInfo imageInfo = rsImage_->GetAdaptiveImageInfoWithCustomizedFrameRect(rect);

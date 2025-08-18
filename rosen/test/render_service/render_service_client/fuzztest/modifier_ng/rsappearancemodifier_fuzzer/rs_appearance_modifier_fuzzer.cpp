@@ -405,10 +405,10 @@ bool MaskModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSMaskModifier> modifier = std::make_shared<ModifierNG::RSMaskModifier>();
-    std::shared_ptr<RSMask> mask = std::make_shared<RSMask>();
+    auto modifier = std::make_shared<ModifierNG::RSMaskModifier>();
+    double xyScale = GetData<double>();
+    auto mask = RSMask::CreateSVGMask(xyScale, xyScale, xyScale, xyScale, nullptr);
     modifier->SetMask(mask);
-    modifier->GetMask();
 
     return true;
 }

@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 #include "get_object.h"
 
@@ -110,15 +111,15 @@ void NativeDrawingFontTest003(const uint8_t* data, size_t size)
     }
 
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
-    uint32_t str_size = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    char* str = new char[str_size];
-    for (size_t i = 0; i < str_size; i++) {
+    uint32_t strSize = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    char* str = new char[strSize];
+    for (size_t i = 0; i < strSize; i++) {
         str[i] = GetObject<char>();
     }
     uint32_t encoding = GetObject<uint32_t>();
-    OH_Drawing_FontCountText(nullptr, str, str_size,
+    OH_Drawing_FontCountText(nullptr, str, strSize,
         static_cast<OH_Drawing_TextEncoding>(encoding % TEXTENCODING_SIZE));
-    OH_Drawing_FontCountText(font, str, str_size, static_cast<OH_Drawing_TextEncoding>(encoding % TEXTENCODING_SIZE));
+    OH_Drawing_FontCountText(font, str, strSize, static_cast<OH_Drawing_TextEncoding>(encoding % TEXTENCODING_SIZE));
     if (str != nullptr) {
         delete [] str;
         str = nullptr;
@@ -264,12 +265,19 @@ void NativeDrawingFontTest008(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
+    float fontSize = GetObject<float>();
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_FontSetTextSize(font, fontSize);
 
-    OH_Drawing_Font *font = OH_Drawing_FontCreate();
-    OH_Drawing_FontSetTextSize(font, 50);
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
-    const char* text = "你好世界";
+    uint32_t textLen = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
+    std::unique_ptr<char[]> textArr = std::make_unique<char[]>(textLen);
+    char* text = textArr.get();
+    for (size_t i = 0; i < textLen; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[textLen - 1] = '\0';
     uint32_t count = 0;
     count = OH_Drawing_FontCountText(font, text, strlen(text), TEXT_ENCODING_UTF8);
     uint16_t glyphs[count];
@@ -277,7 +285,8 @@ void NativeDrawingFontTest008(const uint8_t* data, size_t size)
     int glyphsCount = 0;
     glyphsCount = OH_Drawing_FontTextToGlyphs(
         font, text, strlen(text), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8, glyphs, count);
-    float widths[50] = {0.f}; // 50 means widths array number
+    std::unique_ptr<float[]> widthArr = std::make_unique<float[]>(glyphsCount);
+    float* widths = widthArr.get();
     OH_Drawing_Array *outRectarr = OH_Drawing_RectCreateArray(count);
     OH_Drawing_FontGetWidthsBounds(nullptr, glyphs, glyphsCount, nullptr, nullptr, widths, outRectarr);
     OH_Drawing_FontGetWidthsBounds(font, glyphs, glyphsCount, brush, nullptr, widths, outRectarr);
@@ -336,7 +345,9 @@ void NativeDrawingFontTest010(const uint8_t* data, size_t size)
         return;
     }
 
+    float fontSize = GetObject<float>();
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_FontSetTextSize(font, fontSize);
     float spacing = 0.0f;
     OH_Drawing_FontGetSpacing(nullptr, &spacing);
     OH_Drawing_FontGetSpacing(font, nullptr);

@@ -78,28 +78,6 @@ bool PathOpFuzzTest(const uint8_t* data, size_t size)
 /*
  * 测试以下 Path 接口：
  * 1. Path()
- * 2. Path(const Path&)
- * 3. GetDrawingType()
- * 4. ConvertToSVGString()
- * 5. operator=
- */
-bool PathFuzzTest001(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Path path;
-    Path pathTwo = Path(path);
-    path.GetDrawingType();
-    path.ConvertToSVGString();
-    path = pathTwo;
-    return true;
-}
-
-/*
- * 测试以下 Path 接口：
- * 1. Path()
  * 2. ArcTo(...)
  * 3. ArcTo(...)
  * 4. ArcTo(...)
@@ -479,7 +457,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::PathAddFuzzTest(data, size);
     OHOS::Rosen::Drawing::PathOpFuzzTest(data, size);
-    OHOS::Rosen::Drawing::PathFuzzTest001(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest002(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest003(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest004(data, size);

@@ -70,7 +70,7 @@ public:
         scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
         const Matrix *matrix) override;
 
-    void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr,
+    void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,
         scalar endRadius, const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
         const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) override;
 

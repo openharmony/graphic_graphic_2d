@@ -1811,29 +1811,122 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest005,
 }
 
 /**
- * @tc.name: CreateNodeAndSurfaceTest001
- * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
+ * @tc.name: SetOptimizeCanvasDirtyPidListTest001
+ * @tc.desc: Test SetOptimizeCanvasDirtyPidList when data is invalid
  * @tc.type: FUNC
- * @tc.require: issueIICR2M7
+ * @tc.require: issueICSPON
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest001, TestSize.Level1)
 {
-    sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
-    ASSERT_NE(connection, nullptr);
-    auto mainThread = connection->mainThread_;
-    RSSurfaceRenderNodeConfig config;
-    config.id = 1;
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    std::vector<int32_t> pidList;
-    pidList.emplace_back(ExtractPid(config.id));
-    mainThread->SetSelfDrawingGpuDirtyPidList(pidList);
-    sptr<Surface> surface = nullptr;
-    auto ret = connection->CreateNodeAndSurface(config, surface, false);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteInt32(-1);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SetOptimizeCanvasDirtyPidListTest002
+ * @tc.desc: Test SetOptimizeCanvasDirtyPidList when data is valid
+ * @tc.type: FUNC
+ * @tc.require: issueICSPON
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    std::vector<int32_t> pidList = {1};
+    data.WriteInt32Vector(pidList);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_OK);
-    auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    ret = connection->CreateNodeAndSurface(config, surface, false);
-    ASSERT_NE(ret, ERR_OK);
-    system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+}
+
+/**
+ * @tc.name: SetOptimizeCanvasDirtyPidListTest003
+ * @tc.desc: Test SetOptimizeCanvasDirtyPidList when pidlist is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueICSPON
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
+    data.WriteInt32Vector(pidList);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetWindowFreezeImmediately
+ * @tc.desc: Test SetWindowFreezeImmediately
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest001, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+
+    NodeId id = 0;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(id);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SetWindowFreezeImmediately
+ * @tc.desc: Test SetWindowFreezeImmediately
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest002, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+
+    pid_t pid = GetRealPid();
+    NodeId id = (NodeId)pid << 32;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(id);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: ShowWatermarkTest
+ * @tc.desc: Test ShowWatermark
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    bool isShow = false;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteParcelable(nullptr);
+    data.WriteBool(isShow);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen

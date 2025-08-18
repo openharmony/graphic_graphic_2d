@@ -334,9 +334,11 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
     auto secondDrawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
     Brush brush;
     drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    EXPECT_EQ(drawCmdList->drawOpItems_.size(), 1);
     drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
-    EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
+    EXPECT_TRUE(secondDrawCmdList->lastOpItemOffset_.has_value());
     delete drawCmdList;
+    delete secondDrawCmdList;
 }
 
 /**
@@ -351,6 +353,7 @@ HWTEST_F(DrawCmdListTest, SetIsReplayMode, Level1)
     EXPECT_TRUE(drawCmdList->isReplayMode);
     drawCmdList->SetIsReplayMode(false);
     EXPECT_FALSE(drawCmdList->isReplayMode);
+    delete drawCmdList;
 }
 
 /**

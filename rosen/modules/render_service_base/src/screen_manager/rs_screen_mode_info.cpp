@@ -25,6 +25,8 @@ RSScreenModeInfo::RSScreenModeInfo(int32_t width, int32_t height, uint32_t refre
 
 RSScreenModeInfo::RSScreenModeInfo(const RSScreenModeInfo& other)
 {
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     int32_t width = other.width_;
     int32_t height = other.height_;
     uint32_t refreshRate = other.refreshRate_;
@@ -37,6 +39,8 @@ RSScreenModeInfo::RSScreenModeInfo(const RSScreenModeInfo& other)
 
 RSScreenModeInfo& RSScreenModeInfo::operator=(const RSScreenModeInfo& other)
 {
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     int32_t width = other.width_;
     int32_t height = other.height_;
     uint32_t refreshRate = other.refreshRate_;

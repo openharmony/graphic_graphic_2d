@@ -1543,15 +1543,15 @@ HWTEST_F(ColorPickerUnittest, GetTopProportionColors, TestSize.Level1)
 }
 
 /**
- * @tc.name: AdjustHSVToDefinedInterval
- * @tc.desc: check hsv to defined interval.
+ * @tc.name: AdjustHSVToDefinedIterval
+ * @tc.desc: check hsv to defined iterval.
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
 HWTEST_F(ColorPickerUnittest, AdjustHSVToDefinedInterval, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedInterval start";
+    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedIterval start";
 
     std::shared_ptr<ColorPicker> pColorPicker = CreateColorPicker();
     ASSERT_NE(pColorPicker, nullptr);
@@ -1568,7 +1568,164 @@ HWTEST_F(ColorPickerUnittest, AdjustHSVToDefinedInterval, TestSize.Level1)
     EXPECT_EQ(lHsv.s, 0); // 0 is valid saturation
     EXPECT_EQ(lHsv.v, 0); // 0 is valid value
 
-    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedInterval end";
+    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedIterval end";
+}
+
+/**
+ * @tc.name: CreateScaledPixelMap
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CreateScaledPixelMapTest001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMapPtr = nullptr;
+    EXPECT_EQ(ColorPicker::CreateScaledPixelMap(pixelMapPtr), nullptr);
+}
+
+/**
+ * @tc.name: CreateColorPickerFromPixelmapTest006
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CreateColorPickerFromPixelmapTest006, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMapPtr = nullptr;
+    uint32_t errorCode = SUCCESS;
+    double region[4] = { 0, 0.5, 0.5, 0.5 };
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(pixelMapPtr, region, errorCode);
+    EXPECT_EQ(pColorPicker, nullptr);
+}
+
+/**
+ * @tc.name: RGB2GRAY and CalcGrayVariance etc.
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, RGB2GRAYTest001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+
+    EXPECT_NE(pColorPicker->RGB2GRAY(100), 0);
+    EXPECT_NE(pColorPicker->CalcGrayVariance(), 0);
+    EXPECT_NE(pColorPicker->CalcRelaticeLuminance(100), 100);
+    EXPECT_NE(pColorPicker->CalcContrastRatioWithWhite(), 100);
+}
+
+/**
+ * @tc.name: AdjustLowSaturationBrightColor001.
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, AdjustLowSaturationBrightColor001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+
+    HSV colorHsv = { 20, 20, 20 };
+    HSV mainHsv = { 0, 0, 0 };
+    HSV secondaryHsv = { 0, 0, 0 };
+    std::pair<uint32_t, uint32_t> mainColor = { 0, 0 };
+    std::pair<uint32_t, uint32_t> secondaryColor = { 0, 0 };
+    pColorPicker->AdjustLowSaturationBrightColor(colorHsv, mainHsv, secondaryHsv, mainColor, secondaryColor);
+    EXPECT_NE(colorHsv.s, 100);
+}
+
+/**
+ * @tc.name: AdjustHSVToDefinedIterval001.
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, AdjustHSVToDefinedIterval001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+
+    HSV colorHsv = { 361, 20, -20 };
+    pColorPicker->AdjustHSVToDefinedInterval(colorHsv);
+    EXPECT_EQ(colorHsv.h, 360);
+    EXPECT_EQ(colorHsv.v, 0);
+
+    colorHsv = { -10, 220, 20 };
+    pColorPicker->AdjustHSVToDefinedInterval(colorHsv);
+    EXPECT_EQ(colorHsv.h, 0);
+    EXPECT_EQ(colorHsv.s, 100);
+
+    colorHsv = { 210, -220, 220 };
+    pColorPicker->AdjustHSVToDefinedInterval(colorHsv);
+    EXPECT_EQ(colorHsv.v, 100);
+    EXPECT_EQ(colorHsv.s, 0);
+}
+
+/**
+ * @tc.name: HSVToRGB
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, HSVToRGBTest001, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+
+    HSV colorHsv = { 10, 0, 10 };
+    auto rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
+
+    colorHsv = { 70, 0, 10 };
+    rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
+
+    colorHsv = { 130, 0, 10 };
+    rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
+
+    colorHsv = { 190, 0, 10 };
+    rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
+
+    colorHsv = { 250, 0, 10 };
+    rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
+
+    colorHsv = { 310, 0, 10 };
+    rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
+
+    colorHsv = { 370, 0, 10 };
+    rgb = pColorPicker->HSVtoRGB(colorHsv);
+    EXPECT_NE(rgb, 0);
 }
 
 /**
@@ -1608,7 +1765,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest004, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract GetRGBA1010102ColorA
- * @tc.desc: Test ColorExtract GetRGBA1010102ColorA
+ * @tc.desc: Test ColorExtract::GetRGBA1010102ColorA
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorA, TestSize.Level1)
@@ -1621,7 +1778,7 @@ HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorA, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract GetRGBA1010102ColorR
- * @tc.desc: Test ColorExtract GetRGBA1010102ColorR
+ * @tc.desc: Test ColorExtract::GetRGBA1010102ColorR
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorR, TestSize.Level1)
@@ -1634,7 +1791,7 @@ HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorR, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract GetRGBA1010102ColorG
- * @tc.desc: Test ColorExtract GetRGBA1010102ColorG
+ * @tc.desc: Test ColorExtract::GetRGBA1010102ColorG
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorG, TestSize.Level1)
@@ -1647,7 +1804,7 @@ HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorG, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract GetRGBA1010102ColorB
- * @tc.desc: Test ColorExtract GetRGBA1010102ColorB
+ * @tc.desc: Test ColorExtract::GetRGBA1010102ColorB
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorB, TestSize.Level1)
@@ -1655,12 +1812,12 @@ HWTEST_F(ColorPickerUnittest, GetRGBA1010102ColorB, TestSize.Level1)
     unsigned int color = 0xfedcba98; // normal value
 
     auto ret = ColorExtract::GetRGBA1010102ColorB(color);
-    EXPECT_EQ(ret, (color >> ColorExtract::RGBA1010102_G_SHIFT) & ColorExtract::RGBA1010102_RGB_MASK);
+    EXPECT_EQ(ret, (color >> ColorExtract::RGBA1010102_B_SHIFT) & ColorExtract::RGBA1010102_RGB_MASK);
 }
 
 /**
  * @tc.name: ColorExtract QuantizeFromRGB101010
- * @tc.desc: Test ColorExtract QuantizeFromRGB101010
+ * @tc.desc: Test ColorExtract::QuantizeFromRGB101010
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, QuantizeFromRGB101010, TestSize.Level1)
@@ -1681,7 +1838,7 @@ HWTEST_F(ColorPickerUnittest, QuantizeFromRGB101010, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract Rgb2Gray
- * @tc.desc: Test ColorExtract Rgb2Gray
+ * @tc.desc: Test ColorExtract::Rgb2Gray
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, Rgb2Gray, TestSize.Level1)
@@ -1693,7 +1850,7 @@ HWTEST_F(ColorPickerUnittest, Rgb2Gray, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract CalcRelativeLum
- * @tc.desc: Test ColorExtract CalcRelativeLum
+ * @tc.desc: Test ColorExtract::CalcRelativeLum
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, CalcRelativeLum, TestSize.Level1)
@@ -1729,7 +1886,7 @@ HWTEST_F(ColorPickerUnittest, NormalizeRgb, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract GetNFeatureColors
- * @tc.desc: Test ColorExtract GetNFeatureColors
+ * @tc.desc: Test ColorExtract::GetNFeatureColors
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, GetNFeatureColors, TestSize.Level1)
@@ -1757,7 +1914,6 @@ HWTEST_F(ColorPickerUnittest, GetNFeatureColors, TestSize.Level1)
     std::shared_ptr<PixelMap> pixmap = PixelMap::Create(color, colorlength, offset, width, options);
     ASSERT_NE(pixmap, nullptr);
 
-
     /**
      * @tc.steps: step2. Call create From pixelMap
      */
@@ -1772,7 +1928,7 @@ HWTEST_F(ColorPickerUnittest, GetNFeatureColors, TestSize.Level1)
     pColorPicker->format_ = Media::PixelFormat::RGBA_1010102;
     pColorPicker->GetNFeatureColors(colorNum);
     EXPECT_EQ(pColorPicker->distinctColorCount_, 1); // Only one color type
-    EXPECT_EQ(pColorPicker->featureColors_.size(), 1); // Only one color type
+    EXPECT_EQ(pColorPicker->featureColors_.size(), 1); // Only one feature type
 }
 
 /**
@@ -1859,7 +2015,7 @@ HWTEST_F(ColorPickerUnittest, CreateColorExtract02, TestSize.Level1)
 
 /**
  * @tc.name: ColorExtract CreateColorExtract03
- * @tc.desc: Test ColorExtract CreateColorExtract
+ * @tc.desc: Test ColorExtract CreateColorExtract03
  * @tc.type: FUNC
  */
 HWTEST_F(ColorPickerUnittest, CreateColorExtract03, TestSize.Level1)
@@ -1868,7 +2024,7 @@ HWTEST_F(ColorPickerUnittest, CreateColorExtract03, TestSize.Level1)
      * @tc.steps: step1. Create a pixelmap
      */
     const int32_t offset = 0;
-    InitializationOptions options;
+    Media::InitializationOptions options;
     options.size.width = 2; // 2 means width
     options.size.height = 3; // 3 means height
     options.srcPixelFormat = PixelFormat::RGBA_8888;
@@ -1878,21 +2034,21 @@ HWTEST_F(ColorPickerUnittest, CreateColorExtract03, TestSize.Level1)
     uint32_t colorlength = 24;    // w:2 * h:3 * pixelByte:4
     uint8_t buffer[24] = { 0 };    // w:2 * h:3 * pixelByte:4
     for (int i = 0; i < colorlength; i += 4) {
-        buffer[i] = 0x00; // color with alpha not 0
-        buffer[i + 1] = 0x00; // color with alpha not 0
-        buffer[i + 2] = 0x00; // color with alpha not 0
-        buffer[i + 3] = 0x00; // color with alpha not 0
+        buffer[i] = 0x00;
+        buffer[i + 1] = 0x00;
+        buffer[i + 2] = 0x00;
+        buffer[i + 3] = 0x00;
     }
     uint32_t *color = reinterpret_cast<uint32_t *>(buffer);
     std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
-    ASSERT_NE(pixelMap, nullptr);
+    EXPECT_NE(pixelMap, nullptr);
 
     /**
      * @tc.steps: step2. Call create From pixelMap
      */
     EXPECT_EQ(pixelMap->GetPixelFormat(), Media::PixelFormat::RGBA_1010102);
     std::shared_ptr<ColorPicker> pColorPicker = std::make_shared<ColorPicker>(std::move(pixelMap));
-    ASSERT_NE(pColorPicker, nullptr);
+    EXPECT_NE(pColorPicker, nullptr);
     EXPECT_EQ(pColorPicker->format_, PixelFormat::RGBA_1010102);
     EXPECT_EQ(pColorPicker->colorValLen_, 0);
 }
@@ -1934,7 +2090,7 @@ HWTEST_F(ColorPickerUnittest, InitColorValBy1010102Color, TestSize.Level1)
     std::shared_ptr<ColorPicker> pColorPicker = std::make_shared<ColorPicker>(std::move(pixelMap));
     EXPECT_NE(pColorPicker, nullptr);
     EXPECT_EQ(pColorPicker->format_, PixelFormat::RGBA_1010102);
-    pColorPicker->InitColorValBy1010102Color(nullptr, 0, 0, 0, 0);
+    pColorPicker->InitColorValBy1010102Color(pixelMap, 0, 0, 0, 0);
     EXPECT_EQ(pColorPicker->colorValLen_, 0);
     pColorPicker->InitColorValBy1010102Color(nullptr, 0, 0, 1, 1);
     EXPECT_EQ(pColorPicker->colorValLen_, 0);

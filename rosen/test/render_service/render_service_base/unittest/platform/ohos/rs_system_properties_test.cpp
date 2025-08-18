@@ -1117,7 +1117,7 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
  */
 HWTEST_F(RSSystemPropertiesTest, GetOptimizeCanvasDrawRegionEnabled, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
+    ASSERT_TRUE(RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled());
 }
 
 /**

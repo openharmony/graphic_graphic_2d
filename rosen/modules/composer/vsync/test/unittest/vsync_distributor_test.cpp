@@ -502,7 +502,24 @@ HWTEST_F(VSyncDistributorTest, GetRsDelayTime001, Function | MediumTest| Level3)
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
 {
     uint32_t bufferCount = 2;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false), VSYNC_ERROR_OK);
+    std::vector<std::string> rsDvsyncAnimationList {};
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false,
+        rsDvsyncAnimationList), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncConfig002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig002, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 2;
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount, false, false,
+        rsDvsyncAnimationList), VSYNC_ERROR_OK);
 }
 
 /*
@@ -545,7 +562,8 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest001, Function | MediumTest| 
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_OK);
+    std::vector<std::string> rsDvsyncAnimationList {};
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_OK);
 }
 
 /*
@@ -560,7 +578,8 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Lev
 HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest001, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
-    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false), VSYNC_ERROR_NULLPTR);
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1, false, false, rsDvsyncAnimationList), VSYNC_ERROR_NULLPTR);
 }
 
 /*
@@ -688,102 +707,96 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Lev
     vsyncDistributor->vsyncMode_ = vsyncMode;
 }
 
-
-/**
- * Function: CollectConnections001
+/*
+ * Function: OnVSyncTriggerTest005
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. create different conn(rate = 1) and add them to the VSyncDistributor
- *                  2. call CollectConnections001 with different parameters
- *                  3. check if the result is correct
+ * CaseDescription: 1. test OnVSyncTrigger
  */
-HWTEST_F(VSyncDistributorTest, CollectConnections001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest005, Function | MediumTest| Level3)
 {
     std::vector<sptr<VSyncConnection>> conns;
-    std::vector<sptr<VSyncConnection>> rsConns;
-    int64_t now = 1000000000;
-    int64_t timestamp = 100;
-    bool waitForVSync = false;
 
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
-    conns[0]->rate_ = 1;
-    conns[0]->triggerThisTime_ = true;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, false); // should inited to false
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(1000000000), true);
+    conn->rate_ = 0;
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->RequestNextVSync(conn, "Test_5", 0, 1000000000), GSERROR_OK);
+    conns.emplace_back(conn);
 
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
-    conns[1]->rate_ = 1;
-    conns[1]->triggerThisTime_ = false;
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
-    conns[2]->rate_ = 1;
-    conns[2]->triggerThisTime_ = true;
-    conns[2]->AddRequestVsyncTimestamp(timestamp);
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
-    conns[3]->rate_ = 1;
-    conns[3]->triggerThisTime_ = false;
-    conns[3]->AddRequestVsyncTimestamp(timestamp);
-
-    for (size_t i = 0; i < conns.size(); i++) {
-        waitForVSync = false;
-        rsConns.clear();
-
-        ASSERT_EQ(vsyncDistributor->AddConnection(conns[i], 1), VSYNC_ERROR_OK);
-        vsyncDistributor->CollectConnections(waitForVSync, now, rsConns, 0, false);
-        EXPECT_EQ(rsConns.size(), 1);
-        EXPECT_TRUE(waitForVSync);
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_; // record
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPO;
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, vsyncDistributor->vsyncMode_, 360);
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, false);
+    for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
+    vsyncDistributor->vsyncMode_ = vsyncMode;
 }
 
-/**
- * Function: CollectConnections002
+/*
+ * Function: OnVSyncTriggerTest006
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. create different conn(rate = -1) and add them to the VSyncDistributor
- *                  2. call CollectConnections001 with different parameters
- *                  3. check if the result is correct
+ * CaseDescription: 1. test OnVSyncTrigger
  */
-HWTEST_F(VSyncDistributorTest, CollectConnections002, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest006, Function | MediumTest| Level3)
 {
     std::vector<sptr<VSyncConnection>> conns;
-    std::vector<sptr<VSyncConnection>> rsConns;
-    int64_t now = 1000000000;
-    int64_t timestamp = 100;
-    bool waitForVSync = false;
 
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
-    conns[0]->rate_ = -1;
-    conns[0]->triggerThisTime_ = true;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, false); // should inited to false
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(1000000000), true);
+    conn->rate_ = 0;
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
 
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "noRs"));
-    conns[1]->rate_ = -1;
-    conns[1]->triggerThisTime_ = false;
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
-    conns[2]->rate_ = -1;
-    conns[2]->triggerThisTime_ = true;
-    conns[2]->AddRequestVsyncTimestamp(timestamp);
-
-    conns.emplace_back(new VSyncConnection(vsyncDistributor, "rs"));
-    conns[3]->rate_ = -1;
-    conns[3]->triggerThisTime_ = false;
-    conns[3]->AddRequestVsyncTimestamp(timestamp);
-
-    for (size_t i = 0; i < conns.size(); i++) {
-        waitForVSync = false;
-        rsConns.clear();
-        ASSERT_EQ(vsyncDistributor->AddConnection(conns[i], 1), VSYNC_ERROR_OK);
-        vsyncDistributor->CollectConnections(waitForVSync, now, rsConns, 0, false);
-        EXPECT_EQ(rsConns.size(), 0);
-        if (!conns[i]->triggerThisTime_ && !conns[i]->NeedTriggeredVsync(timestamp)) {
-            EXPECT_EQ(waitForVSync, !conns[i]->IsRequestVsyncTimestampEmpty());
-        } else {
-            EXPECT_FALSE(waitForVSync);
-        }
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_; // record
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPO;
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, vsyncDistributor->vsyncMode_, 360);
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, true);
+    for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
+    vsyncDistributor->vsyncMode_ = vsyncMode;
+}
+
+/*
+ * Function: OnVSyncTriggerTest007
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test OnVSyncTrigger
+ */
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest007, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, false); // should inited to false
+
+    conn->rate_ = -1;
+    conn->highPriorityState_ = false;
+
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+
+    VSyncMode vsyncMode = vsyncDistributor->vsyncMode_; // record
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, vsyncDistributor->vsyncMode_, 360);
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, false);
+
+    EXPECT_EQ(conn->AddRequestVsyncTimestamp(1000000000), true);
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, vsyncDistributor->vsyncMode_, 360);
+    EXPECT_EQ(conn->isRequestWithTimestampOnly_, true);
+
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+    vsyncDistributor->vsyncMode_ = vsyncMode;
 }
 
 /*
@@ -1063,6 +1076,40 @@ HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest001, Function | MediumTes
 }
 
 /*
+* Function: ConnectionsPostEventTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ConnectionsPostEvent
+ */
+HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest002, Function | MediumTest| Level3)
+{
+    const uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "rs");
+    conn->isRequestWithTimestampOnly_ = true;
+    std::vector<sptr<VSyncConnection>> conns = {conn};
+    int64_t now = 10000000;
+    int64_t period = 16666666;
+    int64_t generatorRefreshRate = 60;
+    int64_t vsyncCount = 1;
+    bool isDvsyncController = false;
+    int64_t timeDiff = 1000000; // ns
+    for (int32_t i = 0; i < MAX_VSYNC_QUEUE_SIZE; i++) {
+        int64_t addTime = now + (i + 1) * timeDiff;
+        EXPECT_EQ(conn->AddRequestVsyncTimestamp(addTime), true);
+    }
+
+    // this will Not PostEvent
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+    EXPECT_EQ(conn->requestVsyncTimestamp_.size(), MAX_VSYNC_QUEUE_SIZE);
+
+    // distributor do not post event, so ReceiveData should be fail
+    int64_t receiveData[3];
+    int32_t length = conn->socketPair_->ReceiveData(receiveData, sizeof(receiveData));
+    EXPECT_EQ(length, -1);
+}
+
+/*
 * Function: DisableDVSyncControllerTest001
 * Type: Function
 * Rank: Important(2)
@@ -1280,7 +1327,7 @@ HWTEST_F(VSyncDistributorTest, VSyncCheckPreexecuteAndUpdateTsTest001, Function 
     int64_t vsyncCount = 1;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
     ASSERT_FALSE(vsyncDistributor->VSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount));
-    
+
     vsyncDistributor->vsyncEnabled_ = vsyncEnabeled;
     vsyncDistributor->controller_ = nullptr;
     ASSERT_FALSE(vsyncDistributor->VSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount));
@@ -1359,49 +1406,37 @@ HWTEST_F(VSyncDistributorTest, AddRequestVsyncTimestamp001, Function | MediumTes
 }
 
 /*
- * Function: RemoveTriggeredVsync001
+ * Function: RemoveTriggeredVsyncLocked001
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. test RemoveTriggeredVsync
+ * CaseDescription: 1. test RemoveTriggeredVsyncLocked
  */
 HWTEST_F(VSyncDistributorTest, RemoveTriggeredVsync001, Function | MediumTest | Level3)
 {
     vsyncConnection->requestVsyncTimestamp_.clear();
     vsyncConnection->requestVsyncTimestamp_.insert(100);
     int64_t currentTime = 1000;
-    vsyncConnection->RemoveTriggeredVsync(currentTime);
-    if (vsyncConnection->isRsConn_) {
-        ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 0);
-    } else {
-        ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 1);
-    }
+    vsyncConnection->RemoveTriggeredVsyncLocked(currentTime);
+    ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 0);
 }
 
 /*
- * Function: NeedTriggeredVsync001
+ * Function: NeedTriggeredVsyncLocked001
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. test NeedTriggeredVsync
+ * CaseDescription: 1. test NeedTriggeredVsyncLocked
  */
-HWTEST_F(VSyncDistributorTest, NeedTriggeredVsync001, Function | MediumTest | Level3)
+HWTEST_F(VSyncDistributorTest, NeedTriggeredVsyncLocked001, Function | MediumTest | Level3)
 {
     vsyncConnection->requestVsyncTimestamp_.clear();
     vsyncConnection->requestVsyncTimestamp_.insert(100);
     int64_t currentTime = 1000;
-    if (vsyncConnection->isRsConn_) {
-        ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
-    } else {
-        ASSERT_FALSE(vsyncConnection->NeedTriggeredVsync(currentTime));
-    }
+    ASSERT_TRUE(vsyncConnection->NeedTriggeredVsyncLocked(currentTime));
 
     currentTime = 10;
-    if (vsyncConnection->isRsConn_) {
-        ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
-    } else {
-        ASSERT_FALSE(vsyncConnection->NeedTriggeredVsync(currentTime));
-    }
+    ASSERT_FALSE(vsyncConnection->NeedTriggeredVsyncLocked(currentTime));
 }
 
 /*

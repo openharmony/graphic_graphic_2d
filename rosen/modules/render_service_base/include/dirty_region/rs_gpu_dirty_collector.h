@@ -15,6 +15,8 @@
 #ifndef RENDER_SERVICE_BASE_RS_GPU_DIRTY_COLLECTOR_H
 #define RENDER_SERVICE_BASE_RS_GPU_DIRTY_COLLECTOR_H
 
+#include <mutex>
+
 #include "common/rs_rect.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
@@ -50,11 +52,24 @@ struct BufferSelfDrawingData {
 
 class RSB_EXPORT RSGpuDirtyCollector {
 public:
+    static RSGpuDirtyCollector& GetInstance();
+    void SetSelfDrawingGpuDirtyPidList(const std::vector<int32_t>& pidList);
+    bool IsGpuDirtyEnable(NodeId nodeId);
 #ifndef ROSEN_CROSS_PLATFORM
     static BufferSelfDrawingData *GetBufferSelfDrawingData(const sptr<SurfaceBuffer> &buffer);
     static bool DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, Rect &rect);
     static void SetGpuDirtyEnabled(const sptr<SurfaceBuffer> &buffer, bool gpuDirtyEnable);
 #endif
+private:
+    RSGpuDirtyCollector() = default;
+    ~RSGpuDirtyCollector() = default;
+    RSGpuDirtyCollector(const RSGpuDirtyCollector&) = delete;
+    RSGpuDirtyCollector(const RSGpuDirtyCollector&&) = delete;
+    RSGpuDirtyCollector& operator=(const RSGpuDirtyCollector&) = delete;
+    RSGpuDirtyCollector& operator=(const RSGpuDirtyCollector&&) = delete;
+
+    std::unordered_set<int32_t> selfDrawingGpuDirtyPidList_;
+    std::mutex pidListMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -38,6 +38,7 @@
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_skia_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "memory/rs_tag_tracker.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -222,6 +223,9 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
 
     RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState().c_str());
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_FILTERCACHEENABLEVMA);
+#endif
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     }
@@ -906,13 +910,9 @@ void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
         return;
     }
     auto drawnRegion = canvas.GetDrawnRegion();
-    if (drawnRegion.IsEmpty()) {
-        return;
-    }
     Occlusion::Region filterRegion(
         Occlusion::Rect(filterBound.left_, filterBound.top_, filterBound.right_, filterBound.bottom_));
-    // if region belongs to filterRegion but not drawnRegion is not empty, the cache is invalid.
-    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty();
+    const bool isCacheInvalid = !filterRegion.Sub(drawnRegion).IsEmpty() && !filterRegion.And(drawnRegion).IsEmpty();
     if (isCacheInvalid) {
         InvalidateFilterCache(FilterCacheType::BOTH);
     }

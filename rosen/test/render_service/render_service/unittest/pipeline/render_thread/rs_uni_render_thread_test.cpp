@@ -58,6 +58,9 @@ void RSUniRenderThreadTest::SetUpTestCase()
 
 void RSUniRenderThreadTest::TearDownTestCase()
 {
+    auto& rsJankStats = RSJankStats::GetInstance();
+    rsJankStats.isFlushEarlyZ_ = false;
+    rsJankStats.ddgrEarlyZEnable_ = false;
     uniRenderThread.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
     uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
     sleep(25); // wait 25s ensure async task is executed.
@@ -609,6 +612,34 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSurfaceTest, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.ReleaseSurface();
     ASSERT_EQ(instance.tmpSurfaces_.size(), 0);
+}
+
+/**
+ * @tc.name: SetEarlyZFlagTest
+ * @tc.desc: Test Set EarlyZ Flag in RSUniRenderThread
+ * @tc.type: FUNC
+ * @tc.require: issueIB2I9E
+ */
+HWTEST_F(RSUniRenderThreadTest, SetEarlyZFlag, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    ClearMemoryMoment moment = ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE;
+    bool deeply = true;
+    bool isDefaultClean = true;
+    instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
+    ASSERT_NE(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), nullptr);
+
+    RSDrawFrame drawFrame_;
+    auto& rsJankStats = RSJankStats::GetInstance();
+    rsJankStats.ddgrEarlyZEnable_ = true;
+    rsJankStats.isFlushEarlyZ_ = true;
+    drawFrame_.SetEarlyZEnabled(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    EXPECT_FALSE(rsJankStats.isFlushEarlyZ_);
+    drawFrame_.SetEarlyZEnabled(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    rsJankStats.isFlushEarlyZ_ = true;
+    rsJankStats.ddgrEarlyZEnable_ = false;
+    drawFrame_.SetEarlyZEnabled(nullptr);
+    EXPECT_TRUE(rsJankStats.isFlushEarlyZ_);
 }
 
 /**

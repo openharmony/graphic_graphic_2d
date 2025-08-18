@@ -302,8 +302,6 @@ public:
     static bool GetHdrVideoEnabled();
     static bool IsForceClient();
     static bool GetDrmMarkedFilterEnabled();
-    static bool GetUnmarshParallelFlag();
-    static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
     static DdgrOpincType GetDdgrOpincType();

@@ -53,4 +53,3 @@ void RSSwitchingThread::PostSyncTask(const std::function<void()>& task)
     }
 }
 } // namespace OHOS::Rosen
- 

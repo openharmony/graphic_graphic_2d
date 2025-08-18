@@ -77,6 +77,7 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateMatrix(const float matrix[20
     return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
+// LCOV_EXCL_START
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLinearToSrgbGamma()
 {
     NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
@@ -109,6 +110,7 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLuma()
     }
     return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
+// LCOV_EXCL_STOP
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLighting(uint32_t mulColor, uint32_t addColor)
 {

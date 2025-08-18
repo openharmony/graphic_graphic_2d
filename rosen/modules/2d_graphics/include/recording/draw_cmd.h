@@ -160,7 +160,7 @@ public:
     UnmarshallingPlayer(const DrawCmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
-    std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle, size_t avaliableSize, bool isReplayMode);
+    std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle, size_t availableSize, bool isReplayMode);
 private:
     const DrawCmdList& cmdList_;
 };
@@ -170,7 +170,7 @@ public:
     GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas = nullptr, const Rect* rect = nullptr);
     ~GenerateCachedOpItemPlayer() = default;
 
-    bool GenerateCachedOpItem(uint32_t type, void* handle, size_t avaliableSize);
+    bool GenerateCachedOpItem(uint32_t type, void* handle, size_t availableSize);
 
     Canvas* canvas_ = nullptr;
     const Rect* rect_;
@@ -741,7 +741,6 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void DumpItems(std::string& out) const override;
-
 private:
     std::vector<RSXform> xform_;
     std::vector<Rect> tex_;
@@ -774,7 +773,6 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void DumpItems(std::string& out) const override;
-
 private:
     scalar px_;
     scalar py_;
@@ -805,7 +803,6 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void DumpItems(std::string& out) const override;
-
 private:
     scalar px_;
     scalar py_;

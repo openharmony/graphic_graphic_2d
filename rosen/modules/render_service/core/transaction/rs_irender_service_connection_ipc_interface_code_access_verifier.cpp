@@ -187,6 +187,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CHANGE_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CORRECTION): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CORRECTION");
             break;
@@ -607,6 +611,9 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
         }
         default: {
             break;

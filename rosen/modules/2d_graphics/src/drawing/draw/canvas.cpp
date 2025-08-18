@@ -121,6 +121,16 @@ bool Canvas::GetUICapture() const
 {
     return isUICapture_;
 }
+
+void Canvas::SetExistCapturePixelMapFlag(bool flag)
+{
+    isExistCapturePixelMap_ = flag;
+}
+
+bool Canvas::GetExistCapturePixelMapFlag() const
+{
+    return isExistCapturePixelMap_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

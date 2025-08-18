@@ -277,8 +277,8 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSVG_2)
 
     recordingCanvas->DetachBrush();
     canvasNode->FinishRecording();
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::SVG);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     RegisterNode(canvasNode);
 }
 } // namespace Drawing

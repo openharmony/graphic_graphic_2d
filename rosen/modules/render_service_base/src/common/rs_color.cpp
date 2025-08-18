@@ -36,12 +36,13 @@ RSColor::RSColor(uint32_t rgba) noexcept
 
 RSColor::RSColor(int16_t red, int16_t green, int16_t blue) noexcept : RSColor(red, green, blue, UINT8_MAX) {}
 
-RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha) noexcept
+RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha, GraphicColorGamut colorSpace) noexcept
 {
     alpha_ = alpha;
     red_ = red;
     green_ = green;
     blue_ = blue;
+    colorSpace_ = colorSpace;
 }
 
 bool RSColor::operator==(const RSColor& rhs) const
@@ -59,12 +60,12 @@ bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 
 RSColor RSColor::operator+(const RSColor& rhs) const
 {
-    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_, rhs.colorSpace_);
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
 {
-    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_);
+    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_, rhs.colorSpace_);
 }
 
 RSColor RSColor::operator*(float scale) const

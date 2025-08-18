@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <memory>
 #include <parameters.h>
 #include <platform/common/rs_log.h>
@@ -81,9 +82,12 @@ static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t* si)
  
 static void RDOSigchainHandler(int signo, siginfo_t* si, void* context)
 {
-    write(rdo_pipe[1], MSG_INFO, strlen(MSG_INFO));
-    close(rdo_pipe[1]);
-    ResetAndRethrowSignalIfNeed(signo, si);
+    int flags = fcntl(rdo_pipe[1], F_GETFD);
+    if (flags != -1) {
+        write(rdo_pipe[1], MSG_INFO, strlen(MSG_INFO));
+        close(rdo_pipe[1]);
+        ResetAndRethrowSignalIfNeed(signo, si);
+    }
 }
 
 static void InstallSigActionHandler(int signo, void (*SigHandler)(int, siginfo_t *, void *))

@@ -42,7 +42,10 @@ public:
 void RSJankStatsTest::SetUpTestCase() {}
 void RSJankStatsTest::TearDownTestCase() {}
 void RSJankStatsTest::SetUp() {}
-void RSJankStatsTest::TearDown() {}
+void RSJankStatsTest::TearDown()
+{
+    RSSystemProperties::isEnableEarlyZ_ = true;
+}
 
 void SetRSJankStatsTest(std::shared_ptr<RSJankStats> rsJankStats, int64_t rtEndTimeSteady,
     uint32_t dynamicRefreshRate = 0, bool skipJankStats = false)
@@ -775,6 +778,12 @@ HWTEST_F(RSJankStatsTest, IsAnimationEmptyTest002, TestSize.Level1)
     EXPECT_EQ(rsJankStats->IsAnimationEmpty(), true);
 }
 
+/**
+ * @tc.name: SetEarlyZFlagTest011
+ * @tc.desc: SetEarlyZFlag test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
 HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest011, TestSize.Level1)
 {
     std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
@@ -797,11 +806,17 @@ HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest011, TestSize.Level1)
     rsJankStats->animationAsyncTraces_.clear();
     rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
     EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 1);
-    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnableFlag_);
+    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnable_);
     rsJankStats->SetAnimationTraceEnd(jankFrames);
-    EXPECT_FALSE(rsJankStats->ddgrEarlyZEnableFlag_);
+    EXPECT_FALSE(rsJankStats->ddgrEarlyZEnable_);
 }
 
+/**
+ * @tc.name: SetEarlyZFlagTest012
+ * @tc.desc: SetEarlyZFlag test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
 HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest012, TestSize.Level1)
 {
     std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
@@ -824,13 +839,19 @@ HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest012, TestSize.Level1)
     rsJankStats->animationAsyncTraces_.clear();
     rsJankStats->SetAnimationTraceBegin(animationId, jankFrames);
     EXPECT_EQ(rsJankStats->explicitAnimationTotal_, 1);
-    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnableFlag_);
+    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnable_);
     jankFrames.traceId_ = 5;
     rsJankStats->animationAsyncTraces_.emplace(jankFrames.traceId_, AnimationTraceStats());
     rsJankStats->SetAnimationTraceEnd(jankFrames);
-    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnableFlag_);
+    EXPECT_TRUE(rsJankStats->ddgrEarlyZEnable_);
 }
 
+/**
+ * @tc.name: SetEarlyZFlagTest013
+ * @tc.desc: SetEarlyZFlag test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
 HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest013, TestSize.Level1)
 {
     RSSystemProperties::isEnableEarlyZ_ = false;
@@ -882,7 +903,7 @@ HWTEST_F(RSJankStatsTest, SetEarlyZFlagTest014, TestSize.Level1)
     rsJankStats->lastReportEarlyZTraceId_ = jankFrames.traceId_;
     rsJankStats->animationAsyncTraces_.emplace(jankFrames.traceId_, AnimationTraceStats());
     rsJankStats->SetAnimationTraceEnd(jankFrames);
-    EXPECT_FALSE(rsJankStats->ddgrEarlyZEnableFlag_);
+    EXPECT_FALSE(rsJankStats->ddgrEarlyZEnable_);
     RSSystemProperties::isEnableEarlyZ_ = true;
 }
 

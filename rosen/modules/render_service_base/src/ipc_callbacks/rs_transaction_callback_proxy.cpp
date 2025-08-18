@@ -20,6 +20,7 @@
 #include "graphic_common.h"
 
 #include "platform/common/rs_log.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 namespace OHOS {
 namespace Rosen {
 RSTransactionCallbackProxy::RSTransactionCallbackProxy(const sptr<IRemoteObject>& impl)

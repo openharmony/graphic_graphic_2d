@@ -863,6 +863,35 @@ HWTEST_F(CanvasTest, SetUICaptureTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetExistCapturePixelMapFlagTest001
+ * @tc.desc: Test for SetExistCapturePixelMapFlag functions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, SetExistCapturePixelMapFlagTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    canvas->SetExistCapturePixelMapFlag(true);
+    bool state = canvas->GetExistCapturePixelMapFlag();
+    ASSERT_TRUE(state);
+}
+
+/**
+ * @tc.name: GetExistCapturePixelMapFlagTest001
+ * @tc.desc: Test for GetExistCapturePixelMapFlag functions.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, GetExistCapturePixelMapFlagTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    bool state = canvas->GetExistCapturePixelMapFlag();
+    ASSERT_TRUE(!state);
+}
+
+/**
  * @tc.name: GetRecordingStateTest001
  * @tc.desc: Test for GetRecordingState functions.
  * @tc.type: FUNC

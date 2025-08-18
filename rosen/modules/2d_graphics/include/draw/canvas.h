@@ -88,6 +88,10 @@ public:
 
     virtual bool GetUICapture() const;
 
+    virtual void SetExistCapturePixelMapFlag(bool flag);
+
+    virtual bool GetExistCapturePixelMapFlag() const;
+
     inline int64_t GetStencilVal() const noexcept
     {
         return stencilVal_;
@@ -112,6 +116,7 @@ protected:
     bool recordingState_ = false;
     bool isOffscreen_ = false;
     bool isUICapture_ = false;
+    bool isExistCapturePixelMap_ = false;
     int64_t stencilVal_ = INVALID_STENCIL_VAL;
     int64_t maxStencilVal_ = 0;
 };

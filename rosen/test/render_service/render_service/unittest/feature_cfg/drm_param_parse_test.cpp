@@ -44,33 +44,42 @@ void DrmParamParseTest::TearDown() {}
  */
 HWTEST_F(DrmParamParseTest, ParseFeatureParamTest001, Function | SmallTest | Level1)
 {
-    FeatureParamMapType paramMapType;
     DRMParamParse paramParse;
     xmlNode node;
-    auto res = paramParse.ParseFeatureParam(paramMapType, node);
-    EXPECT_EQ(res, PARSE_GET_CHILD_FAIL);
+    std::string name = "FeatureSwitch";
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+    node.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    auto res = paramParse.ParseDrmInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("DrmEnabled"));
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    res = paramParse.ParseDrmInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("DrmMarkAllParentBlurEnabled"));
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("false"));
+    res = paramParse.ParseDrmInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    name = "FeatureSingleParam";
+    node.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    res = paramParse.ParseDrmInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlNode multiNode;
+    name = "FeatureMultiParam";
+    multiNode.type = xmlElementType::XML_ELEMENT_NODE;
+    multiNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    res = paramParse.ParseDrmInternal(multiNode);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
     xmlNode childNode;
-    childNode.type = xmlElementType::XML_ATTRIBUTE_NODE;
-    node.xmlChildrenNode = &childNode;
-    res = paramParse.ParseFeatureParam(paramMapType, node);
-    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
-
-    xmlNode nextNode;
-    std::string name = "FeatureSwitch";
-    nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
-    node.xmlChildrenNode->next = &nextNode;
-    res = paramParse.ParseFeatureParam(paramMapType, node);
-    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
-
-    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("DrmEnabled"));
-    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
-    res = paramParse.ParseFeatureParam(paramMapType, node);
-    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
-
-    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("DrmMarkAllParentBlurEnabled"));
-    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
-    res = paramParse.ParseFeatureParam(paramMapType, node);
+    childNode.type = xmlElementType::XML_ELEMENT_NODE;
+    multiNode.xmlChildrenNode = &childNode;
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("children"));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("0"));
+    res = paramParse.ParseDrmInternal(multiNode);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
 
@@ -82,33 +91,45 @@ HWTEST_F(DrmParamParseTest, ParseFeatureParamTest001, Function | SmallTest | Lev
  */
 HWTEST_F(DrmParamParseTest, ParseFeatureParamTest002, Function | SmallTest | Level1)
 {
-    FeatureParamMapType paramMapType;
     DRMParamParse paramParse;
     xmlNode node;
-    auto res = paramParse.ParseFeatureParam(paramMapType, node);
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+    auto res = paramParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, PARSE_GET_CHILD_FAIL);
 
     xmlNode childNode;
     childNode.type = xmlElementType::XML_ATTRIBUTE_NODE;
     node.xmlChildrenNode = &childNode;
-    res = paramParse.ParseFeatureParam(paramMapType, node);
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("children"));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("0"));
+    res = paramParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
     xmlNode nextNode;
-    std::string name = "FeatureMultiParam";
-    nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    nextNode.type = xmlElementType::XML_ELEMENT_NODE;
     node.xmlChildrenNode->next = &nextNode;
-    res = paramParse.ParseFeatureParam(paramMapType, node);
-    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    res = paramParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_ERROR);
 
     xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("SCBVolumePanel"));
     xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("0"));
-    res = paramParse.ParseFeatureParam(paramMapType, node);
+    res = paramParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
     xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("SCBCloneWallpaper"));
     xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("1"));
-    res = paramParse.ParseFeatureParam(paramMapType, node);
+    res = paramParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("SCBCloneWallpaper"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("2"));
+    res = paramParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    std::string windowName(101, 'c');
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)(windowName.c_str()));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("2"));
+    res = paramParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
 } // namespace Rosen

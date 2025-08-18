@@ -226,7 +226,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level0)
  * @tc.desc: Test for DrawTextFlip action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     EXPECT_CALL(*mockTypography_, GetAnimation()).Times(1);
@@ -252,7 +252,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level1)
  * @tc.desc: Test for DrawResidualText action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
@@ -292,7 +292,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level1)
  * @tc.desc: Test for DrawTextFlipElements action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
@@ -330,7 +330,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level1)
  * @tc.desc: Test for ClearTypography action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(2);
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
@@ -349,7 +349,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level1)
  * @tc.desc: Test for GenerateChangeElements action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
@@ -402,7 +402,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level1)
  * @tc.desc: Test for GenerateFlipConfig action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest011, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest011, TestSize.Level0)
 {
     effect_->blurEnable_ = true;
     EXPECT_EQ(effect_->GenerateFlipConfig(15.0).size(), 2);

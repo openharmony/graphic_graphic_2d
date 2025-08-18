@@ -19,7 +19,6 @@
 #include "animation/rs_render_animation.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 
 using namespace testing;

@@ -21,11 +21,9 @@
 
 namespace OHOS {
 namespace Rosen {
+
 RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
 {
-    if (rootNode == nullptr) {
-        return;
-    }
     rsUiDirector_ = RSUIDirector::Create();
     rootNode_ = rootNode;
     surfaceId_ = surfaceId;
@@ -35,6 +33,9 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
         .isTextureExportNode = true,
         .surfaceId = surfaceId_
     };
+    if (rootNode_ == nullptr) {
+        return;
+    }
     virtualSurfaceNode_ = RSSurfaceNode::Create(config, false, rootNode_->GetRSUIContext());
     rootNode_->SyncTextureExport(true);
 }
@@ -83,5 +84,6 @@ void RSTextureExport::StopTextureExport()
     rsUiDirector_->Destroy(true);
     rootNode_->RemoveFromTree();
 }
+
 } // namespace Rosen
 } // namespace OHOS

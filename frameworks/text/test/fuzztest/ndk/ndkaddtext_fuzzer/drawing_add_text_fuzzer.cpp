@@ -32,7 +32,6 @@ void OHDrawingAddTextTest(const uint8_t* data, size_t size)
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     OH_Drawing_TypographyLayout(typography, 1000.0f);
 
-    OH_Drawing_DestroyFontCollection(fc);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);

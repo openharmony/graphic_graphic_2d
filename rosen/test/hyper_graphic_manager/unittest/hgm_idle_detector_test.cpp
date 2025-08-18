@@ -334,5 +334,37 @@ HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | Smal
         }
     }
 }
+
+/**
+ * @tc.name: UpdateAndGetAceAnimatorExpectedFrameRate003
+ * @tc.desc: Verify the result of UpdateAndGetAceAnimatorExpectedFrameRate003 function
+ * @tc.type: FUNC
+ * @tc.require: IAW09K
+ */
+HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate003, Function | SmallTest | Level1)
+{
+    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
+    ASSERT_NE(idleDetector, nullptr);
+    int32_t aceAnimatorExpectedFrameRate = 120;
+
+    idleDetector->UpdateAceAnimatorExpectedFrameRate(aceAnimatorExpectedFrameRate);
+    ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
+
+    aceAnimatorExpectedFrameRate = 1;
+    idleDetector->bufferFpsMap_.insert({"AceAnimato", 1});
+    idleDetector->UpdateAceAnimatorExpectedFrameRate(aceAnimatorExpectedFrameRate);
+    ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
+
+    aceAnimatorExpectedFrameRate = 120;
+    idleDetector->UpdateAceAnimatorExpectedFrameRate(aceAnimatorExpectedFrameRate);
+    ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
+    
+    aceAnimatorExpectedFrameRate = 120;
+    idleDetector->bufferFpsMap_.clear();
+    idleDetector->bufferFpsMap_.insert({"AceAnimato", 0});
+    idleDetector->UpdateAceAnimatorExpectedFrameRate(aceAnimatorExpectedFrameRate);
+    ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
+}
+
 } // namespace Rosen
 } // namespace OHOS

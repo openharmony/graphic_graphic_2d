@@ -26,17 +26,17 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_common_c.h"
+#include "graphic_feature_param_manager.h"
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
 #include "memory/rs_memory_manager.h"
 #include "mem_param.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/hpae/rs_hpae_manager.h"
-#include "feature/uifirst/rs_uifirst_manager.h"
-#include "graphic_feature_param_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -914,6 +914,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             {
                 RS_TRACE_NAME_FMT("Purge unlocked resources when clear memory");
                 grContext->PerformDeferredCleanup(std::chrono::seconds(TIME_OF_PERFORM_DEFERRED_CLEAR_GPU_CACHE));
+                MemoryManager::VmaDefragment(grContext);
             }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();

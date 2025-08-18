@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2025 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -53,8 +53,9 @@ ohos_source_set("text_ndk") {
     "drawing_typography/drawing_text_typography.cpp",
   ]
 
-  if(ohos_indep_compiler_enable) {
-    include_dirs += [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+  if (ohos_indep_compiler_enable) {
+    include_dirs +=
+        [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
   }
   defines = []
   if (use_skia_txt) {
@@ -68,9 +69,11 @@ ohos_source_set("text_ndk") {
     defines += [ "RS_ENABLE_GPU" ]
   }
 
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
+
   if (platform_is_ohos) {
-    external_deps = [
-      "bounds_checking_function:libsec_static",
+    external_deps += [
+      "c_utils:utils",
       "hilog:libhilog",
       "icu:shared_icuuc",
     ]
@@ -78,10 +81,7 @@ ohos_source_set("text_ndk") {
     cflags_cc = [ "-std=c++17" ]
     deps += [ "$rosen_root/modules/platform:hilog" ]
     defines += [ "MODULE_DRAWING" ]
-    external_deps = [
-      "bounds_checking_function:libsec_static",
-      "skia:skia_canvaskit",
-    ]
+    external_deps += [ "skia:skia_canvaskit" ]
   }
   part_name = "graphic_2d"
   subsystem_name = "graphic"

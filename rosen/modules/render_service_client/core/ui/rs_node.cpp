@@ -46,7 +46,6 @@
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_blend_modifier.h"
@@ -2085,7 +2084,7 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             continue;
         }
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT) {
-            SetBorderLightShader(visualEffectPara);
+            SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
         if (visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT) {
             std::shared_ptr<RSNGShaderBase> headVisualEffect = RSNGShaderBase::Create(visualEffectPara);

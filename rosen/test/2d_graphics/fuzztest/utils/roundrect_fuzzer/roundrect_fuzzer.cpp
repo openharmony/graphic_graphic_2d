@@ -26,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 namespace {
-    constexpr uint32_t PATH_FIVE = 5;
+    constexpr uint32_t PATH_FOUR = 4;
     constexpr double PATH_DOUBLE = 1.0;
 } // namespace
 
@@ -42,14 +42,14 @@ void RoundRectFuzzTest000(const uint8_t* data, size_t size)
     roundRect.GetSimpleX();
     roundRect.GetSimpleY();
 
-    roundRect.AdjustRadiiX(PATH_DOUBLE, PATH_DOUBLE, static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FIVE),
-        static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FIVE));
-    roundRect.AdjustRadiiY(PATH_DOUBLE, PATH_DOUBLE, static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FIVE),
-        static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FIVE));
+    roundRect.AdjustRadiiX(PATH_DOUBLE, PATH_DOUBLE, static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FOUR),
+        static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FOUR));
+    roundRect.AdjustRadiiY(PATH_DOUBLE, PATH_DOUBLE, static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FOUR),
+        static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FOUR));
     roundRect.ClampToZero();
     roundRect.ScaleRadii();
-    roundRect.SetCornerRadius(static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FIVE), dx, dy);
-    roundRect.GetCornerRadius(static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FIVE));
+    roundRect.SetCornerRadius(static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FOUR), dx, dy);
+    roundRect.GetCornerRadius(static_cast<RoundRect::CornerPos>(cornerPosA % PATH_FOUR));
 }
 
 void RoundRectFuzzTest001(const uint8_t* data, size_t size)

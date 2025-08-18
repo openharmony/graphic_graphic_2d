@@ -674,7 +674,7 @@ HWTEST_F(GpuContextTest, SetEarlyZFlagTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->SetEarlyZFlag(true);
+    gpuContext->SetEarlyZEnabled(true);
 }
 
 /**

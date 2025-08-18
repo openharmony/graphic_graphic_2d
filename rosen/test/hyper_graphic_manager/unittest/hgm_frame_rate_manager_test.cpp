@@ -195,8 +195,8 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager& frameRate
  * @tc.type: FUNC
  * @tc.require:
  */
- HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level0)
- {
+HWTEST_F(HgmFrameRateMgrTest, HandleGameNodeTest, Function | SmallTest | Level0)
+{
     HgmFrameRateManager frameRateMgr;
     frameRateMgr.curGameNodeName_ = "gameNode";
     RSRenderNodeMap nodeMap;

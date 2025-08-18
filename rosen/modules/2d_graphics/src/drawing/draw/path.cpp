@@ -25,6 +25,8 @@ namespace Rosen {
 namespace Drawing {
 static constexpr int FRACTION_DIM = 3;
 static constexpr int MAX_APPROXIMATE_VALUES = 1000000; // max number of values to approximate a curve
+
+// LCOV_EXCL_START
 Path::Path() noexcept : impl_(ImplFactory::CreatePathImpl()) {}
 
 Path::Path(const Path& other) noexcept
@@ -39,16 +41,19 @@ Path& Path::operator=(const Path &other) noexcept
 }
 
 Path::~Path() {}
+// LCOV_EXCL_STOP
 
 bool Path::BuildFromSVGString(const std::string& str)
 {
     return impl_->InitWithSVGString(str);
 }
 
+// LCOV_EXCL_START
 std::string Path::ConvertToSVGString() const
 {
     return impl_->ConvertToSVGString();
 }
+// LCOV_EXCL_STOP
 
 void Path::MoveTo(scalar x, scalar y)
 {

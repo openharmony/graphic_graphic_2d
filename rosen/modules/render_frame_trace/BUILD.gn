@@ -32,6 +32,7 @@ ohos_source_set("render_frame_trace") {
       }
     }
   }
+
   external_deps = []
   if (!defined(defines)) {
     defines = []

@@ -285,7 +285,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
 
 /**
  * @tc.name: ConvertTransactionTest004
- * @tc.desc: test results of ConvertTransaction of drawCmdList = nullptr
+ * @tc.desc: test results of ConvertTransactionTest drawCmdList = nullptr
  * @tc.type: FUNC
  * @tc.require: issueICEFNX
  */
@@ -307,7 +307,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
 
 /**
  * @tc.name: ConvertTransactionTest005
- * @tc.desc: test results of ConvertTransaction of Canvas & MAX Width/Height
+ * @tc.desc: test results of ConvertTransactionTest of Canvas & MAX Width/Height
  * @tc.type: FUNC
  * @tc.require: issueICEFNX
  */
@@ -335,7 +335,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
 
 /**
  * @tc.name: ConvertTransactionTest006
- * @tc.desc: test results of ConvertTransaction of Text & MAX Width/Height
+ * @tc.desc: test results of ConvertTransactionTest of Text & MAX Width/Height
  * @tc.type: FUNC
  * @tc.require: issueICEFNX
  */
@@ -629,7 +629,7 @@ HWTEST_F(RSModifiersDrawThreadTest, GetIsFirstFrame002, TestSize.Level1)
 
 /**
  * @tc.name: CreateDrawingContext001
- * @tc.desc: test results of GetRecyclableSingletonPtr while reset singleton
+ * @tc.desc: test results of CreateDrawingContext while protectedDrawingContext isn't nullptr
  * @tc.type:FUNC
  * @tc.require: issueICDVVY
  */
@@ -643,7 +643,7 @@ HWTEST_F(RSModifiersDrawThreadTest, CreateDrawingContext001, TestSize.Level2)
 
 /**
  * @tc.name: CreateDrawingContext002
- * @tc.desc: test results of GetRecyclableSingletonPtr after GetRecyclableSingleton()
+ * @tc.desc: test results of CreateDrawingContext while protectedDrawingContext isn't nullptr
  * @tc.type:FUNC
  * @tc.require: issueICDVVY
  */

@@ -23,7 +23,6 @@
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_hps_blur.h"
 #include "render/rs_pixel_map_util.h"
-#include "render_context/render_context.h"
 
 #ifdef RS_ENABLE_VK
 #include "effect_vulkan_context.h"
@@ -307,10 +306,10 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> context = nullptr;
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        auto renderContext = std::make_shared<RenderContext>();
-        renderContext->InitializeEglContext();
-        renderContext->SetUpGpuContext();
-        context = renderContext->GetSharedDrGPUContext();
+        renderContext_ = std::make_shared<RenderContext>();
+        renderContext_->InitializeEglContext();
+        renderContext_->SetUpGpuContext();
+        context = renderContext_->GetSharedDrGPUContext();
     }
 
 #ifdef RS_ENABLE_VK

@@ -81,6 +81,8 @@ std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 thread_local pid_t g_callingPid = 0;
 constexpr size_t NUM_ITEMS_IN_VERSION = 4;
+constexpr int32_t MAX_IMAGE_WIDTH = 40960;
+constexpr int32_t MAX_IMAGE_HEIGHT = 40960;
 
 // Static registration of Data marshalling/unmarshalling callbacks
 DATA_CALLBACKS_REGISTER(
@@ -481,11 +483,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Bitmap& val)
 
 static void SkFreeReleaseproc(const void* ptr, void*)
 {
-    MemoryInfo info = { 0 };
-    bool result = MemoryTrack::Instance().GetPictureRecordMemInfo(ptr, info);
-    if (result && info.initialPid && (info.type == MEMORY_TYPE::MEM_SKIMAGE)) {
-        MemorySnapshot::Instance().RemoveCpuMemory(info.initialPid, info.size);
-    }
     MemoryTrack::Instance().RemovePictureRecord(ptr);
     free(const_cast<void*>(ptr));
     ptr = nullptr;
@@ -675,6 +672,14 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
         }
         return false;
     }
+    if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        ROSEN_LOGE("Width(%{public}d) or height(%{public}d) of image too large.", width, height);
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
+        return false;
+    }
     uint32_t ct{0};
     if (!parcel.ReadUint32(ct)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ct failed");
@@ -723,12 +728,8 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     val = Drawing::Image::MakeRasterData(imageInfo, skData, rb);
     // add to MemoryTrack for memoryManager
     if (isMalloc) {
-        MemoryInfo info = {pixmapSize, g_callingPid, 0, 0, MEMORY_TYPE::MEM_SKIMAGE, g_callingPid,
-            OHOS::Media::AllocatorType::DEFAULT};
+        MemoryInfo info = {pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE};
         MemoryTrack::Instance().AddPictureRecord(addr, info);
-        if (g_callingPid) {
-            MemorySnapshot::Instance().AddCpuMemory(g_callingPid, pixmapSize);
-        }
         imagepixelAddr = const_cast<void*>(addr);
     }
     return val != nullptr;
@@ -1189,6 +1190,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<EmitterUpdater> emitterUpdater;
         success &= Unmarshalling(parcel, emitterUpdater);
+        if (emitterUpdater == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling EmitterUpdater failed");
+            return false;
+        }
         emitterUpdaters.push_back(emitterUpdater);
     }
     if (success) {
@@ -1289,6 +1294,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleNoiseField> ParticleNoiseField;
         success &= Unmarshalling(parcel, ParticleNoiseField);
+        if (ParticleNoiseField == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseField failed.");
+            return false;
+        }
         noiseFields->AddField(ParticleNoiseField);
     }
     if (success) {
@@ -1618,6 +1627,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleRenderParams> particleRenderParams;
         success &= Unmarshalling(parcel, particleRenderParams);
+        if (particleRenderParams == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRenderParams failed");
+            return false;
+        }
         particlesRenderParams.push_back(particleRenderParams);
     }
     if (success) {
@@ -1865,25 +1878,15 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
-    void* pIndex = nullptr;
 #ifdef ROSEN_OHOS
     if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-        pIndex = addr;
+        MemoryTrack::Instance().RemovePictureRecord(addr);
     } else {
-        pIndex = context;
+        MemoryTrack::Instance().RemovePictureRecord(context);
     }
 #else
-    pIndex = addr;
+    MemoryTrack::Instance().RemovePictureRecord(addr);
 #endif
-    MemoryInfo info = { 0 };
-    bool result = MemoryTrack::Instance().GetPictureRecordMemInfo(pIndex, info);
-    if (result && info.initialPid && info.allocType != Media::AllocatorType::DMA_ALLOC) {
-        auto realSize = info.allocType == Media::AllocatorType::SHARE_MEM_ALLOC
-            ? info.size / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-            : info.size;
-        MemorySnapshot::Instance().RemoveCpuMemory(info.initialPid, realSize);
-    }
-    MemoryTrack::Instance().RemovePictureRecord(pIndex);
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
@@ -1916,9 +1919,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     }
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
-    auto allocType = val->GetAllocatorType();
-    MemoryInfo info = { val->GetByteCount(), g_callingPid, 0, val->GetUniqueId(),
-        MEMORY_TYPE::MEM_PIXELMAP, g_callingPid, allocType, imageInfo.pixelFormat
+    MemoryInfo info = {
+        val->GetByteCount(), 0, 0, val->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), imageInfo.pixelFormat
     };
 
 #ifdef ROSEN_OHOS
@@ -1930,12 +1933,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
-    if (g_callingPid && allocType != Media::AllocatorType::DMA_ALLOC) {
-        auto realSize = allocType == Media::AllocatorType::SHARE_MEM_ALLOC
-            ? val->GetByteCount() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-            : val->GetByteCount();
-        MemorySnapshot::Instance().AddCpuMemory(g_callingPid, realSize);
-    }
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
@@ -2242,6 +2239,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
         return false;
     }
     if (replacedOpListSize > Drawing::MAX_OPITEMSIZE) {
+        ROSEN_LOGE("Drawing replacedOpListSize %{public}d too large", replacedOpListSize);
         val = nullptr;
         return false;
     }

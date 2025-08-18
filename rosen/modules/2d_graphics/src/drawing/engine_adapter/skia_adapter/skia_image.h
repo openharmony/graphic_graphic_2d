@@ -104,7 +104,6 @@ public:
     bool GetROPixels(Bitmap& bitmap) const override;
     std::shared_ptr<Image> MakeRasterImage() const override;
     bool CanPeekPixels() const override;
-
     bool IsOpaque() const override;
     void HintCacheGpuResource() const override;
 
@@ -120,15 +119,10 @@ public:
      */
     sk_sp<GrDirectContext> GetGrContext() const;
 #endif
-
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 
     void PostSkImgToTargetThread();
-
-    void SetSupportOpaqueOpt(bool supportOpaqueOpt) override;
-
-    bool GetSupportOpaqueOpt() const override;
 
     void SetHeadroom(float headroom) override;
     float GetHeadroom() const override;

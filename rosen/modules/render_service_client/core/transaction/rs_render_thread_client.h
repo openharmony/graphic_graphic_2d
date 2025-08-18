@@ -14,9 +14,9 @@
  */
 
 /**
-* @file rs_render_thread_client.h
-* @brief Client used to communicate with the RenderThread in the application.
-*/
+ * @file rs_render_thread_client.h
+ * @brief Client used to communicate with the RenderThread in the application.
+ */
 
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_THREAD_CLIENT_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_THREAD_CLIENT_H
@@ -36,7 +36,7 @@ public:
      */
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     /**
-     * @brief Excute the Synchronous task in renderThread.
+     * @brief Execute the Synchronous task in renderThread.
      * @param task Synchronous task. must transfer maximum execution duration in ns.
      */
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
