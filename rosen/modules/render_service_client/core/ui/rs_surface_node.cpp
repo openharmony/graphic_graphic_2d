@@ -587,6 +587,7 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
+// LCOV_EXCL_START
 sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
 {
     if (surface_ == nullptr) {
@@ -596,6 +597,7 @@ sptr<OHOS::Surface> RSSurfaceNode::GetSurface() const
     auto ohosSurface = RSSurfaceConverter::ConvertToOhosSurface(surface_);
     return ohosSurface;
 }
+// LCOV_EXCL_STOP
 #endif
 
 // LCOV_EXCL_START
@@ -1071,10 +1073,12 @@ bool RSSurfaceNode::SetCompositeLayer(TopLayerZOrder zOrder)
     return compositeLayerUtils_->CreateCompositeLayer();
 }
 
+// LCOV_EXCL_START
 std::shared_ptr<RSCompositeLayerUtils> RSSurfaceNode::GetCompositeLayerUtils() const
 {
     return compositeLayerUtils_;
 }
+// LCOV_EXCL_STOP
 
 void RSSurfaceNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
 {

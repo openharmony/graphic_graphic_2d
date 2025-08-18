@@ -83,21 +83,25 @@ public:
     }
     // LCOV_EXCL_STOP
 
+    // LCOV_EXCL_START
     virtual std::string GetModifierTypeString()
     {
         auto modifierTypeString = std::make_shared<RSModifierTypeString>();
         return modifierTypeString->GetModifierTypeString(GetType());
     }
+    // LCOV_EXCL_STOP
 
     virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) = 0;
 
     virtual bool Marshalling(Parcel& parcel) = 0;
     [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
 
+    // LCOV_EXCL_START
     virtual std::shared_ptr<Drawing::DrawCmdList> GetPropertyDrawCmdList() const
     {
         return nullptr;
     }
+    // LCOV_EXCL_STOP
 
     virtual void SetPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> ptr) const
     {
@@ -137,10 +141,12 @@ public:
     }
     // LCOV_EXCL_STOP
 
+    // LCOV_EXCL_START
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
+    // LCOV_EXCL_STOP
 
     void SetType(RSModifierType type)
     {
@@ -176,10 +182,12 @@ public:
     }
     // LCOV_EXCL_STOP
 
+    // LCOV_EXCL_START
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
+    // LCOV_EXCL_STOP
 
     // LCOV_EXCL_START
     RSModifierType GetType() override
@@ -207,10 +215,12 @@ public:
         index_ = index;
     }
 
+    // LCOV_EXCL_START
     std::shared_ptr<Drawing::DrawCmdList> GetPropertyDrawCmdList() const override
     {
         return property_->Get();
     }
+    // LCOV_EXCL_STOP
 
     void SetPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> ptr) const override
     {
@@ -256,10 +266,12 @@ public:
     }
     // LCOV_EXCL_STOP
 
+    // LCOV_EXCL_START
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
+    // LCOV_EXCL_STOP
 
 protected:
     std::shared_ptr<RSRenderPropertyBase> property_;

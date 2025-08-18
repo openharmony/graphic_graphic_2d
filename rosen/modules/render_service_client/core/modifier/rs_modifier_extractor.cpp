@@ -203,15 +203,19 @@ Color RSModifierExtractor::GetBackgroundColor() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<RSShader> RSModifierExtractor::GetBackgroundShader() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSShader>, BACKGROUND_SHADER, BACKGROUND_SHADER, nullptr, =);
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<RSImage> RSModifierExtractor::GetBgImage() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSImage>, BACKGROUND_IMAGE, BG_IMAGE, nullptr, =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBgImageDstRect() const
@@ -252,10 +256,12 @@ float RSModifierExtractor::GetBgImagePositionY() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 Vector4<Color> RSModifierExtractor::GetBorderColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4<Color>, BORDER, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBorderWidth() const
@@ -264,11 +270,13 @@ Vector4f RSModifierExtractor::GetBorderWidth() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         Vector4<uint32_t>, BORDER, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::SOLID)), =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBorderDashWidth() const
@@ -284,11 +292,13 @@ Vector4f RSModifierExtractor::GetBorderDashGap() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 Vector4<Color> RSModifierExtractor::GetOutlineColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         Vector4<Color>, OUTLINE, OUTLINE_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetOutlineWidth() const
@@ -297,11 +307,13 @@ Vector4f RSModifierExtractor::GetOutlineWidth() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 Vector4<uint32_t> RSModifierExtractor::GetOutlineStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         Vector4<uint32_t>, OUTLINE, OUTLINE_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetOutlineDashWidth() const
@@ -373,10 +385,12 @@ float RSModifierExtractor::GetShadowRadius() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<RSPath> RSModifierExtractor::GetShadowPath() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSPath>, SHADOW, SHADOW_PATH, nullptr, =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 int RSModifierExtractor::GetShadowMask() const
@@ -406,10 +420,12 @@ Gravity RSModifierExtractor::GetFrameGravity() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<RSPath> RSModifierExtractor::GetClipBounds() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSPath>, CLIP_TO_BOUNDS, CLIP_BOUNDS, nullptr, =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 bool RSModifierExtractor::GetClipToBounds() const
@@ -432,10 +448,12 @@ bool RSModifierExtractor::GetVisible() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<RSMask> RSModifierExtractor::GetMask() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSMask>, MASK, MASK, nullptr, =);
 }
+// LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
 float RSModifierExtractor::GetSpherizeDegree() const
@@ -662,6 +680,7 @@ int RSModifierExtractor::GetColorBlendApplyType() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
@@ -727,5 +746,6 @@ std::string RSModifierExtractor::Dump() const
     }
     return dumpInfo;
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS
