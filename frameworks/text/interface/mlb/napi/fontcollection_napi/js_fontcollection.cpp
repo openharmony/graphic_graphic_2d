@@ -144,9 +144,9 @@ JsFontCollection::JsFontCollection()
     fontcollection_ = OHOS::Rosen::FontCollection::From(nullptr);
 }
 
-napi_status JsFontCollection::CreateFontCollection(napi_env env, napi_value constructor, napi_value* obj)
+napi_status JsFontCollection::CreateFontCollection(napi_env env, napi_value exportObj, napi_value* obj)
 {
-    return NewInstanceFromConstructor(env, constructor, CLASS_NAME.c_str(), obj);
+    return NewInstanceFromConstructor(env, exportObj, CLASS_NAME.c_str(), obj);
 }
 
 napi_status JsFontCollection::SetFontCollection(

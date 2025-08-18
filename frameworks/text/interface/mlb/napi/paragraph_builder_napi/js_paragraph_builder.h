@@ -28,10 +28,10 @@ namespace OHOS::Rosen {
 class JsParagraphBuilder final {
 public:
     JsParagraphBuilder() {}
-    void SetTypographyCreate(std::unique_ptr<TypographyCreate> typographyCreate);    
-    std::unique_ptr<TypographyCreate> GetTypographyCreate();
-    static napi_status CreateTypographyCreate(napi_env env, napi_value constructor, napi_value* obj);
-    static napi_status SetTypographyCreate(napi_env env, napi_value obj, std::unique_ptr<TypographyCreate> typographyCreate);
+    void SetTypographyCreate(std::unique_ptr<TypographyCreate> typographyCreate);
+    std::shared_ptr<TypographyCreate> GetTypographyCreate();
+    static napi_status CreateTypographyCreate(napi_env env, napi_value exportObj, napi_value* obj);
+    static napi_status SetTypographyCreate(napi_env env, napi_value obj, std::shared_ptr<TypographyCreate> typographyCreate);
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -53,7 +53,7 @@ private:
     napi_value OnBuildLineTypeset(napi_env env, napi_callback_info info);
     napi_value OnAppendSymbol(napi_env env, napi_callback_info info);
     static thread_local napi_ref constructor_;
-    std::unique_ptr<TypographyCreate> typographyCreate_ = nullptr;
+    std::shared_ptr<TypographyCreate> typographyCreate_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_JS_PARAGRAPH_BUILDER_H

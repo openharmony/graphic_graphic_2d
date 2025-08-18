@@ -26,8 +26,8 @@ class JsRun final {
 public:
     JsRun();
 
-    void SetRun(std::unique_ptr<Run> run);
-    std::unique_ptr<Run> GetRun();
+    void SetRun(std::shared_ptr<Run> run);
+    std::shared_ptr<Run> GetRun();
     static napi_value CreateRun(napi_env env);
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -63,7 +63,7 @@ private:
     napi_value OnGetTextDirection(napi_env env, napi_callback_info info);
 
     static bool CreateConstructor(napi_env env);
-    std::unique_ptr<Run> run_;
+    std::shared_ptr<Run> run_;
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen
