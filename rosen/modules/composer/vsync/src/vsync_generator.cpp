@@ -16,6 +16,9 @@
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
 #include <cstdint>
+#include "c/ffrt_ipc.h"
+#include "ffrt_inner.h"
+#include <fstream>
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <sched.h>
@@ -66,12 +69,29 @@ constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
 // minimum ratio of dvsync thread
 constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
 
+constexpr char CMDLINE_PATH[] = "/proc/self/cmdline";
+constexpr char RENDER_SERVICE_PATH[] = "/system/bin/render_service";
+
 static void SetThreadHighPriority()
 {
     setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
     struct sched_param param = {0};
     param.sched_priority = SCHED_PRIORITY;
     sched_setscheduler(0, SCHED_FIFO, &param);
+}
+
+static bool IsUseFfrt()
+{
+    bool result = false;
+    std::ifstream procFile(CMDLINE_PATH);
+    if (procFile.is_open()) {
+        std::string processName;
+        std::getline(procFile, processName);
+        std::string target = RENDER_SERVICE_PATH;
+        result = (processName.find(target) == 0);
+    }
+
+    return result;
 }
 
 }
@@ -115,10 +135,26 @@ void VSyncGenerator::DeleteInstance() noexcept
     instance_ = nullptr;
 }
 
-VSyncGenerator::VSyncGenerator()
+VSyncGenerator::VSyncGenerator() : VSyncGenerator(IsUseFfrt()) {}
+
+VSyncGenerator::VSyncGenerator(bool isUseFfrt) : isUseFfrt_(isUseFfrt)
 {
     period_ = DEFAULT_SOFT_VSYNC_PERIOD;
     vsyncThreadRunning_ = true;
+    if (isUseFfrt_) {
+        ffrtThread_ = std::make_shared<ffrt::thread>("VSyncGenerator", static_cast<int>(ffrt::qos_default), [this] {
+            pthread_setname_np(pthread_self(), "VSyncGenerator");
+            VLOGI("VSyncGenerator uses ffrt.");
+            ffrt_this_task_set_legacy_mode(true);
+            this->ThreadLoop();
+        });
+        // FFRT线程创建成功时返回；如果FFRT线程创建失败，设置isUseFfrt_为false，保留原逻辑通路，创建std::thread
+        if (ffrtThread_ != nullptr) {
+            return;
+        }
+        isUseFfrt_ = false;
+    }
+
     thread_ = std::thread([this] { this->ThreadLoop(); });
     pthread_setname_np(thread_.native_handle(), "VSyncGenerator");
 }
@@ -130,9 +166,17 @@ VSyncGenerator::~VSyncGenerator()
         vsyncThreadRunning_ = false;
     }
 
-    if (thread_.joinable()) {
-        con_.notify_all();
-        thread_.join();
+    if (isUseFfrt_) {
+        if (ffrtThread_->joinable()) {
+            con_.notify_all();
+            ffrtThread_->join();
+        }
+        ffrtThread_ = nullptr;
+    } else {
+        if (thread_.joinable()) {
+            con_.notify_all();
+            thread_.join();
+        }
     }
 }
 
