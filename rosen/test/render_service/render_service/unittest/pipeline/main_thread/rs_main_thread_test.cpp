@@ -63,8 +63,6 @@ constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
-constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
-constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();

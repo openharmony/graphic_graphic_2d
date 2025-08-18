@@ -40,7 +40,6 @@ public:
     static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
-    static constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 

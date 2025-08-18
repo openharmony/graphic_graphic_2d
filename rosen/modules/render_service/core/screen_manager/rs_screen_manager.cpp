@@ -56,7 +56,6 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
-constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 const std::string FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 void SensorPostureDataCallback(SensorEvent* event)
 {

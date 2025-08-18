@@ -45,6 +45,9 @@ constexpr int32_t RS_ROTATION_180 = 180;
 constexpr int32_t RS_ROTATION_270 = 270;
 constexpr int32_t RS_ROTATION_360 = 360;
 
+constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
+constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
+
 inline constexpr ScreenId ToScreenId(ScreenPhysicalId physicalId)
 {
     return static_cast<ScreenId>(physicalId);
