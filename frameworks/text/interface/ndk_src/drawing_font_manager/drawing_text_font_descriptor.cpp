@@ -131,7 +131,7 @@ OH_Drawing_Array* OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontT
     for (const auto& fullName : fullNameList) {
         std::u16string utf16String = OHOS::Str8ToStr16(fullName);
         if (utf16String.empty()) {
-            TEXT_LOGE("Failed to convert string to utf16: %{public}s", fullName);
+            TEXT_LOGE("Failed to convert string to utf16: %{public}s", fullName.c_str());
             continue;
         }
         addr[num].strLen = utf16String.size() * sizeof(char16_t);
@@ -144,7 +144,7 @@ OH_Drawing_Array* OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontT
         num += 1;
     }
     if (num == 0) {
-        TEXT_LOGI("Failed to get font full name, font type: %{public}d", static_cast<int32_t>(fontType));
+        TEXT_LOGI_LIMIT3_MIN("Failed to get font full name, font type: %{public}d", static_cast<int32_t>(fontType));
         return nullptr;
     }
     array->num = num;

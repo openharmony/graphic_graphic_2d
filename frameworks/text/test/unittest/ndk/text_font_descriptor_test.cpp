@@ -41,6 +41,7 @@ const std::string INSTALLED_FONT_CONFIG_FILE_BAK =
 const std::string INSTALL_CONFIG = R"(
 {
   "fontlist": [
+    { "fontfullpath": "/system/fonts/NotoSansHebrew[wdth,wght].ttf", "fullname": [""] },
     {
       "fontfullpath": "/system/fonts/NotoSansCJK-Regular.ttc",
       "fullname": [

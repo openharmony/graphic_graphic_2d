@@ -21,9 +21,9 @@
 #include <limits>
 #include <string>
 
-#ifdef ENABLE_OHOS_ENHANCE
-#include "bundlemgr/bundle_mgr_interface.h"
-#endif
+namespace OHOS::AppExecFwk {
+struct BundleInfo;
+}
 
 namespace OHOS {
 namespace Rosen {
