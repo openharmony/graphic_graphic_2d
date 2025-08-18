@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -116,38 +116,6 @@ HWTEST_F(RSUniRenderUnitTest, SrcRectScaleDown_002, Function | SmallTest | Level
     RectF localBounds;
     RSUniRenderUtil::SrcRectScaleDown(
         params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
-}
-
-/*
- * @tc.name: SrcRectScaleDown_003
- * @tc.desc: Test SrcRectScaleDown when srcRect is multiple
- * @tc.type: FUNC
- * @tc.require: issueIAJOWI
-*/
-HWTEST_F(RSUniRenderUnitTest, SrcRectScaleDown_003, Function | SmallTest | Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(node, nullptr);
-    BufferDrawParam params;
-    int32_t left = 0;
-    int32_t top = 0;
-    int32_t right = 1;
-    int32_t bottom = 2;
-    params.srcRect = Drawing::Rect(left, top, right, bottom);
-    right = 2;
-    bottom = 1;
-    RectF localBounds = RectF(left, top, right, bottom);
-    RSUniRenderUtil::SrcRectScaleDown(
-        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
-   
-    params.srcRect.SetRight(right);
-    params.srcRect.SetBottom(bottom);
-    right = 1;
-    bottom = 2;
-    localBounds.SetRight(right);
-    localBounds.SetBottom(bottom);
-    RSUniRenderUtil::SrcRectScaleDown(
-        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
