@@ -122,14 +122,14 @@ JsRun::JsRun()
 {
 }
 
-void JsRun::SetRun(std::unique_ptr<Run> run)
+void JsRun::SetRun(std::shared_ptr<Run> run)
 {
-    run_ = std::move(run);
+    run_ = run;
 }
 
-std::unique_ptr<Run> JsRun::GetRun()
+std::shared_ptr<Run> JsRun::GetRun()
 {
-    return std::move(run_);
+    return run_;
 }
 
 napi_value JsRun::GetGlyphCount(napi_env env, napi_callback_info info)

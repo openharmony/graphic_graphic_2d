@@ -38,7 +38,7 @@ public:
     static napi_value LoadFontAsync(napi_env env, napi_callback_info info);
     static napi_value UnloadFontSync(napi_env env, napi_callback_info info);
     static napi_value UnloadFontAsync(napi_env env, napi_callback_info info);
-    static napi_status CreateFontCollection(napi_env env, napi_value constructor, napi_value* obj);
+    static napi_status CreateFontCollection(napi_env env, napi_value exportObj, napi_value* obj);
     static napi_status SetFontCollection(napi_env env, napi_value obj, std::shared_ptr<FontCollection> fontCollection);
 
     std::shared_ptr<FontCollection> GetFontCollection();

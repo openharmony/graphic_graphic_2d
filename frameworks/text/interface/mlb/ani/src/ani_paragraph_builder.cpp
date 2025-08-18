@@ -253,7 +253,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
             return AniTextUtils::CreateAniUndefined(env);
         }
         ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH_BUILDER, ":V");
-        std::unique_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
+        std::shared_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
         if (typographyCreatePtr == nullptr) {
             TEXT_LOGE("Failed to get typographyCreate");
             return AniTextUtils::CreateAniUndefined(env);
@@ -282,7 +282,7 @@ ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class
             TEXT_LOGE("Null typographyCreate");
             return dynamicObj = nullptr;
         }
-        status = JsParagraphBuilder::SetTypographyCreate(napiEnv, dynamicObj, std::unique_ptr<TypographyCreate>(typographyCreate));
+        status = JsParagraphBuilder::SetTypographyCreate(napiEnv, dynamicObj, std::shared_ptr<TypographyCreate>(typographyCreate));
         if (status != napi_ok) {
             TEXT_LOGE("Failed to set inner paragraph builder, status: %{public}d", status);
             return dynamicObj = nullptr;

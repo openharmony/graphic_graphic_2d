@@ -439,7 +439,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
             return AniTextUtils::CreateAniUndefined(env);
         }
         ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
-        std::unique_ptr<Rosen::Run> runPtr = jsRun->GetRun();
+        std::shared_ptr<Rosen::Run> runPtr = jsRun->GetRun();
         if (runPtr == nullptr) {
             TEXT_LOGE("Failed to get run");
             return AniTextUtils::CreateAniUndefined(env);
@@ -472,7 +472,7 @@ ani_object AniRun::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_lon
             TEXT_LOGE("Failed to unwrap run");
             return dynamicObj = nullptr;
         }
-        jsRun->SetRun(std::unique_ptr<Rosen::Run>(run));
+        jsRun->SetRun(std::shared_ptr<Rosen::Run>(run));
         return dynamicObj;
     });
 }

@@ -119,9 +119,9 @@ JsTextLine::JsTextLine()
 {
 }
 
-void JsTextLine::SetTextLine(std::unique_ptr<TextLineBase> textLine)
+void JsTextLine::SetTextLine(std::shared_ptr<TextLineBase> textLine)
 {
-    textLine_ = std::move(textLine);
+    textLine_ = textLine;
 }
 
 napi_value JsTextLine::GetGlyphCount(napi_env env, napi_callback_info info)
@@ -592,9 +592,9 @@ napi_value JsTextLine::OnGetAlignmentOffset(napi_env env, napi_callback_info inf
     return CreateJsValue(env, offset);
 }
 
-std::unique_ptr<TextLineBase> JsTextLine::GetTextLineBase()
+std::shared_ptr<TextLineBase> JsTextLine::GetTextLineBase()
 {
-    return std::move(textLine_);
+    return textLine_;
 }
 
 void JsTextLine::SetParagraph(std::shared_ptr<Typography> paragraph)

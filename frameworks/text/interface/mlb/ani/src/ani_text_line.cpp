@@ -397,7 +397,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
             return AniTextUtils::CreateAniUndefined(env);
         }
         ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":V");
-        std::unique_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
+        std::shared_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
         if (textLineBase == nullptr) {
             TEXT_LOGE("Failed to get textLineBase");
             return AniTextUtils::CreateAniUndefined(env);
@@ -430,7 +430,7 @@ ani_object AniTextLine::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, an
             TEXT_LOGE("Failed to unwrap textLine");
             return dynamicObj = nullptr;
         }
-        jsTextLine->SetTextLine(std::unique_ptr<Rosen::TextLineBase>(textLineBase));
+        jsTextLine->SetTextLine(std::shared_ptr<Rosen::TextLineBase>(textLineBase));
         return dynamicObj;
     });
 }

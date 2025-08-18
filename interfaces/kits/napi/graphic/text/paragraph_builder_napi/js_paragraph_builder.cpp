@@ -39,27 +39,34 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
     napi_value jsThis = nullptr;
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argCount, argv, &jsThis, nullptr);
-    if (status != napi_ok || argCount != ARGC_TWO) {
+    if (status != napi_ok) {
         TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argCount, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    TypographyStyle typographyStyle;
-    GetParagraphStyleFromJS(env, argv[0], typographyStyle);
-    JsFontCollection* jsFontCollection = nullptr;
-    status = napi_unwrap(env, argv[1], reinterpret_cast<void**>(&jsFontCollection));
 
-    if (jsFontCollection == nullptr) {
+    std::unique_ptr<TypographyCreate> typographyCreate = nullptr;
+    if (argCount == ARGC_TWO) {
+        TypographyStyle typographyStyle;
+        GetParagraphStyleFromJS(env, argv[0], typographyStyle);
+        JsFontCollection* jsFontCollection = nullptr;
+        status = napi_unwrap(env, argv[1], reinterpret_cast<void**>(&jsFontCollection));
+
+        if (jsFontCollection == nullptr) {
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        }
+        if (status != napi_ok) {
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Get jsFontCollection error.");
+        }
+
+        std::shared_ptr<FontCollection> fontCollection = jsFontCollection->GetFontCollection();
+        typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+        if (!typographyCreate) {
+            TEXT_LOGE("Failed to create typography creator");
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "TypographyCreate Create error.");
+        }
+    } else if (argCount != ARGC_ZERO) {
+        TEXT_LOGE("Invalid params, argc %{public}zu, ret %{public}d", argCount, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-    if (status != napi_ok) {
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Get jsFontCollection error.");
-    }
-
-    std::shared_ptr<FontCollection> fontCollection = jsFontCollection->GetFontCollection();
-    std::unique_ptr<TypographyCreate> typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
-    if (!typographyCreate) {
-        TEXT_LOGE("Failed to create typography creator");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "TypographyCreate Create error.");
     }
 
     JsParagraphBuilder* jsParagraphBuilder = new(std::nothrow) JsParagraphBuilder();
@@ -67,7 +74,9 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
         TEXT_LOGE("Failed to create paragraph builder");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsParagraphBuilder Create error.");
     }
-    jsParagraphBuilder->SetTypographyCreate(std::move(typographyCreate));
+    if (typographyCreate != nullptr) {
+        jsParagraphBuilder->SetTypographyCreate(std::move(typographyCreate));
+    }
 
     status = napi_wrap(env, jsThis, jsParagraphBuilder,
         JsParagraphBuilder::Destructor, nullptr, nullptr);
@@ -85,18 +94,18 @@ void JsParagraphBuilder::SetTypographyCreate(std::unique_ptr<TypographyCreate> t
     typographyCreate_ = std::move(typographyCreate);
 }
 
-std::unique_ptr<TypographyCreate> JsParagraphBuilder::GetTypographyCreate()
+std::shared_ptr<TypographyCreate> JsParagraphBuilder::GetTypographyCreate()
 {
-    return std::move(typographyCreate_);
+    return typographyCreate_;
 }
 
-napi_status JsParagraphBuilder::CreateTypographyCreate(napi_env env, napi_value constructor, napi_value* obj)
+napi_status JsParagraphBuilder::CreateTypographyCreate(napi_env env, napi_value exportObj, napi_value* obj)
 {
-    return NewInstanceFromConstructor(env, constructor, CLASS_NAME.c_str(), obj);
+    return NewInstanceFromConstructor(env, exportObj, CLASS_NAME.c_str(), obj);
 }
 
 napi_status JsParagraphBuilder::SetTypographyCreate(
-    napi_env env, napi_value obj, std::unique_ptr<TypographyCreate> typographyCreate)
+    napi_env env, napi_value obj, std::shared_ptr<TypographyCreate> typographyCreate)
 {
     if (env == nullptr || obj == nullptr || typographyCreate == nullptr) {
         TEXT_LOGE("Invalid arguments");
@@ -108,7 +117,7 @@ napi_status JsParagraphBuilder::SetTypographyCreate(
         TEXT_LOGE("Failed to unwrap jsParagraphBuilder, status: %{public}d", status);
         return status;
     }
-    jsParagraphBuilder->typographyCreate_ = std::move(typographyCreate);
+    jsParagraphBuilder->typographyCreate_ = typographyCreate;
     return napi_ok;
 }
 
