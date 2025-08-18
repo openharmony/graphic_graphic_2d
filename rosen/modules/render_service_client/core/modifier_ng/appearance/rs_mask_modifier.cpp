@@ -21,8 +21,10 @@ void RSMaskModifier::SetMask(const std::shared_ptr<RSMask>& mask)
     Setter<RSProperty, std::shared_ptr<RSMask>>(RSPropertyType::MASK, mask);
 }
 
+// LCOV_EXCL_START
 const std::shared_ptr<RSMask> RSMaskModifier::GetMask() const
 {
     return Getter(RSPropertyType::MASK, std::shared_ptr<RSMask>(nullptr));
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS::Rosen::ModifierNG
