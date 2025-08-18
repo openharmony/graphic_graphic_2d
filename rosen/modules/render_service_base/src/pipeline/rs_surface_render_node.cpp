@@ -3813,7 +3813,7 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() 
     }
     int bt2020Num = firstLevelNodeBt2020SurfaceNum_;
     int p3Num = firstLevelNodeP3SurfaceNum_;
-    if (RsCommonHook::Instatnce().IsAdaptiveColorGamutEnabled()) {
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled()) {
         bt2020Num += firstLevelNodeBt2020ResourceNum_;
         p3Num += firstLevelNodeP3ResourceNum_;
     }
@@ -3840,7 +3840,7 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::MapGamutToStandard(Graphi
     }
 }
 
-GraphicColorGamut RSSurfaceRenderNode::GamutCollector::DetermineGamutStandard(int pt2020Num, int p3Num)
+GraphicColorGamut RSSurfaceRenderNode::GamutCollector::DetermineGamutStandard(int bt2020Num, int p3Num)
 {
     if (bt2020Num > 0) {
         return GRAPHIC_COLOR_GAMUT_BT2020;
