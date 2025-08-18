@@ -75,28 +75,28 @@ public:
 
     /**
      * @brief Gets the bounds of modifier.
-     * 
+     *
      * @return A Vector4f object representing the bounds.
      */
     std::optional<Vector4f> GetBounds() const;
 
     /**
      * @brief Gets the frame of modifier.
-     * 
+     *
      * @return A Vector4f object representing the frame.
      */
     std::optional<Vector4f> GetFrame() const;
 
     /**
      * @brief Gets the positionZ of modifier.
-     * 
+     *
      * @return A float representing the positionZ.
      */
     std::optional<float> GetPositionZ() const;
 
     /**
      * @brief Gets the pivot of modifier.
-     * 
+     *
      * @return A Vector2f object representing the pivot of x and y axes.
      */
     std::optional<Vector2f> GetPivot() const;

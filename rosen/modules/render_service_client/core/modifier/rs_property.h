@@ -192,6 +192,11 @@ protected:
     virtual void RemovePathAnimation() {}
 
     virtual void UpdateShowingValue(const std::shared_ptr<const RSRenderPropertyBase>& property) {}
+    
+    void AttachModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+    {
+        modifierNG_ = modifier;
+    }
 
     void Attach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier = {})
     {
@@ -214,11 +219,6 @@ protected:
     }
 
     virtual void OnDetach() {}
-
-    void AttachModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
-    {
-        modifierNG_ = modifier;
-    }
 
     void MarkCustomModifierDirty();
 
@@ -912,7 +912,6 @@ template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::Set(const std::shared_ptr<RSNGShaderBase>& value);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShaderBase>>::GetRenderProperty();
-
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::OnAttach(RSNode& node,
     std::weak_ptr<ModifierNG::RSModifier> modifier);
