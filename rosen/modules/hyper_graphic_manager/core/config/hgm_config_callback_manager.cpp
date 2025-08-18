@@ -133,7 +133,7 @@ void HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback(pid_t
     xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid] = callback;
     if (auto iter = xcomponentExpectedFrameRate_.find(dstPid); iter != xcomponentExpectedFrameRate_.end()) {
         for (auto& [xcomponentId, frameRate] : iter->second) {
-            HGM_LOGD("%{public}d:[%{public}s,%{public}d]", dstPid, xcomponentId.c_str(), frameRate);
+            HGM_LOGI("%{public}d:[%{public}s,%{public}d]", dstPid, xcomponentId.c_str(), frameRate);
             callback->OnFrameRateLinkerExpectedFpsUpdate(dstPid, xcomponentId, frameRate);
         }
     }
@@ -255,7 +255,7 @@ void HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback(
     xcomponentExpectedFrameRate_[pid][xcomponentId] = expectedFrameRate;
 
     // cb
-    if (auto iter = xcomponentExpectedFrameRateCallbacks_.begin();
+    if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(pid);
         iter != xcomponentExpectedFrameRateCallbacks_.end()) {
         for (auto& [listenerPid, cb] : iter->second) {
             if (cb == nullptr) {
@@ -299,7 +299,7 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
     }
 
     // game server exit
-    for (auto iter = xcomponentExpectedFrameRateCallbacks_.find(pid);
+    for (auto iter = xcomponentExpectedFrameRateCallbacks_.begin();
         iter != xcomponentExpectedFrameRateCallbacks_.end();) {
         auto& listenerPidCb = iter->second;
         listenerPidCb.erase(pid);

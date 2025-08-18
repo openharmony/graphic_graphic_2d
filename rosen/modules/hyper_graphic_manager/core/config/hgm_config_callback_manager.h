@@ -58,7 +58,7 @@ private:
     // <dstPid, <listenerPid, cb>>
     std::unordered_map<pid_t, std::unordered_map<pid_t,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>>> xcomponentExpectedFrameRateCallbacks_;
-    // <dstPid, <xcomponentId, frameRate>
+    // <dstPid, <xcomponentId, frameRate>>
     std::unordered_map<pid_t, std::unordered_map<std::string, int32_t>> xcomponentExpectedFrameRate_;
 };
 } // namespace OHOS::Rosen

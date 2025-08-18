@@ -1475,7 +1475,7 @@ bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
     bool isOtherSelfNodeOnTree = false;
     std::string gameNodeName = GetGameNodeName();
     nodeMap.TraverseSurfaceNodes(
-        [this, &isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
+        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
