@@ -342,7 +342,6 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     for (const auto& nodeId : hdrNodeList) {
         auto canvasNode = nodeMap.GetRenderNode(nodeId);
         if (!canvasNode) {
-            RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty get nullptr canvasNodeId: %{public}" PRIu64 "", nodeId);
             continue;
         }
         canvasNode->SetContentDirty();
