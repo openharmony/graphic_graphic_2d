@@ -61,56 +61,56 @@ public:
 
     /**
      * @brief Gets the bounds of modifier.
-     * 
+     *
      * @return A Vector4f object representing the bounds.
      */
     Vector4f GetBounds() const;
 
     /**
      * @brief Gets the frame of modifier.
-     * 
+     *
      * @return A Vector4f object representing the frame.
      */
     Vector4f GetFrame() const;
 
     /**
      * @brief Gets the positionZ of modifier.
-     * 
+     *
      * @return A float representing the positionZ.
      */
     float GetPositionZ() const;
 
     /**
      * @brief Gets the pivot of modifier.
-     * 
+     *
      * @return A Vector2f object representing the pivot of x and y axes.
      */
     Vector2f GetPivot() const;
 
     /**
      * @brief Gets the pivotZ of modifier.
-     * 
+     *
      * @return A float representing the pivot of z-axis.
      */
     float GetPivotZ() const;
 
     /**
      * @brief Gets the Quaternion of modifier.
-     * 
+     *
      * @return A Quaternion object.
      */
     Quaternion GetQuaternion() const;
 
     /**
      * @brief Gets the rotation of modifier.
-     * 
+     *
      * @return A float representing the rotation.
      */
     float GetRotation() const;
 
     /**
      * @brief Gets the rotationX of modifier.
-     * 
+     *
      * @return A float representing the rotation of x-axis.
      */
     float GetRotationX() const;

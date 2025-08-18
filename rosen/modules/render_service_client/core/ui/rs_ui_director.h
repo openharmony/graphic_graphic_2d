@@ -72,10 +72,10 @@ public:
 
     /**
      * @brief Moves the UI director to the background.
-     * 
+     *
      * Update the window status, node status, and clear cache and redundant resources
-     * 
-     * @param isTextureExport Indicates whether texture export should be performed 
+     *
+     * @param isTextureExport Indicates whether texture export should be performed
      *                        during the transition to the background. Defaults to false.
      */
     void GoBackground(bool isTextureExport = false);
@@ -83,7 +83,7 @@ public:
     /**
      * @brief Moves the UI director to the foreground.
      *
-     * @param isTextureExport Indicates whether texture export should be performed 
+     * @param isTextureExport Indicates whether texture export should be performed
      *                        during the transition to the foreground. Defaults to false.
      */
     void GoForeground(bool isTextureExport = false);
@@ -159,7 +159,7 @@ public:
      * plan to del.
      *
      * @param uiTaskRunner The task runner to be used for UI tasks.
-     * @param instanceId The ID of the instance for which the task runner is being set. 
+     * @param instanceId The ID of the instance for which the task runner is being set.
      *                   Defaults to INSTANCE_ID_UNDEFINED if not specified.
      * @param useMultiInstance A flag indicating whether to use multiple instances. Defaults to false.
      */
@@ -170,7 +170,7 @@ public:
      * @brief Post messages to render thread.
      */
     void SendMessages();
-    
+
     /**
      * @brief Post messages to render thread with callback.
      * 
@@ -218,7 +218,7 @@ public:
 
     /**
      * @brief Checks if there are any UI animations currently running.
-     * 
+     *
      * @return true if there are running UI animations, false otherwise.
      */
     bool HasUIRunningAnimation();
@@ -256,28 +256,28 @@ public:
 
     /**
      * @brief Gets the current refresh rate mode of the UI director.
-     * 
+     *
      * @return int32_t The current refresh rate mode.
      */
     int32_t GetCurrentRefreshRateMode();
 
     /**
      * @brief Gets the expected animation frame rate.
-     * 
+     *
      * @return The expected frame rate for animations as an integer.
      */
     int32_t GetAnimateExpectedRate() const;
 
     /**
      * @brief Gets the index associated with the current object.
-     * 
+     *
      * @return The index as an unsigned 32-bit integer.
      */
     uint32_t GetIndex() const;
 
     /**
      * @brief Gets the RSUIContext associated with this RSUIDirector.
-     * 
+     *
      * @return A shared pointer to the RSUIContext instance.
      */
     std::shared_ptr<RSUIContext> GetRSUIContext() const;

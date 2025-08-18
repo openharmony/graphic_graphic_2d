@@ -22,7 +22,6 @@
 #include "gtest/hwext/gtest-tag.h"
 
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
-#include "ui/rs_canvas_node.h"
 
 using namespace testing::ext;
 using namespace OHOS::Rosen::ModifierNG;
@@ -130,4 +129,5 @@ HWTEST_F(RSBackgroundFilterModifierNGTypeTest, GetTypeTest, TestSize.Level1)
 {
     EXPECT_EQ(modifier->GetType(), RSModifierType::BACKGROUND_FILTER);
 }
+
 } // namespace OHOS::Rosen

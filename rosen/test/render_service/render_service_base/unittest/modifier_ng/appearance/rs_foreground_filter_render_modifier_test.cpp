@@ -23,10 +23,10 @@
 #include "message_parcel.h"
 
 #include "common/rs_vector4.h"
-#include "modifier_ng/appearance/rs_foreground_filter_render_modifier.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
-#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "property/rs_properties.h"
+#include "modifier_ng/appearance/rs_foreground_filter_render_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
