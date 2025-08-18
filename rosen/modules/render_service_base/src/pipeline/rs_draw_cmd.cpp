@@ -146,6 +146,7 @@ void RSExtendImageObject::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+        rsImage_->SetNodeId(id);
     }
     nodeId_ = id;
 }

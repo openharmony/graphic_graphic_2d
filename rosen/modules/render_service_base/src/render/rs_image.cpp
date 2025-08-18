@@ -18,6 +18,7 @@
 
 #include "common/rs_common_tools.h"
 #include "common/rs_rect.h"
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
@@ -218,6 +219,30 @@ void RSImage::ApplyImageOrientation(Drawing::Canvas& canvas)
     }
 }
 
+bool RSImage::EnhanceImageAsync(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+    bool needDetachPen) const
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    bool isEnable = RSImageDetailEnhancerThread::Instance().GetEnableStatus();
+    if (!isEnable || pixelMap_ == nullptr) {
+        return false;
+    }
+    RSImageDetailEnhancerThread::Instance().ScaleImageAsync(pixelMap_, dst_, nodeId_, uniqueId_, image_);
+    std::shared_ptr<Drawing::Image> dstImage = RSImageDetailEnhancerThread::Instance().GetOutImage(uniqueId_);
+    if (dstImage == nullptr) {
+        return false;
+    }
+    Drawing::Rect newSrcRect(0, 0, dstImage->GetWidth(), dstImage->GetHeight());
+    canvas.DrawImageRect(*dstImage, newSrcRect, dst_, samplingOptions,
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    if (needDetachPen) {
+        canvas.DetachPen();
+    }
+    return true;
+#endif
+    return false;
+}
+
 void RSImage::DrawImageRect(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions)
 {
@@ -243,6 +268,9 @@ void RSImage::DrawImageRect(
         fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
         fitMatrix_->HasPerspective())) {
         DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
+        return;
+    }
+    if (EnhanceImageAsync(canvas, samplingOptions, false)) {
         return;
     }
     canvas.DrawImageRect(*image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
@@ -631,7 +659,10 @@ void RSImage::DrawImageOnCanvas(
             DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
             return;
         }
-        
+        if (EnhanceImageAsync(canvas, samplingOptions, false)) {
+            return;
+        }
+
         canvas.DrawImageRect(
             *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
@@ -646,6 +677,9 @@ void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
     pen.SetFilter(filter);
     canvas.AttachPen(pen);
+    if (EnhanceImageAsync(canvas, samplingOptions, true)) {
+        return;
+    }
     canvas.DrawImageRect(
         *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachPen();

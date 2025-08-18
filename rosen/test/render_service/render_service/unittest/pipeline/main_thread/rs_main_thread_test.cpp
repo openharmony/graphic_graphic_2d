@@ -26,6 +26,7 @@
 #include "command/rs_base_node_command.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
@@ -6549,5 +6550,19 @@ HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
     ret = connection->CreateNodeAndSurface(config, surface, false);
     ASSERT_EQ(ret, ERR_OK);
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+}
+
+/**
+ * @tc.name: MarkNodeImageDirty001
+ * @tc.desc: Test MarkNodeImageDirty001
+ * @tc.type: FUNC
+ * @tc.require:IBZ6NM
+ */
+HWTEST_F(RSMainThreadTest, MarkNodeImageDirty001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t nodeId = 12345;
+    mainThread->MarkNodeImageDirty(nodeId);
 }
 } // namespace OHOS::Rosen

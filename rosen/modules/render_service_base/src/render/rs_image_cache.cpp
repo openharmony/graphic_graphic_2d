@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "memory/rs_memory_snapshot.h"
 #include "render/rs_image_cache.h"
 #include "pixel_map.h"
@@ -211,6 +212,11 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
         pixelMapIdRelatedDrawingImageCache_.erase(it);
+        bool isEnable = RSImageDetailEnhancerThread::Instance().GetEnableStatus();
+        if (isEnable && RSImageDetailEnhancerThread::Instance().GetOutImage(uniqueId)) {
+            RSImageDetailEnhancerThread::Instance().ReleaseOutImage(uniqueId);
+            RSImageDetailEnhancerThread::Instance().SetProcessStatus(uniqueId, false);
+        }
     }
 }
 } // namespace Rosen

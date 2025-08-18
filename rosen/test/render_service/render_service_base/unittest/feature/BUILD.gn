@@ -180,6 +180,37 @@ ohos_unittest("RSMemoryInfoManagerTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSImageDetailEnhancerThreadTest  ##################################
+ohos_unittest("RSImageDetailEnhancerThreadTest") {
+  module_out_path = module_output_path
+
+  sources = [ "image_detail_enhancer/rs_image_detail_enhancer_thread_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root:libvulkan",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
+    "$rosen_root/modules/platform:eventhandler",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -189,6 +220,7 @@ config("render_test") {
 group("unittest") {
   testonly = true
   deps = [
+    ":RSImageDetailEnhancerThreadTest",
     ":RSOpincCacheTest",
     ":RSOpincManagerTest",
     ":RSUiCaptureHelperTest",

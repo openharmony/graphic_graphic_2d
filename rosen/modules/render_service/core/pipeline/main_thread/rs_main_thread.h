@@ -46,6 +46,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/hwc/rs_direct_composition_helper.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
 #include "screen_manager/rs_screen_node_listener.h"
@@ -444,6 +445,7 @@ public:
 
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
+    void MarkNodeImageDirty(uint64_t nodeId);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,

@@ -78,6 +78,11 @@ ohos_source_set("render_service_base_src") {
   defines = []
   defines += gpu_defines
   defines += [ "MODULE_RSB" ]
+  if (target_os == "android") {
+    defines += [ "ANDROID_PLATFORM" ]
+  } else if (target_os == "ios") {
+    defines += [ "IOS_PLATFORM" ]
+  }
 
   sources = [
     #animation
@@ -377,6 +382,7 @@ ohos_source_set("render_service_base_src") {
 
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",
     "src/feature/single_frame_composer/rs_single_frame_composer.cpp",

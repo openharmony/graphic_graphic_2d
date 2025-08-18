@@ -393,6 +393,22 @@ public:
 };
 #endif
 
+void RSMainThread::MarkNodeImageDirty(uint64_t nodeId)
+{
+    RSMainThread::Instance()->PostTask([nodeId]() {
+        if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
+            RSMainThread::Instance()->RequestNextVSync();
+        }
+        auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto node = nodeMap.GetRenderNode(nodeId);
+        if (node) {
+            RS_LOGD("MarkNodeImageDirty success: %{public}llu", nodeId);
+            RSMainThread::Instance()->SetDirtyFlag();
+            node->SetDirty(true);
+        }
+    });
+}
+
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -571,6 +587,8 @@ void RSMainThread::Init()
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     RSUniHwcPrevalidateUtil::GetInstance().Init();
+    RSImageDetailEnhancerThread::Instance().RegisterCallback(
+        std::bind(&RSMainThread::MarkNodeImageDirty, this, std::placeholders::_1));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     if (isUniRender_) {
