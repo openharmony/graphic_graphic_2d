@@ -227,6 +227,8 @@ public:
     }
 
     void DumpVkImageInfo(std::string &dumpString);
+
+    void InitDrawOpOverCallback(Drawing::GPUContext* gpuContext);
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

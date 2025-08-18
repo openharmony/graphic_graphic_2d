@@ -87,6 +87,8 @@ public:
 
     virtual void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) = 0;
 
+    virtual void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) = 0;
+
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
         const std::set<pid_t>& protectedPidSet) = 0;
     
