@@ -125,6 +125,13 @@ template("drawing_ndk_source_set") {
       "$graphic_2d_root/frameworks/text/service/global_config",
     ]
 
+    if (graphic_2d_feature_enable_vulkan) {
+      defines += [ "RS_ENABLE_VK" ]
+      external_deps += [ "vulkan-headers:vulkan_headers" ]
+    }
+
+    defines += [ "USE_ACE_SKIA" ]
+
     if (enable_text_gine) {
       include_dirs += [
         "$rosen_text_root",
@@ -132,6 +139,7 @@ template("drawing_ndk_source_set") {
         "$rosen_text_root/adapter",
         "$rosen_text_root/interface/export",
       ]
+      external_deps += [ "bounds_checking_function:libsec_static" ]
     } else {
       include_dirs += [
         "$ace_napi_frameworks/frameworks",
@@ -152,6 +160,7 @@ template("drawing_ndk_source_set") {
       ]
 
       remove_configs = [ "//build/config/compiler:default_include_dirs" ]
+      include_dirs += [ "//" ]
     } else {
       cflags = [ "-std=c++17" ]
 
@@ -216,13 +225,13 @@ if (!is_arkui_x) {
       platform = "windows"
     }
     public_configs = [ ":export_config" ]
+    external_deps = [ "hilog:libhilog" ]
     deps = [ "$drawing_root/drawing_ndk:drawing_ndk_source_$platform" ]
     public_external_deps = [ "skia:skia_canvaskit" ]
 
     if (platform == "ohos") {
       version_script = "$drawing_root/2d_graphics.versionscript"
       symlink_target_name = [ "libnative_drawing.so" ]
-      innerapi_tags = [ "platformsdk_indirect" ]
     }
 
     part_name = "graphic_2d"
