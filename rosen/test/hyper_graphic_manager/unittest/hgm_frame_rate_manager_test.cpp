@@ -1317,10 +1317,32 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level0)
     FrameRateRange finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
     EXPECT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
         frameRateMgr->currRefreshRate_);
-    frameRateMgr->isStylusWakeUp_ = true;
+    frameRateMgr->HandleStylusSceneEvent("STYLUS_NO_LINK");
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
+        frameRateMgr->currRefreshRate_);
+
+    frameRateMgr->HandleStylusSceneEvent("STYLUS_SLEEP");
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
+        frameRateMgr->currRefreshRate_);
+    frameRateMgr->stylusVec_ = {60, 120};
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
+        frameRateMgr->currRefreshRate_);
+
+    frameRateMgr->HandleStylusSceneEvent("STYLUS_WAKEUP");
     frameRateMgr->stylusVec_.clear();
     ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
         frameRateMgr->currRefreshRate_);
+
+    frameRateMgr->stylusVec_ = {60, 120};
+    finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_60_HZ };
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange), OLED_60_HZ);
+    finalRange = { OLED_60_HZ, OLED_120_HZ, OLED_120_HZ };
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange), OLED_120_HZ);
+    finalRange = { OLED_60_HZ, OLED_90_HZ, OLED_90_HZ };
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange), OLED_60_HZ);
+    finalRange = { OLED_30_HZ, OLED_90_HZ, OLED_30_HZ };
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange), OLED_60_HZ);
+    frameRateMgr->stylusVec_.clear();
 }
 
 /**
