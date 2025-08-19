@@ -106,7 +106,7 @@ bool GetEnableEDRShaderColorGradient(std::shared_ptr<RSNGRenderShaderBase> rende
     return isUseEDR;
 }
 
-bool GetEnableEDRShaderRoundedRectFlowlight(std::shared_ptr<RSNGRenderShaderBase> renderFilter)
+bool GetEnableEDRShaderRoundedRectFlowlight(std::shared_ptr<RSNGRenderShaderBase> renderShader)
 {
     auto shader = std::static_pointer_cast<RSNGRenderRoundedRectFlowlight>(renderShader);
     if (!shader) {
@@ -118,7 +118,7 @@ bool GetEnableEDRShaderRoundedRectFlowlight(std::shared_ptr<RSNGRenderShaderBase
            ROSEN_GNE(brightness, 1.0f);
 }
 
-bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderFilter)
+bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderShader)
 {
     auto shader = std::static_pointer_cast<RSNGRenderAIBarGlow>(renderShader);
     if (!shader) {
