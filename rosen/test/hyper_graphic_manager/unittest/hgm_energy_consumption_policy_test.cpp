@@ -468,6 +468,9 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetVideoCallSceneInfoTest, TestSize.Lev
     };
     HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallVsyncName_, "flutterVsyncName");
+    eventInfo.description = "flutterVsyncName:0";
+    HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallVsyncName_, "flutterVsyncName");
     EventInfo eventInfo2 = {
         .eventName = "VOTER_VIDEO_CALL",
         .maxRefreshRate = 15,
