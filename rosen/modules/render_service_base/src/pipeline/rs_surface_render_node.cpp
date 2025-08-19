@@ -114,23 +114,6 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
     return false;
 }
 
-GraphicColorGamut GamutChange(GraphicColorGamut gamut)
-{
-    switch (gamut) {
-        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-        case GRAPHIC_COLOR_GAMUT_DCI_P3:
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-        case GRAPHIC_COLOR_GAMUT_BT2020:
-        case GRAPHIC_COLOR_GAMUT_BT2100_PQ:
-        case GRAPHIC_COLOR_GAMUT_BT2100_HLG:
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020:
-            return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
-        default:
-            return GRAPHIC_COLOR_GAMUT_SRGB;
-    }
-}
-
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicColorGamut CMPrimariesToGamut(HDI::Display::Graphic::Common::V1_0::CM_ColorPrimaries primary)
 {
@@ -147,17 +130,6 @@ GraphicColorGamut CMPrimariesToGamut(HDI::Display::Graphic::Common::V1_0::CM_Col
     }
 }
 #endif
-
-GraphicColorGamut JudgeGamut(int bt2020Num, int p3Num)
-{
-    if (bt2020Num > 0) {
-        return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
-    } else if (p3Num > 0) {
-        return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-    } else {
-        return GRAPHIC_COLOR_GAMUT_SRGB;
-    }
-}
 }
 
 void OcclusionParams::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
