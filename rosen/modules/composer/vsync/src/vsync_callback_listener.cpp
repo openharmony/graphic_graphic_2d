@@ -28,6 +28,15 @@
 #include "vsync_log.h"
 #include <rs_trace.h>
 
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
+
+constexpr int PRINT_COUNT_MAX = 1200;
+constexpr int64_t TIME_OUT_INTERVAL = 450000000; // 500000000ns == 450ms
 namespace OHOS {
 namespace Rosen {
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
@@ -129,6 +138,7 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
     // 1, 2: index of array data.
     RS_TRACE_NAME_FMT("ReceiveVsync name:%s dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld, fd:%d",
         name_.c_str(), dataCount, now, expectedEnd, data[2], fileDescriptor); // data[2] is vsyncId
+    PrintRequestTs(now);
     if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
         cbWithId != nullptr ? cbWithId(now, data[2], userData) : cb(now, userData);
@@ -142,6 +152,25 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
     }
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
+    }
+}
+
+void VSyncCallBackListener::PrintRequestTs(int64_t fromRsTs)
+{
+    if (name_.compare("rs") == 0) {
+        return;
+    }
+    auto now = SystemTime();
+    requestCount_++;
+    auto timeInterval = now - fromRsTs;
+    if (requestCount_ >= PRINT_COUNT_MAX) {
+        requestCount_ = 0;
+        VLOGW("recv vsync timestamp, from:%{public}s, now:" VPUBI64 ", "
+        "fromRsTs:" VPUBI64 ", timeInterval:" VPUBI64 "ns", name_.c_str(), now, fromRsTs, timeInterval);
+    }
+    if (timeInterval >= TIME_OUT_INTERVAL && fromRsTs > 0) {
+        VLOGW("recv vsync timeout, from:%{public}s, now:" VPUBI64 ", "
+        "fromRsTs:" VPUBI64 ", timeInterval:" VPUBI64 "ns", name_.c_str(), now, fromRsTs, timeInterval);
     }
 }
 
