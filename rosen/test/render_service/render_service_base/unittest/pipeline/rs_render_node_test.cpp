@@ -884,6 +884,7 @@ HWTEST_F(RSRenderNodeTest, UpdateVisibleEffectChildTest, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
     childNode->GetMutableRenderProperties().useEffect_ = true;
+    childNode->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     EXPECT_TRUE(childNode->GetRenderProperties().GetUseEffect());
     node->UpdateVisibleEffectChild(*childNode);
     EXPECT_TRUE(!node->visibleEffectChild_.empty());
