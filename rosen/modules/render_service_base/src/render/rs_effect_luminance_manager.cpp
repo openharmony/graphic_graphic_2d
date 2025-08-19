@@ -115,7 +115,7 @@ bool GetEnableEDRShaderRoundedRectFlowlight(std::shared_ptr<RSNGRenderShaderBase
     const auto& color = shader->Getter<RoundedRectFlowlightColorRenderTag>()->Get();
     const auto& brightness = shader->Getter<RoundedRectFlowlightBrightnessRenderTag>()->Get();
     return ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f) ||
-           ROSEN_GNE(brightness.x_, 1.0f);
+           ROSEN_GNE(brightness, 1.0f);
 }
 
 bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderFilter)
@@ -133,7 +133,7 @@ bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderFil
            ROSEN_GNE(color1.x_, 1.0f) || ROSEN_GNE(color1.y_, 1.0f) || ROSEN_GNE(color1.z_, 1.0f) ||
            ROSEN_GNE(color2.x_, 1.0f) || ROSEN_GNE(color2.y_, 1.0f) || ROSEN_GNE(color2.z_, 1.0f) ||
            ROSEN_GNE(color3.x_, 1.0f) || ROSEN_GNE(color3.y_, 1.0f) || ROSEN_GNE(color3.z_, 1.0f) ||
-           ROSEN_GNE(brightness.x_, 1.0f);
+           ROSEN_GNE(brightness, 1.0f);
 }
 
 static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT = {
