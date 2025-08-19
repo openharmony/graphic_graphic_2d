@@ -377,6 +377,7 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
     static const std::unordered_set<std::string> videoLayers {
         "xcomponentIdSurface",
         "componentIdSurface",
+        "SceneViewer Model totemweather0",
     };
     if (IsYUVBufferFormat(node) || (videoLayers.count(node->GetName()) > 0)) {
         return true;
