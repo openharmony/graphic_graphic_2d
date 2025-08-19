@@ -46,9 +46,9 @@ HWTEST_F(OPIncParamTest, SetOPIncEnable, Function | SmallTest | Level1)
 {
     OPIncParam opincParam;
     opincParam.SetOPIncEnable(true);
-    ASSERT_EQ(opincParam.IsOPIncEnable(), true);
+    EXPECT_EQ(opincParam.IsOPIncEnable(), true);
     opincParam.SetOPIncEnable(false);
-    ASSERT_EQ(opincParam.IsOPIncEnable(), false);
+    EXPECT_EQ(opincParam.IsOPIncEnable(), false);
 }
 
 /**
@@ -61,7 +61,7 @@ HWTEST_F(OPIncParamTest, SetCacheWidthThresholdPercentValue, Function | SmallTes
 {
     OPIncParam opincParam;
     opincParam.SetCacheWidthThresholdPercentValue(100);
-    ASSERT_EQ(opincParam.GetCacheWidthThresholdPercentValue(), 100);
+    EXPECT_EQ(opincParam.GetCacheWidthThresholdPercentValue(), 100);
 }
 } // namespace Rosen
 } // namespace OHOS

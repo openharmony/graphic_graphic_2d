@@ -663,7 +663,7 @@ HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceInThreadTest, TestSize.Level1)
  * @tc.name: DrawUIFirstDfx
  * @tc.desc: Test DrawUIFirstDfx
  * @tc.type: FUNC
- * @tc.require: issueI9NVOG
+ * @tc.require: #I9NVOG
  */
 HWTEST_F(RSSubThreadCacheTest, DrawUIFirstDfxTest, TestSize.Level1)
 {
@@ -1036,7 +1036,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceAlphaInfo, TestSize.Level1)
 HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceProcessedNodes, TestSize.Level1)
 {
     RsSubThreadCache subCache;
-    ASSERT_EQ(subCache.GetCacheSurfaceAlphaInfo(), -1.f);
+    ASSERT_EQ(subCache.GetCacheSurfaceProcessedNodes(), -1);
 }
 
 /**

@@ -46,9 +46,9 @@ HWTEST_F(UIFirstParamTest, SetUIFirstEnable, Function | SmallTest | Level1)
 {
     UIFirstParam uifirstParam;
     uifirstParam.SetUIFirstEnable(true);
-    ASSERT_EQ(uifirstParam.IsUIFirstEnable(), true);
+    EXPECT_EQ(uifirstParam.IsUIFirstEnable(), true);
     uifirstParam.SetUIFirstEnable(false);
-    ASSERT_EQ(uifirstParam.IsUIFirstEnable(), false);
+    EXPECT_EQ(uifirstParam.IsUIFirstEnable(), false);
 }
 
 /**
@@ -61,9 +61,9 @@ HWTEST_F(UIFirstParamTest, SetCardUIFirstEnable, Function | SmallTest | Level1)
 {
     UIFirstParam uifirstParam;
     uifirstParam.SetCardUIFirstEnable(true);
-    ASSERT_EQ(uifirstParam.IsCardUIFirstEnable(), true);
+    EXPECT_EQ(uifirstParam.IsCardUIFirstEnable(), true);
     uifirstParam.SetCardUIFirstEnable(false);
-    ASSERT_EQ(uifirstParam.IsCardUIFirstEnable(), false);
+    EXPECT_EQ(uifirstParam.IsCardUIFirstEnable(), false);
 }
 
 /**
@@ -76,9 +76,9 @@ HWTEST_F(UIFirstParamTest, SetCacheOptimizeRotateEnable, Function | SmallTest | 
 {
     UIFirstParam uifirstParam;
     uifirstParam.SetCacheOptimizeRotateEnable(true);
-    ASSERT_EQ(uifirstParam.IsCacheOptimizeRotateEnable(), true);
+    EXPECT_EQ(uifirstParam.IsCacheOptimizeRotateEnable(), true);
     uifirstParam.SetCacheOptimizeRotateEnable(false);
-    ASSERT_EQ(uifirstParam.IsCacheOptimizeRotateEnable(), false);
+    EXPECT_EQ(uifirstParam.IsCacheOptimizeRotateEnable(), false);
 }
 
 /**
@@ -91,9 +91,9 @@ HWTEST_F(UIFirstParamTest, SetFreeMultiWindowEnable, Function | SmallTest | Leve
 {
     UIFirstParam uifirstParam;
     uifirstParam.SetFreeMultiWindowEnable(true);
-    ASSERT_EQ(uifirstParam.IsFreeMultiWindowEnable(), true);
+    EXPECT_EQ(uifirstParam.IsFreeMultiWindowEnable(), true);
     uifirstParam.SetFreeMultiWindowEnable(false);
-    ASSERT_EQ(uifirstParam.IsFreeMultiWindowEnable(), false);
+    EXPECT_EQ(uifirstParam.IsFreeMultiWindowEnable(), false);
 }
 
 /**
@@ -106,7 +106,7 @@ HWTEST_F(UIFirstParamTest, SetUIFirstEnableWindowThreshold, Function | SmallTest
 {
     UIFirstParam uifirstParam;
     uifirstParam.SetUIFirstEnableWindowThreshold(2);
-    ASSERT_EQ(uifirstParam.GetUIFirstEnableWindowThreshold(), 2);
+    EXPECT_EQ(uifirstParam.GetUIFirstEnableWindowThreshold(), 2);
 }
 } // namespace Rosen
 } // namespace OHOS
