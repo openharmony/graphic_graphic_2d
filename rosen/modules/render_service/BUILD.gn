@@ -137,6 +137,7 @@ ohos_shared_library("librender_service") {
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
+    "core/feature/param_manager/rs_param_manager.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
@@ -462,9 +463,11 @@ ohos_shared_library("librender_service") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "ability_runtime:app_manager",
     "cJSON:cjson",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "drivers_interface_display:libdisplay_commontype_proxy_2.2",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",

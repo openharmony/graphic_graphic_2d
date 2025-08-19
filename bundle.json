@@ -71,6 +71,8 @@
       ],
       "deps": {
         "components": [
+          "ability_base",
+          "common_event_service",
           "window_manager",
           "resource_management",
           "napi",

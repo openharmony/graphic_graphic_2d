@@ -24,6 +24,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "feature/param_manager/rs_param_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_memory_manager.h"
 #include "parameter.h"
@@ -220,6 +221,10 @@ void RSRenderService::Run()
         RS_LOGE("Run failed, mainThread is nullptr");
         return;
     }
+    mainThread_->PostTask([]() {
+        RS_LOGD("RSRenderService::Run(): Subscribe event.");
+        RSParamManager::GetInstance().SubscribeEvent();
+    });
     RS_LOGE("Run");
     mainThread_->Start();
 }
