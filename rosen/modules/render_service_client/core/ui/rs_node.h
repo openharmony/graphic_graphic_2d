@@ -2072,8 +2072,6 @@ private:
     friend class RSModifierExtractor;
     friend class ModifierNG::RSModifier;
     friend class ModifierNG::RSCustomModifier;
-    friend class RSBackgroundUIFilterModifier;
-    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;

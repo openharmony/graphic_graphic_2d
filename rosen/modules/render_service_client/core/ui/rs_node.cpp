@@ -1977,7 +1977,6 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 SetWaterRippleParams(params, progress);
                 break;
             }
-            
             default:
                 break;
         }
