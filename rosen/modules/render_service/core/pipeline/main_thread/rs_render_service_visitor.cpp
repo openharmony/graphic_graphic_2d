@@ -82,7 +82,29 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
         logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
     }
 
-    if (node.IsMirrorScreen()) {
+    auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
+    CreateCanvas(logicalScreenWidth, logicalScreenHeight);
+    PrepareChildren(node);
+    node.GetCurAllSurfaces().clear();
+    node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), false, false);
+}
+
+void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
+{
+    if (node.IsMirrorDisplay()) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        if (!screenManager) {
+            RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
+            return;
+        }
+        ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+        int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
+        int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
+        if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
+            logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
+            logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
+        }
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
@@ -93,18 +115,8 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
             CreateCanvas(logicalScreenWidth, logicalScreenHeight, true);
         }
         PrepareChildren(*existingSource);
-    } else {
-        auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
-        RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
-        CreateCanvas(logicalScreenWidth, logicalScreenHeight);
-        PrepareChildren(node);
+        return;
     }
-    node.GetCurAllSurfaces().clear();
-    node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), false, false);
-}
-
-void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
-{
     PrepareChildren(node);
 }
 
@@ -139,7 +151,13 @@ void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
         return;
     }
 
-    if (node.IsMirrorScreen()) {
+    ProcessChildren(node);
+    processor_->PostProcess();
+}
+
+void RSRenderServiceVisitor::ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
+{
+    if (node.IsMirrorDisplay()) {
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
@@ -156,12 +174,7 @@ void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
     } else {
         ProcessChildren(node);
     }
-    processor_->PostProcess();
-}
-
-void RSRenderServiceVisitor::ProcessLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
-{
-    ProcessChildren(node);
+    
     for (auto& [_, funcs] : foregroundSurfaces_) {
         for (const auto& func : funcs) {
             func();
