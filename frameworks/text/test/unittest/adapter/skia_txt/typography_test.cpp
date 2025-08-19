@@ -34,25 +34,23 @@ class OH_Drawing_TypographyTest : public testing::Test {
 };
 
 namespace {
-std::string g_expectDumpInfo = "This is paragraph dump info:,"
-    "Text size: 126 fState: Drawn fSkipTextBlobDrawing: false,"
-    "Run[0] glyph size: 6 text range: [0-14),"
-    "Run[1] glyph size: 11 text range: [14-25),"
-    "Run[2] glyph size: 14 text range: [25-63),"
-    "Run[3] glyph size: 6 text range: [63-77),"
-    "Run[4] glyph size: 11 text range: [77-88),"
-    "Run[5] glyph size: 14 text range: [88-126),"
-    "Block[0] text range[0-63) font size: 50 font color: ffff0000 font height: 0"
-    " font weight: 500 font width: 6 font slant: 2,"
-    "Block[1] text range[63-126) font size: 60 font color: ffffff00 font height: 0"
-    " font weight: 300 font width: 7 font slant: 1,"
-    "Paragraph glyph size: 62,"
-    "Line[0] run range: [0-1],"
-    "Line[1] run range: [1-2],"
-    "Line[2] run range: [2-3],"
-    "Line[3] run range: [4-5],"
-    "Line[4] run range: [5-5],"
-    "Line[5] run range: [5-5],";
+std::string g_expectDumpInfo = "Paragraph dump:"
+    "Text sz:126,State:Drawn,TextDraw:F,"
+    "Run0 glyph sz:6,rng[0-14),"
+    "Run1 glyph sz:11,rng[14-25),"
+    "Run2 glyph sz:14,rng[25-63),"
+    "Run3 glyph sz:6,rng[63-77),"
+    "Run4 glyph sz:11,rng[77-88),"
+    "Run5 glyph sz:14,rng[88-126),"
+    "Blk0 rng[0-63),sz:50,clr:ffff0000,ht:0,wt:500,wd:6,slt:2,"
+    "Blk1 rng[63-126),sz:60,clr:ffffff00,ht:0,wt:300,wd:7,slt:1,"
+    "Paragraph glyph sz:62,"
+    "L0 run rng:0-1,"
+    "L1 run rng:1-2,"
+    "L2 run rng:2-3,"
+    "L3 run rng:4-5,"
+    "L4 run rng:5-5,"
+    "L5 run rng:5-5";
 }
 
 /*
