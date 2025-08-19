@@ -47,6 +47,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGWaveGradientMask>();
         }
     },
+    {RSNGEffectType::FRAME_GRADIENT_MASK, [] {
+            return std::make_shared<RSNGFrameGradientGradientMask>();
+        }
+    },
 };
 
 namespace {

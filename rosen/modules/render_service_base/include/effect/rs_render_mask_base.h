@@ -111,6 +111,12 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, HaloThickness)
 );
 
+DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
+    ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
+    ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK
 

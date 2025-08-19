@@ -88,6 +88,7 @@ enum class RSNGEffectType : int16_t {
     RADIAL_GRADIENT_MASK,
     PIXEL_MAP_MASK,
     WAVE_GRADIENT_MASK,
+    FRAME_GRADIENT_MASK,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     WAVY_RIPPLE_LIGHT,
@@ -96,6 +97,9 @@ enum class RSNGEffectType : int16_t {
     COLOR_GRADIENT_EFFECT,
     LIGHT_CAVE,
     BORDER_LIGHT,
+    AIBAR_GLOW,
+    ROUNDED_RECT_FLOWLIGHT,
+    GRADIENT_FLOW_COLORS
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

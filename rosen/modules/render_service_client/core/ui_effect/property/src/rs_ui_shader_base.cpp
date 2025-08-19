@@ -14,13 +14,11 @@
  */
 #include "platform/common/rs_log.h"
 
-#include "ui_effect/effect/include/border_light_effect_para.h"
-
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
+#include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
-
-#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,7 +49,20 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     {RSNGEffectType::BORDER_LIGHT, [] {
             return std::make_shared<RSNGBorderLight>();
         }
-    }
+    },
+    {RSNGEffectType::AIBAR_GLOW, [] {
+            return std::make_shared<RSNGAIBarGlow>();
+        }
+    },
+    {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, [] {
+            return std::make_shared<RSNGROPoundedRectFlowlight>();
+        }
+    },
+    {RSNGEffectType::GRADIENT_FLOW_COLORS, [] {
+            return std::make_shared<RSNGGradientFlowColors>();
+        }
+    },
+
 };
 
 namespace {
