@@ -77,7 +77,11 @@ HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImage, TestSize.Level1)
     pixelMap = CreatePixelMap(width, height);
     pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_565;
-    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    {
+        auto image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+        EXPECT_NE(image, nullptr);
+        EXPECT_EQ(image, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    }
     pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_8888;
     EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
