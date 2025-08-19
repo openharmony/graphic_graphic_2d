@@ -547,7 +547,7 @@ GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
     };
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
+std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::DoCreateDrawingContext(std::string cacheDir)
 {
     std::unique_lock<std::mutex> lock(vkMutex_);
 
@@ -558,6 +558,12 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
     auto size = vkVersion.size();
     memHandler_->ConfigureContext(&options, vkVersion.c_str(), size, cacheDir);
     drawingContext->BuildFromVK(backendContext_, options);
+    return drawingContext;
+}
+
+std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
+{
+    auto drawingContext = DoCreateDrawingContext(cacheDir);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     int cacheLimitsTimes = CACHE_LIMITS_TIMES;
@@ -568,16 +574,9 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std
     } else {
         drawingContext->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
-    return drawingContext;
-}
-
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(std::string cacheDir)
-{
-    auto drawingContext = DoCreateDrawingContext(cacheDir);
     RsVulkanContext::SaveNewDrawingContext(gettid(), drawingContext);
     return drawingContext;
 }
-
 
 void RsVulkanInterface::DestroyAllSemaphoreFence()
 {
