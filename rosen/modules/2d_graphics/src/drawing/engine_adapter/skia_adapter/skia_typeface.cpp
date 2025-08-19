@@ -232,6 +232,11 @@ std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
     return typefaces;
 }
 
+void SkiaTypeface::RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb)
+{
+    SkTypeface::RegisterOnTypefaceDestroyed(cb);
+}
+
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     if (!memoryStream) {

@@ -210,7 +210,11 @@ bool DoRegisterTypeface()
     client->GetBitmap(nodeId, bm);
     client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     client->RegisterTypeface(typeface);
-    client->UnRegisterTypeface(typeface);
+    if (typeface) {
+        client->UnRegisterTypeface(typeface->GetUniqueID());
+    } else {
+        client->UnRegisterTypeface(0);
+    }
     return true;
 }
 

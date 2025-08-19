@@ -273,6 +273,15 @@ void SkiaGPUContext::FreeGpuResources()
     grContext_->freeGpuResources();
 }
 
+void SkiaGPUContext::FreeCpuCache(uint32_t uniqueId)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::FreeCpuCache, grContext_ is nullptr");
+        return;
+    }
+    grContext_->freeCpuCache(uniqueId);
+}
+
 void SkiaGPUContext::ReclaimResources()
 {
     //Skia Not Implement ReclaimResources.

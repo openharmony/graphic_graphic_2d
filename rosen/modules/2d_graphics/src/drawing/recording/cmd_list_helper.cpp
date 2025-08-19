@@ -464,7 +464,11 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
     if (DrawOpItem::customTypefaceQueryfunc_) {
+        // uni render
         typeface = DrawOpItem::customTypefaceQueryfunc_(globalUniqueId);
+    } else if (Drawing::Typeface::GetUniqueIdCallBack()) {
+        // sep render
+        typeface = Drawing::Typeface::GetUniqueIdCallBack()(globalUniqueId);
     }
     TextBlob::Context customCtx {typeface, false};
 

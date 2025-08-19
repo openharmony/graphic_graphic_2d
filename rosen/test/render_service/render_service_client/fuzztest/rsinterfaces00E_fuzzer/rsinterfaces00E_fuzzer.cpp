@@ -74,7 +74,11 @@ void DoUnRegisterTypeface()
 {
     std::shared_ptr<Drawing::Typeface> typeface;
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.UnRegisterTypeface(typeface);
+    if (typeface) {
+        rsInterfaces.UnRegisterTypeface(typeface->GetUniqueID());
+    } else {
+        rsInterfaces.UnRegisterTypeface(0);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

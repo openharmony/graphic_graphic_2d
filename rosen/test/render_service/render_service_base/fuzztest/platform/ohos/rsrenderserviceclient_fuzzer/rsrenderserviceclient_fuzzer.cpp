@@ -108,7 +108,7 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     uint64_t timeoutNS = GetData<uint64_t>();
     auto task = std::make_shared<DerivedSyncTask>(timeoutNS);
     client->ExecuteSynchronousTask(task);
-    
+
     return true;
 }
 
@@ -712,7 +712,7 @@ bool DoGetScreenSupportedHDRFormats(const uint8_t* data, size_t size)
     std::vector<ScreenHDRFormat> hdrFormats;
     ScreenHDRFormat hdrFormat = ScreenHDRFormat::VIDEO_HLG;
     int32_t modeIdx = GetData<int32_t>();
-    
+
     client->SetScreenHDRFormat(id, modeIdx);
     client->GetScreenHDRFormat(id, hdrFormat);
     client->GetScreenSupportedHDRFormats(id, hdrFormats);
@@ -1507,7 +1507,11 @@ bool DoGetScreenType002(const uint8_t *data, size_t size)
     client->GetBitmap(nodeId, bm);
     client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     client->RegisterTypeface(typeface);
-    client->UnRegisterTypeface(typeface);
+    if (typeface) {
+        client->UnRegisterTypeface(typeface->GetUniqueID());
+    } else {
+        client->UnRegisterTypeface(GetData<uint32_t>());
+    }
     client->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
     client->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     return true;

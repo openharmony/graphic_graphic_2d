@@ -23,6 +23,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "utils/typeface_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,12 +39,12 @@ bool RegisterTypefaceCallback()
             };
         Drawing::Typeface::RegisterCallBackFunc(registerTypefaceFunc);
 
-        std::function<bool (std::shared_ptr<Drawing::Typeface>)> unregisterTypefaceFunc =
-            [] (std::shared_ptr<Drawing::Typeface> typeface) -> bool {
-                static Rosen::RSInterfaces& rsInterface = Rosen::RSInterfaces::GetInstance();
-                return rsInterface.UnRegisterTypeface(typeface);
-            };
-        Drawing::Typeface::UnRegisterCallBackFunc(unregisterTypefaceFunc);
+        std::function<void (uint32_t)> typefaceDestroyedFunc = [] (uint32_t uniqueId) {
+            static Rosen::RSInterfaces& rsInterface = Rosen::RSInterfaces::GetInstance();
+            rsInterface.UnRegisterTypeface(uniqueId);
+        };
+        Drawing::Typeface::RegisterOnTypefaceDestroyed(typefaceDestroyedFunc);
+        Drawing::Typeface::RegisterUniqueIdCallBack(TypefaceMap::GetTypefaceByUniqueId);
     });
     return true;
 }
@@ -58,7 +59,8 @@ public:
     ~TypefaceAutoRegister()
     {
         Drawing::Typeface::RegisterCallBackFunc(nullptr);
-        Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
+        Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+        Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
     }
 };
 
