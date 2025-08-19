@@ -3834,9 +3834,7 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::MapGamutToStandard(Graphi
         case GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020:
             return GRAPHIC_COLOR_GAMUT_BT2020;
         default:
-        return GRAPHIC_COLOR_GAMUT_SRGB;
-        
-
+            return GRAPHIC_COLOR_GAMUT_SRGB;
     }
 }
 
