@@ -334,10 +334,10 @@ HWTEST_F(RSCanvasRenderNodeTest, SetColorGamut002, TestSize.Level1)
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
     node->context_ = context;
     EXPECT_TRUE(node->GetContext().lock() != nullptr);
-    NodeId nodeId = 2;
+    NodeId surfaceNodeId = 2;
     SurfaceNodeCommandHelper::Create(*context, surfaceNodeId);
-    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceNode>(surfaceNodeId);
-    node->IsInstanceRootNodeId_ = surfaceNodeId;
+    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+    node->instanceRootNodeId_  = surfaceNodeId;
     node->isOnTheTree_ = true;
     node->SetColorGamut(ColorManager::ColorSpaceName::DISPLAY_P3);
     EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
