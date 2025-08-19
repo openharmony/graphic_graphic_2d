@@ -1000,7 +1000,6 @@ void RSHardwareThread::AddRefreshRateCount(const OutputPtr& output)
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(output->GetScreenId());
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
-        RS_LOGE("AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
         return;
     }
     frameRateMgr->HandleRsFrame();

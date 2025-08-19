@@ -27,7 +27,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_render_service_client.h"
 
-
 using namespace testing;
 using namespace testing::ext;
 

@@ -358,7 +358,7 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate003, Funct
     aceAnimatorExpectedFrameRate = 120;
     idleDetector->UpdateAceAnimatorExpectedFrameRate(aceAnimatorExpectedFrameRate);
     ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
-    
+
     aceAnimatorExpectedFrameRate = 120;
     idleDetector->bufferFpsMap_.clear();
     idleDetector->bufferFpsMap_.insert({"AceAnimato", 0});
