@@ -231,16 +231,16 @@ HWTEST(RSCanvasRenderNodeDrawableTest, QuickDrawTest001, TestSize.Level1)
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(
         RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
     pCanvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::DEFAULT_STATE);
-    canvasDrawable->QuickGetDrawState(pCanvas.get());
+    canvasDrawable->QuickGetDrawState(*pCanvas);
 
     pCanvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     canvasDrawable->nodeId_ = 0;
-    canvasDrawable->QuickGetDrawState(pCanvas.get();
+    canvasDrawable->QuickGetDrawState(*pCanvas);
 
     canvasDrawable->nodeId_ = 1;
     canvasDrawable->occlusionCullingEnabled_ = true;
     pCanvas->culledEntireSubtree_.insert(1);
-    canvasDrawable->QuickGetDrawState(pCanvas.get());
+    canvasDrawable->QuickGetDrawState(*pCanvas);
 }
 #endif
 

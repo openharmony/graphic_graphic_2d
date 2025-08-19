@@ -93,6 +93,9 @@ void RSDrawFrame::RenderFrame()
     UnblockMainThread();
     RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
     Render();
+#ifdef SUBTREE_PARALLEL_ENABLE
+    RSParallelManager::Singleton().Clear();
+#endif
     ReleaseSpecialDrawingNodeBuffer();
     NotifyClearGpuCache();
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);

@@ -1081,7 +1081,7 @@ public:
     void ClearSubtreeParallelNodes();
     void UpdateSubTreeParallelNodes();
     void MergeSubtreeParallelNodes(RSRenderNode& childNode);
-    std::unordered_set<NodeId>& GetSubtreeParallelNodes();
+    const std::unordered_set<NodeId>& GetSubtreeParallelNodes();
 
     void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
     bool GetNeedUseCmdlistDrawRegion();
