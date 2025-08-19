@@ -489,7 +489,7 @@ void RSScreenRenderNode::SelectBestGamut(const std::vector<ScreenColorGamut>& mo
         return;
     }
 
-    const std::array<GraphicColorGamut, 4> priority = {
+    static std::array<GraphicColorGamut, 4> priority = {
         GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
         GRAPHIC_COLOR_GAMUT_BT2020,
         GRAPHIC_COLOR_GAMUT_SRGB,
