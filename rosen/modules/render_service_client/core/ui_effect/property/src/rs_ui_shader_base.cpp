@@ -55,7 +55,7 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
         }
     },
     {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, [] {
-            return std::make_shared<RSNGROPoundedRectFlowlight>();
+            return std::make_shared<RSNGRoundedRectFlowlight>();
         }
     },
     {RSNGEffectType::GRADIENT_FLOW_COLORS, [] {
