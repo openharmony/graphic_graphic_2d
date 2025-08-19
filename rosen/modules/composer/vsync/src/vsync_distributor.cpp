@@ -1098,9 +1098,8 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
         }
 #endif
         SCOPED_DEBUG_TRACE_FMT("CollectConnectionsLTPO, i:%d, name:%s, rate:%d, vsyncPulseFreq:%u"
-            ", referencePulseCount:%ld, vsyncCount:%d, highPriorityRate_:%d", i, connections_[i]->info_.name_.c_str(),
-            connections_[i]->rate_, connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_,
-            vsyncCount, connections_[i]->highPriorityRate_);
+            ", referencePulseCount:%ld, vsyncCount:%d", i, connections_[i]->info_.name_.c_str(), connections_[i]->rate_,
+            connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_, vsyncCount);
         // Start of DVSync
         if (DVSyncNeedSkipUi(connections_[i])) {
             waitForVSync = true;
