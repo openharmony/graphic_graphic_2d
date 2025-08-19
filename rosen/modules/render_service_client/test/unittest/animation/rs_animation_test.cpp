@@ -581,6 +581,7 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest Finish end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: PropertyAnimationGetModifierTypeTest001
  * @tc.desc: Verify the GetModifierType of PropertyAnimation
@@ -594,6 +595,7 @@ HWTEST_F(RSAnimationTest, PropertyAnimationGetModifierTypeTest001, TestSize.Leve
     ASSERT_NE(animation, nullptr);
     EXPECT_EQ(animation->GetModifierType(), RSModifierType::INVALID);
 }
+#endif
 
 /**
  * @tc.name: IsSupportInteractiveAnimator001

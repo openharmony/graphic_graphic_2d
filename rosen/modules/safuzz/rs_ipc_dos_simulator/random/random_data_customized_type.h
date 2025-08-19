@@ -46,7 +46,6 @@ public:
         const std::string& sizeType = "normal");
     static Vector4<uint32_t> GetRandomUint32Vector4();
     static Vector4<Color> GetRandomColorVector4();
-    static std::shared_ptr<RSRenderModifier> GetRandomRSRenderModifierSharedPtr();
     static std::shared_ptr<RSFilter> GetRandomRSFilterSharedPtr();
     static std::shared_ptr<RSImage> GetRandomRSImageSharedPtr();
     static std::shared_ptr<RSMask> GetRandomRSMaskSharedPtr();

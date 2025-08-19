@@ -45,16 +45,12 @@ void RSRenderPropertyAnimation::DumpAnimationInfo(std::string& out) const
 void RSRenderPropertyAnimation::DumpProperty(std::string& out) const
 {
     if (property_ != nullptr) {
-#if defined(MODIFIER_NG)
         if (auto modifierNG = property_->GetModifierNG().lock()) {
             out.append(", ModifierType: ").append(
                 std::to_string(static_cast<int16_t>(modifierNG->FindPropertyType(property_))));
         } else {
             out.append(", ModifierType: INVALID");
         }
-#else
-        out.append(", ModifierType: ").append(std::to_string(static_cast<int16_t>(property_->GetModifierType())));
-#endif
     } else {
         out.append(", ModifierType: INVALID");
     }

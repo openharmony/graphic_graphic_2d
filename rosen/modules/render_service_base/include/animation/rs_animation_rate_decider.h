@@ -19,7 +19,6 @@
 #include "rs_frame_rate_range.h"
 
 #include "common/rs_common_def.h"
-#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 namespace Rosen {

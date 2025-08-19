@@ -250,12 +250,7 @@ void RSRenderPathAnimation::SetRotation(const float tangent)
         return;
     }
 
-    std::shared_ptr<RSRenderProperty<float>> property;
-    if (auto modifier = target->GetModifier(rotationId_)) {
-        property = std::static_pointer_cast<RSRenderProperty<float>>(modifier->GetProperty());
-    } else {
-        property = std::static_pointer_cast<RSRenderProperty<float>>(target->GetProperty(rotationId_));
-    }
+    auto property = std::static_pointer_cast<RSRenderProperty<float>>(target->GetProperty(rotationId_));
     if (property != nullptr) {
         property->Set(tangent);
     }

@@ -35,6 +35,7 @@ void RSNodeCommandTest::TearDownTestCase() {}
 void RSNodeCommandTest::SetUp() {}
 void RSNodeCommandTest::TearDown() {}
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: TestRSBaseNodeCommand001
  * @tc.desc: RemoveModifier test.
@@ -62,6 +63,7 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand002, TestSize.Level1)
     RSNodeCommandHelper::AddModifier(context, nodeId, modifier);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
+#endif
 
 /**
  * @tc.name: TestRSBaseNodeCommand003
@@ -158,6 +160,7 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId) == nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AddModifier001
  * @tc.desc: test results of AddModifier
@@ -194,6 +197,7 @@ HWTEST_F(RSNodeCommandTest, RemoveModifier001, TestSize.Level1)
     RSNodeCommandHelper::RemoveModifier(context, nodeId, propertyId);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
+#endif
 
 /**
  * @tc.name: SetFreeze001
@@ -376,6 +380,7 @@ HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1
     EXPECT_EQ(inNode->sharedTransitionParam_, nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RemoveAllModifiers
  * @tc.desc: test results of RemoveAllModifiers
@@ -395,6 +400,7 @@ HWTEST_F(RSNodeCommandTest, RemoveAllModifiersTest, TestSize.Level1)
     ASSERT_NE(canvasNode, nullptr);
     EXPECT_TRUE(canvasNode->modifiers_.empty());
 }
+#endif
 
 /**
  * @tc.name: CommitDumpClientNodeTree

@@ -119,13 +119,6 @@ HWTEST_F(RSNodeTest2, SetUIBackgroundFilter, TestSize.Level1)
     rsNode->SetUIBackgroundFilter(filterObj.get());
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == FLOAT_DATA[1]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == FLOAT_DATA[1]);
-
-    auto para2 = std::make_shared<DisplacementDistortPara>();
-    filterObj->AddPara(para2);
-    auto para3 = std::make_shared<EdgeLightPara>();
-    filterObj->AddPara(para3);
-    rsNode->SetUIBackgroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
 
 /**
@@ -215,13 +208,6 @@ HWTEST_F(RSNodeTest2, SetUIForegroundFilter, TestSize.Level1)
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
-
-    auto para2 = std::make_shared<DisplacementDistortPara>();
-    filterObj->AddPara(para2);
-    auto para3 = std::make_shared<EdgeLightPara>();
-    filterObj->AddPara(para3);
-    rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
 
 /**

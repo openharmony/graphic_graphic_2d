@@ -153,7 +153,7 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 }
 
 // ==================== RSCustomModifierDrawable ===================
-RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, RSModifierType type)
+RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, ModifierNG::RSModifierType type)
 {
     if (auto ret = std::make_shared<RSCustomModifierDrawable>(type); ret->OnUpdate(node)) {
         if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
@@ -164,7 +164,6 @@ RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, R
     return nullptr;
 }
 
-#if defined(MODIFIER_NG)
 bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto customModifiers = node.GetModifiersNG(modifierTypeNG_);
@@ -207,50 +206,6 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     }
     return !stagingDrawCmdListVec_.empty();
 }
-#else
-bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
-{
-    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
-    auto itr = drawCmdModifiers.find(modifierType_);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return false;
-    }
-    std::vector<std::shared_ptr<RSRenderModifier>> modifiersVec(itr->second.begin(), itr->second.end());
-    std::stable_sort(
-        modifiersVec.begin(), modifiersVec.end(), [](const auto& modifierA, const auto& modifierB) -> bool {
-            return std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifierA)->GetIndex() <
-                   std::static_pointer_cast<RSDrawCmdListRenderModifier>(modifierB)->GetIndex();
-        });
-
-    stagingGravity_ = node.GetRenderProperties().GetFrameGravity();
-    stagingIsCanvasNode_ = node.IsInstanceOf<RSCanvasRenderNode>() && !node.IsInstanceOf<RSCanvasDrawingRenderNode>();
-    // regenerate stagingDrawCmdList_
-    needSync_ = true;
-    stagingDrawCmdListVec_.clear();
-    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && modifierType_ == RSModifierType::CONTENT_STYLE) {
-        auto& drawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
-        auto& cmdLists = drawingNode.GetDrawCmdLists();
-        auto itr = cmdLists.find(modifierType_);
-        if (itr == cmdLists.end() || itr->second.empty()) {
-            return false;
-        }
-        for (auto& cmd : itr->second) {
-            stagingDrawCmdListVec_.emplace_back(cmd);
-        }
-    } else {
-        for (const auto& modifier : modifiersVec) {
-            auto property =
-                std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty());
-            if (const auto& drawCmdList = property->GetRef()) {
-                if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
-                    stagingDrawCmdListVec_.push_back(drawCmdList);
-                }
-            }
-        }
-    }
-    return !stagingDrawCmdListVec_.empty();
-}
-#endif
 
 void RSCustomModifierDrawable::OnSync()
 {
@@ -296,7 +251,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
                 canvas->ConcatMatrix(mat);
             }
             drawCmdList->Playback(*canvas, rect);
-            if (ptr->needClearOp_ && ptr->modifierType_ == RSModifierType::CONTENT_STYLE) {
+            if (ptr->needClearOp_ && ptr->modifierTypeNG_ == ModifierNG::RSModifierType::CONTENT_STYLE) {
                 RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList);
             }
         }
@@ -486,7 +441,6 @@ RSDrawable::Ptr RSEnvFGColorDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
 {
-#if defined(MODIFIER_NG)
     auto modifier = node.GetModifierNG(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
     if (modifier == nullptr) {
         return false;
@@ -495,16 +449,6 @@ bool RSEnvFGColorDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     stagingEnvFGColor_ = modifier->Getter<Color>(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, Color());
-#else
-    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
-    auto itr = drawCmdModifiers.find(RSModifierType::ENV_FOREGROUND_COLOR);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return false;
-    }
-    const auto& modifier = itr->second.back();
-    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(modifier->GetProperty());
-    stagingEnvFGColor_ = renderProperty->Get();
-#endif
     needSync_ = true;
     return true;
 }
@@ -540,23 +484,12 @@ RSDrawable::Ptr RSEnvFGColorStrategyDrawable::OnGenerate(const RSRenderNode& nod
 
 bool RSEnvFGColorStrategyDrawable::OnUpdate(const RSRenderNode& node)
 {
-#if defined(MODIFIER_NG)
     auto modifier = node.GetModifierNG(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR);
     if (modifier == nullptr) {
         return false;
     }
     stagingEnvFGColorStrategy_ = static_cast<ForegroundColorStrategyType>(
         modifier->Getter<int>(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, 0));
-#else
-    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
-    auto itr = drawCmdModifiers.find(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return false;
-    }
-    const auto& modifier = itr->second.back();
-    auto property = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifier->GetProperty());
-    stagingEnvFGColorStrategy_ = property->Get();
-#endif
     const auto& renderProperties = node.GetRenderProperties();
     stagingBackgroundColor_ = renderProperties.GetBackgroundColor();
     stagingNeedClipToBounds_ = renderProperties.GetClipToBounds();
@@ -607,22 +540,11 @@ RSDrawable::Ptr RSCustomClipToFrameDrawable::OnGenerate(const RSRenderNode& node
 
 bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 {
-#if defined(MODIFIER_NG)
     const auto modifier = node.GetModifierNG(ModifierNG::RSModifierType::CLIP_TO_FRAME);
     if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
         return false;
     }
     const auto& clipRectV4f = modifier->Getter<Vector4f>(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME, Vector4f());
-#else
-    const auto& drawCmdModifiers = node.GetDrawCmdModifiers();
-    auto itr = drawCmdModifiers.find(RSModifierType::CUSTOM_CLIP_TO_FRAME);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return false;
-    }
-    const auto& modifier = itr->second.back();
-    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
-    const auto& clipRectV4f = renderProperty->Get();
-#endif
     stagingCustomClipRect_ = Drawing::Rect(clipRectV4f.x_, clipRectV4f.y_, clipRectV4f.z_, clipRectV4f.w_);
     needSync_ = true;
     return true;

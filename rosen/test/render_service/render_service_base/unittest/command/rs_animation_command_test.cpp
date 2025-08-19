@@ -64,6 +64,7 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     ASSERT_EQ(token_, token);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CreateParticleAnimation001
  * @tc.desc: CreateParticleAnimation test.
@@ -89,6 +90,7 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
 
     AnimationCommandHelper::CancelAnimation(context2, id, 0);
 }
+#endif
 
 /**
  * @tc.name: AnimationCallback001
@@ -110,6 +112,7 @@ HWTEST_F(RSAnimationCommandTest, AnimationCallback001, TestSize.Level1)
     EXPECT_TRUE(targetId == -1);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CreateAnimation001
  * @tc.desc: test results of CreateAnimation
@@ -167,6 +170,7 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation002, TestSize.Level1)
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
     EXPECT_TRUE(animation != nullptr);
 }
+#endif
 
 /**
  * @tc.name: CancelAnimation001

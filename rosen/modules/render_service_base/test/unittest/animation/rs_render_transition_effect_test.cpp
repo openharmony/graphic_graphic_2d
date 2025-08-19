@@ -176,28 +176,28 @@ HWTEST_F(RSRenderTransitionEffectTest, UpdateFractionTest001, TestSize.Level1)
     auto fadeEffect = std::make_shared<RSTransitionFade>(1.0f);
     EXPECT_TRUE(fadeEffect != nullptr);
     fadeEffect->UpdateFraction(0.0f);
-    auto modifier = fadeEffect->GetModifier();
+    auto modifier = fadeEffect->GetModifierNG();
     fadeEffect->UpdateFraction(0.0f);
     EXPECT_TRUE(modifier != nullptr);
 
     auto scaleEffect = std::make_shared<RSTransitionScale>(1.0f, 1.0f, 1.0f);
     EXPECT_TRUE(scaleEffect != nullptr);
     scaleEffect->UpdateFraction(0.0f);
-    modifier = scaleEffect->GetModifier();
+    modifier = scaleEffect->GetModifierNG();
     scaleEffect->UpdateFraction(0.0f);
     EXPECT_TRUE(modifier != nullptr);
 
     auto translateEffect = std::make_shared<RSTransitionTranslate>(1.0f, 1.0f, 1.0f);
     EXPECT_TRUE(translateEffect != nullptr);
     translateEffect->UpdateFraction(0.0f);
-    modifier = translateEffect->GetModifier();
+    modifier = translateEffect->GetModifierNG();
     translateEffect->UpdateFraction(0.0f);
     EXPECT_TRUE(modifier != nullptr);
 
     auto rotateEffect = std::make_shared<RSTransitionRotate>(1.0f, 1.0f, 1.0f, 1.0f);
     EXPECT_TRUE(rotateEffect != nullptr);
     rotateEffect->UpdateFraction(0.0f);
-    modifier = rotateEffect->GetModifier();
+    modifier = rotateEffect->GetModifierNG();
     rotateEffect->UpdateFraction(0.0f);
     EXPECT_TRUE(modifier != nullptr);
 

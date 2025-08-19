@@ -2873,26 +2873,8 @@ void RSNode::ClearAllModifiers()
         }
     }
     modifiersNG_.clear();
-    propertyModifiers_.clear();
     modifiersTypeMap_.clear();
     properties_.clear();
-}
-
-// Check if the modifierType is a special type.
-void RSNode::CheckModifierType(RSModifierType modifierType)
-{
-    if (modifierType != RSModifierType::BOUNDS && modifierType != RSModifierType::FRAME &&
-        modifierType != RSModifierType::BACKGROUND_COLOR && modifierType != RSModifierType::ALPHA) {
-        SetDrawNode();
-        SetDrawNodeType(DrawNodeType::DrawPropertyType);
-    }
-    if (modifierType == RSModifierType::TRANSLATE || modifierType == RSModifierType::SKEW ||
-        modifierType == RSModifierType::PERSP || modifierType == RSModifierType::SCALE ||
-        modifierType == RSModifierType::PIVOT || modifierType == RSModifierType::ROTATION ||
-        modifierType == RSModifierType::ROTATION_X || modifierType == RSModifierType::ROTATION_Y ||
-        modifierType == RSModifierType::QUATERNION) {
-        SetDrawNodeType(DrawNodeType::GeometryPropertyType);
-    }
 }
 
 void RSNode::DoFlushModifier()

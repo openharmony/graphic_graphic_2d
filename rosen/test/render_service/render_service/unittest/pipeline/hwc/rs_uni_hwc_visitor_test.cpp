@@ -2771,9 +2771,9 @@ HWTEST_F(RSUniHwcVisitorTest, CheckNodeOcclusion001, TestSize.Level2)
     ASSERT_FALSE(result4);
 
     surfaceNode1->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect;
-    surfaceNode1->AddDirtyType(RSModifierType::CHILDREN);
-    surfaceNode1->AddDirtyType(RSModifierType::BG_IMAGE);
-    surfaceNode1->AddDirtyType(RSModifierType::HDR_BRIGHTNESS);
+    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
+    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::BACKGROUND_IMAGE);
+    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
     surfaceNode1->UpdateDrawableVecV2();
     auto result5 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, absRect, bgColor);
     ASSERT_TRUE(result5);

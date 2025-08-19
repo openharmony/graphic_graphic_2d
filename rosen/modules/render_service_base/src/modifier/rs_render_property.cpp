@@ -50,46 +50,8 @@ void RSRenderPropertyBase::Detach()
 
 void RSRenderPropertyBase::OnChange() const
 {
-#if defined(MODIFIER_NG)
     if (auto modifier = modifier_.lock()) {
         modifier->SetDirty();
-    }
-#else
-    if (auto node = node_.lock()) {
-        node->SetDirty();
-        node->AddDirtyType(modifierType_);
-        if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||
-            modifierType_ == RSModifierType::POSITION_Z) {
-            node->MarkNonGeometryChanged();
-        }
-        if (modifierType_ > RSModifierType::EXTENDED) {
-            node->SetContentDirty();
-        }
-        if (modifierType_ == RSModifierType::POSITION_Z) {
-            node->MarkParentNeedRegenerateChildren();
-        }
-    }
-#endif
-}
-
-void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)
-{
-    switch (type) {
-        case RSModifierType::FRAME:
-        case RSModifierType::TRANSLATE:
-            SetPropertyUnit(RSPropertyUnit::PIXEL_POSITION);
-            break;
-        case RSModifierType::SCALE:
-            SetPropertyUnit(RSPropertyUnit::RATIO_SCALE);
-            break;
-        case RSModifierType::ROTATION_X:
-        case RSModifierType::ROTATION_Y:
-        case RSModifierType::ROTATION:
-            SetPropertyUnit(RSPropertyUnit::ANGLE_ROTATION);
-            break;
-        default:
-            SetPropertyUnit(RSPropertyUnit::UNKNOWN);
-            break;
     }
 }
 
@@ -317,63 +279,6 @@ void RSRenderProperty<float>::Dump(std::string& out) const
 {
     std::stringstream ss;
     ss << "[" << std::fixed << std::setprecision(1) << Get() << "]";
-    out += ss.str();
-}
-
-template<>
-void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const
-{
-    Vector4 v4 = Get();
-    switch (modifierType_) {
-        case RSModifierType::BORDER_STYLE:
-        case RSModifierType::OUTLINE_STYLE: {
-            out += "[left:" + std::to_string(v4.x_);
-            out += " top:" + std::to_string(v4.y_);
-            out += " right:" + std::to_string(v4.z_);
-            out += " bottom:" + std::to_string(v4.w_) + "]";
-            break;
-        }
-        default: {
-            out += "[x:" + std::to_string(v4.x_) + " y:";
-            out += std::to_string(v4.y_) + " z:";
-            out += std::to_string(v4.z_) + " w:";
-            out += std::to_string(v4.w_) + "]";
-            break;
-        }
-    }
-}
-
-template<>
-void RSRenderProperty<Vector4f>::Dump(std::string& out) const
-{
-    Vector4f v4f = Get();
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(1);
-    switch (modifierType_) {
-        case RSModifierType::BORDER_WIDTH:
-        case RSModifierType::BORDER_DASH_WIDTH:
-        case RSModifierType::BORDER_DASH_GAP:
-        case RSModifierType::OUTLINE_WIDTH:
-        case RSModifierType::OUTLINE_DASH_WIDTH:
-        case RSModifierType::OUTLINE_DASH_GAP: {
-            ss << "[left:" << v4f.x_ << " top:" << v4f.y_ << " right:" << v4f.z_ << " bottom:" << v4f.w_ << +"]";
-            break;
-        }
-        case RSModifierType::CORNER_RADIUS:
-        case RSModifierType::OUTLINE_RADIUS: {
-            ss << "[topLeft:" << v4f.x_ << " topRight:" << v4f.y_ << " bottomRight:" << v4f.z_
-               << " bottomLeft:" << v4f.w_ << +"]";
-            break;
-        }
-        case RSModifierType::BOUNDS: {
-            ss << "[x:" << v4f.x_ << " y:" << v4f.y_ << " width:" << v4f.z_ << " height:" << v4f.w_ << +"]";
-            break;
-        }
-        default: {
-            ss << "[x:" << v4f.x_ << " y:" << v4f.y_ << " z:" << v4f.z_ << " w:" << v4f.w_ << +"]";
-            break;
-        }
-    }
     out += ss.str();
 }
 
@@ -794,12 +699,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
 }
 
 template<>
-void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType()
-{
-    stagingValue_->SetModifierType(modifierType_);
-}
-
-template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
@@ -837,14 +736,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
 }
 
 template<>
-void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType()
-{
-    if (stagingValue_) {
-        stagingValue_->SetModifierType(modifierType_);
-    }
-}
-
-template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
@@ -879,14 +770,6 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
         value->Attach(*node, modifier_.lock());
     }
     OnChange();
-}
-
-template<>
-void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType()
-{
-    if (stagingValue_) {
-        stagingValue_->SetModifierType(modifierType_);
-    }
 }
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>

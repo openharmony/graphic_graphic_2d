@@ -88,11 +88,12 @@ namespace OHOS {
         context.GetMutableNodeMap().RegisterRenderNode(node);
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);
         AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
-
+#ifndef MODIFIER_NG
         auto property = std::shared_ptr<RSRenderProperty<Drawing::Matrix>>();
         auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
         node->modifiers_[propertyId] = modifier;
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);
+#endif
     }
 
     void CreateParticleAnimationFuzzerTest()
@@ -102,12 +103,12 @@ namespace OHOS {
         NodeId targetId = GetData<NodeId>();
 
         // test
-        AnimationCommandHelper::CreateParticleAnimation(context, targetId, nullptr);
+        AnimationCommandHelper::CreateParticleAnimationNG(context, targetId, 0, nullptr);
         std::shared_ptr<RSRenderParticleAnimation> particleAnimation = std::make_shared<RSRenderParticleAnimation>();
-        AnimationCommandHelper::CreateParticleAnimation(context, targetId, particleAnimation);
+        AnimationCommandHelper::CreateParticleAnimationNG(context, targetId, 0, particleAnimation);
         std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(targetId);
         context.GetMutableNodeMap().RegisterRenderNode(node);
-        AnimationCommandHelper::CreateParticleAnimation(context, targetId, particleAnimation);
+        AnimationCommandHelper::CreateParticleAnimationNG(context, targetId, 0, particleAnimation);
     }
 
     void InteractiveAnimatiorFuzzerTest()
@@ -150,8 +151,10 @@ namespace OHOS {
         data_ = data;
         size_ = size;
         pos = 0;
+#ifndef MODIFIER_NG
         CreateAnimationFuzzerTest();
         CreateParticleAnimationFuzzerTest();
+#endif
         InteractiveAnimatiorFuzzerTest();
         return true;
     }

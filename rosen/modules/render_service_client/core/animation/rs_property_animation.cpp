@@ -160,7 +160,7 @@ void RSPropertyAnimation::InitAdditiveMode()
         return;
     }
 
-    switch (property_->type_) {
+    switch (property_->GetPropertyTypeNG()) {
         case ModifierNG::RSPropertyType::QUATERNION:
             SetAdditive(false);
             break;
@@ -172,6 +172,10 @@ void RSPropertyAnimation::InitAdditiveMode()
 void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
 {
     dumpInfo.append(", isCustom:").append(std::to_string(isCustom_));
+    if (property_) {
+        dumpInfo.append(", PropertyType: ").append(
+            std::to_string(static_cast<int16_t>(property_->GetPropertyTypeNG())));
+    }
     if (startValue_) {
         dumpInfo.append(", StartValue: ").append(
             RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty()));

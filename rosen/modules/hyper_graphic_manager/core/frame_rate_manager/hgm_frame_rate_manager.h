@@ -37,7 +37,6 @@
 #include "hgm_vsync_generator_controller.h"
 #include "hgm_user_define.h"
 #include "vsync_distributor.h"
-#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_map.h"

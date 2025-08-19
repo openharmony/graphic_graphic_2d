@@ -16,9 +16,7 @@
 #include "gtest/gtest.h"
 #include "feature/occlusion_culling/rs_occlusion_node.h"
 
-#include "modifier/rs_modifier_type.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
@@ -323,6 +321,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithInAnomalousSituations, T
     EXPECT_TRUE(firstNode->isSubTreeIgnored_);
 }
 
+#ifndef MODIFIER_NG
 /*
  * @tc.name: CollectNodeProperties_WithNodeNotInModifierWhiteList
  * @tc.desc: Test CollectNodeProperties with modifier white list
@@ -398,6 +397,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_WithInNonAnomalous, TestSize
     EXPECT_FLOAT_EQ(rootNode->drawRect_.width_, renderNode->renderProperties_.boundsGeo_->width_);
     EXPECT_FLOAT_EQ(rootNode->drawRect_.height_, renderNode->renderProperties_.boundsGeo_->height_);
 }
+#endif
 
 /*
  * @tc.name: CollectNodeProperties_WithIsBgOpaque_EqualTrue

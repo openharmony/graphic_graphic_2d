@@ -1682,7 +1682,7 @@ void RSProfiler::ClearTestTree(const ArgList& args)
 {
     for (auto iter = RSProfiler::testTree_.rbegin(); iter != RSProfiler::testTree_.rend(); ++iter) {
         (*iter)->RemoveFromTree();
-        (*iter)->RemoveAllModifiers();
+        (*iter)->RemoveAllModifiersNG();
     }
     RSProfiler::testTree_.clear();
     SendMessage("Test tree cleared");

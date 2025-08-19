@@ -21,9 +21,7 @@
 #include "pipeline/rs_render_node.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_canvas.h"
-#if defined(MODIFIER_NG)
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -189,7 +187,8 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
 {
     NodeId id = 1;
     RSCanvasDrawingRenderNode node(id);
-    ASSERT_EQ(DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::CONTENT_STYLE), nullptr);
+    ASSERT_EQ(
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
 
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
@@ -212,7 +211,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
 
     node.AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::CONTENT_STYLE));
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE));
     ASSERT_NE(drawable, nullptr);
 
     drawable->OnSync();
@@ -230,7 +229,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     modifier3->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property2);
     nodeTwo.AddModifier(modifier3);
     auto drawable2 = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(nodeTwo, RSModifierType::CONTENT_STYLE));
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(nodeTwo, ModifierNG::RSModifierType::CONTENT_STYLE));
     ASSERT_NE(drawable2, nullptr);
 }
 #endif
@@ -370,14 +369,9 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorDrawable001, TestSize.Level1)
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
-#if defined(MODIFIER_NG)
     auto modifier = std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, property);
     node.AddModifier(modifier);
-#else
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR, list);
-#endif
     node.GetMutableRenderProperties().SetColorBlendApplyType(2);
     auto drawable =
         std::static_pointer_cast<DrawableV2::RSEnvFGColorDrawable>(DrawableV2::RSEnvFGColorDrawable::OnGenerate(node));
@@ -419,14 +413,9 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable001, TestSize.Level
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
-#if defined(MODIFIER_NG)
     auto modifier = std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, property);
     node.AddModifier(modifier);
-#else
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
-#endif
     auto drawable = std::static_pointer_cast<DrawableV2::RSEnvFGColorStrategyDrawable>(
         DrawableV2::RSEnvFGColorStrategyDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);

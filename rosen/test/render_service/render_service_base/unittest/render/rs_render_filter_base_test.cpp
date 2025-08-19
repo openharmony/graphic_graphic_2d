@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -324,6 +325,7 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach002, TestSize.Level1)
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->node_.lock(), nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetModifierType001
  * @tc.desc: Test the SetModifierType method can
@@ -355,6 +357,7 @@ HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->GetModifierType(), targetType);
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->GetModifierType(), targetType);
 }
+#endif
 
 /**
  * @tc.name: DumpProperties001

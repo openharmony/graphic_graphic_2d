@@ -23,7 +23,6 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "modifier/rs_modifier_type.h"
 #include "rs_animation_rate_decider.h"
 #include "rs_frame_rate_range.h"
 

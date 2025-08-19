@@ -28,7 +28,6 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "effect/runtime_blender_builder.h"
-#include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
@@ -802,7 +801,6 @@ private:
         // preserve two digital precision when calculating hash, this can reuse filterCache as much as possible.
         return 0.01 * round(value * 100);
     }
-    void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;

@@ -62,7 +62,6 @@ public:
 
     uint32_t GetTid() const;
 
-    void AddDirtyType(RSModifierType modifierType) override;
     void AddDirtyType(ModifierNG::RSModifierType modifierType) override;
     void ClearOp();
     void ResetSurface(int width, int height);
@@ -70,7 +69,6 @@ public:
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
-    const std::map<RSModifierType, ModifierCmdList>& GetDrawCmdLists() const;
     const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
     void ClearResource() override;
     void ClearNeverOnTree() override;
@@ -79,9 +77,7 @@ public:
 private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
-    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
-    void ApplyDrawCmdModifierNG(RSModifierContext& context, ModifierNG::RSModifierType type);
-    void CheckDrawCmdListSize(RSModifierType type, size_t originCmdListSize);
+    void ApplyDrawCmdModifierNG(ModifierNG::RSModifierContext& context, ModifierNG::RSModifierType type);
     void CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type, size_t originCmdListSize);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
@@ -111,7 +107,6 @@ private:
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     std::mutex taskMutex_;
     std::mutex drawCmdListsMutex_;
-    std::map<RSModifierType, ModifierCmdList> drawCmdLists_;
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
     uint32_t cmdCount_ = 0;
 

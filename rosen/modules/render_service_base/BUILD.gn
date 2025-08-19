@@ -120,7 +120,6 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_message_processor.cpp",
 
     # modifier
-    "src/modifier/rs_render_modifier.cpp",
     "src/modifier/rs_render_property.cpp",
 
     # modifier_ng
