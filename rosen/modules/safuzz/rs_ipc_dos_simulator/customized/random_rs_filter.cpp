@@ -180,9 +180,7 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomColorfulShadowFilter()
     float blurRadius = RandomData::GetRandomFloat();
     float offsetX = RandomData::GetRandomFloat();
     float offsetY = RandomData::GetRandomFloat();
-    Drawing::Path path = RandomRSPath::GetRandomDrawingPath();
-    bool isFill = RandomData::GetRandomBool();
-    return std::make_shared<RSColorfulShadowFilter>(blurRadius, offsetX, offsetY, path, isFill);
+    return std::make_shared<RSColorfulShadowFilter>(blurRadius, offsetX, offsetY);
 }
 
 std::shared_ptr<RSFilter> RandomRSFilter::GetRandomAttractionEffectFilter()

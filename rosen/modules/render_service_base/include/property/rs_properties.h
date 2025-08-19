@@ -655,7 +655,6 @@ public:
     float GetAttractionFraction() const;
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
-    void CreateColorfulShadowFilter();
     RectI GetAttractionEffectCurrentDirtyRegion() const
     {
         return attractionEffectCurrentDirtyRegion_;
