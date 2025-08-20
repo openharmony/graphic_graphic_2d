@@ -23,7 +23,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace {
-    constexpr int CSNAME_END = 26;
+    constexpr int CSNAME_END = 27;
     constexpr float RED_X = 1.1f;
     constexpr float RED_Y = 1.2f;
     constexpr float GREEN_X = 1.3f;

@@ -24,6 +24,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
 #include "screen_manager/rs_screen.h"
@@ -118,7 +119,13 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
-
+    HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo colorSpaceInfo = {
+        .transfunc = HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG
+    };
+    EXPECT_EQ(MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo), GSERROR_OK);
+    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     uint32_t hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR;
     std::vector<uint8_t> metadataType;
     metadataType.resize(sizeof(hdrType));
@@ -138,6 +145,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO);
+#endif
 }
 
 /**
@@ -176,6 +184,18 @@ HWTEST_F(RSHdrUtilTest, CheckIsSurfaceBufferWithMetadataTest, TestSize.Level1)
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
     bool ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
     ASSERT_EQ(ret, false);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo infoSet = {
+        .primaries = COLORPRIMARIES_P3_D65,
+    };
+    auto retSet = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
+    EXPECT_EQ(retSet, GSERROR_OK);
+    std::vector<uint8_t> metadata = {1.0f, 1.0f, 1.0f};
+    buffer->SetMetadata(OHOS::HDI::Display::Graphic::Common::V2_0::ATTRKEY_EXTERNAL_METADATA_002, metadata);
+    ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
+    ASSERT_EQ(ret, true);
+#endif
 }
 
 /**
@@ -439,6 +459,28 @@ HWTEST_F(RSHdrUtilTest, UpdateHDRCastPropertiesTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetScreenColorGamut
+ * @tc.desc: Test GetScreenColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, GetScreenColorGamutTest, TestSize.Level1)
+{
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+
+    EXPECT_EQ(RSHdrUtil::GetScreenColorGamut(*screenNode, screenManager), COLOR_GAMUT_INVALID);
+    screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
+    // COLOR_GAMUT_BT2100_HLG index in supportedVirtualColorGamuts_ is 4
+    screenManager->SetScreenColorGamut(virtualScreenId, 4);
+    EXPECT_EQ(RSHdrUtil::GetScreenColorGamut(*screenNode, screenManager), COLOR_GAMUT_BT2100_HLG);
+}
+
+/**
  * @tc.name: NeedUseF16Capture
  * @tc.desc: Test NeedUseF16Capture
  * @tc.type: FUNC
@@ -470,4 +512,258 @@ HWTEST_F(RSHdrUtilTest, NeedUseF16CaptureTest, TestSize.Level1)
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     EXPECT_FALSE(RSHdrUtil::NeedUseF16Capture(surfaceNode));
 }
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatus
+ * @tc.desc: Test HandleVirtualScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
+{
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode, screenManager); // failed GetScreenColorGamut
+
+    screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
+    // COLOR_GAMUT_BT2100_HLG index in supportedVirtualColorGamuts_ is 4
+    screenManager->SetScreenColorGamut(virtualScreenId, 4);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode, screenManager); // mirror node is null
+
+    screenNode->SetIsMirrorScreen(true);
+    NodeId id = 1;
+    auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id, 0);
+    screenNode->SetMirrorSource(mirrorSourceNode);
+    mirrorSourceNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode, screenManager); // mirror node is not null
+
+    ScreenColorGamut colorGamut;
+    EXPECT_EQ(screenManager->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
+    EXPECT_NE(screenNode->GetMirrorSource().lock(), nullptr);
+    EXPECT_EQ(static_cast<GraphicColorGamut>(colorGamut), GRAPHIC_COLOR_GAMUT_BT2100_HLG);
+}
+
+/**
+ * @tc.name: HandleVirtualScreenHDRStatus
+ * @tc.desc: Test HandleVirtualScreenHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest002, TestSize.Level1)
+{
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
+
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode, screenManager);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    ScreenColorGamut colorGamut;
+    EXPECT_NE(screenManager->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode, screenManager); // failed GetScreenColorGamut
+
+    screenNode->screenId_ = virtualScreenId; // pass GetScreenColorGamut
+    // COLOR_GAMUT_BT2100_HLG index in supportedVirtualColorGamuts_ is 4
+    screenManager->SetScreenColorGamut(virtualScreenId, 4);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode, screenManager);
+    EXPECT_EQ(screenManager->GetScreenColorGamut(screenNode->GetScreenId(), colorGamut), StatusCode::SUCCESS);
+    EXPECT_EQ(static_cast<GraphicColorGamut>(colorGamut), GRAPHIC_COLOR_GAMUT_BT2100_HLG);
+}
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: HDRCastProcess001
+ * @tc.desc: Test HDRCastProcess
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSHdrUtilTest, HDRCastProcess001, TestSize.Level2)
+{
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Brush brush;
+    Drawing::SamplingOptions sampling;
+    std::shared_ptr<RSPaintFilterCanvas> filterCanvas = nullptr;
+    std::shared_ptr<Drawing::Surface> surface = nullptr;
+    EXPECT_FALSE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, nullptr)); // null canvas
+    auto canvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    EXPECT_FALSE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, filterCanvas.get())); // null surface
+    surface = std::make_shared<Drawing::Surface>();
+    EXPECT_FALSE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, filterCanvas.get())); // null GPUContext
+    filterCanvas->surface_ = nullptr;
+    EXPECT_FALSE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, filterCanvas.get())); // null canvasSurface
+}
+
+/**
+ * @tc.name: HDRCastProcess002
+ * @tc.desc: Test HDRCastProcess
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSHdrUtilTest, HDRCastProcess002, TestSize.Level2)
+{
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Brush brush;
+    Drawing::SamplingOptions sampling;
+    auto canvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    canvas->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto surface = std::make_shared<Drawing::Surface>();
+    auto surface2 = std::make_shared<Drawing::Surface>();
+    filterCanvas->surface_ = surface2.get();
+    ASSERT_TRUE(canvas->GetGPUContext());
+    ASSERT_TRUE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, filterCanvas.get()));
+}
+
+/**
+ * @tc.name: SetHDRCastShader001
+ * @tc.desc: Test SetHDRCastShader
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSHdrUtilTest, SetHDRCastShader001, TestSize.Level2)
+{
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    Drawing::Brush brush;
+    Drawing::SamplingOptions sampling;
+    EXPECT_FALSE(RSHdrUtil::SetHDRCastShader(image, brush, sampling));
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_TRUE(RSHdrUtil::SetHDRCastShader(image, brush, sampling));
+}
+
+/**
+ * @tc.name: SetMetadata001
+ * @tc.desc: SetMetadata test.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSHdrUtilTest, SetMetadata001, TestSize.Level2)
+{
+    std::unique_ptr<RSRenderFrame> renderFrame = nullptr;
+    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    renderFrame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer2 = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface2 = Surface::CreateSurfaceAsProducer(producer2);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+
+    pSurface2->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+    res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
+    EXPECT_EQ(GSERROR_OK, res);
+}
+
+/**
+ * @tc.name: SetMetadata002
+ * @tc.desc: SetMetadata test.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSHdrUtilTest, SetMetadata002, TestSize.Level2)
+{
+    auto res = RSHdrUtil::SetMetadata(nullptr, RSHDRUtilConst::HDR_CAPTURE_HDR_COLORSPACE,
+        HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+
+    res = RSHdrUtil::SetMetadata(sBuffer.GetRefPtr(), RSHDRUtilConst::HDR_CAPTURE_HDR_COLORSPACE,
+        HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
+    EXPECT_EQ(GSERROR_OK, res);
+}
+#endif
+
+/**
+ * @tc.name: IsHDRCast
+ * @tc.desc: IsHDRCast test.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSHdrUtilTest, IsHDRCastTest, TestSize.Level2)
+{
+    std::shared_ptr<RSScreenRenderParams> params = nullptr;
+    bool ret = RSHdrUtil::IsHDRCast(nullptr, requestConfig);
+    EXPECT_EQ(ret, false);
+
+    params = std::make_shared<RSScreenRenderParams>(0);
+    params->SetFixVirtualBuffer10Bit(true);
+    ret = RSHdrUtil::IsHDRCast(params.get(), requestConfig);
+    EXPECT_EQ(ret, false);
+
+    params->SetHDRPresent(true);
+    ret = RSHdrUtil::IsHDRCast(params.get(), requestConfig);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameter
+ * @tc.desc: test SetColorSpaceConverterDisplayParameter with different screenshotType
+ * @tc.type:FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSHdrUtilTest, SetColorSpaceConverterDisplayParameter, TestSize.Level1)
+{
+    GraphicColorGamut targetColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ScreenId screenId = 0;
+    uint32_t dynamicRangeMode = 1;
+
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    auto res = RSHdrUtil::SetMetadata(sBuffer.GetRefPtr(),
+        RSHDRUtilConst::HDR_CAPTURE_HDR_COLORSPACE,
+        HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
+    EXPECT_EQ(GSERROR_OK, res);
+
+    VPEParameter parameter;
+    RSPaintFilterCanvas::HDRProperties hdrProperties = RSPaintFilterCanvas::HDRProperties{};
+    hdrProperties.screenshotType = RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT;
+    bool ret = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(sBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    EXPECT_EQ(parameter.tmoNits, RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS);
+    EXPECT_EQ(ret, true);
+
+    hdrProperties.screenshotType = RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT;
+    ret = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(sBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    EXPECT_EQ(parameter.tmoNits, parameter.currentDisplayNits);
+    EXPECT_EQ(ret, true);
+
+    hdrProperties.screenshotType = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
+    ret = RSColorSpaceConvert::Instance().SetColorSpaceConverterDisplayParameter(sBuffer, parameter,
+        targetColorSpace, screenId, dynamicRangeMode, hdrProperties);
+    EXPECT_EQ(parameter.tmoNits, RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS);
+    EXPECT_EQ(ret, true);
+}
+
 } // namespace OHOS::Rosen
