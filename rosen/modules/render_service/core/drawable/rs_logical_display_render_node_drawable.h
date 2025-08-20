@@ -66,6 +66,7 @@ protected:
 
 private:
     void DrawSecurityMask();
+    void DrawCurtainScreen() const;
     void ClearCanvasStencil(RSPaintFilterCanvas& canvas, const RSLogicalDisplayRenderParams& params,
         const RSRenderThreadParams& uniParam, const ScreenInfo& screenInfo);
     void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);

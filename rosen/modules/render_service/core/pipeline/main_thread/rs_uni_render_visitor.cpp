@@ -3462,7 +3462,7 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
     }
     if (!surfaceNodeSet) {
         for (auto& displayNode : *curScreenNode_->GetChildren()) {
-            auto& geoPtr = curScreenNode_->GetRenderProperties().GetBoundsGeometry();
+            auto& geoPtr = displayNode->GetRenderProperties().GetBoundsGeometry();
             if (!geoPtr) {
                 continue;
             }

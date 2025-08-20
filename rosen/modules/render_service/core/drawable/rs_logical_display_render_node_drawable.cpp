@@ -826,6 +826,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(RSLogicalDisplayR
     mirroredDrawable.RSRenderNodeDrawable::OnDraw(*curCanvas_);
 
     bool displayP3Enable = curScreenParam->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    DrawCurtainScreen();
     // 1.f: wired screen not use hdr, use default value 1.f
     RSUniRenderUtil::SwitchColorFilter(*curCanvas_, 1.f, displayP3Enable);
 
@@ -837,6 +838,16 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(RSLogicalDisplayR
         RSDrmUtil::DRMCreateLayer(processor, canvasMatrix);
         curScreenParam->SetGlobalZOrder(curScreenParam->GetGlobalZOrder() + 1);
     }
+}
+
+void RSLogicalDisplayRenderNodeDrawable::DrawCurtainScreen() const
+{
+    if (!RSUniRenderThread::Instance().IsCurtainScreenOn()) {
+        return;
+    }
+    RS_TRACE_FUNC();
+    // curCanvas_ cannot be nullptr in caller
+    curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
 }
 
 void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(

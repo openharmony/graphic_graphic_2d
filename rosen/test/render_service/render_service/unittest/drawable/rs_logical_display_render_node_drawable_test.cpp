@@ -3737,6 +3737,30 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest001
 }
 
 /**
+ * @tc.name: DrawCurtainScreen
+ * @tc.desc: Test DrawCurtainScreen
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawCurtainScreen, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(drawingFilterCanvas_, nullptr);
+    displayDrawable_->curCanvas_ = drawingFilterCanvas_;
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->isCurtainScreenOn_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    EXPECT_TRUE(RSUniRenderThread::Instance().IsCurtainScreenOn());
+    displayDrawable_->DrawCurtainScreen();
+    
+    params = std::make_unique<RSRenderThreadParams>();
+    params->isCurtainScreenOn_ = false;
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    EXPECT_FALSE(RSUniRenderThread::Instance().IsCurtainScreenOn());
+    displayDrawable_->DrawCurtainScreen();
+}
+
+/**
  * @tc.name: DrawWatermarkIfNeed
  * @tc.desc: Test DrawWatermarkIfNeed
  * @tc.type: FUNC
