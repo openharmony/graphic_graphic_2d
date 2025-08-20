@@ -402,7 +402,7 @@ void RSMainThread::MarkNodeImageDirty(uint64_t nodeId)
         auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         auto node = nodeMap.GetRenderNode(nodeId);
         if (node) {
-            RS_LOGD("MarkNodeImageDirty success: %{public}llu", nodeId);
+            RS_LOGD("MarkNodeImageDirty success: %{public}" PRIu64 ".", nodeId);
             RSMainThread::Instance()->SetDirtyFlag();
             node->SetDirty(true);
         }
