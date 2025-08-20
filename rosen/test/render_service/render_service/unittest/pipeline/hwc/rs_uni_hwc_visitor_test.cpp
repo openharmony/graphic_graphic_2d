@@ -901,7 +901,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp006, Tes
     const std::string testSurfaceName1 = "surface";
     const std::string testSurfaceName2 = "overlapped_surface";
 
-    RsCommonHook::Instance().SetOverlapHwcNodeEnabledInAppConfig(testBundleName1, "1");
+    RsCommonHook::Instance().SetOverlappedHwcNodeInAppEnabledConfig(testBundleName1, "1");
     surfaceNode->name_ = testSurfaceName1;
     surfaceNode->bundleName_ = testBundleName1;
     surfaceNode->SetHardwareForcedDisabledState(false);
