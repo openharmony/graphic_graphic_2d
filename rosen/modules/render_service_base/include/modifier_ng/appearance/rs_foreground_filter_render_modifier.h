@@ -34,6 +34,8 @@ public:
 
     static void ResetProperties(RSProperties& properties);
 
+protected:
+
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
     // LCOV_EXCL_START

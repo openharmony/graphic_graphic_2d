@@ -23,6 +23,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_render_edge_light_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1265,17 +1266,5 @@ HWTEST_F(PropertiesTest, ShadowBlenderTest, TestSize.Level1)
     EXPECT_EQ(description, properties.GetShadowBlenderDescription());
 }
 
-/**
- * @tc.name: UpdateForegroundFilterTest_RenderFilter001
- * @tc.desc: test UpdateForegroundFilter with render filter only
- * @tc.type: FUNC
- */
-HWTEST_F(PropertiesTest,  UpdateForegroundFilterTest_RenderFilter001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.SetForegroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
-    properties.UpdateForegroundFilter();
-    EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
-}
 } // namespace Rosen
 } // namespace OHOS

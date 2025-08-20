@@ -33,6 +33,8 @@ public:
     // LCOV_EXCL_STOP
     static void ResetProperties(RSProperties& properties);
 
+protected:
+
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
     // LCOV_EXCL_START
