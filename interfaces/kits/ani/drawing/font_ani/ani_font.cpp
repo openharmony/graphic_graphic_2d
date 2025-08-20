@@ -21,7 +21,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 const char* ANI_CLASS_FONT_NAME = "L@ohos/graphics/drawing/drawing/Font;";
 
-static ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
+ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
 {
     ani_class aniClass;
     if (env->FindClass("L@ohos/graphics/drawing/drawing/FontMetricsInner;", &aniClass) != ANI_OK) {
