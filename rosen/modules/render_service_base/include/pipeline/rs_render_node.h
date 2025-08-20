@@ -296,7 +296,6 @@ public:
     std::list<WeakPtr> GetChildrenList() const;
 
     void DumpTree(int32_t depth, std::string& out) const;
-    void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 

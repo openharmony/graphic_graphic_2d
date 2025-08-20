@@ -565,24 +565,6 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         }).wait();
 }
 
-void RSRenderService::DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
-{
-    std::string type;
-    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpNode");
-    if (!isSuccess) {
-        return;
-    }
-    uint64_t nodeId = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 20) {
-        nodeId = std::stoull(type);
-    }
-    mainThread_->ScheduleTask(
-        [this, &dumpString, &nodeId]() {
-            return mainThread_->DumpNode(dumpString, nodeId);
-        }).wait();
-    
-}
-
 void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
 {
     dumpString.append("\n");
@@ -817,19 +799,12 @@ void RSRenderService::RegisterRSTreeFuncs()
         mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     };
 
-    // Dump Node
-    RSDumpFunc dumpNodeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
-                                     std::string &dumpString) -> void {
-        DumpNode(argSets, dumpString);
-    };
-
     std::vector<RSDumpHander> handers = {
         { RSDumpID::RS_NOT_ON_TREE_INFO, rsNotOnTreeFunc },
         { RSDumpID::RENDER_NODE_INFO, rsTreeFunc, RS_MAIN_THREAD_TAG },
         { RSDumpID::SURFACENODE_INFO, surfaceNodeFunc },
         { RSDumpID::MULTI_RSTREES_INFO, multiRSTreesFunc },
         { RSDumpID::CLIENT_INFO, rsClientFunc, RS_CLIENT_TAG },
-        { RSDumpID::RS_RENDER_NODE_INFO, dumpNodeFunc },
     };
 
     RSDumpManager::GetInstance().Register(handers);

@@ -2625,11 +2625,6 @@ void RSRenderNode::UnregisterProperty(PropertyId id)
     properties_.erase(id);
 }
 
-void RSRenderNode::DumpNodeInfo(DfxString& log)
-{
-    // Drawing is not supported
-}
-
 void RSRenderNode::AccumulateDirtyInOcclusion(bool isOccluded)
 {
     if (isOccluded) {
