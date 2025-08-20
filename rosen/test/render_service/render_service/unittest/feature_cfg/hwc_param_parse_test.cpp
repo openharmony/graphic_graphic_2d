@@ -158,11 +158,11 @@ HWTEST_F(HwcParamParseTest, TestParseFeatureMultiParamFoorApp001, TestSize.Level
     HWCParamParse hwcParamParse;
     hwcParamParse.hwcParam_ = std::make_shared<HWCParam>();
 
-    const std::string name1 = "OverlappedHwcNodeInAppEnabledConfig";
+    std::string name1 = "OverlappedHwcNodeInAppEnabledConfig";
     int32_t ret1 = hwcParamParse.ParseFeatureMultiParamForApp(node, name1);
     EXPECT_EQ(ret1, PARSE_EXEC_SUCCESS);
 
-    const std::string name2 = "example";
+    std::string name2 = "example";
     int32_t ret2 = hwcParamParse.ParseFeatureMultiParamForApp(node, name2);
     EXPECT_EQ(ret2, PARSE_EXEC_SUCCESS);
 }
