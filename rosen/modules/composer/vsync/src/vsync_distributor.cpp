@@ -1179,10 +1179,10 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
     }
 }
 
-uint64_t VSyncDistributor::CheckVsyncTsAndReceived(uint64_t timestamp)
+uint64_t VSyncDistributor::CheckVsyncReceivedAndGetRelTs(uint64_t timestamp)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().CheckVsyncTsAndReceived(timestamp);
+    return DVSync::Instance().CheckVsyncReceivedAndGetRelTs(timestamp);
 #else
     return timestamp;
 #endif
@@ -1980,15 +1980,6 @@ void VSyncDistributor::SetTaskEndWithTime(uint64_t time)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     DVSync::Instance().SetTaskEndWithTime(time);
-#endif
-}
-
-bool VSyncDistributor::NeedSkipForSurfaceBuffer(uint64_t id)
-{
-#if defined(RS_ENABLE_DVSYNC_2)
-    return DVSync::Instance().NeedSkipForSurfaceBuffer(id);
-#else
-    return false;
 #endif
 }
 

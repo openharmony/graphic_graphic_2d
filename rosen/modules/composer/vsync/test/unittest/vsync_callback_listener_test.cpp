@@ -123,6 +123,38 @@ HWTEST_F(VSyncCallBackListenerTest, PrintRequestTs001, Function | MediumTest | L
 }
 
 /**
+ * @tc.name: PrintRequestTs002
+ * @tc.desc: PrintRequestTs Test
+ * @tc.type: FUNC
+ * @tc.require: issueICPXGM
+ */
+HWTEST_F(VSyncCallBackListenerTest, PrintRequestTs002, Function | MediumTest | Level2)
+{
+    vsyncCallBackListener_->requestCount_ = 1200; // PRINT_COUNT_MAX = 1200
+    int64_t ts = SystemTime();
+    vsyncCallBackListener_->PrintRequestTs(ts);
+    ASSERT_EQ(vsyncCallBackListener_->requestCount_, 0);
+    ts -= 450000000; // TIME_OUT_INTERVAL = 450000000
+    vsyncCallBackListener_->PrintRequestTs(ts);
+    ASSERT_EQ(vsyncCallBackListener_->requestCount_, 1);
+}
+
+/**
+ * @tc.name: PrintRequestTs003
+ * @tc.desc: PrintRequestTs Test
+ * @tc.type: FUNC
+ * @tc.require: issueICPXGM
+ */
+HWTEST_F(VSyncCallBackListenerTest, PrintRequestTs003, Function | MediumTest | Level2)
+{
+    vsyncCallBackListener_->requestCount_ = 0;
+    vsyncCallBackListener_->name_ = "rs";
+    int64_t ts = SystemTime();
+    vsyncCallBackListener_->PrintRequestTs(ts);
+    ASSERT_EQ(vsyncCallBackListener_->requestCount_, 0);
+}
+
+/**
  * @tc.name: CalculateExpectedEndLocked001
  * @tc.desc: CalculateExpectedEndLocked Test
  * @tc.type: FUNC
@@ -131,8 +163,13 @@ HWTEST_F(VSyncCallBackListenerTest, PrintRequestTs001, Function | MediumTest | L
 HWTEST_F(VSyncCallBackListenerTest, CalculateExpectedEndLocked001, Function | MediumTest | Level2)
 {
     int64_t ts = SystemTime();
+    vsyncCallBackListener_->name_ = "rs";
     int64_t res = vsyncCallBackListener_->CalculateExpectedEndLocked(ts);
-    int64_t timeEnd = vsyncCallBackListener_->period_ + ts;
+    int64_t timeEnd = vsyncCallBackListener_->period_ + ts - 5000000; // rs vsync offset is 5000000ns
+    ASSERT_EQ(timeEnd, res);
+    vsyncCallBackListener_->name_ = "testApp";
+    res = vsyncCallBackListener_->CalculateExpectedEndLocked(ts);
+    timeEnd = vsyncCallBackListener_->period_ + ts; // rs vsync offset is 5000000ns
     ASSERT_EQ(timeEnd, res);
 }
 
