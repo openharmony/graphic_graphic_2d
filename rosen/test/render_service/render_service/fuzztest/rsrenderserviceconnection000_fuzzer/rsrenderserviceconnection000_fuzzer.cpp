@@ -1045,7 +1045,33 @@ void DoRegisterSelfDrawingNodeRectChangeCallback()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
+
+    uint8_t size = GetData<uint8_t>();
+    std::vector<int32_t> pids(size);
+    for (int i = 0; i < size; i++) {
+        pids[i] = GetData<int32_t>();
+    }
+
+    int32_t lowLimitWidth = GetData<int32_t>();
+    int32_t lowLimitHeight = GetData<int32_t>();
+    int32_t highLimitWidth = GetData<int32_t>();
+    int32_t highLimitHeight = GetData<int32_t>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSISelfDrawingNodeRectChangeCallback> callback =
+        iface_cast<RSISelfDrawingNodeRectChangeCallback>(remoteObject);
+ 
     dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint32(size);
+    for (const auto item : pids) {
+        dataParcel.WriteInt32(item);
+    }
+    dataParcel.WriteInt32(lowLimitWidth);
+    dataParcel.WriteInt32(lowLimitHeight);
+    dataParcel.WriteInt32(highLimitWidth);
+    dataParcel.WriteInt32(highLimitHeight);
+    dataParcel.WriteRemoteObject(callback->AsObject());
+
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 

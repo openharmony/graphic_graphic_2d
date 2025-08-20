@@ -354,6 +354,24 @@ void DoSetBehindWindowFilterEnabled()
     usleep(TASK_WAIT_MICROSECONDS);
     nodeMap.surfaceNodeMap_.erase(surfaceNodeId);
 }
+
+void DoSetLayerTopForHWC()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+ 
+    NodeId nodeId = GetData<uint64_t>();
+    bool isTop = GetData<bool>();
+    uint32_t zOrder = GetData<uint32_t>();
+ 
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.WriteBool(isTop);
+    dataParcel.WriteUint32(zOrder);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
