@@ -899,9 +899,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     break;
                 }
             }
-            if (RSSystemProperties::IsUseVulkan()) {
-                RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
-            }
+            RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
         } else {
             RsVulkanContext::GetSingleton().SetIsProtected(false);
         }
