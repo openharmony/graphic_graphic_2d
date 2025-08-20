@@ -21,7 +21,7 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_ui_shader_base_test.cpp",
+    "rs_ui_shader_base_test.cpp"
   ]
 
   include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
