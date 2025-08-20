@@ -1413,8 +1413,7 @@ void RSMainThread::ProcessCommandForUniRender()
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetTransactionFlags(transactionFlags);
-    if ((transactionDataEffective != nullptr && !transactionDataEffective->empty()) ||
-        RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
+    if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
     }
