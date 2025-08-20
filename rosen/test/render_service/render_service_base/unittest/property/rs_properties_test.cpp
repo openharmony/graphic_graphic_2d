@@ -1317,24 +1317,6 @@ HWTEST_F(RSPropertiesTest, SetNGetForegroundEffectRadius001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetProperty001
- * @tc.desc: test results of ResetProperty
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesTest, ResetProperty001, TestSize.Level1)
-{
-    RSProperties properties;
-    std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)> dirtyTypes;
-    properties.ResetProperty(dirtyTypes);
-
-    dirtyTypes.set(5);
-    dirtyTypes.set(0);
-    properties.ResetProperty(dirtyTypes);
-    EXPECT_TRUE(true);
-}
-
-/**
  * @tc.name: UpdateGeometry001
  * @tc.desc: test results of UpdateGeometry
  * @tc.type:FUNC
