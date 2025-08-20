@@ -251,6 +251,17 @@ std::shared_ptr<Image> StaticFactory::MakeRasterData(const ImageInfo& info, std:
     return EngineStaticFactory::MakeRasterData(info, pixels, rowBytes);
 }
 
+ScaleImageResult StaticFactory::ScaleImage(const std::shared_ptr<Image>& srcImage,
+    const std::shared_ptr<Image>& dstImage, const ScalingOption& optionData)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::ScaleImage(srcImage, dstImage, optionData);
+    }
+#endif
+    return EngineStaticFactory::ScaleImage(srcImage, dstImage, optionData);
+}
+
 std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, size_t size, void* ctx)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

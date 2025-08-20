@@ -31,6 +31,9 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class Data;
+enum class ScalingType;
+struct ScalingOption;
+enum class ScaleImageResult;
 #ifdef RS_ENABLE_GPU
 class GPUContext;
 enum class CompressedType;

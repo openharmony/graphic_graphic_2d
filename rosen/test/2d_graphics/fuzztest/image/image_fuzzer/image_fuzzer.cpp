@@ -78,6 +78,42 @@ bool ImageFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ *  测试从 Image 缩放的功能:
+ *  1. Image::BuildFromBitmap()
+ *  2. Image::ScaleImage()
+ */
+bool ImageFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return false;
+    }
+    BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
+    Bitmap srcBitmap;
+    int srcWidth = static_cast<int>(data[0]);
+    int srcHeight = static_cast<int>(data[1]);
+    srcBitmap.Build(srcWidth, srcHeight, bitmapFormat);
+    if (srcBitmap.GetWidth() != srcWidth || srcBitmap.GetHeight() != srcHeight) {
+        return false;
+    }
+    std::shared_ptr<Image> srcImage = std::make_shared<Image>();
+    srcImage->BuildFromBitmap(srcBitmap);
+    Bitmap dstBitmap;
+    int dstWidth = static_cast<int>(data[0]);
+    int dstHeight = static_cast<int>(data[1]);
+    dstBitmap.Build(dstWidth, dstHeight, bitmapFormat);
+    if (dstBitmap.GetWidth() != dstWidth || dstBitmap.GetHeight() != dstHeight) {
+        return false;
+    }
+    std::shared_ptr<Image> dstImage = std::make_shared<Image>();
+    dstImage->BuildFromBitmap(dstBitmap);
+
+    ScalingType type = static_cast<ScalingType>(static_cast<uint32_t>(data[0]) %
+        static_cast<uint32_t>(ScalingType::OPTION_INVALID));
+    ScalingOption option = {RectI(0, 0, srcWidth, srcHeight), RectI(0, 0, dstWidth, dstHeight), type};
+    Image::ScaleImage(srcImage, dstImage, option);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -88,5 +124,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::BuildImageFuzzTest(data, size);
     OHOS::Rosen::Drawing::ImageFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::ImageFuzzTest002(data, size);
     return 0;
 }

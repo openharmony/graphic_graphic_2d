@@ -153,6 +153,12 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, 
     return SkiaImage::MakeRasterData(info, pixels, rowBytes);
 }
 
+ScaleImageResult SkiaStaticFactory::ScaleImage([[maybe_unused]] const std::shared_ptr<Image>& srcImage,
+    [[maybe_unused]] const std::shared_ptr<Image>& dstImage, [[maybe_unused]] const ScalingOption& optionData)
+{
+    return ScaleImageResult::SCALE_ERROR_UNSUPPORTED;
+}
+
 std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size, void* ctx)
 {
     return SkiaTextBlob::Deserialize(data, size, ctx);
