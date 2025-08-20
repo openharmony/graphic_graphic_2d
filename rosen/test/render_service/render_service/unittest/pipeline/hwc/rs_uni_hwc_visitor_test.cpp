@@ -879,6 +879,52 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp005, Tes
 }
 
 /**
+ * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp006
+ * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp
+ * @tc.type: FUNC
+ * @tc.require: issueIBD45W
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp006, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->SetDstRect(RectI(0, 0, 100, 100));
+    std::vector<RectI> hwcRects;
+    hwcRects.emplace_back(50, 50, 100, 100);
+
+    const std::string testBundleName1 = "com.example.app1";
+    const std::string testBundleName2 = "com.example.app2";
+    const std::string testSurfaceName1 = "surface";
+    const std::string testSurfaceName2 = "overlapped_surface";
+
+    RsCommonHook::Instance().SetOverlapHwcNodeEnabledInAppConfig(testBundleName1, "1");
+    surfaceNode->name_ = testSurfaceName1;
+    surfaceNode->bundleName_ = testBundleName1;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(surfaceNode, hwcRects);
+    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    surfaceNode->name_ = testSurfaceName2;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(surfaceNode, hwcRects);
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    surfaceNode->bundleName_ = testBundleName2;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(surfaceNode, hwcRects);
+    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    surfaceNode->name_ = testSurfaceName1;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(surfaceNode, hwcRects);
+    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByNodeBelow
  * @tc.desc: Test RSUniRenderVistorTest.UpdateHwcNodeEnableByNodeBelow
  * @tc.type: FUNC

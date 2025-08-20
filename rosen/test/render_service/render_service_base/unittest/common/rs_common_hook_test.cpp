@@ -123,4 +123,21 @@ HWTEST_F(RsCommonHookTest, SetAndGetFilterUnderHwcConfigByAppTest, TestSize.Leve
     auto result1 = RsCommonHook::Instance().GetFilterUnderHwcConfigByApp(collaborationBundleName);
     EXPECT_EQ(result1, "1");
 }
+
+/**
+ * @tc.name: SetAndGetOverlappedHwcNodeInAppEnabledConfig
+ * @tc.desc: test results of SetOverlappedHwcNodeInAppEnabledConfig and GetOverlappedHwcNodeInAppEnabledConfig
+ * @tc.type:FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RsCommonHookTest, SetAndGetOverlappedHwcNodeInAppEnabledConfig, TestSize.Level1)
+{
+    const std::string testBundleName1 = "com.example.app1";
+    const std::string testBundleName2 = "com.example.app2";
+    RsCommonHook::Instance().SetOverlappedHwcNodeInAppEnabledConfig(testBundleName1, "1");
+    auto result1 = RsCommonHook::Instance().GetOverlappedHwcNodeInAppEnabledConfig(testBundleName1);
+    EXPECT_EQ(result1, "1");
+    auto result2 = RsCommonHook::Instance().GetOverlappedHwcNodeInAppEnabledConfig(testBundleName2);
+    EXPECT_EQ(result2, "");
+}
 } // namespace OHOS::Rosen

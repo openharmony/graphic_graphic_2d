@@ -131,4 +131,18 @@ std::string_view RsCommonHook::GetFilterUnderHwcConfigByApp(const std::string& a
     }
     return "";
 }
+
+void RsCommonHook::SetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName, const std::string& val)
+{
+    overlappedHwcNodeInAppEnabledConfig_.insert_or_assign(std::move(appName), std::move(val));
+}
+
+std::string RsCommonHook::GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName)
+{
+    auto it = overlappedHwcNodeInAppEnabledConfig_.find(appName);
+    if (it != overlappedHwcNodeInAppEnabledConfig_.end()) {
+        return it->second;
+    }
+    return "";
+}
 } // namespace OHOS::Rosen
