@@ -64,6 +64,12 @@ std::shared_ptr<Image> Image::MakeRasterData(const ImageInfo& info, std::shared_
     return StaticFactory::MakeRasterData(info, pixels, rowBytes);
 }
 
+ScaleImageResult Image::ScaleImage(const std::shared_ptr<Image>& srcImage, const std::shared_ptr<Image>& dstImage,
+    const ScalingOption& optionData)
+{
+    return StaticFactory::ScaleImage(srcImage, dstImage, optionData);
+}
+
 #ifdef RS_ENABLE_GPU
 std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {

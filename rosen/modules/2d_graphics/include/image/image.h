@@ -49,6 +49,26 @@ enum class TextureOrigin {
     BOTTOM_LEFT,
 };
 
+enum class ScalingType {
+    OPTION_AAE_ARSR = 0,
+    OPTION_INVALID,
+};
+
+struct ScalingOption {
+    RectI srcRect = RectI(0, 0, 0, 0);
+    RectI dstRect = RectI(0, 0, 0, 0);
+    ScalingType type = ScalingType::OPTION_AAE_ARSR;
+};
+
+enum class ScaleImageResult {
+    SCALE_RESULT_SUCCESS = 0,
+    SCALE_ERROR_INVALID_INPUT = 1,
+    SCALE_ERROR_DEVICE_NOT_READY = 2,
+    SCALE_ERROR_DEVICE_UNAVAILABLE = 3,
+    SCALE_ERROR_DEVICE_FAILED = 4,
+    SCALE_ERROR_UNSUPPORTED = 5
+};
+
 class Surface;
 
 #ifdef RS_ENABLE_VK
@@ -265,6 +285,17 @@ public:
      */
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
                                                  size_t rowBytes);
+
+    /**
+     * @brief              Scale Image using the specified options.
+     * @param  srcImage    Source Image.
+     * @param  dstImage    Destination Image.
+     * @param  optionData  Option Data. The top and left in src or dst rect need to be alined to 4
+     * @return             The scaling operation result.
+     */
+    static ScaleImageResult ScaleImage(const std::shared_ptr<Image>& srcImage, const std::shared_ptr<Image>& dstImage,
+        const ScalingOption& optionData);
+
 #ifdef RS_ENABLE_GPU
     /**
      * @brief             Create YUV Image from pixelmap.

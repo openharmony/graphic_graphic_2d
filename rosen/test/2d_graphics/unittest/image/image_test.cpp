@@ -457,6 +457,23 @@ HWTEST_F(ImageTest, GetHeadroom001, TestSize.Level1)
     ASSERT_EQ(image->GetHeadroom(), 1.0f);
 }
 
+/**
+ * @tc.name: ScaleImage001
+ * @tc.desc: test for Scale Image.
+ * @tc.type: FUNC
+ * @tc.require: ICS755
+*/
+HWTEST_F(ImageTest, ScaleImage001, TestSize.Level1)
+{
+    std::shared_ptr<Image> srcImage = std::make_shared<Image>();
+    EXPECT_TRUE(srcImage != nullptr);
+    std::shared_ptr<Image> dstImage = std::make_shared<Image>();
+    EXPECT_TRUE(dstImage != nullptr);
+
+    ScalingOption option = {RectI(0, 0, 0, 0), RectI(0, 0, 0, 0), ScalingType::OPTION_INVALID};
+    ASSERT_NE(Image::ScaleImage(srcImage, dstImage, option), ScaleImageResult::SCALE_RESULT_SUCCESS);
+}
+
 #ifdef RS_ENABLE_GPU
 /**
  * @tc.name: BuildFromCompressedTest001

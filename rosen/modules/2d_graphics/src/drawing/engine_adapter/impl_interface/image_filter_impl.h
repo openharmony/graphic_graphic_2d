@@ -54,6 +54,7 @@ enum class ImageBlurType : uint8_t {
 
 enum class HDSampleType : uint8_t {
     SLR = 0,
+    ESR,
 };
 
 struct HDSampleInfo {

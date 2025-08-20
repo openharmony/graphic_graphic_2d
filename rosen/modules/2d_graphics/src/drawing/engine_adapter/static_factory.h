@@ -76,6 +76,8 @@ public:
         SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
+    static ScaleImageResult ScaleImage(const std::shared_ptr<Image>& srcImage, const std::shared_ptr<Image>& dstImage,
+        const ScalingOption& optionData);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size, void* ctx);
     static std::shared_ptr<Typeface> DeserializeTypeface(const void* data, size_t size);
     static bool GetFillPath(const Pen& pen, const Path& src, Path& dst, const Rect* rect, const Matrix& matrix);
