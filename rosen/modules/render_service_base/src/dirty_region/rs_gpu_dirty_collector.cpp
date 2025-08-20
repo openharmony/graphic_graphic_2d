@@ -63,7 +63,6 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
     if (!RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()) {
         return false;
     }
-
     if (buffer == nullptr) {
         return false;
     }

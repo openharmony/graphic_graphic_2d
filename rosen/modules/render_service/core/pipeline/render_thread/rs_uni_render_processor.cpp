@@ -15,7 +15,6 @@
 
 #include "rs_uni_render_processor.h"
 
-#include <parameters.h>
 #include <vector>
 
 #include "hdi_layer.h"

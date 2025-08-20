@@ -38,6 +38,14 @@ public:
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
     };
+    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
+        .gpuDirtyEnable = true,
+        .curFrameDirtyEnable = true,
+        .left = 0,
+        .top = 0,
+        .right = 100,
+        .bottom = 100,
+    };
 
     static inline BufferSelfDrawingData isNotDirty = {
         .gpuDirtyEnable = true,
@@ -46,15 +54,6 @@ public:
         .top = 100,
         .right = 0,
         .bottom = 0,
-    };
-
-    static inline BufferSelfDrawingData defaultSelfDrawingRect = {
-        .gpuDirtyEnable = true,
-        .curFrameDirtyEnable = true,
-        .left = 0,
-        .top = 0,
-        .right = 100,
-        .bottom = 100,
     };
 
     static void SetUpTestCase();
@@ -139,7 +138,6 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute002, TestSize.Level1)
     ASSERT_EQ(ret, GSERROR_OK);
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_NE(src, nullptr);
-
     (*src) = defaultSelfDrawingRect;
     src->left = -1;
 
@@ -168,7 +166,6 @@ HWTEST_F(RSGpuDirtyCollectorTest, DirtyRegionCompute003, TestSize.Level1)
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_NE(src, nullptr);
     (*src) = isNotDirty;
-
     Rect rect = DEFAULT_RECT;
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
