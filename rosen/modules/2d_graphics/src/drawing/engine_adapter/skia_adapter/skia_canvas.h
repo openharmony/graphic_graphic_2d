@@ -66,8 +66,6 @@ public:
 
     void Bind(const Bitmap& bitmap) override;
 
-    void InheriteState(Canvas* canvas) override;
-
     void RecordState(Canvas* canvas) override;
     void SetParallelRender(bool parallelEnable) override;
     Matrix GetTotalMatrix() const override;
@@ -183,8 +181,6 @@ public:
     void BuildNoDraw(int32_t width, int32_t height) override;
 
     void BuildStateRecord(int32_t width, int32_t height) override;
-
-    void BuildStateInherite(int32_t width, int32_t height) override;
 
     void Reset(int32_t width, int32_t height) override;
 
