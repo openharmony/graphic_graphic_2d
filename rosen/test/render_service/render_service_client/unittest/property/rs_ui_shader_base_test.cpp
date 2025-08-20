@@ -52,7 +52,7 @@ HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreate001, TestSize.Level1)
  *           should return a non-null RSNGRoundedRectFlowlight instance
  * @tc.type:FUNC
  */
-HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreate001, TestSize.Level1)
+HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreate002, TestSize.Level1)
 {
     auto shader = RSNGShaderBase::Create(RSNGEffectType::ROUNDED_RECT_FLOWLIGHT);
     EXPECT_NE(shader, nullptr);
