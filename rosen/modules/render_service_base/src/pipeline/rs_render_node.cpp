@@ -1526,6 +1526,14 @@ bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geo
 
 void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
 {
+    // merge old children draw rect if node's sub tree is all dirty
+    const auto& renderProperties = GetRenderProperties();
+    if (renderProperties.IsSubTreeAllDirty()) {
+        auto oldChildrenDirtyRect = renderProperties.GetBoundsGeometry()->MapRect(
+            oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
+        dirtyManager.MergeDirtyRect(oldChildrenDirtyRect.IntersectRect(oldClipRect_));
+    }
+
     dirtyManager.MergeDirtyRect(oldDirty_);
     if (absDrawRect_ != oldAbsDrawRect_) {
         if (isSelfDrawingNode_) {
@@ -1564,6 +1572,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         accumGeoDirty = true;
         // Set geometry update delay flag recursively to update node's old dirty in subTree
         SetGeoUpdateDelay(true);
+        oldAbsMatrix_ = parent->oldAbsMatrix_;
+        oldAbsMatrix_.PostConcat(oldMatrix_);
     }
     auto& properties = GetMutableRenderProperties();
     if (accumGeoDirty || properties.NeedClip() || properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
@@ -1589,17 +1599,15 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     // Only when satisfy following conditions, absDirtyRegion should update:
     // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
+    // When the subtree is all dirty and the node should not paint, it also needs to add dirty region
     if ((IsDirty() || srcOrClipedAbsDrawRectChangeFlag_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
-        parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_)) {
+        parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_ || properties.IsSubTreeAllDirty())) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);
     }
     // 4. reset dirty status
-    RecordCurDirtyStatus();
-    SetClean();
-    properties.ResetDirty();
-    isLastVisible_ = shouldPaint_;
+    ResetDirtyStatus();
     return accumGeoDirty;
 }
 
@@ -3822,6 +3830,17 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
+}
+
+void RSRenderNode::ResetDirtyStatus()
+{
+    RecordCurDirtyStatus();
+    SetClean();
+    auto& properties = GetMutableRenderProperties();
+    properties.ResetDirty();
+    isLastVisible_ = shouldPaint_;
+    // The return of GetBoundsGeometry function must not be nullptr
+    oldMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
 }
 
 bool RSRenderNode::IsRenderUpdateIgnored() const

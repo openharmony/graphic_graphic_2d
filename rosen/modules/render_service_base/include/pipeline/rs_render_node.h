@@ -355,6 +355,11 @@ public:
     // clip rect of last frame before post prepare, current frame after post prepare
     RectI GetOldClipRect() const;
 
+    const Drawing::Matrix& GetOldAbsMatrix() const
+    {
+        return oldAbsMatrix_;
+    }
+
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
 
@@ -798,6 +803,8 @@ public:
     }
 
 protected:
+    void ResetDirtyStatus();
+
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
@@ -933,6 +940,7 @@ private:
     RectI childrenRect_;
     RectI oldChildrenRect_;
     RectI oldClipRect_;
+    Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
     bool childHasFilter_ = false;  // only collect children filter status
 
