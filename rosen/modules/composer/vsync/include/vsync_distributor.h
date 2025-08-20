@@ -178,7 +178,7 @@ public:
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     // forcefully enable DVsync in RS
-    void ForceRsDVsync(const std::string &sceneId);
+    void ForceRsDVsync(const std::string& sceneId);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);

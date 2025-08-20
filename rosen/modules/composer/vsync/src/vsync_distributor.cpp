@@ -1992,7 +1992,7 @@ void VSyncDistributor::DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime)
 #endif
 }
 
-void VSyncDistributor::ForceRsDVsync(const std::string &sceneId)
+void VSyncDistributor::ForceRsDVsync(const std::string& sceneId)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     RS_TRACE_NAME("VSyncDistributor::ForceRsDVsync");

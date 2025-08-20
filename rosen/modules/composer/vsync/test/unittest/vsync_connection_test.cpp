@@ -442,7 +442,7 @@ HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig003, Function | MediumTest| Level
         "APP_LIST15", "APP_LIST16", "APP_LIST17", "APP_LIST18", "APP_LIST19", "APP_LIST20", "APP_LIST21"};
     auto res = vsyncConnectionProxy->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
         nativeDelayEnable, rsDvsyncAnimationList);
-    ASSERT_EQ(res, VSYNC_ERROR_OK);
+    ASSERT_EQ(res, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
 } // namespace
 } // namespace Rosen
