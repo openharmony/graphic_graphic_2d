@@ -18,7 +18,7 @@
 #include <cstddef>
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
+#include "ani_drawing_utils.h"
 #include "ani_text_utils.h"
 
 namespace OHOS::Text::ANI {
@@ -85,7 +85,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 {
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, ":V");
     ani_object rectObj = nullptr;
-    if (ANI_OK == AniDrawingConverter::ParseRectToAni(env, textRect.rect, rectObj)) {
+    if (ANI_OK == OHOS::Rosen::Drawing::CreateRectObj(env, textRect.rect, rectObj)) {
         env->Object_SetPropertyByName_Ref(aniObj, "rect", rectObj);
     }
     env->Object_SetPropertyByName_Ref(aniObj, "direction",

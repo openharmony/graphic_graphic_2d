@@ -16,9 +16,9 @@
 #include "ani_run_metrics_converter.h"
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
 #include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
+#include "font_ani/ani_font.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
@@ -32,7 +32,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
             env->Object_SetPropertyByName_Ref(
                 aniObj, "textStyle", AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle));
             env->Object_SetPropertyByName_Ref(
-                aniObj, "fontMetrics", AniDrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
+                aniObj, "fontMetrics", OHOS::Rosen::Drawing::CreateAniFontMetrics(env, runMetrics.fontMetrics));
         }
         ani_status status =
             env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",

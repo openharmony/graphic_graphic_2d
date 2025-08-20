@@ -62,6 +62,13 @@ namespace common2D {
     blue: int;
   }
 
+  class ColorInternal implements common2D.Color {
+    alpha: int;
+    red: int;
+    green: int;
+    blue: int;
+  }
+
   /**
    * Provides the definition of the rectangle.
    * @typedef Rect
@@ -99,6 +106,13 @@ namespace common2D {
     bottom: double;
   }
 
+  class RectInternal implements common2D.Rect {
+    left: double;
+    top: double;
+    right: double;
+    bottom: double;
+  }
+
   /**
    * Coordinates in the font layout.
    * @typedef Point
@@ -120,6 +134,11 @@ namespace common2D {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
+    y: double;
+  }
+
+  class PointInternal implements common2D.Point {
+    x: double;
     y: double;
   }
 

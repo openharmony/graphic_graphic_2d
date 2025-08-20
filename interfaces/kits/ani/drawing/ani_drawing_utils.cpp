@@ -146,6 +146,29 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
     return GetColorQuadFromColorObj(env, obj, color);
 }
 
+ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj)
+{
+    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/ColorInternal;", ":V");
+    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "alpha", ani_double(color.GetAlpha()))) {
+        ROSEN_LOGE("Param alpha is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "red", ani_double(color.GetRed()))) {
+        ROSEN_LOGE("Param red is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "green", ani_double(color.GetGreen()))) {
+        ROSEN_LOGE("Param green is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "blue", ani_double(color.GetBlue()))) {
+        ROSEN_LOGE("Param blue is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    obj = aniObj;
+    return ANI_OK;
+}
+
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 {
     ani_class rectClass;
@@ -175,6 +198,64 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     rect.SetRight(right);
     rect.SetBottom(bottom);
     return true;
+}
+
+ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj)
+{
+    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/RectInternal;", ":V");
+    if (env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(rect.left_)) != ANI_OK) {
+        ROSEN_LOGE("Param left is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(rect.top_)) != ANI_OK) {
+        ROSEN_LOGE("Param top is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (env->Object_SetPropertyByName_Double(aniObj, "right", ani_double(rect.right_)) != ANI_OK) {
+        ROSEN_LOGE("Param right is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(rect.bottom_)) != ANI_OK) {
+        ROSEN_LOGE("Param bottom is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    obj = aniObj;
+    return ANI_OK;
+}
+
+ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
+{
+    ani_double x = 0;
+    ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param x is invalid, ret %{public}d", ret);
+        return ret;
+    }
+
+    ani_double y = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "y", &y);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param y is invalid, ret %{public}d", ret);
+        return ret;
+    }
+    point.SetX(x);
+    point.SetY(y);
+    return ret;
+}
+
+ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj)
+{
+    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/PointInternal;", ":V");
+    if (env->Object_SetPropertyByName_Double(aniObj, "x", ani_double(point.GetX())) != ANI_OK) {
+        ROSEN_LOGE("Param x is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    if (env->Object_SetPropertyByName_Double(aniObj, "y", ani_double(point.GetY())) != ANI_OK) {
+        ROSEN_LOGE("Param y is invalid");
+        return ANI_INVALID_ARGS;
+    }
+    obj = aniObj;
+    return ANI_OK;
 }
 
 ani_object CreateAniUndefined(ani_env* env)

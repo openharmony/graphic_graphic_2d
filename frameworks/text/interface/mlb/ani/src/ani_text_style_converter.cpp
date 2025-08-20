@@ -16,13 +16,30 @@
 #include "ani_text_style_converter.h"
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
+#include "ani_drawing_utils.h"
 #include "ani_text_utils.h"
 #include "draw/color.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+ani_status ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
+{
+    ani_ref colorRef = nullptr;
+    ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &colorRef);
+    if (result != ANI_OK || colorRef == nullptr) {
+        TEXT_LOGD("Failed to find param color, ret %{public}d", result);
+        return result;
+    }
+    Drawing::ColorQuad color;
+    if (OHOS::Rosen::Drawing::GetColorQuadFromColorObj(env, reinterpret_cast<ani_object>(colorRef), color)) {
+        colorSrc = Drawing::Color(color);
+    }
+    return ANI_OK;
+}
+}
+
 ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ani_class cls = nullptr;
@@ -39,7 +56,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     }
 
     ParseDecorationToNative(env, obj, textStyle);
-    AniDrawingConverter::ParseDrawingColorToNative(env, obj, "color", textStyle.color);
+    ParseDrawingColorToNative(env, obj, "color", textStyle.color);
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle.fontWeight);
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", textStyle.fontStyle);
@@ -87,7 +104,7 @@ void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj
             env, reinterpret_cast<ani_object>(decorationRef), "decorationStyle", textStyle.decorationStyle);
         AniTextUtils::ReadOptionalDoubleField(env, reinterpret_cast<ani_object>(decorationRef),
             "decorationThicknessScale", textStyle.decorationThicknessScale);
-        AniDrawingConverter::ParseDrawingColorToNative(
+        ParseDrawingColorToNative(
             env, reinterpret_cast<ani_object>(decorationRef), "color", textStyle.decorationColor);
     }
 }
@@ -143,7 +160,7 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
             AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
 
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            AniDrawingConverter::ParseDrawingColorToNative(env, shadowObj, "color", colorSrc);
+            ParseDrawingColorToNative(env, shadowObj, "color", colorSrc);
 
             Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
@@ -254,7 +271,7 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
         return;
     }
     Drawing::Color color;
-    if (AniDrawingConverter::ParseDrawingColorToNative(env, obj, "color", color) == ANI_OK) {
+    if (ParseDrawingColorToNative(env, obj, "color", color) == ANI_OK) {
         rectStyle.color = color.CastToColorQuad();
     }
     env->Object_GetPropertyByName_Double(obj, "leftTopRadius", &rectStyle.leftTopRadius);
@@ -269,7 +286,7 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
     env->Object_SetPropertyByName_Ref(
         aniObj, "decoration", AniTextStyleConverter::ParseDecorationToAni(env, textStyle));
     ani_object aniColorObj = nullptr;
-    ani_status status = AniDrawingConverter::ParseColorToAni(env, textStyle.color, aniColorObj);
+    ani_status status = OHOS::Rosen::Drawing::CreateColorObj(env, textStyle.color, aniColorObj);
     if (status == ANI_OK) {
         env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
     }
@@ -313,12 +330,12 @@ ani_object AniTextStyleConverter::ParseTextShadowToAni(ani_env* env, const TextS
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXTSHADOW, ":V");
     ani_object aniColorObj = nullptr;
-    ani_status status = AniDrawingConverter::ParseColorToAni(env, textShadow.color, aniColorObj);
+    ani_status status = OHOS::Rosen::Drawing::CreateColorObj(env, textShadow.color, aniColorObj);
     if (status == ANI_OK) {
         env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
     }
     ani_object aniPointObj = nullptr;
-    status = AniDrawingConverter::ParsePointToAni(env, textShadow.offset, aniPointObj);
+    status = OHOS::Rosen::Drawing::CreatePointObj(env, textShadow.offset, aniPointObj);
     if (status == ANI_OK) {
         env->Object_SetPropertyByName_Ref(aniObj, "point", aniPointObj);
     }
@@ -333,7 +350,7 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
     env->Object_SetPropertyByName_Ref(aniObj, "textDecoration",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)));
     ani_object aniColorObj = nullptr;
-    ani_status status = AniDrawingConverter::ParseColorToAni(env, textStyle.decorationColor, aniColorObj);
+    ani_status status = OHOS::Rosen::Drawing::CreateColorObj(env, textStyle.decorationColor, aniColorObj);
     if (status == ANI_OK) {
         env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
     }
@@ -349,7 +366,7 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE, ":V");
     OHOS::Rosen::Drawing::Color color = OHOS::Rosen::Drawing::Color(rectStyle.color);
     ani_object aniColorObj = nullptr;
-    ani_status status = AniDrawingConverter::ParseColorToAni(env, color, aniColorObj);
+    ani_status status = OHOS::Rosen::Drawing::CreateColorObj(env, color, aniColorObj);
     if (status == ANI_OK) {
         env->Object_SetPropertyByName_Ref(aniObj, "color", aniColorObj);
     }
