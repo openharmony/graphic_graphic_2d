@@ -366,7 +366,7 @@ float RSModifierExtractor::GetShadowOffsetY() const
 // LCOV_EXCL_START
 float RSModifierExtractor::GetShadowAlpha() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_ALPHA, 1.f, =);
+    return GetShadowColor().GetAlphaF();
 }
 // LCOV_EXCL_STOP
 

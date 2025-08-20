@@ -270,7 +270,6 @@ bool RSShadowRenderModifierFuzzTest(const uint8_t* data, size_t size)
     // test
     auto modifier = std::make_shared<ModifierNG::RSShadowRenderModifier>();
     RSProperties properties;
-    properties.SetShadowAlpha(GetData<float>());
     modifier->ResetProperties(properties);
     return true;
 }

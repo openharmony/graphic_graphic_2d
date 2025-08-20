@@ -1765,21 +1765,6 @@ void RSProperties::SetShadowOffsetY(float offsetY)
     contentDirty_ = true;
 }
 
-void RSProperties::SetShadowAlpha(float alpha)
-{
-    if (!shadow_.has_value()) {
-        shadow_ = std::make_optional<RSShadow>();
-    }
-    shadow_->SetAlpha(alpha);
-    if (shadow_->IsValid()) {
-        isDrawn_ = true;
-    }
-    SetDirty();
-    // [planning] if shadow stores as texture and out of node
-    // node content would not be affected
-    contentDirty_ = true;
-}
-
 void RSProperties::SetShadowElevation(float elevation)
 {
     if (!shadow_.has_value()) {
@@ -1882,11 +1867,6 @@ float RSProperties::GetShadowOffsetX() const
 float RSProperties::GetShadowOffsetY() const
 {
     return shadow_ ? shadow_->GetOffsetY() : DEFAULT_SHADOW_OFFSET_Y;
-}
-
-float RSProperties::GetShadowAlpha() const
-{
-    return shadow_ ? shadow_->GetAlpha() : 1.f;
 }
 
 float RSProperties::GetShadowElevation() const
@@ -4159,16 +4139,6 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetShadowOffsetY(), DEFAULT_SHADOW_OFFSET_Y) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowOffsetY[%.1f]", GetShadowOffsetY()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // ShadowAlpha
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for ShadowAlpha, ret=" + std::to_string(ret);
-    }
-    if (!ROSEN_EQ(GetShadowAlpha(), 0.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", ShadowAlpha[%.1f]", GetShadowAlpha()) != -1) {
         dumpInfo.append(buffer);
     }
 

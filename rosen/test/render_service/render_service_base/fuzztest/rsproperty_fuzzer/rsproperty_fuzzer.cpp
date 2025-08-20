@@ -224,7 +224,6 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     int16_t green1 = GetData<int16_t>();
     int16_t blue1 = GetData<int16_t>();
     Color color1(red1, green1, blue1);
-    float alpha = GetData<float>();
 
     properties.SetBorderWidth(widthVector);
     properties.SetBorderDashWidth(widthVector);
@@ -235,7 +234,6 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     properties.SetShadowColor(color1);
     properties.SetShadowOffsetX(offsetX);
     properties.SetShadowOffsetY(offsetY);
-    properties.SetShadowAlpha(alpha);
     properties.SetShadowElevation(radius);
     properties.SetShadowRadius(radius);
     properties.SetShadowPath(shadowpath);

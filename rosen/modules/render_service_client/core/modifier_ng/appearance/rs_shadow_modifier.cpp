@@ -48,12 +48,14 @@ float RSShadowModifier::GetShadowOffsetY() const
 
 void RSShadowModifier::SetShadowAlpha(float alpha)
 {
-    Setter(RSPropertyType::SHADOW_ALPHA, alpha);
+    auto color = GetShadowColor();
+    color.SetAlpha(std::clamp(alpha, 0.0f, 1.0f) * UINT8_MAX);
+    SetShadowColor(color);
 }
 
 float RSShadowModifier::GetShadowAlpha() const
 {
-    return Getter(RSPropertyType::SHADOW_ALPHA, 1.f);
+    return GetShadowColor().GetAlphaF();
 }
 
 void RSShadowModifier::SetShadowElevation(float elevation)

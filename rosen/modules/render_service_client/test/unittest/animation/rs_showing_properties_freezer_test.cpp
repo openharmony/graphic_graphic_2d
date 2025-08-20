@@ -381,7 +381,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
     canvasNode->SetShadowAlpha(SHOWING_FLOAT_NUM);
     auto result4 = canvasNode->GetShowingProperties().GetShadowAlpha();
     ASSERT_TRUE(result4.has_value());
-    EXPECT_FLOAT_EQ(result4.value(), SHOWING_FLOAT_NUM);
+    EXPECT_FLOAT_EQ(result4.value(), 1.f);
 
     canvasNode->SetShadowElevation(SHOWING_FLOAT_NUM);
     auto result5 = canvasNode->GetShowingProperties().GetShadowElevation();
