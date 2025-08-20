@@ -707,7 +707,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         Drawing::Matrix scaleMat;
         auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
             Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-        
+
         RSHdrUtil util;
         auto shader = util.MakeHdrHeadroomShader(hrRatio, imageShader);
         if (shader == nullptr) {
@@ -715,7 +715,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             return;
         }
         params.paint.SetShaderEffect(shader);
- 
+
         canvas.AttachBrush(params.paint);
         canvas.DrawRect(params.dstRect);
         canvas.DetachBrush();
@@ -888,7 +888,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        auto regUnMapVkImageFunc = [this](int32_t bufferId) {
+        auto regUnMapVkImageFunc = [this](uint32_t bufferId) {
             RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
         };
         handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
@@ -897,7 +897,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 #endif // #ifdef RS_ENABLE_VK
 
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    auto regUnMapEglImageFunc = [this](int32_t bufferId) {
+    auto regUnMapEglImageFunc = [this](uint32_t bufferId) {
         RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
     };
     handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
