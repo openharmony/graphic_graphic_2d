@@ -40,9 +40,11 @@ public:
         return instance_;
     }
 
-    RSIConnectionToken* GetToken()
+    RSIConnectionToken* GetTokenPtrAndClear()
     {
-        return token_.GetRefPtr();
+        RSIConnectionToken* ret = token_.GetRefPtr();
+        token_ = nullptr;
+        return ret;
     }
 
 private:

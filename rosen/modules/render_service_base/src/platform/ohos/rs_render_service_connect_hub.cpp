@@ -38,7 +38,7 @@ extern "C" __attribute__((destructor)) void DeleteIPCConnectToken()
 {
     auto connHub = OHOS::Rosen::RSRenderServiceConnectHub::GetConnectHubInstance();
     if (connHub != nullptr) {
-        auto token = connHub->GetToken();
+        auto token = connHub->GetTokenPtrAndClear();
         if (token != nullptr) {
             delete token;
         }
