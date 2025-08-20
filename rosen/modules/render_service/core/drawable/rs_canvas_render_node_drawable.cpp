@@ -102,14 +102,15 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     auto linkedDrawable = std::static_pointer_cast<RSRootRenderNodeDrawable>(
         params->GetLinkedRootNodeDrawable().lock());
-    auto isOpincDraw = GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
+    auto needOcclusionSkip = paintFilterCanvas->IsQuickGetDrawState() ?
+        true : GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
     paintFilterCanvas->SetHDRBrightness(params->GetHDRBrightness());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() &&
-        isOpincDraw && !params->HasUnobscuredUEC() && LIKELY(linkedDrawable == nullptr));
+        needOcclusionSkip && !params->HasUnobscuredUEC() && LIKELY(linkedDrawable == nullptr));
     if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;

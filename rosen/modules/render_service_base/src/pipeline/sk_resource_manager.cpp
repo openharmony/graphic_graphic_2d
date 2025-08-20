@@ -54,9 +54,6 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
 {
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
     auto tid = gettid();
     if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
         return;

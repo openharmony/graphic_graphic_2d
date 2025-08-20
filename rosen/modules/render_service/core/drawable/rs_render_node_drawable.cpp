@@ -840,7 +840,14 @@ void RSRenderNodeDrawable::ClearCachedSurface()
     auto clearTask = [surface = cachedSurface_]() mutable { surface = nullptr; };
     cachedSurface_ = nullptr;
     cachedImage_ = nullptr;
-    RSTaskDispatcher::GetInstance().PostTask(cacheThreadId_.load(), clearTask);
+    auto threadId = cacheThreadId_.load();
+#ifdef SUBTREE_PARALLEL_ENABLE
+    // Adapt to the subtree feature to ensure the dispatch thread in unirender.
+    if (threadId < 0) {
+        threadId = RSUniRenderThread::Instance().GetTid();
+    }
+#endif
+    RSTaskDispatcher::GetInstance().PostTask(threadId, clearTask);
 
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
