@@ -602,6 +602,24 @@ bool RSRenderNode::CanFuzePixelStretch()
     return RSDrawable::CanFusePixelStretch(drawableVec_);
 }
 
+bool RSRenderNode::IsPixelStretchValid() const
+{
+    if (!GetRenderProperties().GetPixelStretch().has_value()) {
+        return false;
+    }
+    const auto drawablePtr = drawableVec_[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    const auto pixelStretchDrawable = std::static_pointer_cast<const DrawableV2::RSPixelStretchDrawable>(drawablePtr);
+    if (pixelStretchDrawable == nullptr) {
+        return false;
+    }
+    const auto& pixelStretch = pixelStretchDrawable->GetPixelStretch();
+    if (!pixelStretch.has_value()) {
+        return false;
+    }
+    return !std::isinf(pixelStretch->x_) &&
+        !std::isinf(pixelStretch->y_) && !std::isinf(pixelStretch->z_) && !std::isinf(pixelStretch->w_);
+}
+
 void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
 {
     if (!subRect.IsEmpty()) {

@@ -531,7 +531,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_005, TestSize.Leve
  */
 HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
 {
-    auto testFunc = [](bool cacheValid, bool partialRender, bool expectation) {
+    auto testFunc = [](bool cacheValid, bool partialRender, bool forceDisable, bool expectation) {
         auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
         ASSERT_NE(dirtyManager, nullptr);
         NodeId nodeId = 1;
@@ -539,6 +539,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
             .id_ = nodeId,
             .intersectRegion_ = Occlusion::Rect(DEFAULT_RECT1),
             .filterDirty_ = Occlusion::Rect(DEFAULT_RECT2),
+            .forceDisablePartialRender_ = forceDisable
         };
         dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
 
@@ -551,9 +552,16 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
         ASSERT_EQ(damageRegion.Area() == DEFAULT_RECT1.GetWidth() * DEFAULT_RECT1.GetHeight(), expectation);
         RSFilterDirtyCollector::ResetFilterCacheValidForOcclusion();
     };
-    testFunc(false, false, false);
-    testFunc(false, true, false);
-    testFunc(true, false, false);
-    testFunc(true, true, true);
+    // check cache status, if cache is valid and no particular reson to disable partial render,
+    // dirty collection can be skipped.
+    testFunc(false, false, false, false);
+    testFunc(false, true, false, false);
+    testFunc(true, false, false, false);
+    testFunc(true, true, false, true);
+    // if pixel stretch is valid for this node, dirty region should be expanded.
+    testFunc(false, false, false, false);
+    testFunc(false, true, false, false);
+    testFunc(true, false, false, false);
+    testFunc(true, true, false, false);
 }
 } // namespace OHOS::Rosen

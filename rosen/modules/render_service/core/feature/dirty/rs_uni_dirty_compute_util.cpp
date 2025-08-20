@@ -233,7 +233,8 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
         !dirtyManager.IsCurrentFrameDirty() && RSFilterDirtyCollector::GetValidCachePartialRender();
     auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
         // case - 0. If this filter satisfied certain partial render conditions, skip it.
-        if (filterCachePartialRender && RSFilterDirtyCollector::GetFilterCacheValidForOcclusion(info.id_)) {
+        if (filterCachePartialRender &&
+                !info.forceDisablePartialRender_ && RSFilterDirtyCollector::GetFilterCacheValidForOcclusion(info.id_)) {
             RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
             return false;
         }
@@ -312,7 +313,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
         .isBackgroundFilterClean_ =
             (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
-            !filterNode.IsBackgroundInAppOrNodeSelfDirty()
+            !filterNode.IsBackgroundInAppOrNodeSelfDirty(),
+        .forceDisablePartialRender_ = filterNode.IsPixelStretchValid()
     };
     return filterInfo;
 }

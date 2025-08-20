@@ -260,6 +260,7 @@ public:
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
     void SetPixelStretch(const std::optional<Vector4f>& pixelStretch);
+    const std::optional<Vector4f>& GetPixelStretch() const;
 
 private:
     bool needSync_ = false;
