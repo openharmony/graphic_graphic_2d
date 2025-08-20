@@ -199,7 +199,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
         return status;
     }
     utf16Buffer[bytesWritten] = '\0';
-    utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize);
+    utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize - 1);
     return ANI_OK;
 }
 
