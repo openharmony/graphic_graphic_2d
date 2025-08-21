@@ -435,7 +435,6 @@ void RSProfiler::OnWorkModeChanged()
         RecordStop(ArgList());
         PlaybackStop(ArgList());
 
-        ImageCache::Reset();
         g_recordFile.Close();
         g_playbackFile.Close();
         Utils::FileDelete(RSFile::GetDefaultPath());
@@ -455,13 +454,9 @@ void RSProfiler::ProcessSignalFlag()
         HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", newEnabled ? 1 : 0,
             newBetaRecord ? 1 : 0);
         if (enabled_ && !newEnabled) {
-            const ArgList dummy;
-            if (IsReadMode()) {
-                PlaybackStop(dummy);
-            }
-            if (IsWriteMode()) {
-                RecordStop(dummy);
-            }
+            StopBetaRecord();
+            RecordStop(ArgList());
+            PlaybackStop(ArgList());
         }
         if (enabled_ != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
             enabled_ = newEnabled;
@@ -1784,7 +1779,12 @@ void RSProfiler::RecordStop(const ArgList& args)
 
         SetMode(Mode::NONE);
     });
-    thread.detach();
+
+    if (args.Includes("WAITFORFINISH")) {
+        thread.join();
+    } else {
+        thread.detach();
+    }
 }
 
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)

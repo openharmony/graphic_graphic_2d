@@ -40,6 +40,11 @@ public:
         args_.clear();
     }
 
+    bool Includes(const std::string& string) const
+    {
+        return std::find(args_.begin(), args_.end(), string) != args_.end();
+    }
+
     const std::string& String(size_t index = 0u) const
     {
         static const std::string EMPTY;

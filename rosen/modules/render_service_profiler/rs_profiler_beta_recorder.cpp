@@ -163,7 +163,7 @@ void RSProfiler::StartBetaRecord()
 void RSProfiler::StopBetaRecord()
 {
     if (IsBetaRecordStarted()) {
-        RecordStop(ArgList());
+        RecordStop(ArgList({ "WAITFORFINISH" }));
         g_started = false;
         g_inactiveTimestamp = 0;
     }

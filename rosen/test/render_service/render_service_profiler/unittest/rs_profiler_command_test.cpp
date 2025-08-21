@@ -38,8 +38,12 @@ public:
  */
 HWTEST_F(RSProfilerCommandTest, CommandArgListTest, testing::ext::TestSize.Level1)
 {
-    std::vector<std::string> args { "123", "-5", "45738957893", "837983", "1.5", "678.789", "qwe" };
+    std::vector<std::string> args { "123", "-5", "45738957893", "837983", "1.5", "678.789", "qwe", "" };
     ArgList list { args };
+
+    EXPECT_TRUE(list.Includes("qwe"));
+    EXPECT_FALSE(list.Includes("Qwe"));
+    EXPECT_TRUE(list.Includes(""));
 
     EXPECT_EQ(list.Uint32(0), 123);
     EXPECT_EQ(list.Int32(1), -5);
