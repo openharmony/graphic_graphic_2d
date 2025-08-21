@@ -374,8 +374,7 @@ void DoGetRefreshInfoFuzzer()
 
 void CreateSurfaceNode()
 {
-    uint64_t nodeId = GetData<uint64_t>();
-    RSSurfaceRenderNodeConfig config = { .id = nodeid,
+    RSSurfaceRenderNodeConfig config = { .id = GetData<uint64_t>(),
         .name = "fuzzSurface",
         .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
         .isTextureExportNode = false,
