@@ -139,7 +139,6 @@ void RsCommonHook::SetOverlappedHwcNodeInAppEnabledConfig(const std::string& app
 
 std::string RsCommonHook::GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName)
 {
-    
     if (auto it = overlappedHwcNodeInAppEnabledConfig_.find(appName);
         it != overlappedHwcNodeInAppEnabledConfig_.end()) {
         return it->second;
