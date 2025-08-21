@@ -50,7 +50,9 @@ const uint8_t DO_SET_SCREEN_COLORSPACE = 5;
 const uint8_t DO_GET_PIXEL_FORMAT = 6;
 const uint8_t DO_SET_PIXELFORMAT = 7;
 const uint8_t DO_SET_COLOR_FOLLOW = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_SET_LAYER_TOP = 9;
+const uint8_t DO_SET_FORCE_REFRESH = 10;
+const uint8_t TARGET_SIZE = 11;
 } // namespace
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 RSMainThread* g_mainThread = nullptr;
@@ -227,6 +229,50 @@ void DoSetColorFollow(FuzzedDataProvider& fdp)
         context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
     }).wait();
 }
+
+/* Fuzzer test SetLayerTop */
+void DoSetLayerTop(FuzzedDataProvider& fdp)
+{
+    RSSurfaceRenderNodeConfig config = { .id = 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto mainThread = g_mainThread;
+    mainThread->ScheduleTask([=]() {
+        auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config.id);
+        surfaceNode->nodeType_ = config.nodeType;
+        surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(config.id);
+        auto& context = mainThread->GetContext();
+        context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
+    }).wait();
+
+    bool isLayerTop = fdp.ConsumeBool();
+    g_connectionStub->SetLayerTop(config.name, isLayerTop);
+
+    mainThread->ScheduleTask([=]() {
+        auto& context = mainThread->GetContext();
+        context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
+    }).wait();
+}
+
+/* Fuzzer test SetForceRefresh */
+void DoSetForceRefresh(FuzzedDataProvider& fdp)
+{
+    RSSurfaceRenderNodeConfig config = { .id = 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto mainThread = g_mainThread;
+    mainThread->ScheduleTask([=]() {
+        auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config.id);
+        surfaceNode->nodeType_ = config.nodeType;
+        surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(config.id);
+        auto& context = mainThread->GetContext();
+        context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
+    }).wait();
+
+    bool isForceRefresh = fdp.ConsumeBool();
+    g_connectionStub->SetForceRefresh(config.name, isForceRefresh);
+
+    mainThread->ScheduleTask([=]() {
+        auto& context = mainThread->GetContext();
+        context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
+    }).wait();
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -289,6 +335,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_COLOR_FOLLOW:
             OHOS::Rosen::DoSetColorFollow(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_LAYER_TOP:
+            OHOS::Rosen::DoSetLayerTop(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_FORCE_REFRESH:
+            OHOS::Rosen::DoSetForceRefresh(fdp);
             break;
         default:
             // do nothing

@@ -50,7 +50,9 @@ const uint8_t DO_SET_SCREEN_COLORSPACE = 5;
 const uint8_t DO_GET_PIXEL_FORMAT = 6;
 const uint8_t DO_SET_PIXELFORMAT = 7;
 const uint8_t DO_SET_COLOR_FOLLOW = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_SET_LAYER_TOP = 9;
+const uint8_t DO_SET_FORCE_REFRESH = 10;
+const uint8_t TARGET_SIZE = 11;
 } // namespace
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 sptr<RSIConnectionToken> g_token = nullptr;
@@ -209,6 +211,22 @@ void DoSetColorFollow(FuzzedDataProvider& fdp)
     bool isColorFollow = fdp.ConsumeBool();
     g_connectionStub->SetColorFollow(nodeId, isColorFollow);
 }
+
+/* Fuzzer test SetLayerTop */
+void DoSetLayerTop(FuzzedDataProvider& fdp)
+{
+    std::string nodeId = std::to_string(fdp.ConsumeIntegral<uint64_t>());
+    bool isLayerTop = fdp.ConsumeBool();
+    g_connectionStub->SetLayerTop(nodeId, isLayerTop);
+}
+
+/* Fuzzer test SetForceRefresh */
+void DoSetForceRefresh(FuzzedDataProvider& fdp)
+{
+    std::string nodeId = std::to_string(fdp.ConsumeIntegral<uint64_t>());
+    bool isForceRefresh = fdp.ConsumeBool();
+    g_connectionStub->SetForceRefresh(nodeId, isForceRefresh);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -262,6 +280,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_COLOR_FOLLOW:
             OHOS::Rosen::DoSetColorFollow(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_LAYER_TOP:
+            OHOS::Rosen::DoSetLayerTop(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_FORCE_REFRESH:
+            OHOS::Rosen::DoSetForceRefresh(fdp);
             break;
         default:
             // do nothing
