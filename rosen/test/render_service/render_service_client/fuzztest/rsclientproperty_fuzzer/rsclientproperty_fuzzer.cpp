@@ -261,15 +261,6 @@ bool DoUpdateOnAllAnimationFinish(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRSPropertyBase(const uint8_t* data, size_t size)
-{
-    // test
-    RSProperty<float> propertyBase;
-    propertyBase.MarkCustomModifierDirty();
-    propertyBase.MarkNodeDirty();
-    return true;
-}
-
 bool DoOperator(const uint8_t* data, size_t size)
 {
     // test
@@ -441,7 +432,7 @@ bool DoRSPropertyBase002(const uint8_t* data, size_t size)
     property->GetThreshold();
     auto rsRenderPropertyBase = std::make_shared<RSRenderProperty<bool>>();
     property->SetValueFromRender(rsRenderPropertyBase);
-    bool isCustom = property->GetIsCustom();
+    bool isCustom = GetData<bool>();
     property->SetIsCustom(isCustom);
     auto propertyBase = std::make_shared<RSProperty<float>>();
     property->SetValue(propertyBase);
@@ -518,7 +509,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetPropertyUnit(data, size);
     OHOS::Rosen::DoUpdateCustomAnimation(data, size);
     OHOS::Rosen::DoUpdateOnAllAnimationFinish(data, size);
-    OHOS::Rosen::DoRSPropertyBase(data, size);
     OHOS::Rosen::DoOperator(data, size);
     OHOS::Rosen::DoUpdateToRender001(data, size);
     OHOS::Rosen::DoUpdateToRender002(data, size);
