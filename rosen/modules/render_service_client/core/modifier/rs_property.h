@@ -281,8 +281,6 @@ private:
     friend class RSModifier;
     friend class ModifierNG::RSModifier;
     friend class RSNode;
-    friend class RSBackgroundUIFilterModifier;
-    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;
