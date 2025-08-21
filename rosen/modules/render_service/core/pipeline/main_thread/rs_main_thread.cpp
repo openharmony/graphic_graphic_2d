@@ -586,7 +586,7 @@ void RSMainThread::Init()
     });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
-    RSUniHwcPrevalidateUtil::GetInstance().Init();
+    RegisterHwcEvent();
     RSImageDetailEnhancerThread::Instance().RegisterCallback(
         std::bind(&RSMainThread::MarkNodeImageDirty, this, std::placeholders::_1));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
@@ -5477,6 +5477,21 @@ void RSMainThread::SetForceRsDVsync(const std::string& sceneId)
         RS_TRACE_NAME("RSMainThread::SetForceRsDVsync");
         rsVSyncDistributor_->ForceRsDVsync(sceneId);
     }
+}
+
+void RSMainThread::RegisterHwcEvent()
+{
+    RSUniHwcPrevalidateUtil::GetInstance().Init();
+#ifdef RS_ENABLE_GPU
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager != nullptr) {
+        screenManager->RegisterHwcEvent([]() {
+            RSHardwareThread::Instance().PostTask([]() {
+                RSUniHwcPrevalidateUtil::GetInstance().Init();
+            });
+        });
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

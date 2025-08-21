@@ -387,6 +387,10 @@ void RSScreenManager::OnHwcDead(void* data)
 
     // Automatically recover when composer host dies.
     screenManager->CleanAndReinit();
+    // Register hwcEvent when composer host dies.
+    if (screenManager->registerHwcEventFunc_ != nullptr) {
+        screenManager->registerHwcEventFunc_();
+    }
 }
 
 void RSScreenManager::OnHwcDeadEvent()
@@ -2625,6 +2629,11 @@ void RSScreenManager::NotifySwitchingCallback(bool status) const
 
     RS_LOGI("%{public}s: status: %{public}d", __func__, status);
     screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
+}
+
+void RSScreenManager::RegisterHwcEvent(std::function<void()> func)
+{
+    registerHwcEventFunc_ = std::move(func);
 }
 
 std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) const

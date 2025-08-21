@@ -218,6 +218,8 @@ public:
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
     virtual bool CheckPSurfaceChanged(ScreenId id) = 0;
+
+    virtual void RegisterHwcEvent(std::function<void()> func) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -398,6 +400,8 @@ public:
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
     bool CheckPSurfaceChanged(ScreenId id) override;
+    void RegisterHwcEvent(std::function<void()> func) override;
+
 private:
     RSScreenManager() = default;
     ~RSScreenManager() override = default;
@@ -506,6 +510,8 @@ private:
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
 
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
+
+    std::function<void()> registerHwcEventFunc_ = nullptr;
 
     mutable std::mutex renderControlMutex_;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
