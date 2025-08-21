@@ -655,7 +655,7 @@ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR003, Level1)
  * @tc.desc:
  * @tc.type: FUNC
  */
- HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR004, Level1)
+HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR004, Level1)
 {
     auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
     auto surface = new EglWrapperSurface(eglWrapperDisplay, EGL_NO_SURFACE, nullptr, EGL_GL_COLORSPACE_SRGB_KHR);
@@ -841,7 +841,7 @@ HWTEST_F(EglWrapperDisplayTest, CreatePlatformPixmapSurfaceEXT002, Level1)
  * @tc.desc:
  * @tc.type: FUNC
  */
- HWTEST_F(EglWrapperDisplayTest, SwapBuffer001, Level1)
+HWTEST_F(EglWrapperDisplayTest, SwapBuffer001, Level1)
 {
     auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
     auto surface = new EglWrapperSurface(eglWrapperDisplay, EGL_NO_SURFACE, nullptr, EGL_GL_COLORSPACE_SRGB_KHR);
