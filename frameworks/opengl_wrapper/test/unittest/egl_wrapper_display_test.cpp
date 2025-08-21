@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "EGL/egl_wrapper_display.h"
+#include "EGL/egl_wrapper_surface.h"
 
 #include "egl_defs.h"
 #include "thread_private_data_ctl.h"
@@ -650,6 +651,32 @@ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR003, Level1)
 }
 
 /**
+ * @tc.name: SwapBuffersWithDamageKHR004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageKHR004, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+    auto surface = new EglWrapperSurface(eglWrapperDisplay, EGL_NO_SURFACE, nullptr, EGL_GL_COLORSPACE_SRGB_KHR);
+
+    auto result = eglWrapperDisplay->SwapBuffersWithDamageKHR(surface, nullptr, -1);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    result = eglWrapperDisplay->SwapBuffersWithDamageKHR(surface, nullptr, 2);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    result = eglWrapperDisplay->SwapBuffersWithDamageKHR(surface, nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    EGLint n_rects = 1;
+    EGLint rects[4] = {0, 0, 100, 100};
+
+    result = eglWrapperDisplay->SwapBuffersWithDamageKHR(surface, rects, n_rects);
+    ASSERT_EQ(EGL_FALSE, result);
+}
+ 
+/**
  * @tc.name: SetDamageRegionKHR001
  * @tc.desc:
  * @tc.type: FUNC
@@ -674,6 +701,7 @@ HWTEST_F(EglWrapperDisplayTest, SetDamageRegionKHR002, Level1)
     auto result = eglWrapperDisplay->SetDamageRegionKHR(nullptr, 0, -1);
     ASSERT_EQ(EGL_FALSE, result);
 }
+
 
 /**
  * @tc.name: SetDamageRegionKHR003
@@ -809,6 +837,27 @@ HWTEST_F(EglWrapperDisplayTest, CreatePlatformPixmapSurfaceEXT002, Level1)
 }
 
 /**
+ * @tc.name: SwapBuffer001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglWrapperDisplayTest, SwapBuffer001, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+    auto surface = new EglWrapperSurface(eglWrapperDisplay, EGL_NO_SURFACE, nullptr, EGL_GL_COLORSPACE_SRGB_KHR);
+
+    auto result = eglWrapperDisplay->SwapBuffers(surface);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    result = eglWrapperDisplay->SwapBuffers(nullptr);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    EglWrapperSurface* invalidSurf = (EglWrapperSurface*)(0x01);
+    result = eglWrapperDisplay->SwapBuffers(invalidSurf);
+    ASSERT_EQ(EGL_FALSE, result);
+    
+ 
+/**
  * @tc.name: SwapBuffersWithDamageEXT001
  * @tc.desc:
  * @tc.type: FUNC
@@ -834,6 +883,31 @@ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageEXT002, Level1)
     ASSERT_EQ(EGL_FALSE, result);
 }
 
+/**
+ * @tc.name: SwapBuffersWithDamageEXT003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglWrapperDisplayTest, SwapBuffersWithDamageEXT003, Level1)
+{
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+    auto surface = new EglWrapperSurface(eglWrapperDisplay, EGL_NO_SURFACE, nullptr, EGL_GL_COLORSPACE_SRGB_KHR);
+
+    auto result = eglWrapperDisplay->SwapBuffersWithDamageEXT(surface, nullptr, -1);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    result = eglWrapperDisplay->SwapBuffersWithDamageEXT(surface, nullptr, 2);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    result = eglWrapperDisplay->SwapBuffersWithDamageEXT(surface, nullptr, 0);
+    ASSERT_EQ(EGL_FALSE, result);
+
+    EGLint n_rects = 1;
+    EGLint rects[4] = {0, 0, 100, 100};
+
+    result = eglWrapperDisplay->SwapBuffersWithDamageEXT(surface, rects, n_rects);
+    ASSERT_EQ(EGL_FALSE, result);
+}
 /**
  * @tc.name: UpdateQueryValue001
  * @tc.desc:
