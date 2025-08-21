@@ -598,9 +598,9 @@ private:
     RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNode(
-        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
+        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion, RSRenderNodeType nodeType);
     RSB_EXPORT static std::string UnmarshalNodeModifiers(
-        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
+        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, RSRenderNodeType nodeType);
 
     RSB_EXPORT static void MarshalSubTree(RSContext& context, std::stringstream& data, const RSRenderNode& node,
         uint32_t fileVersion, bool clearImageCache = true);

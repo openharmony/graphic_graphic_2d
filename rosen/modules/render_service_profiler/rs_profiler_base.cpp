@@ -958,10 +958,11 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     }
     
-    return UnmarshalNode(context, data, nodeId, fileVersion);
+    return UnmarshalNode(context, data, nodeId, fileVersion, nodeType);
 }
 
-std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion)
+std::string RSProfiler::UnmarshalNode(
+    RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion, RSRenderNodeType nodeType)
 {
     float positionZ = 0.0f;
     data.read(reinterpret_cast<char*>(&positionZ), sizeof(positionZ));
@@ -990,7 +991,7 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
 #ifdef SUBTREE_PARALLEL_ENABLE
         node->MarkRepaintBoundary(isRepaintBoundary);
 #endif
-        return UnmarshalNodeModifiers(*node, data, fileVersion);
+        return UnmarshalNodeModifiers(*node, data, fileVersion, nodeType);
     }
     return "";
 }
@@ -1066,8 +1067,12 @@ static void SetupCanvasDrawingRenderNode(RSCanvasDrawingRenderNode& node)
     node.ResetSurface(width, height);
 }
 
-std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+std::string RSProfiler::UnmarshalNodeModifiers(
+    RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, RSRenderNodeType nodeType)
 {
+    bool disableModifiers =
+        (nodeType == RSRenderNodeType::LOGICAL_DISPLAY_NODE || nodeType == RSRenderNodeType::SCREEN_NODE);
+
     data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
     node.instanceRootNodeId_ = Utils::PatchNodeId(node.instanceRootNodeId_);
 
@@ -1083,7 +1088,9 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
             RSProfiler::SendMessageBase("LOADERROR: Modifier format changed [" + errModifierCode + "]");
             continue;
         }
-        node.AddModifier(ptr);
+        if (!disableModifiers) {
+            node.AddModifier(ptr);
+        }
     }
 
     if (data.eof()) {
