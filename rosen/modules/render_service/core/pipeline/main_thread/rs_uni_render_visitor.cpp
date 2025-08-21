@@ -2728,6 +2728,9 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttractionChanged(RSSurfaceRend
                 RectI(tempRect.GetLeft(), tempRect.GetTop(), tempRect.GetWidth(), tempRect.GetHeight());
         }
         curScreenNode_->GetDirtyManager()->MergeDirtyRect(attractionDirtyRect);
+        // [planning] need get precise attraction effect region to set dirty region,
+        // now add surface size to dirty region.
+        curScreenNode_->GetDirtyManager()->ResetDirtyAsSurfaceSize();
     }
 }
 
