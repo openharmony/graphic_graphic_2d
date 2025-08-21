@@ -359,8 +359,7 @@ void DoGetRealtimeRefreshRate()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
-void DoGetRefreshInfo()
-{
+void DoGetRefreshInfoFuzzer() {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO);
 
     MessageOption option;
@@ -370,6 +369,49 @@ void DoGetRefreshInfo()
     dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(pid);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void CreateSurfaceNode()
+{
+    uint64_t nodeId = GetData<uint64_t>();
+    RSSurfaceRenderNodeConfig config = { .id = nodeid,
+        .name = "fuzzSurface",
+        .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE,
+        .isTextureExportNode = false,
+        .isSync = true,
+        .surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW,
+        .bundleName = "fuzzBundleName" };
+    connectionStub_->CreateNodeAndSurface(config, false);
+}
+
+void DoGetRefreshInfoWithoutSurfaceName()
+{
+    g_pos = 0;
+    DoGetRefreshInfoFuzzer();
+}
+
+void DoGetRefreshInfoWithSurfaceName()
+{
+    g_pos = 0;
+    CreateSurfaceNode();
+    DoGetRefreshInfoFuzzer();
+}
+
+void DoGetRefreshInfoWithRenderDisable()
+{
+    g_pos = 0;
+    auto originRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    CreateSurfaceNode();
+    DoGetRefreshInfoFuzzer();
+    RSUniRenderJudgement::uniRenderEnabledType_ = originRenderType;
+}
+
+void DoGetRefreshInfo()
+{
+    DoGetRefreshInfoWithoutSurfaceName();
+    DoGetRefreshInfoWithSurfaceName();
+    DoGetRefreshInfoWithRenderDisable();
 }
 
 void DoRegisterHgmRefreshRateUpdateCallback()
