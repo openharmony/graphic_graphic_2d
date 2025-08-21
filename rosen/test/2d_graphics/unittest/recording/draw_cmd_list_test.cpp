@@ -407,9 +407,6 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsDoesNotCopyImageOpsWhenInclu
     const auto drawPixelmapRectOp = std::make_shared<DrawPixelMapRectOpItem>(std::make_shared<Media::PixelMap>(),
         Drawing::Rect(0, 10, 10, 0), Drawing::Rect(0, 10, 10, 0), Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, Drawing::Paint());
-    const auto drawHybridRenderPixelMapOp =
-        std::make_shared<DrawHybridPixelMapOpItem>(std::make_shared<Media::PixelMap>(), Drawing::AdaptiveImageInfo(),
-        Drawing::SamplingOptions(), Drawing::Paint());
 
     DrawCmdList src(DrawCmdList::UnmarshalMode::DEFERRED);
     src.drawOpItems_.push_back(drawImageOp);
@@ -421,7 +418,6 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsDoesNotCopyImageOpsWhenInclu
     src.drawOpItems_.push_back(drawImageWithParmOp);
     src.drawOpItems_.push_back(drawPixelmapWithParmOp);
     src.drawOpItems_.push_back(drawPixelmapRectOp);
-    src.drawOpItems_.push_back(drawHybridRenderPixelMapOp);
 
     DrawCmdList dst;
     src.ProfilerMarshallingDrawOps(&dst, includeImageOps);
