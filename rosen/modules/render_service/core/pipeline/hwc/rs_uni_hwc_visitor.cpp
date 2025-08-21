@@ -709,6 +709,11 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shar
         hwcRects.emplace_back(dst);
         return;
     }
+    if (RsCommonHook::Instance().GetOverlappedHwcNodeInAppEnabledConfig(hwcNode->GetBundleName()) == "1" &&
+        hwcNode->GetName().find("overlapped_surface") != std::string::npos) {
+        hwcRects.emplace_back(dst);
+        return;
+    }
     for (const auto& rect : hwcRects) {
         const bool isIntersect = !dst.IntersectRect(rect).IsEmpty();
         if (isIntersect && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() &&

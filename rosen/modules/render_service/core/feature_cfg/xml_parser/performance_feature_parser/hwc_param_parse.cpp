@@ -108,6 +108,9 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& 
         } else if (name == "FilterUnderHwcConfig") {
             RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(appName, val);
             RS_LOGD("parse FilterUnderHwcConfig ok");
+        } else if (name == "OverlappedHwcNodeInAppEnabledConfig") {
+            RsCommonHook::Instance().SetOverlappedHwcNodeInAppEnabledConfig(appName, val);
+            RS_LOGD("parse OverlappedHwcNodeInAppEnabledConfig ok");
         } else {
             RS_LOGD("ParseFeatureMultiParam cannot find name");
             return PARSE_NO_PARAM;

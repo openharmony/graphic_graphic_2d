@@ -53,6 +53,9 @@ public:
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
 
+    void SetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName, const std::string& val);
+    std::string GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName);
+
     // DISPLAY ENGINE
     void SetCurrentPkgName(const std::string& pkgName);
     std::string GetCurrentPkgName() const;
@@ -68,6 +71,8 @@ private:
     std::string tvPlayerBundleName_;
 
     std::unordered_map<std::string, std::string> filterUnderHwcConfig_;
+
+    std::unordered_map<std::string, std::string> overlappedHwcNodeInAppEnabledConfig_;
 
     // use in updating hwc node hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
