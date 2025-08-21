@@ -326,14 +326,12 @@ bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    /* Run your code on data */
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
 
     // Run FuzzTest
-
     OHOS::Rosen::RSPropertiesFuzzTest(data, size);
     OHOS::Rosen::RSPropertiesPainterFuzzTest(data, size);
     return 0;
