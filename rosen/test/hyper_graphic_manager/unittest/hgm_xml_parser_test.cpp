@@ -18,7 +18,6 @@
 
 #include "hgm_test_base.h"
 
-
 using namespace testing;
 using namespace testing::ext;
 
