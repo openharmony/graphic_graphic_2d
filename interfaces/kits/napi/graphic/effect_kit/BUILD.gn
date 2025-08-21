@@ -29,6 +29,10 @@ config("graphic_napi_effect_kit_config") {
     "-Wno-unused-but-set-variable",
   ]
 
+  if(is_arkui_x && target_os == "ios") {
+    cflags += ["-Wno-ignored-qualifiers",]
+  }
+
   defines = [ "EGL_EGLEXT_PROTOTYPES" ]
 
   include_dirs = [
@@ -46,7 +50,12 @@ if (is_arkui_x) {
       "//third_party/json/single_include/nlohmann",
       "//foundation/multimedia/image_framework/interfaces/kits/js/common/include",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
     ]
+
+    if(target_os == "ios") {
+      defines = ["ROSEN_IOS"]
+    }
 
     sources = [
       "./src/color_picker_napi.cpp",
