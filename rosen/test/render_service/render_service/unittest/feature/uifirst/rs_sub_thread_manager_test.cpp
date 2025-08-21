@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "gtest/gtest.h"
 
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -314,6 +314,37 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
     rsSubThreadManager->ScheduleRenderNodeDrawable(drawable);
     EXPECT_FALSE(drawable);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
+    auto nodeDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(surfaceRenderNode));
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(nodeDrawable->GetRenderParams());
+
+    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    uint32_t index = 1;
+    auto context = std::make_shared<RenderContext>();
+    auto threadPtr = std::make_shared<RSSubThread>(context.get(), index);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadPtr;
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_TRUE(nodeDrawable->GetRenderParams());
+    EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 1);
+
+    auto threadSharedPtr = std::make_shared<RSSubThread>(context.get(), index);
+    threadSharedPtr->DoingCacheProcessNumInc();
+    rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadSharedPtr;
+    auto threadShared = std::make_shared<RSSubThread>(context.get(), index);
+    rsSubThreadManager->threadList_[2] = threadShared;
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 2);
+
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(rsSubThreadManager->defaultThreadIndex_);
+    pid_t tid = 1;
+    nodeDrawable->GetRsSubThreadCache().SetLastFrameUsedThreadIndex(tid);
+    rsSubThreadManager->threadIndexMap_.insert(std::make_pair(tid, index));
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(rsSubThreadManager->defaultThreadIndex_);
 }
 
 /**
