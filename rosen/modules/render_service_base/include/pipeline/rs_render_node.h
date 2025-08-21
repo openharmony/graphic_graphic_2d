@@ -785,8 +785,6 @@ public:
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
 
-    void UpdateOpincParam();
-
     /////////////////////////////////////////////
 
     void SetSharedTransitionParam(const std::shared_ptr<SharedTransitionParam>& sharedTransitionParam);
@@ -843,6 +841,8 @@ public:
     }
 
     bool HasHpaeBackgroundFilter() const;
+
+    bool GetLastFrameSync() const { return lastFrameSynced_; }
 
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);

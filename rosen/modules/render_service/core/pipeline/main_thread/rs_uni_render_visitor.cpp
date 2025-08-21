@@ -1683,16 +1683,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
-    // The opinc state needs to be reset in the following cases:
-    // 1. subtree is dirty
-    // 2. content is dirty
-    // 3. the node is marked as a node group
-    // 4. the node is marked as a root node of opinc and the high-contrast state change
-    auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
-        node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
-        (node.GetOpincCache().OpincGetRootFlag() && isAccessibilityConfigChanged);
-    node.GetOpincCache().OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_, isSelfDirty);
-    node.UpdateOpincParam();
+    RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
+        isAccessibilityConfigChanged);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 
@@ -1729,9 +1721,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
-    node.GetOpincCache().OpincUpdateRootFlag(unchangeMarkEnable_,
-        RSOpincManager::Instance().OpincGetNodeSupportFlag(node));
-    node.UpdateOpincParam();
+    RSOpincManager::Instance().UpdateRootFlag(node, unchangeMarkEnable_);
     offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
 #ifdef SUBTREE_PARALLEL_ENABLE
     // used in subtree, add node into parallel list

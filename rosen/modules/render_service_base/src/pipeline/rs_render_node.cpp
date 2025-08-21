@@ -3835,17 +3835,10 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
     RS_TRACE_NAME_FMT("mark opinc %llx, isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
     opincCache_.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
-    SetDirty();
-}
-
-void RSRenderNode::UpdateOpincParam()
-{
     if (stagingRenderParams_) {
-        stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
-        stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
-        stagingRenderParams_->OpincUpdateSupportFlag(opincCache_.GetCurNodeTreeSupportFlag());
     }
+    SetDirty();
 }
 
 void RSRenderNode::CheckDrawingCacheType()

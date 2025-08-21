@@ -85,6 +85,8 @@ private:
     void NodeCacheStateChange(NodeChangeType type);
     void SetCacheStateByRetrytime();
     void NodeCacheStateReset(NodeCacheState nodeCacheState);
+
+    friend class RSOpincManager;
 };
 } // namespace Rosen
 } // namespace OHOS
