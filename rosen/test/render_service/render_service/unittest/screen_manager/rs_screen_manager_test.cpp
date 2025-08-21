@@ -4345,6 +4345,24 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
  }
 
 /*
+ * @tc.name: OnHwcDead
+ * @tc.desc: Test OnHwcDead
+ * @tc.type: FUNC
+ * @tc.require: issueICTY7B
+ */
+HWTEST_F(RSScreenManagerTest, OnHwcDead, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto screenManagerImpl = static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr());
+    EXPECT_NE(screenManagerImpl, nullptr);
+    screenManagerImpl->RSScreenManager::OnHwcDead(nullptr);
+    std::function<void()> func = []() {};
+    screenManagerImpl->RegisterHwcEvent(func);
+    EXPECT_NE(screenManagerImpl->registerHwcEventFunc_, nullptr);
+    screenManagerImpl->RSScreenManager::OnHwcDead(nullptr);
+}
+
+/*
  * @tc.name: OnHotPlug
  * @tc.desc: Test OnHotPlug
  * @tc.type: FUNC

@@ -520,6 +520,7 @@ private:
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
     uint32_t GetForceCommitReason() const;
+    void RegisterHwcEvent();
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
