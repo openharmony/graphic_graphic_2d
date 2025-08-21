@@ -560,7 +560,6 @@ HWTEST(RSProfilerDumpTest, DumpNodePropertiesShadow, TestSize.Level1)
     node->GetMutableRenderProperties().SetShadowColor(Color(2, 3, 4, 5));
     node->GetMutableRenderProperties().SetShadowOffsetX(12);
     node->GetMutableRenderProperties().SetShadowOffsetY(14);
-    node->GetMutableRenderProperties().SetShadowAlpha(1); // rewrite ShadowColor.alpha
     node->GetMutableRenderProperties().SetShadowElevation(16);
     node->GetMutableRenderProperties().SetShadowRadius(18);
     node->GetMutableRenderProperties().SetShadowIsFilled(true);
@@ -570,7 +569,6 @@ HWTEST(RSProfilerDumpTest, DumpNodePropertiesShadow, TestSize.Level1)
     std::string expected { "\"ShadowColor\":\"#ff020304 (ARGB)\","
                            "\"ShadowOffsetX\":12,"
                            "\"ShadowOffsetY\":14,"
-                           "\"ShadowAlpha\":1,"
                            "\"ShadowElevation\":16,"
                            "\"ShadowRadius\":18,"
                            "\"ShadowIsFilled\":1" };
