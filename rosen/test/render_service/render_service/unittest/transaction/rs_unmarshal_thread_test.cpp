@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "ffrt_inner.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -43,7 +44,9 @@ void RSUnmarshalThreadTest::TearDown() {}
 HWTEST_F(RSUnmarshalThreadTest, PostTask001, TestSize.Level1)
 {
     std::function<void()> func = []() -> void {};
+    RSUnmarshalThread::Instance().queue_ = nullptr;
     RSUnmarshalThread::Instance().PostTask(func);
+
     RSUnmarshalThread::Instance().Start();
     ASSERT_NE(RSUnmarshalThread::Instance().queue_, nullptr);
     RSUnmarshalThread::Instance().PostTask(func);
@@ -141,6 +144,31 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
 
     bool success = data->WriteParcelable(transactionData.get());
     ASSERT_EQ(success, true);
+    bool isNonSystemAppCalling = true;
+    pid_t callingPid = 1111;
+    RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
+}
+
+/**
+ * @tc.name: RecvParcel003
+ * @tc.desc: Test RecvParcel
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSUnmarshalThreadTest, RecvParcel003, TestSize.Level1)
+{
+    RSUnmarshalThread::Instance().Start();
+    ASSERT_NE(RSUnmarshalThread::Instance().queue_, nullptr);
+
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    std::shared_ptr<MessageParcel> data = std::make_shared<MessageParcel>();
+    transactionData->SetDVSyncUpdate(true);
+
+    RSUnmarshalThread::Instance().RecvParcel(data);
+
+    bool success = data->WriteParcelable(transactionData.get());
+    ASSERT_EQ(success, true);
+    RSUnmarshalThread::Instance().RecvParcel(data);
     bool isNonSystemAppCalling = true;
     pid_t callingPid = 1111;
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);

@@ -59,6 +59,40 @@ HWTEST_F(RSScreenRenderParamsTest, OnSync001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FixVirtualBuffer10Bit
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, FixVirtualBuffer10BitTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    params.SetFixVirtualBuffer10Bit(params.GetFixVirtualBuffer10Bit());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: ExistHWCNode
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, ExistHWCNodeTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    params.SetExistHWCNode(params.GetExistHWCNode());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetExistHWCNode(true);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
  * @tc.name: SetHDRPresent
  * @tc.desc:
  * @tc.type:FUNC
@@ -190,5 +224,24 @@ HWTEST_F(RSScreenRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
     ASSERT_TRUE(params.needForceUpdateHwcNodes_);
     params.SetNeedForceUpdateHwcNodes(false);
     ASSERT_FALSE(params.needForceUpdateHwcNodes_);
+}
+
+/**
+ * @tc.name: SetForceFreeze
+ * @tc.desc: test result of SetForceFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetForceFreeze, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    ASSERT_FALSE(params.GetForceFreeze());
+
+    params.SetForceFreeze(false);
+    ASSERT_FALSE(params.GetForceFreeze());
+
+    params.SetForceFreeze(true);
+    ASSERT_TRUE(params.GetForceFreeze());
 }
 } // namespace OHOS::Rosen

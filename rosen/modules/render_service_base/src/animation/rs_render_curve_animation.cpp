@@ -30,14 +30,14 @@ RSRenderCurveAnimation::RSRenderCurveAnimation(AnimationId id, const PropertyId&
 
 void RSRenderCurveAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderCurveAnimation";
+    out.append("Type:RSRenderCurveAnimation");
     DumpProperty(out);
     RSPropertyType type = RSPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
     }
-    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_);
-    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_);
+    out.append(", StartValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_));
+    out.append(", EndValue: ").append(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_));
 }
 
 void RSRenderCurveAnimation::SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)

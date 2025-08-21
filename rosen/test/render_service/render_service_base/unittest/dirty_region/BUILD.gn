@@ -24,6 +24,7 @@ ohos_unittest("RSRenderServiceBaseDirtyRegionTest") {
   sources = [ 
     "rs_filter_dirty_collector_test.cpp",
     "rs_gpu_dirty_collector_test.cpp",
+    "rs_optimize_canvas_dirty_collector_test.cpp",
   ]
 
   configs = [

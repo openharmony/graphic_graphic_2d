@@ -260,7 +260,9 @@ private:
     bool CheckValidParam(int32_t x, int32_t y)
     {
         return (data_ == nullptr) || (x >= imageInfo_.size.width) || (x < 0) || (y >= imageInfo_.size.height) ||
-                       (y < 0) || (pixelsSize_ < static_cast<uint64_t>(rowDataSize_) * imageInfo_.size.height)
+                       (y < 0) ||
+                       (pixelsSize_ <
+                           static_cast<uint64_t>(rowDataSize_) * static_cast<uint64_t>(imageInfo_.size.height))
                    ? false
                    : true;
     }

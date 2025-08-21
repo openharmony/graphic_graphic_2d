@@ -14,7 +14,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <iremote_stub.h>
 
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
 
 using namespace testing;
@@ -34,6 +36,14 @@ void RSRenderFrameRateLinkerTest::TearDownTestCase() {}
 void RSRenderFrameRateLinkerTest::SetUp() {}
 void RSRenderFrameRateLinkerTest::TearDown() {}
 
+class CustomFrameRateLinkerCallback : public IRemoteStub<RSIFrameRateLinkerExpectedFpsUpdateCallback> {
+public:
+    CustomFrameRateLinkerCallback() = default;
+    ~CustomFrameRateLinkerCallback() = default;
+    void OnFrameRateLinkerExpectedFpsUpdate(
+        pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) override {};
+};
+
 /**
  * @tc.name: SetExpectedRange
  * @tc.desc: Test SetExpectedRange
@@ -44,11 +54,16 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetExpectedRange, TestSize.Level1)
 {
     auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
     ASSERT_NE(frameRateLinker, nullptr);
-    FrameRateRange range(60, 144, 120);
+    FrameRateRange range(60, 144, 120); // 60、 144、 120Hz
     frameRateLinker->SetExpectedRange(range);
     EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
     frameRateLinker->SetExpectedRange(range);
     EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
+    auto cb = sptr<CustomFrameRateLinkerCallback>::MakeSptr();
+    EXPECT_NE(cb, nullptr);
+    FrameRateRange range1(30, 120, 90); // 30、 120、 90Hz
+    frameRateLinker->expectedFpsChangeCallbacks_.try_emplace(0, cb);
+    frameRateLinker->SetExpectedRange(range1);
 }
 
 /**

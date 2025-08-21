@@ -55,18 +55,11 @@ bool RSEnvForegroundColorRenderModifierFuzzTest(const uint8_t* data, size_t size
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    std::shared_ptr<ModifierNG::RSEnvForegroundColorRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
-    modifier->GetType();
-    modifier->OnSetDirty();
+    auto modifier = std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     RSPaintFilterCanvas* canvas = nullptr;
     RSProperties properties;
+    properties.SetClipToFrame(GetData<bool>());
     modifier->Apply(canvas, properties);
     return true;
 }
@@ -77,18 +70,11 @@ bool RSForegroundColorRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    std::shared_ptr<ModifierNG::RSForegroundColorRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSForegroundColorRenderModifier>();
-    modifier->GetType();
+    auto modifier = std::make_shared<ModifierNG::RSForegroundColorRenderModifier>();
     RSProperties properties;
+    properties.SetForegroundColor(Color(GetData<uint32_t>()));
     modifier->ResetProperties(properties);
-    modifier->GetLegacyPropertyApplierMap();
 
     return true;
 }
@@ -98,6 +84,11 @@ bool RSForegroundColorRenderModifierFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSEnvForegroundColorRenderModifierFuzzTest(data, size);
     OHOS::Rosen::RSForegroundColorRenderModifierFuzzTest(data, size);

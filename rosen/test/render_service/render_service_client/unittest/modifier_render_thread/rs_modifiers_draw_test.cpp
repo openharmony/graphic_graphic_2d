@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_common_def.h"
-#include "modifier/rs_modifier_type.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -320,22 +319,6 @@ HWTEST_F(RSModifiersDrawTest, InsertForegroundRoot003, TestSize.Level2)
     ASSERT_FALSE(RSModifiersDraw::offTreeNodesChange_);
 
     // restore
-    RSModifiersDrawThread::Instance().isStarted_ = false;
-}
-
-/**
- * @tc.name: EraseForegroundRoot
- * @tc.desc: GetHybridRenderSwitch Test
- * @tc.type: FUNC
- * @tc.require:issuesIC3UZH
-*/
-HWTEST_F(RSModifiersDrawTest, EraseForegroundRoot, TestSize.Level1)
-{
-    RSModifiersDrawThread::Instance().isStarted_ = true;
-    if (RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::TEXTBLOB) != 0) {
-        RSModifiersDraw::EraseForegroundRoot(0);
-        ASSERT_EQ(RSModifiersDraw::needClearBackgroundMemory_, true);
-    }
     RSModifiersDrawThread::Instance().isStarted_ = false;
 }
 

@@ -26,7 +26,6 @@
 #include "common/rs_vector4.h"
 #include "draw/path.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "symbol_animation_config.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"

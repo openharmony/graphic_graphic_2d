@@ -13,9 +13,15 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+
+#include <if_system_ability_manager.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
+
 #include "vsync_distributor.h"
 #include "vsync_generator.h"
 #include "vsync_controller.h"
+#include "vsync_connection_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,7 +37,55 @@ public:
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> vsyncConnection = nullptr;
+    static inline sptr<VSyncConnectionProxy> vsyncConnectionProxy = nullptr;
+    static inline sptr<VSyncConnectionProxy> vsyncConnectionProxyMock_ = nullptr;
     static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
+};
+
+constexpr int MAX_RETRY = 5;
+static constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
+class MockIRemoteObject : public IRemoteObject {
+public:
+    MockIRemoteObject() : IRemoteObject {u"MockIRemoteObject"}
+    {
+        count_ = 0;
+    }
+
+    ~MockIRemoteObject()
+    {
+    }
+
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+
+    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+    {
+        count_++;
+        if (count_ <= MAX_RETRY) {
+            return UNKNOWN_ERROR;
+        }
+        return NO_ERROR;
+    }
+
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    int Dump(int fd, const std::vector<std::u16string> &args)
+    {
+        return 0;
+    }
+
+    int sendRequestResult_ = 0;
+    int count_ = 0;
 };
 
 void VSyncConnectionTest::SetUpTestCase()
@@ -40,6 +94,12 @@ void VSyncConnectionTest::SetUpTestCase()
     vsyncController = new VSyncController(vsyncGenerator, 0);
     vsyncDistributor = new VSyncDistributor(vsyncController, "VSyncConnection");
     vsyncConnection = new VSyncConnection(vsyncDistributor, "VSyncConnection");
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    vsyncConnectionProxy = new VSyncConnectionProxy(remoteObject);
+    auto vsyncConnectionObjectMock = new MockIRemoteObject();
+    vsyncConnectionProxyMock_ = new VSyncConnectionProxy(vsyncConnectionObjectMock);
 }
 
 void VSyncConnectionTest::TearDownTestCase()
@@ -50,6 +110,8 @@ void VSyncConnectionTest::TearDownTestCase()
     vsyncGenerator = nullptr;
     vsyncDistributor = nullptr;
     vsyncConnection = nullptr;
+    vsyncConnectionProxy = nullptr;
+    vsyncConnectionProxyMock_ = nullptr;
 }
 
 namespace {
@@ -89,6 +151,35 @@ HWTEST_F(VSyncConnectionTest, RequestNextVSync002, Function | MediumTest| Level3
 HWTEST_F(VSyncConnectionTest, RequestNextVSync003, Function | MediumTest| Level3)
 {
     ASSERT_EQ(VSyncConnectionTest::vsyncConnection->RequestNextVSync("unknown", 0), VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: OnRemoteDied001
+ * @tc.desc: OnRemoteDied Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncConnectionTest, OnRemoteDied001, Function | MediumTest| Level3)
+{
+    sptr<MockIRemoteObject> remoteObj = new MockIRemoteObject();
+    wptr<MockIRemoteObject> remoteObjWeakPtr(remoteObj);
+    ASSERT_NE(remoteObj, nullptr);
+    ASSERT_NE(VSyncConnectionTest::vsyncConnection->vsyncConnDeathRecipient_, nullptr);
+    VSyncConnectionTest::vsyncConnection->vsyncConnDeathRecipient_->OnRemoteDied(nullptr);
+    VSyncConnectionTest::vsyncConnection->vsyncConnDeathRecipient_->OnRemoteDied(remoteObjWeakPtr);
+    ASSERT_NE(remoteObjWeakPtr, nullptr);
+}
+
+/**
+ * @tc.name: SetNativeDVSyncSwitch001
+ * @tc.desc: SetNativeDVSyncSwitch Test
+ * @tc.type: FUNC
+ * @tc.require: issueICO7O7
+ */
+HWTEST_F(VSyncConnectionTest, SetNativeDVSyncSwitch001, Function | MediumTest| Level3)
+{
+    auto res = vsyncConnectionProxyMock_->SetNativeDVSyncSwitch(true);
+    ASSERT_NE(res, NO_ERROR);
 }
 
 /*
@@ -173,7 +264,7 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp001, Function | MediumTest
     EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(1000000000), false);
     EXPECT_EQ(tmpConn1->IsRequestVsyncTimestampEmpty(), true);
 
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(0), false);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(0), true);
 }
 
 /**
@@ -184,8 +275,8 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp001, Function | MediumTest
  * CaseDescription: 1.create VsyncConnection with name "test"
  *                  2.call AddRequestVsyncTimestamp
  *                  3.call IsRequestVsyncTimestampEmpty
- *                  4.call NeedTriggeredVsync
- *                  5.call RemoveTriggeredVsync
+ *                  4.call NeedTriggeredVsyncLocked
+ *                  5.call RemoveTriggeredVsyncLocked
  */
 HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp002, Function | MediumTest| Level3)
 {
@@ -196,8 +287,8 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp002, Function | MediumTest
     EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(-1), false);
     EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(time), false);
     EXPECT_EQ(tmpConn1->IsRequestVsyncTimestampEmpty(), true);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time), false);
-    tmpConn1->RemoveTriggeredVsync(time);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time), true);
+    tmpConn1->RemoveTriggeredVsyncLocked(time);
 }
 
 /**
@@ -238,7 +329,6 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp004, Function | MediumTest
     sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
     EXPECT_EQ(tmpConn1->isRsConn_, true);
 
-    constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
     int i;
     for (i = 0; i < MAX_VSYNC_QUEUE_SIZE; i++) {
         EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(i + 1), true);
@@ -259,7 +349,6 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp005, Function | MediumTest
     sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
     EXPECT_EQ(tmpConn1->isRsConn_, true);
 
-    constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
     int i;
     for (i = 0; i < MAX_VSYNC_QUEUE_SIZE; i++) {
         EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(100000), true);
@@ -274,28 +363,205 @@ HWTEST_F(VSyncConnectionTest, AddRequestVsyncTimestamp005, Function | MediumTest
  * EnvConditions: N/A
  * CaseDescription: 1.create VsyncConnection with name "rs"
  *                  2.add time(1000000000) to VSyncConnection
- *                  3.call NeedTriggeredVsync with time/time + 1/time - 1
+ *                  3.call NeedTriggeredVsyncLocked with time/time + 1/time - 1
  */
-HWTEST_F(VSyncConnectionTest, NeedTriggeredVsync001, Function | MediumTest| Level3)
+HWTEST_F(VSyncConnectionTest, NeedTriggeredVsyncLocked001, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
     EXPECT_EQ(tmpConn1->isRsConn_, true);
 
     int64_t time = 1000000000;
     EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(time), true);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time - 1), false);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time), true);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time + 1), true);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time - 1), false);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time), true);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time + 1), true);
 
-    tmpConn1->RemoveTriggeredVsync(time - 1);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time - 1), false);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time), true);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time + 1), true);
+    tmpConn1->RemoveTriggeredVsyncLocked(time - 1);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time - 1), false);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time), true);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time + 1), true);
 
-    tmpConn1->RemoveTriggeredVsync(time);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time - 1), false);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time), false);
-    EXPECT_EQ(tmpConn1->NeedTriggeredVsync(time + 1), false);
+    tmpConn1->RemoveTriggeredVsyncLocked(time);
+    EXPECT_EQ(tmpConn1->requestVsyncTimestamp_.size(), 0);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time - 1), true);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time), true);
+    EXPECT_EQ(tmpConn1->NeedTriggeredVsyncLocked(time + 1), true);
+}
+
+/**
+ * Function: CheckIsReadyByTime001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1.create VsyncConnection with name "rs"
+ *                  2.add times to VSyncConnection
+ *                  3.call CheckIsReadyByTime and check ret
+ */
+HWTEST_F(VSyncConnectionTest, CheckIsReadyByTime001, Function | MediumTest| Level3)
+{
+    int64_t currentTime = 1000000000; // ns
+    int64_t timeDiff = 1000000; // ns
+
+    sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
+    EXPECT_EQ(tmpConn1->isRsConn_, true);
+    for (int i = 0; i < MAX_VSYNC_QUEUE_SIZE; i++) {
+        int64_t addTime = currentTime + i * timeDiff;
+        EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(addTime), true);
+    }
+    tmpConn1->isRequestWithTimestampOnly_ = false;
+    for (int i = 0; i < MAX_VSYNC_QUEUE_SIZE; i++) {
+        int64_t addTime = currentTime + i * timeDiff;
+        EXPECT_EQ(tmpConn1->CheckIsReadyByTime(addTime), true);
+        EXPECT_EQ(tmpConn1->requestVsyncTimestamp_.size(), MAX_VSYNC_QUEUE_SIZE - i - 1);
+    }
+}
+
+/**
+ * Function: CheckIsReadyByTime002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1.create VsyncConnection with name "rs"
+ *                  2.add times to VSyncConnection
+ *                  3.call CheckIsReadyByTime and check ret
+ */
+HWTEST_F(VSyncConnectionTest, CheckIsReadyByTime002, Function | MediumTest| Level3)
+{
+    int64_t currentTime = 1000000000; // ns
+    int64_t timeDiff = 1000000; // ns
+    {
+        sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "NoRs");
+        EXPECT_EQ(tmpConn1->isRsConn_, false);
+        EXPECT_EQ(tmpConn1->CheckIsReadyByTime(currentTime), true);
+    }
+    {
+        sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
+        EXPECT_EQ(tmpConn1->isRsConn_, true);
+        for (int i = 0; i < MAX_VSYNC_QUEUE_SIZE; i++) {
+            int64_t addTime = currentTime + i * timeDiff;
+            EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(addTime), true);
+        }
+        tmpConn1->isRequestWithTimestampOnly_ = true;
+        EXPECT_EQ(tmpConn1->CheckIsReadyByTime(2 * currentTime), true);
+        EXPECT_EQ(tmpConn1->requestVsyncTimestamp_.size(), 0);
+    }
+}
+
+/**
+ * Function: CheckIsReadyByTime003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1.create VsyncConnection with name "rs"
+ *                  2.force set isRsConn_ to false
+ *                  3.call CheckIsReadyByTime and check ret
+ */
+HWTEST_F(VSyncConnectionTest, CheckIsReadyByTime_003, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
+    tmpConn1->isRsConn_ = false;
+    const int64_t currentTime = 1000000000;
+    bool result = tmpConn1->CheckIsReadyByTime(currentTime);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * Function: CheckIsReadyByTime004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1.create VsyncConnection with name "rs"
+ *                  2.add times to VSyncConnection
+ *                  3.call CheckIsReadyByTime and check ret
+ */
+HWTEST_F(VSyncConnectionTest, CheckIsReadyByTime_004, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
+    tmpConn1->isRsConn_ = true;
+    tmpConn1->isRequestWithTimestampOnly_ = true;
+
+    const int64_t currentTime = 1000000000;
+    EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(0.5 * currentTime), true);
+
+    bool result = tmpConn1->CheckIsReadyByTime(currentTime);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * Function: CheckIsReadyByTime005
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1.create VsyncConnection with name "rs"
+ *                  2.add times to VSyncConnection
+ *                  3.call CheckIsReadyByTime and check ret
+ */
+HWTEST_F(VSyncConnectionTest, CheckIsReadyByTime_005, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> tmpConn1 = new VSyncConnection(vsyncDistributor, "rs");
+    tmpConn1->isRsConn_ = true;
+    tmpConn1->isRequestWithTimestampOnly_ = true;
+    const int64_t currentTime = 1000000000;
+    EXPECT_EQ(tmpConn1->AddRequestVsyncTimestamp(2 * currentTime), true);
+    bool result = tmpConn1->CheckIsReadyByTime(currentTime);
+    EXPECT_FALSE(result);
+}
+
+/*
+* Function: SetUiDvsyncConfig001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 1;
+    bool compositeSceneEnable = true;
+    bool nativeDelayEnable = true;
+    std::vector<std::string> rsDvsyncAnimationList {};
+    auto res = vsyncConnectionProxy->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
+        nativeDelayEnable, rsDvsyncAnimationList);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncConfig002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig002, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 1;
+    bool compositeSceneEnable = true;
+    bool nativeDelayEnable = true;
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
+    auto res = vsyncConnectionProxy->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
+        nativeDelayEnable, rsDvsyncAnimationList);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncConfig003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncConnectionTest, SetUiDvsyncConfig003, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 1;
+    bool compositeSceneEnable = true;
+    bool nativeDelayEnable = true;
+    std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH",
+        "APP_LIST1", "APP_LIST2", "APP_LIST3", "APP_LIST4", "APP_LIST5", "APP_LIST6", "APP_LIST7",
+        "APP_LIST8", "APP_LIST9", "APP_LIST10", "APP_LIST11", "APP_LIST12", "APP_LIST13", "APP_LIST14",
+        "APP_LIST15", "APP_LIST16", "APP_LIST17", "APP_LIST18", "APP_LIST19", "APP_LIST20", "APP_LIST21"};
+    auto res = vsyncConnectionProxy->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
+        nativeDelayEnable, rsDvsyncAnimationList);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
 }
 } // namespace
 } // namespace Rosen

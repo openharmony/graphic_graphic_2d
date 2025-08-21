@@ -963,7 +963,7 @@ bool RSJankStats::GetEarlyZEnableFlag()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     isFlushEarlyZ_ = false;
-    return ddgrEarlyZEnableFlag_;
+    return ddgrEarlyZEnable_;
 }
 
 bool RSJankStats::GetFlushEarlyZ()
@@ -1002,7 +1002,7 @@ void RSJankStats::SetAnimationTraceBegin(std::pair<int64_t, std::string> animati
     }
     RS_ASYNC_TRACE_BEGIN(traceName, traceId);
     if (RSSystemProperties::GetEarlyZEnable() && info.sceneId == SWITCH_SCENE_NAME) {
-        ddgrEarlyZEnableFlag_ = true;
+        ddgrEarlyZEnable_ = true;
         isFlushEarlyZ_ = true;
         lastReportEarlyZTraceId_ = traceId;
     }
@@ -1024,8 +1024,8 @@ void RSJankStats::SetAnimationTraceEnd(JankFrames& jankFrames)
     jankFrames.traceTerminateTimeSteady_ = rtEndTimeSteady_;
     const bool isDisplayAnimator = animationAsyncTraces_.at(traceId).isDisplayAnimator_;
     RS_ASYNC_TRACE_END(animationAsyncTraces_.at(traceId).traceName_, traceId);
-    if (ddgrEarlyZEnableFlag_ && lastReportEarlyZTraceId_ == traceId) {
-        ddgrEarlyZEnableFlag_ = false;
+    if (ddgrEarlyZEnable_ && lastReportEarlyZTraceId_ == traceId) {
+        ddgrEarlyZEnable_ = false;
         isFlushEarlyZ_ = true;
         lastReportEarlyZTraceId_ = traceId;
     }
@@ -1176,6 +1176,7 @@ void RSJankStats::AvcodecVideoDump(
 void RSJankStats::AvcodecVideoStart(
     const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (avcodecVideoMap_.find(queueId) != avcodecVideoMap_.end()) {
         RS_LOGE("AvcodecVideoStart mission exists. %{public}" PRIu64 ".", queueId);
         return;
@@ -1195,6 +1196,7 @@ void RSJankStats::AvcodecVideoStart(
 
 void RSJankStats::AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName, const uint32_t fps)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it = avcodecVideoMap_.find(queueId);
     if (it == avcodecVideoMap_.end()) {
         RS_LOGE("AvcodecVideoStop mission does not exist. %{public}" PRIu64 ".", queueId);

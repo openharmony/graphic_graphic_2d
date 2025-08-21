@@ -29,7 +29,7 @@ public:
 
 private:
     int32_t ParseDrmInternal(xmlNode &node);
-    std::shared_ptr<DRMParam> drmParam_;
+    int32_t ParseFeatureMultiParam(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // DRM_PARAM_PARSE_H

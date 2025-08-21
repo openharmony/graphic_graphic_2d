@@ -15,7 +15,6 @@
 
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 
-#include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "transaction/rs_interfaces.h"
@@ -141,16 +140,16 @@ bool RSFrameRatePolicy::GetTouchOrPointerAction(int32_t pointerAction)
     }
     if (pointerAction == TOUCH_MOVE || pointerAction == TOUCH_PULL_MOVE) {
         auto now = std::chrono::steady_clock::now();
-        if (now - sendMoveTime_ >= sendConsecutiveEventInterval) {
-            sendMoveTime_ = now;
+        if (now - sendMoveTime_.load() >= sendConsecutiveEventInterval) {
+            sendMoveTime_.store(now);
             return true;
         }
         return false;
     }
     if (pointerAction == AXIS_UPDATE) {
         auto now = std::chrono::steady_clock::now();
-        if (now - sendAxisUpdateTime_ >= sendConsecutiveEventInterval) {
-            sendAxisUpdateTime_ = now;
+        if (now - sendAxisUpdateTime_.load() >= sendConsecutiveEventInterval) {
+            sendAxisUpdateTime_.store(now);
             return true;
         }
         return false;

@@ -60,7 +60,7 @@ void RSCanvasRenderNodeTest::TearDown() {}
 HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording001, TestSize.Level1)
 {
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
-    canvasRenderNode->UpdateRecording(nullptr, RSModifierType::INVALID);
+    canvasRenderNode->UpdateRecordingNG(nullptr, ModifierNG::RSModifierType::INVALID);
     ASSERT_TRUE(true);
 }
 
@@ -80,7 +80,7 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
     auto drawOpItem = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, Drawing::DrawOpItem::Type::POINT_OPITEM);
     drawCmds->drawOpItems_.emplace_back(drawOpItem);
     EXPECT_TRUE(!drawCmds->IsEmpty());
-    canvasRenderNode->UpdateRecording(drawCmds, RSModifierType::INVALID);
+    canvasRenderNode->UpdateRecordingNG(drawCmds, ModifierNG::RSModifierType::INVALID);
 }
 
 /**
@@ -367,7 +367,7 @@ HWTEST_F(RSCanvasRenderNodeTest, DrawShadow, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     RSProperties property;
-    RSModifierContext modifierContext(property);
+    ModifierNG::RSModifierContext modifierContext(property);
     Drawing::Canvas canvasArgs(1, 1);
     RSPaintFilterCanvas canvas(&canvasArgs);
     rsCanvasRenderNode.DrawShadow(modifierContext, canvas);
@@ -415,6 +415,7 @@ HWTEST_F(RSCanvasRenderNodeTest, PropertyDrawableRender, TestSize.Level1)
     rsCanvasRenderNode.ProcessAnimatePropertyBeforeChildren(canvas, includeProperty);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: ApplyDrawCmdModifier
  * @tc.desc: test results of ApplyDrawCmdModifier
@@ -444,6 +445,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
     EXPECT_FALSE(RSSystemProperties::GetSingleFrameComposerEnabled());
     rsCanvasRenderNode.ApplyDrawCmdModifier(modifierContext, type);
 }
+#endif
 
 /**
  * @tc.name: InternalDrawContent

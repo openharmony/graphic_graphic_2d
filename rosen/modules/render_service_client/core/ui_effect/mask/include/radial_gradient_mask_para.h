@@ -62,7 +62,7 @@ public:
         return radiusY_;
     }
 
-    void SetColors(std::vector<float>& colors)
+    void SetColors(const std::vector<float>& colors)
     {
         colors_ = colors;
     }
@@ -72,7 +72,7 @@ public:
         return colors_;
     }
 
-    void SetPositions(std::vector<float>& positions)
+    void SetPositions(const std::vector<float>& positions)
     {
         positions_ = positions;
     }

@@ -160,6 +160,7 @@ public:
     static void SetProfilerDisabled();
     static bool GetInstantRecording();
     static bool GetProfilerPixelCheckMode();
+    static void SetProfilerPixelCheckMode(bool flag);
     static void SetInstantRecording(bool flag);
     static uint32_t GetBetaRecordingMode();
     static void SetBetaRecordingMode(uint32_t param);
@@ -169,6 +170,7 @@ public:
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
+    static bool GetDrawOpLimitEnabled();
     static bool GetAnimationTraceEnabled();
     static bool GetAnimationDelayOptimizeEnabled();
     static bool GetRSClientMultiInstanceEnabled();
@@ -274,7 +276,7 @@ public:
     static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSubtreeParallelEnable();
-    static bool GetSubtreeLogEnabled();
+    static uint32_t GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
@@ -295,15 +297,12 @@ public:
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSecurityPermissionCheckEnabled();
-    static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHdrImageEnabled();
     static bool GetHdrVideoEnabled();
     static bool IsForceClient();
     static bool GetDrmMarkedFilterEnabled();
-    static bool GetUnmarshParallelFlag();
-    static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
     static DdgrOpincType GetDdgrOpincType();
@@ -379,6 +378,10 @@ public:
     static bool GetEarlyZEnable();
     static bool GetAIBarOptEnabled();
     static bool GetRSMemoryInfoManagerParam();
+    static bool GetSelfDrawingDirtyRegionEnabled();
+    static bool GetOptBatchRemovingOnRemoteDiedEnabled();
+    static bool GetGpuDirtyApsEnabled();
+    static bool GetSupportScreenFreezeEnabled();
 
 private:
     RSSystemProperties() = default;

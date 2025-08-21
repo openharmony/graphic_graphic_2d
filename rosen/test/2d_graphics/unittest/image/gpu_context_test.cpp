@@ -674,7 +674,7 @@ HWTEST_F(GpuContextTest, SetEarlyZFlagTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->SetEarlyZFlag(true);
+    gpuContext->SetEarlyZEnabled(true);
 }
 
 /**
@@ -701,6 +701,22 @@ HWTEST_F(GpuContextTest, FlushCommandsTest, TestSize.Level1)
     auto gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->FlushCommands();
+}
+
+/**
+ * @tc.name: NewDumpMemoryStatisticsByTagTest
+ * @tc.desc: Test for dumping memory statistics by tag.
+ * @tc.type: FUNC
+ * @tc.require: ICR0OD
+ */
+HWTEST_F(GpuContextTest, NewDumpMemoryStatisticsByTagTest, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    TraceMemoryDump traceMemoryDump("category", true);
+    GPUResourceTag tag(0, 0, 0, 0, "tag");
+    gpuContext->NewDumpMemoryStatisticsByTag(&traceMemoryDump, tag);
+    gpuContext->NewDumpMemoryStatisticsByTag(nullptr, tag);
 }
 } // namespace Drawing
 } // namespace Rosen

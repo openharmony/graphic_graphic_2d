@@ -44,10 +44,6 @@ namespace {
 
 void PenFuzzTest000(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t aa = GetObject<uint32_t>();
     uint32_t color = GetObject<uint32_t>();
     uint8_t alpha = GetObject<uint8_t>();
@@ -89,10 +85,6 @@ void PenFuzzTest000(const uint8_t* data, size_t size)
 
 void PenFuzzTest001(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t enum_1 = GetObject<uint32_t>();
     uint32_t color = GetObject<uint32_t>();
 
@@ -119,10 +111,6 @@ void PenFuzzTest001(const uint8_t* data, size_t size)
 
 void PenFuzzTest002(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float blurRadius = GetObject<float>();
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -170,23 +158,19 @@ void PenFuzzTest002(const uint8_t* data, size_t size)
 
 void PenFuzzTest003(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float phase = GetObject<float>();
 
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     OH_Drawing_Pen* pen1 = OH_Drawing_PenCopy(nullptr);
     pen1 = OH_Drawing_PenCopy(pen);
 
-    uint32_t size_temp = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
-    uint32_t size_path = size_temp - (size_temp % PATH_CONST) + PATH_CONST;
-    float* intervals = new float[size_path];
-    for (size_t i = 0; i < size_path; i++) {
+    uint32_t sizeTemp = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+    uint32_t sizePath = sizeTemp - (sizeTemp % PATH_CONST) + PATH_CONST;
+    float* intervals = new float[sizePath];
+    for (size_t i = 0; i < sizePath; i++) {
         intervals[i] = GetObject<float>();
     }
-    OH_Drawing_PathEffect* PathEffect = OH_Drawing_CreateDashPathEffect(intervals, size_path, phase);
+    OH_Drawing_PathEffect* PathEffect = OH_Drawing_CreateDashPathEffect(intervals, sizePath, phase);
     OH_Drawing_PenSetPathEffect(nullptr, PathEffect);
     OH_Drawing_PenSetPathEffect(pen, nullptr);
     OH_Drawing_PenSetPathEffect(pen, PathEffect);
@@ -201,10 +185,6 @@ void PenFuzzTest003(const uint8_t* data, size_t size)
 
 void PenFuzzTest004(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     float a = GetObject<float>();
     float r = GetObject<float>();
@@ -242,6 +222,11 @@ void PenFuzzTest004(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::PenFuzzTest000(data, size);
     OHOS::Rosen::Drawing::PenFuzzTest001(data, size);

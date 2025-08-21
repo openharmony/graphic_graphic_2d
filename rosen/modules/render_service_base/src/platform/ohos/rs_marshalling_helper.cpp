@@ -48,7 +48,6 @@
 #include "effect/rs_render_shader_base.h"
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
-#include "modifier/rs_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -60,7 +59,6 @@
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
-#include "render/rs_render_filter.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
 
@@ -82,6 +80,8 @@ std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 thread_local pid_t g_callingPid = 0;
 constexpr size_t NUM_ITEMS_IN_VERSION = 4;
+constexpr int32_t MAX_IMAGE_WIDTH = 40960;
+constexpr int32_t MAX_IMAGE_HEIGHT = 40960;
 
 // Static registration of Data marshalling/unmarshalling callbacks
 DATA_CALLBACKS_REGISTER(
@@ -482,11 +482,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Bitmap& val)
 
 static void SkFreeReleaseproc(const void* ptr, void*)
 {
-    MemoryInfo info = { 0 };
-    bool result = MemoryTrack::Instance().GetPictureRecordMemInfo(ptr, info);
-    if (result && info.initialPid && (info.type == MEMORY_TYPE::MEM_SKIMAGE)) {
-        MemorySnapshot::Instance().RemoveCpuMemory(info.initialPid, info.size);
-    }
     MemoryTrack::Instance().RemovePictureRecord(ptr);
     free(const_cast<void*>(ptr));
     ptr = nullptr;
@@ -670,11 +665,27 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     int height{0};
     if (!parcel.ReadUint32(rb) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ImageInfo failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
+        return false;
+    }
+    if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        ROSEN_LOGE("Width(%{public}d) or height(%{public}d) of image too large.", width, height);
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
     uint32_t ct{0};
     if (!parcel.ReadUint32(ct)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ct failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
     Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_UNKNOWN;
@@ -684,6 +695,10 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     uint32_t at{0};
     if (!parcel.ReadUint32(at)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read at failed");
+        if (isMalloc) {
+            free(const_cast<void*>(addr));
+            addr = nullptr;
+        }
         return false;
     }
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_UNKNOWN;
@@ -712,12 +727,8 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     val = Drawing::Image::MakeRasterData(imageInfo, skData, rb);
     // add to MemoryTrack for memoryManager
     if (isMalloc) {
-        MemoryInfo info = {pixmapSize, g_callingPid, 0, 0, MEMORY_TYPE::MEM_SKIMAGE, g_callingPid,
-            OHOS::Media::AllocatorType::DEFAULT};
+        MemoryInfo info = {pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE};
         MemoryTrack::Instance().AddPictureRecord(addr, info);
-        if (g_callingPid) {
-            MemorySnapshot::Instance().AddCpuMemory(g_callingPid, pixmapSize);
-        }
         imagepixelAddr = const_cast<void*>(addr);
     }
     return val != nullptr;
@@ -1178,6 +1189,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<EmitterUpdater> emitterUpdater;
         success &= Unmarshalling(parcel, emitterUpdater);
+        if (emitterUpdater == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling EmitterUpdater failed");
+            return false;
+        }
         emitterUpdaters.push_back(emitterUpdater);
     }
     if (success) {
@@ -1278,6 +1293,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleNoiseField> ParticleNoiseField;
         success &= Unmarshalling(parcel, ParticleNoiseField);
+        if (ParticleNoiseField == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseField failed.");
+            return false;
+        }
         noiseFields->AddField(ParticleNoiseField);
     }
     if (success) {
@@ -1607,6 +1626,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleRenderParams> particleRenderParams;
         success &= Unmarshalling(parcel, particleRenderParams);
+        if (particleRenderParams == nullptr) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRenderParams failed");
+            return false;
+        }
         particlesRenderParams.push_back(particleRenderParams);
     }
     if (success) {
@@ -1693,37 +1716,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     }
     val.reset(RSMask::Unmarshalling(parcel));
     return val != nullptr;
-}
-
-// RSRenderFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
-{
-    if (!val) {
-        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSRenderFilter is nullptr");
-        bool flag = parcel.WriteInt32(-1);
-        if (!flag) {
-            ROSEN_LOGE("RSMarshallingHelper::Marshalling RSRenderFilter WriteInt32 failed");
-        }
-        return flag;
-    }
-    bool success = parcel.WriteInt32(1) && val->WriteToParcel(parcel);
-    if (!success) {
-        ROSEN_LOGE("RSMarshallingHelper::Marshalling RSRenderFilter failed");
-    }
-    return success;
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderFilter>& val)
-{
-    if (parcel.ReadInt32() == -1) {
-        val = nullptr;
-        return true;
-    }
-    if (!val) {
-        ROSEN_LOGW("RSMarshallingHelper::Unmarshalling val is nullptr and create it");
-        val = std::make_shared<RSRenderFilter>();
-    }
-    return val->ReadFromParcel(parcel);
 }
 
 // RSNGRenderFilterBase
@@ -1885,25 +1877,15 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
-    void* pIndex = nullptr;
 #ifdef ROSEN_OHOS
     if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-        pIndex = addr;
+        MemoryTrack::Instance().RemovePictureRecord(addr);
     } else {
-        pIndex = context;
+        MemoryTrack::Instance().RemovePictureRecord(context);
     }
 #else
-    pIndex = addr;
+    MemoryTrack::Instance().RemovePictureRecord(addr);
 #endif
-    MemoryInfo info = { 0 };
-    bool result = MemoryTrack::Instance().GetPictureRecordMemInfo(pIndex, info);
-    if (result && info.initialPid && info.allocType != Media::AllocatorType::DMA_ALLOC) {
-        auto realSize = info.allocType == Media::AllocatorType::SHARE_MEM_ALLOC
-            ? info.size / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-            : info.size;
-        MemorySnapshot::Instance().RemoveCpuMemory(info.initialPid, realSize);
-    }
-    MemoryTrack::Instance().RemovePictureRecord(pIndex);
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
@@ -1936,9 +1918,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     }
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
-    auto allocType = val->GetAllocatorType();
-    MemoryInfo info = { val->GetByteCount(), g_callingPid, 0, val->GetUniqueId(),
-        MEMORY_TYPE::MEM_PIXELMAP, g_callingPid, allocType, imageInfo.pixelFormat
+    MemoryInfo info = {
+        val->GetByteCount(), 0, 0, val->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), imageInfo.pixelFormat
     };
 
 #ifdef ROSEN_OHOS
@@ -1950,12 +1932,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
-    if (g_callingPid && allocType != Media::AllocatorType::DMA_ALLOC) {
-        auto realSize = allocType == Media::AllocatorType::SHARE_MEM_ALLOC
-            ? val->GetByteCount() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
-            : val->GetByteCount();
-        MemorySnapshot::Instance().AddCpuMemory(g_callingPid, realSize);
-    }
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
@@ -2262,6 +2238,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
         return false;
     }
     if (replacedOpListSize > Drawing::MAX_OPITEMSIZE) {
+        ROSEN_LOGE("Drawing replacedOpListSize %{public}d too large", replacedOpListSize);
         val = nullptr;
         return false;
     }
@@ -2764,14 +2741,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const PixelMapInfo& val)
     marshallingSucc &= parcel.WriteInt32(val.location.width);
     marshallingSucc &= parcel.WriteInt32(val.location.height);
     marshallingSucc &= parcel.WriteInt32(val.location.z);
-
     if (!marshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteLocation failed");
         return false;
     }
+
     marshallingSucc &= parcel.WriteString(val.nodeName);
     if (!marshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteString failed");
+        return false;
+    }
+
+    marshallingSucc &= parcel.WriteFloat(val.rotation);
+    if (!marshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteFloat failed");
         return false;
     }
     return marshallingSucc;
@@ -2790,14 +2773,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, PixelMapInfo& val)
     unMarshallingSucc &= parcel.ReadInt32(val.location.width);
     unMarshallingSucc &= parcel.ReadInt32(val.location.height);
     unMarshallingSucc &= parcel.ReadInt32(val.location.z);
-
     if (!unMarshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadLocation failed");
         return false;
     }
+
     unMarshallingSucc &= parcel.ReadString(val.nodeName);
     if (!unMarshallingSucc) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadString failed");
+        return false;
+    }
+
+    unMarshallingSucc &= parcel.ReadFloat(val.rotation);
+    if (!unMarshallingSucc) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadFloat failed");
         return false;
     }
     return unMarshallingSucc;
@@ -2907,17 +2896,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 #undef MARSHALLING_AND_UNMARSHALLING
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderModifier>& val)
-{
-    return val != nullptr && val->Marshalling(parcel);
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
-{
-    val.reset(RSRenderModifier::Unmarshalling(parcel));
-    return val != nullptr;
-}
-
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {
     return val != nullptr && val->Marshalling(parcel);
@@ -2925,7 +2903,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Modi
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {
-    val.reset(ModifierNG::RSRenderModifier::Unmarshalling(parcel));
+    val = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
     return val != nullptr;
 }
 
@@ -2970,7 +2948,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderMaskBase>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderShaderBase>)        \
@@ -3262,6 +3239,16 @@ bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t suppor
         return flags & (static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64));
     }
     parcel.RewindRead(offset);
+    return false;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSRenderParticleVector& val)
+{
+    return false;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& val)
+{
     return false;
 }
 } // namespace Rosen

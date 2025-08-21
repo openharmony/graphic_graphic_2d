@@ -30,6 +30,7 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include <iservice_registry.h>
@@ -129,6 +130,8 @@ void DoRegisterTypeface()
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(uniqueId);
     dataParcel.WriteUint32(hash);
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    RSMarshallingHelper::Marshalling(dataParcel, typeface);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -152,7 +155,7 @@ void DoNeedRegisterTypeface()
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();

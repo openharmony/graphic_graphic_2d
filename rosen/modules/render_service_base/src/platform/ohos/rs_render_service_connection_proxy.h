@@ -109,6 +109,8 @@ public:
 
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
+    int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
+
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
@@ -165,6 +167,12 @@ public:
 
     ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
+
+    ErrCode TaskSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
+
+    ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
 
     void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
@@ -408,6 +416,10 @@ public:
     bool ProfilerIsSecureScreen() override;
 
     void ClearUifirstCache(NodeId id) override;
+
+    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
+
+    ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -437,7 +449,7 @@ private:
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();
-    uint32_t transactionDataIndex_ = 0;
+    std::atomic<uint32_t> transactionDataIndex_ = 0;
     OnRemoteDiedCallback OnRemoteDiedCallback_;
 };
 } // namespace Rosen

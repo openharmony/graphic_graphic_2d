@@ -78,6 +78,11 @@ ohos_source_set("render_service_base_src") {
   defines = []
   defines += gpu_defines
   defines += [ "MODULE_RSB" ]
+  if (target_os == "android") {
+    defines += [ "ANDROID_PLATFORM" ]
+  } else if (target_os == "ios") {
+    defines += [ "IOS_PLATFORM" ]
+  }
 
   sources = [
     #animation
@@ -115,7 +120,6 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_message_processor.cpp",
 
     # modifier
-    "src/modifier/rs_render_modifier.cpp",
     "src/modifier/rs_render_property.cpp",
 
     # modifier_ng
@@ -218,6 +222,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
+    "src/ipc_callbacks/screen_switching_notify_callback_proxy.cpp",
+    "src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
@@ -287,21 +293,16 @@ ohos_source_set("render_service_base_src") {
 
     #render
     "src/render/rs_attraction_effect_filter.cpp",
-    "src/render/rs_bezier_warp_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_border_light_shader.cpp",
     "src/render/rs_color_extract.cpp",
-    "src/render/rs_color_gradient_shader_filter.cpp",
     "src/render/rs_color_picker.cpp",
     "src/render/rs_colorful_shadow_filter.cpp",
     "src/render/rs_complex_shader.cpp",
-    "src/render/rs_dispersion_shader_filter.cpp",
-    "src/render/rs_displacement_distort_filter.cpp",
     "src/render/rs_distortion_shader_filter.cpp",
     "src/render/rs_dot_matrix_shader.cpp",
     "src/render/rs_drawing_filter.cpp",
-    "src/render/rs_edge_light_shader_filter.cpp",
     "src/render/rs_effect_luminance_manager.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_filter_cache_manager.cpp",
@@ -326,14 +327,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_pixel_map_util.cpp",
     "src/render/rs_render_aibar_filter.cpp",
     "src/render/rs_render_always_snapshot_filter.cpp",
-    "src/render/rs_render_bezier_warp_filter.cpp",
-    "src/render/rs_render_blur_filter.cpp",
-    "src/render/rs_render_color_gradient_filter.cpp",
-    "src/render/rs_render_content_light_filter.cpp",
-    "src/render/rs_render_dispersion_filter.cpp",
-    "src/render/rs_render_displacement_distort_filter.cpp",
-    "src/render/rs_render_edge_light_filter.cpp",
-    "src/render/rs_render_filter.cpp",
     "src/render/rs_render_filter_base.cpp",
     "src/render/rs_render_grey_filter.cpp",
     "src/render/rs_render_kawase_blur_filter.cpp",
@@ -342,14 +335,8 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_magnifier_filter.cpp",
     "src/render/rs_render_maskcolor_filter.cpp",
     "src/render/rs_render_mesa_blur_filter.cpp",
-    "src/render/rs_render_pixel_map_mask.cpp",
-    "src/render/rs_render_radial_gradient_mask.cpp",
-    "src/render/rs_render_ripple_mask.cpp",
-    "src/render/rs_render_sound_wave_filter.cpp",
     "src/render/rs_render_water_ripple_filter.cpp",
-    "src/render/rs_resource_manager.cpp",
     "src/render/rs_shader.cpp",
-    "src/render/rs_shader_mask.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
     "src/render/rs_sound_wave_filter.cpp",
@@ -394,6 +381,7 @@ ohos_source_set("render_service_base_src") {
 
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",
     "src/feature/single_frame_composer/rs_single_frame_composer.cpp",
@@ -402,15 +390,8 @@ ohos_source_set("render_service_base_src") {
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
     "src/dirty_region/rs_gpu_dirty_collector.cpp",
+    "src/dirty_region/rs_optimize_canvas_dirty_collector.cpp",
   ]
-  if (!build_ohos_sdk && !is_arkui_x) {
-    sources += [
-      "src/ipc_callbacks/rs_transaction_callback.cpp",
-      "src/ipc_callbacks/rs_transaction_callback_proxy.cpp",
-      "src/ipc_callbacks/rs_transaction_callback_stub.cpp",
-      "src/transaction/transaction.cpp",
-    ]
-  }
 
   if (rs_enable_gpu) {
     sources += [
@@ -498,6 +479,7 @@ ohos_source_set("render_service_base_src") {
 
       #pipeline
       "src/pipeline/rs_occlusion_config.cpp",
+      "src/pipeline/rs_screen_render_node.cpp",
 
       #transaction
       "src/transaction/rs_hgm_config_data.cpp",
@@ -586,6 +568,7 @@ ohos_source_set("render_service_base_src") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service",
   ]
 
   if (is_arkui_x) {
@@ -859,6 +842,8 @@ ohos_shared_library("librender_service_base") {
     ]
   }
 
+  external_deps += [ "hilog:libhilog" ]
+
   if (rs_enable_gpu) {
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }
@@ -887,6 +872,8 @@ ohos_source_set("librender_service_base_static") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
+
+  external_deps = [ "hilog:libhilog" ]
 
   public_external_deps = []
   if (rosen_is_ohos) {

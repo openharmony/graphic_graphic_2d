@@ -26,7 +26,6 @@ public:
     static ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ani_long object);
     static ani_object CreateAniUndefined(ani_env* env);
     static AniFilter* GetFilterFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);
-    static Media::PixelMap* GetPixelMapFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj);
 };
 
 } // namespace Rosen

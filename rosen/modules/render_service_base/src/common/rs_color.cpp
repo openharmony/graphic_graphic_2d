@@ -36,12 +36,13 @@ RSColor::RSColor(uint32_t rgba) noexcept
 
 RSColor::RSColor(int16_t red, int16_t green, int16_t blue) noexcept : RSColor(red, green, blue, UINT8_MAX) {}
 
-RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha) noexcept
+RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha, GraphicColorGamut colorSpace) noexcept
 {
     alpha_ = alpha;
     red_ = red;
     green_ = green;
     blue_ = blue;
+    colorSpace_ = colorSpace;
 }
 
 bool RSColor::operator==(const RSColor& rhs) const
@@ -59,12 +60,12 @@ bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 
 RSColor RSColor::operator+(const RSColor& rhs) const
 {
-    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_, rhs.colorSpace_);
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
 {
-    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_);
+    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_, rhs.colorSpace_);
 }
 
 RSColor RSColor::operator*(float scale) const
@@ -226,32 +227,32 @@ void RSColor::MultiplyAlpha(float alpha)
 
 void RSColor::ConvertToP3ColorSpace()
 {
+#ifndef ROSEN_CROSS_PLATFORM
     if (colorSpace_ == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
         return;
     }
-#ifndef ROSEN_CROSS_PLATFORM
     OHOS::ColorManager::Vector3 rgbF = {GetRedF(), GetGreenF(), GetBlueF()};
     auto rgbInP3 = OHOS::ColorManager::ColorSpaceConvertor::ConvertSRGBToP3ColorSpace(rgbF);
     red_ = static_cast<int16_t>(round(rgbInP3[COLOR_ARRAY_RED_INDEX] * RGB_MAX_VALUE));
     green_ = static_cast<int16_t>(round(rgbInP3[COLOR_ARRAY_GREEN_INDEX] * RGB_MAX_VALUE));
     blue_ = static_cast<int16_t>(round(rgbInP3[COLOR_ARRAY_BLUE_INDEX] * RGB_MAX_VALUE));
-#endif
     colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+#endif
 }
 
 void RSColor::ConvertToSRGBColorSpace()
 {
+#ifndef ROSEN_CROSS_PLATFORM
     if (colorSpace_ == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
         return;
     }
-#ifndef ROSEN_CROSS_PLATFORM
     OHOS::ColorManager::Vector3 rgbF = {GetRedF(), GetGreenF(), GetBlueF()};
     auto rgbInSRGB = OHOS::ColorManager::ColorSpaceConvertor::ConvertP3ToSRGBColorSpace(rgbF);
     red_ = static_cast<int16_t>(round(rgbInSRGB[COLOR_ARRAY_RED_INDEX] * RGB_MAX_VALUE));
     green_ = static_cast<int16_t>(round(rgbInSRGB[COLOR_ARRAY_GREEN_INDEX] * RGB_MAX_VALUE));
     blue_ = static_cast<int16_t>(round(rgbInSRGB[COLOR_ARRAY_BLUE_INDEX] * RGB_MAX_VALUE));
-#endif
     colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+#endif
 }
 
 void RSColor::Dump(std::string& out) const

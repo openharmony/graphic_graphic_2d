@@ -224,56 +224,56 @@ const char* MemoryTrack::MemoryType2String(MEMORY_TYPE type)
 
 const std::string MemoryTrack::PixelMapInfo2String(MemoryInfo info)
 {
-    std::string alloc_type_str = AllocatorType2String(info.allocType);
-    std::string pixelformat_str = "UNDEFINED";
+    std::string allocTypeStr = AllocatorType2String(info.allocType);
+    std::string pixelFormatStr = "UNDEFINED";
 #ifdef ROSEN_OHOS
-    pixelformat_str = PixelFormat2String(info.pixelMapFormat);
+    pixelFormatStr = PixelFormat2String(info.pixelMapFormat);
 #endif
-    return alloc_type_str + "," + pixelformat_str;
+    return allocTypeStr + "," + pixelFormatStr;
 }
 
 #ifdef ROSEN_OHOS
-const std::string MemoryTrack::PixelFormat2String(OHOS::Media::PixelFormat type)
+const std::string MemoryTrack::PixelFormat2String(Media::PixelFormat type)
 {
     // sync with foundation/multimedia/image_framework/interfaces/innerkits/include/image_type.h
     switch (type) {
-        case OHOS::Media::PixelFormat::ARGB_8888:
+        case Media::PixelFormat::ARGB_8888:
             return "ARGB_8888";
-        case OHOS::Media::PixelFormat::RGB_565:
+        case Media::PixelFormat::RGB_565:
             return "RGB_565";
-        case OHOS::Media::PixelFormat::RGBA_8888:
+        case Media::PixelFormat::RGBA_8888:
             return "RGBA_8888";
-        case OHOS::Media::PixelFormat::BGRA_8888:
+        case Media::PixelFormat::BGRA_8888:
             return "BGRA_8888";
-        case OHOS::Media::PixelFormat::RGB_888:
+        case Media::PixelFormat::RGB_888:
             return "RGB_888";
-        case OHOS::Media::PixelFormat::ALPHA_8:
+        case Media::PixelFormat::ALPHA_8:
             return "ALPHA_8";
-        case OHOS::Media::PixelFormat::RGBA_F16:
+        case Media::PixelFormat::RGBA_F16:
             return "RGBA_F16";
-        case OHOS::Media::PixelFormat::NV21:
+        case Media::PixelFormat::NV21:
             return "NV21";
-        case OHOS::Media::PixelFormat::NV12:
+        case Media::PixelFormat::NV12:
             return "NV12";
-        case OHOS::Media::PixelFormat::RGBA_1010102:
+        case Media::PixelFormat::RGBA_1010102:
             return "RGBA_1010102";
-        case OHOS::Media::PixelFormat::YCBCR_P010:
+        case Media::PixelFormat::YCBCR_P010:
             return "YCBCR_P010";
-        case OHOS::Media::PixelFormat::YCRCB_P010:
+        case Media::PixelFormat::YCRCB_P010:
             return "YCRCB_P010";
-        case OHOS::Media::PixelFormat::RGBA_U16:
+        case Media::PixelFormat::RGBA_U16:
             return "RGBA_U16";
-        case OHOS::Media::PixelFormat::YUV_400:
+        case Media::PixelFormat::YUV_400:
             return "YUV_400";
-        case OHOS::Media::PixelFormat::CMYK:
+        case Media::PixelFormat::CMYK:
             return "CMYK";
-        case OHOS::Media::PixelFormat::ASTC_4x4:
+        case Media::PixelFormat::ASTC_4x4:
             return "ASTC_4x4";
-        case OHOS::Media::PixelFormat::ASTC_6x6:
+        case Media::PixelFormat::ASTC_6x6:
             return "ASTC_6x6";
-        case OHOS::Media::PixelFormat::ASTC_8x8:
+        case Media::PixelFormat::ASTC_8x8:
             return "ASTC_8x8";
-        default :
+        default:
             return std::to_string(static_cast<int32_t>(type));
     }
     return "UNKNOW";
@@ -312,18 +312,16 @@ std::string MemoryTrack::GenerateDumpTitle()
 {
     std::string size_title = Data2String("Size", MEM_SIZE_STRING_LEN);
     std::string type_title = Data2String("Type", MEM_TYPE_STRING_LEN);
-    std::string pixelmap_info_title = Data2String("Type,UseCnt,IsUnMap,UnMapCnt,Format", PIXELMAP_INFO_STRING_LEN);
+    std::string pixelmap_info_title = Data2String("Type,Format", PIXELMAP_INFO_STRING_LEN);
     std::string pid_title = Data2String("Pid", MEM_PID_STRING_LEN);
-    std::string initial_pid_title = Data2String("InitialPid", MEM_PID_STRING_LEN);
     std::string wid_title = Data2String("Wid", MEM_WID_STRING_LEN);
     std::string uid_title = Data2String("Uid", MEM_UID_STRING_LEN);
     std::string surfaceNode_title = Data2String("SurfaceName", MEM_SURNODE_STRING_LEN);
     std::string frame_title = Data2String("Frame", MEM_FRAME_STRING_LEN);
     std::string nid_title = Data2String("NodeId", MEM_NODEID_STRING_LEN);
     std::string addr_tile = Data2String("Addr", MEM_ADDR_STRING_LEN);
-    return size_title + "\t" + type_title + "\t" + pixelmap_info_title + "\t" + pid_title + "\t" + initial_pid_title +
-        "\t" + wid_title + "\t" + uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title +
-        "\t" + addr_tile;
+    return size_title + "\t" + type_title + "\t" + pixelmap_info_title + "\t" + pid_title + "\t" + wid_title + "\t" +
+        uid_title + "\t" + surfaceNode_title + "\t" + frame_title + nid_title + "\t" + addr_tile;
 }
 
 std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::string& wName, RectI& nFrame)
@@ -332,14 +330,13 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
     std::string type_str = Data2String(MemoryType2String(info.type), MEM_TYPE_STRING_LEN);
     std::string pixelmap_info_str = Data2String(PixelMapInfo2String(info), PIXELMAP_INFO_STRING_LEN);
     std::string pid_str = Data2String(std::to_string(ExtractPid(info.nid)), MEM_PID_STRING_LEN);
-    std::string initial_pid_str = Data2String(std::to_string(info.initialPid), MEM_PID_STRING_LEN);
     std::string wid_str = Data2String(std::to_string(wId), MEM_WID_STRING_LEN);
     std::string uid_str = Data2String(std::to_string(info.uid), MEM_UID_STRING_LEN);
     std::string wname_str = Data2String(wName, MEM_SURNODE_STRING_LEN);
     std::string frame_str = Data2String(nFrame.ToString(), MEM_FRAME_STRING_LEN);
     std::string nid_str = Data2String(std::to_string(info.nid), MEM_NODEID_STRING_LEN);
-    return size_str + "\t" + type_str + "\t" + pixelmap_info_str + "\t" + pid_str + "\t" + initial_pid_str +
-        "\t" + wid_str + "\t" + uid_str + "\t" + wname_str + "\t" + frame_str + nid_str;
+    return size_str + "\t" + type_str + "\t" + pixelmap_info_str + "\t" + pid_str + "\t" + wid_str + "\t" +
+        uid_str + "\t" + wname_str + "\t" + frame_str + nid_str;
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
@@ -410,17 +407,6 @@ void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     memPicRecord_.emplace(addr, info);
-}
-
-bool MemoryTrack::GetPictureRecordMemInfo(const void* addr, MemoryInfo& info)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto itr = memPicRecord_.find(addr);
-    if (itr != memPicRecord_.end()) {
-        info = itr->second;
-        return true;
-    }
-    return false;
 }
 
 void MemoryTrack::RemovePictureRecord(const void* addr)

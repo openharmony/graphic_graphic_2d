@@ -395,8 +395,10 @@ void RSHardwareThread::EndCheck(RSTimer timer)
         exceptionCheck_.exceptionCnt_ = hardwareCount_;
         exceptionCheck_.exceptionMoment_ = timer.GetSeconds();
         exceptionCheck_.UploadRenderExceptionData();
-        sleep(1); // sleep 1s : abort will kill RS, sleep 1s for hisysevent report.
-        abort(); // The RS process needs to be restarted because 30 consecutive frames in hardware times out.
+        RS_LOGE("RSHardwareThread::EndCheck PID:%{public}d, UID:%{public}u, PROCESS_NAME:%{public}s, \
+            EXCEPTION_CNT:%{public}d, EXCEPTION_TIME:%{public}" PRId64", EXCEPTION_POINT:%{public}s",
+            getpid(), getuid(), PROCESS_NAME_FOR_HISYSEVENT.c_str(), hardwareCount_,
+            exceptionCheck_.exceptionMoment_, HARDWARE_PIPELINE_TIMEOUT.c_str());
     }
 }
 
@@ -897,9 +899,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     break;
                 }
             }
-            if (RSSystemProperties::IsUseVulkan()) {
-                RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
-            }
+            RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
         } else {
             RsVulkanContext::GetSingleton().SetIsProtected(false);
         }
@@ -945,10 +945,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             frameBufferSurfaceOhosMap_[surfaceId] = frameBufferSurfaceOhos;
         }
     }
-    FrameContextConfig frameContextConfig = {isProtected, false};
-#ifdef RS_ENABLE_VKQUEUE_PRIORITY
-    frameContextConfig.independentContext = RSSystemProperties::GetVkQueuePriorityEnable();
-#endif
+    FrameContextConfig frameContextConfig = FrameContextConfig(isProtected);
     std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos, renderFrameConfig,
         forceCPU, true, frameContextConfig);
@@ -1001,7 +998,6 @@ void RSHardwareThread::AddRefreshRateCount(const OutputPtr& output)
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(output->GetScreenId());
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
-        RS_LOGE("AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
         return;
     }
     frameRateMgr->HandleRsFrame();
@@ -1071,12 +1067,49 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
     return colorGamut;
 }
 
+bool RSHardwareThread::IsAllRedraw(const std::vector<LayerInfoPtr>& layers)
+{
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
+    for (auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
+        // skip RCD layer
+        auto layerSurface = layer->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                RS_LOGD("IsAllRedraw skip RCD layer");
+                continue;
+            }
+        }
+        // skip hard cursor
+        if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
+            RS_LOGD("IsAllRedraw skip cursor");
+            continue;
+        }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            RS_LOGD("IsAllRedraw not all layers are redraw");
+            return false;
+        }
+    }
+    return true;
+}
+
 GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers)
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    bool allRedraw = IsAllRedraw(layers);
     for (auto& layer : layers) {
         if (layer == nullptr) {
+            continue;
+        }
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
             continue;
         }
         auto buffer = layer->GetBuffer();
@@ -1088,7 +1121,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
         auto bufferPixelFormat = buffer->GetFormat();
         if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010108) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            if (RSHdrUtil::GetRGBA1010108Enabled()) {
+            if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled()) {
                 pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
                 RS_LOGD("ComputeTargetPixelFormat pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108");
             }

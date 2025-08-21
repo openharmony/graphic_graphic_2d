@@ -65,7 +65,7 @@ public:
                 testInfo->test_case_name(), testInfo->name());
         }
     }
-    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
     bool isCallbackCalled_ = false;
 };

@@ -59,11 +59,6 @@ bool MatrixFuzzTest000(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t index = GetObject<uint32_t>();
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
@@ -116,11 +111,6 @@ bool MatrixFuzzTest000(const uint8_t* data, size_t size)
  */
 void MatrixFuzzTest001(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     scalar sz = GetObject<scalar>();
@@ -168,11 +158,6 @@ void MatrixFuzzTest001(const uint8_t* data, size_t size)
  */
 void MatrixFuzzTest002(const uint8_t* data, size_t size)
 {
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
     uint32_t array_size = GetObject<uint32_t>() % ARRAY_MAX_SIZE;
@@ -206,6 +191,11 @@ void MatrixFuzzTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::MatrixFuzzTest000(data, size);
     OHOS::Rosen::Drawing::MatrixFuzzTest001(data, size);

@@ -36,7 +36,6 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SpecialLayerConfig",
     "OcclusionCullingConfig",
     "OPIncConfig",
-    "PrevalidateConfig",
     "UIFirstConfig",
     "DvsyncConfig",
     "SocperfConfig",
@@ -46,7 +45,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "VRateConfig",
     "AccessibilityConfig",
     "RotateOffScreenConfig",
-    "LoadOptimizationConfig",
+    "SubtreeConfig",
 };
 
 enum FeatureModule {
@@ -61,7 +60,6 @@ enum FeatureModule {
     SPECIALLAYER,
     OCCLUSION_CULLING,
     OPInc,
-    PREVALIDATE,
     UIFirst,
     FILTER,
     DVSYNC,
@@ -72,7 +70,7 @@ enum FeatureModule {
     VRATE,
     ACCESSIBILITY,
     ROTATEOFFSCREEN,
-    LOAD_OPTIMIZATION,
+    SUBTREEPARALLEL,
     // Do not change it.
     ENUM_LENGTH,
 };

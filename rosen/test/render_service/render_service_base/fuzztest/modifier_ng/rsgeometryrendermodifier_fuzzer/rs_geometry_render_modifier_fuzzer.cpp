@@ -59,39 +59,12 @@ bool RSBoundsClipRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    std::shared_ptr<ModifierNG::RSBoundsClipRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSBoundsClipRenderModifier>();
-    modifier->GetType();
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipRenderModifier>();
     RSProperties properties;
+    properties.SetClipToBounds(GetData<bool>());
     modifier->ResetProperties(properties);
-    modifier->GetLegacyPropertyApplierMap();
 
-    return true;
-}
-
-bool RSBoundsRenderModifierFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    std::shared_ptr<ModifierNG::RSBoundsRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSBoundsRenderModifier>();
-    modifier->GetType();
-    modifier->GetLegacyPropertyApplierMap();
-    modifier->OnSetDirty();
     return true;
 }
 
@@ -101,42 +74,13 @@ bool RSFrameClipRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    std::shared_ptr<ModifierNG::RSFrameClipRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSFrameClipRenderModifier>();
-    modifier->GetType();
+    auto modifier = std::make_shared<ModifierNG::RSFrameClipRenderModifier>();
     RSProperties properties;
+    properties.SetClipToFrame(GetData<bool>());
     modifier->ResetProperties(properties);
     RSPaintFilterCanvas* canvas = nullptr;
     modifier->Apply(canvas, properties);
-    modifier->GetLegacyPropertyApplierMap();
-    modifier->OnSetDirty();
-
-    return true;
-}
-
-bool RSFrameRenderModifierFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    std::shared_ptr<ModifierNG::RSFrameRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSFrameRenderModifier>();
-    modifier->GetType();
-    modifier->GetLegacyPropertyApplierMap();
-    modifier->OnSetDirty();
 
     return true;
 }
@@ -147,19 +91,11 @@ bool RSTransformRenderModifierFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    std::shared_ptr<ModifierNG::RSTransformRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSTransformRenderModifier>();
-    modifier->GetType();
+    auto modifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
     RSProperties properties;
+    properties.SetRotation(GetData<float>());
     modifier->ResetProperties(properties);
-    modifier->GetLegacyPropertyApplierMap();
-    modifier->OnSetDirty();
 
     return true;
 }
@@ -170,11 +106,14 @@ bool RSTransformRenderModifierFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSBoundsClipRenderModifierFuzzTest(data, size);
-    OHOS::Rosen::RSBoundsRenderModifierFuzzTest(data, size);
     OHOS::Rosen::RSFrameClipRenderModifierFuzzTest(data, size);
-    OHOS::Rosen::RSFrameRenderModifierFuzzTest(data, size);
     OHOS::Rosen::RSTransformRenderModifierFuzzTest(data, size);
     return 0;
 }

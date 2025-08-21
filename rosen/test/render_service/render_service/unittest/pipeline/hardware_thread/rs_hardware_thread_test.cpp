@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "common/rs_singleton.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "gtest/gtest.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
@@ -830,6 +832,21 @@ HWTEST_F(RSHardwareThreadTest, DumpEventQueue001, TestSize.Level1)
     hardwareThread.DumpEventQueue();
 }
 
+#ifdef RES_SCHED_ENABLE
+/**
+ * @tc.name: SubScribeSystemAbility001
+ * @tc.desc: Test RSHardwareThreadTest.SubScribeSystemAbility
+ * @tc.type: FUNC
+ * @tc.require: issuesICS6JF
+ */
+HWTEST_F(RSHardwareThreadTest, SubScribeSystemAbility001, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.SubScribeSystemAbility();
+    ASSERT_NE(hardwareThread.saStatusChangeListener_, nullptr);
+}
+#endif
+
 #ifdef RS_ENABLE_VK
 /*
  * Function: ComputeTargetColorGamut
@@ -934,6 +951,44 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat001, TestSize.Level1)
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 /*
+ * @tc.name: IsAllRedraw
+ * @tc.desc: Test RSHardwareThreadTest.IsAllRedraw
+ * @tc.type: FUNC
+ * @tc.require: issuesIBLTM5
+ */
+HWTEST_F(RSHardwareThreadTest, IsAllRedraw001, TestSize.Level1)
+{
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
+    std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    ASSERT_NE(layer, nullptr);
+    layers.emplace_back(layer);
+    LayerInfoPtr layer2 = nullptr;
+    layers.emplace_back(layer2);
+    EXPECT_NE(layers.size(), 0);
+
+    auto &hardwareThread = RSHardwareThread::Instance();
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), true);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), false);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), false);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), false);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+
+    auto csurface = IConsumerSurface::Create("name1");
+    ASSERT_NE(csurface, nullptr);
+    layer->SetSurface(csurface);
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), true);
+    RSRcdManager::GetInstance().AddLayer("name1", 0, RoundCornerDisplayManager::RCDLayerType::TOP);
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), true);
+
+    layer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
+    EXPECT_EQ(hardwareThread.IsAllRedraw(layers), true);
+}
+
+/*
  * @tc.name: ComputeTargetPixelFormat
  * @tc.desc: Test RSHardwareThreadTest.ComputeTargetPixelFormat
  * @tc.type: FUNC
@@ -943,6 +998,7 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat002, TestSize.Level1)
 {
     std::vector<LayerInfoPtr> layers;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    ASSERT_NE(layer, nullptr);
     layers.emplace_back(layer);
     EXPECT_NE(layers.size(), 0);
 
@@ -960,6 +1016,19 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat002, TestSize.Level1)
     layer->SetBuffer(buffer, requestFence);
     GraphicPixelFormat pixelFormat = hardwareThread.ComputeTargetPixelFormat(layers);
     EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    hardwareThread.ComputeTargetPixelFormat(layers);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
+    hardwareThread.ComputeTargetPixelFormat(layers);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+    hardwareThread.ComputeTargetPixelFormat(layers);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    hardwareThread.ComputeTargetPixelFormat(layers);
+    LayerInfoPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
+    ASSERT_NE(layer2, nullptr);
+    layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layers.emplace_back(layer2);
+    hardwareThread.ComputeTargetPixelFormat(layers);
 
     requestConfig.format = GRAPHIC_PIXEL_FMT_RGBA16_FLOAT;
     ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
@@ -1069,6 +1138,22 @@ HWTEST_F(RSHardwareThreadTest, RedrawScreenRCD001, TestSize.Level1)
     std::vector<LayerInfoPtr> layers;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layers.emplace_back(layer);
+    LayerInfoPtr nullLayer = nullptr;
+    layers.emplace_back(nullLayer);
+    std::vector<GraphicCompositionType> skipTypes = {GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE,
+        GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR,
+        GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR};
+    for (auto skipType : skipTypes) {
+        LayerInfoPtr skipLayer = HdiLayerInfo::CreateHdiLayerInfo();
+        skipLayer->SetCompositionType(skipType);
+        layers.emplace_back(skipLayer);
+    }
+    std::vector<RCDSurfaceType> rcdTypes = {RCDSurfaceType::INVALID, RCDSurfaceType::TOP, RCDSurfaceType::BOTTOM};
+    RSUniRenderComposerAdapter ca;
+    for (size_t i = 0; i < rcdTypes.size(); i++) {
+        auto rcdNode = RSRcdSurfaceRenderNode::Create(i, rcdTypes[i]);
+        layers.emplace_back(ca.CreateLayer(*rcdNode));
+    }
     EXPECT_NE(layers.size(), 0);
     hardwareThread.RedrawScreenRCD(rsPaintFilterCanvas, layers);
 }
@@ -1144,5 +1229,46 @@ HWTEST_F(RSHardwareThreadTest, ContextRegisterPostTask001, TestSize.Level1)
     hardwareThread.Start();
     ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
     hardwareThread.ContextRegisterPostTask();
+}
+
+
+/*
+ * @tc.name: ClearRedrawGPUCompositionCache002
+ * @tc.desc: Test RSHardwareThreadTest.ClearRedrawGPUCompositionCache
+ * @tc.type: FUNC
+ * @tc.require: issueICS6NA
+ */
+HWTEST_F(RSHardwareThreadTest, ClearRedrawGPUCompositionCache002, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    hardwareThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    hardwareThread.uniRenderEngine_->Init();
+    ASSERT_NE(hardwareThread.uniRenderEngine_, nullptr);
+    std::set<uint32_t> bufferIds = {1};
+    hardwareThread.ClearRedrawGPUCompositionCache(bufferIds);
+}
+
+/*
+ * @tc.name: ClearFrameBuffers003
+ * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
+ * @tc.type: FUNC
+ * @tc.require: issueICS6NA
+ */
+HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers003, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    hardwareThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    hardwareThread.uniRenderEngine_->Init();
+    ASSERT_NE(hardwareThread.uniRenderEngine_, nullptr);
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(hdiOutput, nullptr);
+    if (hdiOutput->GetFrameBufferSurface()) {
+        GSError ret = hardwareThread.ClearFrameBuffers(hdiOutput);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
 }
 } // namespace OHOS::Rosen

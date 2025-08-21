@@ -66,6 +66,9 @@ namespace OHOS {
     */
     std::string GetStringFromData(int strlen)
     {
+        if (strlen <= 0) {
+            return "fuzz";
+        }
         char cstr[strlen];
         cstr[strlen - 1] = '\0';
         for (int i = 0; i < strlen - 1; i++) {
@@ -80,10 +83,6 @@ namespace OHOS {
         if (data == nullptr) {
             return false;
         }
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
 
         // get data
         int64_t offset = GetData<int64_t>();
@@ -99,8 +98,9 @@ namespace OHOS {
         bool isSystemAnimateScene = GetData<bool>();
         uint64_t id = GetData<uint64_t>();
         bool isRender = GetData<bool>();
-        bool delayEnable = GetData<bool>();
+        bool compositeSceneEnable = GetData<bool>();
         bool nativeDelayEnable = GetData<bool>();
+        std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -110,7 +110,8 @@ namespace OHOS {
         vsyncDistributor->SetVSyncRate(rate, conn);
         vsyncDistributor->SetNativeDVSyncSwitch(nativeDVSyncSwitch, conn);
         vsyncDistributor->SetUiDvsyncSwitch(uiDVSyncSwitch, conn);
-        vsyncDistributor->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+        vsyncDistributor->SetUiDvsyncConfig(bufferCount, compositeSceneEnable,
+            nativeDelayEnable, rsDvsyncAnimationList);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
         vsyncDistributor->AddConnection(conn, windowNodeId);
         vsyncDistributor->RemoveConnection(conn);
@@ -139,11 +140,6 @@ namespace OHOS {
             return false;
         }
 
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         //get data
         int64_t offset  = GetData<int32_t>();
         int32_t pid = GetData<int32_t>();
@@ -164,11 +160,6 @@ namespace OHOS {
             return false;
         }
 
-        // initialize
-        data_ = data;
-        size_ = size;
-        pos = 0;
-
         // get data
         int64_t offset  = GetData<int32_t>();
         uint32_t pid = GetData<uint32_t>();
@@ -188,6 +179,11 @@ namespace OHOS {
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::data_ = data;
+    OHOS::size_ = size;
+    OHOS::pos = 0;
+
     /* Run your code on data */
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::DoSetQosVSyncRateByPidPublic(data, size);

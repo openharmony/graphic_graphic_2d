@@ -184,6 +184,11 @@ void GPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkan
     impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }
 
+void GPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
+{
+    impl_->RegisterDrawOpOverCallback(drawOpOverCallback);
+}
+
 void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     impl_->PurgeUnlockAndSafeCacheGpuResources();
@@ -202,6 +207,11 @@ void GPUContext::ReleaseByTag(const GPUResourceTag &tag)
 void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
 {
     impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
+}
+
+uint64_t GPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
+{
+    return impl_->NewDumpMemoryStatisticsByTag(traceMemoryDump, tag);
 }
 
 void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
@@ -234,11 +244,15 @@ void GPUContext::ResetContext()
     impl_->ResetContext();
 }
 
+// subtree parallel feature interface
+// generate submit information
 void GPUContext::GenerateSubmitInfo(int seq)
 {
     impl_->GenerateSubmitInfo(seq);
 }
 
+// subtree parallel feature interface
+// generate draw op
 void GPUContext::FlushCommands()
 {
     impl_->FlushCommands();
@@ -291,9 +305,9 @@ void GPUContext::FlushGpuMemoryInWaitQueue()
     impl_->FlushGpuMemoryInWaitQueue();
 }
 
-void GPUContext::SetEarlyZFlag(bool flag)
+void GPUContext::SetEarlyZEnabled(bool flag)
 {
-    impl_->SetEarlyZFlag(flag);
+    impl_->SetEarlyZEnabled(flag);
 }
 
 void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)

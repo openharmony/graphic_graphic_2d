@@ -18,6 +18,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_node_command.h"
+#include "ffrt_inner.h"
 #include "render_context/memory_handler.h"
 
 namespace OHOS {
@@ -35,6 +36,9 @@ std::mutex RSModifiersDraw::foregroundRootSetMutex_;
 std::vector<DestroySemaphoreInfo*> RSModifiersDraw::semaphoreInfoVec_;
 std::mutex RSModifiersDraw::semaphoreInfoMutex_;
 std::unordered_set<uint32_t> RSModifiersDraw::typesToSave_;
+std::mutex RSModifiersDraw::ffrtMutex_;
+std::condition_variable RSModifiersDraw::cv_;
+std::atomic<uint32_t> RSModifiersDraw::ffrtTaskNum_ = 0;
 
 sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
     int32_t width, int32_t height, const std::unique_ptr<Media::PixelMap>& pixelMap)
@@ -43,6 +47,11 @@ sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
 }
 
 void RSModifiersDraw::PurgeContextResource()
+{
+    return;
+}
+
+void RSModifiersDraw::GetFenceAndAddDrawOp(std::vector<DrawOpInfo>& targetCmds)
 {
     return;
 }
@@ -91,13 +100,13 @@ RSModifiersDraw::SurfaceEntry RSModifiersDraw::GetSurfaceEntryByNodeId(NodeId no
 }
 
 bool RSModifiersDraw::Playback(const std::shared_ptr<Drawing::Surface>& surface,
-    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, int32_t& fence)
+    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, VkSemaphore& semaphore)
 {
     return false;
 }
 
-static void FlushSurfaceWithFence(const std::shared_ptr<Drawing::Surface>& surface,
-    VkSemaphore& semaphore, int32_t& fence)
+static void FlushSurfaceWithSemaphore(const std::shared_ptr<Drawing::Surface>& surface,
+    VkSemaphore& semaphore)
 {
     return;
 }
@@ -131,7 +140,7 @@ void RSModifiersDraw::UpdateSize(const std::shared_ptr<Drawing::DrawCmdList>& cm
     return;
 }
 
-void RSModifiersDraw::ConvertCmdList(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId)
+void RSModifiersDraw::ConvertCmdList(DrawOpInfo& targetCmd)
 {
     return;
 }
@@ -220,6 +229,40 @@ void RSModifiersDraw::ClearBackGroundMemory()
 void RSModifiersDraw::DestroySemaphore()
 {
     return;
+}
+
+bool RSModifiersDraw::SeperateHybridRenderCmdList(std::unique_ptr<RSTransactionData>& transactionData,
+    std::vector<DrawOpInfo>& targetCmds, uint32_t& enableTextHybridOpCnt)
+{
+    return false;
+}
+
+void RSModifiersDraw::TraverseDrawOpInfo(std::vector<DrawOpInfo>& targetCmds, std::atomic<size_t>& cmdIndex)
+{
+    return;
+}
+
+void RSModifiersDraw::ConvertTransactionForCanvas(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    return;
+}
+
+void RSModifiersDraw::ConvertTransactionWithFFRT(std::unique_ptr<RSTransactionData>& transactionData,
+    std::shared_ptr<RSIRenderClient>& renderServiceClient, bool& isNeedCommit, std::vector<DrawOpInfo>& targetCmds)
+{
+    return;
+}
+
+void RSModifiersDraw::ConvertTransactionWithoutFFRT(
+    std::unique_ptr<RSTransactionData>& transactionData, std::vector<DrawOpInfo>& targetCmds)
+{
+    return;
+}
+
+bool RSModifiersDraw::IsTargetCommand(
+    Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

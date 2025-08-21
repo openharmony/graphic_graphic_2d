@@ -35,9 +35,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
-#if defined(MODIFIER_NG)
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
-#endif
  
 using namespace testing;
 using namespace testing::ext;
@@ -678,6 +676,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsHwcEnabledByScalingModeTest, Function | Smal
     EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_CROP));
     EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_NO_SCALE_CROP));
     EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_FIT));
+    node.SetProtectedLayer(true);
+    EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_NO_SCALE_CROP));
 }
 
 /*
@@ -751,6 +751,26 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop004, TestSize.Level2)
 
     auto dstRect = node.GetDstRect();
     dstRect.left_ = -1;
+    RSUniHwcComputeUtil::LayerCrop(node, screenInfo);
+    EXPECT_EQ(screenInfo.width, 0);
+}
+
+/**
+ * @tc.name: LayerCrop005
+ * @tc.desc: LayerCrop test when node is PROTECTED
+ * @tc.type: FUNC
+ * @tc.require: issuesICP8G6
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop005, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.isInFixedRotation_ = false;
+    node.SetHwcGlobalPositionEnabled(false);
+    node.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    auto dstRect = node.GetDstRect();
+    dstRect.left_ = -1;
+    ScreenInfo screenInfo;
     RSUniHwcComputeUtil::LayerCrop(node, screenInfo);
     EXPECT_EQ(screenInfo.width, 0);
 }
@@ -1385,16 +1405,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function |
     RSRenderNode node(id);
     auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
     property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
-#if defined(MODIFIER_NG)
     std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
         std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
     node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR)].emplace_back(modifier);
-#else
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSEnvForegroundColorStrategyRenderModifier>(
-        property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
-#endif
     auto result = RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node);
     EXPECT_TRUE(result);
 }

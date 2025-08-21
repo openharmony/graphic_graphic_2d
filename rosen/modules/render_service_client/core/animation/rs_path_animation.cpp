@@ -19,7 +19,6 @@
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_render_path_animation.h"
 #include "command/rs_animation_command.h"
-#include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "platform/common/rs_log.h"
@@ -252,7 +251,6 @@ PropertyId RSPathAnimation::GetRotationPropertyId(const std::shared_ptr<RSNode>&
         return 0;
     }
     std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
-#if defined(MODIFIER_NG)
     auto& modifier = node->modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
     if (modifier) {
         if (const auto& property = modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION)) {
@@ -264,25 +262,12 @@ PropertyId RSPathAnimation::GetRotationPropertyId(const std::shared_ptr<RSNode>&
             return id;
         }
     }
-#else
-    auto iter = node->propertyModifiers_.find(RSModifierType::ROTATION);
-    if (iter != node->propertyModifiers_.end()) {
-        return iter->second->GetPropertyId();
-    }
-
-    for (const auto& [id, modifier] : node->modifiers_) {
-        if (modifier->GetModifierType() == RSModifierType::ROTATION) {
-            return modifier->GetPropertyId();
-        }
-    }
-#endif
     return 0;
 }
 
 void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const float rotation)
 {
     std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
-#if defined(MODIFIER_NG)
     auto& property = node->GetPropertyById(rotationId_);
     if (property) {
         std::static_pointer_cast<RSProperty<float>>(property)->stagingValue_ = rotation;
@@ -296,22 +281,6 @@ void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const flo
     if (propertyRotation && propertyRotation->GetId() == rotationId_) {
         std::static_pointer_cast<RSProperty<float>>(property)->stagingValue_ = rotation;
     }
-#else
-    auto iter = node->modifiers_.find(rotationId_);
-    if (iter != node->modifiers_.end()) {
-        auto modifier = iter->second;
-        if (modifier != nullptr) {
-            std::static_pointer_cast<RSProperty<float>>(modifier->GetProperty())->stagingValue_ = rotation;
-        }
-        return;
-    }
-    for (const auto& [type, modifier] : node->propertyModifiers_) {
-        if (modifier != nullptr && modifier->GetPropertyId() == rotationId_) {
-            std::static_pointer_cast<RSProperty<float>>(modifier->GetProperty())->stagingValue_ = rotation;
-        }
-        return;
-    }
-#endif
 }
 
 void RSPathAnimation::OnCallFinishCallback()

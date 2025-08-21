@@ -148,7 +148,14 @@ public:
      */
     void Flush();
 
+    /**
+     * @brief   subtree parallel feature interface to generate draw op.
+     */
     void FlushCommands();
+
+    /**
+     * @brief   subtree parallel feature interface to generate submit information.
+     */
     void GenerateSubmitInfo(int seq);
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
@@ -278,6 +285,13 @@ public:
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
 
     /**
+     * @brief                   Enumerates all cached GPU resources and return their memory.
+     * @param traceMemoryDump   A trace to memory dump.
+     * @param tag               GPU resource tag used to dump memory statistics.
+     */
+    uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
+
+    /**
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.
      * @param traceMemoryDump   A trace to memory dump.
      */
@@ -330,7 +344,7 @@ public:
 
     void FlushGpuMemoryInWaitQueue();
 
-    void SetEarlyZFlag(bool flag);
+    void SetEarlyZEnabled(bool flag);
     
     void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions);
 
@@ -348,6 +362,12 @@ public:
     }
 
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func);
+
+    /**
+     * @brief                       Register callback function for single frame drawop limit exceeded
+     * @param drawOpOverCallback    Single frame drawop limit exceeded
+     */
+    void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback);
 
     /**
      * @brief                   Defragment or clear Vma Cache if needed

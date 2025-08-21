@@ -15,6 +15,8 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
 
+#include <optional>
+
 #include "include/effects/SkRuntimeEffect.h"
 #include "common/rs_color.h"
 #include "render/rs_hps_blur.h"
@@ -83,6 +85,7 @@ public:
     bool CanSkipFrame() const override;
 
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef) override;
+    bool NeedForceSubmit() const override;
 
 private:
     BLUR_COLOR_MODE colorMode_;

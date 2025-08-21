@@ -177,7 +177,7 @@ void DoRegisterTransactionDataCallback()
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();

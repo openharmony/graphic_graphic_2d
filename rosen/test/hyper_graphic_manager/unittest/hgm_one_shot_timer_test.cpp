@@ -16,8 +16,9 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
+#include "ffrt_inner.h"
 #include "hgm_test_base.h"
-#include "hgm_one_shot_timer.cpp"
+#include "hgm_one_shot_timer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,16 +28,24 @@ namespace Rosen {
 class HgmSimpleTimerTest : public HgmTestBase {
 public:
     static void SetUpTestCase() {}
-    static void TearDownTestCase() {}
+    static void TearDownTestCase();
     void SetUp();
     void TearDown() {}
 };
 
+void HgmSimpleTimerTest::TearDownTestCase()
+{
+    HgmTaskHandleThread::Instance().queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "HgmTaskHandleThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+}
+
 void HgmSimpleTimerTest::SetUp()
 {
     if (!HgmTaskHandleThread::Instance().queue_) {
-        HgmTaskHandleThread::Instance().queue_ =
-            std::make_shared<ffrt::queue>("HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+        HgmTaskHandleThread::Instance().queue_ = std::make_shared<ffrt::queue>(
+            static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter),
+            "HgmTaskHandleThread", ffrt::queue_attr().qos(ffrt::qos_user_interactive));
     }
 }
 

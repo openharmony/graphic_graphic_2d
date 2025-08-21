@@ -301,6 +301,7 @@ HWTEST_F(RSBaseRenderNodeTest, PrepareTest, TestSize.Level1)
     node->Prepare(visitor);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RemoveModifier
  * @tc.desc: test results of RemoveModifier
@@ -321,6 +322,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveModifier, TestSize.Level1)
     node->RemoveModifier(id);
     ASSERT_EQ(node->modifiers_.find(id), node->modifiers_.end());
 }
+#endif
 
 /**
  * @tc.name: UpdateEffectRegion
@@ -344,6 +346,7 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateEffectRegion, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetModifier
  * @tc.desc: test results of GetModifier
@@ -366,6 +369,7 @@ HWTEST_F(RSBaseRenderNodeTest, GetModifier, TestSize.Level1)
     node->AddGeometryModifier(modifier);
     ASSERT_NE(node->GetModifier(modifier->GetPropertyId()), nullptr);
 }
+#endif
 
 /**
  * @tc.name: FilterModifiersByPid
@@ -463,6 +467,7 @@ HWTEST_F(RSBaseRenderNodeTest, NeedInitCacheCompletedSurface, TestSize.Level1)
     ASSERT_EQ(node->NeedInitCacheCompletedSurface(), true);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetOptionalBufferSize
  * @tc.desc: test results of GetOptionalBufferSize
@@ -485,6 +490,7 @@ HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize, TestSize.Level1)
     node->GetOptionalBufferSize();
     ASSERT_TRUE(true);
 }
+#endif
 
 /**
  * @tc.name: GetCompletedImage
@@ -581,21 +587,6 @@ HWTEST_F(RSBaseRenderNodeTest, GetCacheSurface, TestSize.Level1)
 
     releaseAfterGet = true;
     ASSERT_EQ(node->GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-}
-
-/**
- * @tc.name: CheckGroupableAnimation
- * @tc.desc: test results of CheckGroupableAnimation
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, CheckGroupableAnimation, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    PropertyId id = 1;
-    bool isAnimAdd = false;
-    node->CheckGroupableAnimation(id, isAnimAdd);
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -955,6 +946,7 @@ HWTEST_F(RSBaseRenderNodeTest, DumpSubClassNode, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: DumpDrawCmdModifiers
  * @tc.desc: test results of DumpDrawCmdModifiers
@@ -978,6 +970,7 @@ HWTEST_F(RSBaseRenderNodeTest, DumpDrawCmdModifiers, TestSize.Level1)
     node->DumpDrawCmdModifiers(out);
     ASSERT_TRUE(true);
 }
+#endif
 
 /**
  * @tc.name: SetContentDirty
@@ -1297,6 +1290,7 @@ HWTEST_F(RSBaseRenderNodeTest, RenderTraceDebug, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AddModifier
  * @tc.desc: test results of AddModifier
@@ -1365,6 +1359,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
         ASSERT_NE(node->frameModifier_, nullptr);
     }
 }
+#endif
 
 /**
  * @tc.name: MarkSuggestOpincNode
@@ -1381,19 +1376,5 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
     ASSERT_TRUE(node->GetOpincCache().IsSuggestOpincNode());
     ASSERT_TRUE(node->GetOpincCache().isNeedCalculate_);
     ASSERT_TRUE(node->IsDirty());
-}
-
-/**
- * @tc.name: QuickGetNodeDebugInfo001
- * @tc.desc: test results of QuickGetNodeDebugInfo
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSBaseRenderNodeTest, QuickGetNodeDebugInfo001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto& opincCache = node->GetOpincCache();
-    node->QuickGetNodeDebugInfo();
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_ == false);
 }
 } // namespace OHOS::Rosen

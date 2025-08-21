@@ -201,8 +201,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
-    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, 0,
-        MEMORY_TYPE::MEM_RENDER_NODE, ExtractPid(config.id)};
+    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
@@ -324,11 +323,6 @@ void RSSurfaceRenderNode::ResetRenderParams()
 {
     stagingRenderParams_.reset();
     renderDrawable_->renderParams_.reset();
-}
-
-void RSSurfaceRenderNode::SetStencilVal(int64_t stencilVal)
-{
-    stencilVal_ = stencilVal;
 }
 
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
@@ -511,11 +505,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     SyncColorGamutInfoToFirstLevelNode();
 }
 
-bool RSSurfaceRenderNode::HasSubSurfaceNodes() const
-{
-    return childSubSurfaceNodes_.size() != 0;
-}
-
 void RSSurfaceRenderNode::SetIsSubSurfaceNode(bool isSubSurfaceNode)
 {
 #ifdef RS_ENABLE_GPU
@@ -616,11 +605,6 @@ void RSSurfaceRenderNode::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
         AddToPendingSyncList();
     }
 #endif
-}
-
-bool RSSurfaceRenderNode::IsNodeToBeCaptured() const
-{
-    return isNodeToBeCaptured_;
 }
 
 void RSSurfaceRenderNode::OnResetParent()
@@ -773,11 +757,6 @@ void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
     SendCommandFromRT(command, GetId());
 }
 
-const std::shared_ptr<RSDirtyRegionManager>& RSSurfaceRenderNode::GetDirtyManager() const
-{
-    return dirtyManager_;
-}
-
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyManager() const
 {
     return cacheSurfaceDirtyManager_;
@@ -828,11 +807,6 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
     }
     contextMatrix_ = matrix;
     SetContentDirty();
-    AddDirtyType(RSModifierType::SCALE);
-    AddDirtyType(RSModifierType::SKEW);
-    AddDirtyType(RSModifierType::SCALE_Z);
-    AddDirtyType(RSModifierType::PERSP);
-    AddDirtyType(RSModifierType::TRANSLATE);
     AddDirtyType(ModifierNG::RSModifierType::TRANSFORM);
     if (!sendMsg) {
         return;
@@ -849,7 +823,6 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     }
     contextAlpha_ = alpha;
     SetContentDirty();
-    AddDirtyType(RSModifierType::ALPHA);
     AddDirtyType(ModifierNG::RSModifierType::ALPHA);
     if (!sendMsg) {
         return;
@@ -866,7 +839,6 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     }
     contextClipRect_ = clipRegion;
     SetContentDirty();
-    AddDirtyType(RSModifierType::BOUNDS);
     AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
     if (!sendMsg) {
         return;
@@ -908,11 +880,6 @@ void RSSurfaceRenderNode::SetGlobalPositionEnabled(bool isEnabled)
 #endif
 }
 
-bool RSSurfaceRenderNode::GetGlobalPositionEnabled() const
-{
-    return isGlobalPositionEnabled_;
-}
-
 void RSSurfaceRenderNode::SetHwcGlobalPositionEnabled(bool isEnabled)
 {
     if (isHwcGlobalPositionEnabled_ == isEnabled) {
@@ -928,24 +895,19 @@ void RSSurfaceRenderNode::SetHwcGlobalPositionEnabled(bool isEnabled)
     isHwcGlobalPositionEnabled_ = isEnabled;
 }
 
-bool RSSurfaceRenderNode::GetHwcGlobalPositionEnabled() const
+void RSSurfaceRenderNode::SetHwcCrossNode(bool isHwcCrossNode)
 {
-    return isHwcGlobalPositionEnabled_;
-}
-
-void RSSurfaceRenderNode::SetHwcCrossNode(bool isDRMCrossNode)
-{
-    if (isHwcCrossNode_ == isDRMCrossNode) {
+    if (isHwcCrossNode_ == isHwcCrossNode) {
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetHwcCrossNode(isDRMCrossNode);
+    surfaceParams->SetHwcCrossNode(isHwcCrossNode);
     AddToPendingSyncList();
 
-    isHwcCrossNode_ = isDRMCrossNode;
+    isHwcCrossNode_ = isHwcCrossNode;
 }
 
 bool RSSurfaceRenderNode::IsHwcCrossNode() const
@@ -965,11 +927,6 @@ void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 
     isFixRotationByUser_ = flag;
 #endif
-}
-
-bool RSSurfaceRenderNode::GetFixRotationByUser() const
-{
-    return isFixRotationByUser_;
 }
 
 bool RSSurfaceRenderNode::IsInFixedRotation() const
@@ -1054,11 +1011,6 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
         specialLayerManager_.RemoveIds(SpecialLayerType::SKIP, GetId());
     }
     UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::SKIP, isSkipLayer);
-}
-
-LeashPersistentId RSSurfaceRenderNode::GetLeashPersistentId() const
-{
-    return leashPersistentId_;
 }
 
 void RSSurfaceRenderNode::SetSnapshotSkipLayer(bool isSnapshotSkipLayer)
@@ -1239,16 +1191,6 @@ void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
     SetDirty();
 }
 
-bool RSSurfaceRenderNode::GetFingerprint() const
-{
-    return hasFingerprint_;
-}
-
-bool RSSurfaceRenderNode::IsCloneNode() const
-{
-    return isCloneNode_;
-}
-
 void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen)
 {
     isCloneNode_ = (id != INVALID_NODEID);
@@ -1273,19 +1215,10 @@ void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
     }
     forceUIFirst_ = forceUIFirst;
 }
-bool RSSurfaceRenderNode::GetForceUIFirst() const
-{
-    return forceUIFirst_;
-}
 
 bool RSSurfaceRenderNode::GetForceDrawWithSkipped() const
 {
     return uifirstForceDrawWithSkipped_;
-}
-
-void RSSurfaceRenderNode::SetForceDrawWithSkipped(bool GetForceDrawWithSkipped)
-{
-    uifirstForceDrawWithSkipped_ = GetForceDrawWithSkipped;
 }
 
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
@@ -1295,11 +1228,6 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
         surfaceParam->SetHDRPresent(hasHdrPresent);
         AddToPendingSyncList();
     }
-}
-
-bool RSSurfaceRenderNode::GetHDRPresent() const
-{
-    return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
 }
 
 void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
@@ -1441,11 +1369,6 @@ void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
     surfaceParams->SetAncoFlags(flags);
 }
 
-uint32_t RSSurfaceRenderNode::GetAncoFlags() const
-{
-    return ancoFlags_.load();
-}
-
 void RSSurfaceRenderNode::SetAncoSrcCrop(const Rect& srcCrop)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -1453,11 +1376,6 @@ void RSSurfaceRenderNode::SetAncoSrcCrop(const Rect& srcCrop)
         return;
     }
     surfaceParams->SetAncoSrcCrop(srcCrop);
-}
-
-void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
-{
-    treeStateChangeCallback_ = callback;
 }
 
 void RSSurfaceRenderNode::NotifyTreeStateChange()
@@ -1525,16 +1443,6 @@ void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
         AddToPendingSyncList();
     }
 #endif
-}
-
-bool RSSurfaceRenderNode::GetHardCursorStatus() const
-{
-    return isHardCursor_;
-}
-
-bool RSSurfaceRenderNode::GetHardCursorLastStatus() const
-{
-    return isLastHardCursor_;
 }
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
@@ -1715,18 +1623,6 @@ void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
 #endif
 }
 
-#endif
-
-#ifndef ROSEN_CROSS_PLATFORM
-GraphicBlendType RSSurfaceRenderNode::GetBlendType()
-{
-    return blendType_;
-}
-
-void RSSurfaceRenderNode::SetBlendType(GraphicBlendType blendType)
-{
-    blendType_ = blendType;
-}
 #endif
 
 void RSSurfaceRenderNode::RegisterBufferAvailableListener(
@@ -2196,10 +2092,9 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
         DealWithDrawBehindWindowTransparentRegion();
         transparentRegion_.SubSelf(opaqueRegion_);
     }
-    Occlusion::Rect screen{screeninfo};
-    Occlusion::Region screenRegion{screen};
-    transparentRegion_.AndSelf(screenRegion);
-    opaqueRegion_.AndSelf(screenRegion);
+    Occlusion::Region clipRegion{Occlusion::Rect{GetOldDirtyInSurface()}};
+    transparentRegion_.AndSelf(clipRegion);
+    opaqueRegion_.AndSelf(clipRegion);
     occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(
         NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
@@ -2297,11 +2192,6 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         GetName().c_str(), GetId(), contentStatic, IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
         isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstContentDirty_);
 #endif
-}
-
-bool RSSurfaceRenderNode::IsOccludedByFilterCache() const
-{
-    return isOccludedByFilterCache_;
 }
 
 void RSSurfaceRenderNode::UpdateSurfaceSubTreeDirtyFlag()
@@ -2834,16 +2724,6 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
     surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
 
-const std::unordered_set<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const
-{
-    return abilityNodeIds_;
-}
-
-void RSSurfaceRenderNode::ResetChildHardwareEnabledNodes()
-{
-    childHardwareEnabledNodes_.clear();
-}
-
 void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode> childNode)
 {
     childHardwareEnabledNodes_.erase(std::remove_if(childHardwareEnabledNodes_.begin(),
@@ -2871,11 +2751,6 @@ void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode(NodeId id, bool isOnTre
                 return hwcNodePtr->GetId() == id;
             }), childHardwareEnabledNodes_.end());
     }
-}
-
-const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetChildHardwareEnabledNodes() const
-{
-    return childHardwareEnabledNodes_;
 }
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
@@ -3124,16 +2999,6 @@ void RSSurfaceRenderNode::SetUIExtensionUnobscured(bool obscured)
     UIExtensionUnobscured_ = obscured;
 }
 
-bool RSSurfaceRenderNode::GetUIExtensionUnobscured() const
-{
-    return UIExtensionUnobscured_;
-}
-
-CacheProcessStatus RSSurfaceRenderNode::GetCacheSurfaceProcessedStatus() const
-{
-    return cacheProcessStatus_.load();
-}
-
 void RSSurfaceRenderNode::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
 {
     cacheProcessStatus_.store(cacheProcessStatus);
@@ -3198,11 +3063,6 @@ void RSSurfaceRenderNode::UpdateTransparentSurface()
 bool RSSurfaceRenderNode::GetHasTransparentSurface() const
 {
     return hasTransparentSurface_;
-}
-
-bool RSSurfaceRenderNode::GetHasSharedTransitionNode() const
-{
-    return hasSharedTransitionNode_;
 }
 
 void RSSurfaceRenderNode::SetHasSharedTransitionNode(bool hasSharedTransitionNode)
@@ -3345,16 +3205,14 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isCrossNode_ = IsCrossNode();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
     surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
+    surfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->stencilVal_ = stencilVal_;
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
-    surfaceParams->isMainWindowType_ = IsMainWindowType();
-    surfaceParams->isLeashWindow_ = IsLeashWindow();
-    surfaceParams->isAppWindow_ = IsAppWindow();
-    surfaceParams->isLeashorMainWindow_ = IsLeashOrMainWindow();
+    surfaceParams->SetWindowInfo(IsMainWindowType(), IsLeashWindow(), IsAppWindow());
     surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorScreenNode(ancestorScreenNode_);
     surfaceParams->specialLayerManager_ = specialLayerManager_;
@@ -3402,6 +3260,7 @@ void RSSurfaceRenderNode::UpdatePropertyFromConsumer()
     consumer->GetFrameGravity(gravity);
     if (gravity >= 0) {
         GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+        SetFrameGravityNewVersionEnabled(true);
         RS_LOGD("RSSurfaceRenderNode, update frame gravity to = %{public}d", gravity);
     }
 
@@ -3839,11 +3698,6 @@ void RSSurfaceRenderNode::SetIsCloned(bool isCloned)
     AddToPendingSyncList();
 }
 
-void RSSurfaceRenderNode::SetIsClonedNodeOnTheTree(bool isOnTheTree)
-{
-    isClonedNodeOnTheTree_ = isOnTheTree;
-}
-
 void RSSurfaceRenderNode::ResetIsBufferFlushed()
 {
     if (stagingRenderParams_ == nullptr) {
@@ -3900,14 +3754,9 @@ void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
     isFrameGravityNewVersionEnabled_ = isEnabled;
 }
 
-bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const
-{
-    return isFrameGravityNewVersionEnabled_;
-}
-
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
-    const std::string tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
+    const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
     if (tvPlayerBundleName.empty()) {
         return false;
     }

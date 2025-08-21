@@ -49,17 +49,20 @@ T GetData()
     return object;
 }
 
-bool DoUpdateFrameRateRange(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     DATA = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoUpdateFrameRateRange(const uint8_t* data, size_t size)
+{
     // test
     auto frameRateLinker = RSFrameRateLinker::Create();
     FrameRateRange initialRange = GetData<FrameRateRange>();
@@ -69,15 +72,6 @@ bool DoUpdateFrameRateRange(const uint8_t* data, size_t size)
 
 bool DoUpdateFrameRateRangeImme(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     auto frameRateLinker = RSFrameRateLinker::Create();
     FrameRateRange initialRange = GetData<FrameRateRange>();
@@ -87,15 +81,6 @@ bool DoUpdateFrameRateRangeImme(const uint8_t* data, size_t size)
 
 bool DoSetEnable(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     auto frameRateLinker = RSFrameRateLinker::Create();
     bool enabled = GetData<bool>();
@@ -110,6 +95,10 @@ bool DoSetEnable(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoUpdateFrameRateRange(data, size);
     OHOS::Rosen::DoUpdateFrameRateRangeImme(data, size);

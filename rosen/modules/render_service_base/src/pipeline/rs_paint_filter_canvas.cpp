@@ -1202,7 +1202,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 
 bool RSPaintFilterCanvas::OnFilter() const
 {
-    return alphaStack_.top() > 0.f && !isQuickDraw_;
+    return alphaStack_.top() > 0.f && !IsQuickGetDrawState();
 }
 
 Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
@@ -1607,12 +1607,12 @@ uint32_t RSPaintFilterCanvas::GetParallelThreadIdx() const
     return threadIndex_;
 }
 
-int RSPaintFilterCanvas::GetParallelThreadId()
+uint32_t RSPaintFilterCanvas::GetParallelThreadId()
 {
     return threadId_;
 }
 
-void RSPaintFilterCanvas::SetParallelThreadId(int idx)
+void RSPaintFilterCanvas::SetParallelThreadId(uint32_t idx)
 {
     threadId_ = idx;
 }

@@ -22,7 +22,6 @@
 #include "common/rs_vector4.h"
 #include "common/rs_matrix3.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {

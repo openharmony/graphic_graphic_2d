@@ -27,7 +27,6 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_render_animation.h"
 #include "animation/rs_keyframe_animation.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_modifier_manager.h"
 #include "transaction/rs_interfaces.h"
 #include "render/rs_blur_filter.h"
@@ -260,7 +259,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     animation->OnFinish();
     animation->Reverse();
     animation->OnReverse();
-    EXPECT_EQ(animation->GetModifierType(), RSModifierType::INVALID);
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 end";
 }
@@ -599,13 +597,6 @@ public:
     }
 };
 
-class TransitionModifier : public RSTransitionModifier {
-public:
-    void Draw(RSDrawingContext& context) const override {}
-    void Active() override {}
-    void Identity() override {}
-};
-
 /**
  * @tc.name: RSTransitionTest001
  * @tc.desc: Verify the RSTransition
@@ -616,25 +607,6 @@ HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
     std::shared_ptr<const RSTransitionEffect> effect;
     auto animation = std::make_shared<RSTransitionMock>(effect, true);
     ASSERT_NE(animation, nullptr);
-    animation->OnStart();
-}
-
-/**
- * @tc.name: RSTransitionTest001
- * @tc.desc: Verify the RSTransition
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationTest, RSTransitionTest002, TestSize.Level1)
-{
-    auto transitionModifier = std::make_shared<TransitionModifier>();
-    auto transitionInEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
-    auto transitionOutEffect = RSTransitionEffect::Create()->Custom(transitionModifier);
-    auto effect = std::make_shared<RSTransitionEffect>(transitionInEffect, transitionOutEffect);
-
-    auto animation = std::make_shared<RSTransitionMock>(effect, true);
-    ASSERT_NE(animation, nullptr);
-    animation->SetIsCustom(true);
-    EXPECT_TRUE(animation->isCustom_);
     animation->OnStart();
 }
 
@@ -1043,6 +1015,12 @@ public:
     float data;
 };
 
+class MyFilterMock : public RSFilter {
+public:
+    MyFilterMock() : RSFilter() {}
+    virtual ~MyFilterMock() = default;
+};
+
 /**
  * @tc.name: AnimationSupplementTest020
  * @tc.desc: Verify the setcallback of Animation
@@ -1119,9 +1097,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
 
     std::string str;
     RSMotionPathOption option(str);
-    option.SetRotationMode(RotationMode::ROTATE_AUTO);
     option.GetRotationMode();
-    option.SetPathNeedAddOrigin(true);
     option.GetPathNeedAddOrigin();
 
     float dipScale = 1.0;
@@ -1134,6 +1110,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest022
  * @tc.desc: Verify the setcallback of Animation
@@ -1184,6 +1161,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     node->SetSandBox(vec);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end";
 }
+#endif
 
 /**
  * @tc.name: AnimationSupplementTest023
@@ -1250,7 +1228,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
     RectT<float> rect4;
     rect1.SetValues(rect3, &data);
     rect2.SetValues(rect4, &data);
-    rect1.IsNearEqual(rect2);
     auto temp1 = rect1 - rect2;
     rect1 = temp1 + rect2;
     temp1 = rect1 * (1.f);

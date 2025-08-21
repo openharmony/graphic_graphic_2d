@@ -23,7 +23,6 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_render_thread_util_test.cpp",
     "rs_render_thread_visitor_test.cpp",
   ]
 

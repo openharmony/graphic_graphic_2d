@@ -24,6 +24,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "feature/param_manager/rs_param_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_memory_manager.h"
 #include "parameter.h"
@@ -54,6 +55,10 @@
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
+
+#ifdef TP_FEATURE_ENABLE
+#include "screen_manager/touch_screen.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -109,14 +114,10 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     // need called after GraphicFeatureParamManager::GetInstance().Init();
     FilterCCMInit();
 
-    // load optimization params init
-    LoadOptParams loadOptParams;
-    InitLoadOptParams(loadOptParams);
-
+#ifdef TP_FEATURE_ENABLE
+    TOUCH_SCREEN->InitTouchScreen();
+#endif
     screenManager_ = CreateOrGetScreenManager();
-    if (screenManager_ != nullptr) {
-        screenManager_->InitLoadOptParams(loadOptParams.loadOptParamsForScreen);
-    }
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         // screenManager initializtion executes in RSHHardwareThread under UNI_RENDER mode
         if (screenManager_ == nullptr || !screenManager_->Init()) {
@@ -214,23 +215,16 @@ void RSRenderService::InitDVSyncParams(DVSyncFeatureParam &dvsyncParam)
     dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
 }
 
-void RSRenderService::InitLoadOptParams(LoadOptParams& loadOptParams)
-{
-    std::unordered_map<std::string, bool> tempSwitchParams = {};
-    auto& paramsForScreen = loadOptParams.loadOptParamsForScreen;
-    auto& paramsForHdiBackend = paramsForScreen.loadOptParamsForHdiBackend;
-    auto& paramsForHdiOutput = paramsForHdiBackend.loadOptParamsForHdiOutput;
-
-    tempSwitchParams[IS_MERGE_FENCE_SKIPPED] = LoadOptimizationParam::IsMergeFenceSkipped();
-    paramsForHdiOutput.switchParams = { tempSwitchParams };
-}
-
 void RSRenderService::Run()
 {
     if (!mainThread_) {
         RS_LOGE("Run failed, mainThread is nullptr");
         return;
     }
+    mainThread_->PostTask([]() {
+        RS_LOGD("RSRenderService::Run(): Subscribe event.");
+        RSParamManager::GetInstance().SubscribeEvent();
+    });
     RS_LOGE("Run");
     mainThread_->Start();
 }

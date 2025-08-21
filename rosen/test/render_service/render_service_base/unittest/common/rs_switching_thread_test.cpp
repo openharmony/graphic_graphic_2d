@@ -32,7 +32,7 @@ void RSSwitchingThreadTest::SetUpTestCase() {}
 void RSSwitchingThreadTest::TearDownTestCase() {}
 void RSSwitchingThreadTest::SetUp() {}
 void RSSwitchingThreadTest::TearDown() {}
- 
+
 /**
  * @tc.name: PostTaskTest
  * @tc.desc: test results of PostTaskTest

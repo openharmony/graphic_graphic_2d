@@ -44,10 +44,12 @@ class RSSurfaceNode;
 class RSRootNode;
 class RSTransactionData;
 class RSUIContext;
+class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 
 /**
  * @class RSUIDirector
@@ -70,10 +72,10 @@ public:
 
     /**
      * @brief Moves the UI director to the background.
-     * 
+     *
      * Update the window status, node status, and clear cache and redundant resources
-     * 
-     * @param isTextureExport Indicates whether texture export should be performed 
+     *
+     * @param isTextureExport Indicates whether texture export should be performed
      *                        during the transition to the background. Defaults to false.
      */
     void GoBackground(bool isTextureExport = false);
@@ -81,7 +83,7 @@ public:
     /**
      * @brief Moves the UI director to the foreground.
      *
-     * @param isTextureExport Indicates whether texture export should be performed 
+     * @param isTextureExport Indicates whether texture export should be performed
      *                        during the transition to the foreground. Defaults to false.
      */
     void GoForeground(bool isTextureExport = false);
@@ -91,13 +93,16 @@ public:
      *
      * @param shouldCreateRenderThread Indicates whether a render thread should be created. Defaults to true.
      * @param isMultiInstance Indicates whether the instance supports multiple instances. Defaults to false.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set. Defaults to nullptr.
      */
-    void Init(bool shouldCreateRenderThread = true, bool isMultiInstance = false);
+    void Init(bool shouldCreateRenderThread = true, bool isMultiInstance = false,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Initiates the process of exporting texture data.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set.
      */
-    void StartTextureExport();
+    void StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Destroy RSUIDirector instance.
@@ -156,7 +161,7 @@ public:
      * plan to del.
      *
      * @param uiTaskRunner The task runner to be used for UI tasks.
-     * @param instanceId The ID of the instance for which the task runner is being set. 
+     * @param instanceId The ID of the instance for which the task runner is being set.
      *                   Defaults to INSTANCE_ID_UNDEFINED if not specified.
      * @param useMultiInstance A flag indicating whether to use multiple instances. Defaults to false.
      */
@@ -167,16 +172,11 @@ public:
      * @brief Post messages to render thread.
      */
     void SendMessages();
-    
-    /**
-     * @brief Sets the timestamp and associates it with a specific ability name.
-     *
-     * @param timeStamp The timestamp value to be set.
-     * @param abilityName The name of the ability to associate with the timestamp.
-     */
 
-      /**
-     * @brief Post messages to render thread.
+    /**
+     * @brief Post messages to render thread with callback.
+     * 
+     * @param callback The callback value to be set.
      */
     void SendMessages(std::function<void()> callback);
     
@@ -220,7 +220,7 @@ public:
 
     /**
      * @brief Checks if there are any UI animations currently running.
-     * 
+     *
      * @return true if there are running UI animations, false otherwise.
      */
     bool HasUIRunningAnimation();
@@ -258,28 +258,28 @@ public:
 
     /**
      * @brief Gets the current refresh rate mode of the UI director.
-     * 
+     *
      * @return int32_t The current refresh rate mode.
      */
     int32_t GetCurrentRefreshRateMode();
 
     /**
      * @brief Gets the expected animation frame rate.
-     * 
+     *
      * @return The expected frame rate for animations as an integer.
      */
     int32_t GetAnimateExpectedRate() const;
 
     /**
      * @brief Gets the index associated with the current object.
-     * 
+     *
      * @return The index as an unsigned 32-bit integer.
      */
     uint32_t GetIndex() const;
 
     /**
      * @brief Gets the RSUIContext associated with this RSUIDirector.
-     * 
+     *
      * @return A shared pointer to the RSUIContext instance.
      */
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
@@ -330,12 +330,15 @@ private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
-    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
+    static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
+    static void ProcessInstanceMessages(
+        std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
+    static void ProcessUIContextMessages(
+        std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>& cmdMap, uint32_t messageId);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
-    static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance);
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
         AnimationCallbackEvent event);
-    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId); // DFX to do
+    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);        // DFX to do
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing

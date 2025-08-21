@@ -83,7 +83,7 @@ void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
     if (expectedRange_.preferred_ != range.preferred_) {
         for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
             if (cb) {
-                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), range.preferred_);
+                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), xcomponentId_, range.preferred_);
             }
         }
     }
@@ -158,7 +158,7 @@ void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
 
     // if this listener has registered a callback before, replace it.
     expectedFpsChangeCallbacks_[listener] = callback;
-    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), expectedRange_.preferred_);
+    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), xcomponentId_, expectedRange_.preferred_);
 }
 
 void RSRenderFrameRateLinker::UpdateNativeVSyncTimePoint()

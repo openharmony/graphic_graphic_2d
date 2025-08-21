@@ -60,10 +60,6 @@ bool RSRenderServiceStubFuzztest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
     
     // get data
     uint32_t code = GetData<uint32_t>();
@@ -80,10 +76,6 @@ bool RSRenderServiceStubFuzztest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
     
     // get data
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
@@ -101,11 +93,7 @@ bool RSRenderServiceStubFuzztest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
+
     // get data
     uint32_t code = GetData<uint32_t>();
     sptr<RSRenderServiceStub> stub = new RSRenderService();
@@ -124,10 +112,6 @@ bool RSRenderServiceStubFuzztest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
     
     // get data
     uint32_t code = GetData<uint32_t>();
@@ -150,6 +134,11 @@ bool RSRenderServiceStubFuzztest004(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::DATA = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::RSRenderServiceStubFuzztest001(data, size);
     OHOS::Rosen::RSRenderServiceStubFuzztest002(data, size);

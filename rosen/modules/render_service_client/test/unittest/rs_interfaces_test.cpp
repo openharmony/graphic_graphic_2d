@@ -867,6 +867,30 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
 }
 
 /*
+* Function: SetScreenSwitchingNotifyCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenSwitchingNotifyCallback
+*                  2. wait 2s and check the ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenSwitchingNotifyCallback, Function | SmallTest | Level2)
+{
+    bool status = false;
+    auto callback = [&status](bool switchingStatus) {
+        status = switchingStatus;
+    };
+    int32_t callbackStatus = rsInterfaces->SetScreenSwitchingNotifyCallback(callback);
+    EXPECT_EQ(callbackStatus, StatusCode::SUCCESS);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
+    if (status == StatusCode::SUCCESS) {
+        EXPECT_NE(status, false);
+    } else {
+        EXPECT_EQ(status, false);
+    }
+}
+
+/*
 * Function: GetScreenSupportedColorGamuts
 * Type: Function
 * Rank: Important(2)
@@ -1555,6 +1579,7 @@ HWTEST_F(RSInterfacesTest, NotifyXComponentExpectedFrameRate, Function | SmallTe
     std::string id = "xcomponent";
     int32_t expectedFrameRate = 5;
     rsInterfaces->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1595,12 +1620,16 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level0)
+HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
 {
+    int32_t invalidArguments = 5;
     ASSERT_NE(rsInterfaces, nullptr);
-    FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, int32_t fps){};
+    FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, const std::string& xcomponentId, int32_t fps){};
+
     int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
     ASSERT_EQ(ret, 0);
+    ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, cb);
+    ASSERT_EQ(ret, invalidArguments);
     ret = rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(1);
     ASSERT_EQ(ret, 0);
 }

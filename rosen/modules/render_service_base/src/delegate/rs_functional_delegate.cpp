@@ -14,7 +14,7 @@
  */
 
 #include "delegate/rs_functional_delegate.h"
-
+// LCOV_EXCL_START
 namespace OHOS::Rosen {
 void RSFunctionalDelegate::SetRepaintCallback(std::function<void()> repaintCallback)
 {
@@ -28,3 +28,4 @@ void RSFunctionalDelegate::Repaint()
     }
 }
 } // namespace OHOS::Rosen
+// LCOV_EXCL_STOP

@@ -22,7 +22,6 @@
 #include "animation/rs_path_animation.h"
 #include "animation/rs_spring_animation.h"
 #include "animation/rs_transition.h"
-#include "modifier/rs_extended_modifier.h"
 #include "platform/common/rs_log.h"
 #include "command/rs_node_showing_command.h"
 
@@ -128,8 +127,6 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
         std::shared_ptr<RSPropertyBase> property = nullptr;
         if (auto prop = node->GetPropertyById(propertyId)) {
             property = prop;
-        } else if (auto modifier = node->GetModifier(propertyId)) {
-            property = modifier->GetProperty();
         }
         if (property == nullptr) {
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
@@ -310,13 +307,6 @@ std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation()
 std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation(const std::shared_ptr<RSPropertyBase>& property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
 {
-    auto& customEffects = isTransitionIn_ ? effect_->customTransitionInEffects_ : effect_->customTransitionOutEffects_;
-    for (auto& customEffect : customEffects) {
-        if (property->modifier_.lock() == std::static_pointer_cast<RSModifier>(customEffect->modifier_)) {
-            customEffect->Custom(property, startValue, endValue);
-            break;
-        }
-    }
     if (transition_ == nullptr) {
         transition_ = std::make_shared<RSTransition>(effect_, isTransitionIn_);
         transition_->SetTimingCurve(timingCurve_);

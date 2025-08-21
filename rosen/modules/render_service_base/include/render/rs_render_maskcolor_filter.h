@@ -37,6 +37,8 @@ public:
     float GetPostProcessAlpha() const;
     virtual void PreProcess(std::shared_ptr<Drawing::Image>& image) override;
     virtual void PostProcess(Drawing::Canvas& canvas) override;
+    virtual bool NeedForceSubmit() const override;
+
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> image);
 private:
     int colorMode_;

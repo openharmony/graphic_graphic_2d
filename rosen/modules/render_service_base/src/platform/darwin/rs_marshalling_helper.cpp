@@ -34,7 +34,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
-#include "modifier/rs_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_def.h"
@@ -346,16 +345,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     return {};
 }
 
-// RSRenderFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderFilter>& val)
-{
-    return {};
-}
-
 // RSNGRenderFilterBase
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderFilterBase>& val)
 {
@@ -485,16 +474,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 #undef MARSHALLING_AND_UNMARSHALLING
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderModifier>& val)
-{
-    return {};
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
-{
-    return {};
-}
-
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {
     return {};
@@ -547,7 +526,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderMaskBase>)          \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderShaderBase>)        \
@@ -654,6 +632,16 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     return true;
 }
 bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
+{
+    return false;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSRenderParticleVector& val)
+{
+    return false;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& val)
 {
     return false;
 }

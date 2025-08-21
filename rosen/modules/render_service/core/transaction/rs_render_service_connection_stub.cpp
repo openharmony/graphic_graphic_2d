@@ -74,6 +74,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
@@ -206,6 +207,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST),
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
@@ -216,6 +219,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -423,7 +428,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
-        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)) {
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}d", code);
         return ERR_INVALID_STATE;
     }
@@ -916,6 +922,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
+            sptr<RSIScreenSwitchingNotifyCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            bool readRemoteObject{false};
+            if (!data.ReadBool(readRemoteObject)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Read parcel "
+                        "failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+
+            if (readRemoteObject) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+            }
+
+            int32_t status = SetScreenSwitchingNotifyCallback(callback);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG): {
             float darkBuffer { 0.f };
@@ -1260,6 +1291,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (status > static_cast<uint32_t>(ScreenPowerStatus::INVALID_POWER_STATUS)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_POWER_STATUS status is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
             break;
         }
@@ -1408,7 +1444,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool isFreeze{false};
+            bool isFreeze {false};
             if (!data.ReadBool(isFreeze)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY Read isFreeze failed!");
                 ret = ERR_INVALID_DATA;
@@ -1442,6 +1478,65 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 }
             }
             SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig, blurParam);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS): {
+            NodeId id { 0 };
+            if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool checkDrmAndSurfaceLock { false };
+            if (!data.ReadBool(checkDrmAndSurfaceLock)) {
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS \
+                    read checkDrmAndSurfaceLock failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<RSISurfaceCaptureCallback> cb;
+            RSSurfaceCaptureConfig captureConfig;
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS remoteObject is nullptr");
+                break;
+            }
+            cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+            if (cb == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS cb is nullptr");
+                break;
+            }
+            if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS read captureConfig failed");
+                break;
+            }
+            RSSurfaceCapturePermissions permissions;
+            permissions.screenCapturePermission = accessible;
+            permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + \
+                "::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS");
+            ret = TaskSurfaceCaptureWithAllWindows(id, cb, captureConfig, checkDrmAndSurfaceLock, permissions);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN): {
+            NodeId id { 0 };
+            if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::FREEZE_SCREEN read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool isFreeze { false };
+            if (!data.ReadBool(isFreeze)) {
+                RS_LOGE("RSRenderServiceConnectionStub::FREEZE_SCREEN read isFreeze failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ret = FreezeScreen(id, isFreeze);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {
@@ -1799,9 +1894,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP): {
             ScreenId id{INVALID_SCREEN_ID};
-            int32_t mode{0};
-            if (!data.ReadUint64(id) || !data.ReadInt32(mode)) {
+            uint32_t mode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(mode)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mode > static_cast<uint32_t>(ScreenGamutMap::GAMUT_MAP_HDR_EXTENSION)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_GAMUT_MAP mode is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1814,9 +1914,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION): {
             ScreenId id{INVALID_SCREEN_ID};
-            int32_t screenRotation{0};
-            if (!data.ReadUint64(id) || !data.ReadInt32(screenRotation)) {
+            uint32_t screenRotation{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(screenRotation)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CORRECTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (screenRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CORRECTION screenRotation is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2519,6 +2624,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetScreenFrameGravity(id, gravity);
             break;
         }
@@ -2661,6 +2771,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool isShow{false};
             if (!data.ReadBool(isShow)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SHOW_WATERMARK Read isShow failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!watermarkImg) {
+                RS_LOGE("RSRenderServiceConnectionStub::SHOW_WATERMARK watermarkImg is nullptr");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -3294,6 +3409,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            RS_LOGI("RSRenderServiceConnectionStub::SET_TP_FEATURE_CONFIG "
+                "callingPid: %{public}d, featrue: %{public}d, confid:%{public}s, TpFeatureConfigType: %{public}u",
+                callingPid, feature, config, tpFeatureConfigType);
             SetTpFeatureConfig(feature, config, static_cast<TpFeatureConfigType>(tpFeatureConfigType));
             break;
         }
@@ -3327,6 +3445,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::DROP_FRAME_BY_PID Read "
                         "pidList failed!");
                 ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (pidList.size() > MAX_DROP_FRAME_PID_LIST_SIZE) {
+                ret = ERR_INVALID_DATA;
                 break;
             }
             DropFrameByPid(pidList);
@@ -3632,6 +3754,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST) : {
+            std::vector<int32_t> pidList;
+            if (!data.ReadInt32Vector(&pidList)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST Read pidList failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            SetGpuCrcDirtyEnabledPidList(pidList);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
+            std::vector<int32_t> pidList;
+            if (!data.ReadInt32Vector(&pidList)) {
+                RS_LOGE(
+                    "RSRenderServiceConnectionStub::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST Read pidList failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            ret = SetOptimizeCanvasDirtyPidList(pidList);
+            break;
+        }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
             int32_t status = UnRegisterSelfDrawingNodeRectChangeCallback();
@@ -3893,6 +4037,7 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
@@ -3905,6 +4050,10 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
         !data.ReadUint32(captureConfig.backGroundColor)) {
+        RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
+        return false;
+    }
+    if (captureType >= static_cast<uint8_t>(SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT)) {
         RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureType failed!");
         return false;
     }

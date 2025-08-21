@@ -24,6 +24,8 @@
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "pixel_map.h"
+#include "sk_image_chain.h"
+#include "sk_image_filter_factory.h"
 
 
 namespace OHOS {
@@ -41,31 +43,32 @@ std::shared_ptr<Media::PixelMap> AniFilter::GetSrcPixelMap()
     return srcPixelMap_;
 }
 
-DrawingError AniFilter::Render(bool forceCPU)
+DrawError AniFilter::Render(bool forceCPU)
 {
-    EffectImageRender imageRender;
-    return imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
+    Rosen::SKImageChain skImage(srcPixelMap_);
+    DrawError ret = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
+
+    return ret;
 }
 
-void AniFilter::AddNextFilter(std::shared_ptr<EffectImageFilter> filter)
+void AniFilter::AddNextFilter(sk_sp<SkImageFilter> filter)
 {
-    effectFilters_.emplace_back(filter);
+    skFilters_.emplace_back(filter);
 }
 
 ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
 {
-    Drawing::TileMode tileMode = Drawing::TileMode::DECAL;
+    SkTileMode tileMode = SkTileMode::kDecal;
     AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
     if (aniFilter == nullptr) {
         EFFECT_LOG_E("GetFilterFromEnv failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-
     float radius = 0.0f;
     if (param >= 0) {
         radius = static_cast<float>(param);
     }
-    auto blur = EffectImageFilter::Blur(radius, tileMode);
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
     aniFilter->AddNextFilter(blur);
 
     static const char* className = ANI_CLASS_FILTER.c_str();
@@ -74,25 +77,40 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
         env, className, methodSig, reinterpret_cast<ani_long>(aniFilter));
 }
 
+ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
+{
+    AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (aniFilter == nullptr) {
+        EFFECT_LOG_E("GetFilterFromEnv failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
+    aniFilter->AddNextFilter(grayscale);
+
+    static const char* className = ANI_CLASS_FILTER.c_str();
+    return AniEffectKitUtils::CreateAniObject(
+        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+}
+
 ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
 {
     AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    bool forceCpu = false;
     if (!thisFilter) {
         EFFECT_LOG_E("thisFilter is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    bool forceCpu = false;
-    if (thisFilter->Render(forceCpu) != DrawingError::ERR_OK) {
+    if (thisFilter->Render(forceCpu) != DrawError::ERR_OK) {
         EFFECT_LOG_E("Render error");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return Media::PixelMapAni::CreatePixelMap(env, thisFilter->GetDstPixelMap());
+    return Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
 }
 
 ani_object AniFilter::CreateEffect(ani_env* env, ani_object para)
 {
     auto aniFilter = std::make_unique<AniFilter>();
-    std::shared_ptr<Media::PixelMap> pixelMap(AniEffectKitUtils::GetPixelMapFromEnv(env, para));
+    std::shared_ptr<Media::PixelMap> pixelMap(Media::PixelMapTaiheAni::GetNativePixelMap(env, para));
     if (!pixelMap) {
         EFFECT_LOG_E("pixelMap is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
@@ -117,8 +135,10 @@ ani_status AniFilter::Init(ani_env* env)
     std::array methods = {
         ani_native_function { "blurNative", "D:L@ohos/effectKit/effectKit/Filter;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Blur) },
+        ani_native_function { "grayscaleNative", ":L@ohos/effectKit/effectKit/Filter;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Grayscale) },
         ani_native_function { "getEffectPixelMapNative", ":L@ohos/multimedia/image/image/PixelMap;",
-            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) }
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {

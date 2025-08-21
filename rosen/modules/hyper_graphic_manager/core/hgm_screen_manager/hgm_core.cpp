@@ -30,6 +30,7 @@
 #include "frame_rate_report.h"
 #include "sandbox_utils.h"
 #include "hgm_screen_info.h"
+#include "syspara/parameter.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -51,6 +52,18 @@ std::map<uint32_t, int64_t> IDEAL_PERIOD = {
     { 10, 100000000 },
 };
 } // namespace
+
+void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* context)
+{
+    std::string mode(value);
+    HgmTaskHandleThread::Instance().PostTask([mode] () {
+        auto curMode = HgmCore::Instance().GetCurrentRefreshRateMode();
+        HgmCore::Instance().GetPolicyConfigData()->UpdateRefreshRateForSettings(mode);
+        HgmCore::Instance().SetRefreshRateMode(curMode);
+        RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(curMode));
+        HGM_LOGI("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
+    });
+}
 
 HgmCore& HgmCore::Instance()
 {
@@ -96,10 +109,20 @@ void HgmCore::Init()
         if (mPolicyConfigVisitor_ != nullptr) {
             mPolicyConfigVisitor_->SetXmlModeId(std::to_string(customFrameRateMode_));
         }
-
+        (void)AddParamWatcher();
         SetLtpoConfig();
         HGM_LOGI("HgmCore initialization success!!!");
     });
+}
+
+int HgmCore::AddParamWatcher() const
+{
+    // SysModeChangeProcess will be called when first WatchParameter
+    int ret = WatchParameter("persist.sys.mode", HgmCore::SysModeChangeProcess, nullptr);
+    if (ret != SUCCESS) {
+        HGM_LOGE("WatchParameter fail: %{public}d", ret);
+    }
+    return ret;
 }
 
 void HgmCore::CheckCustomFrameRateModeValid()
@@ -141,7 +164,7 @@ int32_t HgmCore::InitXmlConfig()
         mParser_ = std::make_unique<XMLParser>();
     }
 
-    if (mParser_->LoadConfiguration(configFileProduct) != EXEC_SUCCESS) {
+    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
         HGM_LOGW("HgmCore failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {
@@ -356,8 +379,7 @@ int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
         mPolicyConfigVisitor_->SetSettingModeId(refreshRateMode);
     }
     // setting mode to xml modeid
-    if (refreshRateMode != HGM_REFRESHRATE_MODE_AUTO
-        && mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+    if (mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
         refreshRateMode = mPolicyConfigData_->SettingModeId2XmlModeId(refreshRateMode);
     }
     HGM_LOGD("HgmCore set refreshrate mode to : %{public}d", refreshRateMode);
@@ -400,7 +422,8 @@ void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& a
     }
 }
 
-int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize)
+int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize,
+    const std::vector<GraphicDisplayModeInfo>& supportedModes)
 {
     // add a physical screen to hgm during hotplug event
     HGM_LOGI("HgmCore adding screen : " PUBI64 "", id);
@@ -425,6 +448,15 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
                 break;
             }
         }
+    }
+
+    // for each supported mode, use the index as modeId to add the detailed mode to hgm
+    int32_t modeId = 0;
+    for (const auto& mode : supportedModes) {
+        if (newScreen->AddScreenModeInfo(mode.width, mode.height, mode.freshRate, modeId) != EXEC_SUCCESS) {
+            HGM_LOGW("failed to add a screen profile to the screen : %{public}" PRIu64, id);
+        }
+        modeId++;
     }
 
     std::lock_guard<std::mutex> lock(listMutex_);
@@ -456,23 +488,6 @@ int32_t HgmCore::RemoveScreen(ScreenId id)
     return EXEC_SUCCESS;
 }
 
-int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode)
-{
-    // add a supported screen mode to the screen
-    auto screen = GetScreen(id);
-    if (!screen) {
-        HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
-        return HGM_NO_SCREEN;
-    }
-
-    if (screen->AddScreenModeInfo(width, height, rate, mode) == EXEC_SUCCESS) {
-        return EXEC_SUCCESS;
-    }
-
-    HGM_LOGW("HgmCore failed to add screen mode info of screen : " PUBU64 "", id);
-    return HGM_SCREEN_PARAM_ERROR;
-}
-
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 {
     auto screen = GetScreen(id);
@@ -486,9 +501,10 @@ uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 
 int32_t HgmCore::GetCurrentRefreshRateMode() const
 {
-    if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO
-        && mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
-        return mPolicyConfigData_->XmlModeId2SettingModeId(customFrameRateMode_);
+    if (mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
+        auto ret = mPolicyConfigData_->XmlModeId2SettingModeId(std::to_string(customFrameRateMode_));
+        HGM_LOGI("In GetCurrentRefreshRateMode, xmlid: %{public}d, setid: %{public}d", customFrameRateMode_, ret);
+        return ret;
     }
     return customFrameRateMode_;
 }

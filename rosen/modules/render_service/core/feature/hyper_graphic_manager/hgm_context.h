@@ -28,7 +28,7 @@ public:
 
     void InitHgmTaskHandleThread(
         sptr<VSyncController> rsVSyncController, sptr<VSyncController> appVSyncController,
-        sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor) const;
+        sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor);
     static int32_t FrameRateGetFunc(const RSPropertyUnit unit, float velocity, int32_t area, int32_t length);
     void ProcessHgmFrameRate(uint64_t timestamp, sptr<VSyncDistributor> rsVSyncDistributor, uint64_t vsyncId);
     FrameRateRange& GetRSCurrRangeRef()
@@ -43,6 +43,8 @@ public:
 private:
     FrameRateRange rsCurrRange_;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    uint64_t currVsyncId_ = 0;
+    uint64_t lastForceUpdateVsyncId_ = UINT64_MAX;
 };
 } // namespace OHOS
 } // namespace Rosen

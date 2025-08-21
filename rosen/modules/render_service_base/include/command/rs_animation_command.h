@@ -105,8 +105,6 @@ public:
     }
     static void CreateAnimation(
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
-    static void CreateParticleAnimation(RSContext& context, NodeId targetId,
-        const std::shared_ptr<RSRenderParticleAnimation>& animation);
     static void CreateParticleAnimationNG(RSContext& context, NodeId targetId, ModifierId modifierId,
         const std::shared_ptr<RSRenderParticleAnimation>& animation);
 
@@ -168,11 +166,6 @@ ADD_COMMAND(RSAnimationCallback,
 ADD_COMMAND(RSAnimationCreateCurve,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,
         NodeId, std::shared_ptr<RSRenderCurveAnimation>))
-
-// create particle animation
-ADD_COMMAND(RSAnimationCreateParticle,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_PARTICLE, AnimationCommandHelper::CreateParticleAnimation, NodeId,
-        std::shared_ptr<RSRenderParticleAnimation>))
 
 // create particle animation NG
 ADD_COMMAND(RSAnimationCreateParticleNG,

@@ -35,6 +35,7 @@ void RSNodeCommandTest::TearDownTestCase() {}
 void RSNodeCommandTest::SetUp() {}
 void RSNodeCommandTest::TearDown() {}
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: TestRSBaseNodeCommand001
  * @tc.desc: RemoveModifier test.
@@ -62,6 +63,7 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand002, TestSize.Level1)
     RSNodeCommandHelper::AddModifier(context, nodeId, modifier);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
+#endif
 
 /**
  * @tc.name: TestRSBaseNodeCommand003
@@ -158,6 +160,7 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId) == nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AddModifier001
  * @tc.desc: test results of AddModifier
@@ -194,6 +197,7 @@ HWTEST_F(RSNodeCommandTest, RemoveModifier001, TestSize.Level1)
     RSNodeCommandHelper::RemoveModifier(context, nodeId, propertyId);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
+#endif
 
 /**
  * @tc.name: SetFreeze001
@@ -376,6 +380,7 @@ HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1
     EXPECT_EQ(inNode->sharedTransitionParam_, nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: RemoveAllModifiers
  * @tc.desc: test results of RemoveAllModifiers
@@ -395,6 +400,7 @@ HWTEST_F(RSNodeCommandTest, RemoveAllModifiersTest, TestSize.Level1)
     ASSERT_NE(canvasNode, nullptr);
     EXPECT_TRUE(canvasNode->modifiers_.empty());
 }
+#endif
 
 /**
  * @tc.name: CommitDumpClientNodeTree
@@ -424,14 +430,14 @@ HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
     bool flag = false;
-    auto func = [&flag] (NodeId, pid_t, uint32_t) { flag = true; };
+    auto func = [&flag] (NodeId, pid_t, uint64_t, uint32_t) { flag = true; };
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
-    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, 0);
     ASSERT_TRUE(flag);
 
     flag = false;
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
-    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, 0);
     ASSERT_FALSE(flag);
 
     SUCCEED();
@@ -460,23 +466,6 @@ HWTEST_F(RSNodeCommandTest, SetUITokenTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetEnableHDREffectTest
- * @tc.desc: SetEnableHDREffect test
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandTest, SetEnableHDREffectTest, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = static_cast<NodeId>(1);
-    RSNodeCommandHelper::SetEnableHDREffect(context, nodeId, true);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    context.nodeMap.renderNodeMap_[ExtractPid(nodeId)][nodeId] = node;
-    RSNodeCommandHelper::SetEnableHDREffect(context, nodeId, true);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->enableHdrEffect_);
-}
-
-/**
  * @tc.name: SetNeedUseCmdlistDrawRegion
  * @tc.desc: SetNeedUseCmdlistDrawRegion test
  * @tc.type: FUNC
@@ -488,6 +477,11 @@ HWTEST_F(RSNodeCommandTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
     bool needUseCmdlistDrawRegion = false;
     RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    context.nodeMap.renderNodeMap_[ExtractPid(nodeId)][nodeId] = node;
+    RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion(context, nodeId, needUseCmdlistDrawRegion);
+    EXPECT_FALSE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
 }
 
 /**

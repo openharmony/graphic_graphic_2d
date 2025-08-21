@@ -572,7 +572,6 @@ void RSDisplaySoloistManager::InsertUseExclusiveThreadFlag(SoloistIdType id, boo
         idToSoloistMap_[id] = std::make_shared<RSDisplaySoloist>(id);
     }
     idToSoloistMap_[id]->useExclusiveThread_ = useExclusiveThread;
-    lock.unlock();
     ROSEN_LOGD("%{public}s, SoloistId:%{public}d useExclusiveThread:%{public}d.", __func__, id, useExclusiveThread);
     return;
 }

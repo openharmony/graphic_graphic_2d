@@ -19,13 +19,15 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "ffrt.h"
-#include "ffrt_inner.h"
 #include "message_parcel.h"
 
 #include "memory/rs_memory_flow_control.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_transaction_data.h"
+
+namespace ffrt {
+class queue;
+}
 
 namespace OHOS::Rosen {
 class RSUnmarshalThread {
@@ -39,8 +41,6 @@ public:
         std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr, uint32_t parcelNumber = 0);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
-    void Wait();
-
     bool ReportTransactionDataStatistics(pid_t pid, RSTransactionData* transactionData,
         bool isNonSystemAppCalling = false);
     void ClearTransactionDataStatistics();
@@ -64,12 +64,11 @@ private:
     bool willHaveCachedData_ = false;
     int unmarshalTid_ = -1;
     int unmarshalLoad_ = 0;
-    std::vector<ffrt::dependence> cachedDeps_;
 
     std::mutex statisticsMutex_;
     std::unordered_map<pid_t, size_t> transactionDataStatistics_;
 
-    std::unique_ptr<ffrt::queue> queue_ = nullptr;
+    std::shared_ptr<ffrt::queue> queue_ = nullptr;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

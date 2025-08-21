@@ -25,6 +25,7 @@ ohos_unittest("2d_graphics_utils_test") {
     "data_test.cpp",
     "matrix44_test.cpp",
     "matrix_test.cpp",
+    "object_helper_test.cpp",
     "performanceCaculate_test.cpp",
     "point3_test.cpp",
     "point_test.cpp",

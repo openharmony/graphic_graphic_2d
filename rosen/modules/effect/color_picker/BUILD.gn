@@ -84,6 +84,7 @@ if (is_arkui_x) {
       "graphic_surface:surface_headers",
       "hilog:libhilog",
       "image_framework:image_native",
+      "ipc:ipc_single",
     ]
 
     part_name = "graphic_2d"

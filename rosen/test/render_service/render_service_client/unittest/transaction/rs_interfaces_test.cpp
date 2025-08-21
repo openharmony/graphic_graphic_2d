@@ -148,99 +148,6 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
 }
 
 /**
- * @tc.name: TakeSurfaceCaptureForUIWithConfig001
- * @tc.desc: test results of TakeSurfaceCaptureForUIWithConfig
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig001, TestSize.Level1)
-{
-    class TestSurfaceCapture : public SurfaceCaptureCallback {
-    public:
-        explicit TestSurfaceCapture() {}
-        ~TestSurfaceCapture() {}
-        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
-        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
-            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
-    };
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    auto callback = std::make_shared<TestSurfaceCapture>();
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 1.f;
-    captureConfig.scaleY = 1.f;
-    captureConfig.isSync = true;
-    captureConfig.useDma = true;
-    bool res = instance.TakeSurfaceCaptureForUIWithConfig(nullptr, callback, captureConfig);
-    EXPECT_TRUE(res == false);
-
-    auto node = std::make_shared<RSNode>(true);
-    res = instance.TakeSurfaceCaptureForUIWithConfig(nullptr, callback, captureConfig);
-    EXPECT_TRUE(res == false);
-
-    RSUINodeType type = node->GetType();
-    type = RSUINodeType::UNKNOW;
-    res = instance.TakeSurfaceCaptureForUIWithConfig(nullptr, callback, captureConfig);
-    EXPECT_TRUE(res == false);
-
-    RSDisplayNodeConfig config;
-    auto rsDisplayNode = RSDisplayNode::Create(config);
-    res = instance.TakeSurfaceCaptureForUIWithConfig(rsDisplayNode, callback, captureConfig);
-    EXPECT_TRUE(res == false);
-}
-
-/**
- * @tc.name: TakeSurfaceCaptureForUIWithConfig002
- * @tc.desc: test results of TakeSurfaceCaptureForUIWithConfig
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig002, TestSize.Level1)
-{
-    std::shared_ptr<RSNode> node = nullptr;
-    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 1.f;
-    captureConfig.scaleY = 1.f;
-    captureConfig.isSync = true;
-    captureConfig.useDma = true;
-    bool res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
-    EXPECT_TRUE(res == false);
-
-    node = std::make_shared<RSNode>(true);
-    res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
-    EXPECT_TRUE(res == false);
-
-    node = std::make_shared<RSCanvasNode>(true);
-    res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
-}
-
-/**
- * @tc.name: TakeSurfaceCaptureForUIWithConfig003
- * @tc.desc: test results of TakeSurfaceCaptureForUIWithConfig
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig003, TestSize.Level1)
-{
-    std::shared_ptr<RSNode> node = nullptr;
-    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 1.f;
-    captureConfig.scaleY = 1.f;
-    captureConfig.isSync = true;
-    captureConfig.useDma = true;
-    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
-    bool res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig, specifiedAreaRect);
-    EXPECT_TRUE(res == false);
-
-    node = std::make_shared<RSNode>(true);
-    res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig, specifiedAreaRect);
-    EXPECT_TRUE(res == false);
-}
-
-/**
  * @tc.name: TakeSurfaceCaptureSoloNodeList001
  * @tc.desc: test results of TakeSurfaceCaptureSoloNodeList
  * @tc.type: FUNC
@@ -805,5 +712,56 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
     float gpuMemInMB = 0.0f;
     int32_t res = instance.GetPidGpuMemoryInMB(pid, gpuMemInMB);
     EXPECT_NE(res, 0);
+}
+
+/**
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
+ * @tc.desc: Test TaskSurfaceCaptureWithAllWindows to capture display
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSInterfacesTest, TaskSurfaceCaptureWithAllWindowsTest001, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        explicit TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+    };
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<RSDisplayNode> displayNode;
+    std::shared_ptr<TestSurfaceCapture> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    bool checkDrmAndSurfaceLock = true;
+    bool ret = instance.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    EXPECT_EQ(ret, false);
+
+    RSDisplayNodeConfig config;
+    displayNode = RSDisplayNode::Create(config);
+    callback = std::make_shared<TestSurfaceCapture>();
+    ret = instance.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: FreezeScreenTest001
+ * @tc.desc: Test FreezeScreen to freeze display
+ * @tc.type: FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSInterfacesTest, FreezeScreenTest001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<RSDisplayNode> displayNode;
+    bool isFreeze = true;
+    bool ret = instance.FreezeScreen(displayNode, isFreeze);
+    EXPECT_EQ(ret, false);
+
+    RSDisplayNodeConfig config;
+    displayNode = RSDisplayNode::Create(config);
+    ret = instance.FreezeScreen(displayNode, isFreeze);
+    EXPECT_EQ(ret, true);
 }
 } // namespace OHOS::Rosen

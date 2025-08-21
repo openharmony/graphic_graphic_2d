@@ -312,15 +312,16 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();
     rsSubThreadCache.SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+
+    // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
+    auto guard = std::make_shared<RSMainThread::GPUCompositonCacheGuard>();
     subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
-                            uniParam = new RSRenderThreadParams(*rtUniParam)]() mutable {
+                            uniParam = new RSRenderThreadParams(*rtUniParam), guard]() mutable {
         if (UNLIKELY(!uniParam)) {
             RS_LOGE("ScheduleRenderNodeDrawable subThread param is nullptr");
             return;
         }
 
-        // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
-        RSMainThread::GPUCompositonCacheGuard guard;
         std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
         /* Task run in SubThread, the uniParamUnique which is copyed from uniRenderThread will sync to SubTread */
         RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParamUnique));
@@ -351,24 +352,5 @@ void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(
 
     auto subThread = threadList_[nowIdx];
     subThread->PostTask([subThread, nodeDrawable]() { subThread->ReleaseCacheSurfaceOnly(nodeDrawable); });
-}
-
-void RSSubThreadManager::GetGpuMemoryForReport(std::unordered_map<pid_t, size_t>& gpuMemoryOfPid)
-{
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
-    for (auto& subThread : threadList_) {
-        if (!subThread) {
-            continue;
-        }
-        std::unordered_map<pid_t, size_t> gpuMemOfPid = subThread->GetGpuMemoryOfPid();
-        for (auto& [pid, memSize] : gpuMemOfPid) {
-            gpuMemoryOfPid[pid] += memSize;
-            if (memSize == 0) {
-                subThread->ErasePidOfGpuMemory(pid);
-            }
-        }
-    }
 }
 } // namespace OHOS::Rosen

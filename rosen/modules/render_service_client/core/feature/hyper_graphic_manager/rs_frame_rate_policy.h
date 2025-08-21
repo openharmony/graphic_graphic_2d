@@ -72,8 +72,8 @@ private:
     int32_t currentRefreshRateModeName_ = -1;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
     std::mutex mutex_;
-    std::chrono::steady_clock::time_point sendMoveTime_ = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point sendAxisUpdateTime_ = std::chrono::steady_clock::now();
+    std::atomic<std::chrono::steady_clock::time_point> sendMoveTime_ = std::chrono::steady_clock::now();
+    std::atomic<std::chrono::steady_clock::time_point> sendAxisUpdateTime_ = std::chrono::steady_clock::now();
 };
 } // namespace Rosen
 } // namespace OHOS

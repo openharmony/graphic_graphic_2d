@@ -461,12 +461,7 @@ void SurfaceImageListener::OnBufferAvailable()
         BLOGE("surfaceImage promote failed");
         return;
     }
-
-    // check here maybe a messagequeue, flag instead now
-    surfaceImage->OnUpdateBufferAvailableState(true);
-    if (surfaceImage->listener_ != nullptr) {
-        surfaceImage->listener_(surfaceImage->context_);
-    }
+    surfaceImage->OnBufferAvailable();
 }
 
 SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
@@ -481,7 +476,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     Rect damage;
     SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("AcquireBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
+        BLOGD("AcquireBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return ret;
     }
 
@@ -543,16 +538,30 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
     return ret;
 }
 
-SurfaceError SurfaceImage::SetDropBufferMode(bool enableDrop)
+SurfaceError SurfaceImage::SetDropBufferSwitch(bool isOpen)
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    BLOGI("SetDropBufferMode switch: %{public}d", enableDrop);
-    SurfaceError ret = ConsumerSurface::SetDropBufferMode(enableDrop);
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGE("ConsumerSurface::SetDropBufferMode ret: %{public}d", ret);
-        return ret;
+    BLOGI("SetDropBufferSwitch switch: %{public}d", isOpen);
+    dropFrameMode_ = isOpen;
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::OnBufferAvailable()
+{
+    OnBufferAvailableListener listener = nullptr;
+    EGLContext context = nullptr;
+    {
+        std::lock_guard<std::mutex> lockGuard(opMutex_);
+        // check here maybe a messagequeue, flag instead now
+        OnUpdateBufferAvailableState(true);
+        if (listener_ == nullptr || context_ == nullptr) {
+            BLOGE("SurfaceImage::OnBufferAvailable listener or context is nullptr");
+            return GSERROR_INVALID_OPERATING;
+        }
+        listener = listener_;
+        context = context_;
     }
-    dropFrameMode_ = enableDrop;
+    listener(context);
     return SURFACE_ERROR_OK;
 }
 } // namespace OHOS

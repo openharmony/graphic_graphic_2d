@@ -98,14 +98,37 @@ void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
     }
 }
 
+// DISPLAY ENGINE
+void RsCommonHook::SetCurrentPkgName(const std::string& pkgName)
+{
+    pkgName_ = pkgName;
+}
+
+std::string RsCommonHook::GetCurrentPkgName() const
+{
+    return pkgName_;
+}
+
 void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
 {
     tvPlayerBundleName_ = bundleName;
 }
 
-std::string RsCommonHook::GetTvPlayerBundleName() const
+const std::string& RsCommonHook::GetTvPlayerBundleName() const
 {
     return tvPlayerBundleName_;
 }
 
+void RsCommonHook::SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val)
+{
+    filterUnderHwcConfig_[appName] = val;
+}
+
+std::string_view RsCommonHook::GetFilterUnderHwcConfigByApp(const std::string& appName)
+{
+    if (auto it = filterUnderHwcConfig_.find(appName); it != filterUnderHwcConfig_.end()) {
+        return it->second;
+    }
+    return "";
+}
 } // namespace OHOS::Rosen

@@ -24,7 +24,6 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,17 +53,20 @@ T GetData()
     return object;
 }
 
-bool DoSetAndGet(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoSetAndGet(const uint8_t* data, size_t size)
+{
     // test
     float value = GetData<float>();
     RSProperty<float> rsProperty(value);
@@ -75,15 +77,6 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType001(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -93,15 +86,6 @@ bool DoSetThresholdType001(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -111,15 +95,6 @@ bool DoSetThresholdType002(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType003(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -129,15 +104,6 @@ bool DoSetThresholdType003(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType004(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -147,15 +113,6 @@ bool DoSetThresholdType004(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType005(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -165,15 +122,6 @@ bool DoSetThresholdType005(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType006(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -183,15 +131,6 @@ bool DoSetThresholdType006(const uint8_t* data, size_t size)
 
 bool DoSetThresholdType007(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -201,15 +140,6 @@ bool DoSetThresholdType007(const uint8_t* data, size_t size)
 
 bool DoGetRenderProperty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -219,15 +149,6 @@ bool DoGetRenderProperty(const uint8_t* data, size_t size)
 
 bool DoSetValueFromRender(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -238,34 +159,15 @@ bool DoSetValueFromRender(const uint8_t* data, size_t size)
 
 bool DoAttachModifier(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    prop->AttachModifier(modifier);
+    prop->AttachModifier(nullptr);
     return true;
 }
 
 bool DoAdd(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -276,15 +178,6 @@ bool DoAdd(const uint8_t* data, size_t size)
 
 bool DoAddPathAnimation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -294,15 +187,6 @@ bool DoAddPathAnimation(const uint8_t* data, size_t size)
 
 bool DoAnimateWithInitialVelocity(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -316,15 +200,6 @@ bool DoAnimateWithInitialVelocity(const uint8_t* data, size_t size)
 
 bool DoGetId(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -334,15 +209,6 @@ bool DoGetId(const uint8_t* data, size_t size)
 
 bool DoGetShowingValueAndCancelAnimation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -352,15 +218,6 @@ bool DoGetShowingValueAndCancelAnimation(const uint8_t* data, size_t size)
 
 bool DoGetStagingValue(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -370,15 +227,6 @@ bool DoGetStagingValue(const uint8_t* data, size_t size)
 
 bool DoRequestCancelAnimation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -388,15 +236,6 @@ bool DoRequestCancelAnimation(const uint8_t* data, size_t size)
 
 bool DoSetPropertyUnit(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -406,15 +245,6 @@ bool DoSetPropertyUnit(const uint8_t* data, size_t size)
 
 bool DoUpdateCustomAnimation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -424,15 +254,6 @@ bool DoUpdateCustomAnimation(const uint8_t* data, size_t size)
 
 bool DoUpdateOnAllAnimationFinish(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
@@ -442,15 +263,6 @@ bool DoUpdateOnAllAnimationFinish(const uint8_t* data, size_t size)
 
 bool DoRSPropertyBase(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSProperty<float> propertyBase;
     propertyBase.MarkCustomModifierDirty();
@@ -460,15 +272,6 @@ bool DoRSPropertyBase(const uint8_t* data, size_t size)
 
 bool DoOperator(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     std::shared_ptr<RSPropertyBase> a = std::make_shared<RSProperty<float>>();
     std::shared_ptr<RSPropertyBase> b = std::make_shared<RSProperty<float>>();
@@ -488,15 +291,6 @@ bool DoOperator(const uint8_t* data, size_t size)
 
 bool DoUpdateToRender001(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
     bool valuebool = GetData<bool>();
@@ -540,15 +334,6 @@ bool DoUpdateToRender001(const uint8_t* data, size_t size)
 
 bool DoUpdateToRender002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float valuefloat = GetData<float>();
     PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
@@ -587,15 +372,6 @@ bool DoUpdateToRender002(const uint8_t* data, size_t size)
 
 bool DoUpdateToRender003(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
     Vector4<uint32_t> valueVector4u32 = GetData<Vector4<uint32_t>>();
@@ -615,15 +391,6 @@ bool DoUpdateToRender003(const uint8_t* data, size_t size)
 
 bool DoIsValid(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float valuefloat = GetData<float>();
     RSProperty rsPropertyFloat(valuefloat);
@@ -639,15 +406,6 @@ bool DoIsValid(const uint8_t* data, size_t size)
 
 bool DoGetPropertyType(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float valuefloat = GetData<float>();
     RSAnimatableProperty rsAnimatablePropertyFloat(valuefloat);
@@ -678,15 +436,6 @@ bool DoGetPropertyType(const uint8_t* data, size_t size)
 
 bool DoRSPropertyBase002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     auto property = std::make_shared<RSProperty<float>>();
     property->GetThreshold();
@@ -710,15 +459,6 @@ bool DoRSPropertyBase002(const uint8_t* data, size_t size)
 
 bool DoRSProperty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSProperty<float>>(value);
@@ -730,15 +470,6 @@ bool DoRSProperty(const uint8_t* data, size_t size)
 
 bool DoRSAnimatableProperty(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     float value = GetData<float>();
     uint64_t id = GetData<uint64_t>();
@@ -761,6 +492,10 @@ bool DoRSAnimatableProperty(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoSetAndGet(data, size);
     OHOS::Rosen::DoSetThresholdType001(data, size);

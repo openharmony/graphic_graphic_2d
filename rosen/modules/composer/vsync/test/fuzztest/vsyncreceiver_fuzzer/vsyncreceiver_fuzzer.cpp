@@ -164,8 +164,9 @@ namespace OHOS {
         int64_t timestamp = GetData<int64_t>();
         bool isThreadShared = GetData<bool>();
         bool needCreateNewThread = GetData<bool>();
-        bool delayEnable = GetData<bool>();
+        bool compositeSceneEnable = GetData<bool>();
         bool nativeDelayEnable = GetData<bool>();
+        std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -185,7 +186,7 @@ namespace OHOS {
         vsyncReceiver->SetVSyncRate(fcb, rate);
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
-        vsyncReceiver->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
 

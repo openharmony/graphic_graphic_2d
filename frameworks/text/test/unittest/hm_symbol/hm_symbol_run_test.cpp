@@ -1181,7 +1181,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level0)
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     hmSymbolRun.SetSymbolEffect(RSEffectStrategy::DISABLE);
     RSHMSymbolData symbol;
-    std::pair<float, float> offsetXY(10.0f, 15.0f);
+    std::pair<float, float> offsetXY(10.0f, 15.0f); // 10.0f is x, 15.0f is y of offset
     Drawing::DrawingAnimationSetting animationSettingOne = {
         // animationTypes
         {
@@ -1318,7 +1318,7 @@ HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level0)
  * @tc.desc: test SetSymbolShadow with animation current is false and true
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level0)
 {
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     // {10.0F, 10.0f} is offsetXY, 10.0f is radius
@@ -1337,7 +1337,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolShadow001, TestSize.Level1)
  * @tc.desc: test OnDrawSymbol with shadow
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, OnDrawSymbolTestShadow, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, OnDrawSymbolTestShadow, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
@@ -1369,7 +1369,7 @@ HWTEST_F(OHHmSymbolRunTest, OnDrawSymbolTestShadow, TestSize.Level1)
  * @tc.desc: test DrawSymbolShadow
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level0)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
@@ -1400,7 +1400,7 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow001, TestSize.Level1)
  * @tc.desc: test DrawSymbolShadow width recordingCanvas
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow002, TestSize.Level1)
+HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow002, TestSize.Level0)
 {
     // 100 is width, 200 is height of canvas
     std::shared_ptr<RSRecordingCanvas> rsCanvas = std::make_shared<RSRecordingCanvas>(100, 200);
@@ -1415,6 +1415,40 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbolShadow002, TestSize.Level1)
     hmSymbolRun.SetSymbolShadow(symbolShadow);
     hmSymbolRun.DrawSymbolShadow(rsCanvas.get(), paths);
     EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetSymbolShadow().has_value());
+}
+
+/*
+ * @tc.name: SetSymbolLayersColorTest
+ * @tc.desc: test SetSymbolLayersColorTest by different symbol color type
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetSymbolLayersColorTest, TestSize.Level0)
+{
+    uint16_t glyphId = 7; // 7 is an existing GlyphID
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    SymbolColor symbolColor = {SymbolColorType::GRADIENT_TYPE, {nullptr}};
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+    symbolTxt.SetSymbolColor(symbolColor);
+    hmSymbolRun.SetSymbolTxt(symbolTxt);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
+    auto symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
+    EXPECT_NE(symbolLayer.symbolGlyphId, glyphId);
+
+    hmSymbolRun.gradients_ = {};
+    symbolColor.colorType = SymbolColorType::GRADIENT_DEFAULT_COLOR;
+    symbolTxt.SetSymbolColor(symbolColor);
+    symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
+    EXPECT_TRUE(!hmSymbolRun.gradients_.empty());
+
+    hmSymbolRun.gradients_ = {};
+    auto color = std::make_shared<SymbolGradient>();
+    color->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    symbolColor.gradients[0] = color;
+    symbolTxt.SetSymbolColor(symbolColor);
+    hmSymbolRun.SetSymbolTxt(symbolTxt);
+    symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
+    EXPECT_TRUE(!hmSymbolRun.gradients_.empty());
 }
 } // namespace SPText
 } // namespace Rosen

@@ -646,6 +646,16 @@ bool DoSetScreenChangeCallback()
     return true;
 }
 
+bool DoSetScreenSwitchingNotifyCallback()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    sptr<RSIScreenSwitchingNotifyCallback> callback = nullptr;
+    rsConn_->SetScreenSwitchingNotifyCallback(callback);
+    return true;
+}
+
 bool DoSetFocusAppInfo()
 {
     if (rsConn_ == nullptr) {
@@ -1501,28 +1511,6 @@ bool DoRegisterFirstFrameCommitCallback()
     return true;
 }
 
-bool DoSetWindowExpectedRefreshRate()
-{
-    if (rsConn_ == nullptr) {
-        return false;
-    }
-    std::unordered_map<uint64_t, EventInfo> eventInfos;
-    uint64_t winId = GetData<uint64_t>();
-    EventInfo eventInfo;
-    eventInfo.eventName = GetData<std::string>();
-    eventInfo.eventStatus = GetData<bool>();
-    eventInfo.minRefreshRate = GetData<uint32_t>();
-    eventInfo.maxRefreshRate = GetData<uint32_t>();
-    eventInfo.description = GetData<std::string>();
-    eventInfos[winId] = eventInfo;
-    rsConn_->SetWindowExpectedRefreshRate(eventInfos);
-    std::unordered_map<std::string, EventInfo> stringEventInfos;
-    std::string name = GetData<std::string>();
-    stringEventInfos[name] = eventInfo;
-    rsConn_->SetWindowExpectedRefreshRate(stringEventInfos);
-    return true;
-}
-
 bool DoClearUifirstCache()
 {
     if (rsConn_ == nullptr) {
@@ -1531,6 +1519,30 @@ bool DoClearUifirstCache()
 
     NodeId id = GetData<NodeId>();
     rsConn_->ClearUifirstCache(id);
+    return true;
+}
+
+bool DoTaskSurfaceCaptureWithAllWindows()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    NodeId nodeId = GetData<NodeId>();
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    RSSurfaceCaptureConfig captureConfig;
+    rsConn_->TaskSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    return true;
+}
+
+bool DoFreezeScreen()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    NodeId nodeId = GetData<NodeId>();
+    bool isFreeze = GetData<bool>();
+    rsConn_->FreezeScreen(nodeId, isFreeze);
     return true;
 }
 
@@ -1576,6 +1588,7 @@ void DoFuzzerTest1()
     DoTakeSurfaceCapture();
     DoSetHwcNodeBounds();
     DoSetScreenChangeCallback();
+    DoSetScreenSwitchingNotifyCallback();
     DoSetFocusAppInfo();
     DoSetAncoForceDoDirect();
     DoGetActiveDirtyRegionInfo();
@@ -1653,11 +1666,12 @@ void DoFuzzerTest3()
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();
     DoSetVirtualScreenAutoRotation();
-    DoSetWindowExpectedRefreshRate();
     DoProfilerServiceOpenFile();
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();
     DoClearUifirstCache();
+    DoTaskSurfaceCaptureWithAllWindows();
+    DoFreezeScreen();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -22,6 +22,10 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "sync_fence.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
+#endif // RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
 #else
@@ -48,13 +52,11 @@ class RSSurfaceRenderNodeDrawable;
 }
 struct FrameContextConfig {
 public:
-    FrameContextConfig(bool isProtected, bool independentContext)
+    explicit FrameContextConfig(bool isProtected)
     {
         this->isProtected = isProtected;
-        this->independentContext = independentContext;
     }
     bool isProtected = false;
-    bool independentContext = false;
     bool isVirtual = false;
     int32_t timeOut = 3000; // ms
 };
@@ -78,6 +80,14 @@ public:
     {
         if (targetSurface_ != nullptr && surfaceFrame_ != nullptr) {
             targetSurface_->FlushFrame(surfaceFrame_);
+#if defined(RS_ENABLE_VK)
+            if (surfaceFrame_->GetType() == RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_VULKAN) {
+                auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(surfaceFrame_.get());
+                if (frameOhosVulkan) {
+                    acquireFence_ = frameOhosVulkan->GetAcquireFence();
+                }
+            }
+#endif // RS_ENABLE_VK
             targetSurface_ = nullptr;
             surfaceFrame_ = nullptr;
         }
@@ -89,6 +99,10 @@ public:
     const std::unique_ptr<RSSurfaceFrame>& GetFrame() const
     {
         return surfaceFrame_;
+    }
+    const sptr<SyncFence>& GetAcquireFence() const
+    {
+        return acquireFence_;
     }
     std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
     {
@@ -125,6 +139,7 @@ protected:
 private:
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
 };
 
 // function that will be called before drawing Buffer / Image.
@@ -157,12 +172,12 @@ public:
     // for framebuffer surface
     std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
-        const FrameContextConfig& frameContextConfig = {false, false});
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
-        const FrameContextConfig& frameContextConfig = {false, false});
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
     std::shared_ptr<RSSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
     static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSSurfaceOhos> surfaceOhos);
@@ -232,11 +247,6 @@ public:
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
-
-    void SetHDRStatusChanged(bool isHDRStatusChanged)
-    {
-        isHDRStatusChanged_ = isHDRStatusChanged;
-    }
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -268,7 +278,6 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif
-    bool isHDRStatusChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

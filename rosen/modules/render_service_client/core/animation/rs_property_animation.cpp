@@ -17,7 +17,6 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
-#include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
@@ -161,8 +160,8 @@ void RSPropertyAnimation::InitAdditiveMode()
         return;
     }
 
-    switch (property_->type_) {
-        case RSModifierType::QUATERNION:
+    switch (property_->GetPropertyTypeNG()) {
+        case ModifierNG::RSPropertyType::QUATERNION:
             SetAdditive(false);
             break;
         default:
@@ -172,17 +171,18 @@ void RSPropertyAnimation::InitAdditiveMode()
 
 void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
 {
-    dumpInfo += ", isCustom:" + std::to_string(isCustom_);
+    dumpInfo.append(", isCustom:").append(std::to_string(isCustom_));
     if (property_) {
-        dumpInfo += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->type_));
+        dumpInfo.append(", PropertyType: ").append(
+            std::to_string(static_cast<int16_t>(property_->GetPropertyTypeNG())));
     }
     if (startValue_) {
-        dumpInfo += ", StartValue: " +
-            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty());
+        dumpInfo.append(", StartValue: ").append(
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(startValue_->GetRenderProperty()));
     }
     if (endValue_) {
-        dumpInfo += ", EndValue: " +
-            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_->GetRenderProperty());
+        dumpInfo.append(", EndValue: ").append(
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(endValue_->GetRenderProperty()));
     }
 }
 } // namespace Rosen

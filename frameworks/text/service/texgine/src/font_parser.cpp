@@ -410,7 +410,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         return nullptr;
     }
     if ((*fontFileMap).find(fontName) == (*fontFileMap).end()) {
-        TEXT_LOGE_LIMIT3_MIN("Failed to find font name %{pubic}s", fontName.c_str());
+        TEXT_LOGE_LIMIT3_MIN("Failed to find font name %{public}s", fontName.c_str());
         return nullptr;
     }
     std::string path = SYSTEM_FONT_PATH + (*fontFileMap)[fontName];

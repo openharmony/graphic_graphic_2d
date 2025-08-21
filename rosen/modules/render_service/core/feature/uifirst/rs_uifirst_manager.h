@@ -55,7 +55,7 @@ public:
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
     void AddPendingNodeBehindWindow(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
-        MultiThreadCacheType currentFrameCacheType);
+    MultiThreadCacheType currentFrameCacheType);
 
     bool NeedNextDrawForSkippedNode();
 
@@ -96,11 +96,6 @@ public:
         return isUiFirstOn_ && isUiFirstSupportFlag_;
     }
 
-    void SetCardUiFirstSwitch(bool cardUiFirstSwitch)
-    {
-        isCardUiFirstOn_ = cardUiFirstSwitch;
-    }
-
     UiFirstCcmType GetUiFirstType() const
     {
         return uifirstType_;
@@ -111,6 +106,11 @@ public:
     void SetPurgeEnable(bool purgeEnable)
     {
         purgeEnable_ = purgeEnable;
+    }
+
+    void SetCardUiFirstSwitch(bool cardUiFirstSwitch)
+    {
+        isCardUiFirstOn_ = cardUiFirstSwitch;
     }
 
     void SetNodeNeedForceUpdateFlag(bool flag)
@@ -147,6 +147,11 @@ public:
         return isSplitScreenScene_.load();
     }
 
+    bool IsSnapshotRotationScene() const
+    {
+        return isSnapshotRotationScene_;
+    }
+
     void AddCapturedNodes(NodeId id);
 
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
@@ -174,6 +179,12 @@ public:
     void PostReleaseCacheSurfaceSubTask(NodeId id);
     void TryReleaseTextureForIdleThread();
 
+    // only use in mainThread & RT onsync
+    inline void UifirstCurStateClear()
+    {
+        uifirstCacheState_.clear();
+    }
+
     void SetFreeMultiWindowStatus(bool enable)
     {
         isFreeMultiWindowEnabled_ = enable;
@@ -181,24 +192,19 @@ public:
     UiFirstModeType GetUiFirstMode();
     void ReadUIFirstCcmParam();
     void RefreshUIFirstParam();
-    // only use in mainThread & RT onsync
-    inline void UifirstCurStateClear()
-    {
-        uifirstCacheState_.clear();
-    }
 
     bool IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node);
     bool IsSubHighPriorityType(RSSurfaceRenderNode& node) const;
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
-    bool SubThreadControlFrameRate(NodeId id,
-    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
-    std::shared_ptr<RSSurfaceRenderNode>& node);
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
     // get cache state of uifirst root node
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
+    bool SubThreadControlFrameRate(NodeId id,
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
+    std::shared_ptr<RSSurfaceRenderNode>& node);
     void AddMarkedClearCacheNode(NodeId id);
     void ProcessMarkedNodeSubThreadCache();
     bool IsUiFirstWorking() const
@@ -286,7 +292,7 @@ private:
     bool CheckHasTransAndFilter(RSSurfaceRenderNode& node);
     bool HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const;
 
-    // starting
+    // stating
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
 
     bool IsFocusedNode(const RSSurfaceRenderNode& node) const;
@@ -300,13 +306,13 @@ private:
     bool purgeEnable_ = false;
     bool isCardUiFirstOn_ = false;
     UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
-    bool hasForceUpdateNode_ = false;
     bool isFreeMultiWindowEnabled_ = false;
     std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
     std::atomic<bool> isMissionCenterScene_ = false;
     std::atomic<bool> isSplitScreenScene_ = false;
+    std::atomic<bool> isSnapshotRotationScene_ = false;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;
@@ -353,6 +359,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> pendingResetWindowCachedNodes_;
 
     std::set<NodeId> collectedCardNodes_;
+    bool hasForceUpdateNode_ = false;
     // event list
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
@@ -391,6 +398,9 @@ private:
     // uifirst mem opt.
     std::set<NodeId> markedClearCacheNodes_;
 };
+
+// If a subnode is delivered directly
+// record the firstLevelNodeId in the delivered subnode as the real one.
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:
     RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
@@ -405,8 +415,6 @@ public:
         }
     }
 
-    // If a subnode is delivered directly
-    // record the firstLevelNodeId in the delivered subnode as the real one.
     RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId)
     {
         isCurUifirstRootNodeId_ = true;

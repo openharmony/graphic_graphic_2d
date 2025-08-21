@@ -16,8 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_EFFECT_RS_RENDER_SHADER_BASE_H
 #define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_SHADER_BASE_H
 
-#include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_effect_template.h"
+#include "effect/rs_render_property_tag.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,6 +40,9 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val);
     void Dump(std::string& out) const;
+
+private:
+    friend class RSNGRenderShaderHelper;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -57,6 +60,9 @@ public:
         if (ge == nullptr) {
             return;
         }
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderShaderTemplate::AppendToGEContainer, Type: %s paramStr: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
+            EffectTemplateBase::DumpProperties().c_str());
         auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         std::apply(
             [&geShader](const auto&... propTag) {
@@ -74,6 +80,17 @@ protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
 };
 
+class RSB_EXPORT RSNGRenderShaderHelper {
+public:
+    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase> shader);
+
+    static void SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase> shader,
+        const Vector3f& rotationAngle);
+
+    static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
+        float cornerRadius);
+};
+
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 
 #define DECLARE_SHADER(ShaderName, ShaderType, ...) \
@@ -86,12 +103,17 @@ DECLARE_SHADER(ContourDiagonalFlowLight, CONTOUR_DIAGONAL_FLOW_LIGHT,
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Color),
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Start),
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Length),
-    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color)
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Thickness),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Radius),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Weight1),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Weight2)
 );
 
 DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
     ADD_PROPERTY_TAG(WavyRippleLight, Center),
-    ADD_PROPERTY_TAG(WavyRippleLight, Radius)
+    ADD_PROPERTY_TAG(WavyRippleLight, Radius),
+    ADD_PROPERTY_TAG(WavyRippleLight, Thickness)
 );
 
 DECLARE_SHADER(AuroraNoise, AURORA_NOISE,
@@ -102,6 +124,67 @@ DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
     ADD_PROPERTY_TAG(ParticleCircularHalo, Center),
     ADD_PROPERTY_TAG(ParticleCircularHalo, Radius),
     ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
+);
+
+DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color0),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color1),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color2),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color3),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color4),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color5),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color6),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color7),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color8),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color9),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color10),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Color11),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position0),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position1),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position2),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position3),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position4),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position5),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position6),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position7),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position8),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position9),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position10),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Position11),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength0),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength1),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength2),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength3),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength4),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength5),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength6),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength7),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength8),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength9),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength10),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Strength11),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
+    ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Blend),
+    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
+);
+
+DECLARE_SHADER(LightCave, LIGHT_CAVE,
+    ADD_PROPERTY_TAG(LightCave, ColorA),
+    ADD_PROPERTY_TAG(LightCave, ColorB),
+    ADD_PROPERTY_TAG(LightCave, ColorC),
+    ADD_PROPERTY_TAG(LightCave, Position),
+    ADD_PROPERTY_TAG(LightCave, RadiusXY),
+    ADD_PROPERTY_TAG(LightCave, Progress)
+);
+
+DECLARE_SHADER(BorderLight, BORDER_LIGHT,
+    ADD_PROPERTY_TAG(BorderLight, Position),
+    ADD_PROPERTY_TAG(BorderLight, Color),
+    ADD_PROPERTY_TAG(BorderLight, Intensity),
+    ADD_PROPERTY_TAG(BorderLight, Width),
+    ADD_PROPERTY_TAG(BorderLight, RotationAngle),
+    ADD_PROPERTY_TAG(BorderLight, CornerRadius)
 );
 
 #undef ADD_PROPERTY_TAG

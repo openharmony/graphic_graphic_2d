@@ -29,7 +29,7 @@ ohos_fuzztest("RSSurfaceOhosVulkanFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service_client",
   ]
   if (graphic_2d_feature_upgrade_skia) {
-    include_dirs += ["$skia_root_new/include/third_party/vulkan",]
+    include_dirs += ["$skia_root_new/m133/include/third_party/vulkan",]
   } else {
     include_dirs += ["$skia_root_new/include/third_party/vulkan",]
   }

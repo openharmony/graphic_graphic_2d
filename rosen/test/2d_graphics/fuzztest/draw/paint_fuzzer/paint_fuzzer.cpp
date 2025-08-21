@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,11 +48,6 @@ bool PaintFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Paint paint = Paint();
     Paint paintCopy = Paint(paint);
     Color color;
@@ -91,11 +86,6 @@ bool PaintFuzzTest002(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Paint paint = Paint();
     uint32_t style = GetObject<uint32_t>();
     paint.SetCapStyle(static_cast<Pen::CapStyle>(style));
@@ -129,11 +119,6 @@ bool PaintFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Paint paint = Paint();
     bool aa = GetObject<bool>();
@@ -169,11 +154,6 @@ bool PaintFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Paint paint = Paint();
     Color color;
@@ -224,11 +204,6 @@ bool PaintFuzzTest005(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    
     Paint paint = Paint();
     ColorQuad color = GetObject<ColorQuad>();
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
@@ -257,6 +232,11 @@ bool PaintFuzzTest005(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::PaintFuzzTest001(data, size);
     OHOS::Rosen::Drawing::PaintFuzzTest002(data, size);

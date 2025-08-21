@@ -161,6 +161,8 @@ private:
     std::pair<float, float> CalculateByDegree(const Drawing::Rect& rect);
     void DrawImageRect(
             Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions);
+    bool EnhanceImageAsync(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+        bool needDetachPen) const;
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
     void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
     void DrawImageOnCanvas(
@@ -197,7 +199,6 @@ private:
     bool isFitMatrixValid_ = false;
     OrientationFit orientationFit_ = OrientationFit::NONE;
     bool isOrientationValid_ = false;
-    Drawing::Rect rectForDrawShader_;
 };
 
 template<>

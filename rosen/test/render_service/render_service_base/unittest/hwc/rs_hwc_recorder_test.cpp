@@ -15,10 +15,14 @@
 
 #include "gtest/gtest.h"
 
-#include "params/rs_render_params.h"
 #include "hwc/rs_hwc_recorder.h"
+#include "params/rs_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_root_render_node.h"
+#include "ui/rs_canvas_node.h"
 
 #include "platform/common/rs_log.h"
 
@@ -46,7 +50,7 @@ void RSHwcRecorderTest::TearDown() {}
 /**
  * @tc.name: SetBlendWithBackground_001
  * @tc.desc: test SetBlendWithBackground
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSHwcRecorderTest, SetBlendWithBackground_001, TestSize.Level1)
@@ -60,7 +64,7 @@ HWTEST_F(RSHwcRecorderTest, SetBlendWithBackground_001, TestSize.Level1)
 /**
  * @tc.name: IsBlendWithBackground_001
  * @tc.desc: test IsBlendWithBackground
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSHwcRecorderTest, IsBlendWithBackground_001, TestSize.Level1)
@@ -74,7 +78,7 @@ HWTEST_F(RSHwcRecorderTest, IsBlendWithBackground_001, TestSize.Level1)
 /**
  * @tc.name: SetForegroundColorValid_001
  * @tc.desc: test SetForegroundColorValid
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSHwcRecorderTest, SetForegroundColorValid_001, TestSize.Level1)
@@ -88,7 +92,7 @@ HWTEST_F(RSHwcRecorderTest, SetForegroundColorValid_001, TestSize.Level1)
 /**
  * @tc.name: IsForegroundColorValid_001
  * @tc.desc: test IsForegroundColorValid
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSHwcRecorderTest, IsForegroundColorValid_001, TestSize.Level1)
@@ -100,9 +104,42 @@ HWTEST_F(RSHwcRecorderTest, IsForegroundColorValid_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetZorderChanged_001
+ * @tc.desc: test GetZorderChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, GetZorderChanged_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSCanvasRenderNode node(id);
+    node.GetMutableRenderProperties().SetPositionZ(2.0);
+    node.GetHwcRecorder().UpdatePositionZ(node.GetRenderProperties().GetPositionZ());
+    ASSERT_TRUE(node.GetHwcRecorder().GetZorderChanged());
+}
+
+/**
+ * @tc.name: UpdatePositionZ_001
+ * @tc.desc: test UpdatePositionZ
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, UpdatePositionZ_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSCanvasRenderNode node(id);
+    node.GetMutableRenderProperties().SetPositionZ(0.0);
+    node.GetHwcRecorder().UpdatePositionZ(node.GetRenderProperties().GetPositionZ());
+    ASSERT_FALSE(node.GetHwcRecorder().GetZorderChanged());
+    node.GetMutableRenderProperties().SetPositionZ(2.0);
+    node.GetHwcRecorder().UpdatePositionZ(node.GetRenderProperties().GetPositionZ());
+    ASSERT_TRUE(node.GetHwcRecorder().GetZorderChanged());
+}
+
+/**
  * @tc.name: SetIntersectWithPreviousFilter_001
  * @tc.desc: test SetIntersectWithPreviousFilter
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSHwcRecorderTest, SetIntersectWithPreviousFilter_001, TestSize.Level1)
@@ -116,7 +153,7 @@ HWTEST_F(RSHwcRecorderTest, SetIntersectWithPreviousFilter_001, TestSize.Level1)
 /**
  * @tc.name: IsIntersectWithPreviousFilter_001
  * @tc.desc: test IsIntersectWithPreviousFilter
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSHwcRecorderTest, IsIntersectWithPreviousFilter_001, TestSize.Level1)
@@ -127,4 +164,17 @@ HWTEST_F(RSHwcRecorderTest, IsIntersectWithPreviousFilter_001, TestSize.Level1)
     ASSERT_TRUE(node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter());
 }
 
+/**
+ * @tc.name: SetAndGetZOrderForHwcEnableByFilterTest
+ * @tc.desc: test SetZOrderForHwcEnableByFilter and GetZOrderForHwcEnableByFilter
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSHwcRecorderTest, SetAndGetZOrderForHwcEnableByFilterTest, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(1);
+    ASSERT_EQ(node.GetHwcRecorder().GetZOrderForHwcEnableByFilter(), 1);
+}
 } //namespace OHOS::Rosen

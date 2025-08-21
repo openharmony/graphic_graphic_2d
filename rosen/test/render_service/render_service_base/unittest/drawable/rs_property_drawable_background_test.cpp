@@ -44,8 +44,9 @@ public:
 class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
 public:
     explicit ConcreteRSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
-        : RSRenderNodeDrawableAdapter(std::move(node)) {}
-    void Draw(Drawing::Canvas& canvas);
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {}
+    void Draw(Drawing::Canvas& canvas) {}
 };
 
 void RSRSBinarizationDrawableTest::SetUpTestCase() {}
@@ -648,7 +649,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable004, TestSize.Level1)
  * @tc.name: RSUseEffectDrawable005
  * @tc.desc: Test CreateDrawFunc
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueIB0UQV
  */
 HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable005, TestSize.Level1)
 {
@@ -664,20 +665,21 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable005, TestSize.Level1)
     auto rect = std::make_shared<Drawing::Rect>();
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_NE(drawFunc, nullptr);
 }
 
 /**
  * @tc.name: RSUseEffectDrawable006
  * @tc.desc: Test CreateDrawFunc
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issueIB0UQV
  */
 HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable006, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
     node.GetMutableRenderProperties().SetUseEffect(true);
-    node.GetMutableRenderProperties().SetUseEffectType(1);
+    node.GetMutableRenderProperties().SetUseEffectType(2);
     auto drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
@@ -686,6 +688,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable006, TestSize.Level1)
     auto rect = std::make_shared<Drawing::Rect>();
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_NE(drawFunc, nullptr);
 }
 
 /**
@@ -710,6 +713,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable007, TestSize.Level1)
     auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_NE(drawFunc, nullptr);
 }
 
 /**
@@ -734,6 +738,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable008, TestSize.Level1)
     auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_NE(drawFunc, nullptr);
 }
 
 /**

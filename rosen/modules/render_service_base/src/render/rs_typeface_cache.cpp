@@ -297,18 +297,29 @@ void RSTypefaceCache::HandleDelayDestroyQueue()
 
 void RSTypefaceCache::Dump() const
 {
-    RS_LOGI("RSTypefaceCache Dump : [");
-    RS_LOGI("RSTypefaceCache Dump %{public}s",
-        "---pid typefaceID-------------hash_value------------ref_count-----------familyname--------------");
+    RS_LOGI("RSTypefaceCache Dump: [");
+    RS_LOGI("RSTypefaceCache Dump: "
+            "%{public}-6s %{public}-16s %{public}-16s %{public}-4s %{public}-26s %{public}10s %{public}10s",
+            "pid", "typefaceID", "hash_value", "ref", "familyname", "size(B)", "size(MB)");
+    constexpr double KB = 1024.0;
+    constexpr double MB = KB * KB;
     for (auto co : typefaceHashCode_) {
-        if (typefaceHashMap_.find(co.second) != typefaceHashMap_.end()) {
-            auto [typeface, ref] = typefaceHashMap_.at(co.second);
-            RS_LOGI("%{public}s    %{public}s             %{public}s            %{public}s           %{public}s",
-                "RSTypefaceCache Dump", std::to_string(co.first).c_str(), std::to_string(co.second).c_str(),
-                std::to_string(ref).c_str(), typeface->GetFamilyName().c_str());
+        auto iter = typefaceHashMap_.find(co.second);
+        if (iter != typefaceHashMap_.end()) {
+            auto [typeface, ref] = iter->second;
+
+            int pid = GetTypefacePid(co.first);
+            uint64_t typefaceId = co.first;
+            uint64_t hash = co.second;
+            const std::string& family = typeface->GetFamilyName();
+            double sizeMB = static_cast<double>(typeface->GetSize()) / MB;
+            RS_LOGI("RSTypefaceCache Dump: "
+                    "%{public}6d %{public}16" PRIu64 " %{public}16" PRIu64
+                    " %{public}4u %{public}26s %{public}10u %{public}10.2f",
+                    pid, typefaceId, hash, ref, family.c_str(), typeface->GetSize(), sizeMB);
         }
     }
-    RS_LOGI("RSTypefaceCache ]");
+    RS_LOGI("RSTypefaceCache Dump ]");
 }
 
 void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)

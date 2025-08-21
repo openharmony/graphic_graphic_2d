@@ -69,14 +69,14 @@ public:
 
     /**
      * @brief Creates a new RSUIContext.
-     * 
+     *
      * @return A shared pointer to the newly created RSUIContext.
      */
     std::shared_ptr<RSUIContext> CreateRSUIContext();
 
     /**
      * @brief Destroys the RSUIContext associated with the given token.
-     * 
+     *
      * @param token The unique identifier for the RSUIContext to be destroyed.
      */
     void DestroyContext(uint64_t token);
@@ -91,7 +91,7 @@ private:
 
     /**
      * @brief Generates a unique token based on the provided thread ID (tid).
-     * 
+     *
      * @param tid The thread ID for which the token is to be generated.
      * @return A 64-bit unsigned integer representing the generated token.
      */

@@ -17,12 +17,12 @@
 
 #include "frame_rate_report.h"
 
-namespace OHOS {
-namespace Rosen {
 using namespace testing;
 using namespace testing::ext;
 using namespace FRAME_TRACE;
 
+namespace OHOS {
+namespace Rosen {
 class FrameRateReportTest : public testing::Test {
 public:
     static void SetUpTestCase();

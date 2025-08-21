@@ -15,36 +15,15 @@
 
 #include "drawing_text_font_descriptor.h"
 
+#include <string_ex.h>
+
 #include "array_mgr.h"
 #include "font_descriptor_mgr.h"
 #include "font_utils.h"
 #include "text/common_utils.h"
+#include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
-namespace {
-size_t CalculateDrawingStringSize(const std::string& fullName, std::u16string& utf16String)
-{
-    if (fullName.empty()) {
-        return 0;
-    }
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    utf16String = converter.from_bytes(fullName);
-    return utf16String.size() * sizeof(char16_t);
-}
-
-bool ConvertToDrawingString(std::u16string& utf16String, OH_Drawing_String& fullNameString)
-{
-    if (utf16String.empty() || fullNameString.strData == nullptr || fullNameString.strLen == 0) {
-        return false;
-    }
-    char16_t* u16Data = const_cast<char16_t*>(utf16String.c_str());
-    if (memcpy_s(fullNameString.strData, fullNameString.strLen, u16Data, fullNameString.strLen) == EOK) {
-        return true;
-    }
-    return false;
-}
-}
-
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
 {
@@ -145,43 +124,32 @@ OH_Drawing_Array* OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontT
     auto systemFontType = static_cast<int32_t>(fontType);
     std::unordered_set<std::string> fullNameList;
     FontDescriptorMgrInstance.GetSystemFontFullNamesByType(systemFontType, fullNameList);
-    if (fullNameList.size() == 0) {
-        return nullptr;
-    }
-    ObjectArray* array = new (std::nothrow)ObjectArray;
-    if (array == nullptr) {
-        return nullptr;
-    }
-    OH_Drawing_String* drawingStringArray = new (std::nothrow)OH_Drawing_String[fullNameList.size()];
-    if (drawingStringArray == nullptr) {
-        delete array;
-        return nullptr;
-    }
-    size_t index = 0;
-    for (const auto& fullName : fullNameList) {
-        std::u16string utf16String;
-        size_t strByteLen = CalculateDrawingStringSize(fullName, utf16String);
-        if (strByteLen > 0) {
-            drawingStringArray[index].strData = new (std::nothrow) uint8_t[strByteLen];
-            drawingStringArray[index].strLen = static_cast<uint32_t>(strByteLen);
-        }
-
-        if (strByteLen == 0 || drawingStringArray[index].strData == nullptr ||
-            !ConvertToDrawingString(utf16String, drawingStringArray[index])) {
-            for (size_t i = 0; i <= index; ++i) {
-                delete[] drawingStringArray[i].strData;
-            }
-            delete[] drawingStringArray;
-            drawingStringArray = nullptr;
-            delete array;
-            return nullptr;
-        }
-        ++index;
-    }
-    array->addr = drawingStringArray;
-    array->num = fullNameList.size();
+    std::unique_ptr array = std::make_unique<ObjectArray>();
+    std::unique_ptr addr = std::make_unique<OH_Drawing_String[]>(fullNameList.size());
     array->type = ObjectType::STRING;
-    return reinterpret_cast<OH_Drawing_Array*>(array);
+    size_t num = 0;
+    for (const auto& fullName : fullNameList) {
+        std::u16string utf16String = OHOS::Str8ToStr16(fullName);
+        if (utf16String.empty()) {
+            TEXT_LOGE("Failed to convert string to utf16: %{public}s", fullName.c_str());
+            continue;
+        }
+        addr[num].strLen = utf16String.size() * sizeof(char16_t);
+        std::unique_ptr strData = std::make_unique<uint8_t[]>(addr[num].strLen);
+        if (memcpy_s(strData.get(), addr[num].strLen, utf16String.c_str(), addr[num].strLen) != EOK) {
+            TEXT_LOGE("Failed to memcpy_s length: %{public}u", addr[num].strLen);
+            continue;
+        }
+        addr[num].strData = strData.release();
+        num += 1;
+    }
+    if (num == 0) {
+        TEXT_LOGI_LIMIT3_MIN("Failed to get font full name, font type: %{public}d", static_cast<int32_t>(fontType));
+        return nullptr;
+    }
+    array->num = num;
+    array->addr = addr.release();
+    return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
 
 const OH_Drawing_String* OH_Drawing_GetSystemFontFullNameByIndex(OH_Drawing_Array* fullNameArray, size_t index)

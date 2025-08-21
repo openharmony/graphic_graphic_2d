@@ -58,17 +58,20 @@ T GetData()
     return object;
 }
 
-bool DoRSCanvasDrawingNode(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
+bool DoRSCanvasDrawingNode(const uint8_t* data, size_t size)
+{
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -78,15 +81,6 @@ bool DoRSCanvasDrawingNode(const uint8_t* data, size_t size)
 
 bool DoCreate(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -96,15 +90,6 @@ bool DoCreate(const uint8_t* data, size_t size)
 
 bool DoGetBitmap(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -124,15 +109,6 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
 
 bool DoGetPixelmap(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -152,15 +128,6 @@ bool DoGetPixelmap(const uint8_t* data, size_t size)
 
 bool DoResetSurface(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -173,15 +140,6 @@ bool DoResetSurface(const uint8_t* data, size_t size)
 
 bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
@@ -195,6 +153,10 @@ bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoRSCanvasDrawingNode(data, size);
     OHOS::Rosen::DoCreate(data, size);

@@ -60,19 +60,56 @@ std::string GetData()
     g_pos += objectSize;
     return object;
 }
-} // namespace
 
-bool DoCreate(const uint8_t* data, size_t size)
+/*
+ * get a string from g_data
+ */
+std::string GetStringFromData(int strlen)
+{
+    if (strlen <= 0) {
+        return "fuzz";
+    }
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
+}
+
+inline RSSurfaceNodeConfig GetRSSurfaceNodeConfigFromData()
+{
+    constexpr int len = 10;
+    std::string SurfaceNodeName = GetStringFromData(len);
+    bool isTextureExportNode = GetData<bool>();
+    SurfaceId surfaceId = GetData<uint64_t>();
+    bool isSync = GetData<bool>();
+    SurfaceWindowType  surfaceWindowType = static_cast<SurfaceWindowType>(GetData<uint8_t>());
+    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode,
+        surfaceId, isSync, surfaceWindowType, nullptr };
+    return config;
+}
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
+} // namespace
 
+bool DoCreate(const uint8_t* data, size_t size)
+{
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(config);
@@ -81,53 +118,8 @@ bool DoCreate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetType(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetType();
-    return true;
-}
-
-bool DoCreateNodeInRenderThread(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->CreateNodeInRenderThread();
-    return true;
-}
-
 bool DoRemoveChild(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -139,39 +131,8 @@ bool DoRemoveChild(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoClearChildren(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    RSSurfaceNodeConfig config1;
-    RSSurfaceNode::SharedPtr child = RSSurfaceNode::Create(config1);
-    int index = GetData<int>();
-    surfaceNode->AddChild(child, index);
-    surfaceNode->ClearChildren();
-    return true;
-}
-
 bool DoSetAndGet(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -204,91 +165,35 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
 
 bool DoSetBufferAvailableCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->SetBufferAvailableCallback([]() {
-        std::cout << "SetBufferAvailableCallback" << std::endl;
-    });
-    return true;
-}
-
-bool DoIsBufferAvailable(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
+    auto func = []() {
+        std::cout << "SetBufferAvailableCallback, test upper limit of registered function" << std::endl;
+    };
+    uint32_t funcNumMax = GetData<uint32_t>();
+    for (uint32_t i = 0; i < funcNumMax; ++i) {
+        surfaceNode->SetBufferAvailableCallback(func);
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->IsBufferAvailable();
     return true;
 }
 
 bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     BoundsChangedCallback callback;
-    surfaceNode->SetBoundsChangedCallback(callback);
-    return true;
-}
-
-bool DoSetAnimationFinished(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
+    uint32_t funcNumMax = GetData<uint32_t>();
+    for (uint32_t i = 0; i < funcNumMax; ++i) {
+        surfaceNode->SetBoundsChangedCallback(callback);
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->SetAnimationFinished();
     return true;
 }
 
 bool DoMarshalling(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -299,17 +204,8 @@ bool DoMarshalling(const uint8_t* data, size_t size)
 
 bool DoUnmarshalling(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSSurfaceNodeConfig config;
+    RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     Parcel parcel;
     surfaceNode->Unmarshalling(parcel);
@@ -318,54 +214,18 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
 
 bool DoUnmarshallingAsProxyNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSSurfaceNodeConfig config;
+    RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     Parcel parcel;
     surfaceNode->UnmarshallingAsProxyNode(parcel);
     return true;
 }
 
-bool DoGetFollowType(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetFollowType();
-    return true;
-}
-
 bool DoAttachToDisplay(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSSurfaceNodeConfig config;
+    RSSurfaceNodeConfig config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     uint64_t screenId = GetData<uint64_t>();
     surfaceNode->AttachToDisplay(screenId);
@@ -374,15 +234,6 @@ bool DoAttachToDisplay(const uint8_t* data, size_t size)
 
 bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -395,15 +246,6 @@ bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
 
 bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -414,15 +256,6 @@ bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
 
 bool DoSetTextureExport(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -431,54 +264,8 @@ bool DoSetTextureExport(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetSurfaceAndResetContextAlpha(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetSurface();
-    surfaceNode->ResetContextAlpha();
-    return true;
-}
-
-bool DoGetNameAndBundleName(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetName();
-    return true;
-}
-
 bool DoSetContainerWindow(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -490,15 +277,6 @@ bool DoSetContainerWindow(const uint8_t* data, size_t size)
 
 bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -512,15 +290,6 @@ bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
 #ifdef USE_SURFACE_TEXTURE
 bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -531,15 +300,6 @@ bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
 
 bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -550,15 +310,6 @@ bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
 
 bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -570,15 +321,6 @@ bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
 
 bool DoSetForeground(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -589,15 +331,6 @@ bool DoSetForeground(const uint8_t* data, size_t size)
 
 bool DoSetForceUIFirst(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -608,15 +341,6 @@ bool DoSetForceUIFirst(const uint8_t* data, size_t size)
 
 bool DoSetAncoFlags(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -627,15 +351,6 @@ bool DoSetAncoFlags(const uint8_t* data, size_t size)
 
 bool DoSetWatermark(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -647,15 +362,6 @@ bool DoSetWatermark(const uint8_t* data, size_t size)
 
 bool DoSetHDRPresent(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -665,36 +371,8 @@ bool DoSetHDRPresent(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->NeedForcedSendToRemote();
-    surfaceNode->CreateRenderNodeForTextureExportSwitch();
-    return true;
-}
-
 bool DoRSSurfaceNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     bool isRenderServiceNode = GetData<bool>();
@@ -706,15 +384,6 @@ bool DoRSSurfaceNode(const uint8_t* data, size_t size)
 
 bool DoCreateNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -735,15 +404,6 @@ bool DoCreateNode(const uint8_t* data, size_t size)
 
 bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -763,36 +423,8 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOnBoundsSizeChangedAndSetSurfaceIdToRenderNode(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->OnBoundsSizeChanged();
-    surfaceNode->SetSurfaceIdToRenderNode();
-    return true;
-}
-
 bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -803,15 +435,6 @@ bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
 
 bool DoSplitSurfaceNodeName(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -822,15 +445,6 @@ bool DoSplitSurfaceNodeName(const uint8_t* data, size_t size)
 
 bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -839,35 +453,8 @@ bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetLeashPersistentId(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetLeashPersistentId();
-    return true;
-}
-
 bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -876,35 +463,8 @@ bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetGlobalPositionEnabled(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetGlobalPositionEnabled();
-    return true;
-}
-
 bool DoSetSkipDraw(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -913,53 +473,8 @@ bool DoSetSkipDraw(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetSkipDraw(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetSkipDraw();
-    return true;
-}
-
-bool DoGetAbilityState(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetAbilityState();
-    return true;
-}
-
 bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -970,15 +485,6 @@ bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
 
 bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -989,15 +495,6 @@ bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
 
 bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -1008,15 +505,6 @@ bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
 
 bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
@@ -1025,50 +513,29 @@ bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    surfaceNode->GetFrameGravityNewVersionEnabled();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    
     /* Run your code on data */
     OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoGetType(data, size);
-    OHOS::Rosen::DoCreateNodeInRenderThread(data, size);
     OHOS::Rosen::DoRemoveChild(data, size);
-    OHOS::Rosen::DoClearChildren(data, size);
     OHOS::Rosen::DoSetAndGet(data, size);
     OHOS::Rosen::DoSetBufferAvailableCallback(data, size);
-    OHOS::Rosen::DoIsBufferAvailable(data, size);
     OHOS::Rosen::DoSetBoundsChangedCallback(data, size);
-    OHOS::Rosen::DoSetAnimationFinished(data, size);
     OHOS::Rosen::DoMarshalling(data, size);
     OHOS::Rosen::DoUnmarshalling(data, size);
     OHOS::Rosen::DoUnmarshallingAsProxyNode(data, size);
-    OHOS::Rosen::DoGetFollowType(data, size);
     OHOS::Rosen::DoAttachToDisplay(data, size);
     OHOS::Rosen::DoDetachToDisplayAndSetHardwareEnabled(data, size);
     OHOS::Rosen::DoSetForceHardwareAndFixRotation(data, size);
     OHOS::Rosen::DoSetTextureExport(data, size);
-    OHOS::Rosen::DoGetSurfaceAndResetContextAlpha(data, size);
-    OHOS::Rosen::DoGetNameAndBundleName(data, size);
     OHOS::Rosen::DoSetContainerWindow(data, size);
     OHOS::Rosen::DoSetWindowIdAndSetFreeze(data, size);
 #ifdef USE_SURFACE_TEXTURE
@@ -1079,24 +546,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetForeground(data, size);
     OHOS::Rosen::DoSetForceUIFirst(data, size);
     OHOS::Rosen::DoSetAncoFlags(data, size);
-    OHOS::Rosen::DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(data, size);
     OHOS::Rosen::DoRSSurfaceNode(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
-    OHOS::Rosen::DoOnBoundsSizeChangedAndSetSurfaceIdToRenderNode(data, size);
     OHOS::Rosen::DoSetIsTextureExportNode(data, size);
     OHOS::Rosen::DoSetLeashPersistentId(data, size);
-    OHOS::Rosen::DoGetLeashPersistentId(data, size);
     OHOS::Rosen::DoSetGlobalPositionEnabled(data, size);
-    OHOS::Rosen::DoGetGlobalPositionEnabled(data, size);
     OHOS::Rosen::DoSetSkipDraw(data, size);
-    OHOS::Rosen::DoGetSkipDraw(data, size);
-    OHOS::Rosen::DoGetAbilityState(data, size);
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     OHOS::Rosen::DoSetHardwareEnableHint(data, size);
     OHOS::Rosen::DoSetSourceVirtualScreenId(data, size);
     OHOS::Rosen::DoSetFrameGravityNewVersionEnabled(data, size);
-    OHOS::Rosen::DoGetFrameGravityNewVersionEnabled(data, size);
     return 0;
 }
 

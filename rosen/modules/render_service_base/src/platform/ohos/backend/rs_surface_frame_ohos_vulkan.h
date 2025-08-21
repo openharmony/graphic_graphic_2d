@@ -18,6 +18,7 @@
 
 #include <surface.h>
 
+#include "sync_fence.h"
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
 #else
@@ -31,6 +32,11 @@ namespace Rosen {
 
 class RSSurfaceFrameOhosVulkan : public RSSurfaceFrameOhos {
 public:
+    RSSurfaceFrameType GetType() const override
+    {
+        return RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_VULKAN;
+    }
+
     RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width,
         int32_t height, int32_t bufferAge);
     ~RSSurfaceFrameOhosVulkan() override = default;
@@ -39,11 +45,14 @@ public:
     std::shared_ptr<Drawing::Surface> GetSurface() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
     void SetDamageRegion(const std::vector<RectI>& rects) override;
+    sptr<SyncFence> GetAcquireFence() const;
+    void SetAcquireFence(const sptr<SyncFence>& fence);
     int32_t GetReleaseFence() const;
     void SetReleaseFence(const int32_t& fence);
     int32_t GetBufferAge() const override;
 
 private:
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     int32_t releaseFence_ = 0;
     std::shared_ptr<Drawing::Surface> surface_;
     int width_ = 0;

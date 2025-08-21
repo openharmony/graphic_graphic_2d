@@ -339,7 +339,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_RotationQua_Test_2)
     };
     for (int i = 0; i < 4; i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
-        testNode->SetRotation(degreeList[4 - i]);
+        testNode->SetRotation(degreeList[3 - i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -357,7 +357,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_RotationQua_Test_3)
     for (int i = 0; i < 4; i++) {
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 280, i * 480 + 40, 400, 400 });
         testNode->SetPivot(0.0f, 0.0f);
-        testNode->SetRotation(degreeList[4 - i]);
+        testNode->SetRotation(degreeList[3 - i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }

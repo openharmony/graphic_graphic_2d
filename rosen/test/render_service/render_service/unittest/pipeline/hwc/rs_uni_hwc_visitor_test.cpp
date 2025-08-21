@@ -219,13 +219,25 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect001, TestSize.Level2)
 
     RectI absRect(0, 0, 0, 0);
     RectI clipRect(0, 0, 0, 0);
-    rsUniRenderVisitor->curSurfaceNode_ = rsSurfaceRenderNode2;
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
     ASSERT_NE(rsUniHwcVisitor, nullptr);
-    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+    rsUniRenderVisitor->curSurfaceNode_ = nullptr;
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+
+    rsUniRenderVisitor->curSurfaceNode_ = rsSurfaceRenderNode2;
     rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode2, absRect, clipRect);
     ASSERT_EQ(rsSurfaceRenderNode2->GetDstRect().left_, 0);
+
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(false);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(true);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
 }
 
 /**
@@ -257,6 +269,25 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect002, TestSize.Level2)
 
     RectI absRect(0, 0, 0, 0);
     RectI clipRect(0, 0, 0, 0);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(false);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    ScreenInfo info { .width = 1.f };
+    rsUniHwcVisitor->uniRenderVisitor_.curScreenNode_->SetScreenInfo(info);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    info.width = 0.f;
+    info.height = 1.f;
+    rsUniHwcVisitor->uniRenderVisitor_.curScreenNode_->SetScreenInfo(info);
     rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
     ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
 }
@@ -1517,6 +1548,215 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect005, TestSize.Level
 }
 
 /**
+ * @tc.name: UpdateHwcNodeEnableByFilterRect
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect check white list
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect006, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    const std::string collaborationBundleName = "com.example.devicecollaboration";
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.bundleName = collaborationBundleName;
+    surfaceConfig.id = 1;
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    surfaceConfig.id = 2;
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    RectI rect{0, 0, 300, 300};
+    surfaceNode2->SetDstRect(rect);
+    surfaceNode2->renderProperties_.boundsGeo_->absRect_ = rect;
+    surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
+    constexpr NodeId id = 3;
+    auto filterNode = std::make_shared<RSRenderNode>(id);
+    filterNode->SetOldDirtyInSurface(rect);
+
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 0);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->instanceRootNodeId_ = 1;
+    filterNode->instanceRootNodeId_ = 2;
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(0);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(2);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    filterNode->instanceRootNodeId_ = 1;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    filterNode->GetHwcRecorder().SetBlendWithBackground(true);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode1;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 1);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterRect
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect IsBackgroundFilterUnderSurface
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    const std::string collaborationBundleName = "com.example.devicecollaboration";
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.bundleName = collaborationBundleName;
+    surfaceConfig.id = 1;
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode1, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode1;
+    surfaceConfig.id = 2;
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode2, nullptr);
+    RectI rect{0, 0, 300, 300};
+    surfaceNode2->SetDstRect(rect);
+    surfaceNode2->renderProperties_.boundsGeo_->absRect_ = rect;
+    surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
+    surfaceNode2->instanceRootNodeId_ = 1;
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(101);
+    constexpr NodeId id = 3;
+    auto filterNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(rect);
+    filterNode->instanceRootNodeId_ = 1;
+    filterNode->GetHwcRecorder().SetZOrderForHwcEnableByFilter(100);
+    filterNode->GetHwcRecorder().SetBlendWithBackground(true);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    filterNode->parent_ = surfaceNode2;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->parent_ = surfaceNode1;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->parent_ = filterNode;
+    filterNode->parent_ = surfaceNode1;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByFilterRect
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect IsBackgroundFilterUnderSurface
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    const std::string collaborationBundleName = "com.example.devicecollaboration";
+    RsCommonHook::Instance().SetFilterUnderHwcConfigByApp(collaborationBundleName, "1");
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.bundleName = collaborationBundleName;
+    surfaceConfig.id = 1;
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode1, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode1;
+    surfaceConfig.id = 2;
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode2, nullptr);
+    RectI rect{0, 0, 300, 300};
+    surfaceNode2->SetDstRect(rect);
+    surfaceNode2->renderProperties_.boundsGeo_->absRect_ = rect;
+    surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
+    surfaceNode2->instanceRootNodeId_ = 1;
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(101);
+    constexpr NodeId id = 4;
+    auto filterNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(rect);
+    filterNode->instanceRootNodeId_ = 1;
+    filterNode->GetHwcRecorder().SetZOrderForHwcEnableByFilter(100);
+    filterNode->GetHwcRecorder().SetBlendWithBackground(true);
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(filterNode);
+    surfaceNode2->parent_ = surfaceNode1;
+    filterNode->parent_ = surfaceNode1;
+
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(99);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode1->GetCurFrameInfoDetail().curFrameReverseChildren = true;
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
+
+    surfaceNode2->GetHwcRecorder().SetZOrderForHwcEnableByFilter(101);
+    surfaceNode2->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, 100);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: IntersectHwcDamage_001
+ * @tc.desc: Test IntersectHwcDamage function.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, IntersectHwcDamage_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    NodeId id = 1;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(rsSurfaceRenderNode->surfaceHandler_, nullptr);
+    rsSurfaceRenderNode->surfaceHandler_->buffer_.damageRect = {10, 10, 160, 160};
+
+    const RectI filterRect = {0, 0, 300, 300};
+
+    auto backupHandler = rsSurfaceRenderNode->GetMutableRSSurfaceHandler();
+    rsSurfaceRenderNode->surfaceHandler_ = nullptr;
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IntersectHwcDamage(*rsSurfaceRenderNode, filterRect));
+
+    rsSurfaceRenderNode->surfaceHandler_ = backupHandler;
+    rsSurfaceRenderNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = false;
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IntersectHwcDamage(*rsSurfaceRenderNode, filterRect));
+
+    rsSurfaceRenderNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = true;
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IntersectHwcDamage(*rsSurfaceRenderNode, filterRect));
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByGlobalCleanFilter_001
  * @tc.desc: Test UpdateHwcNodeEnableByGlobalCleanFilter when Intersect return false.
  * @tc.type: FUNC
@@ -2419,53 +2659,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha005, TestSize.
 }
 
 /**
- * @tc.name: UpdateHwcNodeInfoForAppNode_001
- * @tc.desc: Test UpdateHwcNodeInfo with multi-params
- * @tc.type: FUNC
- * @tc.require: IAHFXD
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_001, TestSize.Level2)
-{
-    Drawing::Matrix absMatrix;
-    RectI absRect;
-    RectI rect = {0, 80, 1000, 1000};
-
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    rsSurfaceRenderNode->HwcSurfaceRecorder().SetIntersectWithPreviousFilter(true);
-    rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
-
-    NodeId surfaceNodeId = 1;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->needCollectHwcNode_ = true;
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-
-    rsSurfaceRenderNode->isFixRotationByUser_ = false;
-    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = true;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = false;
-    rsSurfaceRenderNode->dynamicHardwareEnable_ = false;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    rsSurfaceRenderNode->dynamicHardwareEnable_ = true;
-    surfaceNode->visibleRegion_.Reset();
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    surfaceNode->visibleRegion_.rects_.push_back(rect);
-    surfaceNode->visibleRegion_.bound_ = rect;
-    rsSurfaceRenderNode->isFixRotationByUser_ = true;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
-
-    rsSurfaceRenderNode->isFixRotationByUser_ = false;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect, true);
-}
-
-/**
  * @tc.name: GetHwcVisibleEffectDirty001
  * @tc.desc: Test GetHwcVisibleEffectDirty Function
  * @tc.type: FUNC
@@ -2531,9 +2724,9 @@ HWTEST_F(RSUniHwcVisitorTest, CheckNodeOcclusion001, TestSize.Level2)
     ASSERT_FALSE(result4);
 
     surfaceNode1->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect;
-    surfaceNode1->AddDirtyType(RSModifierType::CHILDREN);
-    surfaceNode1->AddDirtyType(RSModifierType::BG_IMAGE);
-    surfaceNode1->AddDirtyType(RSModifierType::HDR_BRIGHTNESS);
+    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
+    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::BACKGROUND_IMAGE);
+    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
     surfaceNode1->UpdateDrawableVecV2();
     auto result5 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, absRect, bgColor);
     ASSERT_TRUE(result5);
@@ -2897,4 +3090,23 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     EXPECT_EQ(matrix, expectedMatrix);
 }
 
+/**
+ * @tc.name: UpdateDstRectByGlobalPosition_001
+ * @tc.desc: Test UpdateDstRectByGlobalPosition Function
+ * @tc.type: FUNC
+ * @tc.require: issueICP8G6
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateDstRectByGlobalPosition_001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode surfaceNode(id);
+    surfaceNode.SetHwcGlobalPositionEnabled(false);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->hwcVisitor_->UpdateDstRectByGlobalPosition(surfaceNode);
+    EXPECT_EQ(surfaceNode.GetDstRect().left_, 0);
+
+    surfaceNode.SetHwcGlobalPositionEnabled(true);
+    rsUniRenderVisitor->hwcVisitor_->UpdateDstRectByGlobalPosition(surfaceNode);
+    EXPECT_EQ(surfaceNode.GetDstRect().left_, 0);
+}
 } // namespace OHOS::Rosen

@@ -16,7 +16,7 @@
 #include "transaction/rs_unmarshal_thread.h"
 
 #include "app_mgr_client.h"
-#include "c/queue_ext.h"
+#include "ffrt_inner.h"
 #include "hisysevent.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -42,7 +42,6 @@ namespace OHOS::Rosen {
 namespace {
 constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
-constexpr uint32_t DEFAULT_RS_UNMARSHAL_THREAD_CONCURRENCY = 16;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
@@ -61,14 +60,19 @@ RSUnmarshalThread& RSUnmarshalThread::Instance()
 
 void RSUnmarshalThread::Start()
 {
-    queue_ = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "RSUnmarshalThread",
-        ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_RS_UNMARSHAL_THREAD_CONCURRENCY));
+    queue_ = std::make_shared<ffrt::queue>(
+        static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "RSUnmarshalThread",
+        ffrt::queue_attr().qos(ffrt::qos_user_interactive));
 }
 
 void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (queue_) {
-        queue_->submit(std::move(task), ffrt::task_attr().name(name.c_str()).delay(0));
+        queue_->submit(
+            std::move(task), ffrt::task_attr()
+                                 .name(name.c_str())
+                                 .delay(0)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
     }
 }
 
@@ -133,7 +137,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         } else {
             const auto &now = std::chrono::steady_clock::now().time_since_epoch();
             int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-            constexpr int64_t ONE_PERIOD = 8000000;
+            constexpr int64_t ONE_PERIOD = 8333333;
             if (currentTime - time > ONE_PERIOD && time != 0) {
                 RSMainThread::Instance()->RequestNextVSync("UI", time);
             }
@@ -142,20 +146,12 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
-        ffrt::task_handle handle;
-        if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
-        } else {
-            PostTask(task, std::to_string(callingPid));
-        }
+        PostTask(task);
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
          */
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         willHaveCachedData_ = true;
-        if (RSSystemProperties::GetUnmarshParallelFlag()) {
-            cachedDeps_.push_back(std::move(handle));
-        }
     }
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
@@ -182,16 +178,6 @@ bool RSUnmarshalThread::CachedTransactionDataEmpty()
     return cachedTransactionDataMap_.empty() && !willHaveCachedData_;
 }
 
-void RSUnmarshalThread::Wait()
-{
-    std::vector<ffrt::dependence> deps;
-    {
-        std::lock_guard<std::mutex> lock(transactionDataMutex_);
-        std::swap(deps, cachedDeps_);
-    }
-    ffrt::wait(deps);
-}
-
 bool RSUnmarshalThread::IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const
 {
     if (!cmd) {
@@ -200,13 +186,8 @@ bool RSUnmarshalThread::IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) con
     bool haveCmdList = false;
     switch (cmd->GetType()) {
         case RSCommandType::RS_NODE:
-#if defined(MODIFIER_NG)
             if (cmd->GetSubType() == RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST_NG ||
                 cmd->GetSubType() == RSNodeCommandType::ADD_MODIFIER_NG) {
-#else
-            if (cmd->GetSubType() == RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST ||
-                cmd->GetSubType() == RSNodeCommandType::ADD_MODIFIER) {
-#endif
                 haveCmdList = true;
             }
             break;

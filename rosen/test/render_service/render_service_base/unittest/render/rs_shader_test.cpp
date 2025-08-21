@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "render/rs_shader.h"
+#include "effect/shader_effect_lazy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -95,5 +96,30 @@ HWTEST_F(RSShaderTest, SetSkShaderTest, TestSize.Level1)
     std::shared_ptr<Drawing::ShaderEffect> drawingShader;
     shaderPtr->SetDrawingShader(drawingShader);
     ASSERT_EQ(shaderPtr->drShader_, drawingShader);
+}
+
+/**
+ * @tc.name: SetDrawingShaderLazyTest001
+ * @tc.desc: Verify function SetDrawingShader with lazy shader effect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, SetDrawingShaderLazyTest001, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    auto normalDstShader = Drawing::ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto normalSrcShader = Drawing::ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto lazyShader = Drawing::ShaderEffectLazy::CreateBlendShader(normalDstShader,
+        normalSrcShader, Drawing::BlendMode::SRC_OVER);
+    ASSERT_NE(lazyShader, nullptr);
+    ASSERT_TRUE(lazyShader->IsLazy());
+
+    // Set the lazy shader and verify it gets materialized
+    rsShader->SetDrawingShader(lazyShader);
+
+    // The stored shader should be the materialized version, not the lazy one
+    auto storedShader = rsShader->GetDrawingShader();
+    ASSERT_NE(storedShader, nullptr);
+    ASSERT_FALSE(storedShader->IsLazy());
 }
 } // namespace OHOS::Rosen

@@ -30,7 +30,9 @@ namespace OHOS {
 namespace Rosen {
 using namespace Media;
 namespace {
-    constexpr float HALF_F = 2;
+constexpr float HALF_F = 2;
+std::mutex g_cacheMapMutex;
+std::unordered_map<uint32_t, std::weak_ptr<Drawing::Image>> g_cacheMap;
 }
 
 static const std::map<PixelFormat, GraphicPixelFormat> PIXELMAP_SURFACEBUFFER_FORMAT_MAP = {
@@ -63,6 +65,12 @@ static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
             return Drawing::ColorSpace::CreateSRGBLinear();
         case ColorManager::ColorSpaceName::SRGB:
             return Drawing::ColorSpace::CreateSRGB();
+        case ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+        case ColorManager::ColorSpaceName::ADOBE_RGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
         default:
             return Drawing::ColorSpace::CreateSRGB();
     }
@@ -126,6 +134,10 @@ struct PixelMapReleaseContext {
 #ifdef ROSEN_OHOS
         if (pixelMap_) {
             pixelMap_->DecreaseUseCount();
+            if (pixelMap_->GetUseCount() == 0) {
+                std::lock_guard<std::mutex> lock(g_cacheMapMutex);
+                g_cacheMap.erase(pixelMap_->GetUniqueId());
+            }
         }
 #endif
         pixelMap_ = nullptr;
@@ -159,6 +171,18 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     if (!pixelMap) {
         return nullptr;
     }
+    auto uniqueId = pixelMap->GetUniqueId();
+    {
+        std::lock_guard<std::mutex> lock(g_cacheMapMutex);
+        const auto cacheIt = g_cacheMap.find(uniqueId);
+        if (cacheIt != g_cacheMap.end()) {
+            if (const auto ptr = cacheIt->second.lock()) {
+                return ptr;
+            }
+            g_cacheMap.erase(cacheIt);
+        }
+    }
+
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
@@ -173,6 +197,9 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
         RS_LOGE("RSPixelMapUtil::ExtractDrawingImage fail");
         delete releaseContext;
         releaseContext = nullptr;
+    } else {
+        std::lock_guard<std::mutex> lock(g_cacheMapMutex);
+        g_cacheMap[uniqueId] = image;
     }
     return image;
 }

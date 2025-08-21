@@ -15,6 +15,10 @@
 
 #include "gtest/gtest.h"
 
+#include "font_collection.h"
+#include "impl/paragraph_impl.h"
+#include "paragraph.h"
+#include "src/ParagraphImpl.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "font_collection.h"
@@ -28,6 +32,26 @@ namespace Rosen {
 const double ARC_FONT_SIZE = 28;
 class OH_Drawing_TypographyTest : public testing::Test {
 };
+
+namespace {
+std::string g_expectDumpInfo = "Paragraph dump:"
+    "Text sz:126,State:Drawn,TextDraw:F,"
+    "Run0 glyph sz:6,rng[0-14),"
+    "Run1 glyph sz:11,rng[14-25),"
+    "Run2 glyph sz:14,rng[25-63),"
+    "Run3 glyph sz:6,rng[63-77),"
+    "Run4 glyph sz:11,rng[77-88),"
+    "Run5 glyph sz:14,rng[88-126),"
+    "Blk0 rng[0-63),sz:50,clr:ffff0000,ht:0,wt:500,wd:6,slt:2,"
+    "Blk1 rng[63-126),sz:60,clr:ffffff00,ht:0,wt:300,wd:7,slt:1,"
+    "Paragraph glyph sz:62,"
+    "L0 run rng:0-1,"
+    "L1 run rng:1-2,"
+    "L2 run rng:2-3,"
+    "L3 run rng:4-5,"
+    "L4 run rng:5-5,"
+    "L5 run rng:5-5";
+}
 
 /*
  * @tc.name: OH_Drawing_TypographyInnerBadgeTypeTest001
@@ -362,6 +386,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
     typography1->Layout(maxWidth);
     Boundary range2 = typography1->GetEllipsisTextRange();
     ASSERT_EQ(range2, Boundary(5, 16));
+    EXPECT_FALSE(typography1->CanPaintAllText());
+    typography1->Layout(500);
+    EXPECT_TRUE(typography1->CanPaintAllText());
 
     // For branch coverage
     OHOS::Rosen::TypographyStyle typographyStyle2;
@@ -988,6 +1015,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     EXPECT_EQ(animationFunc, nullptr);
     typography->SetSkipTextBlobDrawing(true);
     EXPECT_FALSE(typography->HasSkipTextBlobDrawing());
+    EXPECT_FALSE(typography->CanPaintAllText());
 
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_NE(typography->GetTextBlobRecordInfo().size(), 0);
@@ -996,5 +1024,317 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     typography->SetTextEffectAssociation(true);
     EXPECT_TRUE(typography->GetTextEffectAssociation());
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText001
+ * @tc.desc: test for split run in rtl language situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for rtl situation
+    style.fontSize = 11;
+    std::u16string text = u"ولكنمعانهيارالعلاقاتبينالصينوروسيا،سقطتفي";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for rtl situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText002
+ * @tc.desc: test for split run in Myanmese language situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for Myanmese language situation
+    style.fontSize = 11;
+    std::u16string text =
+        u"ဘယ်တော့မှပြန်မသွားရန်မြင့်မားသောအခ\
+        န်းများရှိတောက်ပသောမှန်များတွင်မည်မျှချစ်စ\
+        ရာကောင်းသောသော့ခလောက်များကိုကြည့်ပါ။.";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for Myanmese language situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText003
+ * @tc.desc: test for split run in New Thai language situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText003, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for New Thai language situation
+    style.fontSize = 11;
+    // Run's clusterIndexes: [0, 3, 3, 6, 9...]
+    std::u16string text = u"மொழிகளில்";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for New Thai language situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText004
+ * @tc.desc: test for split run in hard break symbol situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText004, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for hard break situation
+    style.fontSize = 11;
+    // Symbol < and hardbreak will shape to one run
+    std::u16string text = u"<\n";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for hard break situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsText005
+ * @tc.desc: test for split run in narmal English characters situation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TypographyStyle typographyDefaultStyle;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyDefaultCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyDefaultStyle, fontCollection);
+    ASSERT_NE(typographyDefaultCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for normal English characters situation
+    style.fontSize = 11;
+    std::u16string text = u"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 20 for normal English characters situation
+    double maxWidth = 20;
+    typography->Layout(maxWidth);
+    typographyDefaultCreate->PushStyle(style);
+    typographyDefaultCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> defaultTypography = typographyDefaultCreate->CreateTypography();
+    ASSERT_NE(defaultTypography, nullptr);
+    defaultTypography->Layout(maxWidth);
+
+    SPText::ParagraphImpl* defaultParagraph = static_cast<SPText::ParagraphImpl*>(defaultTypography->GetParagraph());
+    ASSERT_NE(defaultParagraph, nullptr);
+    auto defaultRuns = static_cast<skia::textlayout::ParagraphImpl*>(defaultParagraph->paragraph_.get())->runs();
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    EXPECT_EQ(defaultRuns.size(), 1);
+    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
+ * @tc.desc: test for rtl's text adjusting textRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyRtlClusterIndexOffset001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 11 for normal English characters situation
+    style.fontSize = 11;
+    std::u16string text = u"لآؗۘئ";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    // Special layout width 10 for rtl situation
+    double maxWidth = 10;
+    typography->Layout(maxWidth);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph =
+        static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
+    ASSERT_NE(skiaParagraph, nullptr);
+    // The byte value of لآؗۘئ is 11
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit.size(), 11);
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[0], 0);
+    EXPECT_EQ(skiaParagraph->fClustersIndexFromCodeUnit[1], 0);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoTest
+ * @tc.desc: test for get dump info
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    style1.fontWeight = FontWeight::W500;
+    style1.fontWidth = FontWidth::SEMI_EXPANDED;
+    style1.fontStyle = FontStyle::OBLIQUE;
+    std::u16string text = u"你好, 测试GetDumpInfo中返回的数据, 是否符合预期";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle style2;
+    style2.fontSize = 60;
+    style2.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
+    style2.fontWeight = FontWeight::W300;
+    style2.fontWidth = FontWidth::EXPANDED;
+    style2.fontStyle = FontStyle::ITALIC;
+    typographyCreate->PushStyle(style2);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
+    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetDumpInfo(), "");
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
+}
+
 } // namespace Rosen
 } // namespace OHOS

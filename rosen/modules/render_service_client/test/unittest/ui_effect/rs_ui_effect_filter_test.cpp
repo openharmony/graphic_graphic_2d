@@ -396,7 +396,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFilterTest001, TestSize.Level1)
         auto filterPara = std::make_shared<FilterPara>();
         filter->AddPara(filterPara);
     }
-    EXPECT_EQ(false, filter->Marshalling(parcel));
+    EXPECT_EQ(true, filter->Marshalling(parcel));
 
     std::shared_ptr<Filter> valTest = nullptr;
     parcel.FlushBuffer();

@@ -92,7 +92,6 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "socket_shutdown", SocketShutdown },
     { "version", Version },
     { "file_version", FileVersion },
-    { "reset", Reset },
     { "drawing_canvas", DumpDrawingCanvasNodes },
     { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
     { "keep_draw_cmd", RenderNodeKeepDrawCmd },
@@ -248,25 +247,10 @@ void RSProfiler::GetSystemParameter(const ArgList& args)
     Respond(parameter ? parameter->ToString() : "There is no such a system parameter");
 }
 
-void RSProfiler::Reset(const ArgList& args)
-{
-    const ArgList dummy;
-    RecordStop(dummy);
-    PlaybackStop(dummy);
-
-    Utils::FileDelete(RSFile::GetDefaultPath());
-
-    SendMessage("Reset");
-
-    RSSystemProperties::SetProfilerDisabled();
-    HRPI("Reset: persist.graphic.profiler.enabled 0");
-}
-
 void RSProfiler::DumpSystemParameters(const ArgList& args)
 {
     Respond(SystemParameter::Dump());
 }
-
 
 void RSProfiler::DumpNodeModifiers(const ArgList& args)
 {

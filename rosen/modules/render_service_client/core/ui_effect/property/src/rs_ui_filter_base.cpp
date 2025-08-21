@@ -17,8 +17,10 @@
 
 #include <unordered_set>
 
+#include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
+#include "ui_effect/filter/include/filter_content_light_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
@@ -60,12 +62,12 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGEdgeLightFilter>();
         }
     },
-    {RSNGEffectType::DIRECTION_LIGHT, [] {
-            return std::make_shared<RSNGDirectionLightFilter>();
-        }
-    },
     {RSNGEffectType::COLOR_GRADIENT, [] {
             return std::make_shared<RSNGColorGradientFilter>();
+        }
+    },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGDirectionLightFilter>();
         }
     },
     {RSNGEffectType::MASK_TRANSITION, [] {
@@ -76,6 +78,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGVariableRadiusBlurFilter>();
         }
     },
+    {RSNGEffectType::BEZIER_WARP, [] {
+            return std::make_shared<RSNGBezierWarpFilter>();
+        }
+    },
+    {RSNGEffectType::CONTENT_LIGHT, [] {
+            return std::make_shared<RSNGContentLightFilter>();
+        }
+    }
 };
 
 namespace {
@@ -108,22 +118,6 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     return edgeLightFilter;
 }
 
-std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
-{
-    auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
-    if (filter == nullptr || filterPara == nullptr) {
-        return nullptr;
-    }
-    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
-    auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
-    directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
-    directionLightFilter->Setter<DirectionLightFactorTag>(directionLightFilterPara->GetMaskFactor());
-    directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
-    directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
-    directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
-    return directionLightFilter;
-}
-
 std::shared_ptr<RSNGFilterBase> ConvertDispersionFilterPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::DISPERSION);
@@ -138,6 +132,22 @@ std::shared_ptr<RSNGFilterBase> ConvertDispersionFilterPara(std::shared_ptr<Filt
     dispersionFilter->Setter<DispersionGreenOffsetTag>(dispersionFilterPara->GetGreenOffset());
     dispersionFilter->Setter<DispersionBlueOffsetTag>(dispersionFilterPara->GetBlueOffset());
     return dispersionFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::DIRECTION_LIGHT);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
+    directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
+    directionLightFilter->Setter<DirectionLightFactorTag>(directionLightFilterPara->GetMaskFactor());
+    directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
+    directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
+    directionLightFilter->Setter<DirectionLightIntensityTag>(directionLightFilterPara->GetLightIntensity());
+    return directionLightFilter;
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertColorGradientFilterPara(std::shared_ptr<FilterPara> filterPara)
@@ -183,6 +193,36 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
         RSNGMaskBase::Create(variableRadiusBlurFilterPara->GetMask()));
     return variableRadiusBlurFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::BEZIER_WARP);
+    if (filter == nullptr || filterPara == nullptr) {
+        return nullptr;
+    }
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    auto bezierWarpFilterPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
+    auto& bezierCtrlPoints = bezierWarpFilterPara->GetBezierControlPoints();
+    // note: the order of values has to be same with the order of ADD_PROPERTY_ATG in DECLARE_TILTER
+    const auto& values = std::apply([](auto&... args) { return std::tie(args...); }, bezierCtrlPoints);
+    bezierWarpFilter->Setter(values);
+    return bezierWarpFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertContentLightFilterPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto contentLightFilter = std::static_pointer_cast<RSNGContentLightFilter>(filter);
+    auto contentLightFilterPara = std::static_pointer_cast<ContentLightPara>(filterPara);
+    contentLightFilter->Setter<ContentLightPositionTag>(contentLightFilterPara->GetLightPosition());
+    contentLightFilter->Setter<ContentLightColorTag>(contentLightFilterPara->GetLightColor());
+    contentLightFilter->Setter<ContentLightIntensityTag>(contentLightFilterPara->GetLightIntensity());
+    return contentLightFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -193,6 +233,8 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::COLOR_GRADIENT, ConvertColorGradientFilterPara },
     { FilterPara::ParaType::MASK_TRANSITION, ConvertMaskTransitionFilterPara },
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },
+    { FilterPara::ParaType::BEZIER_WARP, ConvertBezierWarpFilterPara },
+    { FilterPara::ParaType::CONTENT_LIGHT, ConvertContentLightFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

@@ -39,11 +39,6 @@ bool ColorFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -81,11 +76,6 @@ bool ColorFuzzTest002(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -118,11 +108,6 @@ bool ColorFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float alpha = GetObject<float>();
     float red = GetObject<float>();
@@ -157,11 +142,6 @@ bool ColorFuzzTest004(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -183,6 +163,11 @@ bool ColorFuzzTest004(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::ColorFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ColorFuzzTest002(data, size);

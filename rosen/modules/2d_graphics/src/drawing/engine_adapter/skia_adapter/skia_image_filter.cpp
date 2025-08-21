@@ -75,7 +75,7 @@ void SkiaImageFilter::InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, 
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -94,7 +94,7 @@ void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter,
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -116,7 +116,7 @@ void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy,
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -133,14 +133,13 @@ void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar s
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
     SkImageFilters::CropRect skCropRect(skiaRect);
 #endif
-    filter_ = SkImageFilters::ColorFilter(
-        skColorFilterImpl->GetColorFilter(),
+    filter_ = SkImageFilters::ColorFilter(skColorFilterImpl ? skColorFilterImpl->GetColorFilter() : nullptr,
         SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr), skCropRect);
 }
 
@@ -164,7 +163,7 @@ void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -209,8 +208,8 @@ void SkiaImageFilter::InitWithImage(const std::shared_ptr<Image>& image, const R
         LOGD("SkiaImageFilter::InitWithImage: imageImpl is nullptr!");
         return;
     }
-    SkSamplingOptions samplingOptions(static_cast<SkFilterMode>(options.GetFilterMode()),
-        static_cast<SkMipmapMode>(options.GetMipmapMode()));
+    SkSamplingOptions samplingOptions;
+    SkiaConvertUtils::DrawingSamplingCastToSkSampling(options, samplingOptions);
     filter_ = SkImageFilters::Image(imageImpl->GetImage(), skSrcRect, skDstRect, samplingOptions);
 }
 
@@ -269,7 +268,7 @@ void SkiaImageFilter::InitWithBlend(BlendMode mode, const Rect& cropRect,
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
@@ -287,13 +286,20 @@ void SkiaImageFilter::InitWithShader(std::shared_ptr<ShaderEffect> shader, const
 #ifdef USE_M133_SKIA
     SkImageFilters::CropRect skCropRect;
     if (!IsNoCropRect(cropRect)) {
-        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_);
+        skCropRect = SkRect::MakeLTRB(cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_).makeSorted();
     }
 #else
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
     SkImageFilters::CropRect skCropRect(skiaRect);
 #endif
     filter_ = SkImageFilters::Shader(skShader, skCropRect);
+}
+
+void SkiaImageFilter::InitWithHDSample(
+    const std::shared_ptr<Image>& image, const Rect& src, const Rect& dst, const HDSampleInfo& info)
+{
+    SamplingOptions options(FilterMode::LINEAR);
+    InitWithImage(image, src, dst, options);
 }
 
 } // namespace Drawing

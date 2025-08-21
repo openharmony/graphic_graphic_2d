@@ -33,7 +33,6 @@ class RSB_EXPORT RSRenderTransitionEffect : public Parcelable {
 public:
     RSRenderTransitionEffect() = default;
     virtual ~RSRenderTransitionEffect() = default;
-    const std::shared_ptr<RSRenderModifier>& GetModifier();
     const std::shared_ptr<ModifierNG::RSRenderModifier>& GetModifierNG();
     virtual void UpdateFraction(float fraction) const = 0;
 
@@ -43,9 +42,7 @@ public:
     }
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 private:
-    std::shared_ptr<RSRenderModifier> modifier_;
     std::shared_ptr<ModifierNG::RSRenderModifier> modifierNG_;
-    virtual const std::shared_ptr<RSRenderModifier> CreateModifier() = 0;
     virtual const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() = 0;
 };
 
@@ -60,7 +57,6 @@ public:
 private:
     float alpha_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<float>> property_;
-    const std::shared_ptr<RSRenderModifier> CreateModifier() override;
     const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
@@ -79,7 +75,6 @@ private:
     float scaleY_ { 0.0 };
     float scaleZ_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
-    const std::shared_ptr<RSRenderModifier> CreateModifier() override;
     const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
@@ -98,7 +93,6 @@ private:
     float translateY_ { 0.0 };
     float translateZ_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
-    const std::shared_ptr<RSRenderModifier> CreateModifier() override;
     const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
@@ -117,7 +111,6 @@ private:
     float dz_ { 0.0 };
     float radian_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Quaternion>> property_;
-    const std::shared_ptr<RSRenderModifier> CreateModifier() override;
     const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override;
 };
 
@@ -140,11 +133,6 @@ public:
     }
 
 private:
-    const std::shared_ptr<RSRenderModifier> CreateModifier() override
-    {
-        return nullptr;
-    }
-
     const std::shared_ptr<ModifierNG::RSRenderModifier> CreateModifierNG() override
     {
         return nullptr;

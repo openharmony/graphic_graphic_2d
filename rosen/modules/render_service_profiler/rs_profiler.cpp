@@ -431,8 +431,14 @@ void RSProfiler::OnWorkModeChanged()
     } else {
         HRPD("RSProfiler: Stop recording. Stop network.");
         StopBetaRecord();
-        RecordStop(ArgList());
         Network::Stop();
+        RecordStop(ArgList());
+        PlaybackStop(ArgList());
+
+        ImageCache::Reset();
+        g_recordFile.Close();
+        g_playbackFile.Close();
+        Utils::FileDelete(RSFile::GetDefaultPath());
     }
 }
 
@@ -993,55 +999,69 @@ void RSProfiler::HiddenSpaceTurnOn()
         HiddenSpaceTurnOff();
     }
 
-    const auto& rootRenderNode = context_->GetGlobalRootRenderNode();
-    if (rootRenderNode == nullptr) {
-        HRPE("RSProfiler::HiddenSpaceTurnOn rootRenderNode is nullptr");
+    auto logicalDisplayNode = GetLogicalDisplay();
+    if (logicalDisplayNode == nullptr) {
+        HRPE("RSProfiler::HiddenSpaceTurnOn Logical Display is nullptr");
         return;
     }
-    const auto& children = *rootRenderNode->GetChildren();
-    if (children.empty()) {
-        return;
-    }
-    if (auto& displayNode = children.front()) {
-        if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
-            g_childOfDisplayNodes = *displayNode->GetChildren();
 
-            displayNode->ClearChildren();
-            displayNode->AddChild(rootNode);
-        }
+    if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
+        g_childOfDisplayNodes = *logicalDisplayNode->GetChildren();
+
+        logicalDisplayNode->ClearChildren();
+        logicalDisplayNode->AddChild(rootNode);
     }
 
     g_mainThread->SetDirtyFlag();
     AwakeRenderServiceThread();
 }
 
-void RSProfiler::HiddenSpaceTurnOff()
+std::shared_ptr<RSRenderNode> RSProfiler::GetLogicalDisplay()
 {
     const auto& rootRenderNode = context_->GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
-        HRPE("RSProfiler::HiddenSpaceTurnOff rootRenderNode is nullptr");
-        return;
+        return nullptr;
     }
+
     const auto& children = *rootRenderNode->GetChildren();
     if (children.empty()) {
+        return nullptr;
+    }
+    for (const auto& screenNode : children) {   // apply multiple screen nodes
+        if (!screenNode) {
+            continue;
+        }
+        const auto& screenNodeChildren = screenNode->GetChildren();
+        if (!screenNodeChildren || screenNodeChildren->empty()) {
+            continue;
+        }
+        return screenNodeChildren->front(); // return display node
+    }
+    return nullptr;
+}
+
+void RSProfiler::HiddenSpaceTurnOff()
+{
+    auto logicalDisplayNode = GetLogicalDisplay();
+    if (logicalDisplayNode == nullptr) {
+        HRPE("RSProfiler::HiddenSpaceTurnOff Logical Display is nullptr");
         return;
     }
-    if (auto& displayNode = children.front()) {
-        displayNode->ClearChildren();
-        for (const auto& child : g_childOfDisplayNodes) {
-            displayNode->AddChild(child);
-        }
-        auto& listPostponed = RSProfiler::GetChildOfDisplayNodesPostponed();
-        for (const auto& childWeak : listPostponed) {
-            if (auto child = childWeak.lock()) {
-                displayNode->AddChild(child);
-            }
-        }
-        listPostponed.clear();
-        FilterMockNode(*context_);
-        RSTypefaceCache::Instance().ReplayClear();
-        g_childOfDisplayNodes.clear();
+
+    logicalDisplayNode->ClearChildren();
+    for (const auto& child : g_childOfDisplayNodes) {
+        logicalDisplayNode->AddChild(child);
     }
+    auto& listPostponed = RSProfiler::GetChildOfDisplayNodesPostponed();
+    for (const auto& childWeak : listPostponed) {
+        if (auto child = childWeak.lock()) {
+            logicalDisplayNode->AddChild(child);
+        }
+    }
+    listPostponed.clear();
+    FilterMockNode(*context_);
+    RSTypefaceCache::Instance().ReplayClear();
+    g_childOfDisplayNodes.clear();
 
     g_mainThread->SetDirtyFlag();
 
@@ -1662,7 +1682,7 @@ void RSProfiler::ClearTestTree(const ArgList& args)
 {
     for (auto iter = RSProfiler::testTree_.rbegin(); iter != RSProfiler::testTree_.rend(); ++iter) {
         (*iter)->RemoveFromTree();
-        (*iter)->RemoveAllModifiers();
+        (*iter)->RemoveAllModifiersNG();
     }
     RSProfiler::testTree_.clear();
     SendMessage("Test tree cleared");
@@ -1685,8 +1705,10 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_lastCacheImageCount = 0;
 
     if (!OpenBetaRecordFile(g_recordFile)) {
+        const auto overridePath = args.String(1);
+        const auto path = (!overridePath.empty() && args.String(0) == "-f") ? overridePath : RSFile::GetDefaultPath();
         g_recordFile.SetVersion(RSFILE_VERSION_LATEST);
-        g_recordFile.Create(RSFile::GetDefaultPath());
+        g_recordFile.Create(path);
     }
 
     g_recordMinVsync = 0;
@@ -2260,6 +2282,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
         return;
     }
 
+    RSSystemProperties::SetProfilerPixelCheckMode(true);
     std::stringstream stream;
 
     // Save RSFILE_VERSION
@@ -2288,6 +2311,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     } else {
         Respond("Save subTree Failed: save file faild!");
     }
+    RSSystemProperties::SetProfilerPixelCheckMode(false);
 }
 
 void RSProfiler::TestLoadSubTree(const ArgList& args)

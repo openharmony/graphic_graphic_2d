@@ -58,8 +58,8 @@ namespace {
 #endif // USE_M133_SKIA
             if (!textStyles.empty() && (textStyles.front().fStyle.getTextStyleUid() == style.defaultTextStyleUid)) {
                 textStyles.front().fStyle.setFontSize(style.fontSize);
+                state = std::min(skt::InternalState::kIndexed, state);
             }
-            state = std::min(skt::InternalState::kIndexed, state);
         },
 
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {

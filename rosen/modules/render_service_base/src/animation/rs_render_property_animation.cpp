@@ -38,24 +38,21 @@ RSRenderPropertyAnimation::RSRenderPropertyAnimation(
 
 void RSRenderPropertyAnimation::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderPropertyAnimation";
+    out.append("Type:RSRenderPropertyAnimation");
     DumpProperty(out);
 }
 
 void RSRenderPropertyAnimation::DumpProperty(std::string& out) const
 {
     if (property_ != nullptr) {
-#if defined(MODIFIER_NG)
         if (auto modifierNG = property_->GetModifierNG().lock()) {
-            out += ", ModifierType: " + std::to_string(static_cast<int16_t>(modifierNG->FindPropertyType(property_)));
+            out.append(", ModifierType: ").append(
+                std::to_string(static_cast<int16_t>(modifierNG->FindPropertyType(property_))));
         } else {
-            out += ", ModifierType: INVALID";
+            out.append(", ModifierType: INVALID");
         }
-#else
-        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
-#endif
     } else {
-        out += ", ModifierType: INVALID";
+        out.append(", ModifierType: INVALID");
     }
 }
 
@@ -234,8 +231,8 @@ void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float f
 
 void RSRenderPropertyAnimation::DumpFraction(float fraction, int64_t time)
 {
-    RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(GetTarget(), GetAnimationId(),
-        GetPropertyId(), fraction, GetPropertyValue(), time, GetDuration(), GetRepeatCount());
+    RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(GetTarget(), GetTargetId(), GetTargetName(),
+        GetAnimationId(), GetPropertyId(), fraction, GetPropertyValue(), time, GetDuration(), GetRepeatCount());
 }
 } // namespace Rosen
 } // namespace OHOS

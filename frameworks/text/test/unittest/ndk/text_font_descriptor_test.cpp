@@ -41,6 +41,7 @@ const std::string INSTALLED_FONT_CONFIG_FILE_BAK =
 const std::string INSTALL_CONFIG = R"(
 {
   "fontlist": [
+    { "fontfullpath": "/system/fonts/NotoSansHebrew[wdth,wght].ttf", "fullname": [""] },
     {
       "fontfullpath": "/system/fonts/NotoSansCJK-Regular.ttc",
       "fullname": [
@@ -174,7 +175,7 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest004, TestSize.Level0)
     size_t num = 0;
     OH_Drawing_FontDescriptor* descArr = OH_Drawing_MatchFontDescriptors(desc, &num);
     ASSERT_NE(descArr, nullptr);
-    EXPECT_LE(1, num);
+    EXPECT_GE(num, 1);
     EXPECT_STREQ(descArr[0].fontFamily, fontFamily);
     OH_Drawing_DestroyFontDescriptors(descArr, num);
     free(fontFamily);
@@ -204,7 +205,7 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest005, TestSize.Level0)
     size_t num = 0;
     OH_Drawing_FontDescriptor* descArr = OH_Drawing_MatchFontDescriptors(desc, &num);
     ASSERT_NE(descArr, nullptr);
-    EXPECT_LE(1, num);
+    EXPECT_GE(num, 1);
     EXPECT_STREQ(descArr[0].fontFamily, fontFamily);
     EXPECT_EQ(descArr[0].weight, 400);
     OH_Drawing_DestroyFontDescriptors(descArr, num);

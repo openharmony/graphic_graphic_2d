@@ -40,17 +40,6 @@ public:
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
 
-    inline void SetTopSurfaceOpaqueRects(const std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
-    {
-        topSurfaceOpaqueRects_ = topSurfaceOpaqueRects;
-    }
-
-    inline void SetTopSurfaceOpaqueRects(std::vector<Occlusion::Rect>&& topSurfaceOpaqueRects)
-    {
-        topSurfaceOpaqueRects_ = std::move(topSurfaceOpaqueRects);
-    }
-
-    const std::vector<Occlusion::Rect>& GetTopSurfaceOpaqueRects() const;
     int32_t GetScreenOffsetX() const
     {
         return screenInfo_.offsetX;
@@ -105,12 +94,15 @@ public:
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
-    // hsc todo: to delete
-    void SetNeedOffscreen(bool needOffscreen);
-    bool GetNeedOffscreen() const;
 
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
+
+    void SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit);
+    bool GetFixVirtualBuffer10Bit() const;
+
+    void SetExistHWCNode(bool isExistHWCNode);
+    bool GetExistHWCNode() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -199,12 +191,15 @@ public:
     {
         return logicalDisplayNodeDrawables_;
     }
+
+    bool GetForceFreeze() const;
+    void SetForceFreeze(bool forceFreeze);
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allMainAndLeashSurfaceDrawables_;
-    std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
     bool isDirtyAlignEnabled_ = false;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     ScreenInfo screenInfo_;
@@ -215,8 +210,9 @@ private:
     bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needForceUpdateHwcNodes_ = false;
-    bool needOffscreen_ = false;
     bool hasFingerprint_ = false;
+    bool isFixVirtualBuffer10Bit_ = false;
+    bool existHWCNode_ = false;
     bool hasHdrPresent_ = false;
     bool isHDRStatusChanged_ = false;
     // Only used in virtual expand screen to record accumulate frame status
@@ -226,6 +222,7 @@ private:
     float hdrBrightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
+    uint32_t mirrorDstCount_ = 0;
     bool hasMirrorScreen_ = false;
     Drawing::Matrix slrMatrix_;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
@@ -236,6 +233,7 @@ private:
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     Occlusion::Region drawnRegion_;
+    bool forceFreeze_ = false;
 };
 } // namespace OHOS::Rosen
 

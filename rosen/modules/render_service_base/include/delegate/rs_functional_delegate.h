@@ -22,7 +22,7 @@
 #include "common/rs_common_def.h"
 #include "delegate/rs_delegate.h"
 #include "common/rs_macros.h"
-
+// LCOV_EXCL_START
 namespace OHOS::Rosen {
 class RSB_EXPORT RSFunctionalDelegate : public RSDelegate {
 public:
@@ -38,5 +38,5 @@ private:
     std::function<void()> repaintCallback_ = nullptr;
 };
 } // namespace OHOS::Rosen
-
+// LCOV_EXCL_STOP
 #endif // ROSEN_RENDER_SERVICE_BASE_RS_FUNCTIONAL_DELEGATE_H

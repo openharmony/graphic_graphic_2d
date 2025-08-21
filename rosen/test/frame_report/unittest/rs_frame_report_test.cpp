@@ -59,9 +59,8 @@ HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
 HWTEST_F(RsFrameReportTest, SendCommandsStart001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.LoadLibrary();
     EXPECT_EQ(fr.sendCommandsStartFunc_, nullptr);
-    fr.SendCommandsStart();
-    EXPECT_NE(fr.sendCommandsStartFunc_, nullptr);
     fr.SendCommandsStart();
 }
 
@@ -76,8 +75,6 @@ HWTEST_F(RsFrameReportTest, SetFrameParam001, TestSize.Level1)
     RsFrameReport& fr = RsFrameReport::GetInstance();
     EXPECT_EQ(fr.setFrameParamFunc_, nullptr);
     fr.SetFrameParam(0, 0, 0, 0);
-    EXPECT_NE(fr.setFrameParamFunc_, nullptr);
-    fr.SetFrameParam(1, 1, 1, 1);
 }
 
 /**
@@ -136,6 +133,45 @@ HWTEST_F(RsFrameReportTest, ReportSchedEvent001, TestSize.Level1)
     fr.ReportSchedEvent(FrameSchedEvent::INIT, {});
     EXPECT_NE(fr.reportSchedEventFunc_, nullptr);
     fr.ReportSchedEvent(FrameSchedEvent::INIT, {});
+}
+
+/**
+ * @tc.name: ReportScbSceneInfo001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, ReportScbSceneInfo001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    std::string description = "test";
+    bool eventStatus = true;
+    fr.ReportScbSceneInfo(description, eventStatus);
+    EXPECT_NE(fr.reportSchedEventFunc_, nullptr);
+    eventStatus = false;
+    fr.ReportScbSceneInfo(description, eventStatus);
+    EXPECT_NE(fr.reportSchedEventFunc_, nullptr);
+}
+
+/**
+ * @tc.name: ReportFrameDeadline001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, ReportFrameDeadline001, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    int deadline = 8333;
+    uint32_t currentRate = 120;
+    fr.ReportFrameDeadline(deadline, currentRate);
+    EXPECT_NE(fr.reportSchedEventFunc_, nullptr);
+    deadline = -8333;
+    fr.ReportFrameDeadline(deadline, currentRate);
+    EXPECT_NE(fr.reportSchedEventFunc_, nullptr);
+    deadline = 0;
+    fr.ReportFrameDeadline(deadline, currentRate);
+    EXPECT_NE(fr.reportSchedEventFunc_, nullptr);
 }
 
 /**

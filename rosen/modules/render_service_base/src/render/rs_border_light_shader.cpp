@@ -53,31 +53,16 @@ void RSBorderLightShader::SetRSBorderLightParams(const RSBorderLightParams& bord
     if (geShader_ == nullptr) {
         return;
     }
-    BorderLightParams borderLightParams = {
-        borderLightParam_.lightPosition_,
-        borderLightParam_.lightColor_,
-        borderLightParam_.lightIntensity_,
-        borderLightParam_.lightWidth_,
-        borderLightParam_.rotationAngle_,
-        borderLightParam_.cornerRadius_
-    };
-    geShader_->SetBorderLightParams(borderLightParams);
 }
 
 void RSBorderLightShader::SetRotationAngle(const Vector3f& rotationAngle)
 {
     borderLightParam_.rotationAngle_ = rotationAngle;
-    if (geShader_) {
-        geShader_->SetRotationAngle(rotationAngle);
-    }
 }
 
 void RSBorderLightShader::SetCornerRadius(float cornerRadius)
 {
     borderLightParam_.cornerRadius_ = cornerRadius;
-    if (geShader_) {
-        geShader_->SetCornerRadius(cornerRadius);
-    }
 }
 
 bool RSBorderLightShader::Marshalling(Parcel& parcel)
@@ -95,24 +80,12 @@ bool RSBorderLightShader::Marshalling(Parcel& parcel)
 bool RSBorderLightShader::Unmarshalling(Parcel& parcel, bool& needReset)
 {
     needReset = false;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightPosition_)
+    bool unmarshallingFailed = !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightPosition_)
         || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightColor_)
         || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightIntensity_)
-        || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightWidth_)) {
+        || !RSMarshallingHelper::Unmarshalling(parcel, borderLightParam_.lightWidth_);
+    if (unmarshallingFailed) {
         ROSEN_LOGE("unirender: RSBorderLightShader::Unmarshalling failed");
-        return false;
-    }
-    BorderLightParams borderLightParams = {
-        borderLightParam_.lightPosition_,
-        borderLightParam_.lightColor_,
-        borderLightParam_.lightIntensity_,
-        borderLightParam_.lightWidth_,
-        borderLightParam_.rotationAngle_,
-        borderLightParam_.cornerRadius_
-    };
-    geShader_ = GEBorderLightShader::CreateBorderLightShader(borderLightParams);
-    if (!geShader_) {
-        ROSEN_LOGE("unirender: RSBorderLightShader::GEBorderLightShader::Createl failed");
         return false;
     }
     return true;

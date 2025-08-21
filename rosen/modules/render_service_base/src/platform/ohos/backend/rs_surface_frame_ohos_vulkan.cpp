@@ -68,6 +68,16 @@ std::shared_ptr<Drawing::Surface> RSSurfaceFrameOhosVulkan::GetSurface()
     return surface_;
 }
 
+sptr<SyncFence> RSSurfaceFrameOhosVulkan::GetAcquireFence() const
+{
+    return acquireFence_;
+}
+
+void RSSurfaceFrameOhosVulkan::SetAcquireFence(const sptr<SyncFence>& fence)
+{
+    acquireFence_ = fence;
+}
+
 int32_t RSSurfaceFrameOhosVulkan::GetReleaseFence() const
 {
     return releaseFence_;

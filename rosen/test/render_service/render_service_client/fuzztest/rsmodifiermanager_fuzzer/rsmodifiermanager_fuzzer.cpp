@@ -28,10 +28,8 @@
 #include <unistd.h>
 
 #include "common/rs_common_def.h"
-#include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_property.h"
-#include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 
 namespace OHOS {
@@ -69,11 +67,6 @@ bool TestModifierManager(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     float value = GetData<float>();
     uint64_t id = GetData<uint64_t>();
     int64_t time = GetData<int64_t>();
@@ -95,33 +88,18 @@ bool TestModifierManager(const uint8_t* data, size_t size)
 #endif
     return true;
 }
-
-bool TestHasUIAnimation(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    RSModifierManager manager;
-    manager.HasUIRunningAnimation();
-    manager.Draw();
-    manager.GetFrameRateRange();
-    manager.IsDisplaySyncEnabled();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::TestModifierManager(data, size);
-    OHOS::Rosen::TestHasUIAnimation(data, size);
     return 0;
 }

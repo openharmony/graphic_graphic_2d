@@ -27,7 +27,6 @@ namespace {
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 /*
  * describe: get data from outside untrusted data(DATA) which size is according to sizeof(T)
@@ -49,112 +48,42 @@ T GetData()
     return object;
 }
 
+inline RSDisplayNodeConfig GetRSDisplayNodeConfigFromData()
+{
+    uint64_t screenId = GetData<uint64_t>();
+    bool isMirrored = GetData<bool>();
+    NodeId mirrorNodeId = GetData<uint64_t>();
+    bool isSync = GetData<bool>();
+
+    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId, isSync };
+    return config;
+}
+} // namespace
+
+bool Init(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+    return true;
+}
+
 bool DoCreate(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSDisplayNodeConfig config;
+    RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    return true;
-}
-
-bool DoGetType(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->GetType();
-    return true;
-}
-
-bool DoClearChildren(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    RSDisplayNodeConfig config1;
-    RSDisplayNode::SharedPtr child = RSDisplayNode::Create(config1);
-    int index = GetData<int>();
-    displayNode->AddChild(child, index);
-    displayNode->ClearChildren();
-    return true;
-}
-
-bool DoAddDisplayNodeToTree(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->AddDisplayNodeToTree();
-    return true;
-}
-
-bool DoRemoveDisplayNodeFromTree(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->RemoveDisplayNodeFromTree();
     return true;
 }
 
 bool DoMarshalling(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSDisplayNodeConfig config;
+    RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     Parcel parcel;
     displayNode->Marshalling(parcel);
@@ -163,17 +92,8 @@ bool DoMarshalling(const uint8_t* data, size_t size)
 
 bool DoUnmarshalling(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSDisplayNodeConfig config;
+    RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     Parcel parcel;
     displayNode->Unmarshalling(parcel);
@@ -182,15 +102,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
 
 bool DoSetScreenId(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -201,15 +112,6 @@ bool DoSetScreenId(const uint8_t* data, size_t size)
 
 bool DoSetSecurityDisplay(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -220,15 +122,6 @@ bool DoSetSecurityDisplay(const uint8_t* data, size_t size)
 
 bool DoSetScreenRotation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -239,70 +132,16 @@ bool DoSetScreenRotation(const uint8_t* data, size_t size)
 
 bool DoSetDisplayNodeMirrorConfig(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
-    RSDisplayNodeConfig config;
+    RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    RSDisplayNodeConfig config2;
+    RSDisplayNodeConfig config2 = GetRSDisplayNodeConfigFromData();
     displayNode->SetDisplayNodeMirrorConfig(config2);
-    return true;
-}
-
-bool DoGetSecurityDisplay(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->GetSecurityDisplay();
-    return true;
-}
-
-bool DoIsMirrorDisplay(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->IsMirrorDisplay();
     return true;
 }
 
 bool DoSetBootAnimation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -311,35 +150,8 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetBootAnimation(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->GetBootAnimation();
-    return true;
-}
-
 bool DoSetScbNodePid(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -349,35 +161,8 @@ bool DoSetScbNodePid(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    displayNode->OnBoundsSizeChanged();
-    return true;
-}
-
 bool DoCreateNode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -389,15 +174,6 @@ bool DoCreateNode(const uint8_t* data, size_t size)
 
 bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
@@ -412,24 +188,20 @@ bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoGetType(data, size);
-    OHOS::Rosen::DoClearChildren(data, size);
-    OHOS::Rosen::DoAddDisplayNodeToTree(data, size);
-    OHOS::Rosen::DoRemoveDisplayNodeFromTree(data, size);
     OHOS::Rosen::DoMarshalling(data, size);
     OHOS::Rosen::DoUnmarshalling(data, size);
     OHOS::Rosen::DoSetScreenId(data, size);
     OHOS::Rosen::DoSetSecurityDisplay(data, size);
     OHOS::Rosen::DoSetScreenRotation(data, size);
     OHOS::Rosen::DoSetDisplayNodeMirrorConfig(data, size);
-    OHOS::Rosen::DoGetSecurityDisplay(data, size);
-    OHOS::Rosen::DoIsMirrorDisplay(data, size);
     OHOS::Rosen::DoSetBootAnimation(data, size);
-    OHOS::Rosen::DoGetBootAnimation(data, size);
     OHOS::Rosen::DoSetScbNodePid(data, size);
-    OHOS::Rosen::DoOnBoundsSizeChanged(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoSetVirtualScreenMuteStatus(data, size);
     return 0;

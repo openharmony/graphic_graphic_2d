@@ -34,6 +34,19 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+
+bool Init(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    return true;
+}
 } // namespace
 
 /*
@@ -79,15 +92,6 @@ std::string GetStringFromData(int strlen)
 
 bool RSBorderFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int16_t red1 = GetData<int16_t>();
     int16_t green1 = GetData<int16_t>();
     int16_t blue1 = GetData<int16_t>();
@@ -135,15 +139,6 @@ bool RSBorderFuzzTest(const uint8_t* data, size_t size)
 
 bool RSImageCacheFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint64_t uniqueId = GetData<uint64_t>();
     std::shared_ptr<Drawing::Image> img;
     RSImageCache::Instance().CacheDrawingImage(uniqueId, img);
@@ -155,15 +150,6 @@ bool RSImageCacheFuzzTest(const uint8_t* data, size_t size)
 
 bool RSImageFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSImage other;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -231,15 +217,6 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
 
 bool RSMaskFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     double x = GetData<double>();
     double y = GetData<double>();
     double scaleX = GetData<double>();
@@ -264,14 +241,6 @@ bool RSMaskFuzzTest(const uint8_t* data, size_t size)
 
 bool RSPathFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     Drawing::Path drPath = Drawing::Path();
     // std::string path = GetStringFromData(STR_LEN);
     float distance = GetData<float>();
@@ -289,14 +258,6 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
 
 bool RSShaderFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
     std::shared_ptr<Drawing::ShaderEffect> shader;
     shaderPtr->SetDrawingShader(shader);
@@ -306,14 +267,6 @@ bool RSShaderFuzzTest(const uint8_t* data, size_t size)
 
 bool RSShadowFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t rgba = GetData<uint32_t>();
     Color color = Color(rgba);
     float offsetX = GetData<float>();
@@ -341,6 +294,10 @@ bool RSShadowFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::RSBorderFuzzTest(data, size);
     OHOS::Rosen::RSImageCacheFuzzTest(data, size);

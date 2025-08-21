@@ -33,9 +33,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
+class RSTransactionHandler;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 class RSB_EXPORT RSTransactionProxy final {
 public:
     static RSB_EXPORT RSTransactionProxy* GetInstance();

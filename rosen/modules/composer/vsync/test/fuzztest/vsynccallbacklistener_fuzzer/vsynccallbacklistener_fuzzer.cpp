@@ -132,11 +132,12 @@ namespace OHOS {
         bool uiDVSyncSwitch = GetData<bool>();
         bool nativeDVSyncSwitch = GetData<bool>();
         int32_t bufferCount = GetData<int32_t>();
-        bool delayEnable = GetData<bool>();
+        bool compositeSceneEnable = GetData<bool>();
         bool nativeDelayEnable = GetData<bool>();
+        std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
-        vsyncReceiver->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
 
         vsyncReceiver->fd_ = open("fuzztest", O_RDWR | O_CREAT);
         int64_t dataTmp[3];

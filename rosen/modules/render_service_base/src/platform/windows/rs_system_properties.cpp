@@ -52,6 +52,10 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
+void RSSystemProperties::SetProfilerPixelCheckMode(bool flag)
+{
+}
+
 bool RSSystemProperties::GetUniRenderEnabled()
 {
     return isUniRenderEnabled_;
@@ -562,16 +566,6 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return false;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    return UINT32_MAX;
-}
-
 bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     return false;
@@ -583,6 +577,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 }
 
 bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetOptBatchRemovingOnRemoteDiedEnabled()
 {
     return false;
 }
@@ -768,6 +767,21 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
+{
+    return {};
+}
+
+bool RSSystemProperties::GetGpuDirtyApsEnabled()
+{
+    return {};
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -28,6 +28,8 @@ group("unittest") {
     ":vsync_present_fence_test",
     ":vsync_receiver_test",
     ":vsync_sampler_test",
+    ":vsync_system_ability_listener_test",
+    ":vsync_callback_listener_test",
   ]
 
   if (graphic_2d_feature_enable_dvsync) {
@@ -50,6 +52,32 @@ ohos_unittest("vsync_connection_test") {
 }
 
 ## UnitTest vsync_connection_test }}}
+
+## UnitTest vsync_callback_listener_test {{{
+ohos_unittest("vsync_callback_listener_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_callback_listener_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+  external_deps = [ "eventhandler:libeventhandler" ]
+
+}
+
+## UnitTest vsync_callback_listener_test }}}
+
+## UnitTest vsync_system_ability_listener_test {{{
+ohos_unittest("vsync_system_ability_listener_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_system_ability_listener_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+
+}
+
+## UnitTest vsync_system_ability_listener_test }}}
 
 ## UnitTest vsync_controller_test {{{
 ohos_unittest("vsync_controller_test") {
@@ -93,6 +121,7 @@ ohos_unittest("vsync_generator_test") {
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "ffrt:libffrt",
   ]
 }
 

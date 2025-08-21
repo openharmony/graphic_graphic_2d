@@ -123,23 +123,19 @@ RectI SkiaCanvas::GetDeviceClipBounds() const
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
 }
 
-void SkiaCanvas::InheriteState(Canvas* canvas)
-{
-}
-
 void SkiaCanvas::RecordState(Canvas* canvas)
 {
-    LOGD("Skia does not support RecordState.");
+    LOGD("skia does not support RecordState.");
 }
 
 void SkiaCanvas::SetParallelRender(bool parallelEnable)
 {
-    LOGD("Skia does not support SetParallelRender.");
+    LOGD("skia does not support subtree parallel render.");
 }
 
 void SkiaCanvas::BuildStateRecord(int32_t width, int32_t height)
 {
-    LOGD("Skia does not support BuildStateRecord.");
+    LOGD("skia does not support build state record.");
 }
 
 RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
@@ -565,6 +561,8 @@ void SkiaCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4],
     if (texCoords != nullptr) {
         skiaTexCoords.resize(texCoordCount);
         for (size_t i = 0; i < texCoordCount; ++i) {
+            // Tell the compiler there is no alias and to select wider
+            // load/store instructions.
             scalar fX0 = texCoords[i].GetX();
             scalar fY0 = texCoords[i].GetY();
             skiaTexCoords[i].fX = fX0;
@@ -1143,7 +1141,11 @@ bool SkiaCanvas::QuickReject(const Path& path)
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return false;
     }
-    const SkPath& clipPath = path.GetImpl<SkiaPath>()->GetPath();
+    auto skPathImpl = path.GetImpl<SkiaPath>();
+    if (skPathImpl == nullptr) {
+        return false;
+    }
+    const SkPath& clipPath = skPathImpl->GetPath();
     DRAWING_PERFORMANCE_TEST_SKIA_RETURN(false);
     return skCanvas_->quickReject(clipPath);
 }
@@ -1365,10 +1367,6 @@ void SkiaCanvas::BuildNoDraw(int32_t width, int32_t height)
 {
     skiaCanvas_ = std::make_shared<SkNoDrawCanvas>(width, height);
     skCanvas_ = skiaCanvas_.get();
-}
-
-void SkiaCanvas::BuildStateInherite(int32_t width, int32_t height)
-{
 }
 
 void SkiaCanvas::Reset(int32_t width, int32_t height)

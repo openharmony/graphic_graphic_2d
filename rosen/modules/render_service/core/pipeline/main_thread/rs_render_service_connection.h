@@ -76,6 +76,7 @@ private:
                                   VSyncConnParam vsyncConnParam = {0, 0, false}) override;
 
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
+    float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
 
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) override;
@@ -133,6 +134,8 @@ private:
 
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
+    int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
+
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
@@ -187,6 +190,12 @@ private:
 
     ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
+
+    ErrCode TaskSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
+
+    ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
 
     void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
@@ -385,6 +394,10 @@ private:
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
+
+    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
+
+    ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
 

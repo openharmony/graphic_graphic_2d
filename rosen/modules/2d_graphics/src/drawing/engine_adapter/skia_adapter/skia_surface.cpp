@@ -567,14 +567,14 @@ void SkiaSurface::FlushAndSubmit(bool syncCpu)
 #endif
 }
 
-void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
+SemaphoresSubmited SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 {
     if (skSurface_ == nullptr) {
         LOGE("skSurface is nullptr");
         // handle exception such as skia
         if (!drawingflushInfo) {
             LOGE("drawingflushInfo is nullptr");
-            return;
+            return SemaphoresSubmited::DRAWING_SUBMIT_NO;
         }
         if (drawingflushInfo->submittedProc) {
             drawingflushInfo->submittedProc(drawingflushInfo->submittedContext, false);
@@ -582,7 +582,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         if (drawingflushInfo->finishedProc) {
             drawingflushInfo->finishedProc(drawingflushInfo->finishedContext);
         }
-        return;
+        return SemaphoresSubmited::DRAWING_SUBMIT_YES;
     }
 #ifdef RS_ENABLE_GPU
     if (drawingflushInfo != nullptr) {
@@ -593,16 +593,18 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         flushInfo.fFinishedContext = static_cast<GrGpuFinishedContext>(drawingflushInfo->finishedContext);
         flushInfo.fSubmittedProc = drawingflushInfo->submittedProc;
         flushInfo.fSubmittedContext = static_cast<GrGpuSubmittedContext>(drawingflushInfo->submittedContext);
+        GrSemaphoresSubmitted isSubmited = GrSemaphoresSubmitted::kNo;
 #ifdef USE_M133_SKIA
         auto rContext = GrAsDirectContext(skSurface_->recordingContext());
         if (rContext) {
-            rContext->flush(flushInfo);
+            isSubmited = rContext->flush(flushInfo);
         }
 #else
-        skSurface_->flush(drawingflushInfo->backendSurfaceAccess == false ?
+        isSubmited = skSurface_->flush(drawingflushInfo->backendSurfaceAccess == false ?
             SkSurface::BackendSurfaceAccess::kNoAccess : SkSurface::BackendSurfaceAccess::kPresent, flushInfo);
 #endif
-        return;
+        return isSubmited == GrSemaphoresSubmitted::kYes ? SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_YES :
+            SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO;
     }
 #endif
 
@@ -614,6 +616,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 #else
     skSurface_->flush();
 #endif
+    return SemaphoresSubmited::DRAWING_ENGINE_YES;
 }
 
 #ifdef RS_ENABLE_GL

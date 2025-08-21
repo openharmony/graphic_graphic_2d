@@ -81,6 +81,17 @@ enum class FollowType : uint8_t {
     FOLLOW_TO_SELF,
 };
 
+enum class RSSurfaceFrameType : uint8_t {
+    NONE = 0,
+    RS_SURFACE_FRAME = 1,
+    RS_SURFACE_FRAME_DARWIN = 2,
+    RS_SURFACE_FRAME_OHOS = 3,
+    RS_SURFACE_FRAME_WINDOWS = 4,
+    RS_SURFACE_FRAME_OHOS_GL = 5,
+    RS_SURFACE_FRAME_OHOS_RASTER = 6,
+    RS_SURFACE_FRAME_OHOS_VULKAN = 7,
+};
+
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
 #define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
 
@@ -92,8 +103,8 @@ enum class FollowType : uint8_t {
 
 /**
  * Bitmask enumeration for hierarchical type identification
- * Descendant types must include all ancestor bits following the rules:
- * childFlags = ParentFlags | AdditionalBits
+ * Descendant types must include all ancestor bits following the rule:
+ *   ChildFlags = ParentFlags | AdditionalBits
  */
 enum class RSRenderNodeType : uint32_t {
     UNKNOW                 = 0x0000u,
@@ -236,8 +247,9 @@ enum class CacheProcessStatus : uint8_t {
 
 // the type of surfaceCapture
 enum class SurfaceCaptureType : uint8_t {
-    DEFAULT_CAPTURE = 0, // displayNode capture or window capture
-    UICAPTURE,
+    DEFAULT_CAPTURE = 0,       // displayNode capture or window capture
+    UICAPTURE = 1,             // UI capture
+    SURFACE_CAPTURE_TYPE_BUTT, // a boundary for SurfaceTureCaptureType Security Check
 };
 
 #ifdef TP_FEATURE_ENABLE
@@ -252,7 +264,8 @@ enum class TpFeatureConfigType : uint8_t {
 enum class RSRenderNodeDrawableType : uint32_t {
     UNKNOW = 0,
     RS_NODE_DRAWABLE,
-    DISPLAY_NODE_DRAWABLE,
+    LOGICAL_DISPLAY_NODE_DRAWABLE,
+    SCREEN_NODE_DRAWABLE,
     SURFACE_NODE_DRAWABLE,
     CANVAS_NODE_DRAWABLE,
     EFFECT_NODE_DRAWABLE,
@@ -295,6 +308,7 @@ struct RSSurfaceCaptureConfig {
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
     bool isHdrCapture = false;
+    bool needF16WindowCaptureForScRGB = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
     Drawing::Rect specifiedAreaRect = {};
     uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;
@@ -319,6 +333,7 @@ struct RSSurfaceCaptureParam {
     bool isSelfCapture = false;
     bool isFreeze = false;
     RSSurfaceCaptureBlurParam blurParam = {};
+    bool secExemption = false;
 };
 
 struct RSSurfaceCapturePermissions {
@@ -382,6 +397,7 @@ enum class SystemAnimatedScenes : uint32_t {
     LOCKSCREEN_TO_LAUNCHER, // Enter unlock screen for pc scene
     ENTER_MIN_WINDOW, // Enter the window minimization state
     RECOVER_MIN_WINDOW, // Recover minimized window
+    SNAPSHOT_ROTATION,  //  Enter tablet's snapshot rotation scene
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 

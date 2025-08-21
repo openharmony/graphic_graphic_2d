@@ -196,6 +196,18 @@ typedef void (*OnHwcDeadCallback)(void *data);
  */
 typedef void (*OnVBlankIdleCallback)(uint32_t devId, uint64_t ns, void *data);
 
+/*
+ * @brief Called when a kernel event occurs.
+ *
+ * This callback must be registered by calling <b>RegHwcEventCallback</b>.
+ *
+ * @param devId Indicates the ID of the display device.
+ * @param envId Indicates the ID of the kernel event.
+ * @param eventData Indicates the additional information of event.
+ * @param data Indicates the pointer to the private data carried by the graphics service.
+ */
+typedef void (*RSHwcEventCallback)(uint32_t devId, uint32_t envId, const std::vector<int32_t>& eventData, void* data);
+
 #ifdef __cplusplus
 }
 #endif

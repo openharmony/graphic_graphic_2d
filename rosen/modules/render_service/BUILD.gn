@@ -137,9 +137,11 @@ ohos_shared_library("librender_service") {
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
+    "core/feature/param_manager/rs_param_manager.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
+    "core/feature/chipset_vsync/rs_chipset_vsync.cpp",
     "core/pipeline/hardware_thread/rs_realtime_refresh_rate_manager.cpp",
     "core/pipeline/hwc/rs_uni_hwc_visitor.cpp",
     "core/pipeline/main_thread/rs_main_thread.cpp",
@@ -188,12 +190,11 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/performance_feature/filter_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/hard_cursor_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/hwc_param.cpp",
-    "core/feature_cfg/feature_param/performance_feature/loadoptimization_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/occlusion_culling_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/opinc_param.cpp",
-    "core/feature_cfg/feature_param/performance_feature/prevalidate_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/rotateoffscreen_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/socperf_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/subtree_parallel_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/uifirst_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/vrate_param.cpp",
     "core/feature_cfg/graphic_feature_param_manager.cpp",
@@ -212,12 +213,11 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/performance_feature_parser/filter_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/hard_cursor_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/hwc_param_parse.cpp",
-    "core/feature_cfg/xml_parser/performance_feature_parser/loadoptimization_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/occlusion_culling_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/opinc_param_parse.cpp",
-    "core/feature_cfg/xml_parser/performance_feature_parser/prevalidate_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/rotateoffscreen_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/socperf_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/subtree_parallel_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/uifirst_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/vrate_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
@@ -314,20 +314,9 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable) {
-    sources += [
-      "$graphic_2d_ext_root/subtree/container/rs_parallel_container.cpp",
-      "$graphic_2d_ext_root/subtree/container/rs_parallel_data.cpp",
-      "$graphic_2d_ext_root/subtree/executor/multiwin/rs_parallel_executor_manager_multiwin.cpp",
-      "$graphic_2d_ext_root/subtree/executor/multiwin/rs_parallel_executor_multiwin.cpp",
-      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_executor_manager_rb.cpp",
-      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_executor_rb.cpp",
-      "$graphic_2d_ext_root/subtree/executor/rb/rs_parallel_task_pool.cpp",
-      "$graphic_2d_ext_root/subtree/policy/rs_parallel_rb_policy.cpp",
-      "$graphic_2d_ext_root/subtree/policy/rs_parallel_multiwin_policy.cpp",
-      "$graphic_2d_ext_root/subtree/policy/rs_parallel_policy.cpp",
-      "$graphic_2d_ext_root/subtree/rs_parallel_manager.cpp",
-    ]
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
+      && defined(graphic_2d_subtree_configs.subtree_root)) {
+    sources += graphic_2d_subtree_configs.librender_service_subtree_sources
   }
 
   if (use_memmgr_plugin || use_memmgr) {
@@ -374,10 +363,8 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
 
-  if (graphic_2d_feature_subtree_parallel_enable) {
-    include_dirs += [ "$graphic_2d_ext_root/subtree" ]
-    include_dirs += [ "$graphic_2d_ext_root/subtree/executor" ]
-    include_dirs += [ "$graphic_2d_ext_root/subtree/policy" ]
+  if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {
+    include_dirs += graphic_2d_subtree_configs.librender_service_subtree_include
   }
 
   deps = [
@@ -394,8 +381,7 @@ ohos_shared_library("librender_service") {
 
   if (graphic_2d_feature_enable_chipset_vsync) {
     defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
-    deps += [ "$graphic_2d_ext_root/chipset_vsync:libchipset_vsync" ]
-    include_dirs += [ "$graphic_2d_ext_root/chipset_vsync/include" ]
+    sources += [ "core/feature/chipset_vsync/rs_chipset_vsync.cpp" ]
   }
 
   if (graphic_2d_feature_overlay_display_enable) {
@@ -477,9 +463,11 @@ ohos_shared_library("librender_service") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "ability_runtime:app_manager",
     "cJSON:cjson",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "drivers_interface_display:libdisplay_commontype_proxy_2.2",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -502,10 +490,6 @@ ohos_shared_library("librender_service") {
   }
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
-  }
-
-  if (tp_feature_enable) {
-    external_deps += [ "drivers_interface_tp_extra:libtp_proxy_1.1"]
   }
 
   if (defined(ddgr_ext_configs)) {

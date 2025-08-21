@@ -31,6 +31,9 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class Data;
+enum class ScalingType;
+struct ScalingOption;
+enum class ScaleImageResult;
 #ifdef RS_ENABLE_GPU
 class GPUContext;
 enum class CompressedType;
@@ -99,9 +102,6 @@ public:
     // using for recording, should to remove after using shared memory
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
-
-    virtual void SetSupportOpaqueOpt(bool supportOpaqueOpt) = 0;
-    virtual bool GetSupportOpaqueOpt() const = 0;
 
     virtual void SetHeadroom(float headroom) = 0;
     virtual float GetHeadroom() const = 0;

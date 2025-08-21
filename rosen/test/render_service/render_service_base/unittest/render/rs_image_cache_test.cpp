@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "render/rs_image_cache.h"
 
 using namespace testing;
@@ -669,5 +670,29 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest008, TestSize.Level1)
     imageCache.ReleasePixelMapCache(1);
     EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
+}
+
+/**
+ * @tc.name: ReleaseDrawingImageCacheByPixelMapIdTest002
+ * @tc.desc: Verify function ReleaseDrawingImageCacheByPixelMapIdTest
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    auto img = std::make_shared<Drawing::Image>();
+    imageCache.CacheRenderDrawingImageByPixelMapId(123, img, 0);
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    rsImageDetailEnhancerThread.isEnable_ = true;
+    rsImageDetailEnhancerThread.SetOutImage(123, img);
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(123);
+    EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
+
+    auto img2 = std::make_shared<Drawing::Image>();
+    imageCache.CacheRenderDrawingImageByPixelMapId(345, img2, 0);
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(345);
+    EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
+    imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
 }
 } // namespace OHOS::Rosen

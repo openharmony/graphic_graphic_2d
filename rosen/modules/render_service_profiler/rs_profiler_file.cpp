@@ -649,11 +649,11 @@ std::string RSFile::ReadHeaders()
 
 void RSFile::Close()
 {
+    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
     if (!file_) {
         return;
     }
-
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
     WriteHeaders();
 

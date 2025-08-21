@@ -77,7 +77,11 @@ HWTEST_F(RSPixelMapUtilTest, ExtractDrawingImage, TestSize.Level1)
     pixelMap = CreatePixelMap(width, height);
     pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_565;
-    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    {
+        auto image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+        EXPECT_NE(image, nullptr);
+        EXPECT_EQ(image, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
+    }
     pixelMap->imageInfo_.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_8888;
     EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelMap));
@@ -471,6 +475,38 @@ HWTEST_F(RSPixelMapUtilTest, GetPixelmapColorSpaceTest, TestSize.Level1)
 
     auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelmap);
     EXPECT_NE(colorSpace, nullptr);
+}
+
+/**
+ * @tc.name: GetPixelmapColorSpaceTest001
+ * @tc.desc: Verify function GetPixelmapColorSpace for bt2020
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, GetPixelmapColorSpaceTest001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    auto grColorSpace = std::make_shared<uint8_t>(OHOS::ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB);
+    pixelmap->grColorSpace_ = grColorSpace;
+    EXPECT_EQ(*(pixelmap->grColorSpace_), OHOS::ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB);
+}
+
+/**
+ * @tc.name: GetPixelmapColorSpaceTest002
+ * @tc.desc: Verify function GetPixelmapColorSpace for bt2020
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, GetPixelmapColorSpaceTest002, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+    auto grColorSpace = std::make_shared<uint8_t>(OHOS::ColorManager::ColorSpaceName::ADOBE_RGB);
+    pixelmap->grColorSpace_ = grColorSpace;
+    EXPECT_EQ(*(pixelmap->grColorSpace_), OHOS::ColorManager::ColorSpaceName::ADOBE_RGB);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -150,11 +150,6 @@ public:
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
     /**
-     * @brief Checks if the current thread is the same as the thread that created this RSCanvasNode instance.
-     */
-    void CheckThread();
-
-    /**
      * @brief Set linked node id in PC window resize scenario.
      * @param rootNodeId source RSRootNode id.
      */
@@ -246,7 +241,6 @@ private:
     void OnBoundsSizeChanged() const override;
     void CreateRenderNodeForTextureExportSwitch() override;
     void RegisterNodeMap() override;
-    pid_t tid_;
 
     // [Attention] Only used in PC window resize scene now
     NodeId linkedRootNodeId_ = INVALID_NODEID;

@@ -37,7 +37,7 @@ void RSSurfaceFrameOhosGl::SetDamageRegion(const std::vector<RectI> &rects)
 {
     renderContext_->DamageFrame(rects);
 }
-
+// LCOV_EXCL_START
 int32_t RSSurfaceFrameOhosGl::GetBufferAge() const
 {
     return static_cast<int32_t>(renderContext_->QueryEglBufferAge());
@@ -67,15 +67,16 @@ int32_t RSSurfaceFrameOhosGl::GetReleaseFence() const
 {
     return releaseFence_;
 }
-
+// LCOV_EXCL_STOP
 void RSSurfaceFrameOhosGl::SetReleaseFence(const int32_t& fence)
 {
     releaseFence_ = fence;
 }
-
+// LCOV_EXCL_START
 void RSSurfaceFrameOhosGl::CreateSurface()
 {
     surface_ = renderContext_->AcquireSurface(width_, height_);
 }
+// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

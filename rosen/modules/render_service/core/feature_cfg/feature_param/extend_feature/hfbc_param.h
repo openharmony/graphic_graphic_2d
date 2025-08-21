@@ -31,7 +31,7 @@ protected:
 
 private:
     // <"pkgName", "1">
-    inline static std::unordered_map<std::string, std::string> hfbcConfig_ = {};;
+    inline static std::unordered_map<std::string, std::string> hfbcConfig_ = {};
 
     friend class HFBCParamParse;
 };

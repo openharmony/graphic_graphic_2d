@@ -30,7 +30,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 /*
  * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
@@ -52,18 +51,56 @@ T GetData()
     return object;
 }
 
-bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
+/*
+ * get a string from g_data
+ */
+std::string GetStringFromData(int strlen)
+{
+    if (strlen <= 0) {
+        return "fuzz";
+    }
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
+}
+
+inline RSSurfaceNodeConfig GetRSSurfaceNodeConfigFromData()
+{
+    constexpr int len = 10;
+    std::string SurfaceNodeName = GetStringFromData(len);
+    bool isTextureExportNode = GetData<bool>();
+    SurfaceId surfaceId = GetData<uint64_t>();
+    bool isSync = GetData<bool>();
+    SurfaceWindowType  surfaceWindowType = static_cast<SurfaceWindowType>(GetData<uint8_t>());
+    RSSurfaceNodeConfig config = { SurfaceNodeName, nullptr, isTextureExportNode,
+        surfaceId, isSync, surfaceWindowType, nullptr };
+    return config;
+}
+} // namespace
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
-    RSSurfaceNodeConfig surfaceNodeConfig;
+bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
+{
+    RSSurfaceNodeConfig surfaceNodeConfig = GetRSSurfaceNodeConfigFromData();
     std::shared_ptr<RSBaseNode> child = RSCanvasNode::Create();
     int index = GetData<int>();
     GraphicColorGamut colorSpace = GetData<GraphicColorGamut>();
@@ -214,15 +251,6 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
 
 bool RSNodeFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
 
@@ -242,6 +270,10 @@ bool RSNodeFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::RSSurfaceNodeFuzzTest(data, size);
     OHOS::Rosen::RSNodeFuzzTest(data, size);

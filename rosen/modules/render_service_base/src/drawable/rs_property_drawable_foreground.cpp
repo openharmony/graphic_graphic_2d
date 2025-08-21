@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
@@ -230,6 +231,14 @@ RSDrawable::Ptr RSForegroundShaderDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 };
 
+void RSForegroundShaderDrawable::PostUpdate(const RSRenderNode& node)
+{
+    enableEDREffect_ = RSNGRenderShaderHelper::CheckEnableEDR(stagingShader_);
+    if (enableEDREffect_) {
+        screenNodeId_ = node.GetScreenNodeId();
+    }
+}
+
 bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
@@ -239,14 +248,17 @@ bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingShader_ = shader;
+    PostUpdate(node);
     return true;
 }
 
 void RSForegroundShaderDrawable::OnSync()
 {
     if (needSync_ && stagingShader_) {
-        visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingShader_->AppendToGEContainer(visualEffectContainer_);
+        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingShader_->AppendToGEContainer(visualEffectContainer);
+        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
+        visualEffectContainer_ = visualEffectContainer;
         needSync_ = false;
     }
 }
@@ -282,6 +294,7 @@ bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
+    PostUpdate(node);
     return true;
 }
 
@@ -417,6 +430,11 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
 void RSPixelStretchDrawable::SetPixelStretch(const std::optional<Vector4f>& pixelStretch)
 {
     stagingPixelStretch_ = pixelStretch;
+}
+
+const std::optional<Vector4f>& RSPixelStretchDrawable::GetPixelStretch() const
+{
+    return stagingPixelStretch_;
 }
 
 void RSPixelStretchDrawable::OnSync()
@@ -741,6 +759,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
         uniform float specularStrength[12];
+        uniform float borderWidth;
 
         float sdRoundedBox(vec2 p, vec2 b, float r)
         {
@@ -762,12 +781,17 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
             float shininess = 8.0;
             mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
             vec2 halfResolution = iResolution.xy * 0.5;
-            float sd = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius)
-                / halfResolution.y;
-            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
+
+            float gradRadius = min(max(contentBorderRadius, abs(borderWidth) * 3.0), iResolution.y * 0.5);
+            float drawRadius = min(max(contentBorderRadius, abs(borderWidth) * 1.1), iResolution.y * 0.5);
+            float realRoundedBoxSDF =
+                sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
+            float virtualRoundedBoxSDF = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, drawRadius);
+            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, gradRadius);
             for (int i = 0; i < 12; i++) {
                 if (abs(specularStrength[i]) > 0.01) {
-                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution, halfResolution,
+                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
+                        halfResolution,
                         contentBorderRadius); // lightGrad could be pre-computed
                     float angleEfficient = dot(grad, lightGrad);
                     if (angleEfficient > 0.0) {
@@ -777,14 +801,14 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
                         // exponential relationship of angle
                         float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
                         spec *= specularStrength[i];
-                        spec *= smoothstep(-0.28, 0.0, sd);
+                        spec *= smoothstep(-borderWidth, 0.0, virtualRoundedBoxSDF);
                         spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
                         vec4 specularColor = specularLightColor[i];
                         fragColor += specularColor * (spec * angleEfficient);
                     }
                 }
             }
-            return fragColor;
+            return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
         }
     )");
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(lightString);

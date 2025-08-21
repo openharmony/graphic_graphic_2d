@@ -143,9 +143,9 @@ void EglWrapperDisplay::UpdateQueryValue(EGLint *major, EGLint *minor)
     auto isPartialFlushSupport = system::GetParameter("debug.swap.buffer.with.damage", "1");
     if (isPartialFlushSupport == "1") {
         extensionValue_ = std::string(EXTENSION_VALUE) + std::string(SWAP_BUFFER_EXTENSIONS);
-        WLOGI("GetParameter debug.swap.buffer.with.damage 1");
+        WLOGD("GetParameter debug.swap.buffer.with.damage 1");
     } else {
-        WLOGI("GetParameter debug.swap.buffer.with.damage 0");
+        WLOGD("GetParameter debug.swap.buffer.with.damage 0");
     }
     if (strstr(EXTENSION_VALUE, "EGL_KHR_gl_colorspace") != nullptr) {
         hasColorSpaceSupport_ = true;
@@ -157,7 +157,6 @@ void EglWrapperDisplay::UpdateQueryValue(EGLint *major, EGLint *minor)
         extensionValue_ = extensionValue_ +
             std::string(EXTENSION_VALUE) + std::string(WIDE_COLOR_AND_HDR_EXTENSIONS);
     }
-    WLOGI("UpdateQueryValue extensions: %{public}s", extensionValue_.c_str());
 }
 
 EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)

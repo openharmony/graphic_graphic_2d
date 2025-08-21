@@ -44,6 +44,7 @@ auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 
+sptr<VSyncConnection> connServerApp_ = nullptr;
 DVSyncFeatureParam dvsyncParam;
 auto generator = CreateVSyncGenerator();
 auto appVSyncController = new VSyncController(generator, 0);
@@ -60,7 +61,9 @@ const uint8_t DO_NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 5;
 const uint8_t DO_NOTIFY_HGMCONFIG_EVENT = 6;
 const uint8_t DO_NOTIFY_SCREEN_SWITCHED = 7;
 const uint8_t DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
+const uint8_t TARGET_SIZE = 10;
+const uint16_t TASK_WAIT_MICROSECONDS = 50000;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -305,13 +308,80 @@ void DoNotifySoftVsyncRateDiscountEvent()
     dataParcel.WriteString(name);
     dataParcel.WriteUint32(rateDiscount);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+
+    if (!connServerApp_) {
+        uint64_t pidApp = static_cast<uint64_t>(getpid());
+        uint64_t id = pidApp << 32U;
+        connServerApp_ = new VSyncConnection(appVSyncDistributor_, "TestVsync", nullptr, id);
+        appVSyncDistributor_->AddConnection(connServerApp_);
+    }
+
+    MessageParcel dataP;
+    pid = getpid();
+    name = "TestVsync";
+    rateDiscount = 2U;
+    dataP.WriteInterfaceToken(GetDescriptor());
+    dataP.WriteUint32(pid);
+    dataP.WriteString(name);
+    dataP.WriteUint32(rateDiscount);
+    connectionStub_->OnRemoteRequest(code, dataP, replyParcel, option);
+}
+
+void DoSetBehindWindowFilterEnabled()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    bool enabled = GetData<bool>();
+    dataParcel.WriteBool(enabled);
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    auto& nodeMap = mainThread_->GetContext().nodeMap;
+    NodeId surfaceNodeId = 10001;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    nodeMap.surfaceNodeMap_.emplace(surfaceNodeId, surfaceNode);
+    NodeId childId = 10002;
+    surfaceNode->childrenBlurBehindWindow_.emplace(childId);
+
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    // prevent variables from being destructed before the task finishes execution.
+    usleep(TASK_WAIT_MICROSECONDS);
+    nodeMap.surfaceNodeMap_.erase(surfaceNodeId);
+}
+
+void DoSetLayerTopForHWC()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+ 
+    NodeId nodeId = GetData<uint64_t>();
+    bool isTop = GetData<bool>();
+    uint32_t zOrder = GetData<uint32_t>();
+ 
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.WriteBool(isTop);
+    dataParcel.WriteUint32(zOrder);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();
     auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
@@ -361,6 +431,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT:
             OHOS::Rosen::DoNotifySoftVsyncRateDiscountEvent();
+            break;
+        case OHOS::Rosen::DO_SET_BEHIND_WINDOW_FILTER_ENABLED:
+            OHOS::Rosen::DoSetBehindWindowFilterEnabled();
             break;
         default:
             return -1;

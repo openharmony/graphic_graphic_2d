@@ -30,6 +30,7 @@
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/screen_switching_notify_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "transaction/rs_render_service_client.h"
@@ -163,12 +164,12 @@ public:
         const FrameRateLinkerExpectedFpsUpdateCallback& callback) : cb_(callback) {}
     ~CustomFrameRateLinkerExpectedFpsUpdateCallback() override {};
 
-    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, const std::string& xcomponentId, int32_t expectedFps) override
     {
         ROSEN_LOGD("CustomFrameRateLinkerExpectedFpsUpdateCallback::OnFrameRateLinkerExpectedFpsUpdate called,"
             " pid=%{public}d, fps=%{public}d", dstPid, expectedFps);
         if (cb_ != nullptr) {
-            cb_(dstPid, expectedFps);
+            cb_(dstPid, xcomponentId, expectedFps);
         }
     }
 
@@ -258,6 +259,22 @@ public:
 private:
     ScreenChangeCallback cb_;
 };
+
+class CustomScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallbackStub {
+    public:
+        explicit CustomScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback) : cb_(callback) {}
+        ~CustomScreenSwitchingNotifyCallback() override {};
+    
+        void OnScreenSwitchingNotify(bool status) override
+        {
+            if (cb_ != nullptr) {
+                cb_(status);
+            }
+        }
+    
+    private:
+        ScreenSwitchingNotifyCallback cb_;
+    };
 
 class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:

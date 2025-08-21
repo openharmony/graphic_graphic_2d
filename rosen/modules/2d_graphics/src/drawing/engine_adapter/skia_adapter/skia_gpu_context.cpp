@@ -286,19 +286,17 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     }
     SkString stat;
     grContext_->priv().dumpGpuStats(&stat);
-#ifndef TODO_M133_SKIA
     grContext_->dumpVmaStats(&stat);
-#endif
     out = stat.c_str();
 }
 
 void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
 {
+#if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_RECORD_VKIMAGE)
     if (!grContext_) {
         LOGD("SkiaGPUContext::DumpAllResource, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     grContext_->dumpAllResource(dump);
 #endif
 }
@@ -332,10 +330,8 @@ void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, cons
         LOGD("SkiaGPUContext::PurgeUnlockedResourcesByTag, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->purgeUnlockedResourcesByTag(scratchResourcesOnly, grTag);
-#endif
 }
 
 void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
@@ -355,8 +351,19 @@ void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vu
         LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
+}
+
+void SkiaGPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
+{
+#ifdef TODO_M133_SKIA
+    (void)drawOpOverCallback;
+#else
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::RegisterDrawOpOverCallback, grContext_ is nullptr");
+        return;
+    }
+    grContext_->registerDrawOpOverCallback(drawOpOverCallback);
 #endif
 }
 
@@ -389,10 +396,8 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->releaseByTag(grTag);
-#endif
 }
 
 void SkiaGPUContext::ResetContext()
@@ -420,10 +425,13 @@ void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump,
         LOGD("SkiaGPUContext::DumpMemoryStatisticsByTag, sktraceMemoryDump is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->dumpMemoryStatisticsByTag(skTraceMemoryDump, grTag);
-#endif
+}
+
+uint64_t SkiaGPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
+{
+    return 0;
 }
 
 void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
@@ -451,10 +459,8 @@ void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::SetCurrentGpuResourceTag, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->setCurrentGrResourceTag(grTag);
-#endif
 }
 
 GPUResourceTag SkiaGPUContext::GetCurrentGpuResourceTag() const
@@ -464,14 +470,8 @@ GPUResourceTag SkiaGPUContext::GetCurrentGpuResourceTag() const
         return {};
     }
     GrGpuResourceTag grTag = grContext_->getCurrentGrResourceTag();
-#ifdef TODO_M133_SKIA
-    (void)grTag;
-    GPUResourceTag tag;
-    return tag;
-#else
     GPUResourceTag tag(grTag.fPid, grTag.fTid, grTag.fWid, grTag.fFid, grTag.fName);
     return tag;
-#endif
 }
 
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
@@ -587,9 +587,10 @@ void SkiaGPUContext::GetHpsEffectSupport(std::vector<const char*>& instanceExten
     return;
 }
 
-void SkiaGPUContext::SetEarlyZFlag(bool flag)
+void SkiaGPUContext::SetEarlyZEnabled(bool flag)
 {
     // Skia Not Implement SetEarlyZflag
+    LOGD("SkiaGPUContext::SetEarlyZEnabled, not implement");
     return;
 }
 
@@ -616,9 +617,7 @@ std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFu
 void SkiaGPUContext::VmaDefragment()
 {
     if (grContext_ != nullptr) {
-#ifndef TODO_M133_SKIA
         grContext_->vmaDefragment();
-#endif
     }
 }
 } // namespace Drawing

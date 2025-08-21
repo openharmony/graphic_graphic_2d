@@ -14,7 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+#define private public
 #include "effect/blend_shader_obj.h"
+#undef private
 #include "effect/shader_effect.h"
 #include "effect/shader_effect_lazy.h"
 #ifdef ROSEN_OHOS
@@ -1125,6 +1127,228 @@ HWTEST_F(BlendShaderObjTest, GenerateBaseObjectMixedLazyNormal001, TestSize.Leve
         EXPECT_EQ(generatedShader3->GetType(), ShaderEffect::ShaderEffectType::BLEND);
         EXPECT_FALSE(generatedShader3->IsLazy()); // Should be materialized
     }
+}
+
+/*
+ * @tc.name: MarshallingNullShadersTest001
+ * @tc.desc: Test BlendShaderObj::Marshalling with null shaders using direct construction
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, MarshallingNullShadersTest001, TestSize.Level1)
+{
+    // Test 1: Both shaders null (using default constructor)
+    auto objBothNull = std::shared_ptr<BlendShaderObj>(new BlendShaderObj());
+    ASSERT_NE(objBothNull, nullptr);
+    MessageParcel parcel1;
+    bool result1 = objBothNull->Marshalling(parcel1);
+    EXPECT_FALSE(result1); // Should fail due to null shaders
+
+    // Test 2: Only dst null
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    ASSERT_NE(srcShader, nullptr);
+    auto objDstNull = std::shared_ptr<BlendShaderObj>(
+        new BlendShaderObj(nullptr, srcShader, BlendMode::MULTIPLY));
+    ASSERT_NE(objDstNull, nullptr);
+    MessageParcel parcel2;
+    bool result2 = objDstNull->Marshalling(parcel2);
+    EXPECT_FALSE(result2); // Should fail due to null dst shader
+
+    // Test 3: Only src null
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    ASSERT_NE(dstShader, nullptr);
+    auto objSrcNull = std::shared_ptr<BlendShaderObj>(
+        new BlendShaderObj(dstShader, nullptr, BlendMode::MULTIPLY));
+    ASSERT_NE(objSrcNull, nullptr);
+    MessageParcel parcel3;
+    bool result3 = objSrcNull->Marshalling(parcel3);
+    EXPECT_FALSE(result3); // Should fail due to null src shader
+}
+
+/*
+ * @tc.name: GenerateBaseObjectNullShadersTest001
+ * @tc.desc: Test BlendShaderObj::GenerateBaseObject with null shaders using direct construction
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, GenerateBaseObjectNullShadersTest001, TestSize.Level1)
+{
+    // Test 1: Both shaders null (using default constructor)
+    auto objBothNull = std::shared_ptr<BlendShaderObj>(new BlendShaderObj());
+    ASSERT_NE(objBothNull, nullptr);
+    auto result1 = objBothNull->GenerateBaseObject();
+    EXPECT_EQ(result1, nullptr); // Should return nullptr due to null shaders
+
+    // Test 2: Only dst null
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    ASSERT_NE(srcShader, nullptr);
+    auto objDstNull = std::shared_ptr<BlendShaderObj>(
+        new BlendShaderObj(nullptr, srcShader, BlendMode::MULTIPLY));
+    ASSERT_NE(objDstNull, nullptr);
+    auto result2 = objDstNull->GenerateBaseObject();
+    EXPECT_EQ(result2, nullptr); // Should return nullptr due to null dst shader
+
+    // Test 3: Only src null
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    ASSERT_NE(dstShader, nullptr);
+    auto objSrcNull = std::shared_ptr<BlendShaderObj>(
+        new BlendShaderObj(dstShader, nullptr, BlendMode::MULTIPLY));
+    ASSERT_NE(objSrcNull, nullptr);
+    auto result3 = objSrcNull->GenerateBaseObject();
+    EXPECT_EQ(result3, nullptr); // Should return nullptr due to null src shader
+}
+
+/*
+ * @tc.name: MarshallingWriteFailureTest001
+ * @tc.desc: Test BlendShaderObj::Marshalling write branch failures by filling parcel to capacity
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, MarshallingWriteFailureTest001, TestSize.Level1)
+{
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto obj = BlendShaderObj::Create(dstShader, srcShader, BlendMode::MULTIPLY);
+    ASSERT_NE(obj, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test 1: Fill parcel completely, then try Marshalling (should fail on WriteInt32(blendMode))
+    MessageParcel parcel1;
+    parcel1.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult1 = parcel1.WriteBuffer(fillBuffer.data(), BUFFER_SIZE);
+    EXPECT_TRUE(fillResult1);
+    // Now parcel is full, Marshalling should fail on WriteInt32(blendMode)
+    bool result1 = obj->Marshalling(parcel1);
+    EXPECT_FALSE(result1);
+
+    // Test 2: Fill parcel leaving space for blendMode only (4 bytes)
+    MessageParcel parcel2;
+    parcel2.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult2 = parcel2.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 4);
+    EXPECT_TRUE(fillResult2);
+    // Should fail on WriteBool(isDstLazy)
+    bool result2 = obj->Marshalling(parcel2);
+    EXPECT_FALSE(result2);
+
+    // Test 3: Fill parcel leaving space for blendMode and isDstLazy (8 bytes)
+    MessageParcel parcel3;
+    parcel3.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult3 = parcel3.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 8);
+    EXPECT_TRUE(fillResult3);
+    // Should fail on dstShader->Marshalling() due to insufficient space
+    bool result3 = obj->Marshalling(parcel3);
+    EXPECT_FALSE(result3);
+
+    // Test 4: Leave more space but insufficient for complete shader marshalling
+    MessageParcel parcel4;
+    parcel4.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult4 = parcel4.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 16);
+    EXPECT_TRUE(fillResult4);
+    // Should fail somewhere in shader marshalling or on WriteBool(isSrcLazy)
+    bool result4 = obj->Marshalling(parcel4);
+    EXPECT_FALSE(result4);
+}
+
+/*
+ * @tc.name: MarshallingDstShaderFailureTest001
+ * @tc.desc: Test BlendShaderObj::Marshalling with dstShader->Marshalling failure using parcel capacity control
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, MarshallingDstShaderFailureTest001, TestSize.Level1)
+{
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto obj = BlendShaderObj::Create(dstShader, srcShader, BlendMode::MULTIPLY);
+    ASSERT_NE(obj, nullptr);
+
+    // Create buffer to fill parcel capacity
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test: Fill parcel leaving space for blendMode (4 bytes) and isDstLazy (4 bytes)
+    // This should allow these writes to succeed but cause dstShader->Marshalling() to fail
+    MessageParcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 8);
+    EXPECT_TRUE(fillResult);
+
+    // Now try marshalling - should fail on dstShader->Marshalling() due to insufficient space
+    bool result = obj->Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: MarshallingSrcShaderFailureTest001
+ * @tc.desc: Test BlendShaderObj::Marshalling with srcShader->Marshalling failure using parcel capacity control
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, MarshallingSrcShaderFailureTest001, TestSize.Level1)
+{
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto obj = BlendShaderObj::Create(dstShader, srcShader, BlendMode::MULTIPLY);
+    ASSERT_NE(obj, nullptr);
+
+    // Create buffer to fill parcel capacity
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test: Fill parcel leaving space for blendMode (4 bytes), isDstLazy (4 bytes),
+    // dstShader data (minimal), and isSrcLazy (4 bytes), but not enough for srcShader->Marshalling()
+    // This targets the srcShader->Marshalling() failure branch specifically
+    MessageParcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    // Leave more space to allow dstShader marshalling but fail on srcShader marshalling
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 32);
+    EXPECT_TRUE(fillResult);
+
+    // Now try marshalling - should fail on srcShader->Marshalling() due to insufficient space
+    bool result = obj->Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: MarshallingWriteIsSrcLazyFailureTest001
+ * @tc.desc: Test BlendShaderObj::Marshalling with WriteBool(isSrcLazy) failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(BlendShaderObjTest, MarshallingWriteIsSrcLazyFailureTest001, TestSize.Level1)
+{
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto obj = BlendShaderObj::Create(dstShader, srcShader, BlendMode::MULTIPLY);
+    ASSERT_NE(obj, nullptr);
+
+    // Create buffer to fill parcel capacity
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Test: Fill parcel leaving space for blendMode (4 bytes), isDstLazy (4 bytes),
+    // dstShader data (assume minimal), and attempt to fail on WriteBool(isSrcLazy)
+    // This is a probabilistic test - we allocate enough space for earlier operations
+    // but not enough for the complete marshalling process
+    MessageParcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    // Leave space for initial writes but make the buffer tight enough to potentially fail on later writes
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 16);
+    EXPECT_TRUE(fillResult);
+
+    // Now try marshalling - should fail somewhere in the marshalling process
+    // Due to the tight space allocation, this will likely fail on isSrcLazy or srcShader marshalling
+    bool result = obj->Marshalling(parcel);
+    EXPECT_FALSE(result);
 }
 #endif
 

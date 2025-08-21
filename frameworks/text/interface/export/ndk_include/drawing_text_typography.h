@@ -1461,7 +1461,7 @@ void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle*, int);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param style Pointer to an OH_Drawing_TextStyle object.
- * @param textBageType The type of text badge.
+ * @param textBadgeType The type of text badge.
  * @since 20
  * @version 1.0
  */

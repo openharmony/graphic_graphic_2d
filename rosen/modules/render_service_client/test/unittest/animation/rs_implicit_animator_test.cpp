@@ -12,15 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <thread>
 
 #include "gtest/gtest.h"
 
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_motion_path_option.h"
-#include <thread>
 #include "ui/rs_canvas_node.h"
-#include "modifier/rs_property_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -196,8 +196,8 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
         MergeDrawingPath(multPath, groups[i], pathLayers);
         TextEngine::NodeLayerInfo pathInfo;
         pathInfo.path = multPath;
-        bool isvalid = i < gradients_.size() && gradients_[i] != nullptr;
-        if (isvalid) {
+        bool isValid = i < gradients_.size() && gradients_[i] != nullptr;
+        if (isValid) {
             pathInfo.color = gradients_[i];
         }
         symbolNode.pathsInfo.push_back(pathInfo);

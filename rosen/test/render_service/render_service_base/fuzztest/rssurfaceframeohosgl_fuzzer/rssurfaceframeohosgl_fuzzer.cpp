@@ -33,10 +33,8 @@ namespace Rosen {
 
 namespace {
 const uint8_t DO_SET_DAMAGEREGION = 0;
-const uint8_t DO_GET_BUFFERAGE = 1;
-const uint8_t DO_GET_RELEASEFENCE = 2;
-const uint8_t DO_SET_RELEASEFENCE = 3;
-const uint8_t TARGET_SIZE = 4;
+const uint8_t DO_SET_RELEASEFENCE = 1;
+const uint8_t TARGET_SIZE = 2;
 
 auto g_rsSurfaceFrameOhosGl = std::make_shared<RSSurfaceFrameOhosGl>(1, 1);
 std::shared_ptr<RenderContext> g_context;
@@ -127,20 +125,6 @@ void DoSetDamageRegion()
     OHOS::Rosen::ReleaseRenderContext();
 }
 
-void DoGetBufferAge()
-{
-    OHOS::Rosen::InitRenderContext();
-    g_rsSurfaceFrameOhosGl->GetBufferAge();
-    OHOS::Rosen::ReleaseRenderContext();
-}
-
-void DoGetReleaseFence()
-{
-    OHOS::Rosen::InitRenderContext();
-    g_rsSurfaceFrameOhosGl->GetReleaseFence();
-    OHOS::Rosen::ReleaseRenderContext();
-}
-
 void DoSetReleaseFence()
 {
     OHOS::Rosen::InitRenderContext();
@@ -162,12 +146,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     switch (tarPos) {
         case OHOS::Rosen::DO_SET_DAMAGEREGION:
             OHOS::Rosen::DoSetDamageRegion(); // SetDamageRegion
-            break;
-        case OHOS::Rosen::DO_GET_BUFFERAGE:
-            OHOS::Rosen::DoGetBufferAge();    // GetBufferAge
-            break;
-        case OHOS::Rosen::DO_GET_RELEASEFENCE:
-            OHOS::Rosen::DoGetReleaseFence(); // GetReleaseFence
             break;
         case OHOS::Rosen::DO_SET_RELEASEFENCE:
             OHOS::Rosen::DoSetReleaseFence(); // SetReleaseFence

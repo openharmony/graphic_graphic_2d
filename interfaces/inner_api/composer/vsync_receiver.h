@@ -17,11 +17,6 @@
 #define VSYNC_VSYNC_RECEIVER_H
 
 #include <refbase.h>
-
-#if defined(RS_ENABLE_DVSYNC_2)
-#include "dvsync_delay.h"
-#endif
-
 #include "ivsync_connection.h"
 #include "file_descriptor_listener.h"
 
@@ -48,7 +43,8 @@ public:
         VSyncCallbackWithId callbackWithId_;
     };
     VSyncCallBackListener()
-        : vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr), userData_(nullptr)
+        : vsyncCallbacks_(nullptr), vsyncCallbacksWithId_(nullptr),
+        userData_(nullptr), requestCount_(0)
     {}
 
     ~VSyncCallBackListener()
@@ -116,6 +112,7 @@ public:
 private:
     void OnReadable(int32_t fileDescriptor) override;
     void OnShutdown(int32_t fileDescriptor) override;
+    void PrintRequestTs(int64_t fromRsTs);
     int64_t CalculateExpectedEndLocked(int64_t now);
     void HandleVsyncCallbacks(int64_t data[], ssize_t dataCount, int32_t fileDescriptor);
     VsyncError ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount);
@@ -134,6 +131,7 @@ private:
     FdShutDownCallback fdShutDownCallback_ = nullptr;
     ReadableCallback readableCallback_ = nullptr;
     std::mutex cbMutex_;
+    int requestCount_;
 };
 
 #ifdef __OHOS__
@@ -247,11 +245,13 @@ public:
      * @brief set Dvsync dynamic configuration.
      *
      * @param bufferCount is buffer count.
-     * @param delayEnable is dvsync delay enable.
+     * @param compositeSceneEnable is dvsync compositeScene enable.
      * @param nativeDelayEnable is dvsync native delay enable.
+     * @param rsDvsyncAnimationList is a animation vector which will enable force rs dvsync feature.
      * @return Returns an error code.
      */
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable);
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable = false,
+        bool nativeDelayEnable = false, const std::vector<std::string> &rsDvsyncAnimationList = {});
 
     /**
      * @brief request next vsync signal.

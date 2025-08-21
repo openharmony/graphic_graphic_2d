@@ -24,9 +24,11 @@
 
 #include "feature/round_corner_display/rs_round_corner_config.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "pipeline/rs_processor_factory.h"
 #include "securec.h"
 
 #include "common/rs_singleton.h"
+#include "rs_rcd_surface_render_node.h"
 
 namespace OHOS {
 namespace {
@@ -61,11 +63,6 @@ bool RSRoundCornerDisplayLoadCfgFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     std::string randomConfig(reinterpret_cast<const char*>(data), size);
     rcdCfg.Load(randomConfig);
@@ -79,11 +76,6 @@ bool RSRoundCornerDisplayGetLcdModelFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
     rcdCfg.GetLcdModel(std::string(reinterpret_cast<const char*>(data), size));
@@ -95,11 +87,6 @@ bool RSRoundCornerDisplayGetRogFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr || size == 0) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto w = GetData<int>();
     auto h = GetData<int>();
@@ -120,11 +107,6 @@ bool RSRoundCornerDisplayPrintParseRogFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr || size == 0) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
@@ -152,11 +134,6 @@ bool RSRoundCornerDisplayAddRoundCornerDisplayFuzzTest(const uint8_t* data, size
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
     Rosen::NodeId id = GetData<Rosen::NodeId>();
@@ -172,11 +149,6 @@ bool RSRoundCornerDisplayAddLayerFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr || size == 0) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
@@ -198,11 +170,6 @@ bool RSRoundCornerDisplayRemoveRCDResourceFuzzTest(const uint8_t* data, size_t s
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
     Rosen::NodeId id = GetData<Rosen::NodeId>();
@@ -218,11 +185,6 @@ bool RSRoundCornerDisplayManagerAPIsTest(
     if (data == nullptr || size == 0) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     Rosen::NodeId id {};
     RCDLayerType layerType {};
@@ -300,11 +262,6 @@ bool RSRoundCornerDisplayManagerAPIsFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // rcd stub
     Rosen::NodeId randomId = GetData<Rosen::NodeId>();
     std::string layerName(reinterpret_cast<const char*>(data), size);
@@ -326,6 +283,161 @@ bool RSRoundCornerDisplayManagerAPIsFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RSRcdSurfaceRenderNodeSetRcdBufferWidthFuzzTest(const uint8_t* data, size_t size)
+{
+    int dataNum = 2;
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum)) {
+        return false;
+    }
+
+    Rosen::NodeId nodeId = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(nodeId, type);
+    uint32_t width = GetData<uint32_t>();
+    node->SetRcdBufferWidth(width);
+
+    return true;
+}
+
+bool RSRcdSurfaceRenderNodeFuzzTest01(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t))) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+    return true;
+}
+
+bool RSRcdSurfaceRenderNodeBuffSetGetFuzzTest(const uint8_t* data, size_t size)
+{
+    int dataNum = 8;
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum)) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+    uint32_t targetRectX = GetData<uint32_t>();
+    uint32_t targetRectY = GetData<uint32_t>();
+    uint32_t targetRectWidth = GetData<uint32_t>();
+    uint32_t targetRectHeight = GetData<uint32_t>();
+    node->displayRect_.SetAll(targetRectX, targetRectY, targetRectWidth, targetRectHeight);
+
+    uint32_t rcdBufferWidth = GetData<uint32_t>();
+    uint32_t rcdBufferHeight = GetData<uint32_t>();
+    uint32_t rcdBufferSize = GetData<uint32_t>();
+    node->SetRcdBufferWidth(rcdBufferWidth);
+    node->SetRcdBufferHeight(rcdBufferHeight);
+    node->SetRcdBufferSize(rcdBufferSize);
+    return true;
+}
+
+bool RSRcdSurfaceRenderNodePrepareHardwareFuzzTest(const uint8_t* data, size_t size)
+{
+    int targetDataNum = 4;
+    int layerDataNum = 4;
+    size_t requiredSize = sizeof(Rosen::NodeId) + sizeof(uint32_t) * targetDataNum + sizeof(int) * layerDataNum;
+    if (data == nullptr || size < requiredSize) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+    uint32_t targetRectX = GetData<uint32_t>();
+    uint32_t targetRectY = GetData<uint32_t>();
+    uint32_t targetRectWidth = GetData<uint32_t>();
+    uint32_t targetRectHeight = GetData<uint32_t>();
+    node->displayRect_.SetAll(targetRectX, targetRectY, targetRectWidth, targetRectHeight);
+
+    auto layer = std::make_shared<Rosen::rs_rcd::RoundCornerLayer>();
+    layer->bufferSize = GetData<int>();
+    layer->cldWidth = GetData<int>();
+    layer->cldHeight = GetData<int>();
+    layer->offsetX = GetData<int>();
+    layer->binFileName = "test.bin";
+
+    Rosen::Drawing::ImageInfo info = Rosen::Drawing::ImageInfo::MakeN32Premul(4, 4);
+
+    auto surface = Rosen::Drawing::Surface::MakeRasterN32Premul(
+        info.GetWidth(), info.GetHeight());
+    auto canvas = surface->GetCanvas();
+
+    canvas->DrawColor(0xFFFF0000);
+    node->PrepareHardwareResourceBuffer(layer);
+    return true;
+}
+
+bool RSRcdSurfaceRenderNodeSetHardwareFuzzTest(const uint8_t* data, size_t size)
+{
+    int dataNum = 4;
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t) * dataNum)) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+    uint32_t rcdBufferWidth = GetData<uint32_t>();
+    uint32_t rcdBufferHeight = GetData<uint32_t>();
+    uint32_t rcdBufferSize = GetData<uint32_t>();
+    node->SetRcdBufferWidth(rcdBufferWidth);
+    node->SetRcdBufferHeight(rcdBufferHeight);
+    node->SetRcdBufferSize(rcdBufferSize);
+    return true;
+}
+
+bool RSRcdSurfaceIsTypeFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) + sizeof(uint32_t))) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+    node->IsTopSurface();
+    node->IsBottomSurface();
+    node->IsInvalidSurface();
+
+    return true;
+}
+
+bool RSRcdSurfacePrintResetFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) +  sizeof(uint32_t))) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+
+    node->Reset();
+
+    return true;
+}
+
+bool RSRcdSurfaceIsInvalidSurfaceFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < (sizeof(Rosen::NodeId) +  sizeof(uint32_t))) {
+        return false;
+    }
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    Rosen::RCDSurfaceType type = static_cast<Rosen::RCDSurfaceType>(GetData<uint32_t>());
+    auto node = Rosen::RSRcdSurfaceRenderNode::Create(id, type);
+
+    node->IsInvalidSurface();
+
+    return true;
+}
+
 bool RSRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -342,6 +454,16 @@ bool RSRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
     RSRoundCornerDisplayRemoveRCDResourceFuzzTest(data, size);
     RSRoundCornerDisplayManagerAPIsFuzzTest(data, size);
 
+    RSRcdSurfaceRenderNodeSetRcdBufferWidthFuzzTest(data, size);
+    RSRcdSurfaceRenderNodeFuzzTest01(data, size);
+    RSRcdSurfaceRenderNodeBuffSetGetFuzzTest(data, size);
+    RSRcdSurfaceRenderNodePrepareHardwareFuzzTest(data, size);
+    RSRcdSurfaceRenderNodeSetHardwareFuzzTest(data, size);
+    RSRcdSurfaceIsTypeFuzzTest(data, size);
+    RSRcdSurfacePrintResetFuzzTest(data, size);
+
+    RSRcdSurfaceIsInvalidSurfaceFuzzTest(data, size);
+
     return true;
 }
 
@@ -349,6 +471,12 @@ bool RSRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::g_data = data;
+    OHOS::g_size = size;
+    OHOS::g_pos = 0;
+
+    /* Run your code on data */
     OHOS::RSRoundCornerDisplayFuzzTest(data, size);
     return 0;
 }

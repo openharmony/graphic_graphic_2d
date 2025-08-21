@@ -17,10 +17,11 @@
 
 #include <unordered_map>
 
+#include "effect/rs_render_mask_base.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-#include "effect/rs_render_mask_base.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_effect_luminance_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -41,6 +42,18 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::PARTICLE_CIRCULAR_HALO, [] {
             return std::make_shared<RSNGRenderParticleCircularHalo>();
+        }
+    },
+    {RSNGEffectType::COLOR_GRADIENT_EFFECT, [] {
+            return std::make_shared<RSNGRenderColorGradientEffect>();
+        }
+    },
+    {RSNGEffectType::LIGHT_CAVE, [] {
+            return std::make_shared<RSNGRenderLightCave>();
+        }
+    },
+    {RSNGEffectType::BORDER_LIGHT, [] {
+            return std::make_shared<RSNGRenderBorderLight>();
         }
     }
 };
@@ -99,5 +112,42 @@ void RSNGRenderShaderBase::Dump(std::string& out) const
     }
 }
 
+bool RSNGRenderShaderHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase> shader)
+{
+    auto current = shader;
+    while (current) {
+        if (RSEffectLuminanceManager::GetEnableHdrEffect(current)) {
+            return true;
+        }
+        current = current->nextEffect_;
+    }
+    return false;
+}
+
+void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase> shader,
+    const Vector3f& rotationAngle)
+{
+    auto current = shader;
+    while (current) {
+        if (current->GetType() == RSNGEffectType::BORDER_LIGHT) {
+            auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
+            borderLightShader->Setter<BorderLightRotationAngleRenderTag>(rotationAngle);
+        }
+        current =  current->nextEffect_;
+    }
+}
+
+void RSNGRenderShaderHelper::SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
+    float cornerRadius)
+{
+    auto current = shader;
+    while (current) {
+        if (current->GetType() == RSNGEffectType::BORDER_LIGHT) {
+            auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
+            borderLightShader->Setter<BorderLightCornerRadiusRenderTag>(cornerRadius);
+        }
+        current =  current->nextEffect_;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

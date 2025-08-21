@@ -335,7 +335,6 @@ void HdiBackend::OnHdiBackendConnected(uint32_t screenId, bool connected)
 void HdiBackend::CreateHdiOutput(uint32_t screenId)
 {
     OutputPtr newOutput = HdiOutput::CreateHdiOutput(screenId);
-    newOutput->InitLoadOptParams(loadOptParamsForHdiBackend_.loadOptParamsForHdiOutput);
     newOutput->Init();
     outputs_.emplace(screenId, newOutput);
 }
@@ -388,9 +387,25 @@ RosenError HdiBackend::SetHdiBackendDevice(HdiDevice* device)
     return ROSEN_ERROR_OK;
 }
 
-void HdiBackend::InitLoadOptParams(LoadOptParamsForHdiBackend& loadOptParamsForHdiBackend)
+
+RosenError HdiBackend::RegHwcEventCallback(RSHwcEventCallback func, void* data)
 {
-    loadOptParamsForHdiBackend_ = loadOptParamsForHdiBackend;
+    if (func == nullptr) {
+        HLOGE("HwcEventCallback is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+ 
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+ 
+    int32_t ret = device_->RegHwcEventCallback(func, data);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegHwcEventCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+    return ROSEN_ERROR_OK;
 }
 } // namespace Rosen
 } // namespace OHOS

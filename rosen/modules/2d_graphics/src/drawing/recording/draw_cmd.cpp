@@ -338,13 +338,13 @@ size_t DrawOpItem::GetOpSize()
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)
     : canvas_(canvas), rect_(rect), cmdList_(cmdList) {}
 
-bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handle, size_t avaliableSize)
+bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handle, size_t availableSize)
 {
     if (handle == nullptr) {
         return false;
     }
 
-    if (type == DrawOpItem::TEXT_BLOB_OPITEM && avaliableSize >= sizeof(DrawTextBlobOpItem::ConstructorHandle)) {
+    if (type == DrawOpItem::TEXT_BLOB_OPITEM && availableSize >= sizeof(DrawTextBlobOpItem::ConstructorHandle)) {
         auto* op = static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
         return op->GenerateCachedOpItem(cmdList_, canvas_);
     }
@@ -563,7 +563,7 @@ void DrawRectOpItem::DumpItems(std::string& out) const
 Rect DrawRectOpItem::GetOpItemCmdlistDrawRegion()
 {
     if (rect_.IsEmpty()) {
-        LOGD("GetOpItemCmdlistDrawRegion rect opItem's bounds is null");
+        LOGD("GetOpItemCmdlistDrawRegion rect opItem's bounds is empty");
         return { 0, 0, 0, 0 };
     }
     return rect_;
@@ -821,7 +821,7 @@ Rect DrawPathOpItem::GetOpItemCmdlistDrawRegion()
 
     const auto& bounds = path_->GetBounds();
     if (bounds.IsEmpty()) {
-        LOGD("GetOpItemCmdlistDrawRegion path opItem's bounds is null");
+        LOGD("GetOpItemCmdlistDrawRegion path opItem's bounds is empty");
         return { 0, 0, 0, 0 };
     }
     return bounds;
@@ -1988,22 +1988,19 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
 Rect DrawTextBlobOpItem::GetOpItemCmdlistDrawRegion()
 {
     if (textBlob_ == nullptr) {
-        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem is nullptr");
+        LOGD("GetOpItemCmdlistDrawRegion textBlob is nullptr");
         return { 0, 0, 0, 0 };
     }
 
     auto bounds = textBlob_->Bounds();
-    if (bounds == nullptr) {
-        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is nullptr");
+    if (bounds == nullptr || bounds->IsEmpty()) {
+        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is nullptr or empty");
         return { 0, 0, 0, 0 };
     }
 
-    if (bounds->IsEmpty()) {
-        LOGD("GetOpItemCmdlistDrawRegion textBlob opItem's bounds is null");
-        return { 0, 0, 0, 0 };
-    }
-    bounds->Offset(x_, y_);
-    return *bounds;
+    Rect res = *bounds;
+    res.Offset(x_, y_);
+    return res;
 }
 
 /* DrawSymbolOpItem */

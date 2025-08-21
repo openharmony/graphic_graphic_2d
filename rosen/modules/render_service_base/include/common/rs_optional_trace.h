@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 #define RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE
 
-#include "rs_trace.h"
+#include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "securec.h"
 #ifndef ROSEN_TRACE_DISABLE
 #include "platform/common/rs_system_properties.h"
@@ -86,7 +86,10 @@ static inline int g_debugLevel = OHOS::Rosen::RSSystemProperties::GetDebugTraceL
 
 #define RS_PROCESS_TRACE(forceEnable, name) RSProcessTrace processTrace(forceEnable, name)
 
-#define RS_OPTIONAL_TRACE_FMT(fmt, ...) RSOptionalFmtTrace optionalFmtTrace(fmt, ##__VA_ARGS__)
+#define RS_OPTIONAL_TRACE_FMT(fmt, ...)                                                         \
+    auto optionalFmtTrace = (UNLIKELY(Rosen::RSSystemProperties::GetDebugFmtTraceEnabled())) ?  \
+                                std::make_unique<RSOptionalFmtTrace>(fmt, ##__VA_ARGS__) :      \
+                                nullptr
 
 class RenderTrace {
 public:
@@ -111,29 +114,23 @@ class RSOptionalFmtTrace {
 public:
     RSOptionalFmtTrace(const char* fmt, ...)
     {
-        debugTraceEnable_ = OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled();
-        if (debugTraceEnable_) {
-            va_list vaList;
-            char buf[maxSize_];
-            va_start(vaList, fmt);
-            if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList) < 0) {
-                va_end(vaList);
-                StartTrace(HITRACE_TAG_GRAPHIC_AGP, "length > 256, error");
-                return;
-            }
+        va_list vaList;
+        char buf[maxSize_];
+        va_start(vaList, fmt);
+        if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList) < 0) {
             va_end(vaList);
-            StartTrace(HITRACE_TAG_GRAPHIC_AGP, buf);
+            StartTrace(HITRACE_TAG_GRAPHIC_AGP, "length > 256, error");
+            return;
         }
+        va_end(vaList);
+        StartTrace(HITRACE_TAG_GRAPHIC_AGP, buf);
     }
     ~RSOptionalFmtTrace()
     {
-        if (debugTraceEnable_) {
-            FinishTrace(HITRACE_TAG_GRAPHIC_AGP); // 256 Maximum length of a character string to be printed
-        }
+        FinishTrace(HITRACE_TAG_GRAPHIC_AGP); // 256 Maximum length of a character string to be printed
     }
 
 private:
-    bool debugTraceEnable_ = false;
     const int maxSize_ = 256;
 };
 
@@ -192,5 +189,5 @@ private:
     do {                                                  \
         (void)TRACE_LEVEL_TWO;                            \
     } while (0)
-#endif //ROSEN_TRACE_DISABLE
+#endif // ROSEN_TRACE_DISABLE
 #endif // RENDER_SERVICE_BASE_COMMON_OPTIONAL_TRACE

@@ -34,9 +34,6 @@ void RecordFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
@@ -51,9 +48,6 @@ void RecordFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     OH_Drawing_RecordCmdUtils* recordCmdUtils = OH_Drawing_RecordCmdUtilsCreate();
     OH_Drawing_RecordCmd* recordCmd = GetObject<OH_Drawing_RecordCmd*>();
@@ -67,6 +61,11 @@ void RecordFuzzTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::RecordFuzzTest001(data, size);
     OHOS::Rosen::Drawing::RecordFuzzTest002(data, size);

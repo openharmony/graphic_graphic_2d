@@ -30,16 +30,16 @@ public:
 
     void SetBrightnessRatio(const float& ratio)
     {
-        brightnssRatio_ = ratio;
+        brightnessRatio_ = ratio;
     }
 
     float GetBrightnessRatio() const
     {
-        return brightnssRatio_;
+        return brightnessRatio_;
     }
 
 private:
-    float brightnssRatio_ = 1.0f;
+    float brightnessRatio_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

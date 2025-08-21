@@ -16,8 +16,8 @@
 
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"
-#include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_task_dispatcher.h"
 
 namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS
@@ -29,6 +29,7 @@ SKResourceManager& SKResourceManager::Instance()
     return instance;
 }
 
+// LCOV_EXCL_START
 void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 {
 #ifdef ROSEN_OHOS
@@ -53,9 +54,6 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
 void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
 {
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
     auto tid = gettid();
     if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
         return;
@@ -68,6 +66,7 @@ void SKResourceManager::HoldResource(std::shared_ptr<Drawing::Surface> surface)
     skSurfaces_[tid].push_back(surface);
 #endif
 }
+// LCOV_EXCL_STOP
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 void SKResourceManager::DeleteSharedTextureContext(void* context)

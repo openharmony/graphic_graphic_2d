@@ -45,6 +45,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
     }
+
     RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node: %{public}" PRIu64, nodeId_);
     auto effectParams = static_cast<RSEffectRenderParams*>(GetRenderParams().get());
     if (!effectParams) {
@@ -55,8 +56,10 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
+
     paintFilterCanvas->SetEffectIntersectWithDRM(effectParams->GetEffectIntersectWithDRM());
     paintFilterCanvas->SetDarkColorMode(effectParams->GetDarkColorMode());
+
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped());
@@ -64,13 +67,16 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
+
 #ifdef SUBTREE_PARALLEL_ENABLE
-    if (paintFilterCanvas->IsQuickDraw()) {
+    if (paintFilterCanvas->IsQuickGetDrawState()) {
         RSParallelManager::Singleton().OnQuickDraw(this, canvas, false);
         return;
     }
 #endif
+
     const Drawing::Rect& bounds = effectParams->GetFrameRect();
+
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
@@ -80,10 +86,12 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
     }
+
     if (!GenerateEffectDataOnDemand(effectParams, canvas, bounds, paintFilterCanvas)) {
         SetDrawSkipType(DrawSkipType::GENERATE_EFFECT_DATA_ON_DEMAND_FAIL);
         return;
     }
+
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
 #endif
 }
@@ -97,7 +105,7 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         return false;
     } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 ||
         !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
-        !effectParams->GetHasEffectChildren()) {
+        (!effectParams->GetHasEffectChildren() && !canvas.GetUICapture())) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

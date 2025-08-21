@@ -598,9 +598,9 @@ private:
     RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalNode(
-        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
+        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion, RSRenderNodeType nodeType);
     RSB_EXPORT static std::string UnmarshalNodeModifiers(
-        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
+        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion, RSRenderNodeType nodeType);
 
     RSB_EXPORT static void MarshalSubTree(RSContext& context, std::stringstream& data, const RSRenderNode& node,
         uint32_t fileVersion, bool clearImageCache = true);
@@ -631,13 +631,8 @@ private:
     RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out);
-#if defined(MODIFIER_NG)
     RSB_EXPORT static void DumpNodeDrawCmdModifier(
         const RSRenderNode& node, JsonWriter& out, std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
-#else
-    RSB_EXPORT static void DumpNodeDrawCmdModifier(
-        const RSRenderNode& node, JsonWriter& out, int type, RSRenderModifier& modifier);
-#endif
     RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& out);
     RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& out);
     RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& out);
@@ -674,6 +669,7 @@ private:
     static std::string FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
+    static std::shared_ptr<RSRenderNode> GetLogicalDisplay();
 
     static void ScheduleTask(std::function<void()>&& task);
     static void RequestNextVSync();
@@ -707,7 +703,6 @@ private:
     static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
-    static void Reset(const ArgList& args);
     static void DumpSystemParameters(const ArgList& args);
     static void DumpNodeModifiers(const ArgList& args);
     static void DumpConnections(const ArgList& args);

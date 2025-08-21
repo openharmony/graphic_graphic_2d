@@ -24,13 +24,11 @@
 #include <unordered_set>
 
 #include "drawable/rs_drawable.h"
-#include "modifier/rs_modifier_type.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
-enum class RSModifierType : uint16_t;
 namespace Drawing {
 class DrawCmdList;
 }
@@ -63,18 +61,16 @@ private:
 // RSCustomModifierDrawable, for drawing custom modifiers
 class RSCustomModifierDrawable : public RSDrawable {
 public:
-    RSCustomModifierDrawable(RSModifierType modifierType) : modifierType_(modifierType)
+    RSCustomModifierDrawable(ModifierNG::RSModifierType modifierType) : modifierTypeNG_(modifierType)
     {
-        modifierTypeNG_ = ModifierTypeConvertor::ToModifierNGType(modifierType);
     }
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& content, RSModifierType type);
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& content, ModifierNG::RSModifierType type);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     void OnPurge() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
-    RSModifierType modifierType_ = RSModifierType::INVALID;
     ModifierNG::RSModifierType modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
     bool needClearOp_ = false;
     bool needSync_ = false;
@@ -212,12 +208,21 @@ public:
     ~RSBeginBlenderDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    void PostUpdate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
+    bool GetEnableEDR() const override
+    {
+        return enableEDREffect_;
+    }
+
 private:
+    NodeId screenNodeId_ = INVALID_NODEID;
+
     bool needSync_ = false;
+    bool enableEDREffect_ = false;
     std::shared_ptr<Drawing::Blender> blender_ = nullptr;
     int blendApplyType_ = 0;
     bool isDangerous_ = false;

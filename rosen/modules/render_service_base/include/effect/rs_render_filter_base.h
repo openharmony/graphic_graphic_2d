@@ -40,10 +40,7 @@ public:
 
     virtual void GenerateGEVisualEffect() {};
 
-    virtual void OnSync()
-    {
-        GenerateGEVisualEffect();
-    }
+    virtual void OnSync() {}
 
 protected:
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
@@ -68,6 +65,9 @@ public:
 
     void GenerateGEVisualEffect() override
     {
+        RS_OPTIONAL_TRACE_FMT("RSNGRenderFilterTemplate::GenerateGEVisualEffect, Type: %s paramStr: %s",
+            RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
+            EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
         std::apply([&geFilter](const auto&... propTag) {
@@ -95,14 +95,18 @@ public:
         return std::make_shared<RSNGRenderFilterTemplate<Type, PropertyTags...>>(properties);
     }
 
-    static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase> filter,
-        std::shared_ptr<Drawing::GEVisualEffectContainer> container);
+    static void GenerateGEVisualEffect(std::shared_ptr<RSNGRenderFilterBase>& filter);
 
-    static void SetGeometry(std::shared_ptr<RSNGRenderFilterBase> filter,
-        const Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+    static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
+        std::shared_ptr<Drawing::GEVisualEffectContainer>& container);
 
+    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter);
+    
     static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                 std::shared_ptr<Drawing::GEVisualEffect> target);
+    
+    static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+        const Vector3f& rotationAngle);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
@@ -125,12 +129,12 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
     ADD_PROPERTY_TAG(SoundWave, ColorB),
     ADD_PROPERTY_TAG(SoundWave, ColorC),
     ADD_PROPERTY_TAG(SoundWave, ColorProgress),
-    ADD_PROPERTY_TAG(SoundWave, CenterBrightness),
     ADD_PROPERTY_TAG(SoundWave, Intensity),
     ADD_PROPERTY_TAG(SoundWave, AlphaA),
     ADD_PROPERTY_TAG(SoundWave, AlphaB),
     ADD_PROPERTY_TAG(SoundWave, ProgressA),
-    ADD_PROPERTY_TAG(SoundWave, ProgressB)
+    ADD_PROPERTY_TAG(SoundWave, ProgressB),
+    ADD_PROPERTY_TAG(SoundWave, TotalAlpha)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
@@ -188,6 +192,13 @@ DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
 DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
     ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
     ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
+);
+
+DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
+    ADD_PROPERTY_TAG(ContentLight, Position),
+    ADD_PROPERTY_TAG(ContentLight, Color),
+    ADD_PROPERTY_TAG(ContentLight, Intensity),
+    ADD_PROPERTY_TAG(ContentLight, RotationAngle)
 );
 
 #undef ADD_PROPERTY_TAG

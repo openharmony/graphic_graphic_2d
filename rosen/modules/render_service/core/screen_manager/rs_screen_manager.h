@@ -28,6 +28,7 @@
 
 #include <hdi_backend.h>
 #include <ipc_callbacks/screen_change_callback.h>
+#include <ipc_callbacks/screen_switching_notify_callback.h>
 #include <refbase.h>
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 #include <sensor_agent.h>
@@ -47,10 +48,6 @@
 
 namespace OHOS {
 namespace Rosen {
-struct LoadOptParamsForScreen {
-    LoadOptParamsForHdiBackend loadOptParamsForHdiBackend;
-};
-
 class RSScreen;
 class RSIScreenNodeListener;
 class RSScreenManager : public RefBase {
@@ -78,6 +75,7 @@ public:
 
     virtual int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) = 0;
     virtual void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) = 0;
+    virtual int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback) = 0;
     virtual void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) = 0;
 
     virtual void DisplayDump(std::string& dumpString) = 0;
@@ -215,11 +213,11 @@ public:
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
     
+    virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
+    
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
-    virtual std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const = 0;
-
-    virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
+    virtual bool CheckPSurfaceChanged(ScreenId id) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -260,6 +258,7 @@ public:
 
     int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) override;
     void RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback) override;
+    int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback) override;
     void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) override;
 
     void DisplayDump(std::string& dumpString) override;
@@ -394,13 +393,11 @@ public:
     int32_t GetVirtualScreenSecLayerOption(ScreenId id) const override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
-    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
-
     // Get all whiteList and their screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
-    void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
-
+    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
+    bool CheckPSurfaceChanged(ScreenId id) override;
 private:
     RSScreenManager() = default;
     ~RSScreenManager() override = default;
@@ -451,6 +448,7 @@ private:
     void TriggerCallbacks(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT) const;
     void NotifyScreenNodeChange(ScreenId id, bool connected) const;
+    void NotifySwitchingCallback(bool status) const;
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
@@ -471,6 +469,8 @@ private:
 
     mutable std::shared_mutex screenChangeCallbackMutex_;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
+    mutable std::shared_mutex screenSwitchingNotifyCallbackMutex_;
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback_;
     std::shared_ptr<RSIScreenNodeListener> screenNodeListener_;
 
     std::atomic<bool> mipiCheckInFirstHotPlugEvent_ = false;
@@ -532,8 +532,6 @@ private:
 
     mutable std::mutex whiteListMutex_;
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
-
-    LoadOptParamsForScreen loadOptParamsForScreen_ = {};
 };
 } // namespace impl
 } // namespace Rosen

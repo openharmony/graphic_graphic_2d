@@ -52,7 +52,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_COLOR = 0x0113,
     UPDATE_MODIFIER_VECTOR4F = 0x0114,
     UPDATE_MODIFIER_RRECT = 0x0115,
-    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0116,
+    // 0x0116 deleted, do not use this value never.
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
     UPDATE_MODIFIER_COMPLEX_SHADER_PARAM = 0X0118,
     UPDATE_MODIFIER_UI_FILTER_PTR = 0X0119,
@@ -107,10 +107,6 @@ enum RSNodeCommandType : uint16_t {
 
 class RSB_EXPORT RSNodeCommandHelper {
 public:
-    static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
-    static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
-    static void RemoveAllModifiers(RSContext& context, NodeId nodeId);
-
     template<typename T>
     static void UpdateProperty(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
     {
@@ -124,30 +120,6 @@ public:
         }
         if (auto property = node->GetProperty(id)) {
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
-        } else if (auto modifier = node->GetModifier(id)) {
-            std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<T>>(value, id);
-            bool isDelta = (type == UPDATE_TYPE_INCREMENTAL);
-            modifier->Update(prop, isDelta);
-        }
-    }
-
-    static void UpdateModifierDrawCmdList(
-        RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId id, bool isDelta)
-    {
-        std::shared_ptr<RSRenderPropertyBase> prop =
-            std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(value, id);
-        auto& nodeMap = context.GetNodeMap();
-        auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-        if (!node) {
-            return;
-        }
-        auto modifier = node->GetModifier(id);
-        if (!modifier) {
-            return;
-        }
-        modifier->Update(prop, isDelta);
-        if (value) {
-            value->UpdateNodeIdToPicture(nodeId);
         }
     }
 
@@ -167,15 +139,14 @@ public:
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
-    static void SetEnableHDREffect(RSContext &context, NodeId nodeId, bool hdrPresent);
     static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
 
-    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t)>;
-    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId);
+    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint64_t, uint32_t)>;
+    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);
     static RSB_EXPORT void SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor);
 
     using CommitDumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t, const std::string&)>;
@@ -198,13 +169,6 @@ public:
     static void RemoveAllModifiersNG(RSContext& context, NodeId nodeId);
 };
 
-ADD_COMMAND(RSAddModifier,
-    ARG(PERMISSION_APP, RS_NODE, ADD_MODIFIER,
-        RSNodeCommandHelper::AddModifier, NodeId, std::shared_ptr<RSRenderModifier>))
-ADD_COMMAND(RSRemoveModifier,
-    ARG(PERMISSION_APP, RS_NODE, REMOVE_MODIFIER,
-        RSNodeCommandHelper::RemoveModifier, NodeId, PropertyId))
-
 ADD_COMMAND(RSUpdatePropertyBool,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_BOOL,
         RSNodeCommandHelper::UpdateProperty<bool>, NodeId, bool, PropertyId, PropertyUpdateType))
@@ -226,10 +190,6 @@ ADD_COMMAND(RSUpdatePropertyMatrix3f,
 ADD_COMMAND(RSUpdatePropertyQuaternion,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_QUATERNION,
         RSNodeCommandHelper::UpdateProperty<Quaternion>, NodeId, Quaternion, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyUIFilter,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_UI_FILTER_PTR,
-        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSRenderFilter>>,
-        NodeId, std::shared_ptr<RSRenderFilter>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyNGFilterBase,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NG_FILTER_BASE_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSNGRenderFilterBase>>,
@@ -308,10 +268,6 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RRECT,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
-        RSNodeCommandHelper::UpdateModifierDrawCmdList,
-        NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
         RSNodeCommandHelper::UpdateProperty<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
@@ -369,23 +325,16 @@ ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
     ARG(PERMISSION_APP, RS_NODE, SET_NEED_USE_CMDLIST_DRAW_REGION,
         RSNodeCommandHelper::SetNeedUseCmdlistDrawRegion, NodeId, bool))
 
-ADD_COMMAND(RSSetEnableHDREffect,
-    ARG(PERMISSION_APP, RS_NODE, SET_ENABLE_HDR_EFFECT,
-        RSNodeCommandHelper::SetEnableHDREffect, NodeId, bool))
-
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
         RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId, bool))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, UNREGISTER_GEOMETRY_TRANSITION,
         RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
-ADD_COMMAND(RSRemoveAllModifiers,
-    ARG(PERMISSION_APP, RS_NODE, REMOVE_ALL_MODIFIERS,
-        RSNodeCommandHelper::RemoveAllModifiers, NodeId))
 
 ADD_COMMAND(RSDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, DUMP_CLIENT_NODE_TREE,
-        RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t))
+        RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint64_t, uint32_t))
 ADD_COMMAND(RSCommitDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))

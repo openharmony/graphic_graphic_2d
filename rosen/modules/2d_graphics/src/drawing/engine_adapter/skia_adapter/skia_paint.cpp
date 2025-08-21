@@ -36,18 +36,17 @@ namespace Rosen {
 namespace Drawing {
 
 // Helper function to apply shader effect on SkPaint with lazy handling
-static void ApplyShaderEffect(SkPaint& skPaint, const ShaderEffect* shaderEffect)
+static void ApplyShaderEffect(SkPaint& skPaint, std::shared_ptr<ShaderEffect> shaderEffect)
 {
     if (!shaderEffect) {
         return;
     }
 
-    const ShaderEffect* actualShader = shaderEffect;
+    std::shared_ptr<ShaderEffect> actualShader = shaderEffect;
     // Handle Lazy ShaderEffect: materialize to get actual implementation
     if (shaderEffect->IsLazy()) {
-        auto lazyShader = const_cast<ShaderEffectLazy*>(
-            static_cast<const ShaderEffectLazy*>(shaderEffect));
-        actualShader = lazyShader->Materialize().get();
+        auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(shaderEffect);
+        actualShader = lazyShader->Materialize();
     }
 
     if (actualShader) {
@@ -59,18 +58,17 @@ static void ApplyShaderEffect(SkPaint& skPaint, const ShaderEffect* shaderEffect
 }
 
 // Helper function to apply image filter on SkPaint with lazy handling
-static void ApplyImageFilter(SkPaint& skPaint, const ImageFilter* imageFilter)
+static void ApplyImageFilter(SkPaint& skPaint, std::shared_ptr<ImageFilter> imageFilter)
 {
     if (!imageFilter) {
         return;
     }
 
-    const ImageFilter* actualImageFilter = imageFilter;
+    std::shared_ptr<ImageFilter> actualImageFilter = imageFilter;
     // Handle Lazy ImageFilter: materialize to get actual implementation
     if (imageFilter->IsLazy()) {
-        auto lazyImageFilter = const_cast<ImageFilterLazy*>(
-            static_cast<const ImageFilterLazy*>(imageFilter));
-        actualImageFilter = lazyImageFilter->Materialize().get();
+        auto lazyImageFilter = std::static_pointer_cast<ImageFilterLazy>(imageFilter);
+        actualImageFilter = lazyImageFilter->Materialize();
     }
 
     if (actualImageFilter) {
@@ -96,7 +94,7 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
     }
     paint.setAntiAlias(brush.IsAntiAlias());
 
-    ApplyShaderEffect(paint, brush.GetShaderEffectPtr());
+    ApplyShaderEffect(paint, brush.GetShaderEffect());
 
     if (const Blender* b = brush.GetBlenderPtr()) {
         if (SkiaBlender* skBlenderImpl = b->GetImpl<SkiaBlender>()) {
@@ -135,7 +133,7 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
         }
     }
 
-    ApplyShaderEffect(paint, pen.GetShaderEffectPtr());
+    ApplyShaderEffect(paint, pen.GetShaderEffect());
 
     if (const Blender* blender = pen.GetBlenderPtr()) {
         if (SkiaBlender* skBlenderImpl = blender->GetImpl<SkiaBlender>()) {
@@ -165,7 +163,7 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
 
     skPaint.setAntiAlias(paint.IsAntiAlias());
 
-    ApplyShaderEffect(skPaint, paint.GetShaderEffectPtr());
+    ApplyShaderEffect(skPaint, paint.GetShaderEffect());
 
     if (paint.HasFilter()) {
         ApplyFilter(skPaint, paint.GetFilter());
@@ -215,7 +213,7 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
         }
     }
 
-    ApplyImageFilter(paint, filter.GetImageFilterPtr());
+    ApplyImageFilter(paint, filter.GetImageFilter());
 
     if (const MaskFilter* mf = filter.GetMaskFilterPtr()) {
         if (SkiaMaskFilter* skMaskFilterImpl = mf->GetImpl<SkiaMaskFilter>()) {

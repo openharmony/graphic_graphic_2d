@@ -45,7 +45,7 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand001, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = nullptr;
-    RSModifierType type = RSModifierType::INVALID;
+    ModifierNG::RSModifierType type = ModifierNG::RSModifierType::INVALID;
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId), nullptr);
     RSCanvasNodeCommandHelper::UpdateRecording(context, nodeId, drawCmds, static_cast<uint16_t>(type));
 }

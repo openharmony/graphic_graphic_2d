@@ -150,7 +150,7 @@ HWTEST_F(StringConvertTest, BoundaryCases, TestSize.Level0)
     EXPECT_EQ(Str32ToStr16ByIcu(maxSurrogate.data(), maxSurrogate.size()), u"\xFFFD");
 
     // Test minimum code point
-    std::vector<int32_t> zero { 0x0000 };
+    std::vector<int32_t> zero { 0 };
     std::u16string result = u"\x00";
     result.resize(1);
     EXPECT_EQ(Str32ToStr16ByIcu(zero.data(), zero.size()), result);

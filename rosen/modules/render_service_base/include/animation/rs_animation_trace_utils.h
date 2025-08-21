@@ -36,16 +36,9 @@ public:
     void AddAnimationFinishTrace(
         const std::string info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const;
 
-    void AddAnimationCallFinishTrace(
-        const uint64_t nodeId, const uint64_t animationId, RSModifierType type, bool isAddLogInfo) const;
     void AddAnimationCallFinishTrace(const uint64_t nodeId, const uint64_t animationId,
         ModifierNG::RSPropertyType propertyType, bool isAddLogInfo) const;
 
-    void AddAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName, const uint64_t propertyId,
-        const uint64_t animationId, const ImplicitAnimationParamType animationType, const RSModifierType propertyType,
-        const std::shared_ptr<RSRenderPropertyBase>& startValue, const std::shared_ptr<RSRenderPropertyBase>& endValue,
-        const int animationDelay, const int animationDur, const int repeat, const std::string& interfaceName,
-        const int32_t frameNodeId, const std::string& frameNodeTag, RSUINodeType nodeType) const;
     void AddAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName, const uint64_t propertyId,
         const uint64_t animationId, const ImplicitAnimationParamType animationType,
         const ModifierNG::RSPropertyType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
@@ -53,9 +46,9 @@ public:
         const int repeat, const std::string& interfaceName, const int32_t frameNodeId, const std::string& frameNodeTag,
         RSUINodeType nodeType) const;
 
-    void AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t animationId, const uint64_t propertyId,
-        const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur,
-        const int repeat) const;
+    void AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t nodeId, const std::string& nodeName,
+        const uint64_t animationId, const uint64_t propertyId, const float fraction,
+        const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur, const int repeat) const;
 
     void AddSpringInitialVelocityTrace(const uint64_t propertyId, const uint64_t animationId,
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
@@ -78,7 +71,6 @@ private:
     std::string GetColorString(const Color& value) const;
 
     static void OnAnimationTraceEnabledChangedCallback(const char* key, const char* value, void* context);
-    std::string GetModifierTypeString(RSModifierType type) const;
     std::string GetAnimationTypeString(ImplicitAnimationParamType type) const;
     std::string GetNodeTypeString(RSUINodeType type) const;
 

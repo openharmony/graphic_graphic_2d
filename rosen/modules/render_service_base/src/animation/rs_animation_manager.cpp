@@ -27,6 +27,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +35,7 @@ class RSRootRenderNode;
 
 void RSAnimationManager::DumpAnimations(std::string& out) const
 {
+    RS_TRACE_NAME_FMT("DumpAnimations, size: %zu", animations_.size());
     if (animations_.empty()) {
         return;
     }

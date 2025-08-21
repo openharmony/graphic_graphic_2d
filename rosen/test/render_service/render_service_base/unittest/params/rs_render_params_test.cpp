@@ -786,30 +786,4 @@ HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
     renderParams->SetVirtualScreenWhiteListInfo(info);
     ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
 }
-
-/**
- * @tc.name: GetBackgroundFilter
- * @tc.desc: Test GetBackgroundFilter
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParamsTest, SetBackgroundFilter, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->needSync_ = false;
-    renderParams->backgroundFilter_ = nullptr;
-    auto backgroundFilter = std::make_shared<RSFilter>();
-    backgroundFilter->type_ = RSFilter::FilterType::BLUR;
-
-    renderParams->SetBackgroundFilter(backgroundFilter);
-    EXPECT_TRUE(renderParams->needSync_);
-    EXPECT_NE(renderParams->ToString(), "");
-
-    renderParams->needSync_ = false;
-    renderParams->SetBackgroundFilter(backgroundFilter);
-    EXPECT_FALSE(renderParams->needSync_);
-}
 } // namespace OHOS::Rosen

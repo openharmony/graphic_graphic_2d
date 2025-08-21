@@ -100,7 +100,6 @@ void SendFrameEvent(bool start)
 RSRenderThread& RSRenderThread::Instance()
 {
     static RSRenderThread renderThread;
-    RSAnimationFraction::Init();
     return renderThread;
 }
 
@@ -142,6 +141,7 @@ RSRenderThread::RSRenderThread()
     };
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
+    RSAnimationFraction::Init();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
@@ -298,7 +298,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #ifdef RS_ENABLE_VK
     if (!cacheDir_.empty()) {
-        renderContex_->SetCacheDir(cacheDir_);
+        renderContext_->SetCacheDir(cacheDir_);
     }
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->SetUpGpuContext(nullptr);

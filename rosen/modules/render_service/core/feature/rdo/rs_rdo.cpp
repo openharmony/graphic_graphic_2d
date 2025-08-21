@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <memory>
 #include <parameters.h>
 #include <platform/common/rs_log.h>
@@ -24,7 +25,6 @@
 #include <string>
 #include <sys/mman.h>
 #include <sys/syscall.h>
-#include <system_ability_definition.h>
 
 #include "system/rs_system_parameters.h"
 
@@ -34,34 +34,37 @@ namespace OHOS {
 namespace Rosen {
 #ifdef RS_ENABLE_RDO
 #define MAX_PATH_LENGTH 128
+#define MSG_LEN 64
 constexpr const char *RDOPARAM = "persist.graphic.profiler.renderservice.rdo.enable";
 constexpr const char *RDOINITPARAM = "persist.graphic.profiler.renderservice.rdo.init.successed";
 static char g_codeCachePath[MAX_PATH_LENGTH] = "/system/lib64/librender_service_codeCache.so";
 static char g_linkInfoPath[MAX_PATH_LENGTH] = "/system/etc/librender_service_linkInfo.bin";
 static char g_binXOLoaderPath[MAX_PATH_LENGTH] = "/vendor/lib64/libbinxo_ld.so";
- 
+static const char *MSG_INFO = "RDO_CRASH";
+static int rdo_pipe[2];
 #ifndef NSIG
 #define NSIG 64
 #endif
 static struct sigaction g_oldSigactionList[NSIG] = {};
 static const int RDO_SIGCHAIN_CRASH_SIGNAL_LIST[] = {
     SIGILL, SIGABRT, SIGBUS, SIGFPE, SIGSEGV, SIGSTKFLT, SIGSYS, SIGTRAP};
- 
-static void SetRDOParam(const char *value)
+constexpr size_t kSignalListSize = sizeof(RDO_SIGCHAIN_CRASH_SIGNAL_LIST) / sizeof(RDO_SIGCHAIN_CRASH_SIGNAL_LIST[0]);
+
+static void SetRDOParam(const char* value)
 {
     system::SetParameter(RDOPARAM, value);
 }
- 
+
 static bool IsRDOEnable()
 {
-    static std::string rdoFlagValue = system::GetParameter(RDOPARAM, "undef");
+    std::string rdoFlagValue = system::GetParameter(RDOPARAM, "undef");
     RS_LOGI("[RDO] Is RDO Enable: %{public}s", rdoFlagValue.c_str());
-    static std::string rdoInitValue = system::GetParameter(RDOINITPARAM, "undef");
+    std::string rdoInitValue = system::GetParameter(RDOINITPARAM, "undef");
     RS_LOGI("[RDO] Is RDO init successfully: %{public}s", rdoInitValue.c_str());
     return (rdoFlagValue == "true" && rdoInitValue == "true");
 }
- 
-static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t *si)
+
+static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t* si)
 {
     if (g_oldSigactionList[signo].sa_sigaction == nullptr) {
         signal(signo, SIG_DFL);
@@ -77,33 +80,52 @@ static void ResetAndRethrowSignalIfNeed(int signo, siginfo_t *si)
     }
 }
  
-static void RDOSigchainHandler(int signo, siginfo_t *si, void *context)
+static void RDOSigchainHandler(int signo, siginfo_t* si, void* context)
 {
-    SetRDOParam("false");
-    ResetAndRethrowSignalIfNeed(signo, si);
+    int flags = fcntl(rdo_pipe[1], F_GETFD);
+    if (flags != -1) {
+        write(rdo_pipe[1], MSG_INFO, strlen(MSG_INFO));
+        close(rdo_pipe[1]);
+        ResetAndRethrowSignalIfNeed(signo, si);
+    }
 }
- 
-static void InstallSigActionHandler(int signo)
+
+static void InstallSigActionHandler(int signo, void (*SigHandler)(int, siginfo_t *, void *))
 {
     struct sigaction action;
     memset_s(&action, sizeof(action), 0, sizeof(action));
     sigfillset(&action.sa_mask);
-    action.sa_sigaction = RDOSigchainHandler;
+    action.sa_sigaction = SigHandler;
     action.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
     if (sigaction(signo, &action, &(g_oldSigactionList[signo])) != 0) {
         RS_LOGI("[RDO] Failed to register signal(%{public}d)", signo);
     }
 }
- 
-static void RDOInstallSignalHandler()
+
+static void RDOInstallSignalHandler(void (*SigHandler)(int, siginfo_t *, void *))
 {
-    for (size_t i = 0; i < sizeof(RDO_SIGCHAIN_CRASH_SIGNAL_LIST) / sizeof(RDO_SIGCHAIN_CRASH_SIGNAL_LIST[0]); i++) {
+    for (size_t i = 0; i < kSignalListSize; i++) {
         int32_t signo = RDO_SIGCHAIN_CRASH_SIGNAL_LIST[i];
-        InstallSigActionHandler(signo);
+        InstallSigActionHandler(signo, SigHandler);
     }
 }
- 
-void *HelperThreadforBinXO(void *arg)
+
+static void ProcessPipeMessage(int pipe_fd)
+{
+    char msg_buf[MSG_LEN];
+    memset_s(msg_buf, sizeof(msg_buf), 0, sizeof(msg_buf));
+    if (read(pipe_fd, msg_buf, MSG_LEN) > 0) {
+        RS_LOGI("[RDO] child process received message %{public}s", msg_buf);
+        if (strcmp(msg_buf, MSG_INFO) == 0) {
+            SetRDOParam("false");
+            RS_LOGI("[RDO] RDO disable");
+        }
+    }
+    close(pipe_fd);
+    RS_LOGI("[RDO] RDO child pipe closed");
+}
+
+void* HelperThreadforBinXO(void* arg)
 {
     // For feature RDO:
     // step1: dlopen libbinxo_ld.so
@@ -117,44 +139,52 @@ void *HelperThreadforBinXO(void *arg)
         return nullptr;
     }
     system::SetParameter(RDOINITPARAM, "false");
-    RDOInstallSignalHandler();
-    RS_LOGI("[RDO] RDOInstallSignalHandler true");
  
-    void *handle = dlopen(g_binXOLoaderPath, RTLD_NOW);
-    if (!handle) {
-        RS_LOGI("[RDO] dlopen libbinxo_ld.so failed");
+    if (pipe(rdo_pipe) == -1) {
+        RS_LOGI("[RDO] pipe alloc error");
         return nullptr;
     }
- 
+    RDOInstallSignalHandler(RDOSigchainHandler);
+    RS_LOGI("[RDO] RDOInstallSignalHandler true");
+    char canonicalPath[PATH_MAX] = { 0 };
+    if (realpath(g_binXOLoaderPath, canonicalPath) == nullptr) {
+        RS_LOGI("[RDO] Failed to canonicalize path");
+        close(rdo_pipe[0]);
+        return nullptr;
+    }
+    void* handle = dlopen(canonicalPath, RTLD_NOW);
+    if (!handle) {
+        RS_LOGI("[RDO] dlopen libbinxo_ld.so failed");
+        close(rdo_pipe[0]);
+        return nullptr;
+    }
+
     void (*readInfo)(const char *) =
         reinterpret_cast<void (*)(const char *)>(dlsym(handle, "_ZN11BinXOLoader12ReadLinkInfoEPc"));
     void (*loadCC)(const char *) =
         reinterpret_cast<void (*)(const char *)>(dlsym(handle, "_ZN11BinXOLoader13LoadCodeCacheEPc"));
     void (*linkAll)() = reinterpret_cast<void (*)()>(dlsym(handle, "_ZN11BinXOLoader7LinkAllEv"));
- 
-    if (!readInfo) {
-        RS_LOGI("[RDO] Failed to load function _ZN11BinXOLoader12ReadLinkInfoEPc");
+
+    if (!readInfo || !loadCC || !linkAll) {
+        RS_LOGI("[RDO] Failed to load rdo function");
         dlclose(handle);
+        close(rdo_pipe[0]);
         return nullptr;
     }
+    // Read linkinfo from  librs_linkInfo.bin
     readInfo(g_linkInfoPath);
- 
-    if (!loadCC) {
-        RS_LOGI("[RDO] Failed to load function _ZN11BinXOLoader13LoadCodeCacheEPc");
-        dlclose(handle);
-        return nullptr;
-    }
+    // Load librender_service_codeCache.so
     loadCC(g_codeCachePath);
- 
-    if (!linkAll) {
-        RS_LOGI("[RDO] Failed to load function _ZN11BinXOLoader7LinkAllEv");
-        dlclose(handle);
-        return nullptr;
-    }
+    // Link all to enable rdo
     linkAll();
- 
+
     dlclose(handle);
+
     system::SetParameter(RDOINITPARAM, "true");
+ 
+    RS_LOGI("[RDO] RDO finish, wait msg");
+    ProcessPipeMessage(rdo_pipe[0]);
+ 
     return nullptr;
 }
  
@@ -162,13 +192,12 @@ __attribute__((visibility("default"))) int32_t EnableRSCodeCache()
 {
     // Create a helper thread to load modifications for feature RDO.
     pthread_t id = 0;
-    int ret = 0;
-    ret = pthread_create(&id, nullptr, HelperThreadforBinXO, nullptr);
+    int ret = pthread_create(&id, nullptr, HelperThreadforBinXO, nullptr);
     if (ret != 0) {
-        RS_LOGE("[RDO] pthread_create failed with error code %d", ret);
+        RS_LOGE("[RDO] pthread_create failed with error code %{public}d", ret);
     }
     pthread_setname_np(id, "binxo_helper_thread");
- 
+    pthread_detach(id);
     return ret;
 }
 #endif

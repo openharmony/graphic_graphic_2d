@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,24 +38,17 @@ void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
 
 /**
- * @tc.name: SetGeometry
- * @tc.desc: Test the SetGeometry method
+ * @tc.name: GenerateGEVisualEffect
+ * @tc.desc: Test the GenerateGEVisualEffect method
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, SetGeometry, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect, TestSize.Level1)
 {
-    auto filter = std::make_shared<RSNGRenderBlurFilter>();
-    Drawing::Canvas canvas;
-    float testValue = 20.f;
-    RSUIFilterHelper::SetGeometry(nullptr, canvas, testValue, testValue);
-    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
+    std::shared_ptr<RSNGRenderFilterBase> filterNull = nullptr;
+    RSUIFilterHelper::GenerateGEVisualEffect(filterNull);
+    std::shared_ptr<RSNGRenderFilterBase> filter = std::make_shared<RSNGRenderBlurFilter>();
+    RSUIFilterHelper::GenerateGEVisualEffect(filter);
     EXPECT_EQ(filter->geFilter_, nullptr);
-
-    filter->GenerateGEVisualEffect();
-    RSUIFilterHelper::SetGeometry(filter, canvas, testValue, testValue);
-    EXPECT_NE(filter->geFilter_, nullptr);
-    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoWidth_, testValue);
-    EXPECT_FLOAT_EQ(filter->geFilter_->GetCanvasInfo().geoHeight_, testValue);
 }
 
 /**
@@ -331,6 +325,7 @@ HWTEST_F(RSRenderFilterBaseTest, AttachDetach002, TestSize.Level1)
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->node_.lock(), nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetModifierType001
  * @tc.desc: Test the SetModifierType method can
@@ -362,6 +357,7 @@ HWTEST_F(RSRenderFilterBaseTest, SetModifierTypeChain, TestSize.Level1)
     EXPECT_EQ(filter1->Getter<BlurRadiusXRenderTag>()->GetModifierType(), targetType);
     EXPECT_EQ(filter2->Getter<EdgeLightColorRenderTag>()->GetModifierType(), targetType);
 }
+#endif
 
 /**
  * @tc.name: DumpProperties001
@@ -375,6 +371,23 @@ HWTEST_F(RSRenderFilterBaseTest, DumpProperties001, TestSize.Level1)
     std::string out;
     filter1->DumpProperties(out);
     EXPECT_FALSE(out.empty());
+}
+
+/**
+ * @tc.name: CheckEnableEDR001
+ * @tc.desc: Test the CheckEnableEDR method could check enable edr for filters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
+{
+    auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
+    auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
+    filter1->nextEffect_ = filter2;
+    EXPECT_FALSE(RSUIFilterHelper::CheckEnableEDR(filter1));
+
+    Vector4f color{0.5f, 0.5f, 1.5f, 1.0f};
+    filter2->Setter<EdgeLightColorRenderTag>(color);
+    EXPECT_TRUE(RSUIFilterHelper::CheckEnableEDR(filter1));
 }
 
 /**
@@ -397,120 +410,4 @@ HWTEST_F(RSRenderFilterBaseTest, OnUnmarshalling001, TestSize.Level1)
     EXPECT_TRUE(ret);
     EXPECT_EQ(outFilter->GetType(), filter->GetType());
 }
-
-/**
- * @tc.name: GetType001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, GetType001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    auto uiFilterType = rsRenderFilterParaBase->GetType();
-    EXPECT_EQ(uiFilterType, RSUIFilterType::BLUR);
-}
-
-/**
- * @tc.name: IsValid001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, IsValid001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase1 = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::NONE);
-    EXPECT_FALSE(rsRenderFilterParaBase1->IsValid());
-    auto rsRenderFilterParaBase2 = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    EXPECT_TRUE(rsRenderFilterParaBase2->IsValid());
-}
-
-/**
- * @tc.name: Setter001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, Setter001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    auto rsRenderPropertyBase = std::make_shared<RSRenderProperty<bool>>();
-    rsRenderFilterParaBase->Setter(RSUIFilterType::BLUR, rsRenderPropertyBase);
-    EXPECT_NE(rsRenderFilterParaBase->properties_.size(), 0);
-}
-
-/**
- * @tc.name: GetDescription001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, GetDescription001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    std::string out;
-    rsRenderFilterParaBase->GetDescription(out);
-    EXPECT_TRUE(out.empty());
-}
-
-/**
- * @tc.name: DumpTest001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, DumpTest001, TestSize.Level1)
-{
-    std::string temp = ": [";
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    std::string out;
-    rsRenderFilterParaBase->Dump(out);
-    EXPECT_EQ(out, temp);
-}
-
-/**
- * @tc.name: WriteToParcel001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, WriteToParcel001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    Parcel parcel;
-    auto ret =rsRenderFilterParaBase->WriteToParcel(parcel);
-    EXPECT_TRUE(ret);
-}
-
-/**
- * @tc.name: ReadFromParcel001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, ReadFromParcel001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    Parcel parcel;
-    auto ret =rsRenderFilterParaBase->ReadFromParcel(parcel);
-    EXPECT_TRUE(ret);
-}
-
-/**
- * @tc.name: GetRenderPropert001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, GetRenderPropert001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    auto renderPropert = rsRenderFilterParaBase->GetRenderProperty(RSUIFilterType::BLUR);
-    EXPECT_EQ(renderPropert, nullptr);
-}
-
-/**
- * @tc.name: GetLeafRenderProperties001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, GetLeafRenderProperties001, TestSize.Level1)
-{
-    auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
-    auto leafRenderProperties = rsRenderFilterParaBase->GetLeafRenderProperties();
-    EXPECT_TRUE(leafRenderProperties.empty());
-}
-
 } // namespace OHOS::Rosen

@@ -28,6 +28,10 @@
 #include "vsync_type.h"
 #include "vsync_system_ability_listener.h"
 
+namespace ffrt {
+class thread;
+}
+
 namespace OHOS {
 namespace Rosen {
 
@@ -84,14 +88,14 @@ public:
     virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
     virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
     virtual int64_t GetVSyncOffset() = 0;
+    virtual void PrintGeneratorStatus() = 0;
     // Start of DVSync
     virtual int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate) = 0;
-    virtual void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) = 0;
+    virtual bool DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged, bool needChangeDssRefreshRate) = 0;
     virtual VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual bool IsUiDvsyncOn() = 0;
     // End of DVSync
-    virtual void PrintGeneratorStatus() = 0;
     virtual bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) = 0;
     virtual bool NeedPreexecuteAndUpdateTs(
         int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime) = 0;
@@ -140,15 +144,15 @@ public:
     void SetFrameRateChangingStatus(bool frameRateChanging) override;
     void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) override;
     int64_t GetVSyncOffset() override;
+    void PrintGeneratorStatus() override;
 
     // Start of DVSync
     int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate) override;
-    void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) override;
+    bool DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged, bool needChangeDssRefreshRate) override;
     VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     bool IsUiDvsyncOn() override;
     // End of DVSync
-    void PrintGeneratorStatus() override;
     bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) override;
     bool NeedPreexecuteAndUpdateTs(
         int64_t& timestamp, int64_t& period, int64_t& offset, int64_t lastVsyncTime) override;
@@ -163,6 +167,7 @@ private:
     };
 
     VSyncGenerator();
+    explicit VSyncGenerator(bool isUseFfrt);
     ~VSyncGenerator() override;
 
     int64_t ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime);
@@ -206,6 +211,8 @@ private:
     std::mutex waitForTimeoutMtx_;
     std::condition_variable waitForTimeoutCon_;
     std::thread thread_;
+    std::shared_ptr<ffrt::thread> ffrtThread_ = nullptr;
+    bool isUseFfrt_ = false;
     bool vsyncThreadRunning_;
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::VSyncGenerator> instance_;

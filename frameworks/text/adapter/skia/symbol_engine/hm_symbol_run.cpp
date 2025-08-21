@@ -29,7 +29,7 @@ static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
     RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR, RSEffectStrategy::QUICK_REPLACE_APPEAR};
 
-static const float SHADOW_EPSILON = 0.999f; // if blur radius less than 1, do noe need to draw
+static const float SHADOW_EPSILON = 0.999f; // if blur radius less than 1, do not need to draw
 
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
@@ -70,14 +70,19 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
         symbolInfo.symbolGlyphId = symbolInfoOrign.symbolGlyphId;
     }
 
-    if (symbolText.GetSymbolColor().colorType == SymbolColorType::GRADIENT_TYPE) {
-        SetGradientColor(renderMode, symbolInfo);
-    }
-
-    bool isNeed = symbolText.GetSymbolColor().colorType == SymbolColorType::COLOR_TYPE ||
-        gradients_.empty();
-    if (isNeed) {
-        SetRenderColor(renderMode, symbolInfo);
+    switch (symbolText.GetSymbolColor().colorType) {
+        case SymbolColorType::GRADIENT_DEFAULT_COLOR:
+            SetGradientOrDefinedColor(symbolInfo);
+            break;
+        case SymbolColorType::GRADIENT_TYPE:
+            SetGradientColor(renderMode, symbolInfo);
+            if (gradients_.empty()) {
+                SetRenderColor(renderMode, symbolInfo);
+            }
+            break;
+        default:
+            SetRenderColor(renderMode, symbolInfo);
+            break;
     }
     return symbolInfo;
 }
@@ -101,7 +106,7 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
         gradient->SetColors(colorQuads);
         gradients.push_back(gradient);
     }
-    gradients_ = gradients;
+    gradients_ = std::move(gradients);
 }
 
 void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo)
@@ -131,7 +136,30 @@ void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, 
             gradients.push_back(gradient);
         }
     }
-    gradients_ = gradients;
+    gradients_ = std::move(gradients);
+}
+
+void HMSymbolRun::SetGradientOrDefinedColor(const RSSymbolLayers& symbolInfo)
+{
+    auto symbolColor = symbolTxt_.GetSymbolColor();
+    const size_t n = symbolColor.gradients.size();
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    for (size_t i = 0; i < symbolInfo.renderGroups.size(); i++) {
+        if (i < n && symbolColor.gradients[i]) {
+            gradients.push_back(symbolColor.gradients[i]);
+        } else {
+            auto gradient = std::make_shared<SymbolGradient>();
+            Drawing::Color color;
+            const auto& group = symbolInfo.renderGroups[i];
+            color.SetRgb(group.color.r, group.color.g, group.color.b);
+            color.SetAlphaF(group.color.a);
+            std::vector<Drawing::ColorQuad> colorQuads;
+            colorQuads.push_back(color.CastToColorQuad());
+            gradient->SetColors(colorQuads);
+            gradients.push_back(gradient);
+        }
+    }
+    gradients_ = std::move(gradients);
 }
 
 void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
@@ -414,7 +442,8 @@ void HMSymbolRun::DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& 
     if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
         recordingCanvas = static_cast<RSRecordingCanvas*>(canvas);
     }
-    if (recordingCanvas != nullptr) {
+    bool isValidRecording = recordingCanvas != nullptr && recordingCanvas->GetDrawCmdList() != nullptr;
+    if (isValidRecording) {
         recordingCanvas->GetDrawCmdList()->SetHybridRenderType(RSHybridRenderType::NONE);
     }
 

@@ -161,10 +161,9 @@ public:
     void OnSync() override;
     void RemovePixelStretch();
     bool FuzePixelStretch(const RSRenderNode& node);
+
 private:
     static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
-    template<typename T>
-    static bool GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property);
     template<typename T>
     static bool GetBehindWindowFilterProperty(const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property);
 };

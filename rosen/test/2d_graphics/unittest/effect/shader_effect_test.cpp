@@ -1226,6 +1226,134 @@ HWTEST_F(ShaderEffectTest, UnmarshallingCallbackNull001, TestSize.Level1)
     // Restore original callback
     ObjectHelper::Instance().SetDataUnmarshallingCallback(originalCallback);
 }
+
+/*
+ * @tc.name: MarshallingWriteTypeFailure001
+ * @tc.desc: Test ShaderEffect::Marshalling with WriteInt32(type) failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectTest, MarshallingWriteTypeFailure001, TestSize.Level1)
+{
+    // Create a valid shader
+    auto shader = ShaderEffect::CreateColorShader(Color::COLOR_BLUE);
+    ASSERT_NE(shader, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Fill parcel completely, then try Marshalling (should fail on WriteInt32(type))
+    Parcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE);
+    EXPECT_TRUE(fillResult);
+
+    bool result = shader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to WriteInt32 failure
+}
+
+/*
+ * @tc.name: MarshallingWriteHasDataFailure001
+ * @tc.desc: Test ShaderEffect::Marshalling with WriteBool(hasValidData) failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectTest, MarshallingWriteHasDataFailure001, TestSize.Level1)
+{
+    // Create a valid shader
+    auto shader = ShaderEffect::CreateColorShader(Color::COLOR_RED);
+    ASSERT_NE(shader, nullptr);
+
+    // Create buffer to fill parcel capacity (200K minimum)
+    const size_t BUFFER_SIZE = 200 * 1024; // 200K
+    std::vector<uint8_t> fillBuffer(BUFFER_SIZE, 0xFF);
+
+    // Fill parcel leaving space for int32 only (4 bytes), should fail on WriteBool
+    Parcel parcel;
+    parcel.SetMaxCapacity(BUFFER_SIZE);
+    bool fillResult = parcel.WriteBuffer(fillBuffer.data(), BUFFER_SIZE - 4);
+    EXPECT_TRUE(fillResult);
+    
+    bool result = shader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to WriteBool failure
+}
+
+/*
+ * @tc.name: MarshallingCallbackNull001
+ * @tc.desc: Test ShaderEffect::Marshalling with null DataMarshallingCallback
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectTest, MarshallingCallbackNull001, TestSize.Level1)
+{
+    // Create a valid shader
+    auto shader = ShaderEffect::CreateColorShader(Color::COLOR_GREEN);
+    ASSERT_NE(shader, nullptr);
+
+    // Backup original callback
+    auto originalCallback = ObjectHelper::Instance().GetDataMarshallingCallback();
+
+    // Set null callback to trigger the (if (!callback)) branch
+    ObjectHelper::Instance().SetDataMarshallingCallback(nullptr);
+
+    Parcel parcel;
+    bool result = shader->Marshalling(parcel);
+    EXPECT_FALSE(result); // Should fail due to null callback
+
+    // Restore original callback
+    ObjectHelper::Instance().SetDataMarshallingCallback(originalCallback);
+}
+
+/*
+ * @tc.name: UnmarshallingReadHasDataFailure001
+ * @tc.desc: Test ShaderEffect::Unmarshalling with ReadBool(hasData) failure
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectTest, UnmarshallingReadHasDataFailure001, TestSize.Level1)
+{
+    Parcel parcel;
+    // Write valid type
+    EXPECT_TRUE(parcel.WriteInt32(static_cast<int32_t>(ShaderEffect::ShaderEffectType::COLOR_SHADER)));
+    // Don't write hasData bool, leaving parcel incomplete
+
+    bool isValid = true;
+    auto result = ShaderEffect::Unmarshalling(parcel, isValid);
+    EXPECT_EQ(result, nullptr); // Should fail due to ReadBool failure
+}
+
+/*
+ * @tc.name: UnmarshallingCallbackReturnNull001
+ * @tc.desc: Test ShaderEffect::Unmarshalling with callback returning null data
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ */
+HWTEST_F(ShaderEffectTest, UnmarshallingCallbackReturnNull001, TestSize.Level1)
+{
+    // Backup original callback
+    auto originalCallback = ObjectHelper::Instance().GetDataUnmarshallingCallback();
+
+    // Set callback that returns null data to trigger the (if (!data)) branch
+    ObjectHelper::Instance().SetDataUnmarshallingCallback(
+        [](Parcel& parcel) -> std::shared_ptr<Drawing::Data> {
+            return nullptr; // Always return null
+        }
+    );
+
+    Parcel parcel;
+    // Write valid type
+    EXPECT_TRUE(parcel.WriteInt32(static_cast<int32_t>(ShaderEffect::ShaderEffectType::COLOR_SHADER)));
+    // Write hasData as true to reach the callback
+    EXPECT_TRUE(parcel.WriteBool(true));
+
+    bool isValid = true;
+    auto result = ShaderEffect::Unmarshalling(parcel, isValid);
+    EXPECT_EQ(result, nullptr); // Should fail due to null data from callback
+
+    // Restore original callback
+    ObjectHelper::Instance().SetDataUnmarshallingCallback(originalCallback);
+}
 #endif
 
 } // namespace Drawing

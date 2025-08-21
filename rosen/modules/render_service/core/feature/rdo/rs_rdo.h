@@ -19,8 +19,8 @@ namespace OHOS {
 namespace Rosen {
  
 #ifdef RS_ENABLE_RDO
-    int32_t EnableRSCodeCache();
-    void* HelperThreadforBinXO(void* arg);
+int32_t EnableRSCodeCache();
+void* HelperThreadforBinXO(void* arg);
 #endif
  
 } // namespace Rosen

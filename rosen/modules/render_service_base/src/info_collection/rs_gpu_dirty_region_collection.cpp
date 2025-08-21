@@ -86,13 +86,13 @@ GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo() const
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     GlobalDirtyRegionInfo globalDirtyRegionInfo;
-    if (globalDirtyRegionInfo_.globalFramesNumber > 0 || globalDirtyRegionInfo_.skipProcessFramesNumber > 0) {
+    if (globalDirtyRegionInfo_.globalFramesNumber > 0) {
         globalDirtyRegionInfo.globalDirtyRegionAreas = globalDirtyRegionInfo_.globalDirtyRegionAreas /
             globalDirtyRegionInfo_.globalFramesNumber;
         globalDirtyRegionInfo.globalFramesNumber = globalDirtyRegionInfo_.globalFramesNumber;
-        globalDirtyRegionInfo.skipProcessFramesNumber = globalDirtyRegionInfo_.skipProcessFramesNumber;
         globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip = GetMostSendingPidWhenDisplayNodeSkip();
     }
+    globalDirtyRegionInfo.skipProcessFramesNumber = globalDirtyRegionInfo_.skipProcessFramesNumber;
     return globalDirtyRegionInfo;
 }
 

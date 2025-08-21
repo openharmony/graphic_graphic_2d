@@ -13,31 +13,22 @@
  * limitations under the License.
  */
 #include "feature/lpp/lpp_video_handler.h"
-
+ 
 #include "rs_trace.h"
-
+ 
 #include "common/rs_optional_trace.h"
-#include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
 LppVideoHandler& LppVideoHandler::Instance()
 {
-    static LppVideoHandler lppVideoHandler;
-    return lppVideoHandler;
+    static LppVideoHandler instance;
+    return instance;
 }
-
-void LppVideoHandler::AddLppSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
-{
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler;
-    if (UNLIKELY(surfaceNode == nullptr) || (surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler()) == nullptr ||
-        surfaceHandler->GetSourceType() != OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
-        return;
-    }
-    lowPowerSurfaceNode_.push_back(surfaceNode);
-}
-
+ 
 void LppVideoHandler::ConsumeAndUpdateLppBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::shared_ptr<RSSurfaceHandler> surfaceHandler;
     if (UNLIKELY(surfaceNode == nullptr) || (surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler()) == nullptr ||
         surfaceHandler->GetSourceType() != OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
@@ -48,6 +39,7 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(const std::shared_ptr<RSSurfaceR
     if (consumer == nullptr) {
         return;
     }
+    lowPowerSurfaceNode_.push_back(surfaceNode);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
@@ -72,9 +64,10 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(const std::shared_ptr<RSSurfaceR
     RS_TRACE_NAME_FMT("ConsumeAndUpdateLowPowerBuffer node: [%lu]", surfaceHandler->GetNodeId());
     surfaceBuffer = nullptr;
 }
-
-void LppVideoHandler::JudgeRsDrawLppState(bool isPostUniRender)
+ 
+void LppVideoHandler::JudgeRsDrawLppState(bool needDrawFrame, bool doDirectComposition)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     bool requestVsync = false;
     for (const auto& surfaceNode : lowPowerSurfaceNode_) {
         sptr<IConsumerSurface> consumer;
@@ -84,35 +77,36 @@ void LppVideoHandler::JudgeRsDrawLppState(bool isPostUniRender)
             (consumer = surfaceNode->GetMutableRSSurfaceHandler()->GetConsumer()) == nullptr) {
             continue;
         }
-
+ 
         bool isHardware = !(surfaceNode->IsHardwareForcedDisabled());
         bool requestNextVsyncForLpp = false;
         bool isShbDrawLpp = true;
-
-        if (!isPostUniRender || (isPostUniRender && !isHardware)) {
-            // GPU or SKIP
-            isShbDrawLpp = false;
+ 
+        if (!needDrawFrame) {
+            // Render nothing to update
             requestNextVsyncForLpp = true;
+            isShbDrawLpp = false;
+        } else {
+            if (!doDirectComposition && !isHardware) {
+                // GPU
+                requestNextVsyncForLpp = true;
+                isShbDrawLpp = false;
+            }
+            if (doDirectComposition || (!doDirectComposition && isHardware)) {
+                // Hareware
+                requestNextVsyncForLpp = false;
+                isShbDrawLpp = true;
+            }
         }
-        if (isHardware) {
-            // Hareware
-            isShbDrawLpp = true;
-            requestNextVsyncForLpp = false;
-        }
-
+ 
         if (hasVirtualMirrorDisplay_.load()) {
             // Virtual screen needs to keep Vsync awake
+            RS_TRACE_NAME_FMT("Virtual screen needs to keep Vsync awake");
             requestNextVsyncForLpp = true;
         }
         if (consumer->SetLppDrawSource(isShbDrawLpp, requestNextVsyncForLpp) != GSError::GSERROR_OK) {
             RS_TRACE_NAME_FMT("Stop By SetLppDrawSource");
             requestNextVsyncForLpp = false;
-        }
-        if (!requestNextVsyncForLpp) {
-            surfaceNode->GetMutableRSSurfaceHandler()->CleanCache();
-        }
-        if (requestNextVsyncForLpp) {
-            ConsumeAndUpdateLppBuffer(surfaceNode);
         }
         requestVsync = requestVsync || requestNextVsyncForLpp;
     }
@@ -120,20 +114,15 @@ void LppVideoHandler::JudgeRsDrawLppState(bool isPostUniRender)
         RSMainThread::Instance()->RequestNextVSync();
     }
 }
-
+ 
 void LppVideoHandler::SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay)
 {
     hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
 }
-
-void LppVideoHandler::ClearLppSufraceNode()
+ 
+void LppVideoHandler::ClearLppSurfaceNode()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     lowPowerSurfaceNode_.clear();
 }
-
-LppVideoHandler::~LppVideoHandler()
-{
-    lowPowerSurfaceNode_.clear();
-}
-
 } // namespace OHOS::Rosen

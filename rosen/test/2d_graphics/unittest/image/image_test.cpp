@@ -457,6 +457,23 @@ HWTEST_F(ImageTest, GetHeadroom001, TestSize.Level1)
     ASSERT_EQ(image->GetHeadroom(), 1.0f);
 }
 
+/**
+ * @tc.name: ScaleImage001
+ * @tc.desc: test for Scale Image.
+ * @tc.type: FUNC
+ * @tc.require: ICS755
+*/
+HWTEST_F(ImageTest, ScaleImage001, TestSize.Level1)
+{
+    std::shared_ptr<Image> srcImage = std::make_shared<Image>();
+    EXPECT_TRUE(srcImage != nullptr);
+    std::shared_ptr<Image> dstImage = std::make_shared<Image>();
+    EXPECT_TRUE(dstImage != nullptr);
+
+    ScalingOption option = {RectI(0, 0, 0, 0), RectI(0, 0, 0, 0), ScalingType::OPTION_INVALID};
+    ASSERT_NE(Image::ScaleImage(srcImage, dstImage, option), ScaleImageResult::SCALE_RESULT_SUCCESS);
+}
+
 #ifdef RS_ENABLE_GPU
 /**
  * @tc.name: BuildFromCompressedTest001
@@ -770,25 +787,6 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest006, TestSize.Level1)
     EXPECT_TRUE(image != nullptr);
     gpuContext = nullptr;
 }
-
-/**
- * @tc.name: SupportOpaqueOptTest
- * @tc.desc: test for SupportOpaqueOptTest success for YUV YCRCB_P010.
- * @tc.type: FUNC
- * @tc.require: I782P9
- */
-HWTEST_F(ImageTest, SupportOpaqueOptTest, TestSize.Level1)
-{
-    Bitmap bitmap;
-    BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
-    bitmap.Build(15, 15, bitmapFormat);
-    Image image;
-    image.BuildFromBitmap(bitmap);
-    image.SetSupportOpaqueOpt(false);
-    auto data = image.GetSupportOpaqueOpt();
-    EXPECT_FALSE(data);
-}
-
 #endif
 } // namespace Drawing
 } // namespace Rosen

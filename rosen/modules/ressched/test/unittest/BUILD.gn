@@ -25,6 +25,11 @@ group("unittest") {
 ohos_unittest("graphic_ressched_test") {
   module_out_path = module_out_path
 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   include_dirs = [
     "$graphic_2d_root/rosen/modules/ressched/include",
     "$graphic_2d_root/utils/log",

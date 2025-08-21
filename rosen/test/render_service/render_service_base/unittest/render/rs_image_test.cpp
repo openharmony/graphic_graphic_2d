@@ -19,6 +19,7 @@
 #include "skia_canvas.h"
 
 #include "draw/surface.h"
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "render/rs_image.h"
 #include "render/rs_image_cache.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -161,128 +162,6 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
     rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
     // for test
     rsImage.innerRect_ = Drawing::RectI { 0, 0, 10, 10 };
-    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
-    EXPECT_NE(&rsImage, nullptr);
-}
-
-/**
- * @tc.name: CanvasDrawImageTest001
- * @tc.desc: test results of CanvasDrawImage
- * @tc.type: FUNC
- * @tc.require: issuesI9TOXM
- */
-HWTEST_F(RSImageTest, CanvasDrawImageTest001, TestSize.Level1)
-{
-    RSImage rsImage;
-    Drawing::Canvas canvas;
-    ASSERT_FALSE(rsImage.HasRadius());
-    ASSERT_FALSE(canvas.GetOffscreen());
-    ASSERT_FALSE(canvas.recordingState_);
-
-    canvas.recordingState_ = true;
-    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
-    Drawing::Brush brush;
-    // for test
-    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
-    Drawing::SamplingOptions samplingOptions;
-    rsImage.pixelMap_ = pixelmap;
-
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat bitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
-    bitmap.Build(15, 15, bitmapFormat);
-    Drawing::Image image;
-    image.BuildFromBitmap(bitmap);
-    rsImage.image_ = std::make_shared<Drawing::Image>(image);
-
-    rsImage.pixelMap_->SetSupportOpaqueOpt(false);
-    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
-    bool opaque = rsImage.image_->GetSupportOpaqueOpt();
-    EXPECT_FALSE(opaque);
-}
-
-/**
- * @tc.name: CanvasDrawImageTest002
- * @tc.desc: test results of CanvasDrawImage
- * @tc.type: FUNC
- * @tc.require: issuesI9TOXM
- */
-HWTEST_F(RSImageTest, CanvasDrawImageTest002, TestSize.Level1)
-{
-    RSImage rsImage;
-    Drawing::Canvas canvas;
-    ASSERT_FALSE(rsImage.HasRadius());
-    ASSERT_FALSE(canvas.GetOffscreen());
-    ASSERT_FALSE(canvas.recordingState_);
-
-    canvas.recordingState_ = true;
-    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
-    Drawing::Brush brush;
-    // for test
-    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
-    Drawing::SamplingOptions samplingOptions;
-    rsImage.pixelMap_ = pixelmap;
-    rsImage.pixelMap_->SetAstc(true);
-    rsImage.image_ = nullptr;
-    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
-    EXPECT_NE(&rsImage, nullptr);
-}
-
-/**
- * @tc.name: CanvasDrawImageTest003
- * @tc.desc: test results of CanvasDrawImage
- * @tc.type: FUNC
- * @tc.require: issuesI9TOXM
- */
-HWTEST_F(RSImageTest, CanvasDrawImageTest003, TestSize.Level1)
-{
-    RSImage rsImage;
-    Drawing::Canvas canvas;
-    ASSERT_FALSE(rsImage.HasRadius());
-    ASSERT_FALSE(canvas.GetOffscreen());
-    ASSERT_FALSE(canvas.recordingState_);
-
-    canvas.recordingState_ = true;
-    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
-    Drawing::Brush brush;
-    // for test
-    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
-    Drawing::SamplingOptions samplingOptions;
-    rsImage.pixelMap_ = nullptr;
-
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat bitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
-    bitmap.Build(15, 15, bitmapFormat);
-    Drawing::Image image;
-    image.BuildFromBitmap(bitmap);
-    rsImage.image_ = std::make_shared<Drawing::Image>(image);
-
-    rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
-    bool opaque = rsImage.image_->GetSupportOpaqueOpt();
-    EXPECT_FALSE(opaque);
-}
-
-/**
- * @tc.name: CanvasDrawImageTest004
- * @tc.desc: test results of CanvasDrawImage
- * @tc.type: FUNC
- * @tc.require: issuesI9TOXM
- */
-HWTEST_F(RSImageTest, CanvasDrawImageTest004, TestSize.Level1)
-{
-    RSImage rsImage;
-    Drawing::Canvas canvas;
-    ASSERT_FALSE(rsImage.HasRadius());
-    ASSERT_FALSE(canvas.GetOffscreen());
-    ASSERT_FALSE(canvas.recordingState_);
-
-    canvas.recordingState_ = true;
-    Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
-    Drawing::Brush brush;
-    // for test
-    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
-    Drawing::SamplingOptions samplingOptions;
-    rsImage.pixelMap_ = nullptr;
-    rsImage.image_ = nullptr;
     rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
     EXPECT_NE(&rsImage, nullptr);
 }
@@ -1371,5 +1250,38 @@ HWTEST_F(RSImageTest, CalcRepeatBoundsTest, TestSize.Level1)
     EXPECT_EQ(maxX, 0);
     EXPECT_EQ(minY, 0);
     EXPECT_EQ(maxY, 0);
+}
+
+/**
+ * @tc.name: EnhanceImageAsyncTest
+ * @tc.desc: Verify function EnhanceImageAsyncTest001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageTest, EnhanceImageAsyncTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    Drawing::SamplingOptions samplingOptions;
+    Drawing::Canvas canvas;
+    image->pixelMap_ = nullptr;
+    bool needDetachPen = false;
+    bool result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
+    EXPECT_FALSE(result);
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    rsImageDetailEnhancerThread.isEnable_ = true;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    image->pixelMap_ = pixelMap;
+    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
+    EXPECT_FALSE(result);
+    auto dstImage = std::make_shared<Drawing::Image>();
+    uint64_t imageId = image->GetUniqueId();
+    rsImageDetailEnhancerThread.SetOutImage(imageId, dstImage);
+    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
+    EXPECT_TRUE(result);
+    needDetachPen = true;
+    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
+    EXPECT_TRUE(result);
+    image->pixelMap_ = nullptr;
+    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
+    EXPECT_FALSE(result);
 }
 } // namespace OHOS::Rosen

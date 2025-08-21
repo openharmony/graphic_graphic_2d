@@ -22,7 +22,6 @@
 #include "animation/rs_render_particle.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
-#include "modifier/rs_render_modifier.h"
 #include "modifier/rs_render_property.h"
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
@@ -82,35 +81,7 @@ void AnimationCommandHelper::CreateAnimation(
     node->GetAnimationManager().AddAnimation(animation);
     if (auto property = node->GetProperty(animation->GetPropertyId())) {
         animation->AttachRenderProperty(property);
-    } else if (auto modifier = node->GetModifier(animation->GetPropertyId())) {
-        animation->AttachRenderProperty(modifier->GetProperty());
     }
-    auto currentTime = context.GetCurrentTimestamp();
-    animation->SetStartTime(currentTime);
-    animation->Attach(node.get());
-    // register node as animating node
-    context.RegisterAnimatingRenderNode(node);
-}
-
-void AnimationCommandHelper::CreateParticleAnimation(
-    RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderParticleAnimation>& animation)
-{
-    if (animation == nullptr) {
-        RS_LOGE("AnimationCommandHelper::CreateParticleAnimation, animation is nullptr");
-        return;
-    }
-    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    if (node == nullptr) {
-        return;
-    }
-    RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    auto propertyId = animation->GetPropertyId();
-    node->GetAnimationManager().AddAnimation(animation);
-    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
-        animation->GetRenderParticle(), propertyId);
-    auto modifier = std::make_shared<RSParticlesRenderModifier>(property);
-    node->AddModifier(modifier);
-    animation->AttachRenderProperty(property);
     auto currentTime = context.GetCurrentTimestamp();
     animation->SetStartTime(currentTime);
     animation->Attach(node.get());

@@ -56,27 +56,35 @@ public:
         return isFirstTimeToProcessor_;
     }
 
+    RSRenderNodeDrawableType GetDrawableType() const override
+    {
+        return RSRenderNodeDrawableType::LOGICAL_DISPLAY_NODE_DRAWABLE;
+    }
+
 protected:
     explicit RSLogicalDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 
 private:
-    void SetCanvasBlack(RSProcessor& processor);
-    void SetSecurityMask(RSProcessor& processor);
+    void DrawSecurityMask();
+    void DrawCurtainScreen() const;
+    void ClearCanvasStencil(RSPaintFilterCanvas& canvas, const RSLogicalDisplayRenderParams& params,
+        const RSRenderThreadParams& uniParam, const ScreenInfo& screenInfo);
     void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
     void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
     void WiredScreenProjection(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    using DrawFuncPtr = void(RSLogicalDisplayRenderNodeDrawable::*)(Drawing::Canvas&);
     void DrawMirror(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
-        DrawFuncPtr drawFunc, RSRenderThreadParams& uniParam);
+        RSRenderThreadParams& uniParam);
     void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
-    void DrawWiredMirrorCopy(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
-    void DrawWiredMirrorOnDraw(
+    void DrawWiredMirrorCopy(
         RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogicalDisplayRenderParams& params);
+    void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
+        RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawExpandDisplay(RSLogicalDisplayRenderParams& params);
-    void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
+    void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
+        bool useCanvasSize = true);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params = nullptr);
@@ -100,10 +108,10 @@ private:
 
     void SetScreenRotationForPointLight(RSLogicalDisplayRenderParams& params);
 
-    using AncestorParams = std::pair<RSScreenRenderNodeDrawable*, RSScreenRenderParams*>;
+    using AncestorParams = std::pair<std::shared_ptr<RSScreenRenderNodeDrawable>, RSScreenRenderParams*>;
     AncestorParams GetScreenParams(RSRenderParams& params);
-    using MirrorSourceParams = std::tuple<RSLogicalDisplayRenderNodeDrawable*, RSLogicalDisplayRenderParams*,
-        RSScreenRenderNodeDrawable*, RSScreenRenderParams*>;
+    using MirrorSourceParams = std::tuple<std::shared_ptr<RSLogicalDisplayRenderNodeDrawable>,
+        RSLogicalDisplayRenderParams*, std::shared_ptr<RSScreenRenderNodeDrawable>, RSScreenRenderParams*>;
     MirrorSourceParams GetMirrorSourceParams(RSRenderParams& params);
 
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
@@ -141,6 +149,6 @@ private:
     // mirror display drawing path dfx
     std::optional<bool> mirrorRedraw_;
 };
-}
-}
+} // namespace DrawableV2
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_DRAWABLE_RS_LOGICAL_DISPLAY_RENDER_NODE_DRAWABLE_H

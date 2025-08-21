@@ -46,11 +46,11 @@ public:
 
 private:
     void RenderFrame();
-    void SetEarlyZFlag(Drawing::GPUContext* gpuContext);
+    void SetEarlyZEnabled(Drawing::GPUContext* gpuContext);
     void UnblockMainThread();
     void Sync();
     void Render();
-    void ReleaseSelfDrawingNodeBuffer();
+    void ReleaseSpecialDrawingNodeBuffer();
     void NotifyClearGpuCache();
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
     void StartCheck();

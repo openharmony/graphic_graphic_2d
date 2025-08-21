@@ -37,6 +37,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const uint8_t* g_data = nullptr;
+const std::string XCOMPONENT_ID = "xcomponentId";
 size_t g_size = 0;
 size_t g_pos;
 
@@ -76,10 +77,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     Rect srcRect;
     sptr<Surface> surface;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
@@ -129,6 +126,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<RSISurfaceCaptureCallback> callback1;
     sptr<RSIBufferAvailableCallback> callback2;
     sptr<RSIBufferClearCallback> callback3;
+    sptr<RSIScreenSwitchingNotifyCallback> switchingNotifyCallback;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> rsIOcclusionChangeCallback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
@@ -146,6 +144,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::vector<std::string> packageList;
     OnRemoteDiedCallback onRemoteDiedCallback = []() {};
     callback = iface_cast<RSIScreenChangeCallback>(remoteObject);
+    switchingNotifyCallback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
@@ -208,6 +207,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetVirtualScreenSurface(id1, surface);
     rsRenderServiceConnectionProxy.RemoveVirtualScreen(id1);
     rsRenderServiceConnectionProxy.SetScreenChangeCallback(callback);
+    rsRenderServiceConnectionProxy.SetScreenSwitchingNotifyCallback(switchingNotifyCallback);
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
     rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect, retureCode);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);
@@ -300,7 +300,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(false);
     rsRenderServiceConnectionProxy.RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid1,
         rsIFrameRateLinkerExpectedFpsUpdateCallback);
-    rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, expectedFps);
+    rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, XCOMPONENT_ID, expectedFps);
     return true;
 }
 
@@ -310,11 +310,6 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // get data
     int32_t tpFeature = GetData<int32_t>();
@@ -337,11 +332,6 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     int32_t mode = GetData<int32_t>();
 
@@ -359,11 +349,6 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // get data
     uint64_t nodeId = GetData<uint64_t>();
@@ -401,11 +386,6 @@ bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     bool enabled = GetData<bool>();
     bool res = GetData<bool>();
@@ -425,11 +405,6 @@ bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     ScreenId screenId = GetData<ScreenId>();
     bool isAutoRotation = GetData<bool>();
@@ -447,11 +422,6 @@ bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // get data
     ScreenId screenId = GetData<ScreenId>();
@@ -475,11 +445,6 @@ bool DoAddVirtualScreenBlackList(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // get data
     ScreenId screenId = GetData<ScreenId>();
@@ -505,11 +470,6 @@ bool DoRemoveVirtualScreenBlackList(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     ScreenId screenId = GetData<ScreenId>();
     std::vector<NodeId> blackList;
@@ -534,11 +494,6 @@ bool DoResizeVirtualScreen(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     ScreenId screenId = GetData<ScreenId>();
     uint32_t width = GetData<uint32_t>();
@@ -557,11 +512,6 @@ bool DoProfilerServiceFuzzTest(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     // get data
     HrpServiceDir baseDirType = HrpServiceDir::HRP_SERVICE_DIR_UNKNOWN;
@@ -592,11 +542,6 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     NodeId nodeId = GetData<NodeId>();
 
@@ -616,11 +561,6 @@ bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
     static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
         HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     ScreenId screenId = GetData<ScreenId>();
     HdrStatus hdrStatus = statusVec[GetData<uint8_t>() % statusVec.size()];
@@ -633,12 +573,56 @@ bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetScreenHDRStatus(screenId, hdrStatus, resCode);
     return true;
 }
+
+bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // get data
+    uint64_t nodeId = GetData<uint64_t>();
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.TaskSurfaceCaptureWithAllWindows(
+        nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    return true;
+}
+
+bool DoFreezeScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // get data
+    uint64_t nodeId = GetData<uint64_t>();
+    bool isFreeze = GetData<bool>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.FreezeScreen(nodeId, isFreeze);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
 #ifdef TP_FEATURE_ENABLE
@@ -657,5 +641,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
+    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

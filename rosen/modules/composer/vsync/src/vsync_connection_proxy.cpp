@@ -19,6 +19,7 @@
 
 constexpr int MAX_RETRY = 3;
 constexpr int RETRY_INTERVAL = 1000; // 1000us = 1ms
+constexpr unsigned int DVSYNC_ANIMATION_LIST_SIZE_MAX = 20;
 namespace OHOS {
 namespace Rosen {
 VSyncConnectionProxy::VSyncConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -34,6 +35,7 @@ VsyncError VSyncConnectionProxy::RequestNextVSync()
 VsyncError VSyncConnectionProxy::RequestNextVSync(
     const std::string& fromWhom, int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
+    (void)requestVsyncTime;
     MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
     MessageParcel ret;
@@ -117,7 +119,8 @@ VsyncError VSyncConnectionProxy::SetNativeDVSyncSwitch(bool dvsyncSwitch)
     return static_cast<VsyncError>(ret.ReadInt32());
 }
 
-VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
+VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+    bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList)
 {
     MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;
@@ -131,12 +134,20 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool del
         VLOGE("SetUiDvsyncConfig bufferCount error");
         return VSYNC_ERROR_UNKOWN;
     }
-    if (!arg.WriteBool(delayEnable)) {
-        VLOGE("SetUiDvsyncConfig delayEnable error");
+    if (!arg.WriteBool(compositeSceneEnable)) {
+        VLOGE("SetUiDvsyncConfig compositeSceneEnable error");
         return VSYNC_ERROR_UNKOWN;
     }
     if (!arg.WriteBool(nativeDelayEnable)) {
         VLOGE("SetUiDvsyncConfig nativeDelayEnable error");
+        return VSYNC_ERROR_UNKOWN;
+    }
+    if (rsDvsyncAnimationList.size() > DVSYNC_ANIMATION_LIST_SIZE_MAX) {
+        VLOGE("SetUiDvsyncConfig rsDvsyncAnimationList size exceeds maximum allowed size");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    if (!arg.WriteStringVector(rsDvsyncAnimationList)) {
+        VLOGE("SetUiDvsyncConfig rsDvsyncAnimationList error");
         return VSYNC_ERROR_UNKOWN;
     }
     auto remote = Remote();

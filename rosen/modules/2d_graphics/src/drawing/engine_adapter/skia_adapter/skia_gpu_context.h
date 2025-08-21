@@ -104,6 +104,8 @@ public:
 
     void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) override;
 
+    void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) override;
+
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
     void ReleaseByTag(const GPUResourceTag &tag) override;
@@ -114,6 +116,8 @@ public:
     void ResetContext() override;
 
     void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
+
+    uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
 
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) override;
 
@@ -154,7 +158,7 @@ public:
 
     void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) override;
 
-    void SetEarlyZFlag(bool flag) override;
+    void SetEarlyZEnabled(bool flag) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

@@ -36,7 +36,7 @@ RSBackgroundThread& RSBackgroundThread::Instance()
     static RSBackgroundThread instance;
     return instance;
 }
-
+// LCOV_EXCL_START
 RSBackgroundThread::RSBackgroundThread()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSBackgroundThread");
@@ -155,4 +155,5 @@ void RSBackgroundThread::CleanGrResource()
     });
 }
 #endif
+// LCOV_EXCL_STOP
 }

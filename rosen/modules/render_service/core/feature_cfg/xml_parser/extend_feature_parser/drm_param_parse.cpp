@@ -16,6 +16,8 @@
 #include "drm_param_parse.h"
 
 namespace OHOS::Rosen {
+constexpr const int LIST_SIZE_LIMIT = 100;
+constexpr const int APP_WINDOW_NAME_LIMIT = 100;
 
 int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
@@ -43,16 +45,52 @@ int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
 
 int32_t DRMParamParse::ParseDrmInternal(xmlNode &node)
 {
-    xmlNode *curNode = &node;
+    xmlNode *currNode = &node;
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*curNode);
-    auto name = ExtractPropertyValue("name", *curNode);
-    auto val = ExtractPropertyValue("value", *curNode);
+    int xmlParamType = GetXmlNodeAsInt(*currNode);
+    auto name = ExtractPropertyValue("name", *currNode);
+    auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "DrmEnabled") {
             DRMParam::SetDrmEnable(isEnabled);
             RS_LOGI("DRMParamParse parse DrmEnabled %{public}d", DRMParam::IsDrmEnable());
+        } else if (name == "DrmMarkAllParentBlurEnabled") {
+            DRMParam::SetDrmMarkAllParentBlurEnable(isEnabled);
+            RS_LOGI("DRMParamParse parse DrmMaskBlurEnabled %{public}d", DRMParam::IsDrmMarkAllParentBlurEnable());
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+        if (ParseFeatureMultiParam(*currNode) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("parse MultiParam fail");
+        }
+    }
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t DRMParamParse::ParseFeatureMultiParam(xmlNode &node)
+{
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        RS_LOGE("DRMParamParse stop parsing, no children nodes");
+        return PARSE_GET_CHILD_FAIL;
+    }
+    currNode = currNode->xmlChildrenNode;
+    for (int i = 0; currNode && i < LIST_SIZE_LIMIT ; currNode = currNode->next, ++i) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto paramName = ExtractPropertyValue("name", *currNode);
+        if (paramName.size() > APP_WINDOW_NAME_LIMIT) {
+            continue;
+        }
+        auto val = ExtractPropertyValue("value", *currNode);
+        if (!IsNumber(val)) {
+            return PARSE_ERROR;
+        }
+        if (val == "1") {
+            DRMParam::AddWhiteList(paramName);
+        } else if (val == "0") {
+            DRMParam::AddBlackList(paramName);
         }
     }
     return PARSE_EXEC_SUCCESS;

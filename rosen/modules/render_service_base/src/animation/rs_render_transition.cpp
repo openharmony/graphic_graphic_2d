@@ -29,7 +29,7 @@ RSRenderTransition::RSRenderTransition(
 
 void RSRenderTransition::DumpAnimationInfo(std::string& out) const
 {
-    out += "Type:RSRenderTransition";
+    out.append("Type:RSRenderTransition");
 }
 
 void RSRenderTransition::OnAnimate(float fraction)
@@ -52,11 +52,7 @@ void RSRenderTransition::OnAttach()
     }
     // create "transition" modifier and add it to target
     for (auto& effect : effects_) {
-#if defined(MODIFIER_NG)
         const auto& modifier = effect->GetModifierNG();
-#else
-        const auto& modifier = effect->GetModifier();
-#endif
         if (modifier == nullptr) {
             // custom effect may not have modifier
             continue;
@@ -80,11 +76,7 @@ void RSRenderTransition::OnDetach()
     }
     // remove "transition" modifier from target
     for (auto& effect : effects_) {
-#if defined(MODIFIER_NG)
         target->RemoveModifierNG(effect->GetModifierNG()->GetId());
-#else
-        target->RemoveModifier(effect->GetModifier()->GetPropertyId());
-#endif
     }
     // update number of disappearing transition animation
     if (!isTransitionIn_) {

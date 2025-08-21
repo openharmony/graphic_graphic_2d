@@ -76,7 +76,6 @@ public:
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif
     virtual void RecordState(Canvas* canvas) = 0;
-    virtual void InheriteState(Canvas* canvas) = 0;
     virtual void SetParallelRender(bool parallelEnable) = 0;
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;
@@ -184,8 +183,6 @@ public:
     virtual void BuildNoDraw(int32_t width, int32_t height) = 0;
 
     virtual void BuildStateRecord(int32_t width, int32_t height) = 0;
-
-    virtual void BuildStateInherite(int32_t width, int32_t height) = 0;
 
     virtual void Reset(int32_t width, int32_t height) = 0;
 

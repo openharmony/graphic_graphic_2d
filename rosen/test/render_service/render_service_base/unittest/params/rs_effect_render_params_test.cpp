@@ -121,6 +121,7 @@ HWTEST_F(RSEffectRenderParamsTest, SetEffectIntersectWithDRM001, TestSize.Level1
     RSEffectRenderParams params(id);
     params.isIntersectWithDRM_ = false;
     EXPECT_FALSE(params.GetEffectIntersectWithDRM());
+    params.SetEffectIntersectWithDRM(false);
     params.SetEffectIntersectWithDRM(true);
     EXPECT_TRUE(params.GetEffectIntersectWithDRM());
 }
@@ -138,6 +139,7 @@ HWTEST_F(RSEffectRenderParamsTest, SetDarkColorMode001, TestSize.Level1)
     RSEffectRenderParams params(id);
     params.isDarkColorMode_ = false;
     EXPECT_FALSE(params.GetDarkColorMode());
+    params.SetDarkColorMode(false);
     params.SetDarkColorMode(true);
     EXPECT_TRUE(params.GetDarkColorMode());
 }

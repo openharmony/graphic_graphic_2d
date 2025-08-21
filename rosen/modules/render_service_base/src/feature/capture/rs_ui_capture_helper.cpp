@@ -53,7 +53,8 @@ std::pair<bool, uint64_t> RSUiCaptureHelper::GetUiCaptureCmdsExecutedFlag(NodeId
 uint64_t RSUiCaptureHelper::GetCurrentSteadyTimeMs() const
 {
     auto curTime = std::chrono::steady_clock::now().time_since_epoch();
-    uint64_t curSteadyTime = std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
+    uint64_t curSteadyTime =
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count());
     return curSteadyTime;
 }
 } // namespace Rosen

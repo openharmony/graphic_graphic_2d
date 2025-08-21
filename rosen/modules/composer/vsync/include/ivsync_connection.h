@@ -36,7 +36,8 @@ public:
 
     virtual VsyncError Destroy() = 0;
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) = 0;
-    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable) = 0;
+    virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+        bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList) = 0;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IVSyncConnection");

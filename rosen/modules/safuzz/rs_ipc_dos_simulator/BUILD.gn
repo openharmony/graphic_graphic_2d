@@ -50,7 +50,6 @@ ohos_fuzztest("RSIpcDosSimulator") {
     "customized/random_rs_image.cpp",
     "customized/random_rs_mask.cpp",
     "customized/random_rs_path.cpp",
-    "customized/random_rs_render_modifier.cpp",
     "customized/random_rs_render_particle.cpp",
     "customized/random_rs_render_property_base.cpp",
     "customized/random_rs_shader.cpp",

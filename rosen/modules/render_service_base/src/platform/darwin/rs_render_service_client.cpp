@@ -160,6 +160,18 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return false;
 }
 
+bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    bool checkDrmAndSurfaceLock)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::FreezeScreen(NodeId id, bool isFreeze)
+{
+    return false;
+}
+
 bool RSRenderServiceClient::TakeUICaptureInRange(
     NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -220,6 +232,11 @@ int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
 #endif
 
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
+{
+    return 0;
+}
+
+int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
 {
     return 0;
 }

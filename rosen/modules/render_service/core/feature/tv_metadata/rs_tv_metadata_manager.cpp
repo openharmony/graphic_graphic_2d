@@ -16,6 +16,9 @@
 #include "rs_tv_metadata_manager.h"
 #include "platform/common/rs_log.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSTvMetadataManager"
+
 namespace OHOS::Rosen {
 
 RSTvMetadataManager& RSTvMetadataManager::Instance()
@@ -77,7 +80,7 @@ void RSTvMetadataManager::CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>
     auto buffer = surface->GetCurrentBuffer();
     std::lock_guard<std::mutex> lock(mutex_);
     if (MetadataHelper::SetVideoTVMetadata(buffer, metadata_) != GSERROR_OK) {
-        RS_LOGE("RSTvMetadataManager SetVideoTVMetadata failed!");
+        RS_LOGE("SetVideoTVMetadata failed!");
     }
     (void)memset_s(&metadata_, sizeof(metadata_), 0, sizeof(metadata_));
 }
@@ -89,7 +92,7 @@ void RSTvMetadataManager::CopyFromLayersToSurface(const std::vector<LayerInfoPtr
         return;
     }
     TvPQMetadata tvMetadataCombined = { 0 };
-    for (const auto &layer : layers) {
+    for (const auto& layer : layers) {
         if (layer && layer->GetBuffer()) {
             auto buffer = layer->GetBuffer();
             TvPQMetadata tvMetadata = { 0 };
@@ -101,7 +104,7 @@ void RSTvMetadataManager::CopyFromLayersToSurface(const std::vector<LayerInfoPtr
 
     auto buffer = surface->GetCurrentBuffer();
     if (MetadataHelper::SetVideoTVMetadata(buffer, tvMetadataCombined) != GSERROR_OK) {
-        RS_LOGE("RSTvMetadataManager CopyFromLayersToSurface failed!");
+        RS_LOGE("CopyFromLayersToSurface failed!");
     }
 }
 } // namespace OHOS::Rosen

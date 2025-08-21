@@ -22,9 +22,6 @@
 #include <parameters.h>
 
 namespace OHOS {
-constexpr const float HALF = 2.0;
-constexpr const float RATIO_PHONE = 360.0;
-constexpr const float RATIO_OTHER = 800.0;
 
 void PostTask(std::function<void()> func, uint32_t delayTime)
 {
@@ -93,22 +90,18 @@ void ParseOldConfigFile(cJSON* data, std::vector<BootAnimationConfig>& configs)
     cJSON* custPicPath = cJSON_GetObjectItem(data, "cust.bootanimation.pics");
     if (custPicPath != nullptr && cJSON_IsString(custPicPath)) {
         config.picZipPath = custPicPath->valuestring;
-        LOGI("cust piczip path: %{public}s", config.picZipPath.c_str());
     }
     cJSON* custSoundPath = cJSON_GetObjectItem(data, "cust.bootanimation.sounds");
     if (custSoundPath != nullptr && cJSON_IsString(custSoundPath)) {
         config.soundPath = custSoundPath->valuestring;
-        LOGI("cust sound path: %{public}s", config.soundPath.c_str());
     }
     cJSON* custVideoDefaultPath = cJSON_GetObjectItem(data, "cust.bootanimation.video");
     if (custVideoDefaultPath != nullptr && cJSON_IsString(custVideoDefaultPath)) {
         config.videoDefaultPath = custVideoDefaultPath->valuestring;
-        LOGI("cust video path: %{public}s", config.videoDefaultPath.c_str());
     }
     cJSON* custVideoExtraPath = cJSON_GetObjectItem(data, "cust.bootanimation.video.extra");
     if (custVideoExtraPath != nullptr && cJSON_IsString(custVideoExtraPath)) {
         config.videoExtraPath = custVideoExtraPath->valuestring;
-        LOGI("cust extra video path: %{public}s", config.videoExtraPath.c_str());
     }
     cJSON* rotateScreenJson = cJSON_GetObjectItem(data, "cust.bootanimation.rotate.screenid");
     if (rotateScreenJson != nullptr && cJSON_IsString(rotateScreenJson)) {
@@ -151,17 +144,14 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
             cJSON* custPicPath = cJSON_GetObjectItem(item, "cust.bootanimation.pics");
             if (custPicPath != nullptr && cJSON_IsString(custPicPath)) {
                 config.picZipPath = custPicPath->valuestring;
-                LOGI("cust piczip path: %{public}s", config.picZipPath.c_str());
             }
             cJSON* custSoundPath = cJSON_GetObjectItem(item, "cust.bootanimation.sounds");
             if (custSoundPath != nullptr && cJSON_IsString(custSoundPath)) {
                 config.soundPath = custSoundPath->valuestring;
-                LOGI("cust sound path: %{public}s", config.soundPath.c_str());
             }
             cJSON* custVideoDefaultPath = cJSON_GetObjectItem(item, "cust.bootanimation.video_default");
             if (custVideoDefaultPath != nullptr && cJSON_IsString(custVideoDefaultPath)) {
                 config.videoDefaultPath = custVideoDefaultPath->valuestring;
-                LOGI("cust default video path: %{public}s", config.videoDefaultPath.c_str());
             }
             cJSON* rotateDegreeJson = cJSON_GetObjectItem(item, "cust.bootanimation.rotate_degree");
             if (rotateDegreeJson != nullptr && cJSON_IsString(rotateDegreeJson)) {
@@ -185,7 +175,6 @@ void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config)
         cJSON* extraPath = cJSON_GetArrayItem(data, index);
         if (extraPath != nullptr && extraPath->string != nullptr && extraPath->valuestring != nullptr
             && strlen(extraPath->string) != 0) {
-            LOGI("%{public}s : %{public}s", extraPath->string, extraPath->valuestring);
             config.videoExtPath.emplace(extraPath->string, extraPath->valuestring);
         }
     }
@@ -361,6 +350,23 @@ int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp)
     float ratio = RATIO_PHONE;
     if (DEVICE_TYPE_PHONE != deviceType && DEVICE_TYPE_WEARABLE != deviceType) {
         ratio = RATIO_OTHER;
+    }
+    return TranslateVp2Pixel(sideLen, vp, ratio);
+}
+
+/**
+* Transate vp to pixel.
+*
+* @param sideLen The short side length of screen.
+* @param vp vp value.
+* @param ratio ratio value.
+* @return Returns the font size.
+*/
+int32_t TranslateVp2Pixel(const int32_t sideLen, const int32_t vp, const float ratio)
+{
+    if (ratio == 0) {
+        LOGE("invalid ratio");
+        return 0;
     }
     return static_cast<int32_t>(std::ceil(sideLen * HALF / ratio) / HALF * vp);
 }

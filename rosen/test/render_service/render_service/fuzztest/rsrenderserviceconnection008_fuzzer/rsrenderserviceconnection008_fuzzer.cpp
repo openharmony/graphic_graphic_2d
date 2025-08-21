@@ -21,6 +21,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <fstream>
+#include <iostream>
 #include <fuzzer/FuzzedDataProvider.h>
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
@@ -39,18 +41,15 @@
 namespace OHOS {
 namespace Rosen {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
-auto g_pid = getpid();
-auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
-auto mainThread_ = RSMainThread::Instance();
+int32_t g_pid;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+RSMainThread* mainThread_ = RSMainThread::Instance();
+sptr<RSRenderServiceConnectionStub> connectionStub_ = nullptr;
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 sptr<RSRenderServiceConnectionStub> rsConnStub_ = nullptr;
+const std::string CONFIG_FILE = "/etc/unirender.config";
+std::string g_originTag = "";
+
 namespace {
 const uint8_t DO_CREATE_PIXEL_MAP_FROM_SURFACE = 0;
 const uint8_t DO_GET_SCREEN_HDR_CAPABILITY = 1;
@@ -103,6 +102,27 @@ std::string GetData()
     return object;
 }
 
+void WriteUnirenderConfig(std::string& tag)
+{
+    std::ofstream file;
+    file.open(CONFIG_FILE);
+    if (file.is_open()) {
+        file << tag << "\r";
+        file.close();
+    }
+}
+
+std::string ReadUnirenderConfig()
+{
+    std::ifstream file(CONFIG_FILE);
+    if (file.is_open()) {
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        file.close();
+        return content;
+    }
+    return "";
+}
+
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -113,7 +133,17 @@ bool Init(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     rsConnStub_ = new RSRenderServiceConnection(g_pid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+    g_originTag = ReadUnirenderConfig();
+    bool enableForAll = GetData<bool>();
+    std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
+    WriteUnirenderConfig(tag);
+    RSUniRenderJudgement::InitUniRenderConfig();
     return true;
+}
+
+void TearDown()
+{
+    WriteUnirenderConfig(g_originTag);
 }
 } // namespace
 
@@ -301,7 +331,7 @@ void DoSetScreenSkipFrameInterval()
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(skipFrameInterval);
     dataParcel.WriteInt32(statusCode);
-    rsConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetBitmap()
@@ -350,19 +380,27 @@ void DoGetScreenHDRStatus()
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    auto newPid = getpid();
-    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
-        newPid,
-        nullptr,
-        mainThread,
-        screenManagerPtr,
-        nullptr,
-        nullptr
-    );
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    OHOS::Rosen::connectionStub_ = new OHOS::Rosen::RSRenderServiceConnection(OHOS::Rosen::g_pid, nullptr,
+        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
+#ifdef RS_ENABLE_VK
+    OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+#endif
+    OHOS::Rosen::RSHardwareThread::Instance().Start();
     return 0;
 }
 
@@ -423,5 +461,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         default:
             return -1;
     }
+    OHOS::Rosen::TearDown();
     return 0;
 }

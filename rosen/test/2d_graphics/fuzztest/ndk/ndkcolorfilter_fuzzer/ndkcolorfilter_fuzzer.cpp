@@ -37,10 +37,6 @@ void NativeDrawingColorFilterTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t color = GetObject<uint32_t>();
     uint32_t mode = GetObject<uint32_t>();
@@ -57,34 +53,11 @@ void NativeDrawingColorFilterTest001(const uint8_t* data, size_t size)
     OH_Drawing_ColorFilterDestroy(colorFilter);
 }
 
-void NativeDrawingColorFilterTest002(const uint8_t* data, size_t size)
-{
-    if (data == nullptr || size < DATA_MIN_SIZE) {
-        return;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    OH_Drawing_ColorFilter* colorFilterOne = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
-    OH_Drawing_ColorFilter* colorFilterTwo = OH_Drawing_ColorFilterCreateSrgbGammaToLinear();
-    OH_Drawing_ColorFilter* colorFilterThree = OH_Drawing_ColorFilterCreateLuma();
-
-    OH_Drawing_ColorFilterDestroy(colorFilterOne);
-    OH_Drawing_ColorFilterDestroy(colorFilterTwo);
-    OH_Drawing_ColorFilterDestroy(colorFilterThree);
-}
-
 void NativeDrawingColorFilterTest003(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float matrix[MATRIX_SIZE];
     for (size_t i = 0; i < MATRIX_SIZE; i++) {
@@ -102,10 +75,6 @@ void NativeDrawingColorFilterTest004(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t mulColor = GetObject<uint32_t>();
     uint32_t addColor = GetObject<uint32_t>();
@@ -121,9 +90,13 @@ void NativeDrawingColorFilterTest004(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest001(data, size);
-    OHOS::Rosen::Drawing::NativeDrawingColorFilterTest002(data, size);
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest003(data, size);
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest004(data, size);
 

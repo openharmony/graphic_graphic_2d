@@ -24,8 +24,6 @@ namespace OHOS {
 namespace Rosen {
 class RSNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAddModifier, Uint64, RSRenderModifierSharedPtr);
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSRemoveModifier, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyBool, Uint64, Bool, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyFloat, Uint64, Float, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyInt, Uint64, Int, Uint64, PropertyUpdateType);
@@ -57,8 +55,6 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector4Color, Uint64, ColorVector4, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector4f, Uint64, Vector4f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyRRect, Uint64, RRect, Uint64, PropertyUpdateType);
-    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyDrawCmdList, Uint64, DrawingDrawCmdListPtr, Uint64,
-                                    PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyDrawingMatrix, Uint64, DrawingMatrix, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetFreeze, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNodeName, Uint64, String);
@@ -73,8 +69,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRegisterGeometryTransitionNodePair, Uint64, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnregisterGeometryTransitionNodePair, Uint64, Uint64);
-    ADD_RANDOM_COMMAND_WITH_PARAM_1(RSRemoveAllModifiers, Uint64);
-    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSDumpClientNodeTree, Uint64, Pid, Uint32);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSDumpClientNodeTree, Uint64, Pid, Uint64, Uint32);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSCommitDumpClientNodeTree, Uint64, Pid, Uint32, String);
 };
 } // namespace Rosen

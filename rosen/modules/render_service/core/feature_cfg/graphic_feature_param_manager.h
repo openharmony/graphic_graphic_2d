@@ -47,12 +47,12 @@
 #include "occlusion_culling_param_parse.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
-#include "prevalidate_param_parse.h"
-#include "prevalidate_param.h"
 #include "rotateoffscreen_param_parse.h"
 #include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
+#include "subtree_parallel_param.h"
+#include "subtree_parallel_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "vrate_param_parse.h"
@@ -67,8 +67,6 @@
 #include "surface_capture_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
-#include "loadoptimization_param_parse.h"
-#include "loadoptimization_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -97,8 +95,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<OPIncParam>(); }},
     {FEATURE_CONFIGS[MULTISCREEN], [] { return std::make_unique<MultiScreenParamParse>(); },
         [] {return std::make_unique<MultiScreenParam>(); }},
-    {FEATURE_CONFIGS[PREVALIDATE], [] { return std::make_unique<PrevalidateParamParse>(); },
-        [] { return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
         [] {return std::make_unique<UIFirstParam>(); }},
     {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
@@ -121,8 +117,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
-    {FEATURE_CONFIGS[LOAD_OPTIMIZATION], [] { return std::make_unique<LoadOptimizationParamParse>(); },
-        [] { return std::make_unique<LoadOptimizationParam>(); }},
+    {FEATURE_CONFIGS[SUBTREEPARALLEL], [] { return std::make_unique<SubtreeParallelParamParse>(); },
+        [] { return std::make_unique<SubtreeParallelParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

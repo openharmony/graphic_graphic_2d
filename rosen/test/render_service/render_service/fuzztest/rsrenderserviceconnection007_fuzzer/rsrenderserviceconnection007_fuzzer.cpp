@@ -39,17 +39,11 @@
 namespace OHOS {
 namespace Rosen {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
-auto g_pid = getpid();
-auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+int32_t g_pid;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_;
 auto mainThread_ = RSMainThread::Instance();
-sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+sptr<RSRenderServiceConnectionStub> connectionStub_ = nullptr;
 
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 sptr<RSRenderServiceConnectionStub> rsConnStub_ = nullptr;
 namespace {
 const uint8_t DO_SET_SCREEN_GAMUT = 0;
@@ -58,7 +52,9 @@ const uint8_t DO_SET_SCREEN_CORRECTION = 2;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION = 3;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE = 4;
 const uint8_t DO_SET_GLOBAL_DARK_COLOR_MODE = 5;
-const uint8_t TARGET_SIZE = 6;
+const uint8_t DO_DROP_FRAME_BY_PID = 6;
+const uint8_t DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK = 7;
+const uint8_t TARGET_SIZE = 8;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -103,6 +99,7 @@ bool Init(const uint8_t* data, size_t size)
     DATA = data;
     g_size = size;
     g_pos = 0;
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     rsConnStub_ = new RSRenderServiceConnection(g_pid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
     return true;
 }
@@ -237,24 +234,64 @@ void DoSetGlobalDarkColorMode()
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteBool(isDark);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    sleep(1);
+}
+
+void DoDropFrameByPid()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    }
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInt32Vector(pidList);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    sleep(1);
+}
+
+void DoSetScreenSwitchingNotifyCallback()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIScreenSwitchingNotifyCallback> rsIScreenSwitchingNotifyCallback_ =
+        iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteRemoteObject(rsIScreenSwitchingNotifyCallback_->AsObject());
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    auto newPid = getpid();
-    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
-        newPid,
-        nullptr,
-        mainThread,
-        screenManagerPtr,
-        nullptr,
-        nullptr
-    );
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::screenManagerPtr_ =  OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    auto appVSyncDistributor_ = new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    auto token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    OHOS::Rosen::connectionStub_ = new OHOS::Rosen::RSRenderServiceConnection(
+        OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
+        OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+    OHOS::Rosen::CONN = OHOS::Rosen::connectionStub_;
     return 0;
 }
 
@@ -284,6 +321,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_GLOBAL_DARK_COLOR_MODE:
             OHOS::Rosen::DoSetGlobalDarkColorMode();
+            break;
+        case OHOS::Rosen::DO_DROP_FRAME_BY_PID:
+            OHOS::Rosen::DoDropFrameByPid();
+            break;
+        case OHOS::Rosen::DO_SET_SCREEN_SWITCHING_NOTIFY_CALLBACK:
+            OHOS::Rosen::DoSetScreenSwitchingNotifyCallback();
             break;
         default:
             return -1;

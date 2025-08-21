@@ -65,8 +65,9 @@ namespace OHOS {
         int64_t offset = GetData<int64_t>();
         int32_t rate = GetData<int32_t>();
         int64_t now = GetData<int64_t>();
-        bool delayEnable = GetData<bool>();
+        bool compositeSceneEnable = GetData<bool>();
         bool nativeDelayEnable = GetData<bool>();
+        std::vector<std::string> rsDvsyncAnimationList = {"APP_SWIPER_FLING", "ABILITY_OR_PAGE_SWITCH"};
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -89,7 +90,7 @@ namespace OHOS {
         bool vsyncSwitch = GetData<bool>();
         vsyncConnection->SetUiDvsyncSwitch(vsyncSwitch);
         int32_t bufferCount = GetData<int32_t>();
-        vsyncConnection->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+        vsyncConnection->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
         MessageParcel arguments;
         MessageParcel reply;
         MessageOption option;
@@ -102,6 +103,35 @@ namespace OHOS {
         }
         return true;
     }
+
+    void DoSomethingInterestingWithRequestVsyncTimestamp(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return;
+        }
+        // initialize
+        data_ = data;
+        size_ = size;
+        pos = 0;
+
+        int64_t offset = GetData<int64_t>();
+        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "rs");
+        sptr<Rosen::VSyncConnection> vsyncConnection = new Rosen::VSyncConnection(vsyncDistributor, "rs");
+
+        // get data
+        int64_t requestTime = GetData<int64_t>();
+        int64_t currentTime = GetData<int64_t>();
+        int32_t rate = GetData<int32_t>();
+        vsyncConnection->AddRequestVsyncTimestamp(requestTime);
+        vsyncConnection->CheckIsReadyByTime(currentTime);
+        vsyncConnection->IsRequestVsyncTimestampEmpty();
+        vsyncConnection->MarkRequestWithTimestampOnlyFlag();
+        vsyncConnection->NeedTriggeredVsyncLocked(currentTime);
+        vsyncConnection->RemoveTriggeredVsyncLocked(currentTime);
+        vsyncDistributor->NeedForceUpdateRate(vsyncConnection, rate);
+    }
 }
 
 /* Fuzzer entry point */
@@ -109,6 +139,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
+    OHOS::DoSomethingInterestingWithRequestVsyncTimestamp(data, size);
     return 0;
 }
 

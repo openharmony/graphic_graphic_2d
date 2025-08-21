@@ -226,7 +226,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level0)
  * @tc.desc: Test for DrawTextFlip action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     EXPECT_CALL(*mockTypography_, GetAnimation()).Times(1);
@@ -252,7 +252,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest006, TestSize.Level1)
  * @tc.desc: Test for DrawResidualText action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
@@ -292,7 +292,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest007, TestSize.Level1)
  * @tc.desc: Test for DrawTextFlipElements action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
@@ -330,7 +330,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest008, TestSize.Level1)
  * @tc.desc: Test for ClearTypography action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level0)
 {
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(2);
     EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
@@ -349,7 +349,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest009, TestSize.Level1)
  * @tc.desc: Test for GenerateChangeElements action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level0)
 {
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
@@ -402,7 +402,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest010, TestSize.Level1)
  * @tc.desc: Test for GenerateFlipConfig action
  * @tc.type: FUNC
  */
-HWTEST_F(TextFlipEffectTest, TextFlipEffectTest011, TestSize.Level1)
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest011, TestSize.Level0)
 {
     effect_->blurEnable_ = true;
     EXPECT_EQ(effect_->GenerateFlipConfig(15.0).size(), 2);
@@ -430,5 +430,35 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest012, TestSize.Level0)
 
     effect_->RemoveTypography({config});
     effect_->NoEffect(mockCanvas_.get(), x, y);
+    EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
+}
+
+/*
+ * @tc.name: TextFlipEffectTest013
+ * @tc.desc: Test for no path ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextFlipEffectTest, TextFlipEffectTest013, TestSize.Level0)
+{
+    double x = 100.0;
+    double y = 100.0;
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
+    EXPECT_CALL(*mockTypography_, GetAnimation()).Times(1);
+
+    const char* text = "\uffff";
+    OHOS::Rosen::Drawing::Font font;
+    std::shared_ptr<Drawing::TextBlob> blob = Drawing::TextBlob::MakeFromString(text, font);
+    TypographyConfig config = CreateConfig();
+    effect_->AppendTypography({config});
+    EXPECT_CALL(*mockCanvas_, DrawTextBlob(blob.get(), x, y)).Times(1);
+    TextBlobRecordInfo blobInfo;
+    blobInfo.blob = blob;
+    std::vector<TextBlobRecordInfo> infos;
+    infos.emplace_back(blobInfo);
+    effect_->DrawTextFlip(infos, mockCanvas_.get(), x, y);
+    EXPECT_TRUE(effect_->lastAllBlobGlyphIds_.empty());
+    effect_->DrawTextFlip(infos, nullptr, x, y);
+    effect_->RemoveTypography({config});
     EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
 }

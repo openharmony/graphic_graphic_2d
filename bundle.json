@@ -55,7 +55,6 @@
         "graphic_2d_feature_enable_vulkan",
         "graphic_2d_feature_use_aps_igameservice_func",
         "graphic_2d_feature_use_igraphics_extend_hooks",
-        "graphic_2d_feature_vkqueue_priority_enable",
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
@@ -72,6 +71,8 @@
       ],
       "deps": {
         "components": [
+          "ability_base",
+          "common_event_service",
           "window_manager",
           "resource_management",
           "napi",
@@ -342,14 +343,11 @@
                 "ui/rs_canvas_node.h",
                 "ui/rs_display_node.h",
                 "ui/rs_root_node.h",
-                "modifier/rs_modifier.h",
                 "modifier/rs_modifier_manager_map.h",
                 "modifier/rs_modifier_extractor.h",
                 "modifier/rs_modifier_manager.h",
                 "modifier/rs_property.h",
                 "modifier/rs_showing_properties_freezer.h",
-                "modifier/rs_extended_modifier.h",
-                "modifier/rs_property_modifier.h",
                 "transaction/rs_interfaces.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core"
@@ -520,6 +518,22 @@
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/ani/color_manager:ani_color_space_object_convertor",
+            "header": {
+              "header_files": [ "ani_color_space_object_convertor.h" ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/color_manager/src/color_space_object_convertor"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/ani/drawing:drawing_ani",
+            "header": {
+              "header_files": [ "canvas_ani/ani_canvas.h" ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/drawing"
+            }
           }
         ],
         "test": [
@@ -533,7 +547,8 @@
           "//foundation/graphic/graphic_2d/rosen/modules/safuzz:safuzztest",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo",
           "//foundation/graphic/graphic_2d/rosen/test/dtk:dtk",
-          "//foundation/graphic/graphic_2d/frameworks/text/test:text_test"
+          "//foundation/graphic/graphic_2d/frameworks/text/test:text_test",
+          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test"
         ]
       }
     }

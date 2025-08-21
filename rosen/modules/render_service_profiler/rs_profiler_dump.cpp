@@ -52,12 +52,12 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearM
 
     if (!isSorted) {
         for (auto& child : node.GetChildrenList()) {
-            if (child.lock()) {
-                DumpNode(*child.lock(), children, clearMockFlag, false, isSorted);
+            if (auto lockedChild = child.lock(); lockedChild) {
+                DumpNode(*lockedChild, children, clearMockFlag, false, isSorted);
             }
         }
-    } else if (node.GetSortedChildren()) {
-        for (auto& child : *node.GetSortedChildren()) {
+    } else if (auto sortedChildren = node.GetSortedChildren()) {
+        for (auto& child : *sortedChildren) {
             if (child) {
                 DumpNode(*child, children, clearMockFlag, false, isSorted);
             }
@@ -168,7 +168,6 @@ void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, boo
         out["nodeGroupReuseCache"] = renderParams ? static_cast<int>(!renderParams->GetNeedUpdateCache()) : 0;
     }
     if (node.GetUifirstRootNodeId() != INVALID_NODEID) {
-        out["uifirstRootNodeId"] = node.GetUifirstRootNodeId();
         out["uifirstRootNodeId"] = AdjustNodeId(node.GetUifirstRootNodeId(), clearMockFlag);
     }
     DumpNodeSubClassNode(node, out);
@@ -248,7 +247,6 @@ static std::string Hex(uint32_t value)
     return sstream.str();
 }
 
-#if defined(MODIFIER_NG)
 void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out)
 {
     if (node.modifiersNG_.empty()) {
@@ -331,106 +329,6 @@ void RSProfiler::DumpNodeDrawCmdModifier(
         }
     }
 }
-#else
-void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out)
-{
-    auto& modifiersJson = out["DrawCmdModifiers"];
-    modifiersJson.PushArray();
-    for (auto& [type, modifiers] : node.drawCmdModifiers_) {
-        modifiersJson.PushObject();
-        modifiersJson["type"] = static_cast<int>(type);
-        auto& modifierDesc = modifiersJson["modifiers"];
-        modifierDesc.PushArray();
-        for (const auto& modifier : modifiers) {
-            if (modifier) {
-                DumpNodeDrawCmdModifier(node, modifierDesc, static_cast<int>(type), *modifier);
-            }
-        }
-        modifiersJson.PopArray();
-        modifiersJson.PopObject();
-    }
-    modifiersJson.PopArray();
-}
-
-void RSProfiler::DumpNodeDrawCmdModifier(
-    const RSRenderNode& node, JsonWriter& out, int type, RSRenderModifier& modifier)
-{
-    auto modType = static_cast<RSModifierType>(type);
-
-    if (modType < RSModifierType::ENV_FOREGROUND_COLOR) {
-        auto propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier.GetProperty());
-        auto drawCmdListPtr = propertyPtr ? propertyPtr->Get() : nullptr;
-        auto propertyStr = drawCmdListPtr ? drawCmdListPtr->GetOpsWithDesc() : "";
-        size_t pos = 0;
-        size_t oldpos = 0;
-
-        out.PushObject();
-        auto& property = out["drawCmdList"];
-        property.PushArray();
-        while ((pos = propertyStr.find('\n', oldpos)) != std::string::npos) {
-            property.Append(propertyStr.substr(oldpos, pos - oldpos));
-            oldpos = pos + 1;
-        }
-        property.PopArray();
-        out.PopObject();
-    } else if (modType == RSModifierType::ENV_FOREGROUND_COLOR) {
-        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(modifier.GetProperty());
-        if (propertyPtr) {
-            out.PushObject();
-            out["ENV_FOREGROUND_COLOR"] = "#" + Hex(propertyPtr->Get().AsRgbaInt()) + " (RGBA)";
-            out.PopObject();
-        }
-    } else if (modType == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
-        auto propertyPtr =
-            std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>(modifier.GetProperty());
-        if (propertyPtr) {
-            out.PushObject();
-            out["ENV_FOREGROUND_COLOR_STRATEGY"] = static_cast<int>(propertyPtr->Get());
-            out.PopObject();
-        }
-    } else if (modType == RSModifierType::GEOMETRYTRANS) {
-        auto propertyPtr = std::static_pointer_cast<RSRenderProperty<SkMatrix>>(modifier.GetProperty());
-        if (propertyPtr) {
-            std::string str;
-#ifdef TODO_M133_SKIA
-            propertyPtr->Get(); // todo : Intrusive modification of the waiting turn
-#else
-            propertyPtr->Get().dump(str, 0);
-#endif
-            out.PushObject();
-            out["GEOMETRYTRANS"] = str;
-            out.PopObject();
-        }
-    } else if (modType == RSModifierType::CUSTOM_CLIP_TO_FRAME) {
-        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier.GetProperty());
-        if (propertyPtr) {
-            std::string str;
-            propertyPtr->Dump(str);
-            out.PushObject();
-            out["CUSTOM_CLIP_TO_FRAME"] = str;
-            out.PopObject();
-        }
-    } else if (modType == RSModifierType::HDR_BRIGHTNESS) {
-        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier.GetProperty());
-        if (propertyPtr) {
-            std::string str;
-            propertyPtr->Dump(str);
-            out.PushObject();
-            out["HDR_BRIGHTNESS"] = str;
-            out.PopObject();
-        }
-    } else if (modType == RSModifierType::HDR_BRIGHTNESS_FACTOR) {
-        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier.GetProperty());
-        if (propertyPtr) {
-            std::string str;
-            propertyPtr->Dump(str);
-            out.PushObject();
-            out["HDR_BRIGHTNESS_FACTOR"] = str;
-            out.PopObject();
-        }
-    }
-}
-#endif
 
 void RSProfiler::DumpNodeProperties(const RSProperties& properties, JsonWriter& out)
 {
@@ -513,7 +411,7 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
     if (properties.pixelStretch_.has_value()) {
         auto& pixelStretch = out["PixelStretch"];
         pixelStretch.PushObject();
-        pixelStretch["left"] = properties.pixelStretch_->z_;
+        pixelStretch["left"] = properties.pixelStretch_->x_;
         pixelStretch["top"] = properties.pixelStretch_->y_;
         pixelStretch["right"] = properties.pixelStretch_->z_;
         pixelStretch["bottom"] = properties.pixelStretch_->w_;

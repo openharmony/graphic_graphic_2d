@@ -17,7 +17,6 @@
 
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #else
 #include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif
@@ -655,65 +654,4 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest002, TestSize.Level
     renderEngine->ShrinkCachesIfNeeded();
     EXPECT_NE(renderEngine, nullptr);
 }
-
-#ifdef RS_ENABLE_VK
-/**
- * @tc.name: RequestFrameTest001
- * @tc.desc: Test RequestFrameTest for isHDRStatusChanged_ is false
- * @tc.type: FUNC
- * @tc.require:issueIC1RNF
- */
-HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrameTest, TestSize.Level1)
-{
-    const sptr<Surface>& surface = nullptr;
-    const std::shared_ptr<RSSurfaceOhos> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
-    const BufferRequestConfig config = {};
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->Init();
-    renderEngine->SetHDRStatusChanged(false);
-    renderEngine->RequestFrame(rsSurface, config);
-    EXPECT_EQ(renderEngine->isHDRStatusChanged_, false);
-}
-
-/**
- * @tc.name: RequestFrameTest002
- * @tc.desc: Test RequestFrameTest for isHDRStatusChanged_ is true
- * @tc.type: FUNC
- * @tc.require:issueIC1RNF
- */
-HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrameTest002, TestSize.Level1)
-{
-    auto cSurface = Surface::CreateSurfaceAsConsumer();
-    cSurface->SetDefaultUsage(
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    const sptr<Surface>& surface = nullptr;
-    const std::shared_ptr<RSSurfaceOhos> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
-    const BufferRequestConfig config = {};
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->Init();
-    renderEngine->SetHDRStatusChanged(true);
-    renderEngine->RequestFrame(rsSurface, config);
-    EXPECT_EQ(renderEngine->isHDRStatusChanged_, false);
-}
-
-/**
- * @tc.name: RequestFrameTest003
- * @tc.desc: Test RequestFrameTest for isHDRStatusChanged_ is true surface is nullptr
- * @tc.type: FUNC
- * @tc.require:issueIC1RNF
- */
-HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrameTest003, TestSize.Level1)
-{
-    const sptr<Surface>& surface = nullptr;
-    const std::shared_ptr<RSSurfaceOhos> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
-    const BufferRequestConfig config = {};
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->Init();
-    renderEngine->SetHDRStatusChanged(true);
-    renderEngine->RequestFrame(rsSurface, config);
-    EXPECT_EQ(renderEngine->isHDRStatusChanged_, true);
-}
-#endif
 }

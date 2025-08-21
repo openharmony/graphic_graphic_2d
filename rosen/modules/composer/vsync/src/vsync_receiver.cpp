@@ -22,6 +22,9 @@
 #include <hitrace_meter.h>
 
 #include "accesstoken_kit.h"
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync_delay.h"
+#endif
 #include "event_handler.h"
 #include "graphic_common.h"
 #include "ipc_skeleton.h"
@@ -280,15 +283,16 @@ VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return connection_->SetUiDvsyncSwitch(dvsyncSwitch);
 }
 
-VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool delayEnable, bool nativeDelayEnable)
+VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
+    bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    VLOGI("SetUiDvsyncConfig bufferCount:%d delayEnable:%d nativeDelayEnable:%d",
-        bufferCount, delayEnable, nativeDelayEnable);
-    return connection_->SetUiDvsyncConfig(bufferCount, delayEnable, nativeDelayEnable);
+    VLOGI("SetUiDvsyncConfig bufferCount:%d compositeSceneEnable:%d nativeDelayEnable:%d",
+        bufferCount, compositeSceneEnable, nativeDelayEnable);
+    return connection_->SetUiDvsyncConfig(bufferCount, compositeSceneEnable, nativeDelayEnable, rsDvsyncAnimationList);
 }
 
 VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)

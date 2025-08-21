@@ -31,7 +31,7 @@
 namespace OHOS::Rosen {
 namespace {
 // DFX drawing alpha
-constexpr float DFXFillAlpha = 0.2f;
+constexpr float DFX_FILL_ALPHA = 0.2f;
 constexpr float DFXFontSize = 24.f;
 constexpr float HWC_DFX_FILL_ALPHA = 0.3f;
 }
@@ -184,14 +184,14 @@ void RSDirtyRectsDfx::DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dir
     if (fillType == RSPaintStyle::STROKE) {
         rectPen.SetColor(color);
         rectPen.SetAntiAlias(true);
-        rectPen.SetAlphaF(DFXFillAlpha);
+        rectPen.SetAlphaF(DFX_FILL_ALPHA);
         rectPen.SetWidth(edgeWidth);
         rectPen.SetJoinStyle(Drawing::Pen::JoinStyle::ROUND_JOIN);
         canvas.AttachPen(rectPen);
     } else {
         rectBrush.SetColor(color);
         rectBrush.SetAntiAlias(true);
-        rectBrush.SetAlphaF(DFXFillAlpha);
+        rectBrush.SetAlphaF(DFX_FILL_ALPHA);
         canvas.AttachBrush(rectBrush);
     }
     canvas.DrawRect(rect);
@@ -284,7 +284,7 @@ void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas,
     if (!screenParams_) {
         return;
     }
-    // hsc todo:dfx迁移到display, 使用displayParams
+
     auto params = static_cast<RSScreenRenderParams*>(screenParams_.get());
     if (surfaceParams.IsFirstLevelCrossNode() && !params->IsFirstVisitCrossNodeDisplay()) {
         return;

@@ -39,7 +39,7 @@ RSProxyNode::SharedPtr RSProxyNode::Create(
         rsUIContext->GetMutableNodeMap().RegisterNode(node);
         auto transaction = rsUIContext->GetRSTransaction();
         if (transaction == nullptr) {
-            ROSEN_LOGW("multi-client RSProxyNode::Create, transaction is nullptr");
+            ROSEN_LOGW("multi-client:RSProxyNode::Create, transaction is nullptr");
             return node;
         }
         NodeId proxyNodeId = node->GetHierarchyCommandNodeId();

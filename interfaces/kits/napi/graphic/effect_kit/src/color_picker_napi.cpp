@@ -230,26 +230,29 @@ static void CreateColorPickerFromPixelMapExecute(napi_env env, void* data)
 void ColorPickerNapi::CreateColorPickerFromPixelMapComplete(napi_env env, napi_status status, void *data)
 {
     auto context = static_cast<ColorPickerAsyncContext*>(data);
-    EFFECT_NAPI_CHECK_RET_VOID_D(context != nullptr,
-        EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPixelMapComplete empty context"));
-
-    if (context->errorMsg != nullptr) {
-        context->status = ERROR;
-        EFFECT_LOG_E("ColorPickerNapi::CreateColorPickerFromPixelMapComplete mismatch args");
+    if (!context) {
+        EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPixelMapComplete empty context");
         return;
     }
 
-    napi_value constructor = nullptr;
     napi_value result = nullptr;
-    status = napi_get_reference_value(env, sConstructor_, &constructor);
-    EFFECT_NAPI_CHECK_RET_VOID_D(status == napi_ok,
-        EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPixelMapComplete napi_get_reference_value fail"));
-    sColorPicker_ = context->rColorPicker;
-    status = napi_new_instance(env, constructor, NUM_0, nullptr, &result);
-    if (status != napi_ok) {
+    if (context->errorMsg != nullptr) {
         context->status = ERROR;
-        EFFECT_LOG_E("ColorPickerNapi::CreateColorPickerFromPixelMapComplete New instance could not be obtained");
-        napi_get_undefined(env, &result);
+        EFFECT_LOG_E("ColorPickerNapi::CreateColorPickerFromPixelMapComplete mismatch args");
+    } else {
+        napi_value constructor = nullptr;
+        status = napi_get_reference_value(env, sConstructor_, &constructor);
+        if (status != napi_ok) {
+            EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPixelMapComplete napi_get_reference_value fail");
+        } else {
+            sColorPicker_ = context->rColorPicker;
+            status = napi_new_instance(env, constructor, NUM_0, nullptr, &result);
+        }
+        if (status != napi_ok) {
+            context->status = ERROR;
+            EFFECT_LOG_E("ColorPickerNapi::CreateColorPickerFromPixelMapComplete New instance could not be obtained");
+            napi_get_undefined(env, &result);
+        }
     }
 
     CommonCallbackRoutine(env, context, result);
@@ -257,15 +260,18 @@ void ColorPickerNapi::CreateColorPickerFromPixelMapComplete(napi_env env, napi_s
 
 static void CreateColorPickerErrorComplete(napi_env env, napi_status status, void *data)
 {
+    auto context = static_cast<ColorPickerAsyncContext*>(data);
+    if (!context) {
+        EFFECT_LOG_E("CreateColorPickerErrorComplete empty context");
+        return;
+    }
+
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    auto context = static_cast<ColorPickerAsyncContext*>(data);
-    EFFECT_NAPI_CHECK_RET_VOID_D(context != nullptr,
-        EFFECT_LOG_E("CreateColorPickerErrorComplete empty context"));
-
     context->status = ERROR;
-    EFFECT_NAPI_CHECK_RET_VOID_D(context->errorMsg == nullptr,
-        EFFECT_LOG_E("CreateColorPickerErrorComplete mismatch args"));
+    if (context->errorMsg != nullptr) {
+        EFFECT_LOG_E("CreateColorPickerErrorComplete mismatch args");
+    }
     CommonCallbackRoutine(env, context, result);
 }
 
@@ -427,16 +433,17 @@ static void GetMainColorExecute(napi_env env, void* data)
 static void GetMainColorComplete(napi_env env, napi_status status, void* data)
 {
     EFFECT_LOG_I("[ColorPicker]Get color Complete");
+    auto context = static_cast<ColorPickerAsyncContext*>(data);
+    if (!context) {
+        EFFECT_LOG_E("GetMainColorComplete empty context");
+        return;
+    }
+
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    auto context = static_cast<ColorPickerAsyncContext*>(data);
-    EFFECT_NAPI_CHECK_RET_VOID_D(context != nullptr,
-        EFFECT_LOG_E("GetMainColorComplete empty context"));
-
     if (context->errorMsg != nullptr) {
         context->status = ERROR;
         EFFECT_LOG_E("GetMainColorComplete mismatch args");
-        return;
     }
 
     if (context->status == SUCCESS) {

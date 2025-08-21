@@ -17,6 +17,7 @@
 #include <message_option.h>
 #include <message_parcel.h>
 #include "platform/common/rs_log.h"
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,6 +31,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
 {
     // send mainScreenRect only to reduce ipc data size
     if (!data.WriteBool(captureConfig.isHdrCapture) ||
+        !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -76,9 +78,9 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceC
     uint32_t code = captureConfig.isHdrCapture ?
         static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR) :
         static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("SurfaceCaptureCallbackProxy: Remote()->SendRequest() error");
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy: SendRequest() error");
     }
 }
 } // namespace Rosen

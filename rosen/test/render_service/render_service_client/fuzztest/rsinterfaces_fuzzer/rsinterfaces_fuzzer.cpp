@@ -61,6 +61,18 @@ std::string GetData()
 }
 } // namespace
 
+bool Init(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    return true;
+}
+
 class SurfaceCaptureFuture : public SurfaceCaptureCallback {
     public:
         SurfaceCaptureFuture() = default;
@@ -81,15 +93,6 @@ class SurfaceCaptureFuture : public SurfaceCaptureCallback {
 
 bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     uint64_t id = GetData<uint64_t>();
     uint8_t type = GetData<uint8_t>();
@@ -205,7 +208,11 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
         errorReason = reason;
         callbacked = true;
     };
+    ScreenSwitchingNotifyCallback switchingCallback = [&status] (bool switchingStatus) {
+        status = switchingStatus;
+    };
     rsInterfaces.SetScreenChangeCallback(changeCallback);
+    rsInterfaces.SetScreenSwitchingNotifyCallback(switchingCallback);
     uint32_t screenRotation = GetData<uint32_t>();
     rsInterfaces.SetScreenCorrection(static_cast<ScreenId>(id), static_cast<ScreenRotation>(screenRotation));
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
@@ -240,15 +247,6 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 #ifdef TP_FEATURE_ENABLE
 bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     int32_t tpFeature = GetData<int32_t>();
     std::string tpConfig = GetData<std::string>();
@@ -263,15 +261,6 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
 
 bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     bool enable = GetData<bool>();
 
@@ -283,15 +272,6 @@ bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
 
 bool DoDropFrameByPid(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     std::vector<int32_t> pidList;
     uint8_t pidListSize = GetData<uint8_t>();
@@ -308,15 +288,6 @@ bool DoDropFrameByPid(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     int32_t mode = GetData<int32_t>();
 
@@ -327,34 +298,8 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
 }
 #endif
 
-bool DoGetHighContrastTextState(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.GetHighContrastTextState();
-    return true;
-}
-
 bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     const std::string name = GetData<std::string>();
     uint32_t width = GetData<uint32_t>();
@@ -380,15 +325,6 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
 
 bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     ScreenId screenId = GetData<ScreenId>();
     bool isAutoRotation = GetData<bool>();
@@ -401,15 +337,6 @@ bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
 
 bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     bool enabled = GetData<bool>();
 
@@ -421,15 +348,6 @@ bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 
 bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // data
     bool enabled = GetData<bool>();
 
@@ -441,6 +359,33 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 
 bool DoClearUifirstCache(const uint8_t* data, size_t size)
 {
+    // get data
+    NodeId nodeId = GetData<NodeId>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.ClearUifirstCache(nodeId);
+    return true;
+}
+
+bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+{
+    // get data
+    auto callback = std::make_shared<SurfaceCaptureFuture>();
+    RSDisplayNodeConfig displayConfig = {
+        static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
+    auto displayNode = RSDisplayNode::Create(displayConfig);
+    bool checkDrmAndSurfaceLock = GetData<bool>();
+    RSSurfaceCaptureConfig captureConfig;
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    return true;
+}
+
+bool DoFreezeScreen(const uint8_t* data, size_t size)
+{
     if (data == nullptr) {
         return false;
     }
@@ -451,11 +396,14 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // get data
-    NodeId nodeId = GetData<NodeId>();
+    RSDisplayNodeConfig displayConfig = {
+        static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
+    auto displayNode = RSDisplayNode::Create(displayConfig);
+    bool isFreeze = GetData<bool>();
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.ClearUifirstCache(nodeId);
+    rsInterfaces.FreezeScreen(displayNode, isFreeze);
     return true;
 }
 } // namespace Rosen
@@ -464,6 +412,10 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+
     /* Run your code on data */
     OHOS::Rosen::RSPhysicalScreenFuzzTest(data, size);
 #ifdef TP_FEATURE_ENABLE
@@ -474,11 +426,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
-    OHOS::Rosen::DoGetHighContrastTextState(data, size);
     OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
+    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

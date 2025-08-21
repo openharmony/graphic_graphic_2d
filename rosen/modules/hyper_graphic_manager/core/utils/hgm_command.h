@@ -199,6 +199,7 @@ public:
     std::string defaultRefreshRateMode_ = "-1";
     // <"120", "1">
     std::vector<std::pair<int32_t, int32_t>> refreshRateForSettings_;
+    std::unordered_map<std::string, std::vector<std::pair<int32_t, int32_t>>> refreshRateForSettingsMap_;
     std::vector<std::string> appBufferList_;
     bool xmlCompatibleMode_ = false;
     bool safeVoteEnabled = true;
@@ -232,22 +233,46 @@ public:
         }
     }
 
-    int32_t SettingModeId2XmlModeId(int32_t settingModeId)
+    int32_t SettingModeId2XmlModeId(int32_t settingModeId) const
     {
+        // return 0 when input is invalid
+        bool hasAutoConfig = refreshRateForSettings_.size() > 0 &&
+            refreshRateForSettings_.at(0).first == HGM_REFRESHRATE_MODE_AUTO;
+        if (settingModeId == HGM_REFRESHRATE_MODE_AUTO) {
+            if (!hasAutoConfig) {
+                return 0;
+            }
+            return refreshRateForSettings_.at(0).second;
+        }
+        // The settingModeId must be -1 and 1, 2, 3, 4..., no 0. When there is no -1 in refreshRateForSettings_,
+        // 1 corresponds to refreshRateForSettings_[0], and 2 corresponds to refreshRateForSettings_[1] and so on
+        if (!hasAutoConfig) {
+            settingModeId--;
+        }
         if (settingModeId < 0 || settingModeId >= static_cast<int32_t>(refreshRateForSettings_.size())) {
             return 0;
         }
         return refreshRateForSettings_[settingModeId].second;
     }
 
-    int32_t XmlModeId2SettingModeId(int32_t xmlModeId)
+    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const
     {
         auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [&](auto nameModeId) { return nameModeId.second == xmlModeId; });
-        if (iter != refreshRateForSettings_.end()) {
-            return static_cast<int32_t>(iter - refreshRateForSettings_.begin());
+            [=] (auto nameModeId) { return std::to_string(nameModeId.second) == xmlModeId; });
+        if (iter == refreshRateForSettings_.end()) {
+            return 0;
         }
-        return 0;
+        auto ret = static_cast<int32_t>(iter - refreshRateForSettings_.begin());
+        // at(0).first == -1 means HGM_REFRESHRATE_MODE_AUTO is configured
+        if (refreshRateForSettings_.at(0).first != HGM_REFRESHRATE_MODE_AUTO) {
+            return ret + 1;
+        }
+        // HGM_REFRESHRATE_MODE_AUTO must be at(0), Only -1 is usable among negative numbers.
+        if (ret == 0) {
+            return HGM_REFRESHRATE_MODE_AUTO;
+        } else {
+            return ret;
+        }
     }
 
     int32_t GetRefreshRateModeName(int32_t refreshRateModeId)
@@ -258,6 +283,14 @@ public:
             return iter->first;
         }
         return 0;
+    }
+
+    void UpdateRefreshRateForSettings(const std::string mode)
+    {
+        auto it = refreshRateForSettingsMap_.find(mode);
+        if (it != refreshRateForSettingsMap_.end()) {
+            refreshRateForSettings_ = it->second;
+        }
     }
 };
 
@@ -318,7 +351,7 @@ protected:
     int32_t GetRefreshRateModeName(int32_t refreshRateModeId) const;
     std::string GetAppStrategyConfigName(const std::string& pkgName, int32_t appType) const;
 
-    const PolicyConfigData configData_;
+    const PolicyConfigData& configData_;
     int32_t settingModeId_{ 0 };
     std::string xmlModeId_{ "-1" }; // auto mode
     std::string screenConfigType_{ "LTPO-DEFAULT" };

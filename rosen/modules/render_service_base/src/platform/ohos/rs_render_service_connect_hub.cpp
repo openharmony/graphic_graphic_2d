@@ -34,6 +34,17 @@ std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
 OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
 
+extern "C" __attribute__((destructor)) void DeleteIPCConnectToken()
+{
+    auto connHub = OHOS::Rosen::RSRenderServiceConnectHub::GetConnectHubInstance();
+    if (connHub != nullptr) {
+        auto token = connHub->GetTokenPtrAndClear();
+        if (token != nullptr) {
+            delete token;
+        }
+    }
+}
+
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::GetInstance()
 {
     std::call_once(flag_, &RSRenderServiceConnectHub::Init);

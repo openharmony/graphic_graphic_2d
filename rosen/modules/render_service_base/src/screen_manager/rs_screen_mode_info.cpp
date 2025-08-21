@@ -25,6 +25,8 @@ RSScreenModeInfo::RSScreenModeInfo(int32_t width, int32_t height, uint32_t refre
 
 RSScreenModeInfo::RSScreenModeInfo(const RSScreenModeInfo& other)
 {
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     int32_t width = other.width_;
     int32_t height = other.height_;
     uint32_t refreshRate = other.refreshRate_;
@@ -37,6 +39,8 @@ RSScreenModeInfo::RSScreenModeInfo(const RSScreenModeInfo& other)
 
 RSScreenModeInfo& RSScreenModeInfo::operator=(const RSScreenModeInfo& other)
 {
+    // Tell the compiler there is no alias and to select wider load/store
+    // instructions.
     int32_t width = other.width_;
     int32_t height = other.height_;
     uint32_t refreshRate = other.refreshRate_;
@@ -48,6 +52,7 @@ RSScreenModeInfo& RSScreenModeInfo::operator=(const RSScreenModeInfo& other)
     return *this;
 }
 
+// LCOV_EXCL_START
 bool RSScreenModeInfo::Marshalling(Parcel& parcel) const
 {
     bool flag = parcel.WriteInt32(width_) && parcel.WriteInt32(height_) &&
@@ -57,7 +62,9 @@ bool RSScreenModeInfo::Marshalling(Parcel& parcel) const
     }
     return flag;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 RSScreenModeInfo* RSScreenModeInfo::Unmarshalling(Parcel& parcel)
 {
     int32_t width;
@@ -73,26 +80,35 @@ RSScreenModeInfo* RSScreenModeInfo::Unmarshalling(Parcel& parcel)
     RSScreenModeInfo* screenModeInfo = new RSScreenModeInfo(width, height, refreshRate, id);
     return screenModeInfo;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t RSScreenModeInfo::GetScreenWidth() const
 {
     return width_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t RSScreenModeInfo::GetScreenHeight() const
 {
     return height_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 uint32_t RSScreenModeInfo::GetScreenRefreshRate() const
 {
     return refreshRate_;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 int32_t RSScreenModeInfo::GetScreenModeId() const
 {
     return modeId_;
 }
+// LCOV_EXCL_STOP
 
 void RSScreenModeInfo::SetScreenWidth(int32_t width)
 {

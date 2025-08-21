@@ -20,9 +20,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t DEFAULT_PRIORITY = 0;
-constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
-constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
 // CAUTION: with priority
 const std::string VOTER_NAME[] = {
     "VOTER_THERMAL",

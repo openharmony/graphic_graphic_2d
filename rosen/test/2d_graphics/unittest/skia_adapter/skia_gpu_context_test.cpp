@@ -261,8 +261,21 @@ HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterDrawOpOverCallbackTest
+ * @tc.desc: Test RegisterDrawOpOverCallback
+ * @tc.type: FUNC
+ * @tc.require: IC0ZI6
+ */
+HWTEST_F(SkiaGPUContextTest, RegisterDrawOpOverCallbackTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->RegisterDrawOpOverCallback(nullptr);
+}
+
+/**
  * @tc.name: SetEarlyZFlagTest001
- * @tc.desc: Test SetEarlyZFlag
+ * @tc.desc: Test SetEarlyZEnabled
  * @tc.type: FUNC
  * @tc.require: IBOLWU
  */
@@ -270,7 +283,7 @@ HWTEST_F(SkiaGPUContextTest, SetEarlyZFlagTest001, TestSize.Level1)
 {
     auto gpuContext = std::make_shared<SkiaGPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->SetEarlyZFlag(true);
+    gpuContext->SetEarlyZEnabled(true);
 }
 
 /**

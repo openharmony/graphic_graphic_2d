@@ -62,7 +62,7 @@ namespace OHOS {
         std::string str(cstr);
         return str;
     }
-
+#ifndef MODIFIER_NG
     void RSNodeGetShowingPropertyAndCancelAnimationFuzzerTest()
     {
         // get data
@@ -153,6 +153,7 @@ namespace OHOS {
         delete copy;
         copy = nullptr;
     }
+#endif
 
     void RSNodeGetAnimationsValueFractionFuzzerTest()
     {
@@ -208,8 +209,10 @@ namespace OHOS {
         data_ = data;
         size_ = size;
         pos = 0;
+#ifndef MODIFIER_NG
         RSNodeGetShowingPropertyAndCancelAnimationFuzzerTest();
         RSNodeGetShowingPropertiesAndCancelAnimationFuzzerTest();
+#endif
         RSNodeGetAnimationsValueFractionFuzzerTest();
         return true;
     }

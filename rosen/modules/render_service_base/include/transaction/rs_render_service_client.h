@@ -36,6 +36,7 @@
 #endif
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -64,6 +65,7 @@ namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
+using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
 #endif
@@ -75,7 +77,7 @@ using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigDa
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
-using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, int32_t)>;
+using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, const std::string&, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
@@ -173,6 +175,12 @@ public:
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
+    bool TaskSurfaceCaptureWithAllWindows(NodeId id,
+        std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+        bool checkDrmAndSurfaceLock);
+
+    bool FreezeScreen(NodeId id, bool isFreeze);
+
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
@@ -225,6 +233,8 @@ public:
 #endif
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
+
+    int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback& callback);
 
 #ifndef ROSEN_ARKUI_X
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
@@ -546,6 +556,7 @@ private:
     std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
     std::unordered_map<std::pair<NodeId, RSSurfaceCaptureConfig>,
         std::vector<std::shared_ptr<SurfaceCaptureCallback>>, PairHash> surfaceCaptureCbMap_;

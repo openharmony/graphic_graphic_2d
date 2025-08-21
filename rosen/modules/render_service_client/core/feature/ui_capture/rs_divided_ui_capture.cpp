@@ -231,17 +231,18 @@ public:
         }
         conditionVariable_.notify_one();
     }
-    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
-        std::shared_ptr<Media::PixelMap> pixelMapHDR) override
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR) override
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (!flag_) {
-            pixelMap_ = pixelMap;
-            pixelMapHDR_ = pixelMapHDR;
+            pixelMap_ = pixelmap;
+            pixelMapHDR_ = pixelmapHDR;
             flag_ = true;
         }
         conditionVariable_.notify_one();
     }
+    
     bool IsReady() const
     {
         return flag_;

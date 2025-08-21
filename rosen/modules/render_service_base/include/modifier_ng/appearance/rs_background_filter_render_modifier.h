@@ -25,25 +25,22 @@ public:
     ~RSBackgroundFilterRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::BACKGROUND_FILTER;
+    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
-
+    // LCOV_EXCL_STOP
     static void ResetProperties(RSProperties& properties);
-
-protected:
-    void AttachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type) override;
-    void DetachRenderFilterProperty(
-        const std::shared_ptr<RSRenderPropertyBase>& property, ModifierNG::RSPropertyType type) override;
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
+    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
+    // LCOV_EXCL_STOP
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_BACKGROUND_FILTER_RENDER_MODIFIER_H

@@ -1253,7 +1253,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest030, TestSize.Le
  * @tc.desc: Test for combination run caused the background color update to fail
  * @tc.type: FUNC
  */
-HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest031, TestSize.Level1)
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest031, TestSize.Level0)
 {
     double maxWidth = LAYOUT_WIDTH;
     OHOS::Rosen::TypographyStyle typographyStyle;

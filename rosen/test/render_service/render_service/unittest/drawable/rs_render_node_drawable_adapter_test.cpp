@@ -572,6 +572,54 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
 }
 
 /**
+ * @tc.name: ClearResourceTest
+ * @tc.desc: Test ClearResource
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, ClearResourceTest, TestSize.Level1)
+{
+    NodeId id = 16;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    adapter->ClearResource();
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+}
+
+/**
+ * @tc.name: AddToClearDrawablesTest
+ * @tc.desc: Test AddToClearTest
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AddToClearTest, TestSize.Level1)
+{
+    NodeId id = 17;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> drawableVec;
+    auto nodeTwo = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> nodeDrawable =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(nodeTwo);
+    drawableVec.emplace_back(nodeDrawable);
+    adapter->AddToClearDrawables(drawableVec);
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+    DrawableV2::RSRenderNodeDrawable::CmdListVec cmdListVec;
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    cmdListVec.emplace_back(cmdList);
+    adapter->AddToClearCmdList(cmdListVec);
+    for (int i = 0; i < 5001; i++) {
+        cmdListVec.emplace_back(cmdList);
+    }
+    adapter->AddToClearCmdList(cmdListVec);
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+    adapter->TryClearSurfaceOnSync();
+    adapter->clearSurfaceTask_ = nullptr;
+    adapter->TryClearSurfaceOnSync();
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+}
+
+/**
  * @tc.name: DrawLeashWindowBackground001
  * @tc.desc: Test DrawLeashWindowBackground
  * @tc.type: FUNC
@@ -651,8 +699,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
 {
     NodeId id = 21;
     auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::static_pointer_cast<RSRenderNodeDrawableAdapter>(
-        std::make_shared<RSRenderNodeDrawable>(std::move(node)));
+    auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     Drawing::RecordingCanvas::DrawFunc drawFuncCallBack = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         printf("DrawQuickImplTest drawFuncCallBack\n");
     };
@@ -660,12 +707,16 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Rect rect;
     adapter->DrawQuickImpl(canvas, rect);
+
     ASSERT_EQ(adapter->drawCmdList_.size(), 1);
     adapter->drawCmdIndex_.transitionIndex_ = 0;
     adapter->DrawQuickImpl(canvas, rect);
 
     adapter->drawCmdIndex_.envForeGroundColorIndex_ = 0;
     adapter->drawCmdIndex_.bgSaveBoundsIndex_ = 0;
+    adapter->DrawQucikImpl(canvas, rect);
+
+    adapter->drawCmdIndex_.bgRestoreBoundsIndex_ = 0;
     adapter->DrawQuickImpl(canvas, rect);
 
     adapter->drawCmdIndex_.bgSaveBoundsIndex_ = -1;

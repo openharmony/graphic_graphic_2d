@@ -53,7 +53,8 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, Center2),
     ADD_PROPERTY_TAG(DoubleRippleMask, Radius),
     ADD_PROPERTY_TAG(DoubleRippleMask, Width),
-    ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence)
+    ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence),
+    ADD_PROPERTY_TAG(DoubleRippleMask, HaloThickness)
 );
 
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,

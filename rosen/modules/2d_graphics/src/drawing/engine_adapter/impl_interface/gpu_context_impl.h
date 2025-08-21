@@ -87,6 +87,8 @@ public:
 
     virtual void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) = 0;
 
+    virtual void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) = 0;
+
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
         const std::set<pid_t>& protectedPidSet) = 0;
     
@@ -97,6 +99,8 @@ public:
     virtual void ResetContext() = 0;
 
     virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
+
+    virtual uint64_t NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
 
     virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;
 
@@ -130,7 +134,7 @@ public:
 
     virtual void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) = 0;
 
-    virtual void SetEarlyZFlag(bool flag) = 0;
+    virtual void SetEarlyZEnabled(bool flag) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

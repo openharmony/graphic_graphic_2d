@@ -43,7 +43,7 @@ public:
     void MakeDrawingShader(const RectF& rect, float progress) override;
     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
     void SetRSBorderLightParams(const RSBorderLightParams& borderLightParam);
-    void SetRotationAngle(const Vector3f& rotationAngle_);
+    void SetRotationAngle(const Vector3f& rotationAngle);
     void SetCornerRadius(float cornerRadius);
     bool Marshalling(Parcel& parcel) override;
     bool Unmarshalling(Parcel& parcel, bool& needReset) override;

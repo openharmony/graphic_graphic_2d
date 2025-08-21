@@ -29,7 +29,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-
+    void LoadXmlContent1();
     static constexpr char config[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     static constexpr char invalidConfig[] = "/sys_prod/etc/graphic/invalid_config.xml";
 };
@@ -41,6 +41,20 @@ void HgmXmlParserTest::SetUpTestCase()
 void HgmXmlParserTest::TearDownTestCase() {}
 void HgmXmlParserTest::SetUp() {}
 void HgmXmlParserTest::TearDown() {}
+
+void HgmXmlParserTest::LoadXmlContent1()
+{
+    // test xml file TEST_XML_CONTENT_1;
+    auto& hgmCore = HgmCore::Instance();
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    parser->mParsedData_ = std::make_unique<PolicyConfigData>();
+    ASSERT_NE(parser->mParsedData_, nullptr);
+    parser->xmlDocument_ = StringToXmlDoc(TEST_XML_CONTENT_1);
+    ASSERT_NE(parser->xmlDocument_, nullptr);
+    parser->Parse();
+    hgmCore.mPolicyConfigData_ = parser->GetParsedData();
+    hgmCore.mParser_ = std::move(parser);
+}
 
 /**
  * @tc.name: LoadConfiguration
@@ -85,8 +99,37 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level0)
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     int32_t load = parser->LoadConfiguration(config);
     EXPECT_GE(load, EXEC_SUCCESS);
-    parser->Parse();
+    auto parserData = std::move(parser->mParsedData_);
+    EXPECT_EQ(parser->mParsedData_, nullptr);
+    EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
+    parser->mParsedData_ = std::move(parserData);
+    EXPECT_NE(parser->mParsedData_, nullptr);
+    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
     parser->GetParsedData();
+}
+
+/**
+ * @tc.name: IsNumber
+ * @tc.desc: Verify the result of IsNumber function
+ * @tc.type: FUNC
+ * @tc.require: IBCFDD
+ */
+HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
+{
+    std::vector<std::pair<std::string, bool>> cases = {
+        { "", false },
+        { "123456789", false },
+        { "a023", false },
+        { "02a3", false },
+        { "023a", false },
+        { "123", true },
+        { "-123", true },
+        { "023", true },
+        { "12345678", true }
+    };
+    for (const auto& [str, res] : cases) {
+        EXPECT_EQ(XMLParser::IsNumber(str), res);
+    }
 }
 
 /**
@@ -133,27 +176,48 @@ HWTEST_F(HgmXmlParserTest, StringToVector003, Function | SmallTest | Level0)
 }
 
 /**
- * @tc.name: IsNumber
- * @tc.desc: Verify the result of IsNumber function
+ * @tc.name: ParseParams001
+ * @tc.desc: Verify the result of ParseParams function
  * @tc.type: FUNC
  * @tc.require: IBCFDD
  */
-HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
+HWTEST_F(HgmXmlParserTest, ParseParams001, Function | SmallTest | Level1)
 {
-    std::vector<std::pair<std::string, bool>> cases = {
-        { "", false },
-        { "123456789", false },
-        { "a023", false },
-        { "02a3", false },
-        { "023a", false },
-        { "123", true },
-        { "-123", true },
-        { "023", true },
-        { "12345678", true }
-    };
-    for (const auto& [str, res] : cases) {
-        EXPECT_EQ(XMLParser::IsNumber(str), res);
-    }
+    LoadXmlContent1();
+    auto& hgmCore = HgmCore::Instance();
+    const auto& settingMap = hgmCore.mPolicyConfigData_->refreshRateForSettingsMap_;
+    // test config for pcmode parse OK
+    auto it = settingMap.find("pcmode");
+    EXPECT_TRUE(it != settingMap.end());
+    auto pcmodeSettings = it->second;
+    EXPECT_GT(pcmodeSettings.size(), 0);
+    // test member refreshRateForSettings_ has been aligned
+    const auto& settings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
+    ASSERT_TRUE(settings.size() > 0);
+    int32_t name = settings.at(2).first;
+    EXPECT_EQ(name, 120);
+    int32_t id = settings.at(2).second;
+    EXPECT_EQ(id, 2);
+}
+
+/**
+ * @tc.name: ParseRefreshRate4Settings001
+ * @tc.desc: Verify the result of ParseRefreshRate4Settings function
+ * @tc.type: FUNC
+ * @tc.require: IBCFDD
+ */
+HWTEST_F(HgmXmlParserTest, ParseRefreshRate4Settings001, Function | SmallTest | Level1)
+{
+    // test xml file TEST_XML_CONTENT_1;
+    LoadXmlContent1();
+    auto& hgmCore = HgmCore::Instance();
+    const auto& settingMap = hgmCore.mPolicyConfigData_->refreshRateForSettingsMap_;
+    // test config parse OK
+    auto it = settingMap.find("pcmode");
+    EXPECT_TRUE(it != settingMap.end());
+    // test member refreshRateForSettings_ has been aligned
+    const auto& settings = hgmCore.mPolicyConfigData_->refreshRateForSettings_;
+    EXPECT_GT(settings.size(), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

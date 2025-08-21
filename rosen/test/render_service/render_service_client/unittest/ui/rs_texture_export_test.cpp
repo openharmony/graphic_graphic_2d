@@ -18,7 +18,6 @@
 #include "ui/rs_texture_export.h"
 #include "limit_number.h"
 #include "ui/rs_root_node.h"
-#include "ui/rs_surface_node.h"
 
 using namespace testing;
 using namespace testing::ext;

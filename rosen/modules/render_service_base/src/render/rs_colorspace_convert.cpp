@@ -151,16 +151,16 @@ void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffe
     }
 }
 
-void RSColorSpaceConvert::GetVideoDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
-    std::vector<uint8_t>& videoDynamicMetadata, GSError& ret)
+void RSColorSpaceConvert::GetSDRDynamicMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& sdrDynamicMetadata, GSError& ret)
 {
     if (surfaceBuffer == nullptr) {
-        RS_LOGE("surfaceBuffer is nullptr. Failed to get videoDynamicMetadata.");
+        RS_LOGE("surfaceBuffer is nullptr. Failed to get sdrDynamicMetadata.");
         return;
     }
-    ret = MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, videoDynamicMetadata);
+    ret = MetadataHelper::GetSDRDynamicMetadata(surfaceBuffer, sdrDynamicMetadata);
     if (ret != GSERROR_OK) {
-        RS_LOGD("RSColorSpaceConvert::GetVideoDynamicMetadata failed with ret: %{public}u.", ret);
+        RS_LOGD("RSColorSpaceConvert::GetSDRDynamicMetadata failed with ret: %{public}u.", ret);
     }
 }
 
@@ -207,6 +207,9 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
+    parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
+        RSLuminanceConst::DEFAULT_CAST_HDR_NITS : displayNits;
+    parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     switch (hdrProperties.screenshotType) {
         case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
             parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
@@ -219,9 +222,6 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
                 std::clamp(sdrNits * scaler, sdrNits, displayNits);
             break;
     }
-    parameter.currentDisplayNits = hdrProperties.isHDREnabledVirtualScreen ?
-        RSLuminanceConst::DEFAULT_CAST_HDR_NITS : displayNits;
-    parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     // color temperature
     parameter.layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId, (ret == GSERROR_OK &&
         dynamicRangeMode != DynamicRangeMode::STANDARD) ? parameter.dynamicMetadata : std::vector<uint8_t>(),

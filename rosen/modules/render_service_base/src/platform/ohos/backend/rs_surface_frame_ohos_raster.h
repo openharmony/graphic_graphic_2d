@@ -26,6 +26,11 @@ namespace Rosen {
 
 class RSSurfaceFrameOhosRaster : public RSSurfaceFrameOhos {
 public:
+    RSSurfaceFrameType GetType() const override
+    {
+        return RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_RASTER;
+    }
+
     RSSurfaceFrameOhosRaster(int32_t width, int32_t height);
     ~RSSurfaceFrameOhosRaster() = default;
 

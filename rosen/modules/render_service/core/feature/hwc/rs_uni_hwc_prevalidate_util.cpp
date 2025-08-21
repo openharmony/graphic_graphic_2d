@@ -27,7 +27,6 @@
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -56,17 +55,40 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
         return;
     }
     preValidateFunc_ = reinterpret_cast<PreValidateFunc>(dlsym(preValidateHandle_, "RequestLayerStrategy"));
-    if (preValidateFunc_ == nullptr) {
+    handleEventFunc_ = reinterpret_cast<HandleEventFunc>(dlsym(preValidateHandle_, "HandleHWCEvent"));
+    if (preValidateFunc_ == nullptr || handleEventFunc_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
+        preValidateFunc_ = nullptr;
+        handleEventFunc_ = nullptr;
         return;
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess_ = true;
-    isPrevalidateHwcNodeEnable_ = PrevalidateParam::IsPrevalidateEnable();
     arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
     isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
+}
+
+void RSUniHwcPrevalidateUtil::Init()
+{
+    if (handleEventFunc_ == nullptr) {
+        return;
+    }
+    auto hdiBackend = HdiBackend::GetInstance();
+    if (hdiBackend && hdiBackend->RegHwcEventCallback(&RSUniHwcPrevalidateUtil::OnHwcEvent, this) != 0) {
+        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
+    }
+}
+ 
+void RSUniHwcPrevalidateUtil::OnHwcEvent(
+    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+{
+    if (!GetInstance().handleEventFunc_) {
+        RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::HandleEvent handleEventFunc is null");
+        return;
+    }
+    GetInstance().handleEventFunc_(devId, eventId, eventData);
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -74,12 +96,14 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
     if (preValidateHandle_) {
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
+        preValidateFunc_ = nullptr;
+        handleEventFunc_ = nullptr;
     }
 }
 
 bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()
 {
-    return loadSuccess_ && isPrevalidateHwcNodeEnable_;
+    return loadSuccess_;
 }
 
 bool RSUniHwcPrevalidateUtil::PreValidate(
@@ -353,6 +377,7 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
     static const std::unordered_set<std::string> videoLayers {
         "xcomponentIdSurface",
         "componentIdSurface",
+        "SceneViewer Model totemweather0",
     };
     if (IsYUVBufferFormat(node) || (videoLayers.count(node->GetName()) > 0)) {
         return true;

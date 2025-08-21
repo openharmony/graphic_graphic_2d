@@ -304,6 +304,9 @@ HWTEST_F(RSScreenRenderNodeTest, ResetMirrorSourceTest, TestSize.Level1)
     node->isMirroredScreen_ = true;
     node->SetMirrorSource(rsScreenRenderNode);
     EXPECT_NE(node->mirrorSource_.lock(), nullptr);
+    auto rsScreenRenderNode2 = std::make_shared<RSScreenRenderNode>(id + 2, screenId, context);
+    node->SetMirrorSource(rsScreenRenderNode2);
+    EXPECT_NE(node->mirrorSource_.lock(), nullptr);
     node->ResetMirrorSource();
     EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
 }
@@ -355,6 +358,52 @@ HWTEST_F(RSScreenRenderNodeTest, SetFingerprintTest, TestSize.Level1)
     node->stagingRenderParams_->SetNeedSync(true);
     node->SetFingerprint(true);
     ASSERT_NE(node->stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: FixVirtualBuffer10BitTest
+ * @tc.desc: test results of SetFixVirtualBuffer10Bit, GetFixVirtualBuffer10Bit
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, FixVirtualBuffer10BitTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetFixVirtualBuffer10Bit(false);
+    node->SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(node->GetFixVirtualBuffer10Bit(), false);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(node->GetFixVirtualBuffer10Bit(), true);
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetFixVirtualBuffer10Bit(false);
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetFixVirtualBuffer10Bit(true);
+    EXPECT_EQ(node->GetFixVirtualBuffer10Bit(), true);
+}
+
+/**
+ * @tc.name: ExistHWCNodeTest
+ * @tc.desc: test results of SetExistHWCNode, GetExistHWCNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, ExistHWCNodeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetExistHWCNode(false);
+    node->SetExistHWCNode(true);
+    EXPECT_EQ(node->GetExistHWCNode(), false);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetExistHWCNode(true);
+    EXPECT_EQ(node->GetExistHWCNode(), true);
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetExistHWCNode(false);
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetExistHWCNode(true);
+    EXPECT_EQ(node->GetExistHWCNode(), true);
 }
 
 /**
@@ -914,5 +963,32 @@ HWTEST_F(RSScreenRenderNodeTest, GetTargetSurfaceRenderNodeId, TestSize.Level1)
     NodeId targetSurfaceRenderNodeId = 2;
     screenNode->SetTargetSurfaceRenderNodeId(targetSurfaceRenderNodeId);
     ASSERT_EQ(screenNode->GetTargetSurfaceRenderNodeId(), targetSurfaceRenderNodeId);
+}
+
+/**
+ * @tc.name: SetForceFreeze
+ * @tc.desc: test results of Set/GetForceFreeze
+ * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetForceFreeze, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    ASSERT_FALSE(screenNode->GetForceFreeze());
+
+    screenNode->SetForceFreeze(false);
+    ASSERT_FALSE(screenNode->GetForceFreeze());
+
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    screenNode->stagingRenderParams_->needSync_ = false;
+    screenNode->SetForceFreeze(true);
+    ASSERT_TRUE(screenNode->GetForceFreeze());
+
+    screenNode->stagingRenderParams_->needSync_ = true;
+    screenNode->SetForceFreeze(true);
+    ASSERT_TRUE(screenNode->GetForceFreeze());
 }
 } // namespace OHOS::Rosen

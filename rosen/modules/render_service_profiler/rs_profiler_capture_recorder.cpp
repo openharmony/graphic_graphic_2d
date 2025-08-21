@@ -33,6 +33,8 @@
 
 namespace OHOS::Rosen {
 
+bool RSCaptureRecorder::testingTriggering_ = false;
+
 static const Int32Parameter MSKP_COUNTER("mskp.counter");
 static const Int32Parameter MSKP_MAX("mskp.max");
 static const StringParameter MSKP_PATH("mskp.path");
@@ -68,7 +70,7 @@ void RSCaptureRecorder::SetProfilerEnabled(bool val)
 
 bool RSCaptureRecorder::IsRecordingEnabled()
 {
-    return profilerEnabled_ && RSSystemProperties::GetInstantRecording();
+    return (profilerEnabled_ && RSSystemProperties::GetInstantRecording()) || testingTriggering_;
 }
 
 void RSCaptureRecorder::InvalidateDrawingCanvasNodeId()

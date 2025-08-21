@@ -19,9 +19,6 @@
 #include "image_type.h"
 #include "image/image.h"
 #include "common/rs_background_thread.h"
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "render/rs_resource_manager.h"
-#endif
 #include "common/rs_common_def.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
@@ -311,8 +308,9 @@ void RSImageBase::Purge()
     constexpr int USE_COUNT_FOR_PURGE = 2; // one in this RSImage, one in RSImageCache
     auto imageUseCount = image_.use_count();
     auto pixelMapCount = pixelMap_.use_count();
-    if (!(imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount == USE_COUNT_FOR_PURGE + 1) &&
-        !(imageUseCount == 0 && pixelMapCount == USE_COUNT_FOR_PURGE)) {
+    if (imageUseCount > USE_COUNT_FOR_PURGE || imageUseCount == 1 ||
+        (imageUseCount == 0 && pixelMapCount > USE_COUNT_FOR_PURGE) ||
+        (imageUseCount == USE_COUNT_FOR_PURGE && pixelMapCount > USE_COUNT_FOR_PURGE + 1)) {
         return;
     }
     // skip purge if multi RsImage Holds this PixelMap
@@ -524,12 +522,8 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
 }
 #endif
 
-void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
+void RSImageBase::ConvertPixelMapToDrawingImage()
 {
-#if defined(ROSEN_OHOS)
-    // paraUpload only enable in render_service or UnmarshalThread
-    pid_t tid = paraUpload ? getpid() : gettid();
-#endif
     if (!image_ && pixelMap_ && !pixelMap_->IsAstc() && !isYUVImage_) {
 #if defined(ROSEN_OHOS)
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -550,10 +544,6 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
             }
 #else
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
-#endif
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-            RSResourceManager::Instance().UploadTexture(paraUpload && renderServiceImage_, image_,
-                pixelMap_, uniqueId_);
 #endif
         }
     }
@@ -706,10 +696,10 @@ void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
     if (pixelMap_ && !pixelMap_->IsAstc()) {
         std::shared_ptr<Drawing::Image> imageCache = nullptr;
-#ifdef SUBTREE_PARALLEL_ENABLE
-        pid_t threadId = RSParallelMisc::GetThreadIndex(canvas);
-#else
         pid_t threadId = gettid();
+#ifdef SUBTREE_PARALLEL_ENABLE
+        // Adapt to the subtree feature to ensure the correct thread ID (TID) is set.
+        RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
         if (!pixelMap_->IsEditable()) {
             imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, threadId);
@@ -768,6 +758,12 @@ static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorM
             return Drawing::ColorSpace::CreateSRGBLinear();
         case ColorManager::ColorSpaceName::SRGB:
             return Drawing::ColorSpace::CreateSRGB();
+        case ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+        case ColorManager::ColorSpaceName::ADOBE_RGB:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
         default:
             return Drawing::ColorSpace::CreateSRGB();
     }

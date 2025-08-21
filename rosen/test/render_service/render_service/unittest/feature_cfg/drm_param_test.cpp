@@ -47,7 +47,7 @@ HWTEST_F(DrmParamTest, SetDrmEnable, Function | SmallTest | Level1)
     DRMParam::SetDrmEnable(false);
     EXPECT_EQ(DRMParam::IsDrmEnable(), false);
     DRMParam::SetDrmEnable(true);
-    EXPECT_EQ(DRMParam::IsDrmEnable(), false);
+    EXPECT_EQ(DRMParam::IsDrmEnable(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

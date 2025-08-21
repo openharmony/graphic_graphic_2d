@@ -20,7 +20,6 @@
 
 #include "memory/rs_memory_track.h"
 
-#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
@@ -28,8 +27,10 @@ namespace Rosen {
 namespace Drawing {
 class DrawCmdList;
 }
-class RSModifierContext;
 
+namespace ModifierNG {
+class RSModifierContext;
+}
 class RSCanvasRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSCanvasRenderNode>;
@@ -38,8 +39,6 @@ public:
 
     virtual ~RSCanvasRenderNode();
 
-    void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
-        RSModifierType type, bool isSingleFrameComposer = false);
     void UpdateRecordingNG(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
         ModifierNG::RSModifierType type, bool isSingleFrameComposer = false);
     void ClearRecording();
@@ -67,7 +66,10 @@ public:
     void OnTreeStateChanged() override;
 
     void SetHDRPresent(bool hasHdrPresent);
-    bool GetHDRPresent() const;
+    bool GetHDRPresent() const
+    {
+        return hasHdrPresent_;
+    }
 
     void SetColorGamut(uint32_t colorGamut);
     uint32_t GetColorGamut();
@@ -84,12 +86,11 @@ protected:
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
 
 private:
-    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
-    void ApplyDrawCmdModifier(RSModifierContext& context, ModifierNG::RSModifierType type);
+    void ApplyDrawCmdModifier(ModifierNG::RSModifierContext& context, ModifierNG::RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas, bool needApplyMatrix);
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
-    void DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas);
+    void DrawShadow(ModifierNG::RSModifierContext& context, RSPaintFilterCanvas& canvas);
 
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
 

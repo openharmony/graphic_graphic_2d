@@ -384,6 +384,23 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenChangeCallback, TestSize.L
 }
 
 /**
+ * @tc.name: SetScreenSwitchingNotifyCallback Test
+ * @tc.desc: SetScreenSwitchingNotifyCallback Test
+ * @tc.type:FUNC
+ * @tc.require
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenSwitchingNotifyCallback, TestSize.Level1)
+{
+    sptr<RSIScreenSwitchingNotifyCallback> callback;
+    proxy->SetScreenSwitchingNotifyCallback(callback);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
+    ASSERT_EQ(proxy->SetScreenSwitchingNotifyCallback(callback), 0);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
@@ -1497,6 +1514,73 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, ClearUifirstCacheTest, TestSize.Lev
     NodeId nodeId = 1;
     proxy->ClearUifirstCache(nodeId);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: TaskSurfaceCaptureWithAllWindowsTest
+ * @tc.desc: TaskSurfaceCaptureWithAllWindows test to capture screen
+ * @tc.type:FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, TaskSurfaceCaptureWithAllWindowsTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    NodeId nodeId = 1;
+    bool checkDrmAndSurfaceLock = false;
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    auto ret = proxy->TaskSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+    ret = proxy->TaskSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: FreezeScreenTest
+ * @tc.desc: FreezeScreen test to freeze or unfreeze screen.
+ * @tc.type:FUNC
+ * @tc.require: issueICS2J8
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, FreezeScreenTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    NodeId nodeId = 1;
+    bool isFreeze = false;
+    auto ret = proxy->FreezeScreen(nodeId, isFreeze);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
+ * @tc.name: DropFrameByPidWithInvalidParameter Test
+ * @tc.desc: DropFrameByPidWithInvalidParameter Test
+ * @tc.type:FUNC
+ * @tc.require: issueICK4SM
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, DropFrameByPidWithInvalidParameter, TestSize.Level1)
+{
+    // MAX_DROP_FRAME_PID_LIST_SIZE = 1024
+    std::vector<int32_t> vec(1025);
+    ASSERT_EQ(proxy->DropFrameByPid(vec), ERR_INVALID_VALUE);
+}
+
+/*
+ * @tc.name: SetOptimizeCanvasDirtyPidList Test
+ * @tc.desc: SetOptimizeCanvasDirtyPidList Test whether the result is ERR_INVALID_VALUE
+ * @tc.type:FUNC
+ * @tc.require: issueICSPON
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetOptimizeCanvasDirtyPidList, TestSize.Level1)
+{
+    std::vector<pid_t> pidList;
+    pidList.emplace_back(ExtractPid(1));
+
+    auto ret = proxy->SetOptimizeCanvasDirtyPidList(pidList);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
 }
 } // namespace Rosen
 } // namespace OHOS

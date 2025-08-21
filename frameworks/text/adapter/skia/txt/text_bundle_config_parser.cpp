@@ -18,6 +18,7 @@
 
 #ifdef ENABLE_OHOS_ENHANCE
 #include "application_info.h"
+#include "bundlemgr/bundle_mgr_interface.h"
 #include "hap_module_info.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"

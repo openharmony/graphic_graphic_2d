@@ -31,6 +31,7 @@
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -51,7 +52,9 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
+    static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+}
 class RSIRenderServiceConnection : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
@@ -139,6 +142,8 @@ public:
 
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
+    virtual int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) = 0;
+
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
     virtual void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) = 0;
@@ -193,6 +198,12 @@ public:
 
     virtual ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
+
+    virtual ErrCode TaskSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
+
+    virtual ErrCode FreezeScreen(NodeId id, bool isFreeze) = 0;
 
     virtual void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) = 0;
@@ -454,6 +465,10 @@ public:
     virtual bool ProfilerIsSecureScreen() = 0;
 
     virtual void ClearUifirstCache(NodeId id) = 0;
+
+    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) = 0;
+
+    virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

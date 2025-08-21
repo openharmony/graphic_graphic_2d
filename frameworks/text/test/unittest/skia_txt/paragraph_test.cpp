@@ -386,7 +386,7 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
     ASSERT_NE(paragraph, nullptr);
     paragraph->Layout(560);
     std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
-    ASSERT_EQ(textLines.size(), 7);
+    EXPECT_EQ(textLines.size(), 7);
     //expect lines 0,2,4 to have hyphenation breakpoints,
     //and the last charater of each line to have a hyphen glyphid of 800
     size_t breakArr[3] = {0, 2, 4};
@@ -471,6 +471,16 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis001, TestSize.Level0)
     OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
     EXPECT_EQ(range.start, 2);
     EXPECT_EQ(range.end, 8);
+    EXPECT_FALSE(paragraphMiddleEllipsis_->CanPaintAllText());
+    paragraphMiddleEllipsis_->Layout(500);
+
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraphMiddleEllipsis_);
+    ASSERT_NE(paragraphImpl, nullptr);
+    std::unique_ptr<skt::Paragraph> temp = nullptr;
+    paragraphImpl->paragraph_.swap(temp);
+    EXPECT_FALSE(paragraphImpl->CanPaintAllText());
+    paragraphImpl->paragraph_.swap(temp);
+    EXPECT_TRUE(paragraphMiddleEllipsis_->CanPaintAllText());
 }
 
 /*
@@ -561,6 +571,15 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis007, TestSize.Level0)
     OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
     EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
     EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
+    EXPECT_TRUE(paragraphMiddleEllipsis_->CanPaintAllText());
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.wordBreakType = OHOS::Rosen::SPText::WordBreakType::BREAK_WORD;
+    paragraphStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::WORD_BREAKTYPE));
+    std::vector<OHOS::Rosen::SPText::TextStyle> relayoutTextStyles;
+    OHOS::Rosen::SPText::TextStyle textStyle;
+    relayoutTextStyles.push_back(textStyle);
+    paragraphMiddleEllipsis_->Relayout(50, paragraphStyle, relayoutTextStyles);
+    EXPECT_FALSE(paragraphMiddleEllipsis_->CanPaintAllText());
 }
 
 /*

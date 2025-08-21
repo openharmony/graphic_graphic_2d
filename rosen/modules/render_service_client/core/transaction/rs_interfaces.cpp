@@ -210,6 +210,12 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
+int32_t RSInterfaces::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
+{
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
+    return renderServiceClient_->SetScreenSwitchingNotifyCallback(callback);
+}
+
 int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return renderServiceClient_->GetPixelMapByProcessId(pixelMapInfoVector, pid);
@@ -266,6 +272,27 @@ bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> nod
     }
     return renderServiceClient_->SetWindowFreezeImmediately(
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
+}
+
+bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
+    bool checkDrmAndSurfaceLock)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->TaskSurfaceCaptureWithAllWindows(
+        node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
+}
+
+bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->FreezeScreen(node->GetId(), isFreeze);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
@@ -339,7 +366,7 @@ void RSInterfaces::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 
 uint32_t RSInterfaces::GetRealtimeRefreshRate(ScreenId id)
 {
-    RS_LOGD("GetRealtimeRefreshRate: screenId[%{public}" PRIu64"]", id);
+    RS_LOGD("RSInterfaces::GetRealtimeRefreshRate: id[%{public}" PRIu64"]", id);
     return renderServiceClient_->GetRealtimeRefreshRate(id);
 }
 
@@ -387,40 +414,6 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
-    }
-}
-
-bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
-    const Drawing::Rect& specifiedAreaRect)
-{
-    if (!node) {
-        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUIWithConfig rsnode is nullpter return");
-        return false;
-    }
-    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
-    if (node->IsTextureExportNode()) {
-        ROSEN_LOGD("RSInterfaces::TakeSurfaceCaptureForUI rsNode [%{public}" PRIu64
-            "] is textureExportNode, set isSync false", node->GetId());
-        captureConfig.isSync = false;
-    }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
-        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUIWithConfig unsupported node type return");
-        return false;
-    }
-    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    if (RSSystemProperties::GetUniRenderEnabled()) {
-        if (captureConfig.isSync) {
-            node->SetTakeSurfaceForUIFlag();
-        }
-        RSSurfaceCaptureBlurParam blurParam = {};
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback,
-            captureConfig, blurParam, specifiedAreaRect);
-    } else {
-        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
 }
 
@@ -1207,12 +1200,12 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
     ROSEN_LOGD("RSInterfaces::GetpidGpuMemoryInMB called!");
     return ret;
 }
-
+// LCOV_EXCL_START
 bool RSInterfaces::GetHighContrastTextState()
 {
     return renderServiceClient_->GetHighContrastTextState();
 }
-
+// LCOV_EXCL_STOP
 bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 {
     return renderServiceClient_->SetBehindWindowFilterEnabled(enabled);

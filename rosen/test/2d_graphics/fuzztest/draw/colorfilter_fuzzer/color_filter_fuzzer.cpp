@@ -45,10 +45,6 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
     auto dataVal = std::make_shared<Data>();
@@ -63,7 +59,6 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     colorFilter->Serialize();
     colorFilter->GetType();
     colorFilter->GetDrawingType();
-    const size_t MATRIX_SIZE = 20;
     float matrix[MATRIX_SIZE];
     colorFilter->AsAColorMatrix(matrix);
     float f1[MATRIX_SIZE];
@@ -96,10 +91,7 @@ bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+
     ColorQuad colorQuad = GetObject<ColorQuad>();
     uint32_t mode = GetObject<uint32_t>();
     uint32_t type = GetObject<uint32_t>();
@@ -139,10 +131,6 @@ bool ColorFilterFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     ColorQuad mulColor = GetObject<ColorQuad>();
     ColorQuad addColor = GetObject<ColorQuad>();
@@ -159,6 +147,11 @@ bool ColorFilterFuzzTest003(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::ColorFilterFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ColorFilterFuzzTest002(data, size);

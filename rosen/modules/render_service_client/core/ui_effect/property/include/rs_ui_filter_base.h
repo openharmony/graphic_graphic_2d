@@ -59,12 +59,12 @@ DECLARE_FILTER(SoundWave, SOUND_WAVE,
     ADD_PROPERTY_TAG(SoundWave, ColorB),
     ADD_PROPERTY_TAG(SoundWave, ColorC),
     ADD_PROPERTY_TAG(SoundWave, ColorProgress),
-    ADD_PROPERTY_TAG(SoundWave, CenterBrightness),
     ADD_PROPERTY_TAG(SoundWave, Intensity),
     ADD_PROPERTY_TAG(SoundWave, AlphaA),
     ADD_PROPERTY_TAG(SoundWave, AlphaB),
     ADD_PROPERTY_TAG(SoundWave, ProgressA),
-    ADD_PROPERTY_TAG(SoundWave, ProgressB)
+    ADD_PROPERTY_TAG(SoundWave, ProgressB),
+    ADD_PROPERTY_TAG(SoundWave, TotalAlpha)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
@@ -115,6 +115,13 @@ DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
 DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
     ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
     ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
+);
+
+DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
+    ADD_PROPERTY_TAG(ContentLight, Position),
+    ADD_PROPERTY_TAG(ContentLight, Color),
+    ADD_PROPERTY_TAG(ContentLight, Intensity),
+    ADD_PROPERTY_TAG(ContentLight, RotationAngle)
 );
 
 #undef ADD_PROPERTY_TAG

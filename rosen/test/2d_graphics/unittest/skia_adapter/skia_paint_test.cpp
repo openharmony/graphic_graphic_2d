@@ -27,6 +27,9 @@
 #include "effect/mask_filter.h"
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
+#include "effect/shader_effect_lazy.h"
+#include "effect/image_filter.h"
+#include "effect/image_filter_lazy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -237,6 +240,120 @@ HWTEST_F(SkiaPaintTest, GetFillPath001, TestSize.Level1)
     EXPECT_TRUE(ret);
     ret = skiaPaint.GetFillPath(pen, srcPath, dstPath, nullptr, matrix);
     EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: BrushWithRegularShader001
+ * @tc.desc: Test BrushToSkPaint with regular shader
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, BrushWithRegularShader001, TestSize.Level1)
+{
+    Brush brush;
+    auto colorShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    brush.SetShaderEffect(colorShader);
+
+    SkPaint skPaint;
+    SkiaPaint::BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skPaint.getShader() != nullptr);
+}
+
+/**
+ * @tc.name: BrushWithLazyShader001
+ * @tc.desc: Test BrushToSkPaint with lazy shader
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, BrushWithLazyShader001, TestSize.Level1)
+{
+    Brush brush;
+    // Create a lazy blend shader to test lazy handling
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    brush.SetShaderEffect(lazyShader);
+
+    SkPaint skPaint;
+    SkiaPaint::BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skPaint.getShader() != nullptr);
+}
+
+/**
+ * @tc.name: FilterWithRegularImageFilter001
+ * @tc.desc: Test ApplyFilter with regular image filter
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, FilterWithRegularImageFilter001, TestSize.Level1)
+{
+    Filter filter;
+    auto blurFilter = ImageFilter::CreateBlurImageFilter(5.0f, 5.0f, TileMode::CLAMP, nullptr);
+    filter.SetImageFilter(blurFilter);
+
+    SkPaint skPaint;
+    SkiaPaint skiaPaint;
+    skiaPaint.ApplyFilter(skPaint, filter);
+    EXPECT_TRUE(skPaint.getImageFilter() != nullptr);
+}
+
+/**
+ * @tc.name: FilterWithLazyImageFilter001
+ * @tc.desc: Test ApplyFilter with lazy image filter
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, FilterWithLazyImageFilter001, TestSize.Level1)
+{
+    Filter filter;
+    // Create a lazy blur filter to test lazy handling
+    auto lazyFilter = ImageFilterLazy::CreateBlur(5.0f, 5.0f, TileMode::CLAMP, nullptr);
+    filter.SetImageFilter(lazyFilter);
+
+    SkPaint skPaint;
+    SkiaPaint skiaPaint;
+    skiaPaint.ApplyFilter(skPaint, filter);
+    EXPECT_TRUE(skPaint.getImageFilter() != nullptr);
+}
+
+/**
+ * @tc.name: PenWithLazyShader001
+ * @tc.desc: Test PenToSkPaint with lazy shader
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, PenWithLazyShader001, TestSize.Level1)
+{
+    Pen pen;
+    // Create a lazy blend shader to test lazy handling
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    pen.SetShaderEffect(lazyShader);
+
+    SkPaint skPaint;
+    SkiaPaint::PenToSkPaint(pen, skPaint);
+    EXPECT_TRUE(skPaint.getShader() != nullptr);
+}
+
+/**
+ * @tc.name: PaintWithLazyShader001
+ * @tc.desc: Test PaintToSkPaint with lazy shader
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPaintTest, PaintWithLazyShader001, TestSize.Level1)
+{
+    Paint paint;
+    // Create a lazy blend shader to test lazy handling
+    auto srcShader = ShaderEffect::CreateColorShader(0xFF0000FF);
+    auto dstShader = ShaderEffect::CreateColorShader(0xFF00FF00);
+    auto lazyShader = ShaderEffectLazy::CreateBlendShader(dstShader, srcShader, BlendMode::SRC_OVER);
+    paint.SetShaderEffect(lazyShader);
+
+    SkPaint skPaint;
+    SkiaPaint::PaintToSkPaint(paint, skPaint);
+    EXPECT_TRUE(skPaint.getShader() != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

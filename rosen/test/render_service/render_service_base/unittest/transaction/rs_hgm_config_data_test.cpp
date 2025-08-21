@@ -23,6 +23,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
+constexpr uint32_t MAX_PAGE_NAME_SIZE = 64;
 
 class RSHgmConfigDataTest : public testing::Test {
 public:
@@ -72,9 +74,47 @@ HWTEST_F(RSHgmConfigDataTest, UnmarshallingTest002, TestSize.Level1)
     parcel.WriteFloat(rsHgmConfigData.ppi_);
     parcel.WriteFloat(rsHgmConfigData.xDpi_);
     parcel.WriteFloat(rsHgmConfigData.yDpi_);
-    parcel.WriteUint32(17); // for test size
+    parcel.WriteUint32(1);
+    parcel.WriteString("type");
+    parcel.WriteString("name");
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(1000);
+    parcel.WriteInt32(120);
+    parcel.WriteUint32(1);
+    parcel.WriteString("pageName");
     RSHgmConfigData* rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel);
-    ASSERT_NE(rsHgmConfigDataPtr, nullptr);
+    EXPECT_EQ(rsHgmConfigDataPtr->configData_.size(), 1);
+    EXPECT_EQ(rsHgmConfigDataPtr->pageNameList_.size(), 1);
+
+    Parcel parcel2;
+    parcel2.WriteFloat(rsHgmConfigData.ppi_);
+    parcel2.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel2.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel2.WriteUint32(MAX_ANIM_DYNAMIC_ITEM_SIZE + 1);
+    rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel2);
+
+    Parcel parcel3;
+    parcel3.WriteFloat(rsHgmConfigData.ppi_);
+    parcel3.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel3.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel3.WriteUint32(0);
+    parcel3.WriteUint32(MAX_PAGE_NAME_SIZE + 1);
+    rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel3);
+    
+    Parcel parcel4;
+    parcel4.WriteFloat(rsHgmConfigData.ppi_);
+    parcel4.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel4.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel4.WriteUint32(MAX_ANIM_DYNAMIC_ITEM_SIZE);
+    rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel4);
+
+    Parcel parcel5;
+    parcel5.WriteFloat(rsHgmConfigData.ppi_);
+    parcel5.WriteFloat(rsHgmConfigData.xDpi_);
+    parcel5.WriteFloat(rsHgmConfigData.yDpi_);
+    parcel5.WriteUint32(0);
+    parcel5.WriteUint32(MAX_PAGE_NAME_SIZE);
+    rsHgmConfigDataPtr = rsHgmConfigData.Unmarshalling(parcel5);
 }
 
 /**

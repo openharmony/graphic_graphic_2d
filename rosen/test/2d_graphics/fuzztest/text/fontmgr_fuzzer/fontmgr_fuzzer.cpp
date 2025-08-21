@@ -36,10 +36,6 @@ bool FontMgrFuzzTest001(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* familyName = new char[count];
@@ -66,11 +62,6 @@ bool FontMgrFuzzTest002(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     int index = GetObject<int>() % MAX_SIZE;
     fontMgr->CreateStyleSet(index);
@@ -82,11 +73,6 @@ bool FontMgrFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -129,11 +115,6 @@ bool FontMgrFuzzTest004(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* familyName = new char[count];
@@ -174,11 +155,6 @@ bool FontMgrFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -243,11 +219,6 @@ bool FontMgrFuzzTest006(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* familyName = new char[count];
@@ -279,11 +250,6 @@ bool FontMgrFuzzTest007(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* familyName = new char[count];
@@ -307,11 +273,6 @@ bool FontMgrFuzzTest008(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
@@ -342,11 +303,6 @@ bool FontMgrFuzzTest009(const uint8_t* data, size_t size)
         return false;
     }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     int fd = GetObject<int>() % MAX_SIZE;
     std::vector<FontByteArray> fullnameVec;
@@ -360,14 +316,14 @@ bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
         return false;
     }
 
-   // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     std::vector<std::string> fontPathVec;
-    fontMgr->ParseInstallFontConfig("strPath", fontPathVec);
+    int strSize = GetObject<int>() % MAX_SIZE;
+    std::string strPath(strSize, '0');
+    for (char& c : strPath) {
+        c = GetObject<char>();
+    }
+    fontMgr->ParseInstallFontConfig(strPath, fontPathVec);
     return true;
 }
 } // namespace Drawing
@@ -377,6 +333,11 @@ bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::FontMgrFuzzTest001(data, size);
     OHOS::Rosen::Drawing::FontMgrFuzzTest002(data, size);

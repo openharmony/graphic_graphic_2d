@@ -22,6 +22,10 @@
 namespace OHOS::Rosen {
 std::once_flag HgmConfigCallbackManager::createFlag_;
 sptr<HgmConfigCallbackManager> HgmConfigCallbackManager::instance_ = nullptr;
+namespace {
+constexpr int32_t DESTROYED_XCOMPONENT_FRAMERATE = -1;
+constexpr int32_t MAX_XCOMPONENT_ID_NUMS = 50;
+}
 
 sptr<HgmConfigCallbackManager> HgmConfigCallbackManager::GetInstance() noexcept
 {
@@ -117,18 +121,21 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
 void HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback(pid_t listenerPid, pid_t dstPid,
     const sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>& callback)
 {
+    HGM_LOGI("%{public}d:[%{public}d,%{public}d]", listenerPid, dstPid, callback == nullptr);
     if (callback == nullptr) {
         if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(dstPid);
             iter != xcomponentExpectedFrameRateCallbacks_.end()) {
             iter->second.erase(listenerPid);
-            HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", listenerPid);
+            HGM_LOGI("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", listenerPid);
         }
         return;
     }
     xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid] = callback;
     if (auto iter = xcomponentExpectedFrameRate_.find(dstPid); iter != xcomponentExpectedFrameRate_.end()) {
-        HGM_LOGD("%{public}d: %{public}d", dstPid, iter->second);
-        callback->OnFrameRateLinkerExpectedFpsUpdate(dstPid, iter->second);
+        for (auto& [xcomponentId, frameRate] : iter->second) {
+            HGM_LOGI("%{public}d:[%{public}s,%{public}d]", dstPid, xcomponentId.c_str(), frameRate);
+            callback->OnFrameRateLinkerExpectedFpsUpdate(dstPid, xcomponentId, frameRate);
+        }
     }
 }
 
@@ -218,42 +225,99 @@ void HgmConfigCallbackManager::SyncRefreshRateUpdateCallback(int32_t refreshRate
 }
 
 void HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback(
-    pid_t pid, const std::string& id, int32_t expectedFrameRate)
+    pid_t pid, const std::string& xcomponentId, int32_t expectedFrameRate)
 {
+    HGM_LOGI("%{public}d:[%{public}s,%{public}d]", pid, xcomponentId.c_str(), expectedFrameRate);
+    if (expectedFrameRate == DESTROYED_XCOMPONENT_FRAMERATE) {
+        DestroyXComponent(pid, xcomponentId);
+        return;
+    }
+
+    if (expectedFrameRate < OLED_NULL_HZ) {
+        // invalid framerate
+        return;
+    }
+
+    // return if lastExpectedFrameRate == expectedFrameRate
+    if (auto iter = xcomponentExpectedFrameRate_.find(pid); iter != xcomponentExpectedFrameRate_.end()) {
+        auto& xcomponentIdFps = iter->second;
+        auto frameRateIter = xcomponentIdFps.find(xcomponentId);
+        if (frameRateIter != xcomponentIdFps.end() && frameRateIter->second == expectedFrameRate) {
+            return;
+        }
+        if (xcomponentIdFps.size() >= MAX_XCOMPONENT_ID_NUMS) {
+            HGM_LOGE("HgmConfigCallbackManager xcomponentIdNums is largest");
+            return;
+        }
+    }
+
+    // store framerate
+    xcomponentExpectedFrameRate_[pid][xcomponentId] = expectedFrameRate;
+
+    // cb
     if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(pid);
         iter != xcomponentExpectedFrameRateCallbacks_.end()) {
         for (auto& [listenerPid, cb] : iter->second) {
             if (cb == nullptr) {
                 continue;
             }
-            HGM_LOGD(" -> %{public}d: %{public}d, %{public}d", listenerPid, pid, expectedFrameRate);
-            cb->OnFrameRateLinkerExpectedFpsUpdate(pid, expectedFrameRate);
+            HGM_LOGI("notify %{public}d: %{public}d:[%{public}s,%{public}d]",
+                listenerPid, pid, xcomponentId.c_str(), expectedFrameRate);
+            cb->OnFrameRateLinkerExpectedFpsUpdate(pid, xcomponentId, expectedFrameRate);
         }
     }
-    xcomponentExpectedFrameRate_[pid] = expectedFrameRate;
 }
 
 void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
 {
     if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
         animDynamicCfgCallbacks_.erase(pid);
-        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove animDynamicCfgCallback", __func__);
     }
     if (pendingAnimDynamicCfgCallbacks_.find(pid) != pendingAnimDynamicCfgCallbacks_.end()) {
         pendingAnimDynamicCfgCallbacks_.erase(pid);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove pendingAnimDynamicCfgCallback", __func__);
     }
 
     if (refreshRateModeCallbacks_.find(pid) != refreshRateModeCallbacks_.end()) {
         refreshRateModeCallbacks_.erase(pid);
-        HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove refreshRateModeCallback", __func__);
     }
 
-    for (auto& [_, listenerPidCb] : xcomponentExpectedFrameRateCallbacks_) {
-        listenerPidCb.erase(pid);
+    if (refreshRateUpdateCallbacks_.find(pid) != refreshRateUpdateCallbacks_.end()) {
+        refreshRateUpdateCallbacks_.erase(pid);
+        HGM_LOGD("HgmConfigCallbackManager %{public}s : remove refreshRateUpdateCallback", __func__);
     }
-    SyncXComponentExpectedFrameRateCallback(pid, "", 0);
-    xcomponentExpectedFrameRateCallbacks_.erase(pid);
-    xcomponentExpectedFrameRate_.erase(pid);
+
+    // clean xcomponent framerate cb
+    // app exit
+    if (auto iter = xcomponentExpectedFrameRate_.find(pid); iter != xcomponentExpectedFrameRate_.end()) {
+        for (auto& [xcomponentId, _] : iter->second) {
+            SyncXComponentExpectedFrameRateCallback(pid, xcomponentId, OLED_NULL_HZ);
+        }
+        xcomponentExpectedFrameRate_.erase(pid);
+    }
+
+    // game server exit
+    for (auto iter = xcomponentExpectedFrameRateCallbacks_.begin();
+        iter != xcomponentExpectedFrameRateCallbacks_.end();) {
+        auto& listenerPidCb = iter->second;
+        listenerPidCb.erase(pid);
+        if (listenerPidCb.empty()) {
+            iter = xcomponentExpectedFrameRateCallbacks_.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+}
+
+void HgmConfigCallbackManager::DestroyXComponent(pid_t pid, const std::string& xcomponentId)
+{
+    HGM_LOGI("Destroy XComponent: %{public}d:%{public}s", pid, xcomponentId.c_str());
+    SyncXComponentExpectedFrameRateCallback(pid, xcomponentId, OLED_NULL_HZ);
+
+    if (auto iter = xcomponentExpectedFrameRate_.find(pid); iter != xcomponentExpectedFrameRate_.end()) {
+        iter->second.erase(xcomponentId);
+    }
 }
 } // namespace OHOS::Rosen
-

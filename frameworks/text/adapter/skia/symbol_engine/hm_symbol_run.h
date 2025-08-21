@@ -66,11 +66,11 @@ public:
         animationFunc);
 
     uint64_t GetSymbolUid() const;
- 
+
     void SetSymbolUid(uint64_t symbolUid);
- 
+
     void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt);
- 
+
     const HMSymbolTxt& GetSymbolTxt();
 
     void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
@@ -89,6 +89,8 @@ private:
     void SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo);
 
     void SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo);
+
+    void SetGradientOrDefinedColor(const RSSymbolLayers& symbolInfo);
 
     void UpdateSymbolLayersGroups(uint16_t glyphId);
 
