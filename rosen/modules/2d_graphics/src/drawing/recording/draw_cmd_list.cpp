@@ -231,7 +231,7 @@ void DrawCmdList::MarshallingDrawOps()
     }
 }
 
-void DrawCmdList::ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
+void DrawCmdList::ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist, bool includeImageOps)
 {
     if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
         return;
@@ -245,13 +245,14 @@ void DrawCmdList::ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
         if (!op) {
             continue;
         }
-        if (op->GetType() == DrawOpItem::IMAGE_WITH_PARM_OPITEM) {
-            continue;
-        }
-        if (op->GetType() == DrawOpItem::IMAGE_OPITEM) {
-            continue;
-        }
-        if (op->GetType() == DrawOpItem::IMAGE_RECT_OPITEM) {
+        const auto type = includeImageOps ? DrawOpItem::OPITEM_HEAD : op->GetType();
+        if ((type == DrawOpItem::ATLAS_OPITEM) || (type == DrawOpItem::IMAGE_NINE_OPITEM) ||
+            (type == DrawOpItem::IMAGE_LATTICE_OPITEM) || (type == DrawOpItem::IMAGE_OPITEM) ||
+            (type == DrawOpItem::IMAGE_RECT_OPITEM) || (type == DrawOpItem::IMAGE_WITH_PARM_OPITEM) ||
+            (type == DrawOpItem::IMAGE_SNAPSHOT_OPITEM) || (type == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM) ||
+            (type == DrawOpItem::PIXELMAP_RECT_OPITEM) || (type == DrawOpItem::PIXELMAP_NINE_OPITEM) ||
+            (type == DrawOpItem::PIXELMAP_LATTICE_OPITEM) || (type == DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM) ||
+            (type == DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM)) {
             continue;
         }
         op->Marshalling(*cmdlist);

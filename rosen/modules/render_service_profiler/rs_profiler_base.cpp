@@ -783,7 +783,7 @@ static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, 
     }
 }
 
-static void MarshalDrawCmdModifiers(ModifierNG::RSRenderModifier& modifier, std::stringstream& data)
+static void MarshalDrawCmdModifiers(ModifierNG::RSRenderModifier& modifier, bool includeImages, std::stringstream& data)
 {
     auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
     auto oldCmdList = modifier.Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
@@ -794,7 +794,7 @@ static void MarshalDrawCmdModifiers(ModifierNG::RSRenderModifier& modifier, std:
 
     auto newCmdList = std::make_shared<Drawing::DrawCmdList>(
         oldCmdList->GetWidth(), oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
-    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
+    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get(), includeImages);
     newCmdList->PatchTypefaceIds(oldCmdList);
     modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, newCmdList);
     MarshalRenderModifier(modifier, data);
@@ -815,6 +815,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
             modifierNGCount++;
         }
     }
+    const auto includeImageOps = !IsBetaRecordEnabled();
     data.write(reinterpret_cast<const char*>(&modifierNGCount), sizeof(modifierNGCount));
     for (const auto& slot : node.GetAllModifiers()) {
         for (auto& modifierNG : slot) {
@@ -822,7 +823,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
                 continue;
             }
             if (modifierNG->IsCustom()) {
-                MarshalDrawCmdModifiers(*modifierNG, data);
+                MarshalDrawCmdModifiers(*modifierNG, includeImageOps, data);
             } else {
                 MarshalRenderModifier(*modifierNG, data);
             }
