@@ -152,20 +152,23 @@ void NdkTextLineTest::PrepareCreateTextLineWithMulTextStyle()
     EXPECT_TRUE(fontCollection_ != nullptr);
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
     EXPECT_TRUE(handler_ != nullptr);
-    // span1
+    // textstyle span1
     OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
+    // test for fontsize 80
     OH_Drawing_SetTextStyleFontSize(txtStyle_, 80);
     OH_Drawing_SetTextStyleDecoration(txtStyle_, TEXT_DECORATION_UNDERLINE);
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
     OH_Drawing_TypographyHandlerAddText(handler_, text1.c_str());
-    // span2
+    // textstyle span2
     OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
+    // test for fontsize 100
     OH_Drawing_SetTextStyleFontSize(txtStyle_, 100);
     OH_Drawing_SetTextStyleDecoration(txtStyle_, TEXT_DECORATION_LINE_THROUGH);
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
     OH_Drawing_TypographyHandlerAddText(handler_, text2.c_str());
-    // span3
+    // textstyle span3
     OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0xFF));
+    // test for fontsize 50
     OH_Drawing_SetTextStyleFontSize(txtStyle_, 50);
     OH_Drawing_SetTextStyleDecoration(txtStyle_, TEXT_DECORATION_OVERLINE);
     OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
@@ -178,9 +181,8 @@ void NdkTextLineTest::PrepareCreateTextLineWithMulTextStyle()
     cBitmap_ = OH_Drawing_BitmapCreate();
     EXPECT_TRUE(cBitmap_ != nullptr);
     OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
-    uint32_t width = 200;
-    uint32_t height = 40;
-    OH_Drawing_BitmapBuild(cBitmap_, width, height, &cFormat);
+    // test for bitmap width 200, height 40
+    OH_Drawing_BitmapBuild(cBitmap_, 200, 40, &cFormat);
     canvas_ = OH_Drawing_CanvasCreate();
     EXPECT_TRUE(canvas_ != nullptr);
     OH_Drawing_CanvasBind(canvas_, cBitmap_);
@@ -1450,18 +1452,22 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest044, TestSize.Level0)
     PrepareCreateTextLineWithMulTextStyle();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    // Paragraph has 3 lines
     EXPECT_EQ(size, 3);
 
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
-
-        OH_Drawing_TextLine *truncatedLine =
-        OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_TAIL, "...");
+        // Test for truncated line width 30
+        OH_Drawing_TextLine* truncatedLine =
+            OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_TAIL, "...");
         EXPECT_TRUE(truncatedLine != nullptr);
+        // Test for paint position x 30, y 150
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 150);
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        // Evert textline contain glyph count 3
         EXPECT_NEAR(count, 3, FLOAT_DATA_EPSILON);
+        OH_Drawing_DestroyTextLine(truncatedLine);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -1476,22 +1482,27 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest045, TestSize.Level0)
     PrepareCreateTextLineWithMulTextStyle();
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    // Paragraph has 3 lines
     EXPECT_EQ(size, 3);
 
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
-
-        OH_Drawing_TextLine *truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 250, ELLIPSIS_MODAL_TAIL, "...");
+        // Test for truncated line width 250
+        OH_Drawing_TextLine* truncatedLine =
+            OH_Drawing_TextLineCreateTruncatedLine(textLine, 250, ELLIPSIS_MODAL_TAIL, "...");
         EXPECT_TRUE(truncatedLine != nullptr);
+        // Test for paint position x 30, y 300
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 300);
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
         if (index == 0) {
+            // the first textline contain glyph count 6
             EXPECT_NEAR(count, 6, FLOAT_DATA_EPSILON);
         } else if (index == 1) {
+            // the second textline contain glyph count 4
             EXPECT_NEAR(count, 4, FLOAT_DATA_EPSILON);
         } else if (index == 2) {
-            // if ellipsis style change, count will change.
+            // if ellipsis style change, count will change. And the third textline contain glyph count 5.
             EXPECT_NEAR(count, 5, FLOAT_DATA_EPSILON);
         }
         OH_Drawing_DestroyTextLine(truncatedLine);
