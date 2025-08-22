@@ -84,7 +84,7 @@ static std::vector<const char*> gOptionalDeviceExtensions = {
 };
 
 // enabled when persist.sys.graphic.openVkImageMemoryDfx is true
-static std::vector<const char*> gOptionalDeviceExtensionsDebug = {
+static const std::vector<const char*> gOptionalDeviceExtensionsDebug = {
     VK_KHR_MAINTENANCE_5_EXTENSION_NAME,
     VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
     VK_EXT_DEVICE_ADDRESS_BINDING_REPORT_EXTENSION_NAME,
