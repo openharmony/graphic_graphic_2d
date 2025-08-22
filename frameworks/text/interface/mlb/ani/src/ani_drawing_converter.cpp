@@ -49,18 +49,22 @@ ani_status AniDrawingConverter::ParseDrawingColorToNative(
 
     int32_t alpha = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "alpha", alpha)) {
+        TEXT_LOGE("Invalid alpha");
         return ANI_INVALID_TYPE;
     }
     int32_t red = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "red", red)) {
+        TEXT_LOGE("Invalid red");
         return ANI_INVALID_TYPE;
     }
     int32_t green = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "green", green)) {
+        TEXT_LOGE("Invalid green");
         return ANI_INVALID_TYPE;
     }
     int32_t blue = 0;
     if (!GetColorValue(env, reinterpret_cast<ani_object>(colorRef), "blue", blue)) {
+        TEXT_LOGE("Invalid blue");
         return ANI_INVALID_TYPE;
     }
     colorSrc = Drawing::Color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));

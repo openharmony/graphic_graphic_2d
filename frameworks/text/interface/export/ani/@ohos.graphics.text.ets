@@ -96,7 +96,7 @@ namespace text {
           return esValue;
         }
       } else {
-        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not FontCollection`);
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid font collection`);
         return undefined;
       }
     }

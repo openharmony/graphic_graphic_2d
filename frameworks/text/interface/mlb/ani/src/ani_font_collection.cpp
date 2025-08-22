@@ -75,7 +75,11 @@ AniFontCollection::AniFontCollection(std::shared_ptr<FontCollection> fc)
 
 void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
-    AniFontCollection* aniFontCollection = new AniFontCollection();
+    AniFontCollection* aniFontCollection = new(std::nothrow) AniFontCollection();
+    if (aniFontCollection == nullptr) {
+        TEXT_LOGE("Failed to new font collection");
+        return;
+    }
     ani_status ret = env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani font collection obj");
@@ -193,11 +197,15 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
             return AniTextUtils::CreateAniUndefined(env);
         }
         ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
-        AniFontCollection* aniFontCollection = new AniFontCollection();
+        AniFontCollection* aniFontCollection = new(std::nothrow) AniFontCollection();
+        if (aniFontCollection == nullptr) {
+            TEXT_LOGE("Failed to new font collection");
+            return AniTextUtils::CreateAniUndefined(env);
+        }
         aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani font collection obj");
+            TEXT_LOGE("Failed to create ani font collection obj, ret: %{public}d", ret);
             delete aniFontCollection;
             aniFontCollection = nullptr;
             return AniTextUtils::CreateAniUndefined(env);
