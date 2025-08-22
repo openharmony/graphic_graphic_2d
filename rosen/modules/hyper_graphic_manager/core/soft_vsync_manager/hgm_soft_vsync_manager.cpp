@@ -126,9 +126,12 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         isChanged = true;
     }
     bool isForceUseAppVSync = false;
-    if (!isChanged && appVoteData_.count(linker.first)) {
-        expectedRange.preferred_ = static_cast<int32_t>(appVoteData_[linker.first].first);
-        isForceUseAppVSync = static_cast<bool>(appVoteData_[linker.first].second);
+    if (!isChanged) {
+        auto appVoteDataIter = appVoteData_.find(linker.first);
+        if (appVoteDataIter != appVoteData_.end()) {
+            expectedRange.preferred_ = static_cast<int32_t>(appVoteDataIter.second.first);
+            isForceUseAppVSync = static_cast<bool>(appVoteDataIter.second.second);
+        }
     }
     auto appFrameRate =
         isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE ?
@@ -364,8 +367,9 @@ void HgmSoftVSyncManager::DeliverSoftVote(FrameRateLinkerId linkerId, const Vote
         std::optional<VoteInfo> resultVoteInfo = hgmVoter->ProcessVote();
         if (resultVoteInfo.has_value()) {
             bool isForceUseAppVSync = eventStatus ? hgmVoter->CheckForceUseAppVSync() : false;
-            if (!appVoteData_.count(linkerId) || appVoteData_[linkerId].first != resultVoteInfo->max ||
-                static_cast<bool>(appVoteData_[linkerId].second) != isForceUseAppVSync) {
+            auto appVoteDataIter = appVoteData_.find(linkerId);
+            if (appVoteDataIter == appVoteData_.end() || appVoteDataIter->second.first != resultVoteInfo->max ||
+                static_cast<bool>(appVoteDataIter->second.second) != isForceUseAppVSync) {
                 appVoteData_[linkerId] =
                     std::pair<uint32_t, uint32_t>(resultVoteInfo->max, static_cast<uint32_t>(isForceUseAppVSync));
                 UpdateSoftVSync(false);

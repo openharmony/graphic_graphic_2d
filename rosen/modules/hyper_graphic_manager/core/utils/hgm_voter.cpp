@@ -47,7 +47,7 @@ std::optional<VoteInfo> HgmVoter::ProcessVote()
             }
         }
     }
-    if (resultVoteInfo.has_value() != 0) {
+    if (resultVoteInfo.has_value()) {
         resultVoteInfo->min = min;
         resultVoteInfo->max = max;
     }
@@ -73,7 +73,7 @@ bool HgmVoter::ProcessVote(std::vector<std::string>::iterator& voterIter,
     auto [mergeVoteRange, mergeVoteInfo] =
         HgmVoter::MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
     if (mergeVoteInfo) {
-        if (resultVoteInfo.has_value() == 0) {
+        if (!resultVoteInfo.has_value()) {
             resultVoteInfo = curVoteInfo;
         } else {
             resultVoteInfo->Merge(curVoteInfo);
