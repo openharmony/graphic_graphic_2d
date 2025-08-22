@@ -26,26 +26,6 @@ void DirtyRegionParam::SetDirtyRegionEnable(bool isEnable)
     isDirtyRegionEnable_ = isEnable;
 }
 
-bool DirtyRegionParam::IsExpandScreenDirtyRegionEnable()
-{
-    return isExpandScreenDirtyRegionEnable_;
-}
-
-void DirtyRegionParam::SetExpandScreenDirtyRegionEnable(bool isEnable)
-{
-    isExpandScreenDirtyRegionEnable_ = isEnable;
-}
-
-bool DirtyRegionParam::IsMirrorScreenDirtyRegionEnable()
-{
-    return isMirrorScreenDirtyRegionEnable_;
-}
-
-void DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(bool isEnable)
-{
-    isMirrorScreenDirtyRegionEnable_ = isEnable;
-}
-
 bool DirtyRegionParam::IsAdvancedDirtyRegionEnable()
 {
     return isAdvancedDirtyRegionEnable_;

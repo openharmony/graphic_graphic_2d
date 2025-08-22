@@ -1255,15 +1255,6 @@ bool RSSystemProperties::GetAutoCacheDebugEnabled()
     return GetDdgrOpincDfxType() == DdgrOpincDfxType::OPINC_DFX_AUTO;
 }
 
-#ifdef RS_ENABLE_STACK_CULLING
-bool RSSystemProperties::GetViewOcclusionCullingEnabled()
-{
-    static bool stackViewCullingEnabled =
-        system::GetBoolParameter("persist.sys.graphic.stack.culling.enabled", true);
-    return stackViewCullingEnabled;
-}
-#endif
-
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     static bool openSecurityPermissionCheck =

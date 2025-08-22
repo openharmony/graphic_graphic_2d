@@ -832,17 +832,6 @@ public:
 
     bool GetLastFrameSync() const { return lastFrameSynced_; }
 
-#ifdef RS_ENABLE_STACK_CULLING
-    void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
-    void SetSubNodesCovered();
-    void ResetSubNodesCovered();
-    bool isFullSurfaceOpaquCanvasNode_ = false;
-    bool hasChildFullSurfaceOpaquCanvasNode_ = false;
-    bool isCoveredByOtherNode_ = false;
-#define MAX_COLD_DOWN_NUM 20
-    int32_t coldDownCounter_ = 0;
-#endif
-
     void MarkParentNeedRegenerateChildren() const;
 
     void ResetChildUifirstSupportFlag()
