@@ -29,6 +29,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr uint16_t MAX_VIDEO_RECT_PIXEL = 4096;
+constexpr uint16_t MIN_VIDEO_RECT_PIXEL = 360;
+}
 RSHdrManager &RSHdrManager::Instance()
 {
     static RSHdrManager instance;
@@ -260,10 +264,17 @@ bool RSHdrManager::ValidateSurface(RSSurfaceRenderParams* surfaceParams)
         RS_LOGE("surfaceParams is nullptr");
         return false;
     }
-
+    sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
     const auto& dstRect = surfaceParams->GetLayerInfo().dstRect;
-    if (dstRect.w == 0 || dstRect.h == 0) {
-        RS_LOGE("dstRect is invalid");
+    const auto& srcRect = surfaceParams->GetLayerInfo().srcRect;
+
+    if (srcBuffer==nullptr ||
+        dstRect.w <= MIN_VIDEO_RECT_PIXEL || dstRect.w > MAX_VIDEO_RECT_PIXEL ||
+        dstRect.h <= MIN_VIDEO_RECT_PIXEL || dstRect.h > MAX_VIDEO_RECT_PIXEL ||
+        srcRect.w <= MIN_VIDEO_RECT_PIXEL || srcRect.w > MAX_VIDEO_RECT_PIXEL ||
+        srcRect.h <= MIN_VIDEO_RECT_PIXEL || srcRect.h > MAX_VIDEO_RECT_PIXEL ||
+        srcBuffer->GetSurfaceBufferWidth() == 0 || srcBuffer->GetSurfaceBufferHeight() == 0) {
+        RS_LOGE("[hdrHetero]:RSHdrManager ValidateSurface srcBuffer, dstRect or srcRect are invalid");
         return false;
     }
     return true;
