@@ -380,12 +380,12 @@ void CreateSurfaceNode()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     dataParcel.WriteUint64(GetData<uint64_t>());
-    dataParcel.WriteString("fuzzSurface");
+    dataParcel.WriteString(GetData<std::string>());
     dataParcel.WriteUint8(static_cast<uint8_t>(RSSurfaceNodeType::SELF_DRAWING_NODE));
+    dataParcel.WriteBool(GetData<bool>());
     dataParcel.WriteBool(false);
-    dataParcel.WriteBool(false);
-    dataParcel.WriteUint8(static_cast<uint8_t>(SurfaceWindowType::DEFAULT_WINDOW));
-    dataParcel.WriteBool(false);
+    dataParcel.WriteUint8(GetData<uint8_t>());
+    dataParcel.WriteBool(GetData<bool>());
 
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
@@ -408,13 +408,6 @@ void DoGetRefreshInfoWithRenderDisable()
     CreateSurfaceNode();
     DoGetRefreshInfoFuzzer();
     RSUniRenderJudgement::uniRenderEnabledType_ = originRenderType;
-}
-
-void DoGetRefreshInfo()
-{
-    DoGetRefreshInfoWithoutSurfaceName();
-    DoGetRefreshInfoWithSurfaceName();
-    DoGetRefreshInfoWithRenderDisable();
 }
 
 void DoRegisterHgmRefreshRateUpdateCallback()
@@ -554,7 +547,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             OHOS::Rosen::DoGetRealtimeRefreshRate();
             break;
         case OHOS::Rosen::DO_GET_REFRESH_INFO:
-            OHOS::Rosen::DoGetRefreshInfo();
+            OHOS::Rosen::DoGetRefreshInfoWithoutSurfaceName();
+            OHOS::Rosen::DoGetRefreshInfoWithSurfaceName();
+            OHOS::Rosen::DoGetRefreshInfoWithRenderDisable();
             break;
         case OHOS::Rosen::DO_REFRESH_RATE_UPDATE_CALLBACK:
             OHOS::Rosen::DoRegisterHgmRefreshRateUpdateCallback();
