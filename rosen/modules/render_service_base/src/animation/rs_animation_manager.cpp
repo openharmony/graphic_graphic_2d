@@ -39,14 +39,19 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
     if (animations_.empty()) {
         return;
     }
-    const auto lengthTwo = 2;
-    out.append(", RSAnimationManager: [");
+    out += ", RSAnimationManager: [";
+    bool hasValidAnimation = false;
     for (auto[id, animation]: animations_) {
+        if (!animation) {
+            continue;
+        }
+        if (hasValidAnimation) {
+            out += ", ";
+        }
         animation->DumpAnimation(out);
-        out.append(", ");
+        hasValidAnimation = true;
     }
-    out.erase(out.end() - lengthTwo, out.end());
-    out.append("]");
+    out += "]";
 }
 
 void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
