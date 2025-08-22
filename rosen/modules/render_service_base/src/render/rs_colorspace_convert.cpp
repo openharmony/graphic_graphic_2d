@@ -300,5 +300,30 @@ GraphicColorGamut RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(OHOS::ColorM
     return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
 }
 
+GraphicColorGamut RSColorSpaceConvert::PrimariesToGraphicGamut(CM_ColorPrimaries primary)
+{
+    switch (primary) {
+        case COLORPRIMARIES_ADOBERGB:
+        case COLORPRIMARIES_P3_DCI:
+        case COLORPRIMARIES_P3_D65:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        case COLORPRIMARIES_BT2020:
+            return GRAPHIC_COLOR_GAMUT_BT2020;
+        default:
+            return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
+
+GraphicColorGamut RSColorSpaceConvert::SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2)
+{
+    // Only Support DISPLAY_BT2020, DISPLAY_P3, SRGB
+    if (gamut1 == GRAPHIC_COLOR_GAMUT_BT2020) {
+        return gamut1;
+    }
+    if (gamut1 == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 && gamut2 == GRAPHIC_COLOR_GAMUT_SRGB) {
+        return gamut1;
+    }
+    return gamut2;
+}
 } // namespace Rosen
 } // namespace OHOS
