@@ -2579,7 +2579,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
             HandleTunnelLayerId(surfaceHandler, surfaceNode);
             if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
-                params->SetPreBuffer(nullptr);
+                if (!surfaceNode->GetDeviceOfflineEnable()) {
+                    params->SetPreBuffer(nullptr);
+                }
                 surfaceNode->AddToPendingSyncList();
             }
             if (surfaceNode->GetDeviceOfflineEnable() && processor->ProcessOfflineLayer(surfaceNode)) {

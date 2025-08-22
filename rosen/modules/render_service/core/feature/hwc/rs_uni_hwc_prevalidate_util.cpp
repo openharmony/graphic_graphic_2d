@@ -163,6 +163,8 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     }
     CheckIfDoCopybit(node, transform, info);
     node->SetDeviceOfflineEnable(false);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
+    stagingSurfaceParams->SetOfflineOriginBufferSynced(true);
     RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateSurfaceNodeLayerInfo %{public}s,"
         " %{public}" PRIu64 ", src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
         " bufferUsage: %{public}" PRIu64 ", layerUsage: %{public}" PRIu64 ","

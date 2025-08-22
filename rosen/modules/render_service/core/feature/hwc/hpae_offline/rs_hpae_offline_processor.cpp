@@ -40,7 +40,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t MAX_NUM_INVALID_FRAME = 120;
+constexpr size_t MAX_NUM_INVALID_FRAME = 2;
 constexpr uint32_t WAIT_FENCE_TIMEOUT_MS = 500;
 }
 
@@ -215,7 +215,7 @@ bool RSHpaeOfflineProcessor::GetOfflineProcessInput(RSSurfaceRenderParams& param
         inputInfo.srcRect = {src.x, src.y, src.w, src.h};
     }
     inputInfo.dstRect = {offlineRect_.x, offlineRect_.y, offlineRect_.w, offlineRect_.h};
-    inputInfo.transform = static_cast<int>(params.GetLayerInfo().transformType);
+    inputInfo.transform = static_cast<uint32_t>(params.GetLayerInfo().transformType);
     return true;
 }
 
@@ -262,7 +262,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: do process offline");
     // reset invalid frameCnt
     invalidFrames_ = 0;
-    
+
     // get Hpae inputInfo
     OfflineProcessInputInfo inputInfo;
     sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
@@ -294,7 +294,8 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
 
     // flush and consume offline buffer
     flushConfig_.timestamp = 0;
-    flushConfig_.damage = {.x = offlineRect_.x, .y = offlineRect_.y, .w = offlineRect_.w, .h = offlineRect_.h};
+    flushConfig_.damage = {.x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y,
+        .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
     offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, -1, flushConfig_);
     auto offlineSurfaceHandler = offlineLayer_.GetMutableRSSurfaceHandler();
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
@@ -305,7 +306,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
 
     // set to offline result
     processOfflineResult.bufferRect = {
-        .x = offlineRect_.x, .y = offlineRect_.y, .w = offlineRect_.w, .h = offlineRect_.h};
+        .x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y, .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
     processOfflineResult.consumer = offlineSurfaceHandler->GetConsumer();
     auto damageRect = offlineSurfaceHandler->GetDamageRegion();
     damageRect.y = offlineSurfaceHandler->GetBuffer()->GetHeight() - damageRect.y - damageRect.h;

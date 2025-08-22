@@ -24,6 +24,7 @@
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
+const std::string HPAE_OFFLINE_BUFFER_TAG = "hpae_memory_offline";
 
 RSHpaeOfflineLayer::RSHpaeOfflineLayer(const std::string& name, NodeId layerId)
     : surfaceHandler_(std::make_shared<RSSurfaceHandler>(layerId)), layerName_(name)
@@ -45,8 +46,9 @@ bool RSHpaeOfflineLayer::PreAllocBuffers(const BufferRequestConfig& config)
     RS_OPTIONAL_TRACE_NAME_FMT("prealloc offline buffer.");
     GSError ret = pSurface_->PreAllocBuffers(config, bufferSize_);
     if (ret != GSERROR_OK) {
-        ret = pSurface_->CleanCache(true);
-        RS_OFFLINE_LOGW("offline prealloc buffer failed, clean cache: %{public}d", ret);
+        pSurface_->Connect();
+        auto cleanRet = pSurface_->CleanCache(true);
+        RS_OFFLINE_LOGW("offline prealloc buffer failed[%{public}d], clean cache: %{public}d", ret, cleanRet);
         return false;
     }
     RS_OFFLINE_LOGD("offline prealloc buffer success.");
@@ -94,6 +96,7 @@ bool RSHpaeOfflineLayer::CreateSurface(sptr<IBufferConsumerListener>& listener)
         return false;
     }
     pSurface_->SetQueueSize(bufferSize_);
+    pSurface_->SetBufferName(HPAE_OFFLINE_BUFFER_TAG);
     surfaceCreated_ = true;
     surfaceHandler_->SetConsumer(consumer);
     return true;
@@ -111,6 +114,7 @@ void RSHpaeOfflineLayer::CleanCache(bool cleanAll)
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: clean offline buffer cache.");
     if (pSurface_ != nullptr) {
         GSError ret = pSurface_->CleanCache(cleanAll);
+        surfaceHandler_->CleanCache();
         RS_OFFLINE_LOGD("clean offline buffer cache, ret = %{public}d.", ret);
     }
 }
