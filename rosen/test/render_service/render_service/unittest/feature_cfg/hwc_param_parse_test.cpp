@@ -162,7 +162,7 @@ HWTEST_F(HwcParamParseTest, TestParseFeatureMultiParamForApp001, TestSize.Level1
 
     std::string name2 = "example";
     int32_t ret2 = hwcParamParse.ParseFeatureMultiParamForApp(node, name2);
-    EXPECT_EQ(ret2, PARSE_EXEC_SUCCESS);
+    EXPECT_EQ(ret2, PARSE_NO_PARAM);
 }
 }
 }

@@ -486,6 +486,38 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeByTransform_005, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateHwcNodeByTransform_006
+ * @tc.desc: UpdateHwcNodeByTransform Test, whe surfaceName prefix/suffix with "RenderFitSurface"
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeByTransform_006, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(12, 0, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
+
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    ASSERT_FALSE(!node->GetRSSurfaceHandler() || !node->GetRSSurfaceHandler()->GetBuffer());
+    ASSERT_NE(node->GetRSSurfaceHandler()->GetConsumer(), nullptr);
+
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+    node->name_ = "RenderFitSurface.test";
+    node->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeByTransform(*node, matrix);
+    EXPECT_FALSE(node->IsHardwareForcedDisabled_);
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByBufferSize
  * @tc.desc: Test UpdateHwcNodeEnableByBufferSize with rosen-web node / non-rosen-web node.
  * @tc.type: FUNC
