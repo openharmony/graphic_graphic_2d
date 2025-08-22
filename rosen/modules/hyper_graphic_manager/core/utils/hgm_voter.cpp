@@ -115,7 +115,7 @@ bool HgmVoter::CheckForceUseAppVSync()
 {
     auto voterIter = voters_.begin();
     for (; voterIter != voters_.end(); ++voterIter) {
-        auto iter = voteRecord_.find(*voterIter)
+        auto iter = voteRecord_.find(*voterIter);
         if (iter == voteRecord_.end()) {
             continue;
         }
