@@ -684,9 +684,14 @@ void RSUIDirector::ProcessUIContextMessages(
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
-            ROSEN_LOGI(
+            ROSEN_LOGE(
                 "RSUIDirector::ProcessUIContextMessages, can not get rsUIContext with token:%{public}" PRIu64, token);
-            continue;
+            rsUICtx = RSUIContextManager::Instance().GetRandomUITaskRunnerCtx();
+            if (rsUICtx == nullptr) {
+                RS_LOGE("RSUIDirector::ProcessUIContextMessages, not taskrunner exist");
+                RS_TRACE_NAME("RSUIDirector::ProcessUIContextMessages, not taskrunner exist");
+                continue;
+            }
         }
         rsUICtx->PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
                               counter, messageId, tempToken = token, rsUICtx] {

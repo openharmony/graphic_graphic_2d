@@ -101,12 +101,32 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
 {
     auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
-    uiContext->rsTransactionHandler_ = nullptr;
     auto transaction = uiContext->GetRSTransaction();
-    ASSERT_EQ(transaction, nullptr);
+    ASSERT_NE(transaction, nullptr);
     std::string out = "";
     uiContext->DumpNodeTreeProcessor(0, 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
     ASSERT_TRUE(out.find("UIContext") == std::string::npos);
+}
+
+/**
+ * @tc.name: DumpNodeTreeProcessorTest003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest003, TestSize.Level1)
+{
+    bool enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        uiContext->rsTransactionHandler_ = nullptr;
+        auto transaction = uiContext->GetRSTransaction();
+        ASSERT_EQ(transaction, nullptr);
+        auto canvasNode = RSCanvasNode::Create(false, false, uiContext);
+        std::string out = "";
+        uiContext->DumpNodeTreeProcessor(canvasNode->GetId(), 0, 0, out);
+        ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
+        ASSERT_TRUE(out.find("UIContext") == std::string::npos);
+    }
 }
 } // namespace OHOS::Rosen
