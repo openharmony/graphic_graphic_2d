@@ -596,7 +596,9 @@ HWTEST_F(HgmSoftVSyncManagerTest, DeliverSoftVoteTest, Function | SmallTest | Le
     mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, false);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 
-    voteInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
+    voteInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 0, "" };
+    auto hgmVoter = linkerVoteMap_[frameRateLinkerId1];
+    hgmVoter->DeliverVote(voteInfo, true);
     mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, false);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 }
