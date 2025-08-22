@@ -768,7 +768,7 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
-    return true;
+    return false;
 }
 
 bool RSSystemProperties::GetSupportScreenFreezeEnabled()
