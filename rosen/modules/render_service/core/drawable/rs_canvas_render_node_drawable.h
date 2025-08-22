@@ -36,7 +36,7 @@ private:
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool QuickGetDrawState(RSPaintFilterCanvas& rscanvas);
 #endif
-    bool IsUiRangeCaptureEndNode(Drawing::Canvas& canvas);
+    bool IsUiRangeCaptureEndNode();
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;
 };
