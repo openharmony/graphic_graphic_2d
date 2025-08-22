@@ -139,7 +139,7 @@ public:
 
     VsyncError AddConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId = 0);
     VsyncError RemoveConnection(const sptr<VSyncConnection> &connection);
-    uint64_t CheckVsyncTsAndReceived(uint64_t timestamp);
+    uint64_t CheckVsyncReceivedAndGetRelTs(uint64_t timestamp);
 
     // fromWhom indicates whether the source is animate or non-animate
     // lastVSyncTS indicates last vsync time, 0 when non-animate
@@ -187,7 +187,6 @@ public:
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
     void SetTaskEndWithTime(uint64_t time);
-    bool NeedSkipForSurfaceBuffer(uint64_t id);
     virtual bool NeedUpdateVSyncTime(int32_t& pid);
     void SetVSyncTimeUpdated();
     virtual int64_t GetLastUpdateTime();

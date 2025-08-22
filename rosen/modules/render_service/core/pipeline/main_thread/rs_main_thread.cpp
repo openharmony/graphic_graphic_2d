@@ -1650,9 +1650,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
-            bool needSkip = IsSurfaceConsumerNeedSkip(surfaceHandler->GetConsumer());
             LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(surfaceNode);
-            if (!needSkip && RSBaseRenderUtil::ConsumeAndUpdateBuffer(
+            if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
                 parentNode ? parentNode->GetId() : 0)) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
@@ -1746,16 +1745,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         RequestNextVSync("unknown", 0, requestNextVsyncTime_);
     }
     RS_OPTIONAL_TRACE_END();
-}
-
-bool RSMainThread::IsSurfaceConsumerNeedSkip(sptr<IConsumerSurface> consumer)
-{
-    bool needSkip = false;
-    if (consumer != nullptr && rsVSyncDistributor_ != nullptr) {
-        uint64_t uniqueId = consumer->GetUniqueId();
-        needSkip = rsVSyncDistributor_->NeedSkipForSurfaceBuffer(uniqueId);
-    }
-    return needSkip;
 }
 
 bool RSMainThread::CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const
@@ -3355,7 +3344,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 
 void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 {
-    rsVSyncDistributor_->CheckVsyncTsAndReceived(timestamp);
+    rsVSyncDistributor_->CheckVsyncReceivedAndGetRelTs(timestamp);
     SetFrameInfo(frameCount, false);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();

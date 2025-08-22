@@ -978,14 +978,18 @@ VsyncError VSyncGenerator::SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum)
 
 uint32_t VSyncGenerator::GetVsyncRefreshRate()
 {
-    std::lock_guard<std::mutex> locker(mutex_);
-    if (period_ == 0) {
+    int64_t period = 0;
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        period = period_;
+    }
+    if (period == 0) {
         return UINT32_MAX;
     }
-    uint32_t refreshRate = CalculateRefreshRate(period_);
+    uint32_t refreshRate = CalculateRefreshRate(period);
     if (refreshRate == 0) {
         refreshRate = std::round(static_cast<double>(ONE_SECOND_FOR_CALCUTE_FREQUENCY)
-            / static_cast<double>(period_));
+            / static_cast<double>(period));
     }
     return refreshRate;
 }
