@@ -1142,6 +1142,7 @@ HWTEST_F(NdkTypographyTest, TypographyTest040, TestSize.Level0)
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_NE(handler, nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
+    // Test for fontSize 30
     double fontSize = 30;
     OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
@@ -1152,15 +1153,16 @@ HWTEST_F(NdkTypographyTest, TypographyTest040, TestSize.Level0)
     OH_Drawing_TypographyHandlerAddText(handler, "OpenHarmony\n");
     OH_Drawing_TypographyHandlerPopTextStyle(handler);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    // Test for layout width 800.0
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
+    // Test for postion 10.0 and 15.0
     double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
-    uint32_t width = 20;
-    uint32_t height = 40;
-    OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
+    // Test for postion canvas width 20, height 40
+    OH_Drawing_BitmapBuild(cBitmap, 20, 40, &cFormat);
     OH_Drawing_Canvas* cCanvas = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
@@ -1183,6 +1185,7 @@ HWTEST_F(NdkTypographyTest, TypographyTest040, TestSize.Level0)
     OH_Drawing_DestroyLineMetrics(vectorMetrics);
     OH_Drawing_LineMetrics* metrics = new OH_Drawing_LineMetrics();
     EXPECT_TRUE(OH_Drawing_TypographyGetLineMetricsAt(typography, 0, metrics));
+    OH_Drawing_DestroyLineMetrics(metrics);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
 }
@@ -4670,6 +4673,7 @@ OH_Drawing_Typography* PrepareParagraphForVerticalAlign(OH_Drawing_TextVerticalA
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
 
     if (addPlaceholder) {
+        // Test for width of placeholder 20
         OH_Drawing_PlaceholderSpan placeholderSpan{20, 20, placeholderAlign, TEXT_BASELINE_IDEOGRAPHIC, 0};
         OH_Drawing_TypographyHandlerAddPlaceholder(handler, &placeholderSpan);
     }
