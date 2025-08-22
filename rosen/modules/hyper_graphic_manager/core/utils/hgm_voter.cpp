@@ -111,14 +111,18 @@ std::pair<bool, bool> HgmVoter::MergeRangeByPriority(VoteRange& rangeRes, const 
     return {false, needMergeVoteInfo};
 }
 
-bool HgmVoter::CheckForceUseAppVSync() {
+bool HgmVoter::CheckForceUseAppVSync()
+{
     auto voterIter = voters_.begin();
     for (; voterIter != voters_.end(); ++voterIter) {
-        if (auto iter = voteRecord_.find(*voterIter); iter != voteRecord_.end()) {
-            for (auto vec = iter->second.first.begin(); vec != iter->second.first.end(); vec++) {
-                if (FORCE_USE_APP_VSYNC == vec->extInfo) {
-                    return true;
-                }
+        auto iter = voteRecord_.find(*voterIter)
+        if (iter == voteRecord_.end()) {
+            continue;
+        }
+
+        for (auto vec = iter->second.first.begin(); vec != iter->second.first.end(); ++vec) {
+            if (FORCE_USE_APP_VSYNC == vec->extInfo) {
+                return true;
             }
         }
     }

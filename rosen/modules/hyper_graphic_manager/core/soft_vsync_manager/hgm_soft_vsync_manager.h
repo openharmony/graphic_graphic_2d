@@ -80,7 +80,8 @@ private:
         bool& frameRateChanged,
         bool controllerRateChanged,
         const uint32_t currRefreshRate);
-    void UpdateSoftVSync(bool followRs) {
+    void UpdateSoftVSync(bool followRs)
+    {
         if (updateSoftVSyncFunc_) {
             updateSoftVSyncFunc_(followRs);
         }
