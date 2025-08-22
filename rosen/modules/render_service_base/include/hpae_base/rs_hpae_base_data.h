@@ -41,6 +41,9 @@ using HpaeStatus = struct HpaeStatus_ {
     float blurRadius = 0.0;
     float brightness = 0.0;
     float saturation = 0.0;
+
+    uint32_t bufferWidth = 0;
+    uint32_t bufferHeight = 0;
 };
 
 class RSB_EXPORT RSHpaeBaseData {

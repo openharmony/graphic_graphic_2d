@@ -26,21 +26,19 @@ struct HaeRect {
     int r;
     int b;
 
-HaeRect(int left, int top, int right, int bottom)
-{
-    l = left;
-    t = top;
-    r = right;
-    b = bottom;
-};
+    HaeRect(int left, int top, int right, int bottom) {
+        l = left;
+        t = top;
+        r = right;
+        b = bottom;
+    };
 
-HaeRect()
-{
-    l = 0;
-    t = 0;
-    r = 0;
-    b = 0;
-};
+    HaeRect() {
+        l = 0;
+        t = 0;
+        r = 0;
+        b = 0;
+    };
 };
 
 struct HaeImage {
@@ -99,12 +97,17 @@ struct HaeBlurEffectAttr {
 
 struct hianimation_algo_device_t {
     bool (* hianimationInputCheck)(const struct BlurImgParam *imgInfo, const struct HaeNoiseValue *noisePara);
+
     int32_t (* hianimationAlgoInit)(uint32_t imgWeight, uint32_t imgHeight, float maxSigma, uint32_t format);
+
     int32_t (* hianimationAlgoDeInit)();
+
     int32_t (* hianimationBuildTask)(const struct HaeBlurBasicAttr *basicInfo,
         const struct HaeBlurEffectAttr *effectInfo, uint32_t *outTaskId, void **outTaskPtr);
-    int32_t (* hianimationSyncProcess) (const struct HaeBlurBasicAttr *basicInfo,
+
+    int32_t (* hianimationSyncProcess)(const struct HaeBlurBasicAttr *basicInfo,
         const struct HaeBlurEffectAttr *effectInfo);
+
     int32_t (* hianimationDestroyTask)(uint32_t taskId);
 };
 

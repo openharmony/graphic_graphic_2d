@@ -20,6 +20,7 @@
 
 #include <list>
 #include <unordered_map>
+#include <mutex>
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -30,6 +31,7 @@
 #include "rs_surface_frame_ohos_vulkan.h"
 #include <surface.h>
 
+// 后续需移除
 typedef enum VkSemaphoreExtTypeHUAWEI {
     VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
     VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
@@ -75,35 +77,42 @@ public:
         }
         mSurfaceMap.clear();
     }
-
     int DupReservedFlushFd();
 
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,
         int& fenceFd, bool useAFBC, bool isProtected = false);
     bool PreAllocateProtectedBuffer(int32_t width, int32_t height);
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
-    bool NeedSubmitWithFFTS();
-    void HcsSubmitGPGpuAndHpae(uint64_t preFrameId, int64_t curFrameId);
-#endif
+
+    void MarkAsHpaeSurface();
+    void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
     int mReservedFlushFd = -1;
+    bool mIsHpaeSurface = false;
+
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
     std::list<std::pair<NativeWindowBuffer*, int>> protectedSurfaceBufferList_;
     std::mutex protectedSurfaceBufferListMutex_;
+    std::list<std::pair<NativeWindowBuffer*, int>> hpaeSurfaceBufferList_;
+    std::mutex hpaeSurfaceBufferListMutex_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
     void CreateVkSemaphore(VkSemaphore& semaphore,
         RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
-    void PrepareHdrSemaphoreVector(
-        GrBackendSemaphore& backendSemaphore, NativeBufferUtils::NativeSurfaceInfo& surface,
-        std::vector<uint64_t> &frameIdVec,
-        std::vector<GrBackendSemaphore> &semphoreVec);
+#if defined(ROSEN_OHOS)
+    std::mutex taskHandleMapMutex_;
+    std::unordered_map<uint64_t, void*> taskHandleMap_;
+    bool NeedSubmitWithFFTS();
+    void SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& preFrameId, const uint64_t& curFramId,
+        std::vector<GrBackendSemaphore>& semphoreVec, NativeBufferUtils::NativeSurfaceInfo& surface);
+    void SubmitGpuAndHpaeTask(const uint64_t& preFrameId, const uint64_t& curFrameId);
+    void SubmitHpaeTask(const uint64_t& curFrameId);
+#endif
 };
 
 } // namespace Rosen

@@ -15,8 +15,8 @@
 
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 
-#if defined(ASYNC_BUILD_TASK)&& defined(ROSEN_OHOS)
-#include "cpp/ffrt_dynamic_graph.h"
+#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
+#include "ffrt_inner.h"
 #endif
 
 #include "ge_render.h"
@@ -25,9 +25,10 @@
 #include "hpae_base/rs_hpae_hianimation.h"
 #include "hpae_base/rs_hpae_log.h"
 #include "hpae_base/rs_hpae_scheduler.h"
-
 #include "unistd.h"
+
 #include "common/rs_background_thread.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_render_kawase_blur_filter.h"
@@ -48,38 +49,53 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
     bool shouldClearFilteredCache, const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
 {
-    RSHpaeScheduler::GetInstance().Reset();
     inputBufferInfo_ = RSHpaeBaseData::GetInstance().RequestHpaeInputBuffer();
     outputBufferInfo_ = RSHpaeBaseData::GetInstance().RequestHpaeOutputBuffer();
+
     if (inputBufferInfo_.canvas == nullptr || outputBufferInfo_.canvas == nullptr) {
         HPAE_LOGE("invalid canvas");
+        ReleaseHpaeBufferInfo();
         return -1;
     }
+
     Drawing::RectI clipBounds = canvas.GetDeviceClipBounds();
     Drawing::RectI src = canvas.GetRoundInDeviceClipBounds();
     if (clipBounds.IsEmpty() || src.IsEmpty()) {
         HPAE_LOGE("canvas rect is empty");
+        ReleaseHpaeBufferInfo();
         return -1; // -1 or 0?
     }
+
+    RSHpaeScheduler::GetInstance().Reset();
+
     if (RSHpaeBaseData::GetInstance().GetNeedReset()) {
         std::unique_lock<std::mutex> lock(blurOutMutex_);
-        HPAE_TRACE_NAME("Clear for first frame");
+        RS_OPTIONAL_TRACE_NAME("Clear for first frame");
         hpaeBlurOutputQueue_.clear();
         backgroundRadius_ = 0;
         prevBlurImage_ = nullptr;
         RSHpaeBaseData::GetInstance().SetResetDone();
     }
+
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+
     int32_t radiusI = (int)RSHpaeBaseData::GetInstance().GetBlurRadius();
     curRadius_ = radiusI; // use int radius
+
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     }
+
     drawUsingGpu_ = CheckIfUsingGpu();
+
+    int ret = -1;
     if (DrawFilterImpl(filter, clipBounds, src, shouldClearFilteredCache) == 0) {
-        return DrawBackgroundToCanvas(canvas);
+        ret = DrawBackgroundToCanvas(canvas);
     }
-    return -1;
+
+    ReleaseHpaeBufferInfo();
+
+    return ret;
 };
 
 bool RSHpaeFilterCacheManager::CheckIfUsingGpu()
@@ -126,25 +142,27 @@ void RSHpaeFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
     if (clearType == FilterCacheType::BOTH) {
         cachedSnapshot_.reset();
         cachedFilteredSnapshot_.reset();
-        HPAE_TRACE_NAME_FMT("%p InvalidateCache BOTH", this);
         return;
     }
     if (clearType == FilterCacheType::SNAPSHOT) {
         cachedSnapshot_.reset();
-        HPAE_TRACE_NAME_FMT("%p InvalidateCache SNAPSHOT", this);
         return;
     }
     if (clearType == FilterCacheType::FILTERED_SNAPSHOT) {
-        HPAE_TRACE_NAME_FMT("%p InvalidateCache FILTERED_SNAPSHOT", this);
         cachedFilteredSnapshot_.reset();
     }
+}
+
+void RSHpaeFilterCacheManager::ReleaseHpaeBufferInfo()
+{
+    inputBufferInfo_ = HpaeBufferInfo();
+    outputBufferInfo_ = HpaeBufferInfo();
 }
 
 void RSHpaeFilterCacheManager::ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion)
 {
-    HPAE_TRACE_NAME_FMT("HPAE::ResetFilterCache:[%p, %p]", cachedSnapshot.get(), cachedFilteredSnapshot.get());
-    // Updated cachedSnapshot and cachedFilteredSnapshot for RSFilterCacheManager
+    // Update cachedSnapshot and cachedFilteredSnapshot for RSFilterCacheManager
     // Use the cache even if it's null because this function is called before DrawFilter()
     if (cachedSnapshot) {
         cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
@@ -169,7 +187,7 @@ void RSHpaeFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
         return;
     }
 
-    HPAE_TRACE_NAME("RSHpaeFilterCacheManager::TakeSnapshot");
+    RS_OPTIONAL_TRACE_NAME("RSHpaeFilterCacheManager::TakeSnapshot");
     Drawing::RectI snapshotIBounds = srcRect;
     // Take a screenshot
     std::shared_ptr<Drawing::Image> snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
@@ -183,9 +201,9 @@ void RSHpaeFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
 int RSHpaeFilterCacheManager::BlurWithoutSnapshot(const Drawing::RectI& clipBounds,
     const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<RSDrawingFilter>& filter,
-    const Drawing::RectI &src, bool shouldClearFilteredCache)
+    const Drawing::RectI& src, bool shouldClearFilteredCache)
 {
-    HPAE_TRACE_NAME_FMT("HPAE::BlurWithoutSnapshot: %d", shouldClearFilteredCache);
+    RS_OPTIONAL_TRACE_NAME_FMT("HPAE::BlurWithoutSnapshot: %d", shouldClearFilteredCache);
     if (shouldClearFilteredCache) {
         cachedFilteredSnapshot_.reset();
     } else {
@@ -197,7 +215,7 @@ int RSHpaeFilterCacheManager::BlurWithoutSnapshot(const Drawing::RectI& clipBoun
     if (result != 0) {
         cachedFilteredSnapshot_.reset(); // invalidate cache if blur failed
         HpaeBackgroundCacheItem emptyItem;
-        SetBlurOutput(emptyItem); // notify task done avoid output being empty
+        SetBlurOutput(emptyItem); // notify task done to avoid output being empty
     } else {
         RSHpaeBaseData::GetInstance().NotifyBufferUsed(true);
     }
@@ -207,15 +225,15 @@ int RSHpaeFilterCacheManager::BlurWithoutSnapshot(const Drawing::RectI& clipBoun
 int RSHpaeFilterCacheManager::BlurUsingFilteredSnapshot()
 {
     if (cachedFilteredSnapshot_ == nullptr) {
-        HPAE_LOGE("cachedFilteredSnapshot_ is nullptr");
+        HPAE_LOGW("cachedFilteredSnapshot_ is nullptr");
         return -1;
     }
 
     if (cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        HPAE_TRACE_NAME_FMT("HPAE::BlurUsingPrevResult");
+        RS_OPTIONAL_TRACE_NAME_FMT("HPAE::BlurUsingPrevResult");
         std::unique_lock<std::mutex> lock(blurOutMutex_);
         if (hpaeBlurOutputQueue_.empty()) {
-            HPAE_LOGE("blur output queue is empty");
+            HPAE_LOGW("blur output queue is empty");
             return -1;
         }
         HpaeBackgroundCacheItem blurItem;
@@ -225,7 +243,7 @@ int RSHpaeFilterCacheManager::BlurUsingFilteredSnapshot()
         return 0;
     }
 
-    HPAE_TRACE_NAME_FMT("HPAE::BlurUsingFilteredSnapshot: %p, %p", cachedFilteredSnapshot_->cachedImage_.get(), this);
+    RS_OPTIONAL_TRACE_NAME("HPAE::BlurUsingFilteredSnapshot");
     {
         std::unique_lock<std::mutex> lock(blurOutMutex_);
         HpaeBackgroundCacheItem blurItem;
@@ -253,8 +271,8 @@ int RSHpaeFilterCacheManager::ProcessHianimationBlur(const std::shared_ptr<RSDra
 
     blurItem.surface_ = outputBufferInfo_.surface;
     auto curFrameId = RSHpaeFfrtPatternManager::Instance().MHCGetVsyncId();
-    HPAE_LOGW("mhc_so MHCRequestEGraph. frameId:%{public}" PRIu64 " ", curFrameId);
-    HPAE_TRACE_NAME_FMT("mhc_so: MHCRequestEGraph curFrameId=%u", curFrameId);
+    HPAE_LOGD("mhc_so MHCRequestEGraph. frameId:%{public}" PRIu64 " ", curFrameId);
+    RS_OPTIONAL_TRACE_NAME_FMT("mhc_so: MHCRequestEGraph curFrameId=%u", curFrameId);
     if (!RSHpaeFfrtPatternManager::Instance().MHCRequestEGraph(curFrameId)) {
         HPAE_LOGE("mhc_so MHCRequestEGraph failed. frameId:%{public}" PRIu64 " ", curFrameId);
         RSHpaeFfrtPatternManager::Instance().MHCSetCurFrameId(0);
@@ -263,11 +281,11 @@ int RSHpaeFilterCacheManager::ProcessHianimationBlur(const std::shared_ptr<RSDra
     }
     blurItem.gpFrameId_ = curFrameId;
     RSHpaeFfrtPatternManager::Instance().MHCSetCurFrameId(curFrameId);
-    HPAE_LOGW("HianimationBlur: taskId: %{public}d, taskPtr: %{public}p, radius=%{public}f",
-        blurItem.hpaeTask_.taskId, blurItem.hpaeTask_.taskPtr, radius);
+    HPAE_LOGI("HianimationBlur: taskId: %{public}d, radius=%{public}f",
+        blurItem.hpaeTask_.taskId, radius);
     RSHpaeFfrtPatternManager::Instance().SetUpdatedFlag();
     RSHpaeScheduler::GetInstance().CacheHpaeItem(blurItem); // cache and notify after flush
-#if defined(ASYNC_BUILD_TASK)&& defined(ROSEN_OHOS)
+#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
     {
         std::unique_lock<std::mutex> lock(blurOutMutex_);
         hpaeBlurOutputQueue_.pop_back(); // remove previous empty item
@@ -283,13 +301,13 @@ int RSHpaeFilterCacheManager::ProcessHpaeBlur(const Drawing::RectI& clipBounds,
     const std::shared_ptr<RSDrawingFilter>& filter,
     const Drawing::RectI& src)
 {
-    RS_TRACE_NAME_FMT("ProcessHpaeBlur. radius=%f, %p", curRadius_, this);
+    RS_TRACE_NAME_FMT("ProcessHpaeBlur. radius=%f", curRadius_);
 
     HpaeBackgroundCacheItem blurItem;
     float radius = curRadius_ / 2.0f; // HpaeBlur using half image size
     if (radius < 1.0f) {
         // directly process to outputbuffer if radius == 0
-        RS_TRACE_NAME_FMT("SmallRadius: %f", radius);
+        HPAE_LOGD("SmallRadius: %f", radius);
         if (outputBufferInfo_.canvas) {
             Drawing::Rect dst = Drawing::Rect(0, 0, outputBufferInfo_.canvas->GetWidth(),
                 outputBufferInfo_.canvas->GetHeight());
@@ -302,17 +320,17 @@ int RSHpaeFilterCacheManager::ProcessHpaeBlur(const Drawing::RectI& clipBounds,
     }
 
     if (0 != RSHpaeFusionOperator::ProcessGreyAndStretch(clipBounds, image, inputBufferInfo_, filter, src)) {
-        HPAE_LOGE("ProcessGreyAndStretch failed");
+        HPAE_LOGW("ProcessGreyAndStretch failed");
         return -1;
     }
 
     int result = -1;
-#if defined(ASYNC_BUILD_TASK)&& defined(ROSEN_OHOS)
+#if defined(ASYNC_BUILD_TASK) && defined(ROSEN_OHOS)
     if (!drawUsingGpu_) {
-        SetBlurOutput(blurItem); // empty item to motivate the hpaeBlurOutputQueue_.rememner to pop it
+        SetBlurOutput(blurItem); // empty item to motivate the hpaeBlurOutputQueue_.remember to pop it
         RSHpaeScheduler::GetInstance().SetToWaitBuildTask();
         void *hianimationTask = ffrt::submit_h([=]() {
-            HPAE_TRACE_NAME("Async BuildTask");
+            RS_OPTIONAL_TRACE_NAME("Async BuildTask");
             if (this->ProcessHianimationBlur(filter, radius) != 0) {
                 std::unique_lock<std::mutex> lock(blurOutMutex_);
                 hpaeBlurOutputQueue_.pop_back(); // remove previous empty item
@@ -347,8 +365,7 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
         HPAE_LOGE("canvas is nullptr");
         return -1;
     }
-
-    HPAE_TRACE_NAME_FMT("ProcessGpuBlur: radius: %f, type: %d", radius, filter->GetFilterType());
+    RS_OPTIONAL_TRACE_NAME_FMT("ProcessGpuBlur: radius: %f, type: %d", radius, filter->GetFilterType());
     auto snapshotIBounds = Drawing::RectI(0, 0, inputBuffer.canvas->GetWidth(), inputBuffer.canvas->GetHeight());
     auto image = inputBuffer.canvas->GetSurface()->GetImageSnapshot(snapshotIBounds, false);
     auto outCanvas = outputBuffer.canvas;
@@ -356,7 +373,7 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
     Drawing::Rect srcRect = Drawing::Rect(0, 0, inputBuffer.canvas->GetWidth(), inputBuffer.canvas->GetHeight());
     Drawing::Rect dstRect = Drawing::Rect(0, 0, outputBuffer.canvas->GetWidth(), outputBuffer.canvas->GetHeight());
 
-    HPAE_LOGW("ProcessGpuBlur: radius: %f, type: %{public}d", radius, filter->GetFilterType());
+    HPAE_LOGD("ProcessGpuBlur: radius: %f, type: %{public}d", radius, filter->GetFilterType());
     auto brush = filter->GetBrush(1.0f);
     float saturation = RSHpaeBaseData::GetInstance().GetSaturation();
     float brightness = RSHpaeBaseData::GetInstance().GetBrightness();
@@ -365,13 +382,13 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
         RS_TRACE_NAME_FMT("HPAE:ApplyHPSBlur::radius %f", radius);
         if (HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(*outCanvas, image, hpsParam,
             brush.GetColor().GetAlphaF(), brush.GetFilter().GetColorFilter())) {
-                filter->PostProcess(*outCanvas);
-                return 0;
+            filter->ForcePostProcess(*outCanvas);
+            return 0;
         }
     }
     {
         RS_TRACE_NAME("HPAE:ApplyKawaseBlur " + std::to_string(radius));
-        HPAE_LOGW("HPAE:ApplyKawaseBlur %f", radius);
+        HPAE_LOGD("HPAE:ApplyKawaseBlur %f", radius);
         auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
@@ -386,7 +403,7 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
         outCanvas->AttachBrush(brush);
         outCanvas->DrawImageRect(*blurImage, dstRect, Drawing::SamplingOptions());
         outCanvas->DetachBrush();
-        filter->PostProcess(*outCanvas);
+        filter->ForcePostProcess(*outCanvas);
         return 0;
     }
     return -1;
@@ -398,7 +415,7 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     HpaeTask resultTask;
     resultTask.taskPtr = nullptr;
 
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS)
     if (!RSSystemProperties::GetHpaeBlurUsingAAE()) {
         return resultTask;
     }
@@ -410,10 +427,11 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
         return resultTask;
     }
 
+    outputBuffer.canvas->Clear(Drawing::Color::COLOR_TRANSPARENT); // notify GetImageSnapshot()
+
     int32_t srcWidth = inputBuffer.canvas->GetWidth();
     int32_t srcHeight = inputBuffer.canvas->GetHeight();
 
-    HianimationManager::GetInstance().OpenDevice();
     BlurImgParam imgInfo = {srcWidth, srcHeight, radius};
     HaeNoiseValue noisePara = {0.25f, 1.75f, 1.75f, -2.0f}; // from experience
     if (!HianimationManager::GetInstance().HianimationInputCheck(&imgInfo, &noisePara)) {
@@ -425,14 +443,13 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     struct HaeImage dstLayer;
     srcLayer.handle = inputBuffer.bufferHandle;
     srcLayer.rect = HaeRect(0, 0, srcWidth, srcHeight);
-
     dstLayer.handle = outputBuffer.bufferHandle;
     dstLayer.rect = HaeRect(0, 0, outputBuffer.canvas->GetWidth(), outputBuffer.canvas->GetHeight());
 
     HaeBlurBasicAttr basicInfo;
     basicInfo.srcLayer = &srcLayer;
     basicInfo.dstLayer = &dstLayer;
-    basicInfo.perfLevel = 4; // 4 for the hightest level
+    basicInfo.perfLevel = 4; // 4 for the highest level
     basicInfo.expectRunTime = 2000; // us
     basicInfo.timeoutMs = 0;
     basicInfo.sigmaNum = radius;
@@ -447,9 +464,8 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
 
     HianimationManager::GetInstance().HianimationBuildTask(
         &basicInfo, &effectInfo, &resultTask.taskId, &resultTask.taskPtr);
-    
-        HPAE_TRACE_NAME_FMT("Hianimation: taskId: %d, taskPtr: %p, hpae radius=%f",
-            resultTask.taskId, resultTask.taskPtr, radius);
+        RS_OPTIONAL_TRACE_NAME_FMT("Hianimation: taskId: %d, hpae radius=%f",
+            resultTask.taskId, radius);
 
     return resultTask;
 }
@@ -457,15 +473,10 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
 void RSHpaeFilterCacheManager::SetBlurOutput(HpaeBackgroundCacheItem& hpaeOutputItem)
 {
     std::unique_lock<std::mutex> lock(blurOutMutex_);
-    if (hpaeOutputItem.surface_) {
-        auto outBounds = Drawing::RectI(0, 0, hpaeOutputItem.surface_->Width(), hpaeOutputItem.surface_->Height());
+    if (hpaeOutputItem.surface_.lock()) {
         hpaeOutputItem.radius_ = curRadius_;
-
-        if (cachedFilteredSnapshot_) {
-            cachedFilteredSnapshot_->cachedRect_ = outBounds;
-        }
     }
-    HPAE_TRACE_NAME_FMT("HAPE::SetBlurOutput: surface[%p]", hpaeOutputItem.surface_.get());
+    RS_OPTIONAL_TRACE_NAME("HAPE::SetBlurOutput");
     hpaeBlurOutputQueue_.push_back(hpaeOutputItem);
 }
 
@@ -478,30 +489,33 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
         while (hpaeBlurOutputQueue_.size() > HPAE_CACHE_SIZE) {
             prevItem = hpaeBlurOutputQueue_.front();
             hpaeBlurOutputQueue_.pop_front();
-            HPAE_LOGI("HPAE::pop front: %p", prevItem.blurImage_.get());
         }
         if (!hpaeBlurOutputQueue_.empty()) {
+            bool useCacheImage = false;
             auto headIter = hpaeBlurOutputQueue_.begin();
             if (headIter->useCache_) {
                 headIter->blurImage_ = prevItem.blurImage_;
                 headIter->radius_ = prevItem.radius_;
-                HPAE_TRACE_NAME_FMT("UsePrevItem: %p", headIter->blurImage_.get());
+                RS_OPTIONAL_TRACE_NAME("UsePrevItem");
             }
-            if (headIter->blurImage_ == nullptr && headIter->surface_) {
-                auto snapshotIBounds = Drawing::RectI(0, 0, headIter->surface_->Width(),
-                    headIter->surface_->Height());
-                headIter->blurImage_ = headIter->surface_->GetImageSnapshot(snapshotIBounds, false);
-                HPAE_TRACE_NAME_FMT("UseSnapshot: surface:%p, image: %p", headIter->surface_.get(),
-                    headIter->blurImage_.get());
+            auto headSurface = headIter->surface_.lock();
+            if (headIter->blurImage_ == nullptr && headSurface) {
+                auto snapshotIBounds = Drawing::RectI(0, 0, headSurface->Width(), headSurface->Height());
+                headIter->blurImage_ = headSurface->GetImageSnapshot(snapshotIBounds, false);
+                RS_OPTIONAL_TRACE_NAME("UseSnapshot");
             } else {
                 headIter->gpFrameId_ = 0; // avoid submit with FFTS
+                useCacheImage = true;
             }
             result = hpaeBlurOutputQueue_.front();
+            if (useCacheImage && hpaeBlurOutputQueue_.size() == 1) {
+                HPAE_LOGI("Clear cache for first frame");
+                hpaeBlurOutputQueue_.clear();
+            }
         }
     }
 
-    HPAE_TRACE_NAME_FMT("HPAE::GetBlurOutput: %d, surface: %p, image: %p, %d", hpaeBlurOutputQueue_.size(),
-        result.surface_.get(), result.blurImage_.get(), result.gpFrameId_);
+    RS_OPTIONAL_TRACE_NAME_FMT("HPAE::GetBlurOutput: %d, %" PRIu64 "", hpaeBlurOutputQueue_.size(), result.gpFrameId_);
 
     RSHpaeScheduler::GetInstance().SetHpaeFrameId(result.gpFrameId_);
     return result;
@@ -512,7 +526,7 @@ static bool CanDiscardCanvas(RSPaintFilterCanvas& canvas, const Drawing::RectI& 
     /* Check that drawing will be in full canvas and no issues with clip */
     return (RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled() && canvas.IsClipRect() &&
         canvas.GetDeviceClipBounds() == dstRect && canvas.GetWidth() == dstRect.GetWidth() &&
-        canvas.GetHeight() == dstRect.GetHeight() && dstRect.GetLeft() ==0 && dstRect.GetTop() == 0 &&
+        canvas.GetHeight() == dstRect.GetHeight() && dstRect.GetLeft() == 0 && dstRect.GetTop() == 0 &&
         canvas.GetAlpha() == 1.0 && !canvas.HasOffscreenLayer());
 }
 
@@ -534,12 +548,14 @@ int RSHpaeFilterCacheManager::DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas
     auto hpaeOutSnapshot = hpaeBlurItem.blurImage_;
 
     if (hpaeOutSnapshot == nullptr) {
-        HPAE_TRACE_NAME("get shared image failed");
+        HPAE_LOGE("get shared image failed");
         return -1;
     }
 
     if (cachedFilteredSnapshot_) {
-            cachedFilteredSnapshot_->cachedImage_ = hpaeOutSnapshot;
+        cachedFilteredSnapshot_->cachedImage_ = hpaeOutSnapshot;
+        cachedFilteredSnapshot_->cachedRect_ =
+            Drawing::RectI(0, 0, hpaeOutSnapshot->GetWidth(), hpaeOutSnapshot->GetHeight());
     }
 
     backgroundRadius_ = hpaeBlurItem.radius_;
@@ -551,11 +567,8 @@ int RSHpaeFilterCacheManager::DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas
 
     prevBlurImage_ = hpaeOutSnapshot;
 
-    HPAE_TRACE_NAME_FMT("DrawBackgroundToCanvas: image:[%p, %p], radius[%f, %f], %p, src[%dx%d], dst:[%dx%d]",
-        hpaeOutSnapshot.get(),
-        cachedFilteredSnapshot_ ? cachedFilteredSnapshot_->cachedImage_.get() : nullptr,
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawBackgroundToCanvas: radius[%f, %f], src[%dx%d], dst:[%dx%d]",
         backgroundRadius_, curRadius_,
-        hpaeOutSnapshot.get(),
         hpaeOutSnapshot->GetWidth(),
         hpaeOutSnapshot->GetHeight(),
         canvas.GetWidth(),
@@ -578,7 +591,6 @@ int RSHpaeFilterCacheManager::DrawBackgroundToCanvas(RSPaintFilterCanvas& canvas
     if (discardCanvas) {
         canvas.Discard();
     }
-
     canvas.DrawImageRect(*hpaeOutSnapshot, src, dst, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();

@@ -14,9 +14,11 @@
  */
 
 #include "hpae_base/rs_hpae_fusion_operator.h"
-#include "hpae_base/rs_hpae_log.h"
-#include "common/rs_common_def.h"
+
 #include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_log.h"
+
+#include "common/rs_common_def.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_render_maskcolor_filter.h"
 
@@ -26,17 +28,16 @@ namespace {
 std::shared_ptr<Drawing::RuntimeEffect> g_greyShaderEffect_ = nullptr;
 }
 
-void BuildShaderMatrix(Drawing::Matrix &shaderMatrix, const Drawing::Rect &src, const float &greyScaleRatio,
-    const Vector4f &stretchOffset)
+void BuildShaderMatrix(Drawing::Matrix &shaderMatrix, const Drawing::Rect &src, const float &greyWScaleRatio,
+    const float &greyHScaleRatio, const Vector4f &stretchOffset)
 {
-    float scaleW = (1.0 - stretchOffset[0] - stretchOffset[2]) * greyScaleRatio;
-    float scaleH = (1.0 - stretchOffset[1] - stretchOffset[3]) * greyScaleRatio;
-
+    float scaleW = (1.0 - stretchOffset[0] - stretchOffset[2]) * greyWScaleRatio;
+    float scaleH = (1.0 - stretchOffset[1] - stretchOffset[3]) * greyHScaleRatio;
     shaderMatrix.PostScale(scaleW, scaleH);
 
     Drawing::Matrix translateMatrix;
     translateMatrix.Translate(
-        stretchOffset[0] * greyScaleRatio * src.GetWidth(), stretchOffset[1] * greyScaleRatio * src.GetHeight());
+        stretchOffset[0] * greyWScaleRatio * src.GetWidth(), stretchOffset[1] * greyHScaleRatio * src.GetHeight());
     shaderMatrix.PostConcat(translateMatrix);
 }
 
@@ -99,13 +100,13 @@ std::shared_ptr<Drawing::ShaderEffect> MakeGreyShader(
     // parameter check: near zero
     constexpr static float EPS = 1e-5f;
     if (ROSEN_EQ(greyLow, 0.f, EPS) && ROSEN_EQ(greyHigh, 0.f, EPS)) {
-        HPAE_LOGI("MakeGreyShader: grey value is zero");
+        HPAE_LOGD("MakeGreyShader: grey value is zero");
         return imageShader;
     }
-    MakeGreyShaderEffect();
 
+    MakeGreyShaderEffect();
     if (g_greyShaderEffect_ == nullptr) {
-        HPAE_LOGE("MakeGreyShader: blurEffect create failed!");
+        HPAE_LOGW("MakeGreyShader: blurEffect create failed!");
         return imageShader;
     }
 
@@ -141,23 +142,22 @@ int RSHpaeFusionOperator::ProcessGreyAndStretch(const Drawing::RectI& clipBounds
 {
     auto targetCanvas = targetBuffer.canvas;
     if (!image || !targetCanvas) {
-        HPAE_LOGE("ProcessGreyAndStretch: input param is null: image: %p, canvas: %p", image.get(), targetCanvas.get());
+        HPAE_LOGE("ProcessGreyAndStretch: input param is null");
         return -1;
     }
 
-    float greyScaleRatio = 1.0 * targetCanvas->GetWidth() / src.GetWidth();
+    float greyWScaleRatio = 1.0 * targetCanvas->GetWidth() / src.GetWidth();
+    float greyHScaleRatio = 1.0 * targetCanvas->GetHeight() / src.GetHeight();
     auto pixelStretch = RSHpaeBaseData::GetInstance().GetPixelStretch();
+
     Vector4f stretchOffset(std::abs(pixelStretch.x_) / image->GetWidth(),
-    std::abs(pixelStretch.y_) / image->GetHeight(),
-    std::abs(pixelStretch.z_) / image->GetWidth(),
-    std::abs(pixelStretch.w_) / image->GetHeight());
+        std::abs(pixelStretch.y_) / image->GetHeight(),
+        std::abs(pixelStretch.z_) / image->GetWidth(),
+        std::abs(pixelStretch.w_) / image->GetHeight());
     Drawing::Matrix shaderMatrix;
-    BuildShaderMatrix(shaderMatrix, src, greyScaleRatio, stretchOffset);
+    BuildShaderMatrix(shaderMatrix, src, greyWScaleRatio, greyHScaleRatio, stretchOffset);
 
     auto tileMode = static_cast<Drawing::TileMode>(RSHpaeBaseData::GetInstance().GetTileMode());
-    HPAE_TRACE_NAME_FMT("ProcessGreyAndStretch. offset:[%f, %f, %f, %f], tileMode:%d, image:[%dx%d]",
-        pixelStretch.x_, pixelStretch.y_, pixelStretch.z_, pixelStretch.w_, tileMode,
-        image->GetWidth(), image->GetHeight());
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, tileMode, tileMode, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), shaderMatrix);
     auto greyCoef = RSHpaeBaseData::GetInstance().GetGreyCoef();
@@ -199,4 +199,5 @@ Drawing::Matrix RSHpaeFusionOperator::GetShaderTransform(const Drawing::Rect& bl
     matrix.PostConcat(translateMatrix);
     return matrix;
 }
+
 } // OHOS::Rosen

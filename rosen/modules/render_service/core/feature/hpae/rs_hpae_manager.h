@@ -16,10 +16,12 @@
 #ifndef HPAE_RS_HPAE_MANAGER_H
 #define HPAE_RS_HPAE_MANAGER_H
 
+#if defined(ROSEN_OHOS)
+
 #include <cinttypes>
-#include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <atomic>
 
 #include "feature/hpae/rs_hpae_buffer.h"
 #include "hpae_base/rs_hpae_base_data.h"
@@ -30,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
+class RSScreenRenderNode;
 
 enum class HpaeFrameState {
     IDLE = 0,
@@ -38,8 +41,11 @@ enum class HpaeFrameState {
     WORKING,
     SWITCH_BLUR,
     CHANGE_CONFIG,
+    ALLOC_BUF,
+    WAITING,
 };
 
+// Use in Prepare to collect info for HPAE blur
 class RSHpaeManager {
 public:
     static RSHpaeManager& GetInstance();
@@ -48,10 +54,12 @@ public:
     void InitHpaeBlurResource();
     void OnUniRenderStart(); // happens before prepare
     void OnSync(bool isHdrOn);
-    void RegisterHpaeCallback(RSRenderNode& node, uint32_t phyWidth, uint32_t phyHeight);
+    void RegisterHpaeCallback(RSRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenNode);
 
     // Functions @Process
     bool HasHpaeBlurNode() const;
+
+    void CheckHpaeBlur(bool isHdrOn, GraphicPixelFormate pixelFormat, GraphicColorGamut colorSpace, bool isHebc);
 
     void InitIoBuffers();
     void SetUpHpaeSurface(GraphicPixelFormat pixelFormat, GraphicColorGamut colorSpace, bool isHebc);
@@ -62,27 +70,30 @@ private:
     RSHpaeManager();
     ~RSHpaeManager();
 
+    void ReleaseIoBuffers();
+
     bool IsHpaeBlurNode(RSRenderNode& node, uint32_t phyWidth, uint32_t phyHeight);
 
+    void AllocBuffer(const BufferRequestConfig& bufferConfig, bool isHebc);
     void SetUpSurfaceIn(const BufferRequestConfig& bufferConfig, bool isHebc);
     void SetUpSurfaceOut(const BufferRequestConfig& bufferConfig, bool isHebc);
 
-    void WaitPreviousReleaseAll();
     void UpdateHpaeState();
     void HandleHpaeStateChange();
-    void UpdateBufferIfNeed(const BufferRequestConfig &bufferConfig, bool isHebc);
+    bool UpdateBufferIfNeed(const BufferRequestConfig& bufferConfig, bool isHebc);
+
+    void OnActive();
+    void OnDeActive();
 
 private:
     HpaeStatus stagingHpaeStatus_;
     HpaeStatus hpaeStatus_;
-    HpaeFrameState hpaeFrameState_; // for Process()
-
-    uint32_t hpaeBufferWidth_ = 0;
-    uint32_t hpaeBufferHeight_ = 0;
+    HpaeFrameState hpaeFrameState_ = HpaeFrameState::IDLE; // for Process()
 
     std::shared_ptr<DrawableV2::RSHpaeBuffer> hpaeBufferIn_;
     std::shared_ptr<DrawableV2::RSHpaeBuffer> hpaeBufferOut_;
 
+    std::mutex releaseIoBuffersMutex_;
     std::vector<HpaeBufferInfo> inBufferVec_;
     std::vector<HpaeBufferInfo> outBufferVec_;
 
@@ -93,13 +104,15 @@ private:
     // buffer queue
     uint32_t curIndex_ = 0;
 
-    std::mutex releaseAllMutex_;
-    bool releaseAllDone_ = true;
-    std::condition_variable releaseAllCv_;
+    std::atomic_bool releaseAllDone_{true};
+    std::atomic_bool hpaeBufferAllocating_{false};
+    std::atomic_bool hpaeBufferNeedInit_{true};
 
-    BufferRequestConfig prevBufferConfig_;
-    bool prevIsHebc_ = false;
+    BufferRequestConfig prevBufferConfig_ {};
+    bool prevIsHebc_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS
+
+#endif // (ROSEN_OHOS)
 #endif // HPAE_RS_HPAE_MANAGER_H

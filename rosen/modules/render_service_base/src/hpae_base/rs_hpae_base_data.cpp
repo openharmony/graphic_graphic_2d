@@ -14,6 +14,7 @@
  */
 
 #include "hpae_base/rs_hpae_base_data.h"
+
 #include "hpae_base/rs_hpae_log.h"
 
 namespace OHOS::Rosen {
@@ -33,6 +34,8 @@ RSHpaeBaseData::~RSHpaeBaseData() noexcept
 
 void RSHpaeBaseData::Reset()
 {
+    inputBufferQueue_.clear();
+    outputBufferQueue_.clear();
 }
 
 void RSHpaeBaseData::SyncHpaeStatus(HpaeStatus status)
@@ -55,7 +58,6 @@ void RSHpaeBaseData::SetHpaeOutputBuffer(HpaeBufferInfo& outputBuffer)
 HpaeBufferInfo RSHpaeBaseData::RequestHpaeInputBuffer()
 {
     HpaeBufferInfo result;
-    HPAE_TRACE_NAME_FMT("RequestHpaeInputBuffer: %zu", inputBufferQueue_.size());
     if (!inputBufferQueue_.empty()) {
         result = inputBufferQueue_.back();
         inputBufferQueue_.clear();
@@ -66,7 +68,6 @@ HpaeBufferInfo RSHpaeBaseData::RequestHpaeInputBuffer()
 HpaeBufferInfo RSHpaeBaseData::RequestHpaeOutputBuffer()
 {
     HpaeBufferInfo result;
-    HPAE_TRACE_NAME_FMT("RequestHpaeOutputBuffer: %zu", outputBufferQueue_.size());
     if (!outputBufferQueue_.empty()) {
         result = outputBufferQueue_.back();
         outputBufferQueue_.clear();
@@ -86,7 +87,7 @@ NodeId RSHpaeBaseData::GetBlurNodeId()
 
 Vector4f RSHpaeBaseData::GetPixelStretch()
 {
-    if (hpaeStatus_.pixelStretch) {
+    if(hpaeStatus_.pixelStretch) {
         return *hpaeStatus_.pixelStretch;
     } else {
         return Vector4f(0.f, 0.f, 0.f, 0.f);
@@ -95,7 +96,7 @@ Vector4f RSHpaeBaseData::GetPixelStretch()
 
 Vector2f RSHpaeBaseData::GetGreyCoef()
 {
-    if (hpaeStatus_.greyCoef) {
+    if(hpaeStatus_.greyCoef) {
         return *hpaeStatus_.greyCoef;
     } else {
         return Vector2f(0.f, 0.f);
