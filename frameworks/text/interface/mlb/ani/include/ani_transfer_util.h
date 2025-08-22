@@ -70,8 +70,9 @@ ani_object AniTransferUtils::TransferDynamic(ani_env* aniEnv, ani_long nativeObj
     }
 
     napi_value objValue = nullptr;
-    if (napi_create_object(napiEnv, &objValue) != napi_ok) {
-        TEXT_LOGE("Failed to create napi object");
+    napi_status status = napi_create_object(napiEnv, &objValue);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to create napi object, ret: %{public}d", status);
         return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
 

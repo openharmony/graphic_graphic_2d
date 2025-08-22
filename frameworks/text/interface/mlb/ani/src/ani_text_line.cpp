@@ -404,7 +404,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
         }
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLineBase.get()));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani textLineBase obj");
+            TEXT_LOGE("Failed to create ani textLineBase obj, ret: %{public}d", ret);
             return AniTextUtils::CreateAniUndefined(env);
         }
         return staticObj;
