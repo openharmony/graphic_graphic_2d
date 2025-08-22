@@ -557,12 +557,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectGameRateDiscountChange, Function | Smal
 
     mgr.EraseGameRateDiscountMap(frameRateLinkerId1);
 }
-    "VOTER_VRATE",
-    "VOTER_VIDEOCALL",
-    "VOTER_GAMEFRAMEINSERTION",
-    "VOTER_HIGH",
-    "VOTER_MID",
-    "VOTER_LOW",
+
 /**
  * @tc.name: DeliverSoftVoteTest
  * @tc.desc: Verify the result of DeliverSoftVote
@@ -571,36 +566,38 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectGameRateDiscountChange, Function | Smal
  */
 HWTEST_F(HgmSoftVSyncManagerTest, DeliverSoftVoteTest, Function | SmallTest | Level0)
 {
-    VoterInfo voterInfo = { "VOTER_HIGH", OLED_120_HZ, OLED_60_HZ, 1, "" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, true);
+    HgmSoftVSyncManager mgr;
+    VoteInfo voteInfo = { "VOTER_HIGH", OLED_120_HZ, OLED_60_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 
-    voterInfo = { "VOTER_MID", OLED_120_HZ, OLED_120_HZ, 1, "" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, true);
+    voteInfo = { "VOTER_MID", OLED_120_HZ, OLED_120_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
     EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_120_HZ);
     EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].second, 0);
 
-    voterInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, true);
+    voteInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
     EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_60_HZ);
 
-    voterInfo = { "VOTER_VRATE", OLED_30_HZ, OLED_120_HZ, 1, "FORCE_USE_APP_VSYNC" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, true);
-    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_60_HZ);
-    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].second, 1);
-    voterInfo = { "VOTER_VRATE", OLED_30_HZ, OLED_120_HZ, 1, "FORCE_USE_APP_VSYNC" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, true);
+    voteInfo = { "VOTER_VRATE", OLED_30_HZ, OLED_120_HZ, 1, "FORCE_USE_APP_VSYNC" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
     EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_60_HZ);
     EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].second, 1);
 
-    voterInfo = { "VOTER_VRATE", OLED_30_HZ, OLED_120_HZ, 1, "FORCE_USE_APP_VSYNC" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, false);
-    voterInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, false);
+    voteInfo = { "VOTER_VRATE", OLED_60_HZ, OLED_120_HZ, 1, "FORCE_USE_APP_VSYNC" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
+    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].first, OLED_60_HZ);
+    EXPECT_EQ(mgr.appVoteData_[frameRateLinkerId1].second, 1);
+
+    voteInfo = { "VOTER_VRATE", OLED_30_HZ, OLED_120_HZ, 1, "FORCE_USE_APP_VSYNC" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, false);
+    voteInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, false);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 
-    voterInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
-    mgr.DeliverSoftVote(frameRateLinkerId1, voterInfo, false);
+    voteInfo = { "VOTER_MID", OLED_60_HZ, OLED_60_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, false);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 }
 } // namespace Rosen

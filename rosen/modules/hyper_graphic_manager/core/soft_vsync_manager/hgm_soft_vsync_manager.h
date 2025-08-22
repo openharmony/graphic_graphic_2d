@@ -64,7 +64,7 @@ public:
     // Vrate
     void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
     void EraseGameRateDiscountMap(pid_t pid);
-    void SetUpdateSoftVsyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; };
+    void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; };
 private:
     void Reset();
     void HandleLinkers();

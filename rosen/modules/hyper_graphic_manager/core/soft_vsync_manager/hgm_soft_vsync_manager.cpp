@@ -357,7 +357,7 @@ void HgmSoftVSyncManager::DeliverSoftVote(FrameRateLinkerId linkerId, const Vote
         std::vector<std::string> voters(std::begin(VOTER_NAME), std::end(VOTER_NAME));
         linkerVoteMap_.try_emplace(linkerId, std::make_shared<HgmVoter>(voters));
     }
-    RS_TRACE_NAME_FMT("DeliverSoftVote linkerId=%" PRIu64 ", min=%d, max=%d status=%d extInfo=%s",
+    RS_TRACE_NAME_FMT("DeliverSoftVote linkerId=%" PRIu64 " min=%d max=%d status=%d extInfo=%s",
         linkerId, voteInfo.min, voteInfo.max, eventStatus, voteInfo.extInfo.c_str());
     auto hgmVoter = linkerVoteMap_[linkerId];
     if (hgmVoter && hgmVoter->DeliverVote(voteInfo, eventStatus)) {
