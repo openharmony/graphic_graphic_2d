@@ -38,10 +38,16 @@ enum SpecialLayerType : uint32_t {
     PROTECTED = 0x00000004,
     SNAPSHOT_SKIP = 0x00000008,
 
+    IS_BLACK_LIST = 0x00000080,
+    IS_WHITE_LIST = 0x00000100,
+
     HAS_SECURITY = SECURITY << SPECIAL_TYPE_NUM,
     HAS_SKIP = SKIP << SPECIAL_TYPE_NUM,
     HAS_PROTECTED = PROTECTED << SPECIAL_TYPE_NUM,
     HAS_SNAPSHOT_SKIP = SNAPSHOT_SKIP << SPECIAL_TYPE_NUM,
+
+    HAS_BLACK_LIST = IS_BLACK_LIST << SPECIAL_TYPE_NUM,
+    HAS_WHITE_LIST = IS_WHITE_LIST << SPECIAL_TYPE_NUM,
 };
 
 class RSB_EXPORT RSSpecialLayerManager {
@@ -49,15 +55,22 @@ public:
     RSSpecialLayerManager() = default;
     ~RSSpecialLayerManager() = default;
 
-    bool Set(uint32_t type, bool set);
+    bool Set(uint32_t type, bool is);
     bool Find(uint32_t type) const;
     uint32_t Get() const;
     void AddIds(uint32_t type, NodeId id);
     void RemoveIds(uint32_t type, NodeId id);
 
+    bool SetWithScreen(uint64_t screenId, uint32_t type, bool is);
+    bool FindWithScreen(uint64_t screenId, uint32_t type) const;
+    void ClearScreenSpecialLayer();
+
 private:
     uint32_t specialLayerType_ = SpecialLayerType::NONE;
+    // key:SpecialLayerType value:std::set<NodeId>
     std::map<uint32_t, std::set<NodeId>> specialLayerIds_;
+    // key:ScreenId value:SpecialLayerType
+    std::map<uint64_t, uint32_t> screenSpecialLayer_;
 };
 } // namespace Rosen
 } // namespace OHOS

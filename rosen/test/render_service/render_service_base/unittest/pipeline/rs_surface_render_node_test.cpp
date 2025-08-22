@@ -930,38 +930,14 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateBlackListStatus001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    ASSERT_NE(node, nullptr);
-    node->InitRenderParams();
-    node->addedToPendingSyncList_ = true;
-    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
-    EXPECT_NE(params, nullptr);
-    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-
-    auto virtualScreenId = 1;
-    node->UpdateBlackListStatus(virtualScreenId, true);
-    node->UpdateBlackListStatus(virtualScreenId, true);
-    node->UpdateRenderParams();
-    EXPECT_TRUE(params->HasBlackListByScreenId(virtualScreenId));
-    node->UpdateBlackListStatus(virtualScreenId, false);
-    node->UpdateRenderParams();
-    EXPECT_FALSE(params->HasBlackListByScreenId(virtualScreenId));
-}
-
-/**
- * @tc.name: SyncBlackListInfoToFirstLevelNode001
- * @tc.desc: Test SyncBlackListInfoToFirstLevelNode
- * @tc.type: FUNC
- * @tc.require: issueIC9I11
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SyncBlackListInfoToFirstLevelNode001, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    ASSERT_NE(rsContext, nullptr);
     auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(childNode, nullptr);
+
+    auto virtualScreenId = 1;
+    childNode->UpdateBlackListStatus(virtualScreenId);
+    ASSERT_TRUE(childNode->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::IS_BLACK_LIST));
 
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
@@ -973,14 +949,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, SyncBlackListInfoToFirstLevelNode001, TestSize
     parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     parentNode->AddChild(childNode);
 
-    auto virtualScreenId = 1;
-    childNode->UpdateBlackListStatus(virtualScreenId, true);
     parentNode->SetIsOnTheTree(true);
-    parentNode->SyncBlackListInfoToFirstLevelNode();
-    childNode->SetIsOnTheTree(true);
-    childNode->SyncBlackListInfoToFirstLevelNode();
-    childNode->SetIsOnTheTree(false);
-    childNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->UpdateBlackListStatus(virtualScreenId);
+    ASSERT_TRUE(parentNode->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST));
 }
 
 /**

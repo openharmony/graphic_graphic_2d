@@ -88,15 +88,16 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
     logicalDisplayRenderParam->screenRotation_ = GetScreenRotation();
     logicalDisplayRenderParam->nodeRotation_ = GetRotation();
     logicalDisplayRenderParam->isMirrorDisplay_ = IsMirrorDisplay();
+    logicalDisplayRenderParam->specialLayerManager_ = specialLayerManager_;
     auto mirroredNode = GetMirrorSource().lock();
     if (mirroredNode) {
         logicalDisplayRenderParam->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
+        logicalDisplayRenderParam->specialLayerManager_ = mirroredNode->GetSpecialLayerMgr();
         logicalDisplayRenderParam->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
     } else {
         logicalDisplayRenderParam->mirrorSourceDrawable_.reset();
     }
     logicalDisplayRenderParam->isSecurityDisplay_ = GetSecurityDisplay();
-    logicalDisplayRenderParam->specialLayerManager_ = specialLayerManager_;
     logicalDisplayRenderParam->displaySpecialSurfaceChanged_ = displaySpecialSurfaceChanged_;
     logicalDisplayRenderParam->isSecurityExemption_ = isSecurityExemption_;
     logicalDisplayRenderParam->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;

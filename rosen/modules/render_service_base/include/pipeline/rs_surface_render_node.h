@@ -643,7 +643,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
-    void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
+    void UpdateBlackListStatus(ScreenId screenId);
     void UpdateVirtualScreenWhiteListInfo(
         const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
 
@@ -672,7 +672,6 @@ public:
 
     void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
     void UpdateSpecialLayerInfoByOnTreeStateChange();
-    void SyncBlackListInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
     void SyncColorGamutInfoToFirstLevelNode();
 
@@ -1764,7 +1763,6 @@ private:
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
-    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;

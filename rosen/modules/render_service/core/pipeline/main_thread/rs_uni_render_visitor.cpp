@@ -549,6 +549,7 @@ void RSUniRenderVisitor::DealWithSpecialLayer(RSSurfaceRenderNode& node)
     } else {
         UpdateSpecialLayersRecord(node);
     }
+    node.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     UpdateBlackListRecord(node);
     node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
 }
@@ -563,12 +564,10 @@ void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
         const auto& leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
         virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
     }
-    if (virtualScreens.empty()) {
-        node.UpdateBlackListStatus(INVALID_SCREEN_ID, false);
-        return;
-    }
     for (const auto& screenId : virtualScreens) {
-        node.UpdateBlackListStatus(screenId, true);
+        node.UpdateBlackListStatus(screenId);
+        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
+            screenId, SpecialLayerType::HAS_BLACK_LIST, true);
     }
 }
 
@@ -910,6 +909,7 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
     curLogicalDisplayNode_->SetDisplaySpecialSurfaceChanged(false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
+    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;

@@ -195,14 +195,6 @@ public:
         return specialLayerManager_;
     }
 
-    bool HasBlackListByScreenId(ScreenId screenId)
-    {
-        if (blackListIds_.find(screenId) != blackListIds_.end()) {
-            return blackListIds_[screenId].size() != 0;
-        }
-        return false;
-    }
-
     bool HasPrivacyContentLayer()
     {
         return privacyContentLayerIds_.size() != 0;
@@ -829,7 +821,6 @@ private:
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
-    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";

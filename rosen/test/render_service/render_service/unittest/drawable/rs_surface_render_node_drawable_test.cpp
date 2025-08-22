@@ -498,8 +498,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
     RSUniRenderThread::SetCaptureParam(captureParam);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->blackListIds_[virtualScreenId].insert(renderNode_->GetId());
-    ASSERT_EQ(surfaceParams->HasBlackListByScreenId(virtualScreenId), true);
+    surfaceParams->GetMultableSpecialLayerMgr().SetWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
     surfaceParams->uiFirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
@@ -508,15 +508,17 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().isMirror_ = false;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->blackListIds_[virtualScreenId].clear();
+    surfaceParams->GetMultableSpecialLayerMgr().SetWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST, false);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
     surfaceParams->uiFirstFlag_ = MultiThreadCacheType::NONE;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->blackListIds_[virtualScreenId].insert(renderNode_->GetId());
-    ASSERT_EQ(surfaceParams->HasBlackListByScreenId(virtualScreenId), true);
+    surfaceParams->GetMultableSpecialLayerMgr().SetWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    surfaceParams->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
 }
 
 /**
