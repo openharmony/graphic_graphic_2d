@@ -160,14 +160,15 @@ ani_status AniTextUtils::ReadOptionalArrayField(
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result != ANI_OK || ref == nullptr) {
+        TEXT_LOGE("Failed to read optional field %{public}s, ret: %{public}d", fieldName, result);
         return result;
     }
 
     ani_object arrayObj = reinterpret_cast<ani_object>(ref);
-    ani_double length;
-    result = env->Object_GetPropertyByName_Double(arrayObj, "length", &length);
+    ani_int length;
+    result = env->Object_GetPropertyByName_Int(arrayObj, "length", &length);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to get length,%{public}s", fieldName);
+        TEXT_LOGE("Failed to get length of %{public}s, ret: %{public}d", fieldName, result);
         return result;
     }
 
@@ -175,7 +176,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
         ani_ref entryRef = nullptr;
         result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &entryRef, i);
         if (result != ANI_OK || entryRef == nullptr) {
-            TEXT_LOGE("Failed to get array object,%{public}s", fieldName);
+            TEXT_LOGE("Failed to get array object of %{public}s, ret: %{public}d", fieldName, result);
             continue;
         }
         array.emplace_back(convert(env, entryRef));
