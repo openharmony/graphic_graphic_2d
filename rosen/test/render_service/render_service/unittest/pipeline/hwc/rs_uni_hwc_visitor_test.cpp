@@ -514,7 +514,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeByTransform_006, TestSize.Level2)
     node->name_ = "RenderFitSurface.test";
     node->SetHardwareForcedDisabledState(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeByTransform(*node, matrix);
-    EXPECT_FALSE(node->IsHardwareForcedDisabled_);
+    EXPECT_FALSE(node->isHardwareForcedDisabled_);
 }
 
 /**
