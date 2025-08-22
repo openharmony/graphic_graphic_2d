@@ -409,7 +409,8 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
             for (const auto& linkerId : linkerIds) {
                 DeliverSoftVote(
                     linkerId,
-                    {eventInfo.eventName, eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid, eventInfo.description},
+                    {eventInfo.eventName, eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid,
+                     eventInfo.description},
                     eventInfo.eventStatus);
             }
         }
