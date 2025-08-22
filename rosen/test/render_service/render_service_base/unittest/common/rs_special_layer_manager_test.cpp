@@ -37,8 +37,8 @@ void RSSpecialLayerManagerTest::TearDown() {}
 /**
  * @tc.name: Set001
  * @tc.desc: test RSSpecialLayerManager::Set with mul-specialType
- * @tc.type:FUNC
- * @tc.require:issueIB18WF1
+ * @tc.type: FUNC
+ * @tc.require: issueIB18WF1
  */
 HWTEST_F(RSSpecialLayerManagerTest, Set001, TestSize.Level1)
 {
@@ -52,8 +52,8 @@ HWTEST_F(RSSpecialLayerManagerTest, Set001, TestSize.Level1)
 /**
  * @tc.name: Find001
  * @tc.desc: test RSSpecialLayerManager::Find with security layer
- * @tc.type:FUNC
- * @tc.require:issueIB18WF1
+ * @tc.type: FUNC
+ * @tc.require: issueIB18WF1
  */
 HWTEST_F(RSSpecialLayerManagerTest, Find001, TestSize.Level1)
 {
@@ -65,8 +65,8 @@ HWTEST_F(RSSpecialLayerManagerTest, Find001, TestSize.Level1)
 /**
  * @tc.name: Get001
  * @tc.desc: test RSSpecialLayerManager::Get when has skip layer
- * @tc.type:FUNC
- * @tc.require:issueIB18WF1
+ * @tc.type: FUNC
+ * @tc.require: issueIB18WF1
  */
 HWTEST_F(RSSpecialLayerManagerTest, Get001, TestSize.Level1)
 {
@@ -91,9 +91,9 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIds001, TestSize.Level1)
 
 /**
  * @tc.name: RemoveIds001
- * @tc.desc: test RSSpecialLayerManager::RemoveIds remopve skip layer from set
- * @tc.type:FUNC
- * @tc.require:issueIB18WF1
+ * @tc.desc: test RSSpecialLayerManager::RemoveIds remove skip layer from set
+ * @tc.type: FUNC
+ * @tc.require: issueIB18WF1
  */
 HWTEST_F(RSSpecialLayerManagerTest, RemoveIds001, TestSize.Level1)
 {
@@ -103,5 +103,26 @@ HWTEST_F(RSSpecialLayerManagerTest, RemoveIds001, TestSize.Level1)
     slManager.AddIds(SpecialLayerType::SKIP, id);
     slManager.RemoveIds(SpecialLayerType::SKIP, id);
     ASSERT_TRUE(slManager.specialLayerIds_[SpecialLayerType::SKIP].empty());
+}
+
+/**
+ * @tc.name: SetWithScreen001
+ * @tc.desc: test RSSpecialLayerManager::SetWithScreen with blackListNode type
+ * @tc.type: FUNC
+ * @tc.require: issueICTXOD
+ */
+HWTEST_F(RSSpecialLayerManagerTest, SetWithScreen001, TestSize.Level1)
+{
+    RSSpecialLayerManager slManager;
+    uint64_t screenId1 = 1;
+    uint64_t screenId2 = 2;
+    ASSERT_TRUE(slManager.SetWithScreen(screenId1, SpecialLayerType::IS_BLACK_LIST, true));
+    ASSERT_TRUE(slManager.FindWithScreen(screenId1, SpecialLayerType::IS_BLACK_LIST));
+    ASSERT_FALSE(slManager.FindWithScreen(screenId2, SpecialLayerType::IS_BLACK_LIST));
+    ASSERT_FALSE(slManager.FindWithScreen(screenId1, SpecialLayerType::HAS_BLACK_LIST));
+    ASSERT_FALSE(slManager.SetWithScreen(screenId1, SpecialLayerType::IS_BLACK_LIST, true));
+    ASSERT_TRUE(slManager.SetWithScreen(screenId1, SpecialLayerType::IS_BLACK_LIST, false));
+    ASSERT_TRUE(slManager.SetWithScreen(screenId2, SpecialLayerType::IS_BLACK_LIST, false));
+    slManager.ClearScreenSpecialLayer();
 }
 } // namespace OHOS::Rosen

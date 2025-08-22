@@ -862,7 +862,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen mirror source is null");
         return;
     }
-    auto specialLayerType = GetSpecialLayerType(*mirroredParams,
+    auto specialLayerType = GetSpecialLayerType(*mirroredParams, &params,
         enableVisibleRect_ ? params.HasSecLayerInVisibleRect() : true);
     auto virtualProcesser = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     if (!virtualProcesser) {
@@ -1280,15 +1280,15 @@ void RSLogicalDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rota
     }
 }
 
-int32_t RSLogicalDisplayRenderNodeDrawable::GetSpecialLayerType(
-    RSLogicalDisplayRenderParams& params, bool isSecLayerInVisibleRect)
+int32_t RSLogicalDisplayRenderNodeDrawable::GetSpecialLayerType(RSLogicalDisplayRenderParams& mainDisplayParams,
+    RSLogicalDisplayRenderParams* mirrorDisplayParams, bool isSecLayerInVisibleRect)
 {
     auto& uniRenderThread = RSUniRenderThread::Instance();
-    const auto& specialLayerManager = params.GetSpecialLayerMgr();
+    const auto& specialLayerManager = mainDisplayParams.GetSpecialLayerMgr();
     bool hasGeneralSpecialLayer = (specialLayerManager.Find(SpecialLayerType::HAS_SECURITY) &&
         isSecLayerInVisibleRect) || specialLayerManager.Find(SpecialLayerType::HAS_SKIP) ||
         specialLayerManager.Find(SpecialLayerType::HAS_PROTECTED) || uniRenderThread.IsColorFilterModeOn();
-    auto [_, screenParams] = GetScreenParams(params);
+    auto [_, screenParams] = GetScreenParams(mainDisplayParams);
     if (screenParams) {
         hasGeneralSpecialLayer |= screenParams->GetHDRPresent();
     }
@@ -1296,16 +1296,18 @@ int32_t RSLogicalDisplayRenderNodeDrawable::GetSpecialLayerType(
         "HDRPresent:%{public}d, ColorFilter:%{public}d", specialLayerManager.Get(),
         uniRenderThread.IsCurtainScreenOn(), (screenParams && screenParams->GetHDRPresent()),
         uniRenderThread.IsColorFilterModeOn());
+    
+    ScreenId screenId = mirrorDisplayParams ? mirrorDisplayParams->GetScreenId() : mainDisplayParams.GetScreenId();
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
         hasGeneralSpecialLayer |= (specialLayerManager.Find(SpecialLayerType::HAS_SNAPSHOT_SKIP) ||
             uniRenderThread.IsCurtainScreenOn());
     } else {
-        hasGeneralSpecialLayer |= !uniRenderThread.GetWhiteList().empty() || !currentBlackList_.empty() ||
-            !currentTypeBlackList_.empty();
+        hasGeneralSpecialLayer |= !uniRenderThread.GetWhiteList().empty() || !currentTypeBlackList_.empty() ||
+            specialLayerManager.FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST);
     }
     if (hasGeneralSpecialLayer) {
         return HAS_SPECIAL_LAYER;
-    } else if (params.HasCaptureWindow()) {
+    } else if (mainDisplayParams.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
     } else {
         return NO_SPECIAL_LAYER;

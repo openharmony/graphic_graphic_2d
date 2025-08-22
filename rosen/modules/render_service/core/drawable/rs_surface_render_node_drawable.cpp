@@ -1191,8 +1191,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
         enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
         // if its sub tree has a blacklist, skip drawing in UIFirst scenario
+        const auto& screenId = RSUniRenderThread::GetCaptureParam().virtualScreenId_;
         if (RSUniRenderThread::GetCaptureParam().isMirror_ &&
-            surfaceParams.HasBlackListByScreenId(RSUniRenderThread::GetCaptureParam().virtualScreenId_) &&
+            specialLayerManager.FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST) &&
             surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             return;
         }

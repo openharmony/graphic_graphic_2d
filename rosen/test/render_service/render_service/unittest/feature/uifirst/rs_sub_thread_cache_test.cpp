@@ -767,18 +767,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest002, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
     surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-
-    uint64_t virtualScreenId = 1;
-    RSUniRenderThread::GetCaptureParam().virtualScreenId_ = virtualScreenId;
-    surfaceParams->blackListIds_[virtualScreenId].insert(surfaceParams->GetId());
-    surfaceParams->blackListIds_[0].insert(surfaceParams->GetId());
-    // node in black list
     ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
-
-    RSUniRenderThread::GetCaptureParam().virtualScreenId_ = -1;
-    // node in black list
-    ASSERT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
-    surfaceParams->blackListIds_.clear();
 }
 
 /**

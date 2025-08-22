@@ -18,24 +18,49 @@
 #include "platform/common/rs_log.h"
 #include "set"
 
+template <class TYPE_T> inline void AddType(TYPE_T& x,  TYPE_T y)
+{
+    x |= y;
+}
+
+template <class TYPE_T> inline void DeleteType(TYPE_T& x, TYPE_T y)
+{
+    x &= ~y;
+}
+
+template <class TYPE_T> inline void SetType(TYPE_T& x, TYPE_T y, bool flag)
+{
+    if (flag) {
+        AddType(x, y);
+    } else {
+        DeleteType(x, y);
+    }
+}
+
+template <class TYPE_T> inline bool EqualType(TYPE_T x, TYPE_T y)
+{
+    return (x & y) == y;
+}
+
+template <class TYPE_T> inline bool HasType(TYPE_T x, TYPE_T y)
+{
+    return x & y;
+}
+
 namespace OHOS {
 namespace Rosen {
-bool RSSpecialLayerManager::Set(uint32_t type, bool set)
+bool RSSpecialLayerManager::Set(uint32_t type, bool is)
 {
-    if (Find(type) == set) {
+    if (EqualType(specialLayerType_, type) == is) {
         return false;
     }
-    if (set) {
-        specialLayerType_ |= type;
-    } else {
-        specialLayerType_ &= ~type;
-    }
+    SetType(specialLayerType_, type, is);
     return true;
 }
 
 bool RSSpecialLayerManager::Find(uint32_t type) const
 {
-    return specialLayerType_ & type;
+    return HasType(specialLayerType_, type);
 }
 
 uint32_t RSSpecialLayerManager::Get() const
@@ -51,7 +76,7 @@ void RSSpecialLayerManager::AddIds(uint32_t type, NodeId id)
         auto IsSpecial = isType & 1;
         if (IsSpecial) {
             specialLayerIds_[currentType].insert(id);
-            specialLayerType_ |= (currentType << SPECIAL_TYPE_NUM);
+            AddType(specialLayerType_, currentType << SPECIAL_TYPE_NUM);
         }
         isType >>= 1;
         currentType <<= 1;
@@ -67,12 +92,35 @@ void RSSpecialLayerManager::RemoveIds(uint32_t type, NodeId id)
         if (IsSpecial) {
             specialLayerIds_[currentType].erase(id);
             if (specialLayerIds_[currentType].empty()) {
-                specialLayerType_ &= ~(currentType << SPECIAL_TYPE_NUM);
+                DeleteType(specialLayerType_, currentType << SPECIAL_TYPE_NUM);
             }
         }
         isType >>= 1;
         currentType <<= 1;
     }
+}
+
+bool RSSpecialLayerManager::SetWithScreen(uint64_t screenId, uint32_t type, bool is)
+{
+    if (screenSpecialLayer_.find(screenId) != screenSpecialLayer_.end() &&
+        EqualType(screenSpecialLayer_.at(screenId), type) == is) {
+        return false;
+    }
+    SetType(screenSpecialLayer_[screenId], type, is);
+    return true;
+}
+
+bool RSSpecialLayerManager::FindWithScreen(uint64_t screenId, uint32_t type) const
+{
+    if (screenSpecialLayer_.find(screenId) == screenSpecialLayer_.end()) {
+        return false;
+    }
+    return HasType(screenSpecialLayer_.at(screenId), type);
+}
+
+void RSSpecialLayerManager::ClearScreenSpecialLayer()
+{
+    screenSpecialLayer_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS
