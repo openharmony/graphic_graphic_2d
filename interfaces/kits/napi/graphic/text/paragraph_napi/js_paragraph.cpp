@@ -821,7 +821,7 @@ napi_value JsParagraph::GetTextLines(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnGetTextLines(env, info) : nullptr;
 }
 
-napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
+napi_value JsParagraph::OnGetTextLines(napi_env env, [[maybe_unused]] napi_callback_info info)
 {
     if (!paragraph_) {
         TEXT_LOGE("Null paragraph");
