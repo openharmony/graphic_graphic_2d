@@ -15,6 +15,7 @@
 
 #include "feature/opinc/rs_opinc_manager.h"
 #include "gtest/gtest.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -149,6 +150,73 @@ HWTEST_F(RSOpincManagerTest, IsOpincSubTreeDirty, Function | SmallTest | Level1)
 
     rsCanvasRenderNode->GetOpincCache().isSuggestOpincNode_ = false;
     ASSERT_FALSE(opincManager_.IsOpincSubTreeDirty(*rsCanvasRenderNode, true));
+}
+
+/**
+ * @tc.name: QuickMarkStableNode
+ * @tc.desc: Verify the QuickMarkStableNode function
+ * @tc.type: FUNC
+ * @tc.require: #ICTPO0
+ */
+HWTEST_F(RSOpincManagerTest, QuickMarkStableNode, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    auto& opincCache = rsCanvasRenderNode->GetOpincCache();
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    opincCache.isSuggestOpincNode_ = true;
+
+    opincManager_.QuickMarkStableNode(*rsCanvasRenderNode, unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_TRUE(unchangeMarkEnable);
+
+    unchangeMarkInApp = false;
+    unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*rsCanvasRenderNode, unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_FALSE(unchangeMarkEnable);
+
+    unchangeMarkInApp = true;
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    opincManager_.QuickMarkStableNode(*rsCanvasRenderNode, unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_TRUE(unchangeMarkEnable);
+
+    unchangeMarkEnable = false;
+    opincManager_.QuickMarkStableNode(*rsCanvasRenderNode, unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_TRUE(unchangeMarkEnable);
+}
+
+/**
+ * @tc.name: UpdateRootFlag
+ * @tc.desc: Verify the UpdateRootFlag function
+ * @tc.type: FUNC
+ * @tc.require: #ICTPO0
+ */
+HWTEST_F(RSOpincManagerTest, UpdateRootFlag, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    auto& opincCache = rsCanvasRenderNode->GetOpincCache();
+    bool unchangeMarkEnable = false;
+    opincCache.isSuggestOpincNode_ = true;
+
+    opincCache.isOpincRootFlag_ = false;
+    opincManager_.UpdateRootFlag(*rsCanvasRenderNode, unchangeMarkEnable);
+    ASSERT_FALSE(opincCache.isUnchangeMarkEnable_);
+
+    opincCache.isOpincRootFlag_ = true;
+    opincManager_.UpdateRootFlag(*rsCanvasRenderNode, unchangeMarkEnable);
+    ASSERT_FALSE(opincCache.isUnchangeMarkEnable_);
+
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    opincCache.isOpincRootFlag_ = false;
+    opincManager_.UpdateRootFlag(*rsCanvasRenderNode, unchangeMarkEnable);
+    ASSERT_FALSE(rsCanvasRenderNode->stagingRenderParams_->isOpincRootFlag_);
+
+    opincCache.isOpincRootFlag_ = true;
+    opincManager_.UpdateRootFlag(*rsCanvasRenderNode, unchangeMarkEnable);
+    ASSERT_TRUE(rsCanvasRenderNode->stagingRenderParams_->isOpincRootFlag_);
 }
 
 /**
