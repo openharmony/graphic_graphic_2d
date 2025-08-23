@@ -34,6 +34,7 @@ public:
     static napi_status SetTypographyCreate(napi_env env, napi_value obj, std::shared_ptr<TypographyCreate> typographyCreate);
 
     static napi_value Init(napi_env env, napi_value exportObj);
+    static napi_value CreateTransferObj(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
     static napi_value PushStyle(napi_env env, napi_callback_info info);
@@ -53,6 +54,7 @@ private:
     napi_value OnBuildLineTypeset(napi_env env, napi_callback_info info);
     napi_value OnAppendSymbol(napi_env env, napi_callback_info info);
     static thread_local napi_ref constructor_;
+    static thread_local napi_ref noParamConstructor_;
     std::shared_ptr<TypographyCreate> typographyCreate_ = nullptr;
 };
 } // namespace OHOS::Rosen
