@@ -111,7 +111,7 @@ bool Init(const uint8_t* data, size_t size)
 bool DoCreate(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(config);
     RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
     RSSurfaceNode::SharedPtr surfaceNode2 = RSSurfaceNode::Create(config, type);
@@ -121,7 +121,7 @@ bool DoCreate(const uint8_t* data, size_t size)
 bool DoRemoveChild(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     RSSurfaceNodeConfig config1;
     RSSurfaceNode::SharedPtr child = RSSurfaceNode::Create(config1);
@@ -134,7 +134,7 @@ bool DoRemoveChild(const uint8_t* data, size_t size)
 bool DoSetAndGet(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isSecurityLayer = GetData<bool>();
     surfaceNode->SetSecurityLayer(isSecurityLayer);
@@ -166,7 +166,7 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
 bool DoSetBufferAvailableCallback(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     auto func = []() {
         std::cout << "SetBufferAvailableCallback, test upper limit of registered function" << std::endl;
@@ -181,7 +181,7 @@ bool DoSetBufferAvailableCallback(const uint8_t* data, size_t size)
 bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     BoundsChangedCallback callback;
@@ -195,7 +195,7 @@ bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
 bool DoMarshalling(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     Parcel parcel;
     surfaceNode->Marshalling(parcel);
@@ -235,7 +235,7 @@ bool DoAttachToDisplay(const uint8_t* data, size_t size)
 bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     uint64_t screenId = GetData<uint64_t>();
     surfaceNode->DetachToDisplay(screenId);
@@ -247,7 +247,7 @@ bool DoDetachToDisplayAndSetHardwareEnabled(const uint8_t* data, size_t size)
 bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool flag = GetData<bool>();
     surfaceNode->SetForceHardwareAndFixRotation(flag);
@@ -257,7 +257,7 @@ bool DoSetForceHardwareAndFixRotation(const uint8_t* data, size_t size)
 bool DoSetTextureExport(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isTextureExportNode = GetData<bool>();
     surfaceNode->SetTextureExport(isTextureExportNode);
@@ -267,7 +267,7 @@ bool DoSetTextureExport(const uint8_t* data, size_t size)
 bool DoSetContainerWindow(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool hasContainerWindow = GetData<bool>();
     RRect rrect = GetData<RRect>();
@@ -278,7 +278,7 @@ bool DoSetContainerWindow(const uint8_t* data, size_t size)
 bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     uint32_t windowId = GetData<uint32_t>();
     surfaceNode->SetWindowId(windowId);
@@ -291,7 +291,7 @@ bool DoSetWindowIdAndSetFreeze(const uint8_t* data, size_t size)
 bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     RSSurfaceExtConfig config1 = GetData<RSSurfaceExtConfig>();
     surfaceNode->SetSurfaceTexture(config1);
@@ -301,7 +301,7 @@ bool DoSetSurfaceTexture(const uint8_t* data, size_t size)
 bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool available = GetData<bool>();
     surfaceNode->MarkUiFrameAvailable(available);
@@ -311,7 +311,7 @@ bool DoMarkUiFrameAvailable(const uint8_t* data, size_t size)
 bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     RSSurfaceExtConfig config1 = GetData<RSSurfaceExtConfig>();
     surfaceNode->CreateSurfaceExt(config1);
@@ -322,7 +322,7 @@ bool DoCreateSurfaceExt(const uint8_t* data, size_t size)
 bool DoSetForeground(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isForeground = GetData<bool>();
     surfaceNode->SetForeground(isForeground);
@@ -332,7 +332,7 @@ bool DoSetForeground(const uint8_t* data, size_t size)
 bool DoSetForceUIFirst(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool forceUIFirst = GetData<bool>();
     surfaceNode->SetForceUIFirst(forceUIFirst);
@@ -342,7 +342,7 @@ bool DoSetForceUIFirst(const uint8_t* data, size_t size)
 bool DoSetAncoFlags(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     uint32_t flags = GetData<uint32_t>();
     surfaceNode->SetAncoFlags(flags);
@@ -352,7 +352,7 @@ bool DoSetAncoFlags(const uint8_t* data, size_t size)
 bool DoSetWatermark(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     std::string waterMark = GetData<std::string>();
     bool waterMarkEnabled = GetData<bool>();
@@ -363,7 +363,7 @@ bool DoSetWatermark(const uint8_t* data, size_t size)
 bool DoSetHDRPresent(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool hdrPresent = GetData<bool>();
     NodeId id = GetData<NodeId>();
@@ -374,7 +374,7 @@ bool DoSetHDRPresent(const uint8_t* data, size_t size)
 bool DoRSSurfaceNode(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     bool isRenderServiceNode = GetData<bool>();
     RSSurfaceNode surfaceNode1(config, isRenderServiceNode);
     NodeId id = GetData<NodeId>();
@@ -385,7 +385,7 @@ bool DoRSSurfaceNode(const uint8_t* data, size_t size)
 bool DoCreateNode(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     NodeId id = GetData<NodeId>();
     std::string name = GetData<std::string>();
@@ -405,7 +405,7 @@ bool DoCreateNode(const uint8_t* data, size_t size)
 bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     NodeId id = GetData<NodeId>();
     std::string name = GetData<std::string>();
@@ -426,7 +426,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
 bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isTextureExportNode = GetData<bool>();
     surfaceNode->SetIsTextureExportNode(isTextureExportNode);
@@ -436,7 +436,7 @@ bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
 bool DoSplitSurfaceNodeName(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     std::string surfaceNodeName = GetData<std::string>();
     surfaceNode->SplitSurfaceNodeName(surfaceNodeName);
@@ -446,7 +446,7 @@ bool DoSplitSurfaceNodeName(const uint8_t* data, size_t size)
 bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     LeashPersistentId leashPersistentId = GetData<LeashPersistentId>();
     surfaceNode->SetLeashPersistentId(leashPersistentId);
@@ -456,7 +456,7 @@ bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
 bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isEnabled = GetData<bool>();
     surfaceNode->SetGlobalPositionEnabled(isEnabled);
@@ -466,7 +466,7 @@ bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
 bool DoSetSkipDraw(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isSkip = GetData<bool>();
     surfaceNode->SetSkipDraw(isSkip);
@@ -476,7 +476,7 @@ bool DoSetSkipDraw(const uint8_t* data, size_t size)
 bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool needHidePrivacyContent = GetData<bool>();
     surfaceNode->SetHidePrivacyContent(needHidePrivacyContent);
@@ -486,7 +486,7 @@ bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
 bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool hardwareEnable = GetData<bool>();
     surfaceNode->SetHardwareEnableHint(hardwareEnable);
@@ -496,7 +496,7 @@ bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
 bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     uint64_t screenId = GetData<uint64_t>();
     surfaceNode->SetSourceVirtualDisplayId(screenId);
@@ -506,7 +506,7 @@ bool DoSetSourceVirtualScreenId(const uint8_t* data, size_t size)
 bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
 {
     // test
-    RSSurfaceNodeConfig config;
+    auto config = GetRSSurfaceNodeConfigFromData();
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool isEnabled = GetData<bool>();
     surfaceNode->SetFrameGravityNewVersionEnabled(isEnabled);
