@@ -109,7 +109,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{
             "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
         ani_native_function{"addSymbol", "I:V", reinterpret_cast<void*>(AddSymbol)},
-                ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
             "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
