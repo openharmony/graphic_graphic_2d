@@ -270,7 +270,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
 ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
      return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-        objValue = JsParagraphBuilder::Init(napiEnv, objValue);
+        objValue = JsParagraphBuilder::CreateTransferObj(napiEnv, objValue);
         napi_value dynamicObj = nullptr;
         napi_status status = JsParagraphBuilder::CreateTypographyCreate(napiEnv, objValue, &dynamicObj);
         if (status != napi_ok || dynamicObj == nullptr) {
