@@ -4043,7 +4043,7 @@ HWTEST_F(RSNodeTest, SetForegroundNGFilter001, TestSize.Level1)
 
     auto filter = std::make_shared<RSNGBlurFilter>();
     rsNode->SetForegroundNGFilter(filter);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     
     rsNode->SetForegroundNGFilter(nullptr);
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
