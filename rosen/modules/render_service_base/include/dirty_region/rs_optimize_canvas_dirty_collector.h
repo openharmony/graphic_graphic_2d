@@ -28,7 +28,7 @@ class RSB_EXPORT RSOptimizeCanvasDirtyCollector {
 public:
     static RSOptimizeCanvasDirtyCollector& GetInstance();
 
-    RectF CalcCmdlistDrawRegionFromOpItem(std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
+    RectF CalcCmdlistDrawRegionFromOpItem(const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier);
     void SetOptimizeCanvasDirtyPidList(const std::vector<pid_t>& pidList);
     bool IsOptimizeCanvasDirtyEnabled(NodeId nodeId) const;
 

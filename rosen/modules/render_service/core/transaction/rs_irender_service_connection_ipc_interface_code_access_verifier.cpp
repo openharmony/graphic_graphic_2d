@@ -609,11 +609,13 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::FREEZE_SCREEN");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST");
+            break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
+            break;
         }
         default: {
             break;

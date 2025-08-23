@@ -38,7 +38,7 @@ RSOptimizeCanvasDirtyCollector::~RSOptimizeCanvasDirtyCollector() noexcept
 }
 
 RectF RSOptimizeCanvasDirtyCollector::CalcCmdlistDrawRegionFromOpItem(
-    std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
+    const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
 {
     auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
     auto propertyPtr =

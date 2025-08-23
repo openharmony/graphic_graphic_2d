@@ -1710,7 +1710,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest001,
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     data.WriteInt32(-1);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -1729,7 +1729,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest002,
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     std::vector<int32_t> pidList;
     data.WriteInt32Vector(pidList);
@@ -1749,7 +1749,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest003,
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
     data.WriteInt32Vector(pidList);
@@ -1770,7 +1770,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest004,
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     std::vector<int32_t> pidList;
     data.WriteInt32Vector(pidList);
@@ -1796,7 +1796,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetGpuCrcDirtyEnabledPidListTest005,
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
     data.WriteInt32Vector(pidList);
@@ -1822,7 +1822,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest001
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     data.WriteInt32(-1);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -1841,7 +1841,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest002
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     std::vector<int32_t> pidList = {1};
     data.WriteInt32Vector(pidList);
@@ -1861,12 +1861,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest003
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     std::vector<int32_t> pidList(INVALID_PIDLIST_SIZE, 0);
     data.WriteInt32Vector(pidList);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_NONE);
+    ASSERT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**
