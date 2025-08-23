@@ -56,15 +56,6 @@ T GetData()
 }
 bool DoIsValid(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -76,15 +67,6 @@ bool DoIsValid(const uint8_t* data, size_t size)
 
 bool DoRequestFrame(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -96,15 +78,6 @@ bool DoRequestFrame(const uint8_t* data, size_t size)
 }
 bool DoFlushFrame(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -115,15 +88,6 @@ bool DoFlushFrame(const uint8_t* data, size_t size)
 }
 bool DoSetColorSpace(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -133,15 +97,6 @@ bool DoSetColorSpace(const uint8_t* data, size_t size)
 }
 bool DoSetSurfaceBufferUsage(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -151,15 +106,6 @@ bool DoSetSurfaceBufferUsage(const uint8_t* data, size_t size)
 }
 bool DoSetSurfacePixelFormat(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -169,15 +115,6 @@ bool DoSetSurfacePixelFormat(const uint8_t* data, size_t size)
 }
 bool DoSetUiTimeStamp(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -188,15 +125,6 @@ bool DoSetUiTimeStamp(const uint8_t* data, size_t size)
 }
 bool DoSetSkContext(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -206,15 +134,6 @@ bool DoSetSkContext(const uint8_t* data, size_t size)
 }
 bool DoSetNativeWindowInfo(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -226,15 +145,6 @@ bool DoSetNativeWindowInfo(const uint8_t* data, size_t size)
 }
 bool DoRequestNativeWindowBuffer(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -250,15 +160,6 @@ bool DoRequestNativeWindowBuffer(const uint8_t* data, size_t size)
 }
 bool DoCreateVkSemaphore(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
@@ -275,7 +176,7 @@ bool DoCreateVkSemaphore(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     // initialize
-    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::DATA = data;
     OHOS::Rosen::g_size = size;
     OHOS::Rosen::g_pos = 0;
 
