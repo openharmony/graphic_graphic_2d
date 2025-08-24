@@ -824,13 +824,6 @@ void RSRenderService::RegisterMemFuncs()
         mainThread_->ScheduleTask([this, &dumpString]() { DumpAllNodesMemSize(dumpString); }).wait();
     };
 
-    // trim mem
-    RSDumpFunc trimMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
-                                    std::string &dumpString) -> void {
-        mainThread_->ScheduleTask([this, &argSets, &dumpString]() { return mainThread_->TrimMem(argSets, dumpString); })
-            .wait();
-    };
-
     // Mem
     RSDumpFunc memDumpFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                     std::string &dumpString) -> void {
@@ -847,7 +840,6 @@ void RSRenderService::RegisterMemFuncs()
     std::vector<RSDumpHander> handers = {
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
-        { RSDumpID::TRIM_MEM_INFO, trimMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
     };

@@ -311,53 +311,6 @@ HWTEST_F(RSUniRenderThreadTest, SubScribeSystemAbility001, TestSize.Level1)
 #endif
 
 /**
- * @tc.name: TrimMem001
- * @tc.desc: Test TrimMem
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, TrimMem001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    instance.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
-    instance.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
-    std::string dumpString = "";
-    std::string type = "";
-    instance.TrimMem(dumpString, type);
-    EXPECT_TRUE(type.empty());
-
-    dumpString = "";
-    type = "cpu";
-    instance.TrimMem(dumpString, type);
-    dumpString = "";
-    type = "gpu";
-    instance.TrimMem(dumpString, type);
-    EXPECT_FALSE(type.empty());
-
-    dumpString = "";
-    type = "uihidden";
-    instance.TrimMem(dumpString, type);
-    dumpString = "";
-    type = "unlock";
-    instance.TrimMem(dumpString, type);
-    EXPECT_FALSE(type.empty());
-
-    dumpString = "";
-    type = "shader";
-    instance.TrimMem(dumpString, type);
-    dumpString = "";
-    type = "flushcache";
-    instance.TrimMem(dumpString, type);
-    EXPECT_FALSE(type.empty());
-
-    dumpString = "";
-    type = "setgpulimit";
-    instance.TrimMem(dumpString, type);
-    EXPECT_FALSE(type.empty());
-}
-
-/**
  * @tc.name: ClearMemoryCache001
  * @tc.desc: Test ClearMemoryCache
  * @tc.type: FUNC

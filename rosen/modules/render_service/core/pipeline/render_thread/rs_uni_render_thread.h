@@ -99,7 +99,6 @@ public:
     ClearMemoryMoment GetClearMoment() const;
     uint32_t GetRefreshRate() const;
     void DumpMem(DfxString& log);
-    void TrimMem(std::string& dumpString, std::string& type);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     uint64_t GetFrameCount() const
     {

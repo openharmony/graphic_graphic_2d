@@ -4218,22 +4218,6 @@ bool RSMainThread::IsResidentProcess(pid_t pid) const
     return pid == ExtractPid(context_->GetNodeMap().GetEntryViewNodeId());
 }
 
-void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString)
-{
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        dumpString.append("\n---------------\nNot in UniRender and no resource can be released");
-        return;
-    }
-    std::string type;
-    argSets.erase(u"trimMem");
-    if (!argSets.empty()) {
-        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    }
-    RSUniRenderThread::Instance().TrimMem(dumpString, type);
-#endif
-}
-
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
     std::string& type, pid_t pid)
 {
