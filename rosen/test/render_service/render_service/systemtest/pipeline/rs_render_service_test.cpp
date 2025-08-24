@@ -219,26 +219,4 @@ HWTEST_F(RSRenderServiceTest, TestRenderService013, TestSize.Level1)
     int ret = system(rsCmd.c_str());
     ASSERT_EQ(ret, 0);
 }
-
-/**
- * @tc.name: TestRenderService014
- * @tc.desc: trimMem test.
- * @tc.type: FUNC
- * @tc.require: issueI78T3Z
- */
-HWTEST_F(RSRenderServiceTest, TestRenderService014, TestSize.Level1)
-{
-    std::string rsCmd = defaultCmd_ + " -a 'trimMem cpu'";
-    int ret = system(rsCmd.c_str());
-    ASSERT_EQ(ret, 0);
-    rsCmd = defaultCmd_ + " -a 'trimMem gpu'";
-    ret = system(rsCmd.c_str());
-    ASSERT_EQ(ret, 0);
-    rsCmd = defaultCmd_ + " -a 'trimMem shader'";
-    ret = system(rsCmd.c_str());
-    ASSERT_EQ(ret, 0);
-    rsCmd = defaultCmd_ + " -a 'trimMem uihidden'";
-    ret = system(rsCmd.c_str());
-    ASSERT_EQ(ret, 0);
-}
 } // namespace OHOS::Rosen

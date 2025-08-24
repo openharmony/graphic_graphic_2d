@@ -782,59 +782,6 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
 }
 
-void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
-{
-    auto task = [this, &dumpString, &type] {
-        std::string typeGpuLimit = "setgpulimit";
-        std::string avcodecVideo = "avcodecVideo";
-        if (!uniRenderEngine_) {
-            return;
-        }
-        auto renderContext = uniRenderEngine_->GetRenderContext();
-        if (!renderContext) {
-            return;
-        }
-        auto gpuContext = renderContext->GetDrGPUContext();
-        if (gpuContext == nullptr) {
-            return;
-        }
-        if (type.empty()) {
-            TrimMemEmptyType(gpuContext);
-        } else if (type == "cpu") {
-            gpuContext->Flush();
-            SkGraphics::PurgeAllCaches();
-            gpuContext->FlushAndSubmit(true);
-        } else if (type == "gpu") {
-            gpuContext->Flush();
-            gpuContext->FreeGpuResources();
-            gpuContext->FlushAndSubmit(true);
-        } else if (type == "uihidden") {
-            gpuContext->Flush();
-            gpuContext->PurgeUnlockAndSafeCacheGpuResources();
-            gpuContext->FlushAndSubmit(true);
-        } else if (type == "unlock") {
-            gpuContext->Flush();
-            gpuContext->PurgeUnlockedResources(false);
-            gpuContext->FlushAndSubmit(true);
-        } else if (type == "shader") {
-            TrimMemShaderType();
-        } else if (type == "flushcache") {
-            int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
-            dumpString.append("flushcache " + std::to_string(ret) + "\n");
-        } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
-            TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
-        } else if (type.substr(0, avcodecVideo.length()) == avcodecVideo) {
-            RSJankStats::GetInstance().AvcodecVideoDump(dumpString, type, avcodecVideo);
-        } else {
-            uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
-            MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
-        }
-        dumpString.append("trimMem: " + type + "\n");
-    };
-    PostSyncTask(task);
-}
-
 void RSUniRenderThread::DumpMem(DfxString& log)
 {
     std::vector<std::pair<NodeId, std::string>> nodeTags;

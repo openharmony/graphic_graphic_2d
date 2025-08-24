@@ -146,9 +146,6 @@ void DoDumpSingleArg(sptr<RSRenderService> renderService)
     dumpResult = GetDumpResult(renderService, u"h");
     ASSERT_TRUE(dumpResult.find("help") != std::string::npos);
 
-    dumpResult = GetDumpResult(renderService, u"trimMem");
-    ASSERT_TRUE(dumpResult.find("trimMem") != std::string::npos);
-
     dumpResult = GetDumpResult(renderService, u"dumpMem");
     ASSERT_TRUE(dumpResult.find("dumpMem") != std::string::npos);
 
