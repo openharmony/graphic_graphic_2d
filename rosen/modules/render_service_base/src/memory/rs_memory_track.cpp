@@ -197,6 +197,11 @@ void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
     log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
 }
 
+void MemoryTrack::RemovePidRecord(const pid_t pid)
+{
+    memNodeOfPidMap_.erase(pid);
+}
+
 void MemoryTrack::UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid)
 {
     std::lock_guard<std::mutex> lock(mutex_);

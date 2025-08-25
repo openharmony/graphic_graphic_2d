@@ -177,6 +177,7 @@ void RSRenderServiceConnection::CleanRenderNodes() noexcept
     }
     auto& context = mainThread_->GetContext();
     auto& nodeMap = context.GetMutableNodeMap();
+    MemoryTrack::Instance().RemovePidRecord(remotePid_);
 
     nodeMap.FilterNodeByPid(remotePid_);
 }
