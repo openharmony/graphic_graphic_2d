@@ -135,9 +135,12 @@ void RSDrmUtil::MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& no
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
     const std::shared_ptr<RSScreenRenderNode>& curScreenNode)
 {
+    if (node == nullptr) {
+        return;
+    }
     static bool isMockAllBlurEffectIntersectWithDRMEnabled = DRMParam::IsMockAllBlurEffectIntersectWithDRMEnable();
     if (isMockAllBlurEffectIntersectWithDRMEnabled) {
-        // mock all blurEffect for pc
+        // mark all blurEffect for pc
         MarkAllBlurIntersectWithDRM(node, drmNodes, curScreenNode);
     } else {
         MarkBlurIntersectWithDRM(node, drmNodes);

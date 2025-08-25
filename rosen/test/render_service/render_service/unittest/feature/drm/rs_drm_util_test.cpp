@@ -412,7 +412,6 @@ HWTEST_F(RSDrmUtilTest, MarkAllBlurIntersectWithDRM006, TestSize.Level1)
     ScreenId screenId = 0;
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
-    ASSERT_NE(screenNode, nullptr);
     screenNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
     screenNode->curMainAndLeashSurfaceNodes_.push_back(drmNode);
 
@@ -459,7 +458,6 @@ HWTEST_F(RSDrmUtilTest, MarkAllBlurIntersectWithDRM007, TestSize.Level1)
     ScreenId screenId = 0;
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
-    ASSERT_NE(screenNode, nullptr);
     screenNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
     screenNode->curMainAndLeashSurfaceNodes_.push_back(drmNode);
 
@@ -507,7 +505,6 @@ HWTEST_F(RSDrmUtilTest, MarkAllBlurIntersectWithDRM008, TestSize.Level1)
     ScreenId screenId = 0;
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
-    ASSERT_NE(screenNode, nullptr);
     screenNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
     screenNode->curMainAndLeashSurfaceNodes_.push_back(drmNode);
 

@@ -1173,6 +1173,7 @@ void RSHardwareThread::ContextRegisterPostTask()
             context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
         }
         RsVulkanContext::GetSingleton().SetIsProtected(false);
+        context = RsVulkanContext::GetSingleton().GetDrawingContext();
         if (context) {
             context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
         }
