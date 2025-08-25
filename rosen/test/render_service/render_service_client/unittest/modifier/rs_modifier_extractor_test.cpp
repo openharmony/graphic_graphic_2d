@@ -91,7 +91,7 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     EXPECT_EQ(extractor.GetBgImagePositionY(), 0.f);
     EXPECT_EQ(extractor.GetBorderColor(), Vector4<Color>(RgbPalette::Transparent()));
     EXPECT_EQ(extractor.GetBorderWidth(), Vector4f(0.f));
-    EXPECT_EQ(extractor.GetBorderStyle(), Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)));
+    EXPECT_EQ(extractor.GetBorderStyle(), Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::SOLID)));
 
     EXPECT_EQ(extractor.GetFrameGravity(), Gravity::DEFAULT);
     EXPECT_EQ(extractor.GetClipBounds(), nullptr);
