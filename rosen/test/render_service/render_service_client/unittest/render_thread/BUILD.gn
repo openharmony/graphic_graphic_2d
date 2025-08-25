@@ -24,6 +24,7 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
 
   sources = [
     "rs_render_thread_visitor_test.cpp",
+    "rs_render_thread_stats_test.cpp",
   ]
 
   configs = [
@@ -41,6 +42,9 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
     "$graphic_2d_root/rosen/modules/render_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client",
     "$graphic_2d_root/rosen/modules/frame_report/include",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
@@ -48,16 +52,21 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
+    "ability_runtime:app_manager",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 }
 
 ###############################################################################
