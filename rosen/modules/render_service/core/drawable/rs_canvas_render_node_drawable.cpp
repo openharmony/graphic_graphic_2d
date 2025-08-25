@@ -67,11 +67,10 @@ bool RSCanvasRenderNodeDrawable::QuickGetDrawState(RSPaintFilterCanvas& rscanvas
 }
 #endif
 
-bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode(Drawing::Canvas& canvas)
+bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode()
 {
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    return (canvas.GetUICapture() && captureParam.endNodeId_ != INVALID_NODEID &&
-        GetId() == captureParam.endNodeId_);
+    return (captureParam.endNodeId_ != INVALID_NODEID && GetId() == captureParam.endNodeId_);
 }
 
 /*
@@ -81,7 +80,8 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
-    bool shouldPaint = ShouldPaint() || IsUiRangeCaptureEndNode(canvas);
+    // Draw only when should paint is valid or when this node is the end node of the range ui-capture
+    bool shouldPaint = ShouldPaint() || (canvas.GetUICapture() && IsUiRangeCaptureEndNode());
     if (!shouldPaint) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
@@ -162,7 +162,8 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool shouldPaint = ShouldPaint() || IsUiRangeCaptureEndNode(canvas);
+    // Capture only when should paint is valid or when this node is the end node of the range ui-capture
+    bool shouldPaint = ShouldPaint() || (canvas.GetUICapture() && IsUiRangeCaptureEndNode());
     if (!shouldPaint) {
         return;
     }

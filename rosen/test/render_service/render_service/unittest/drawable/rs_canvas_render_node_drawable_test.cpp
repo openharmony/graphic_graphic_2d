@@ -256,24 +256,18 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsUiRangeCaptureEndNodeTest, TestSize.Lev
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    canvas.SetUICapture(false);
     CaptureParam params;
     params.endNodeId_ = INVALID_NODEID;
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), false);
-
-    canvas.SetUICapture(true);
-    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), false);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(), false);
 
     params.endNodeId_ = 4;
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), false);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(), false);
 
     params.endNodeId_ = drawable->GetId();
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(canvas), true);
+    ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(), true);
 }
 }
