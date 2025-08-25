@@ -130,6 +130,10 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         auto appVoteDataIter = appVoteData_.find(linker.first);
         if (appVoteDataIter != appVoteData_.end()) {
             expectedRange.preferred_ = static_cast<int32_t>(appVoteDataIter->second.first);
+            expectedRange.max_ =
+                expectedRange.max_ > expectedRange.preferred_ ? expectedRange.max_ : expectedRange.preferred_;
+            expectedRange.min_ =
+                expectedRange.min_ < expectedRange.preferred_ ? expectedRange.min_ : expectedRange.preferred_;
             isForceUseAppVSync = static_cast<bool>(appVoteDataIter->second.second);
         }
     }
