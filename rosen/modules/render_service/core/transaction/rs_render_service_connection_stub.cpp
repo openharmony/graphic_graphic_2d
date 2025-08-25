@@ -3488,9 +3488,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
             ScreenId id{INVALID_SCREEN_ID};
-            uint8_t screenStatus{0};
-            if (!data.ReadUint64(id) || !data.ReadUint8(screenStatus)) {
+            uint32_t screenStatus{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(screenStatus)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_STATUS Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (screenStatus > static_cast<uint32_t>(VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_STATUS screenStatus is invalid!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
