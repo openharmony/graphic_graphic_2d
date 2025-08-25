@@ -31,14 +31,18 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-    const std::string LOCAL_PATH = "/system/etc/SwitchOffList/";
-    const std::string CLOUD_PATH = "/data/service/el1/public/update/param_service/install/system/etc/SwitchOffList/";
-    const std::string TARGET_SWITCH = "disable_ddgr_5_1_1_a";
-    constexpr int32_t VERSION_LEN = 4;
+const std::string LOCAL_PATH = "/system/etc/SwitchOffList/";
+const std::string CLOUD_PATH = "/data/service/el1/public/update/param_service/install/system/etc/SwitchOffList/";
+const std::string TARGET_SWITCH = "disable_ddgr_5_1_1_a"; // the switch to disable DDGR
+constexpr int32_t VERSION_LEN = 4; // the number of digits extracted from the fixed format string "x.x.x.x"
+const std::string RECEIVE_UPDATE_PERMISSION = "ohos.permission.RECEIVE_UPDATE_MESSAGE"; // permission to get message
+const std::string CONFIG_UPDATED_ACTION = "usual.event.DUE_SA_CFG_UPDATED"; // common event of parameter update
+static constexpr int32_t RETRY_SUBSCRIBER = 10; // retry up to 10 times to start subscribing
+}
 
-    const std::string RECEIVE_UPDATE_PERMISSION = "ohos.permission.RECEIVE_UPDATE_MESSAGE";
-    const std::string CONFIG_UPDATED_ACTION = "usual.event.DUE_SA_CFG_UPDATED";
-    static constexpr int32_t RETRY_SUBSCRIBER = 10;
+RSParamManager::~RSParamManager()
+{
+    UnSubscribeEvent();
 }
 
 RSParamManager& RSParamManager::GetInstance()
@@ -74,8 +78,8 @@ bool RSParamManager::IsCloudDisableDDGR()
 // Get path which contains a higher version configration file
 std::string RSParamManager::GetHigherVersionPath()
 {
-    std::string localVersionFile = LOCAL_PATH + "version.txt"; // local path
-    std::string cloudVersionFile = CLOUD_PATH + "version.txt"; // cloud path
+    std::string localVersionFile = LOCAL_PATH + "version.txt"; // local version path
+    std::string cloudVersionFile = CLOUD_PATH + "version.txt"; // cloud version path
     std::vector<std::string> localVersionNums = GetVersionNums(localVersionFile);
     std::vector<std::string> cloudVersionNums = GetVersionNums(cloudVersionFile);
     if (CompareVersion(localVersionNums, cloudVersionNums)) {
@@ -115,7 +119,7 @@ std::vector<std::string> RSParamManager::GetVersionNums(const std::string& fileP
         RS_LOGD("RSParamManager::GetVersionNums: version num is not valid, expected format 'key=value'.");
         return {};
     }
-    if (versionStr[1].empty()) {
+    if (versionStr[1].empty()) { // index 1 indicates string representing the version number.
         RS_LOGD("RSParamManager::GetVersionNums: version value is empty.");
         return {};
     }
@@ -193,7 +197,7 @@ void RSParamManager::UnSubscribeEvent()
     handleEventFunc_.clear();
     if (subscriber_) {
         bool subscribeResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
-        subscriber_ = nullptr;
+        subscriber_.reset();
     }
 }
 
@@ -217,12 +221,14 @@ void RSParamManager::HandleParamUpdate(const AAFwk::Want &want)
         RS_LOGD("RSParamManager::HandleParamUpdate: Invalid sensor param update info: %{public}s", action.c_str());
         return;
     }
+    // "1" indicates parameter update has been detected but has not restarted, it will revert to "0" once restarted.
     bool setParamResult = system::SetParameter("debug.graphic.cloudpushrestart", "1");
     if (!setParamResult) {
         RS_LOGE("RSParamManager::HandleParamUpdate: Failed to set parameter 'debug.graphic.cloudpushrestart'");
         return;
     }
     if (IsCloudDisableDDGR()) {
+        // "1" indicates succeed to find the switch to disable DDGR, while "0" means it was not.
         setParamResult = system::SetParameter("persist.rosen.disableddgr.enabled", "1");
         if (!setParamResult) {
             RS_LOGE("RSParamManager::HandleParamUpdate: Failed to set cloudpush parameter to 1'");

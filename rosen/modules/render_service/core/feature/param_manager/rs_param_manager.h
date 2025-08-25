@@ -29,7 +29,7 @@ namespace Rosen {
 class RSParamManager {
 public:
     RSParamManager() = default;
-    ~RSParamManager() = default;
+    ~RSParamManager();
     static RSParamManager& GetInstance();
 
     RSParamManager(const RSParamManager&) = delete;
@@ -72,11 +72,9 @@ private:
 
         void OnReceiveEvent(const EventFwk::CommonEventData &data) override
         {
-            std::lock_guard<std::mutex> lock(mutex_);
             registry_.OnReceiveEvent(data.GetWant());
         }
     private:
-        std::mutex mutex_;
         RSParamManager& registry_;
     };
 
