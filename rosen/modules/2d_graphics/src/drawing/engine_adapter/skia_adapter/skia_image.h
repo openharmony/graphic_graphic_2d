@@ -126,10 +126,6 @@ public:
 
     void PostSkImgToTargetThread();
 
-    void SetSupportOpaqueOpt(bool supportOpaqueOpt) override;
-
-    bool GetSupportOpaqueOpt() const override;
-
     void SetHeadroom(float headroom) override;
     float GetHeadroom() const override;
 private:

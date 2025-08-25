@@ -233,16 +233,6 @@ bool Image::Deserialize(std::shared_ptr<Data> data)
     return imageImplPtr->Deserialize(data);
 }
 
-void Image::SetSupportOpaqueOpt(bool supportOpaqueOpt)
-{
-    imageImplPtr->SetSupportOpaqueOpt(supportOpaqueOpt);
-}
-
-bool Image::GetSupportOpaqueOpt() const
-{
-    return imageImplPtr->GetSupportOpaqueOpt();
-}
-
 void Image::SetHeadroom(float headroom)
 {
     imageImplPtr->SetHeadroom(headroom);
