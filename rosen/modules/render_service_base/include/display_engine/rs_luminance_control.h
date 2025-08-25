@@ -26,6 +26,7 @@ namespace Rosen {
 
 namespace RSLuminanceConst {
     constexpr float DEFAULT_CAPTURE_HDR_NITS = 1000.0f;
+    constexpr float DEFAULT_CAPTURE_SDR_NITS = 203.0f;
     constexpr float DEFAULT_CAST_HDR_NITS = 1000.0f;
     constexpr float DEFAULT_CAST_SDR_NITS = 203.0f;
 }

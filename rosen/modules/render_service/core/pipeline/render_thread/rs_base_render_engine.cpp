@@ -511,10 +511,13 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isTmoNitsFixed) {
-        parameter.sdrNits = DEFAULT_DISPLAY_NIT;
+        parameter.sdrNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
+            RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS : DEFAULT_DISPLAY_NIT;
         parameter.tmoNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
             RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
-        parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
+        parameter.currentDisplayNits = hdrProperties.screenshotType ==
+            RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
+            RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     } else if (hdrProperties.isHDREnabledVirtualScreen) {
         parameter.sdrNits = RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
