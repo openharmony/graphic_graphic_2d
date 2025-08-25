@@ -198,7 +198,10 @@ public:
      *
      * @return Returns the value of fd.
      */
-    int32_t GetFd() { return fd_; }
+    int32_t GetFd()
+    {
+        return fd_;
+    }
 
     /* transfer the FD to other process(want to use the FD),
       the current process does not use the FD, so close FD, but not close vsync connection
@@ -225,6 +228,14 @@ public:
     virtual bool IsRequestedNextVSync();
 
     /**
+     * @brief UI Dvsync feature switch on or switch off.
+     *
+     * @param dvsyncSwitch true: switch on, false: switch off.
+     * @return Returns an error code.
+     */
+    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
+
+    /**
      * @brief callback will be called when isOpen is true, and stop when isOpen is false.
      *
      * @param callback is a callback function which will be called when next vsync signal comes.
@@ -232,14 +243,6 @@ public:
      * @return Returns an error code.
      */
     virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
-
-    /**
-     * @brief UI Dvsync feature switch on or switch off.
-     *
-     * @param dvsyncSwitch true: switch on, false: switch off.
-     * @return Returns an error code.
-     */
-    virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
 
     /**
      * @brief set Dvsync dynamic configuration.

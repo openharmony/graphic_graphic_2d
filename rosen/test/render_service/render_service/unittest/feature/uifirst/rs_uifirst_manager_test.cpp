@@ -3025,6 +3025,13 @@ HWTEST_F(RSUifirstManagerTest, AddMarkedClearCacheNodeTest, TestSize.Level1)
     uifirstManager_.AddMarkedClearCacheNode(0);
     ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
 
+    for (int i = 0; i < 1000; i++) {
+        uifirstManager_.AddMarkedClearCacheNode(i);
+    }
+    // max node count is 500
+    ASSERT_NE(uifirstManager_.markedClearCacheNodes_.size(), 1000);
+
+    uifirstManager_.markedClearCacheNodes_.clear();
     uifirstManager_.AddMarkedClearCacheNode(1);
     ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 1);
 }

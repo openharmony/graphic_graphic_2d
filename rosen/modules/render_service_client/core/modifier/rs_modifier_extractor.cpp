@@ -55,631 +55,454 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
         return value;                                                                                  \
     } while (0)
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBounds() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, BOUNDS, BOUNDS, Vector4f(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetFrame() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, FRAME, FRAME, Vector4f(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetPositionZ() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, POSITION_Z, 0.f, +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector2f RSModifierExtractor::GetPivot() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector2f, TRANSFORM, PIVOT, Vector2f(0.5f, 0.5f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetPivotZ() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, PIVOT_Z, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Quaternion RSModifierExtractor::GetQuaternion() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Quaternion, TRANSFORM, QUATERNION, Quaternion(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetRotation() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, ROTATION, 0.f, +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetRotationX() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, ROTATION_X, 0.f, +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetRotationY() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, ROTATION_Y, 0.f, +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetCameraDistance() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, CAMERA_DISTANCE, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector2f RSModifierExtractor::GetTranslate() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector2f, TRANSFORM, TRANSLATE, Vector2f(0.f, 0.0f), +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetTranslateZ() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, TRANSLATE_Z, 0.f, +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector2f RSModifierExtractor::GetScale() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector2f, TRANSFORM, SCALE, Vector2f(1.f, 1.f), *=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetScaleZ() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, TRANSFORM, SCALE_Z, 1.f, *=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector3f RSModifierExtractor::GetSkew() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector3f, TRANSFORM, SKEW, Vector3f(0.f, 0.f, 0.f), +=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetPersp() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, TRANSFORM, PERSP, Vector4f(0.f, 0.f, 0.f, 1.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetAlpha() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, ALPHA, ALPHA, 1.f, *=);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetAlphaOffscreen() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, ALPHA, ALPHA_OFFSCREEN, true, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetCornerRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, CLIP_TO_BOUNDS, CORNER_RADIUS, Vector4f(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Color RSModifierExtractor::GetForegroundColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, FOREGROUND_COLOR, FOREGROUND_COLOR, RgbPalette::Transparent(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Color RSModifierExtractor::GetBackgroundColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, BACKGROUND_COLOR, BACKGROUND_COLOR, RgbPalette::Transparent(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::shared_ptr<RSShader> RSModifierExtractor::GetBackgroundShader() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSShader>, BACKGROUND_SHADER, BACKGROUND_SHADER, nullptr, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::shared_ptr<RSImage> RSModifierExtractor::GetBgImage() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSImage>, BACKGROUND_IMAGE, BG_IMAGE, nullptr, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBgImageDstRect() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, BACKGROUND_IMAGE, BG_IMAGE_RECT, Vector4f(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBgImageWidth() const
 {
     Vector4f imageRect = GetBgImageDstRect();
     return imageRect[2]; // 2 index of width
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBgImageHeight() const
 {
     Vector4f imageRect = GetBgImageDstRect();
     return imageRect[3]; // 3 index of height
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBgImagePositionX() const
 {
     Vector4f imageRect = GetBgImageDstRect();
     return imageRect[0]; // 0 index of position x
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBgImagePositionY() const
 {
     Vector4f imageRect = GetBgImageDstRect();
     return imageRect[1]; // 1 index of position y
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4<Color> RSModifierExtractor::GetBorderColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4<Color>, BORDER, BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBorderWidth() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, BORDER, BORDER_WIDTH, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         Vector4<uint32_t>, BORDER, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::SOLID)), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBorderDashWidth() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, BORDER, BORDER_DASH_WIDTH, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetBorderDashGap() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, BORDER, BORDER_DASH_GAP, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4<Color> RSModifierExtractor::GetOutlineColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         Vector4<Color>, OUTLINE, OUTLINE_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetOutlineWidth() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, OUTLINE, OUTLINE_WIDTH, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4<uint32_t> RSModifierExtractor::GetOutlineStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         Vector4<uint32_t>, OUTLINE, OUTLINE_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetOutlineDashWidth() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, OUTLINE, OUTLINE_DASH_WIDTH, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetOutlineDashGap() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, OUTLINE, OUTLINE_DASH_GAP, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetOutlineRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, OUTLINE, OUTLINE_RADIUS, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetForegroundEffectRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, FOREGROUND_FILTER, FOREGROUND_EFFECT_RADIUS, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Color RSModifierExtractor::GetShadowColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, SHADOW, SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetShadowOffsetX() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_OFFSET_X, DEFAULT_SHADOW_OFFSET_X, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetShadowOffsetY() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_OFFSET_Y, DEFAULT_SHADOW_OFFSET_Y, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetShadowAlpha() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_ALPHA, 1.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetShadowElevation() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_ELEVATION, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetShadowRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_RADIUS, DEFAULT_SHADOW_RADIUS, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::shared_ptr<RSPath> RSModifierExtractor::GetShadowPath() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSPath>, SHADOW, SHADOW_PATH, nullptr, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetShadowMask() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(int, SHADOW, SHADOW_MASK, SHADOW_MASK_STRATEGY::MASK_NONE, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetShadowIsFilled() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, SHADOW, SHADOW_IS_FILLED, false, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetShadowColorStrategy() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(int, SHADOW, SHADOW_COLOR_STRATEGY, SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Gravity, CLIP_TO_FRAME, FRAME_GRAVITY, Gravity::DEFAULT, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::shared_ptr<RSPath> RSModifierExtractor::GetClipBounds() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSPath>, CLIP_TO_BOUNDS, CLIP_BOUNDS, nullptr, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetClipToBounds() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, CLIP_TO_BOUNDS, CLIP_TO_BOUNDS, false, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetClipToFrame() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, CLIP_TO_FRAME, CLIP_TO_FRAME, false, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetVisible() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, VISIBILITY, VISIBLE, true, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::shared_ptr<RSMask> RSModifierExtractor::GetMask() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(std::shared_ptr<RSMask>, MASK, MASK, nullptr, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetSpherizeDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, FOREGROUND_FILTER, SPHERIZE, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetHDRUIBrightness() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_UI_BRIGHTNESS, 1.0f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetAttractionFractionValue() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, FOREGROUND_FILTER, ATTRACTION_FRACTION, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector2f RSModifierExtractor::GetAttractionDstPointValue() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector2f, FOREGROUND_FILTER, ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetHDRBrightnessFactor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_BRIGHTNESS_FACTOR, 1.0f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, LIGHT_UP_EFFECT_DEGREE, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetDynamicDimDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, DYNAMIC_DIM_DEGREE, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBackgroundBlurRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, BACKGROUND_FILTER, BACKGROUND_BLUR_RADIUS, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBackgroundBlurSaturation() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, BACKGROUND_FILTER, BACKGROUND_BLUR_SATURATION, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBackgroundBlurBrightness() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, BACKGROUND_FILTER, BACKGROUND_BLUR_BRIGHTNESS, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Color RSModifierExtractor::GetBackgroundBlurMaskColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, BACKGROUND_FILTER, BACKGROUND_BLUR_MASK_COLOR, RSColor(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetBackgroundBlurColorMode() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(int, BACKGROUND_FILTER, BACKGROUND_BLUR_COLOR_MODE, BLUR_COLOR_MODE::DEFAULT, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBackgroundBlurRadiusX() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, BACKGROUND_FILTER, BACKGROUND_BLUR_RADIUS_X, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBackgroundBlurRadiusY() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, BACKGROUND_FILTER, BACKGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetBgBlurDisableSystemAdaptation() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, BACKGROUND_FILTER, BG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetAlwaysSnapshot() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, BACKGROUND_FILTER, ALWAYS_SNAPSHOT, false, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetForegroundBlurRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, FOREGROUND_BLUR_RADIUS, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetForegroundBlurSaturation() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, FOREGROUND_BLUR_SATURATION, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetForegroundBlurBrightness() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, FOREGROUND_BLUR_BRIGHTNESS, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Color RSModifierExtractor::GetForegroundBlurMaskColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, COMPOSITING_FILTER, FOREGROUND_BLUR_MASK_COLOR, RSColor(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetForegroundBlurColorMode() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(int, COMPOSITING_FILTER, FOREGROUND_BLUR_COLOR_MODE, BLUR_COLOR_MODE::DEFAULT, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetForegroundBlurRadiusX() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, FOREGROUND_BLUR_RADIUS_X, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetForegroundBlurRadiusY() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, FOREGROUND_BLUR_RADIUS_Y, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 bool RSModifierExtractor::GetFgBlurDisableSystemAdaptation() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(bool, COMPOSITING_FILTER, FG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetLightIntensity() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, POINT_LIGHT, LIGHT_INTENSITY, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Vector4f RSModifierExtractor::GetLightPosition() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, POINT_LIGHT, LIGHT_POSITION, Vector4f(0.f), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetIlluminatedBorderWidth() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, POINT_LIGHT, ILLUMINATED_BORDER_WIDTH, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetIlluminatedType() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(int, POINT_LIGHT, ILLUMINATED_TYPE, 0, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 float RSModifierExtractor::GetBloom() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, POINT_LIGHT, BLOOM, 0.f, =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 Color RSModifierExtractor::GetLightColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, POINT_LIGHT, LIGHT_COLOR, RgbPalette::White(), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetColorBlendMode() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(int, BLENDER, COLOR_BLEND_MODE, static_cast<int>(RSColorBlendMode::NONE), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 int RSModifierExtractor::GetColorBlendApplyType() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(
         int, BLENDER, COLOR_BLEND_APPLY_TYPE, static_cast<int>(RSColorBlendApplyType::FAST), =);
 }
-// LCOV_EXCL_STOP
 
-// LCOV_EXCL_START
 std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
@@ -745,6 +568,5 @@ std::string RSModifierExtractor::Dump() const
     }
     return dumpInfo;
 }
-// LCOV_EXCL_STOP
 } // namespace Rosen
 } // namespace OHOS

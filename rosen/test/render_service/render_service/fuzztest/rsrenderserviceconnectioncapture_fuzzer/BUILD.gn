@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,9 +18,9 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RSRenderServiceConnection000FuzzTest") {
+ohos_fuzztest("RSRenderServiceConnectioncaptureFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection000_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnectioncapture_fuzzer"
 
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
@@ -48,7 +48,6 @@ ohos_fuzztest("RSRenderServiceConnection000FuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "$graphic_2d_root/utils:socketpair",
   ]
 
   external_deps = [
@@ -83,14 +82,10 @@ ohos_fuzztest("RSRenderServiceConnection000FuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rsrenderserviceconnection000_fuzzer.cpp" ]
+  sources = [ "rsrenderserviceconnectioncapture_fuzzer.cpp" ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
-  }
-
-  if (tp_feature_enable) {
-    defines += tp_defines
   }
 }
 
@@ -100,7 +95,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSRenderServiceConnection000FuzzTest",
+    ":RSRenderServiceConnectioncaptureFuzzTest",
   ]
 }
 ###############################################################################

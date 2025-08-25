@@ -25,23 +25,19 @@ public:
     ~RSHDRBrightnessRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::HDR_BRIGHTNESS;
-    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
-    // LCOV_EXCL_STOP
 
     static void ResetProperties(RSProperties& properties);
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
-    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
-    // LCOV_EXCL_STOP
 
     void OnSetDirty() override;
 };

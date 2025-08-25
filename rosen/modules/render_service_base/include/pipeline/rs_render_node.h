@@ -296,7 +296,6 @@ public:
     std::list<WeakPtr> GetChildrenList() const;
 
     void DumpTree(int32_t depth, std::string& out) const;
-    void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 
@@ -775,8 +774,6 @@ public:
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
 
-    void UpdateOpincParam();
-
     /////////////////////////////////////////////
 
     void SetSharedTransitionParam(const std::shared_ptr<SharedTransitionParam>& sharedTransitionParam);
@@ -832,6 +829,8 @@ public:
     }
 
     bool HasHpaeBackgroundFilter() const;
+
+    bool GetLastFrameSync() const { return lastFrameSynced_; }
 
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);

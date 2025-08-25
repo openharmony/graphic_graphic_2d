@@ -220,19 +220,6 @@ HWTEST_F(RsSubThreadTest, ReleaseSurfaceTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CountSubMemTest001
- * @tc.desc: Verify function CountSubMem
- * @tc.type:FUNC
- */
-HWTEST_F(RsSubThreadTest, CountSubMemTest001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    EXPECT_TRUE(curThread->grContext_);
-}
-
-/**
  * @tc.name: CreateShareEglContext001
  * @tc.desc: Verify function CreateShareEglContext
  * @tc.type: FUNC

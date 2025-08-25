@@ -277,7 +277,7 @@ void DoSetForceRefresh(FuzzedDataProvider& fdp)
 } // namespace OHOS
 
 /* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_mainThread = OHOS::Rosen::RSMainThread::Instance();
     OHOS::Rosen::g_mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);

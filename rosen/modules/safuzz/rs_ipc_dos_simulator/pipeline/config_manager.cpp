@@ -23,6 +23,13 @@
 
 namespace OHOS {
 namespace Rosen {
+ConfigManager::~ConfigManager()
+{
+    if (root_ != nullptr) {
+        cJSON_Delete(root_);
+    }
+}
+
 bool ConfigManager::Init(const std::string& testCaseConfigPath)
 {
     testCaseConfigPath_ = testCaseConfigPath;

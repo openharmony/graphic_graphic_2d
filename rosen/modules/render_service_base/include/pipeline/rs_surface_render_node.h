@@ -643,7 +643,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
-    void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
+    void UpdateBlackListStatus(ScreenId screenId);
     void UpdateVirtualScreenWhiteListInfo(
         const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
 
@@ -672,7 +672,6 @@ public:
 
     void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
     void UpdateSpecialLayerInfoByOnTreeStateChange();
-    void SyncBlackListInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
     void SyncColorGamutInfoToFirstLevelNode();
 
@@ -949,6 +948,7 @@ public:
     GraphicColorGamut GetFirstLevelNodeColorGamut() const;
     void SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut);
     void SetFirstLevelNodeColorGamutByWindow(bool isOnTree, GraphicColorGamut gamut);
+    void UpdateFirstLevelNodeColorGamutByResource(GraphicColorGamut oldGamut, GraphicColorGamut NewGamut);
 
     // Only call this if the node is self-drawing surface node.
     void UpdateColorSpaceWithMetadata();
@@ -1763,7 +1763,6 @@ private:
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
-    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
@@ -1924,6 +1923,29 @@ private:
     size_t dirtyContentNodeNum_ = 0;
     size_t dirtyGeoNodeNum_ = 0;
     size_t dirtynodeNum_ = 0;
+    struct GamutCollector
+    {
+        int bt2020Num_ = 0;
+        int p3Num_ = 0;
+        int firstLevelNodeBt2020SurfaceNum_ = 0;
+        int firstLevelNodeP3SurfaceNum_ = 0;
+        int firstLevelNodeBt2020ResourceNum_ = 0;
+        int firstLevelNodeP3ResourceNum_ = 0;
+
+        static void IncreaseInner(GraphicColorGamut gamut, int& bt2020, int& p3);
+        static void DecreaseInner(GraphicColorGamut gamut, int& bt2020, int& p3);
+        void IncreaseGamutCount(GraphicColorGamut gamut);
+        void DecreaseGamutCount(GraphicColorGamut gamut);
+        void IncreaseSurfaceGamutCount(GraphicColorGamut gamut);
+        void DecreaseSurfaceGamutCount(GraphicColorGamut gamut);
+        void IncreaseResourceGamutCount(GraphicColorGamut gamut);
+        void DecreaseResourceGamutCount(GraphicColorGamut gamut);
+        GraphicColorGamut GetCurGamut() const;
+        GraphicColorGamut GetFirstLevelNodeGamut() const;
+        static GraphicColorGamut MapGamutToStandard(GraphicColorGamut gamut);
+        static GraphicColorGamut DetermineGamutStandard(int pt2020Num, int p3Num);
+    };
+    GamutCollector gamutCollector_;
     // UIFirst
     int64_t uifirstStartTime_ = -1;
     size_t lastFrameChildrenCnt_ = 0;

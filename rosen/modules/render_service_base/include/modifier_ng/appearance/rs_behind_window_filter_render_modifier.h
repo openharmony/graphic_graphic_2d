@@ -25,17 +25,13 @@ public:
     ~RSBehindWindowFilterRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::BEHIND_WINDOW_FILTER;
-    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
-    // LCOV_EXCL_STOP
 
 private:
-    // LCOV_EXCL_START
     void OnSetDirty() override;
-    // LCOV_EXCL_STOP
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_BEHIND_WINDOW_FILTER_RENDER_MODIFIER_H

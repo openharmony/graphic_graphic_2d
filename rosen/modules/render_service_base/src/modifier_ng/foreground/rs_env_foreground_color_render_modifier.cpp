@@ -18,7 +18,6 @@
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen::ModifierNG {
-// LCOV_EXCL_START
 void RSEnvForegroundColorRenderModifier::OnSetDirty()
 {
     if (auto node = target_.lock()) {
@@ -26,5 +25,4 @@ void RSEnvForegroundColorRenderModifier::OnSetDirty()
         node->SetContentDirty();
     }
 }
-// LCOV_EXCL_STOP
 } // namespace OHOS::Rosen::ModifierNG

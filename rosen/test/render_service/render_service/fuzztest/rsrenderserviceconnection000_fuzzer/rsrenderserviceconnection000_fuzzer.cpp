@@ -745,7 +745,10 @@ void DoSetTpFeatureConfig()
 
     int32_t feature = GetData<int32_t>();
     std::string config = GetData<std::string>();
-    uint8_t tpFeatureConfigType = GetData<uint8_t>();
+    // To ensure that tpFeatureConfigType falls within the valid range more frequently, apply a modulo operation
+    // to it. This allows a limited set of seeds to cover all valid values within the range.
+    uint8_t tpFeatureConfigType = GetData<uint8_t>() %
+        (static_cast<uint8_t>(TpFeatureConfigType::TpFeatureConfigType::AFT_TP_FEATURE) + 2);
 
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteInt32(feature);

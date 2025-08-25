@@ -35,6 +35,9 @@ const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 
+constexpr int32_t SHADER_EFFECT_TYPE_SIZE =
+    static_cast<int32_t>(Drawing::ShaderEffect::ShaderEffectType::LAZY_SHADER) + 1;
+
 bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -259,7 +262,9 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
 bool RSShaderFuzzTest(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
-    std::shared_ptr<Drawing::ShaderEffect> shader;
+    auto effectType =
+        static_cast<Drawing::ShaderEffect::ShaderEffectType>(GetData<int32_t>() % SHADER_EFFECT_TYPE_SIZE);
+    auto shader = std::make_shared<Drawing::ShaderEffect>(effectType);
     shaderPtr->SetDrawingShader(shader);
 
     return true;

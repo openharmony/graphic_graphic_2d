@@ -25,12 +25,10 @@ public:
     ~RSEnvForegroundColorRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::ENV_FOREGROUND_COLOR;
-    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
-    // LCOV_EXCL_STOP
 
     void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override
     {

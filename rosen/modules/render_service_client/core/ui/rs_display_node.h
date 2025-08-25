@@ -53,12 +53,10 @@ public:
      * 
      * @return The type of the RSUINode.
      */
-    // LCOV_EXCL_START
     RSUINodeType GetType() const override
     {
         return Type;
     }
-    // LCOV_EXCL_STOP
 
     /**
      * @brief Destructor for RSDisplayNode.
@@ -198,6 +196,7 @@ protected:
 
 private:
     bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    void OnBoundsSizeChanged() const override;
     void RegisterNodeMap() override;
     uint64_t screenId_;
     bool isSecurityDisplay_ = false;

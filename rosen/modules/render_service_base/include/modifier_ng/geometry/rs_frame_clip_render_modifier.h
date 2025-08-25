@@ -25,12 +25,10 @@ public:
     ~RSFrameClipRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::CLIP_TO_FRAME;
-    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
-    // LCOV_EXCL_STOP
 
     static void ResetProperties(RSProperties& properties);
 
@@ -46,12 +44,10 @@ public:
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
-    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
-    // LCOV_EXCL_STOP
 
     void OnSetDirty() override;
 };

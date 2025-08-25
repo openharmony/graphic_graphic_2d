@@ -25,23 +25,19 @@ public:
     ~RSDynamicLightUpRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::DYNAMIC_LIGHT_UP;
-    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     }
-    // LCOV_EXCL_STOP
 
     static void ResetProperties(RSProperties& properties);
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
-    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
-    // LCOV_EXCL_STOP
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_DYNAMIC_LIGHT_UP_RENDER_MODIFIER_H

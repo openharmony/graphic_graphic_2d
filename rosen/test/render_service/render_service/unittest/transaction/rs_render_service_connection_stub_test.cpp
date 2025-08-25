@@ -1870,47 +1870,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest003
 }
 
 /**
- * @tc.name: SetWindowFreezeImmediately
- * @tc.desc: Test SetWindowFreezeImmediately
- * @tc.type: FUNC
- * @tc.require: issueICQ74B
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest001, TestSize.Level2)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
-
-    NodeId id = 0;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(id);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetWindowFreezeImmediately
- * @tc.desc: Test SetWindowFreezeImmediately
- * @tc.type: FUNC
- * @tc.require: issueICQ74B
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest002, TestSize.Level2)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
-
-    pid_t pid = GetRealPid();
-    NodeId id = (NodeId)pid << 32;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(id);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
  * @tc.name: ShowWatermarkTest
  * @tc.desc: Test ShowWatermark
  * @tc.type: FUNC

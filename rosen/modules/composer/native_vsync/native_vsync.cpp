@@ -173,7 +173,6 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* ohNativeVSync, bool enable)
     return nativeVSync->receiver_->SetNativeDVSyncSwitch(enable);
 }
 
-namespace {
 bool IsInputRateRangeValid(OH_NativeVSync_ExpectedRateRange* range)
 {
     if (range == nullptr) {
@@ -182,7 +181,6 @@ bool IsInputRateRangeValid(OH_NativeVSync_ExpectedRateRange* range)
     }
     return range->min <= range->expected && range->expected <= range->max &&
         range->min >= 0 && range->max <= RANGE_MAX_REFRESHRATE;
-}
 }
 
 int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange* range)

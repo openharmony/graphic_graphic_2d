@@ -384,15 +384,6 @@ void RSSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
     tmpSurfaces_.push(std::move(surface));
 }
 
-MemoryGraphic RSSubThread::CountSubMem(int pid)
-{
-    MemoryGraphic memoryGraphic;
-    PostSyncTask([&pid, &memoryGraphic, this]() {
-        memoryGraphic = MemoryManager::CountPidMemory(pid, grContext_.get());
-    });
-    return memoryGraphic;
-}
-
 void RSSubThread::ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!nodeDrawable) {

@@ -139,7 +139,7 @@ public:
 
     VsyncError AddConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId = 0);
     VsyncError RemoveConnection(const sptr<VSyncConnection> &connection);
-    uint64_t CheckVsyncTsAndReceived(uint64_t timestamp);
+    uint64_t CheckVsyncReceivedAndGetRelTs(uint64_t timestamp);
 
     // fromWhom indicates whether the source is animate or non-animate
     // lastVSyncTS indicates last vsync time, 0 when non-animate
@@ -165,7 +165,8 @@ public:
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList);
-    int64_t GetUiCommandDelayTime();
+    // no input scene delay rs
+    int64_t GetRsDelayTime(const int32_t pid);
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
     int64_t GetVsyncCount();
@@ -179,18 +180,16 @@ public:
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     // forcefully enable DVsync in RS
-    void ForceRsDVsync(const std::string &sceneId);
+    void ForceRsDVsync(const std::string& sceneId);
 
     // used by VRate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
     std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
     void SetTaskEndWithTime(uint64_t time);
-    bool NeedSkipForSurfaceBuffer(uint64_t id);
     virtual bool NeedUpdateVSyncTime(int32_t& pid);
     void SetVSyncTimeUpdated();
     virtual int64_t GetLastUpdateTime();
     virtual void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
-
 private:
 
     // check, add more info
@@ -261,6 +260,13 @@ private:
 #endif
     bool isRs_ = false;
     std::atomic<bool> hasVsync_ = false;
+    int64_t beforeWaitRnvTime_ = 0;
+    int64_t afterWaitRnvTime_ = 0;
+    int64_t lastNotifyTime_ = 0;
+    std::atomic<int64_t> beforePostEvent_ = 0;
+    std::atomic<int64_t> startPostEvent_ = 0;
+    bool isFirstRequest_ = false;
+    bool isFirstSend_ = false;
     void ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &conns, int64_t now, int64_t period,
         uint32_t generatorRefreshRate, int64_t vsyncCount, bool isDvsyncController);
     void ConnPostEvent(sptr<VSyncConnection> con, int64_t now, int64_t period, int64_t vsyncCount);
@@ -287,14 +293,8 @@ private:
     bool dvsyncControllerEnabled_ = false;
     std::map<pid_t, std::vector<sptr<VSyncConnection>>> unalliedWindowConnectionsMap_;
     // End of DVSync
-    int64_t beforeWaitRnvTime_ = 0;
-    int64_t afterWaitRnvTime_ = 0;
-    int64_t lastNotifyTime_ = 0;
-    std::atomic<int64_t> beforePostEvent_ = 0;
-    std::atomic<int64_t> startPostEvent_ = 0;
-    bool isFirstRequest_ = false;
-    bool isFirstSend_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
+
 #endif

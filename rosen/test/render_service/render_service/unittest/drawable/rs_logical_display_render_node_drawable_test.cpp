@@ -3177,8 +3177,14 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetSpecialLayerType, TestSize.L
     ASSERT_NE(params, nullptr);
     int32_t result = displayDrawable_->GetSpecialLayerType(*params);
     ASSERT_EQ(result, 0);
+    params->hasCaptureWindow_ = true;
+    result = displayDrawable_->GetSpecialLayerType(*params);
+    ASSERT_EQ(result, 2);
+    params->hasCaptureWindow_ = false;
 
-    displayDrawable_->currentBlackList_.insert(0);
+    ScreenId screenId = 1;
+    params->SetScreenId(screenId);
+    params->specialLayerManager_.SetWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST, true);
     result = displayDrawable_->GetSpecialLayerType(*params);
     ASSERT_EQ(result, 1);
     RSUniRenderThread::Instance().whiteList_.insert(0);
@@ -3189,7 +3195,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetSpecialLayerType, TestSize.L
     result = displayDrawable_->GetSpecialLayerType(*params);
     ASSERT_EQ(result, 0);
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
-    displayDrawable_->currentBlackList_.clear();
+    params->specialLayerManager_.ClearScreenSpecialLayer();
     RSUniRenderThread::Instance().whiteList_.clear();
 }
 

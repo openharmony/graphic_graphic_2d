@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "parameters.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -110,6 +111,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = true;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = true;
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = true;
+    system::SetParameter("rosen.dirtyregiondebug.enabled", "9");
     RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas_);
     renderThreadParams = std::make_unique<RSRenderThreadParams>();
@@ -121,6 +123,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = false;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = false;
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = false;
+    system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
     RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas_);
 }
@@ -608,5 +611,29 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawMergedAndAllDirtyRegionForDFX, TestSize.Level1
     renderThreadParams->isMergedDirtyRegionDfxEnabled_ = false;
     RSUniRenderThread::Instance().Sync(move(renderThreadParams));
     rsDirtyRectsDfx_->OnDraw(*canvas_);
+}
+
+/**
+ * @tc.name: SetCurrentFrameVisibleDirtyRects
+ * @tc.desc: Test SetCurrentFrameVisibleDirtyRects with dfx switch
+ * @tc.type: FUNC
+ * @tc.require: issuesICSVV5
+ */
+HWTEST_F(RSDirtyRectsDFXTest, SetCurrentFrameVisibleDirtyRects, TestSize.Level1)
+{
+    DirtyRegionDebugType initDebugType = RSSystemProperties::GetDirtyRegionDebugType();
+
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    std::vector<RectI> visDirtyRects;
+    visDirtyRects.emplace_back(RectI(0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE));
+    system::SetParameter("rosen.dirtyregiondebug.enabled", "0");
+    rsDirtyRectsDfx_->SetCurrentFrameVisibleDirtyRects(visDirtyRects);
+    ASSERT_TRUE(rsDirtyRectsDfx_->currentFrameVisibleDirtyRects_.empty());
+
+    system::SetParameter("rosen.dirtyregiondebug.enabled", "9");
+    rsDirtyRectsDfx_->SetCurrentFrameVisibleDirtyRects(visDirtyRects);
+    ASSERT_FALSE(rsDirtyRectsDfx_->currentFrameVisibleDirtyRects_.empty());
+
+    system::SetParameter("rosen.dirtyregiondebug.enabled", std::to_string(static_cast<int>(initDebugType)));
 }
 }

@@ -25,21 +25,17 @@ public:
     ~RSFrameRenderModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::FRAME;
-    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
-    // LCOV_EXCL_STOP
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
-    // LCOV_EXCL_START
     const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const override
     {
         return LegacyPropertyApplierMap_;
     }
-    // LCOV_EXCL_STOP
 
     void OnSetDirty() override {}
 };

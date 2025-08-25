@@ -138,6 +138,15 @@ void RSScreen::PhysicalScreenInit() noexcept
     if (hdiScreen_->GetScreenSupportedModes(supportedModes_) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
+    } else {
+        std::string logString;
+        decltype(supportedModes_.size()) modeIndex = 0;
+        for (; modeIndex < supportedModes_.size(); ++modeIndex) {
+            AppendFormat(logString, ";supportedMode[%zu]: %ux%u, refreshRate=%u, modeId=%d",
+                         modeIndex, supportedModes_[modeIndex].width, supportedModes_[modeIndex].height,
+                         supportedModes_[modeIndex].freshRate, supportedModes_[modeIndex].id);
+        }
+        RS_LOGI("%{public}s supportedModes, id %{public}" PRIu64 "%{public}s",  __func__, id_, logString.c_str());
     }
 
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
@@ -165,6 +174,9 @@ void RSScreen::PhysicalScreenInit() noexcept
         phyHeight_ = activeMode->height;
         width_ = phyWidth_;
         height_ = phyHeight_;
+        RS_LOGI("%{public}s activeMode, screenId:%{public}" PRIu64
+                ", activeModeId: %{public}d, size:[%{public}u, %{public}u]",
+                __func__, id_, activeMode->id, activeMode->width, activeMode->height);
     }
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenPowerStatus.",
@@ -267,6 +279,7 @@ uint32_t RSScreen::PhyHeight() const
 void RSScreen::SetScreenOffset(int32_t offsetX, int32_t offsetY)
 {
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
+    RS_LOGI("%{public}s id: %{public}" PRIu64 ", offset: [%{public}d, %{public}d]", __func__, id_, offsetX, offsetY);
     offsetX_ = offsetX;
     offsetY_ = offsetY;
 }
@@ -730,16 +743,24 @@ void RSScreen::PowerStatusDump(std::string& dumpString)
             dumpString += "POWER_STATUS_OFF_FAKE";
             break;
         }
-        case GRAPHIC_POWER_STATUS_BUTT: {
-            dumpString += "POWER_STATUS_BUTT";
-            break;
-        }
         case GRAPHIC_POWER_STATUS_ON_ADVANCED: {
             dumpString += "POWER_STATUS_ON_ADVANCED";
             break;
         }
         case GRAPHIC_POWER_STATUS_OFF_ADVANCED: {
             dumpString += "POWER_STATUS_OFF_ADVANCED";
+            break;
+        }
+        case GRAPHIC_POWER_STATUS_DOZE: {
+            dumpString += "POWER_STATUS_DOZE";
+            break;
+        }
+        case GRAPHIC_POWER_STATUS_DOZE_SUSPEND: {
+            dumpString += "POWER_STATUS_DOZE_SUSPEND";
+            break;
+        }
+        case GRAPHIC_POWER_STATUS_BUTT: {
+            dumpString += "POWER_STATUS_BUTT";
             break;
         }
         default: {

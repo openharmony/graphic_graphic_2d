@@ -43,6 +43,7 @@ enum class DirtyRegionDebugType {
     EGL_DAMAGE, // all dirty region information, includes detailed app dirty region and global dirty.
     DISPLAY_DIRTY, // detailed global dirty (before merge rect).
     MERGED_DIRTY, // advanced dirty region information, includes merged dirty region
+    CURRENT_FRAME_VIS_DIRTY, // for hardware compose area optimization.
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
     UPDATE_DIRTY_REGION, // dirty region for each node.
     OVERLAY_RECT,   // drawRegion
@@ -382,6 +383,8 @@ public:
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
+
+    static bool GetBootCompleted();
 
 private:
     RSSystemProperties() = default;

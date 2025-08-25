@@ -62,8 +62,9 @@ static void MakeGreyShaderEffect()
             float p = 0.816240163988;        // (3 * A * C - pow(B, 2)) / (3 * pow(A, 2));
             float q = -rgb / 106.5 + 0.262253485943; // -rgb/A - B * C/(3*pow(A, 2)) + 2 * pow(B, 3)/(27*pow(A,3))
             float s1 = -(q / 2.0);
-            float s2 = sqrt(pow(s1, 2) + pow(p / 3, 3));
-            return poww((s1 + s2), 1.0 / 3) + poww((s1 - s2), 1.0 / 3) - (B / (3 * A));
+            float s2 = sqrt(s1 * s1 + pow(p / 3, 3));
+            float res = poww((s1 + s2), 1.0 / 3) + poww((s1 - s2), 1.0 / 3) - (B / (3 * A));
+            return min(res, 1.0);
         }
 
         float calculateGreyAdjustY(float rgb) {

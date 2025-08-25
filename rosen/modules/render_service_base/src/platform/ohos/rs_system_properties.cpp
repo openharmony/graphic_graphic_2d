@@ -1649,7 +1649,7 @@ bool RSSystemProperties::GetEarlyZEnable()
 
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
-    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 1) != 0;
+    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 0) != 0;
     return isAIBarOptEnabled;
 }
 
@@ -1680,6 +1680,11 @@ bool RSSystemProperties::GetGpuDirtyApsEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetBootCompleted()
+{
+    return system::GetBoolParameter("bootevent.boot.completed", false);
 }
 } // namespace Rosen
 } // namespace OHOS

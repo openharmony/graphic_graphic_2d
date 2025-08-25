@@ -559,9 +559,9 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
     testFunc(true, false, false, false);
     testFunc(true, true, false, true);
     // if pixel stretch is valid for this node, dirty region should be expanded.
-    testFunc(false, false, false, false);
-    testFunc(false, true, false, false);
-    testFunc(true, false, false, false);
-    testFunc(true, true, false, false);
+    testFunc(false, false, true, false);
+    testFunc(false, true, true, false);
+    testFunc(true, false, true, false);
+    testFunc(true, true, true, false);
 }
 } // namespace OHOS::Rosen

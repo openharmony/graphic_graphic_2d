@@ -47,6 +47,9 @@ public:
 
     bool OpincGetNodeSupportFlag(RSRenderNode& node);
     bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
+    void QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+        bool isAccessibilityConfigChanged);
+    void UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable);
     OpincUnsupportType GetUnsupportReason(RSRenderNode& node);
     std::string QuickGetNodeDebugInfo(RSRenderNode& node);
 

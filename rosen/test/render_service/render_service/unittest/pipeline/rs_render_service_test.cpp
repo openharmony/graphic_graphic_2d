@@ -161,9 +161,6 @@ void DoDumpSingleArg(sptr<RSRenderService> renderService)
     dumpResult = GetDumpResult(renderService, u"fpsClear DisplayNode");
     ASSERT_TRUE(dumpResult.find("fpsClear") != std::string::npos);
 
-    dumpResult = GetDumpResult(renderService, u"dumpNode");
-    ASSERT_TRUE(dumpResult.find("dump") != std::string::npos);
-
     dumpResult = GetDumpResult(renderService, u"fpsCount");
     ASSERT_TRUE(dumpResult.find("fpsCount") != std::string::npos);
 

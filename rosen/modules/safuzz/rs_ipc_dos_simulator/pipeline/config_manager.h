@@ -32,7 +32,7 @@ namespace Rosen {
 class ConfigManager {
 public:
     ConfigManager() = default;
-    ~ConfigManager() = default;
+    ~ConfigManager();
 
     bool Init(const std::string& testCaseConfigPath = TEST_CASE_CONFIG_PATH_DEFAULT);
     int GetTestCaseTotal() const;

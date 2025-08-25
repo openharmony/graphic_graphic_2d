@@ -1139,6 +1139,29 @@ HWTEST_F(RSScreenTest, PowerStatusDump_003, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: PowerStatusDump_004
+ * @tc.desc: PowerStatusDump Test, with mocked HDI device
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, PowerStatusDump_004, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    // Set status to GRAPHIC_POWER_STATUS_DOZE
+    rsScreen->SetPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_DOZE);
+    std::string dumpString = "";
+    rsScreen->PowerStatusDump(dumpString);
+    ASSERT_TRUE(dumpString=="powerStatus=POWER_STATUS_DOZE");
+    // Set status to GRAPHIC_POWER_STATUS_DOZE_SUSPEND
+    rsScreen->SetPowerStatus(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_DOZE_SUSPEND);
+    dumpString = "";
+    rsScreen->PowerStatusDump(dumpString);
+    ASSERT_TRUE(dumpString=="powerStatus=POWER_STATUS_DOZE_SUSPEND");
+}
+
+/*
  * @tc.name: ScreenTypeDump_002
  * @tc.desc: ScreenTypeDump Test, trigger all cases of switch
  * @tc.type: FUNC

@@ -766,7 +766,7 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
-    return true;
+    return false;
 }
 
 bool RSSystemProperties::GetSupportScreenFreezeEnabled()
@@ -782,6 +782,11 @@ bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
 bool RSSystemProperties::GetGpuDirtyApsEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetBootCompleted()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

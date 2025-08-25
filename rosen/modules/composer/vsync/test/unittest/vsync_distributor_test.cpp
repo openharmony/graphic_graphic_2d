@@ -131,15 +131,15 @@ HWTEST_F(VSyncDistributorTest, RemoveConnection003, Function | MediumTest| Level
 }
 
 /*
- * @tc.name: CheckVsyncTsAndReceived
- * @tc.desc: Test For CheckVsyncTsAndReceived
+ * @tc.name: CheckVsyncReceivedAndGetRelTs001
+ * @tc.desc: Test For CheckVsyncReceivedAndGetRelTs
  * @tc.type: FUNC
  * @tc.require: issueIC989U
  */
-HWTEST_F(VSyncDistributorTest, CheckVsyncTsAndReceived001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, CheckVsyncReceivedAndGetRelTs001, Function | MediumTest| Level3)
 {
     uint64_t timestamp = 10;
-    auto res = VSyncDistributorTest::vsyncDistributor->CheckVsyncTsAndReceived(timestamp);
+    auto res = VSyncDistributorTest::vsyncDistributor->CheckVsyncReceivedAndGetRelTs(timestamp);
     ASSERT_EQ(res, timestamp);
 }
 
@@ -1952,19 +1952,6 @@ HWTEST_F(VSyncDistributorTest, QosGetPidByNameTest022, Function | MediumTest| Le
     uint32_t pid = 0;
     ASSERT_EQ(vsyncDistributor->QosGetPidByName(name, pid), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(pid, 0);
-}
-
-/*
-* Function: NeedSkipForSurfaceBuffer001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call NeedSkipForSurfaceBuffer
- */
-HWTEST_F(VSyncDistributorTest, NeedSkipForSurfaceBuffer001, Function | MediumTest| Level3)
-{
-    uint64_t id = 1;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->NeedSkipForSurfaceBuffer(id), false);
 }
 
 /*

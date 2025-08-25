@@ -379,13 +379,14 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
         return;
     }
-    std::vector<ScreenColorGamut> mode;
+    std::vector<ScreenColorGamut> mode{};
     int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
     if (ret != SUCCESS) {
         RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
-        mode = std::vector<ScreenColorGamut>{GRAPHIC_COLOR_GAMUT_SRGB};
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    } else {
+        node.SelectBestGamut(mode);
     }
-    node.SelectBestGamut(mode);
 
     if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
@@ -548,6 +549,7 @@ void RSUniRenderVisitor::DealWithSpecialLayer(RSSurfaceRenderNode& node)
     } else {
         UpdateSpecialLayersRecord(node);
     }
+    node.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     UpdateBlackListRecord(node);
     node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
 }
@@ -562,12 +564,10 @@ void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
         const auto& leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
         virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
     }
-    if (virtualScreens.empty()) {
-        node.UpdateBlackListStatus(INVALID_SCREEN_ID, false);
-        return;
-    }
     for (const auto& screenId : virtualScreens) {
-        node.UpdateBlackListStatus(screenId, true);
+        node.UpdateBlackListStatus(screenId);
+        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
+            screenId, SpecialLayerType::HAS_BLACK_LIST, true);
     }
 }
 
@@ -909,6 +909,7 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
     curLogicalDisplayNode_->SetDisplaySpecialSurfaceChanged(false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
+    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
@@ -1684,16 +1685,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
-    // The opinc state needs to be reset in the following cases:
-    // 1. subtree is dirty
-    // 2. content is dirty
-    // 3. the node is marked as a node group
-    // 4. the node is marked as a root node of opinc and the high-contrast state change
-    auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
-        node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
-        (node.GetOpincCache().OpincGetRootFlag() && isAccessibilityConfigChanged);
-    node.GetOpincCache().OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_, isSelfDirty);
-    node.UpdateOpincParam();
+    RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
+        isAccessibilityConfigChanged);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 
@@ -1730,9 +1723,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
-    node.GetOpincCache().OpincUpdateRootFlag(unchangeMarkEnable_,
-        RSOpincManager::Instance().OpincGetNodeSupportFlag(node));
-    node.UpdateOpincParam();
+    RSOpincManager::Instance().UpdateRootFlag(node, unchangeMarkEnable_);
     offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
 #ifdef SUBTREE_PARALLEL_ENABLE
     // used in subtree, add node into parallel list

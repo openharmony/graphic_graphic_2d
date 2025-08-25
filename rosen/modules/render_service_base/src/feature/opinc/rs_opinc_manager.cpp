@@ -15,6 +15,7 @@
 
 #include "feature/opinc/rs_opinc_manager.h"
 
+#include "params/rs_render_params.h"
 #include "string_utils.h"
 
 namespace OHOS {
@@ -64,6 +65,37 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
         node.SetParentSubTreeDirty();
     }
     return subTreeDirty;
+}
+
+void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+    bool isAccessibilityConfigChanged)
+{
+    auto& opincCache = node.GetOpincCache();
+    // The opinc state needs to be reset in the following cases:
+    // 1. subtree is dirty
+    // 2. content is dirty
+    // 3. the node is marked as a node group
+    // 4. the node is marked as a root node of opinc and the high-contrast state change
+    auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
+        node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
+        (opincCache.OpincGetRootFlag() && isAccessibilityConfigChanged);
+    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, isSelfDirty);
+    auto& stagingRenderParams = node.GetStagingRenderParams();
+    if (unchangeMarkEnable && stagingRenderParams) {
+        stagingRenderParams->OpincSetCacheChangeFlag(opincCache.GetCacheChangeFlag(), node.GetLastFrameSync());
+        stagingRenderParams->OpincUpdateRootFlag(opincCache.OpincGetRootFlag());
+        stagingRenderParams->OpincUpdateSupportFlag(opincCache.GetCurNodeTreeSupportFlag());
+    }
+}
+
+void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable)
+{
+    auto& opincCache = node.GetOpincCache();
+    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, OpincGetNodeSupportFlag(node));
+    auto& stagingRenderParams = node.GetStagingRenderParams();
+    if (opincCache.isOpincRootFlag_ && stagingRenderParams) {
+        stagingRenderParams->OpincUpdateRootFlag(true);
+    }
 }
 
 OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)
