@@ -50,7 +50,7 @@ private:
     void UnblockMainThread();
     void Sync();
     void Render();
-    void ReleaseSpecialDrawingNodeBuffer();
+    void ReleaseDrawingNodeBuffer();
     void NotifyClearGpuCache();
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
     void StartCheck();
