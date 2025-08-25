@@ -69,7 +69,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     auto node = std::make_shared<RSBaseRenderNode>(id);
     std::vector<std::shared_ptr<RSRenderNode>> vec;
     std::shared_ptr<RSRenderThreadVisitor> visitor;
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     std::string name = "text";
     std::vector<std::string> windowsName;
     windowsName.push_back(name);
@@ -101,7 +101,7 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
 
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     rsScreenRenderNode.UpdateScreenRenderParams();
@@ -121,7 +121,7 @@ bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
 
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     auto surface = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     rsScreenRenderNode.RecordMainAndLeashSurfaces(surface);
@@ -137,7 +137,7 @@ bool DoIsZoomStateChange(const uint8_t* data, size_t size)
 
     NodeId id = GetData<uint64_t>();
     ScreenId screenId = GetData<uint64_t>();
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     bool state = GetData<bool>();
     rsScreenRenderNode.UpdateZoomState(state);
@@ -153,7 +153,7 @@ bool DoGetSortedChildren(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     auto oldScbPids = std::vector<int32_t>();
     rsScreenRenderNode.GetSortedChildren();
@@ -170,7 +170,7 @@ bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     float brightnessRatio = GetData<float>();
@@ -186,7 +186,7 @@ bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> context;
     auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
