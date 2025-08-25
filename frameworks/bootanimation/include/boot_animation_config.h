@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_CONFIG_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_CONFIG_H
 
@@ -32,6 +32,16 @@ struct BootAnimationConfig {
     int32_t rotateDegree = 0;
     Rosen::ScreenId screenId = Rosen::INVALID_SCREEN_ID;
     std::map<std::string, std::string> videoExtPath;
+};
+
+struct BootAnimationProgressConfig {
+    int32_t progressScreenId = -1;
+    int32_t progressHeight = -1;
+    int32_t progressFrameHeight = -1;
+    int32_t progressOffset = -1;
+    int32_t progressFontSize = -1;
+    int32_t progressRadiusSize = -1;
+    int32_t progressDegree = -1;
 };
 } // namespace OHOS
 
