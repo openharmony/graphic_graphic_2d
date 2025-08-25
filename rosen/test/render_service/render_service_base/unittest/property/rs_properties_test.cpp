@@ -382,8 +382,6 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     EXPECT_EQ(properties.GetShadowOffsetX(), 1.f);
     properties.SetShadowOffsetY(1.f);
     EXPECT_EQ(properties.GetShadowOffsetY(), 1.f);
-    properties.SetShadowAlpha(1.f);
-    EXPECT_EQ(properties.GetShadowAlpha(), 1.f);
     properties.SetShadowElevation(1.f);
     EXPECT_EQ(properties.GetShadowElevation(), 1.f);
     properties.SetShadowRadius(1.f);
@@ -1868,27 +1866,6 @@ HWTEST_F(RSPropertiesTest, SetForegroundFilter001, TestSize.Level1)
     foregroundFilter = std::make_shared<RSFilter>();
     properties.SetForegroundFilter(foregroundFilter);
     EXPECT_NE(foregroundFilter, nullptr);
-}
-
-/**
- * @tc.name: SetShadowAlpha001
- * @tc.desc: test results of SetShadowAlpha
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, SetShadowAlpha001, TestSize.Level1)
-{
-    RSProperties properties;
-    float alpha = 0.f;
-    properties.SetShadowAlpha(alpha);
-
-    alpha = 1.f;
-    properties.shadow_ = std::make_optional<RSShadow>();
-    properties.shadow_->elevation_ = 1.f;
-    properties.shadow_->color_.alpha_ = 255;
-    properties.shadow_->radius_ = 1.f;
-    properties.SetShadowAlpha(alpha);
-    EXPECT_NE(alpha, 0.f);
 }
 
 /**

@@ -961,7 +961,8 @@ HWTEST_F(RSSurfaceNodeTest, SetShadowAlpha001, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetShadowAlpha(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), floatData[1]));
+    // The return value of GetShadowAlpha() is clamped to [0,1]
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), 1.f));
 }
 
 /**
@@ -975,7 +976,7 @@ HWTEST_F(RSSurfaceNodeTest, SetShadowAlpha002, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetShadowAlpha(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), 0.f));
 }
 
 /**
@@ -989,7 +990,7 @@ HWTEST_F(RSSurfaceNodeTest, SetShadowAlpha003, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetShadowAlpha(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), floatData[3]));
+    EXPECT_TRUE(ROSEN_EQ(surfaceNode->GetStagingProperties().GetShadowAlpha(), 1.f));
 }
 
 /**

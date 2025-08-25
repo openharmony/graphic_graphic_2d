@@ -22,7 +22,6 @@ const RSShadowRenderModifier::LegacyPropertyApplierMap RSShadowRenderModifier::L
     { RSPropertyType::SHADOW_COLOR, RSRenderModifier::PropertyApplyHelper<Color, &RSProperties::SetShadowColor> },
     { RSPropertyType::SHADOW_OFFSET_X, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetShadowOffsetX> },
     { RSPropertyType::SHADOW_OFFSET_Y, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetShadowOffsetY> },
-    { RSPropertyType::SHADOW_ALPHA, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetShadowAlpha> },
     { RSPropertyType::SHADOW_ELEVATION,
         RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetShadowElevation> },
     { RSPropertyType::SHADOW_RADIUS, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetShadowRadius> },
@@ -41,7 +40,6 @@ void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetShadowColor(Color::FromArgbInt(DEFAULT_SPOT_COLOR));
     properties.SetShadowOffsetX(0.f);
     properties.SetShadowOffsetY(0.f);
-    properties.SetShadowAlpha(1.f);
     properties.SetShadowElevation(0.f);
     properties.SetShadowRadius(0.f);
     properties.SetShadowPath(nullptr);
