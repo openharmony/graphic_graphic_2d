@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include <gtest/gtest.h>
 
 #include "util.h"
@@ -267,5 +267,50 @@ HWTEST_F(UtilTest, UtilTest_010, TestSize.Level1)
     imageStruct->memPtr.SetBufferSize(fileSize);
     result = OHOS::CheckImageData(filename, imageStruct, bufferLen, imgVec);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: UtilTest_011
+ * @tc.desc: Verify the ParseProgressConfig
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_011, TestSize.Level2)
+{
+    std::string filePath = "/sys_prod/etc/bootanimation/bootanimation_custom_config.json1";
+    std::map<int32_t, BootAnimationProgressConfig> configs;
+    OHOS::ParseProgressConfig(filePath, configs);
+    EXPECT_EQ(configs.empty(), true);
+}
+
+/**
+ * @tc.name: UtilTest_013
+ * @tc.desc: Verify the ParseProgressData
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_012, TestSize.Level1)
+{
+    std::map<int32_t, BootAnimationProgressConfig> configs;
+    std::string jsonStr = "{\"1\":\"abc\"}";
+    cJSON* jsonData = cJSON_Parse(jsonStr.c_str());
+    OHOS::ParseProgressData(jsonData, configs);
+    EXPECT_EQ(configs.empty(), true);
+
+    jsonStr = "{\"progress_config\":[]}";
+    jsonData = cJSON_Parse(jsonStr.c_str());
+    OHOS::ParseProgressData(jsonData, configs);
+    EXPECT_EQ(configs.empty(), true);
+
+    jsonStr = "{\"progress_config\":[{\"cust.bootanimation.screen_id\":\"0\"}]}";
+    jsonData = cJSON_Parse(jsonStr.c_str());
+    OHOS::ParseProgressData(jsonData, configs);
+    EXPECT_EQ(configs.empty(), false);
+
+    jsonStr = "{\"progress_config\":[{\"cust.bootanimation.progress_screen_id\":\"1\",\
+    \"cust.bootanimation.progress_font_size\":\"34\",\"cust.bootanimation.progress_radius_size\":\"10\",\
+    \"cust.bootanimation.progress_x_offset\":\"-1088\",\"cust.bootanimation.progress_degree\":\"90\",\
+    \"cust.bootanimation.progress_height\":\"2232\",\"cust.bootanimation.progress_frame_height\":\"112\"}]}";
+    jsonData = cJSON_Parse(jsonStr.c_str());
+    OHOS::ParseProgressData(jsonData, configs);
+    EXPECT_EQ(configs.empty(), false);
 }
 }
