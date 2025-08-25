@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "boot_independent_display_strategy.h"
 
 #include "log.h"
@@ -48,7 +48,7 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
 
     if (IsOtaUpdate()) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-        bootCompileProgress_->Init(screenConfig);
+        bootCompileProgress_->Init(configPath_, screenConfig);
     }
 
     while (!CheckExitAnimation()) {
