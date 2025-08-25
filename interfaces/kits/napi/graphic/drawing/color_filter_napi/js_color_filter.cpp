@@ -24,6 +24,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 const std::string CLASS_NAME = "ColorFilter";
 thread_local napi_ref JsColorFilter::constructor_ = nullptr;
+
 napi_value JsColorFilter::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
@@ -34,6 +35,7 @@ napi_value JsColorFilter::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("createLumaColorFilter", JsColorFilter::CreateLumaColorFilter),
         DECLARE_NAPI_STATIC_FUNCTION("createMatrixColorFilter", JsColorFilter::CreateMatrixColorFilter),
         DECLARE_NAPI_STATIC_FUNCTION("createLightingColorFilter", JsColorFilter::CreateLightingColorFilter),
+        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsColorFilter::ColorFilterTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -237,6 +239,29 @@ napi_value JsColorFilter::Create(napi_env env, const std::shared_ptr<ColorFilter
         return nullptr;
     }
     return objValue;
+}
+
+napi_value JsColorFilter::ColorFilterTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv;
+    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_number) {
+        return nullptr;
+    }
+
+    int64_t addr = 0;
+    napi_get_value_int64(env, argv, &addr);
+    std::shared_ptr<ColorFilter> colorFilter = *reinterpret_cast<std::shared_ptr<ColorFilter>*>(addr);
+    if (colorFilter == nullptr) {
+        return nullptr;
+    }
+    return JsColorFilter::Create(env, colorFilter);
 }
 
 std::shared_ptr<ColorFilter> JsColorFilter::GetColorFilter()

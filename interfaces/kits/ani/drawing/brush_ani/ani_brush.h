@@ -23,9 +23,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniBrush final {
 public:
-    AniBrush() = default;
-    explicit AniBrush(const Brush& brush) : brush_(brush) {}
-    ~AniBrush() = default;
+    explicit AniBrush(std::shared_ptr<Brush> brush = nullptr) : brush_(brush) {}
+    ~AniBrush();
 
     static ani_status AniInit(ani_env *env);
 
@@ -37,10 +36,14 @@ public:
     static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);
     static void Reset(ani_env*  env, ani_object obj);
 
-    Brush& GetBrush();
+    std::shared_ptr<Brush> GetBrush();
 
 private:
-    Brush brush_;
+    static ani_object BrushTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Brush>* GetBrushPtrAddr();
+    std::shared_ptr<Brush> brush_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
