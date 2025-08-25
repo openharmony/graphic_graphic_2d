@@ -37,8 +37,8 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-const Rect DEFAULT_RECT = {0, 0, 200, 200};
-const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
+constexpr Rect DEFAULT_RECT = {0, 0, 200, 200};
+constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 }
 class RSUniRenderProcessorTest : public testing::Test {
 public:
