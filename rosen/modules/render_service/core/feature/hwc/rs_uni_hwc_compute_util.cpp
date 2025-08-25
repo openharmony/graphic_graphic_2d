@@ -514,6 +514,13 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
             srcRect.width_ = bufferWidth;
             srcRect.height_ = bufferHeight;
         } else {
+            if (static_cast<int64_t>(srcRect.left_) * xScale >= std::numeric_limits<int32_t>::max() ||
+                static_cast<int64_t>(srcRect.top_) * yScale >= std::numeric_limits<int32_t>::max() ||
+                static_cast<int64_t>(srcRect.width_) * xScale >= std::numeric_limits<int32_t>::max() ||
+                static_cast<int64_t>(srcRect.height_) * yScale >= std::numeric_limits<int32_t>::max()) {
+                RS_LOGE("hwc: %{public}s: Overflow", __func__);
+                return;
+            }
             srcRect.left_ = srcRect.left_ * xScale;
             srcRect.top_ = srcRect.top_ * yScale;
             srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(srcRect.width_ * xScale)), bufferWidth);
