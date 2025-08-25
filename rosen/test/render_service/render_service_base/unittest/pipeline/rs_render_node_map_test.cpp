@@ -78,7 +78,7 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
     RSSurfaceRenderNodeConfig config = { .id = id, .surfaceWindowType = SurfaceWindowType::SCB_DESKTOP };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderNodeMap.ObtainLauncherNodeId(node);
-    
+
     config.surfaceWindowType = SurfaceWindowType::SCB_WALLPAPER;
     node = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderNodeMap.ObtainLauncherNodeId(node);
@@ -86,7 +86,7 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
     config.surfaceWindowType = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
     node = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderNodeMap.ObtainLauncherNodeId(node);
-    
+
     ASSERT_EQ(rsRenderNodeMap.entryViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.negativeScreenNodeId_, 1);

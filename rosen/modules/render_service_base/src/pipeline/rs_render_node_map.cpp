@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -254,6 +255,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
     auto iter = renderNodeMap_.find(pid);
     if (iter != renderNodeMap_.end()) {
         auto& subMap = iter->second;
+        RS_TRACE_NAME_FMT("process renderNodeMap:pid=%u, immediate=%d, useBatchRemoving=%d, optMode=%d, subMapSize=%u,"
+            " renderNodeMapSize=%u", pid, immediate, useBatchRemoving, optMode, subMap.size(), renderNodeMap_.size());
         for (auto subIter = subMap.begin(); subIter != subMap.end();) {
             if (subIter->second == nullptr) {
                 subIter = subMap.erase(subIter);
@@ -276,6 +279,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         }
         renderNodeMap_.erase(iter);
     }
+    RS_TRACE_NAME_FMT("MapSize: [%u, %u, %u, %u, %u, %u]",
+        surfaceNodeMap_.size(), residentSurfaceNodeMap_.size(), canvasDrawingNodeMap_.size(),
+        selfDrawingNodeInProcess_.size(), logicalDisplayNodeMap_.size(), unInTreeNodeSet_.size());
+
+    RS_TRACE_BEGIN("process surfaceNodeMap");
     EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
         if (shouldErase) {
@@ -290,19 +298,27 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         }
         return shouldErase;
     });
+    RS_TRACE_END();
 
+    RS_TRACE_BEGIN("process residentSurfaceNodeMap");
     EraseIf(residentSurfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
     });
+    RS_TRACE_END();
 
+    RS_TRACE_BEGIN("process canvasDrawingNodeMap");
     EraseIf(canvasDrawingNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
     });
+    RS_TRACE_END();
 
+    RS_TRACE_BEGIN("process selfDrawingNodeInProcess");
     EraseIf(selfDrawingNodeInProcess_, [pid](const auto& pair) -> bool {
         return pair.first == pid;
     });
+    RS_TRACE_END();
 
+    RS_TRACE_BEGIN("process logicalDisplayNodeMap");
     EraseIf(logicalDisplayNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
@@ -311,10 +327,13 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         }
         return ExtractPid(pair.first) == pid;
     });
+    RS_TRACE_END();
 
+    RS_TRACE_BEGIN("process unInTreeNodeSet");
     EraseIf(unInTreeNodeSet_, [pid](const auto& nodeId) -> bool {
         return ExtractPid(nodeId) == pid;
     });
+    RS_TRACE_END();
 
     if (auto fallbackNode = GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
