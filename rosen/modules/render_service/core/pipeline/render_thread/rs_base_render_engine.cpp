@@ -765,7 +765,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    const auto& rsLuminance = RSLuminanceControl::Get();
+    auto& rsLuminance = RSLuminanceControl::Get();
     // Fix tonemapping: all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
     params.isTmoNitsFixed = canvas.IsOnMultipleScreen() ||
         (!canvas.GetHdrOn() &&
