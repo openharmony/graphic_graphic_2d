@@ -53,6 +53,7 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "hilog:libhilog",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "graphic_surface:surface",
   ]
 }
 
