@@ -15,8 +15,6 @@
 
 #include "gtest/gtest.h"
 #include "application_info.h"
-#include "bundle_info.h"
-#include "hap_module_info.h"
 #include "txt/text_bundle_config_parser.h"
 
 using namespace testing;
