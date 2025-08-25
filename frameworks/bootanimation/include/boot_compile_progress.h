@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_COMPILE_PROGRESS_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_COMPILE_PROGRESS_H
 
@@ -29,11 +29,12 @@
 #include "log.h"
 #include "util.h"
 #include "vsync_receiver.h"
+#include <map>
 
 namespace OHOS {
 class BootCompileProgress {
 public:
-    void Init(const BootAnimationConfig& config);
+    void Init(const std::string& configPath, const BootAnimationConfig& config);
 
 private:
     void OnVsync();
@@ -46,6 +47,7 @@ private:
     void DrawMarginBrush(Rosen::Drawing::RecordingCanvas* canvas);
     void RecordDeviceType();
     void SetFrame();
+    void SetSpecialProgressFrame(int32_t maxLength, int32_t screenId);
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -59,7 +61,7 @@ private:
     Rosen::ScreenId screenId_;
     std::string displayInfo_ = "";
     float currentRadius_ = 0.0f;
-    std::string screenStatus_ = "";
+    int32_t screenStatus_ = -1;
 
     volatile bool isUpdateOptEnd_ = false;
     bool isWearable_ = false;
@@ -73,6 +75,7 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> compileHandler_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
     std::shared_ptr<Rosen::RSInterpolator> sharpCurve_;
+    std::map<int32_t, BootAnimationProgressConfig> progressConfigsMap_;
 };
 } // namespace OHOS
 
