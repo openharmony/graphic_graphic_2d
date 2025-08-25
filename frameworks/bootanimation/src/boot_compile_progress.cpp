@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "boot_compile_progress.h"
 
 #include <chrono>
@@ -69,29 +69,19 @@ namespace {
         { { 0.5f, 0.2f }, { 0.2f, 1.0f }, { 1.0f, 0.5f } },
         { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
     };
-    constexpr const char EXPAND = '0';
-    constexpr const char FOLD_1 = '1';
-    constexpr const char FOLD_2 = '3';
-    constexpr const char MIDDLE = '2';
-    constexpr const float DEFAULT_SIZE_RATIO = 1.0f;
-    constexpr const float EXPAND_MIDDLE_SIZE_RATIO = 2.0 / 3.0f;
-    constexpr const float FOLD_X_OFFSET = 1.0 / 3.0f;
-    constexpr const float MIDDLE_X_OFFSET = 1.0 / 6.0f;
-    constexpr const float DEGREE = 90.0f;
     constexpr const int DOUBLE_TIMES = 2;
-    constexpr const float EXPAND_RATIO = 720.0f;
-    constexpr const char LARGE_FOLD_TYPE = '1';
 }
 
-void BootCompileProgress::Init(const BootAnimationConfig& config)
+void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
     RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
     if (!config.screenStatus.empty()) {
-        screenStatus_ = config.screenStatus;
+        screenStatus_ = std::atoi(config.screenStatus.c_str());
     }
+    ParseProgressConfig(configPath, progressConfigsMap_);
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
@@ -334,50 +324,33 @@ void BootCompileProgress::RecordDeviceType()
     }
 }
 
+void BootCompileProgress::SetSpecialProgressFrame(int32_t maxLength, int32_t screenId)
+{
+    BootAnimationProgressConfig progressConfig = progressConfigsMap_.find(screenId)->second;
+    float positionX = progressConfig.progressOffset == -1 ? 0 : progressConfig.progressOffset;
+    float positionY = progressConfig.progressHeight == -1 ? windowHeight_ - maxLength * OFFSET_Y_PERCENT
+        : progressConfig.progressHeight;
+    float frameHeight = progressConfig.progressFrameHeight == -1 ? maxLength * HEIGHT_PERCENT
+        : progressConfig.progressFrameHeight;
+    rsCanvasNode_->SetFrame(positionX, positionY, windowWidth_, frameHeight);
+    fontSize_ = progressConfig.progressFontSize == -1 ? fontSize_ : progressConfig.progressFontSize;
+    currentRadius_ = progressConfig.progressRadiusSize == -1 ? currentRadius_ : progressConfig.progressRadiusSize;
+    if (progressConfig.progressDegree > 0) {
+        rsCanvasNode_->SetRotation(progressConfig.progressDegree);
+    }
+}
 
 void BootCompileProgress::SetFrame()
 {
-    if (isWearable_) {
+    int32_t maxLength = std::max(windowWidth_, windowHeight_);
+    int32_t tempScreenId = screenStatus_ == -1 ? static_cast<int32_t> (screenId_) : screenStatus_;
+    if (!progressConfigsMap_.empty() && progressConfigsMap_.find(tempScreenId) != progressConfigsMap_.end()) {
+        SetSpecialProgressFrame(maxLength, tempScreenId);
+    } else if (isWearable_) {
         rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
-        return;
-    }
-    if (FOLD_SCREEN_TYPE.c_str()[0] == LARGE_FOLD_TYPE && screenId_ == 0) {
-        LOGI("foldScreenType is 1");
-        fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_PHONE, EXPAND_RATIO);
-        currentRadius_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), RADIUS, EXPAND_RATIO);
-        int32_t maxLength = std::max(windowWidth_, windowHeight_);
+    } else {
         rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
             maxLength * HEIGHT_PERCENT);
-        return;
     }
-    LOGI("screenStatus: %{public}s", screenStatus_.c_str());
-    float sizeRatio = DEFAULT_SIZE_RATIO;
-    switch (screenStatus_.c_str()[0]) {
-        case EXPAND:
-            sizeRatio = EXPAND_MIDDLE_SIZE_RATIO;
-            rsCanvasNode_->SetFrame(0, windowWidth_, windowHeight_, windowWidth_ * HEIGHT_PERCENT);
-            break;
-        case FOLD_1:
-        case FOLD_2:
-            rsCanvasNode_->SetFrame(0-windowHeight_ * FOLD_X_OFFSET, windowWidth_, windowHeight_,
-                windowWidth_ * HEIGHT_PERCENT);
-            fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_PHONE, RATIO_PHONE_HEIGHT);
-            currentRadius_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), RADIUS, RATIO_PHONE_HEIGHT);
-            rsCanvasNode_->SetRotation(DEGREE);
-            return;
-        case MIDDLE:
-            sizeRatio = EXPAND_MIDDLE_SIZE_RATIO;
-            rsCanvasNode_->SetFrame(windowHeight_ * MIDDLE_X_OFFSET, windowWidth_, windowHeight_,
-                windowWidth_ * HEIGHT_PERCENT);
-            break;
-        default:
-            int32_t maxLength = std::max(windowWidth_, windowHeight_);
-            rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
-                maxLength * HEIGHT_PERCENT);
-            return;
-    }
-    fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_PHONE) * sizeRatio;
-    currentRadius_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), RADIUS) * sizeRatio;
-    rsCanvasNode_->SetRotation(DEGREE);
 }
 } // namespace OHOS
