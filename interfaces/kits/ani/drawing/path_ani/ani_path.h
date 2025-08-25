@@ -23,9 +23,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniPath final {
 public:
-    AniPath() = default;
-    explicit AniPath(const Path& path) : path_(path) {}
-    ~AniPath() = default;
+    explicit AniPath(std::shared_ptr<Path> path = nullptr) : path_(path) {}
+    ~AniPath();
 
     static ani_status AniInit(ani_env *env);
 
@@ -35,10 +34,14 @@ public:
         ani_double y2, ani_double startDeg, ani_double sweepDeg);
     static void Reset(ani_env* env, ani_object obj);
 
-    Path& GetPath();
+    std::shared_ptr<Path> GetPath();
 
 private:
-    Path path_;
+    static ani_object PathTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetPathAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Path>* GetPathPtrAddr();
+    std::shared_ptr<Path> path_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

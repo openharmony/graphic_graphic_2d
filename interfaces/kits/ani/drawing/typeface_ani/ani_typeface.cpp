@@ -15,6 +15,11 @@
 
 #include "ani_typeface.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/font_napi/js_typeface.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -41,6 +46,9 @@ ani_status AniTypeface::AniInit(ani_env *env)
         ani_native_function { "makeFromFileWithArguments", "Lstd/core/String;"
             "L@ohos/graphics/drawing/drawing/TypefaceArguments;:L@ohos/graphics/drawing/drawing/Typeface;",
             reinterpret_cast<void*>(MakeFromFileWithArguments) },
+        ani_native_function { "typefaceTransferStaticNative", nullptr,
+            reinterpret_cast<void*>(TypefaceTransferStatic) },
+        ani_native_function { "getTypefaceAddr", nullptr, reinterpret_cast<void*>(GetTypefaceAddr) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -135,6 +143,50 @@ std::shared_ptr<Typeface> AniTypeface::GetZhCnTypeface()
 {
     static std::shared_ptr<Typeface> zhCnTypeface = LoadZhCnTypeface();
     return zhCnTypeface;
+}
+
+ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsTypeface = reinterpret_cast<JsTypeface*>(unwrapResult);
+    if (jsTypeface->GetTypeface() == nullptr) {
+        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic jsTypeface is null");
+        return nullptr;
+    }
+
+    auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
+    ani_object aniTypefaceObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniTypefaceObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");
+        delete aniTypeface;
+        return nullptr;
+    }
+    return aniTypefaceObj;
+}
+
+ani_long AniTypeface::GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, input);
+    if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
+        ROSEN_LOGE("AniTypeface::GetTypefaceAddr aniTypeface is null");
+        return 0;
+    }
+    return reinterpret_cast<ani_long>(aniTypeface->GetTypefacePtrAddr());
+}
+
+std::shared_ptr<Typeface>* AniTypeface::GetTypefacePtrAddr()
+{
+    return &typeface_;
 }
 
 std::shared_ptr<Typeface> AniTypeface::GetTypeface()

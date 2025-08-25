@@ -25,8 +25,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class JsPen final {
 public:
-    JsPen();
-    explicit JsPen(const Pen& pen);
+    explicit JsPen(std::shared_ptr<Pen> pen = nullptr) : pen_(pen) {}
     ~JsPen();
 
     static napi_value Init(napi_env env, napi_value exportObj);
@@ -61,13 +60,19 @@ public:
     static napi_value SetMiterLimit(napi_env env, napi_callback_info info);
     static napi_value GetMiterLimit(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
+
+    static napi_value PenTransferDynamic(napi_env env, napi_callback_info info);
     
-    Pen* GetPen();
+    std::shared_ptr<Pen> GetPen()
+    {
+        return pen_;
+    }
 
 private:
+    static napi_value CreateJsPenDynamic(napi_env env, const std::shared_ptr<Pen> pen);
     static thread_local napi_ref constructor_;
 
-    Pen* pen_;
+    std::shared_ptr<Pen> pen_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

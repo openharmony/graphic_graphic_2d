@@ -15,6 +15,11 @@
 
 #include "ani_brush.h"
 #include "color_filter_ani/ani_color_filter.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/brush_napi/js_brush.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -48,12 +53,24 @@ ani_status AniBrush::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
+    std::array staticMethods = {
+        ani_native_function { "brushTransferStaticNative", nullptr, reinterpret_cast<void*>(BrushTransferStatic) },
+        ani_native_function { "getBrushAddr", nullptr, reinterpret_cast<void*>(GetBrushAddr) },
+    };
+
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_BRUSH_NAME);
+        return ANI_NOT_FOUND;
+    }
+
     return ANI_OK;
 }
 
 void AniBrush::Constructor(ani_env* env, ani_object obj)
 {
-    AniBrush* aniBrush = new AniBrush();
+    std::shared_ptr<Brush> brush = std::make_shared<Brush>();
+    AniBrush* aniBrush = new AniBrush(brush);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniBrush))) {
         ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
         delete aniBrush;
@@ -68,8 +85,9 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
-
-    AniBrush* newAniBrush = new AniBrush(aniBrush->GetBrush());
+    std::shared_ptr<Brush> other = aniBrush->GetBrush();
+    std::shared_ptr<Brush> brush = other == nullptr ? std::make_shared<Brush>() : std::make_shared<Brush>(*other);
+    AniBrush* newAniBrush = new AniBrush(brush);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniBrush))) {
         ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
         delete newAniBrush;
@@ -80,29 +98,29 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
 ani_int AniBrush::GetAlpha(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
-    if (aniBrush == nullptr) {
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return -1;
     }
 
-    return aniBrush->GetBrush().GetAlpha();
+    return aniBrush->GetBrush()->GetAlpha();
 }
 
 void AniBrush::Reset(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
-    if (aniBrush == nullptr) {
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
-    aniBrush->GetBrush().Reset();
+    aniBrush->GetBrush()->Reset();
 }
 
 void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
-    if (aniBrush == nullptr) {
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -112,13 +130,13 @@ void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
         return;
     }
 
-    aniBrush->GetBrush().SetAlpha(alpha);
+    aniBrush->GetBrush()->SetAlpha(alpha);
 }
 
 void AniBrush::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
-    if (aniBrush == nullptr) {
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -129,18 +147,28 @@ void AniBrush::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlend
         return;
     }
 
-    aniBrush->GetBrush().SetBlendMode(static_cast<BlendMode>(blendMode));
+    aniBrush->GetBrush()->SetBlendMode(static_cast<BlendMode>(blendMode));
 }
 
-Brush& AniBrush::GetBrush()
+std::shared_ptr<Brush> AniBrush::GetBrush()
 {
     return brush_;
+}
+
+std::shared_ptr<Brush>* AniBrush::GetBrushPtrAddr()
+{
+    return &brush_;
+}
+
+AniBrush::~AniBrush()
+{
+    brush_ = nullptr;
 }
 
 void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
-    if (aniBrush == nullptr) {
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -152,9 +180,46 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
         return;
     }
 
-    Filter filter = aniBrush->GetBrush().GetFilter();
+    Filter filter = aniBrush->GetBrush()->GetFilter();
     filter.SetColorFilter(aniColorFilter->GetColorFilter());
-    aniBrush->GetBrush().SetFilter(filter);
+    aniBrush->GetBrush()->SetFilter(filter);
+}
+
+ani_object AniBrush::BrushTransferStatic(
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniBrush::BrushTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniBrush::BrushTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsBrush = reinterpret_cast<JsBrush*>(unwrapResult);
+    if (jsBrush->GetBrush() == nullptr) {
+        ROSEN_LOGE("AniBrush::BrushTransferStatic jsBrush is null");
+        return nullptr;
+    }
+    auto aniBrush = new AniBrush(jsBrush->GetBrush());
+    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniBrush))) {
+        ROSEN_LOGE("AniBrush::BrushTransferStatic failed create aniBrush");
+        delete aniBrush;
+        return nullptr;
+    }
+    return output;
+}
+
+ani_long AniBrush::GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, input);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ROSEN_LOGE("AniBrush::GetBrushAddr aniBrush is null");
+        return 0;
+    }
+    return reinterpret_cast<ani_long>(aniBrush->GetBrushPtrAddr());
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

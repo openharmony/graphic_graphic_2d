@@ -27,10 +27,10 @@ namespace Drawing {
 class JsRoundRect final {
 public:
     explicit JsRoundRect(const Drawing::Rect& rect, float x, float y)
-        : m_roundRect(rect, x, y) {};
-    explicit JsRoundRect(const RoundRect& rrect) : m_roundRect(RoundRect(rrect)) {};
+        : m_roundRect(std::make_shared<RoundRect>(rect, x, y)) {};
+    explicit JsRoundRect(std::shared_ptr<RoundRect> rrect) : m_roundRect(rrect) {};
 
-    ~JsRoundRect() {};
+    ~JsRoundRect();
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -39,16 +39,22 @@ public:
     static napi_value SetCorner(napi_env env, napi_callback_info info);
     static napi_value GetCorner(napi_env env, napi_callback_info info);
     static napi_value Offset(napi_env env, napi_callback_info info);
+    static napi_value RoundRectTransferDynamic(napi_env env, napi_callback_info info);
 
     const RoundRect& GetRoundRect();
+    std::shared_ptr<RoundRect> GetRoundRectPtr()
+    {
+        return m_roundRect;
+    }
 private:
     napi_value OnSetCorner(napi_env env, napi_callback_info info);
     napi_value OnGetCorner(napi_env env, napi_callback_info info);
     napi_value OnOffset(napi_env env, napi_callback_info info);
+    static napi_value CreateJsRoundRectDynamic(napi_env env, const std::shared_ptr<RoundRect> roundRect);
 
     static thread_local napi_ref constructor_;
 
-    RoundRect m_roundRect;
+    std::shared_ptr<RoundRect> m_roundRect;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

@@ -298,8 +298,14 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
+    std::shared_ptr<Drawing::Font> fontPtr = std::make_shared<Drawing::Font>(run->GetFont());
+    if (!fontPtr) {
+        TEXT_LOGE("Font is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
 
-    Drawing::AniFont* aniFont = new Drawing::AniFont(run->GetFont());
+    Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
     ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
     ani_status ret = env->Object_SetFieldByName_Long(fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {

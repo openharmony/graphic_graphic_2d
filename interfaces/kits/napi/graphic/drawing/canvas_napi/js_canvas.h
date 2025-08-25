@@ -103,8 +103,23 @@ public:
     static napi_value GetLocalClipBounds(napi_env env, napi_callback_info info);
     static napi_value QuickRejectPath(napi_env env, napi_callback_info info);
     static napi_value QuickRejectRect(napi_env env, napi_callback_info info);
+    static napi_value CanvasTransferDynamic(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
+    Canvas* GetCanvasPtr()
+    {
+        return m_canvas;
+    }
+    bool GetOwned()
+    {
+        return owned_;
+    }
+#ifdef ROSEN_OHOS
+    std::shared_ptr<Media::PixelMap> GetPixelMap()
+    {
+        return mPixelMap_;
+    }
+#endif
     DRAWING_API void ResetCanvas();
     DRAWING_API void ClipCanvas(float width, float height);
     DRAWING_API void SaveCanvas();

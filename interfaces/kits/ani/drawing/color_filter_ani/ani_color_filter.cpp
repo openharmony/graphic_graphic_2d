@@ -15,6 +15,11 @@
 
 #include "ani_color_filter.h"
 #include "draw/color.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/color_filter_napi/js_color_filter.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -38,6 +43,9 @@ ani_status AniColorFilter::AniInit(ani_env *env)
             "X{C{@ohos/graphics/common2D/common2D/Color}C{std.core.Int}}"
             "C{@ohos/graphics/drawing/drawing/BlendMode}:C{@ohos/graphics/drawing/drawing/ColorFilter}",
             reinterpret_cast<void*>(CreateBlendModeColorFilterWithNumber) },
+        ani_native_function { "colorFilterTransferStaticNative", nullptr,
+            reinterpret_cast<void*>(ColorFilterTransferStatic) },
+        ani_native_function { "getColorFilterAddr", nullptr, reinterpret_cast<void*>(GetColorFilterAddr) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
@@ -52,7 +60,7 @@ ani_status AniColorFilter::AniInit(ani_env *env)
 
 AniColorFilter::~AniColorFilter()
 {
-    m_ColorFilter = nullptr;
+    colorFilter_ = nullptr;
 }
 
 ani_object AniColorFilter::CreateBlendModeColorFilter(
@@ -117,9 +125,54 @@ ani_object AniColorFilter::CreateBlendModeColorFilterWithNumber(
     return aniObj;
 }
 
+ani_object AniColorFilter::ColorFilterTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsColorFilter = reinterpret_cast<JsColorFilter*>(unwrapResult);
+    if (jsColorFilter->GetColorFilterPtr() == nullptr) {
+        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic jsColorFilter is null");
+        return nullptr;
+    }
+
+    auto aniColorFilter = new AniColorFilter(jsColorFilter->GetColorFilterPtr());
+    ani_object aniColorFilterObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniColorFilterObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniColorFilter))) {
+        ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed create aniColorFilter");
+        delete aniColorFilter;
+        return nullptr;
+    }
+    return aniColorFilterObj;
+}
+
+ani_long AniColorFilter::GetColorFilterAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, input);
+    if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
+        ROSEN_LOGE("AniColorFilter::GetColorFilterAddr aniColorFilter is null");
+        return 0;
+    }
+    
+    return reinterpret_cast<ani_long>(aniColorFilter->GetColorFilterPtrAddr());
+}
+
+std::shared_ptr<ColorFilter>* AniColorFilter::GetColorFilterPtrAddr()
+{
+    return &colorFilter_;
+}
+
 std::shared_ptr<ColorFilter> AniColorFilter::GetColorFilter()
 {
-    return m_ColorFilter;
+    return colorFilter_;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

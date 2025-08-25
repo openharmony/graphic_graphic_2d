@@ -26,13 +26,13 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class JsPath final {
 public:
-    explicit JsPath(Path* path) : m_path(path) {};
+    explicit JsPath(std::shared_ptr<Path> path) : m_path(path) {};
     ~JsPath();
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
-    static napi_value CreateJsPath(napi_env env, Path* path);
+    static napi_value CreateJsPath(napi_env env, std::shared_ptr<Path> path);
     static napi_value MoveTo(napi_env env, napi_callback_info info);
     static napi_value LineTo(napi_env env, napi_callback_info info);
     static napi_value ArcTo(napi_env env, napi_callback_info info);
@@ -75,7 +75,13 @@ public:
     static napi_value Approximate(napi_env env, napi_callback_info info);
     static napi_value Interpolate(napi_env env, napi_callback_info info);
     static napi_value IsInterpolate(napi_env env, napi_callback_info info);
+    static napi_value PathTransferDynamic(napi_env env, napi_callback_info info);
+
     Path* GetPath();
+    std::shared_ptr<Path> GetPathPtr()
+    {
+        return m_path;
+    }
 
 private:
     napi_value OnMoveTo(napi_env env, napi_callback_info info);
@@ -120,9 +126,10 @@ private:
     napi_value OnApproximate(napi_env env, napi_callback_info info);
     napi_value OnInterpolate(napi_env env, napi_callback_info info);
     napi_value OnIsInterpolate(napi_env env, napi_callback_info info);
+    static napi_value CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path);
 
     static thread_local napi_ref constructor_;
-    Path* m_path = nullptr;
+    std::shared_ptr<Path> m_path = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
