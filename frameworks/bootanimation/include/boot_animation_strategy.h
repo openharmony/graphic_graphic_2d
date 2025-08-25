@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_STRATEGY_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_STRATEGY_H
 
@@ -36,6 +36,7 @@ public:
 
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;
+    std::string configPath_;
 
 private:
     bool isAnimationEnd_ = false;
