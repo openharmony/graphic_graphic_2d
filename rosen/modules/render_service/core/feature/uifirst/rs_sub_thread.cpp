@@ -14,7 +14,6 @@
  */
 
 #define EGL_EGLEXT_PROTOTYPES
-
 #include "rs_sub_thread.h"
 
 #include <string>
@@ -25,8 +24,6 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
-
-#include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"

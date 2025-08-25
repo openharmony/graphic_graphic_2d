@@ -17,8 +17,8 @@
 
 #include <cfloat>
 #include "graphic_feature_param_manager.h"
-#include "rs_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -104,13 +104,13 @@ std::shared_ptr<Drawing::ShaderEffect> RSSLRScaleFunction::GetSLRShaderEffect(fl
 {
     float tao = 1.0f / coeff;
     int minBound = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
- 
+
     int width = SLR_MAX_WIN_SIZE;
     Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE };
    
     Drawing::Bitmap bitmap;
     bitmap.Build(width, dstWidth, format, width * sizeof(uint32_t));
- 
+
     auto weightW = GetSLRWeights(coeff, 2 * minBound, dstWidth, minBound);
     if (weightW == nullptr) {
         return nullptr;
@@ -118,10 +118,10 @@ std::shared_ptr<Drawing::ShaderEffect> RSSLRScaleFunction::GetSLRShaderEffect(fl
     Drawing::ImageInfo imageInfo(width, dstWidth,
         Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE, imageColorSpace_);
     bitmap.InstallPixels(imageInfo, weightW.get(), width * sizeof(uint32_t));
-    
+
     Drawing::Image imagew;
     imagew.BuildFromBitmap(bitmap);
-    
+
     Drawing::SamplingOptions sampling(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto shader = Drawing::ShaderEffect::CreateImageShader(imagew, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, sampling, Drawing::Matrix());
@@ -262,7 +262,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSSLRScaleFunction::SLRImageShade
     slrShaderBuilder_->SetChild("imageShader", imageShader);
     slrShaderBuilder_->SetChild("widthShader", widthEffect_);
     slrShaderBuilder_->SetChild("heightShader", heightEffect_);
-   
+
     float tao = 1.0f / scaleNum_;
     int a = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
 
@@ -293,7 +293,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSSLRScaleFunction::MakeSLRShaderEffect(
                 half4 ws = widthShader.eval(half2(half(i) + 0.5, fcoord.x)) * 255;
                 float w_i = ws.x + ws.y * 256.0 - bit_bound;
                 w_i *= factor;
-    
+
                 half4 t = vec4(0, 0, 0, 0);
                 for (int j = 0; j < MAX_SIZE; ++j) {
                     half4 hs = heightShader.eval(half2(half(j) + 0.5, fcoord.y)) * 255;

@@ -13,9 +13,41 @@
  * limitations under the License.
  */
 #include "rs_base_render_engine.h"
-#include <memory>
 
+#include <memory>
 #include "v2_1/cm_color_space.h"
+
+#include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
+#include "feature/hdr/rs_hdr_util.h"
+#include "memory/rs_tag_tracker.h"
+#include "metadata_helper.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_skia_filter.h"
+
+#ifdef RS_ENABLE_GPU
+#include "drawable/rs_screen_render_node_drawable.h"
+#endif
+
+#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "feature/gpuComposition/rs_image_manager.h"
+#endif
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
+
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef USE_M133_SKIA
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
@@ -23,33 +55,6 @@
 #include "src/gpu/gl/GrGLDefines.h"
 #endif
 #endif
-
-#include "common/rs_optional_trace.h"
-#include "display_engine/rs_luminance_control.h"
-#ifdef RS_ENABLE_GPU
-#include "drawable/rs_screen_render_node_drawable.h"
-#endif
-#include "memory/rs_tag_tracker.h"
-#include "metadata_helper.h"
-#include "pipeline/render_thread/rs_divided_render_util.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
-#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
-#include "platform/ohos/backend/rs_surface_ohos_gl.h"
-#include "feature/gpuComposition/rs_image_manager.h"
-#endif
-#include "platform/ohos/backend/rs_surface_ohos_raster.h"
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "render/rs_colorspace_convert.h"
-#endif
-#include "render/rs_drawing_filter.h"
-#include "render/rs_skia_filter.h"
-#include "feature/hdr/rs_hdr_util.h"
 
 namespace OHOS {
 namespace Rosen {
