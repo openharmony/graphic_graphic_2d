@@ -101,6 +101,10 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.isTrailingSpaceOptimized = style.isTrailingSpaceOptimized;
     paragraphStyle.enableAutoSpace = style.enableAutoSpace;
     paragraphStyle.verticalAlignment = style.verticalAlignment;
+    paragraphStyle.maxLineHeight = style.maxLineHeight;
+    paragraphStyle.minLineHeight= style.minLineHeight;
+    paragraphStyle.lineSpacing = style.lineSpacing;
+    paragraphStyle.lineHeightStyle = style.lineHeightStyle;
 
     return paragraphStyle;
 }
@@ -213,6 +217,9 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.isPlaceholder = style.isPlaceholder;
     textStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
     textStyle.badgeType = style.badgeType;
+    textStyle.maxLineHeight = style.maxLineHeight;
+    textStyle.minLineHeight = style.minLineHeight;
+    textStyle.lineHeightStyle = style.lineHeightStyle;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;

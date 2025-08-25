@@ -20,6 +20,7 @@
 #include <shared_mutex>
 #include <string>
 #include <unicode/brkiter.h>
+#include <unordered_map>
 #include <vector>
 
 #include "array_mgr.h"
@@ -30,6 +31,7 @@
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
+#include "txt/paragraph_style.h"
 #include "txt/text_bundle_config_parser.h"
 #include "typography_style.h"
 #include "unicode/putil.h"
@@ -88,6 +90,266 @@ template<typename T1, typename T2>
 inline T1* ConvertToNDKText(T2* ptr)
 {
     return reinterpret_cast<T1*>(ptr);
+}
+
+typedef int (*TextStyleDoubleSetter)(OH_Drawing_TextStyle*, double);
+
+typedef int (*TextStyleDoubleGetter)(const OH_Drawing_TextStyle*, double*);
+
+typedef int (*TextStyleIntSetter)(OH_Drawing_TextStyle*, int);
+
+typedef int (*TextStyleIntGetter)(const OH_Drawing_TextStyle*, int*);
+
+typedef int (*TypographyStyleDoubleSetter)(OH_Drawing_TypographyStyle*, double);
+
+typedef int (*TypographyStyleDoubleGetter)(const OH_Drawing_TypographyStyle*, double*);
+
+typedef int (*TypographyStyleIntSetter)(OH_Drawing_TypographyStyle*, int);
+
+typedef int (*TypographyStyleIntGetter)(const OH_Drawing_TypographyStyle*, int*);
+
+int SetTextStyleLineHeightMaximum(OH_Drawing_TextStyle* style, double value)
+{
+    ConvertToOriginalText<TextStyle>(style)->maxLineHeight = value;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetTextStyleLineHeightMaximum(const OH_Drawing_TextStyle* style, double* value)
+{
+    *value = ConvertToOriginalText<const TextStyle>(style)->maxLineHeight;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int SetTextStyleLineHeightMinimum(OH_Drawing_TextStyle* style, double value)
+{
+    ConvertToOriginalText<TextStyle>(style)->minLineHeight = value;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetTextStyleLineHeightMinimum(const OH_Drawing_TextStyle* style, double* value)
+{
+    *value = ConvertToOriginalText<const TextStyle>(style)->minLineHeight;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int SetTextStyleLineHeightStyle(OH_Drawing_TextStyle* style, int value)
+{
+    if (value < 0 || value > static_cast<int>(OHOS::Rosen::LineHeightStyle::kFontHeight)) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+    }
+    ConvertToOriginalText<TextStyle>(style)->lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(value);
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetTextStyleLineHeightStyle(const OH_Drawing_TextStyle* style, int* value)
+{
+    *value = static_cast<int>(ConvertToOriginalText<const TextStyle>(style)->lineHeightStyle);
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int SetLineSpacing(OH_Drawing_TypographyStyle* style, double value)
+{
+    ConvertToOriginalText<TypographyStyle>(style)->lineSpacing = value;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetLineSpacing(const OH_Drawing_TypographyStyle* style, double* value)
+{
+    *value = ConvertToOriginalText<const TypographyStyle>(style)->lineSpacing;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int SetLineHeightMaximum(OH_Drawing_TypographyStyle* style, double value)
+{
+    ConvertToOriginalText<TypographyStyle>(style)->maxLineHeight = value;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetLineHeightMaximum(const OH_Drawing_TypographyStyle* style, double* value)
+{
+    *value = ConvertToOriginalText<const TypographyStyle>(style)->maxLineHeight;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int SetLineHeightMinimum(OH_Drawing_TypographyStyle* style, double value)
+{
+    ConvertToOriginalText<TypographyStyle>(style)->minLineHeight = value;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetLineHeightMinimum(const OH_Drawing_TypographyStyle* style, double* value)
+{
+    *value = ConvertToOriginalText<const TypographyStyle>(style)->minLineHeight;
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int SetLineHeightStyle(OH_Drawing_TypographyStyle* style, int value)
+{
+    if (value < 0 || value > static_cast<int>(OHOS::Rosen::LineHeightStyle::kFontHeight)) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+    }
+    ConvertToOriginalText<TypographyStyle>(style)->lineHeightStyle =
+        static_cast<OHOS::Rosen::LineHeightStyle>(value);
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+int GetLineHeightStyle(const OH_Drawing_TypographyStyle* style, int* value)
+{
+    *value = static_cast<int>(ConvertToOriginalText<const TypographyStyle>(style)->lineHeightStyle);
+    return OHOS::Rosen::Drawing::SUCCESS;
+}
+
+static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleDoubleSetter> g_textStyleDoubleSetters = {
+    { TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, SetTextStyleLineHeightMaximum },
+    { TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, SetTextStyleLineHeightMinimum },
+};
+
+static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleDoubleGetter> g_textStyleDoubleGetters = {
+    { TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, GetTextStyleLineHeightMaximum },
+    { TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, GetTextStyleLineHeightMinimum },
+};
+
+static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleIntSetter> g_textStyleIntSetters = {
+    { TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, SetTextStyleLineHeightStyle },
+};
+
+static std::unordered_map<OH_Drawing_TextStyleAttributeId, TextStyleIntGetter> g_textStyleIntGetters = {
+    { TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, GetTextStyleLineHeightStyle },
+};
+
+static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleSetter>
+    g_typographyStyleDoubleSetters = {
+        { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, SetLineHeightMaximum },
+        { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, SetLineHeightMinimum },
+        { TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, SetLineSpacing },
+    };
+
+static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleGetter>
+    g_typographyStyleDoubleGetters = {
+    { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, GetLineHeightMaximum },
+    { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, GetLineHeightMinimum },
+    { TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, GetLineSpacing },
+};
+
+static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleIntSetter>
+    g_typographyStyleIntSetters = {
+    { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, SetLineHeightStyle },
+};
+
+static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleIntGetter>
+    g_typographyStyleIntGetters = {
+    { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, GetLineHeightStyle },
+};
+
+int OH_Drawing_SetTextStyleAttributeDouble(OH_Drawing_TextStyle* style,
+    OH_Drawing_TextStyleAttributeId id, double value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_textStyleDoubleSetters.find(id);
+    if (it == g_textStyleDoubleSetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_GetTextStyleAttributeDouble(const OH_Drawing_TextStyle* style,
+    OH_Drawing_TextStyleAttributeId id, double* value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_textStyleDoubleGetters.find(id);
+    if (it == g_textStyleDoubleGetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_SetTextStyleAttributeInt(OH_Drawing_TextStyle* style, OH_Drawing_TextStyleAttributeId id, int value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_textStyleIntSetters.find(id);
+    if (it == g_textStyleIntSetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_GetTextStyleAttributeInt(const OH_Drawing_TextStyle* style,
+    OH_Drawing_TextStyleAttributeId id, int* value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+ 
+    auto it = g_textStyleIntGetters.find(id);
+    if (it == g_textStyleIntGetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_SetTypographyStyleAttributeDouble(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_typographyStyleDoubleSetters.find(id);
+    if (it == g_typographyStyleDoubleSetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_GetTypographyStyleAttributeDouble(const OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double* value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_typographyStyleDoubleGetters.find(id);
+    if (it == g_typographyStyleDoubleGetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, int value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_typographyStyleIntSetters.find(id);
+    if (it == g_typographyStyleIntSetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
+}
+
+int OH_Drawing_GetTypographyStyleAttributeInt(const OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, int* value)
+{
+    if (!style) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
+    }
+
+    auto it = g_typographyStyleIntGetters.find(id);
+    if (it == g_typographyStyleIntGetters.end()) {
+        return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
+    }
+    return it->second(style, value);
 }
 
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)

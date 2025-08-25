@@ -40,7 +40,6 @@ const char* DefaultLocale()
 
 ParagraphBuilderImpl::ParagraphBuilderImpl(
     const ParagraphStyle& style, std::shared_ptr<txt::FontCollection> fontCollection)
-    : baseStyle_(style.ConvertToTextStyle())
 {
     threadId_ = pthread_self();
     builder_ = skt::ParagraphBuilder::make(TextStyleToSkStyle(style), fontCollection->CreateSktFontCollection());
@@ -159,6 +158,9 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
         textStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
         textStyle.setTextStyleUid(txt.defaultTextStyleUid);
         textStyle.setHalfLeading(txt.halfLeading);
+        textStyle.setMaxLineHeight(txt.maxLineHeight);
+        textStyle.setMinLineHeight(txt.minLineHeight);
+        textStyle.setLineHeightStyle(static_cast<skt::LineHeightStyle>(txt.lineHeightStyle));
     }
 
     skStyle.setTextStyle(textStyle);
@@ -188,6 +190,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
     skStyle.setVerticalAlignment(static_cast<skt::TextVerticalAlign>(txt.verticalAlignment));
+    skStyle.setLineSpacing(txt.lineSpacing);
 
     return skStyle;
 }
@@ -254,6 +257,9 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     }
 
     skStyle.setTextBadgeType(static_cast<skt::TextBadgeType>(txt.badgeType));
+    skStyle.setMaxLineHeight(txt.maxLineHeight);
+    skStyle.setMinLineHeight(txt.minLineHeight);
+    skStyle.setLineHeightStyle(static_cast<skt::LineHeightStyle>(txt.lineHeightStyle));
 
     return skStyle;
 }
