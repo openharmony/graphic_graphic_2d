@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "boot_associative_display_strategy.h"
 
 #include "log.h"
@@ -68,7 +68,7 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
 
         if (IsOtaUpdate()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(config);
+            bootCompileProgress_->Init(configPath_, config);
         }
 
         while (!CheckExitAnimation()) {
