@@ -128,28 +128,28 @@ void RSHardwareThread::Start()
         return this->Redraw(surface, layers, screenId);
     };
     if (handler_) {
-        ScheduleTask(
-            [this]() {
+        ScheduleTask([this]() {
 #if defined (RS_ENABLE_VK)
-                // Change vk interface type from UNIRENDER into UNPROTECTED_REDRAW, this is necessary for hardware init.
-                if (RSSystemProperties::IsUseVulkan()) {
-                    RsVulkanContext::GetSingleton().SetIsProtected(false);
-                }
+            // Change vk interface type from UNIRENDER into UNPROTECTED_REDRAW, this is necessary for hardware init.
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                RsVulkanContext::GetSingleton().SetIsProtected(false);
+            }
 #endif
-                auto screenManager = CreateOrGetScreenManager();
-                if (screenManager == nullptr || !screenManager->Init()) {
-                    RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
-                    return;
-                }
+            auto screenManager = CreateOrGetScreenManager();
+            if (screenManager == nullptr || !screenManager->Init()) {
+                RS_LOGE("RSHardwareThread CreateOrGetScreenManager or init fail.");
+                return;
+            }
 #ifdef RES_SCHED_ENABLE
-                SubScribeSystemAbility();
+            SubScribeSystemAbility();
 #endif
-                uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                uniRenderEngine_->Init();
-                // posttask for multithread safely release surface and image
-                ContextRegisterPostTask();
-                hardwareTid_ = gettid();
-            }).wait();
+            uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+            uniRenderEngine_->Init();
+            // posttask for multithread safely release surface and image
+            ContextRegisterPostTask();
+            hardwareTid_ = gettid();
+        }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
         OnPrepareComplete(surface, param, data);
