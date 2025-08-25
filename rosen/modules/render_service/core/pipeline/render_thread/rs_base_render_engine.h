@@ -25,7 +25,7 @@
 #include "sync_fence.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
-#endif // RS_ENABLE_VK
+#endif
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
 #else
@@ -221,7 +221,6 @@ public:
     }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     void ResetCurrentContext();
-
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
     const std::shared_ptr<RSImageManager>& GetImageManager()
     {
@@ -236,6 +235,7 @@ public:
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorSpaceNameToDrawingColorSpace(
         OHOS::ColorManager::ColorSpaceName colorSpaceName);
+    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
     {
@@ -259,8 +259,6 @@ private:
         BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
     static bool NeedBilinearInterpolation(const BufferDrawParam& params, const Drawing::Matrix& matrix);
-
-    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;

@@ -20,7 +20,6 @@
 
 #include "common/rs_singleton.h"
 #include "common/rs_optional_trace.h"
-#include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
