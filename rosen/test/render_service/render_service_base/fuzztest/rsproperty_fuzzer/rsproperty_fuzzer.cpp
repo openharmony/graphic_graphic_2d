@@ -331,7 +331,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     // Run FuzzTest
-    RSProperties properties;
+    OHOS::Rosen::RSProperties properties;
     RSPropertiesFuzzTestInner01(properties);
     RSPropertiesFuzzTestInner02(properties);
     RSPropertiesFuzzTestInner03(properties);
