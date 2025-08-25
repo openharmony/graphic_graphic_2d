@@ -514,6 +514,7 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         "xcomponentIdSurface",
         "componentIdSurface",
         "SceneViewer Model totemweather0",
+        "UnityPlayerSurface",
     };
 
     if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr || layerInfo->GetBuffer() == nullptr) {
