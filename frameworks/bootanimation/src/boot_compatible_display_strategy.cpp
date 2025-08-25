@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include "boot_compatible_display_strategy.h"
 
 #include "log.h"
@@ -51,7 +51,6 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
                 config.videoDefaultPath = iter->second;
                 config.screenStatus = status;
             }
-            LOGI("status: %{public}s, videoDefaultPath: %{public}s", status.c_str(), config.videoDefaultPath.c_str());
         }
 
         Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
@@ -65,7 +64,7 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
 
         if (IsOtaUpdate()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(config);
+            bootCompileProgress_->Init(configPath_, config);
         }
     }
 
