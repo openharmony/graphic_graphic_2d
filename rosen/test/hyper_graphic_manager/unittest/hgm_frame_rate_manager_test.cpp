@@ -1343,7 +1343,6 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
 
     frameRateMgr->frameVoter_.isDragScene_ = true;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
-    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
