@@ -83,6 +83,9 @@ HgmFrameRateManager::HgmFrameRateManager()
     frameVoter_.SetChangeRangeCallback([this](const std::string& voter) {
         MarkVoteChange(voter);
     });
+    softVSyncManager_.SetUpdateSoftVSyncFunc([this](bool followRs) {
+        UpdateSoftVSync(followRs);
+    });
 }
 
 void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
