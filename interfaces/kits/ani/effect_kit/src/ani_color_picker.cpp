@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 static const std::string ANI_CLASS_COLOR_PICKER = "L@ohos/effectKit/effectKit/ColorPickerInternal;";
-static const std::string ANI_CLASS_COLOR = "L@ohos/effectKit/effectKit/Color;";
+static const std::string ANI_CLASS_COLOR = "L@ohos/effectKit/effectKit/ColorInternal;";
 constexpr int REGION_COORDINATE_NUM = 4;
 
 struct AniColorPickerAsyncContext {
@@ -268,8 +268,8 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     }
     colorPicker->srcPixelMap_ = pixelMap;
 
-    ani_double length;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(region, "length", &length)) {
+    ani_int length;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(region, "length", &length)) {
         EFFECT_LOG_E("get region length failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
