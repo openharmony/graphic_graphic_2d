@@ -61,7 +61,7 @@ void HgmTaskHandleThreadTest::TearDown() {}
  * @tc.name: Instance
  * @tc.desc: Test Instance
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level0)
 {
@@ -74,7 +74,7 @@ HWTEST_F(HgmTaskHandleThreadTest, Instance, TestSize.Level0)
  * @tc.name: PostTask001
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level0)
 {
@@ -105,7 +105,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level0)
  * @tc.name: PostTask002
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, PostTask002, TestSize.Level0)
 {
@@ -120,7 +120,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask002, TestSize.Level0)
  * @tc.name: PostTask003
  * @tc.desc: Test PostTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level0)
 {
@@ -142,7 +142,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level0)
  * @tc.name: PostSyncTask001
  * @tc.desc: Test PostSyncTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, PostSyncTask001, TestSize.Level0)
 {
@@ -162,7 +162,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostSyncTask001, TestSize.Level0)
  * @tc.name: PostEvent001
  * @tc.desc: Test PostEvent
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, PostEvent001, TestSize.Level0)
 {
@@ -196,7 +196,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostEvent001, TestSize.Level0)
  * @tc.name: RemoveEvent001
  * @tc.desc: Test RemoveEvent
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICUGO7
  */
 HWTEST_F(HgmTaskHandleThreadTest, RemoveEvent001, TestSize.Level0)
 {
@@ -220,7 +220,7 @@ HWTEST_F(HgmTaskHandleThreadTest, RemoveEvent001, TestSize.Level0)
  * @tc.name: DetectMultiThreadingCalls
  * @tc.desc: Test DetectMultiThreadingCalls
  * @tc.type: FUNC
- * @tc.require:IB3MVN
+ * @tc.require:issueIB3MVN
  */
 HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level0)
 {
