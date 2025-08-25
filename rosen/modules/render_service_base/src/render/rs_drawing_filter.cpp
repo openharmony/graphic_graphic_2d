@@ -223,9 +223,6 @@ void RSDrawingFilter::GenerateAndUpdateGEVisualEffect()
 {
     visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     for (const auto& filter : shaderFilters_) {
-        if (filter->GetType() == RSUIFilterType::KAWASE) {
-            continue;
-        }
         filter->GenerateGEVisualEffect(visualEffectContainer_);
     }
     if (!renderFilter_) {
@@ -494,10 +491,6 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
 {
     canSkipMaskColor_ = false;
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    auto hpsVisualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    for (const auto& filter : shaderFilters_) {
-        filter->GenerateGEVisualEffect(hpsVisualEffectContainer);
-    }
     RSColor maskColorForHPS = RSColor();
     // if alpha equal 1.0, apply maskcolor
     if (ROSEN_EQ(attr.brushAlpha, 1.0f)) {
@@ -512,7 +505,7 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
         image, attr.src, attr.dst, Drawing::SamplingOptions(), true, brush.GetColor().GetAlphaF() * attr.brushAlpha,
         brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_};
 
-    bool kawaseHpsProcess = geRender->ApplyHpsGEImageEffect(canvas, *hpsVisualEffectContainer,
+    bool kawaseHpsProcess = geRender->ApplyHpsGEImageEffect(canvas, *visualEffectContainer_,
         context, outImage, brush);
     if (outImage == nullptr) {
         ROSEN_LOGD("RSDrawingFilter::ApplyHpsImageEffect ApplyHpsGEEffect failed");
@@ -595,6 +588,9 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         return;
     }
 
+    // RemoveFilterWithType because KAWASE_BLUR will excute in HPS 1.0 separately.
+    visualEffectContainer->RemoveFilterWithType(
+        static_cast<int32_t>(Drawing::GEVisualEffectImpl::FilterType::KAWASE_BLUR));
     if (ApplyGEImageEffect(canvas, image, visualEffectContainer, outImage, attr, brush)) {
         return;
     }
