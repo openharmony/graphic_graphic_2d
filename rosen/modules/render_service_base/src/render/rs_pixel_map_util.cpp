@@ -16,6 +16,7 @@
 #include "render/rs_pixel_map_util.h"
 #include <memory>
 
+#include "feature/hdr/rs_colorspace_util.h"
 #include "pixel_map.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -52,29 +53,6 @@ static const std::map<PixelFormat, GraphicPixelFormat> PIXELMAP_SURFACEBUFFER_FO
     {PixelFormat::ASTC_8x8, GRAPHIC_PIXEL_FMT_BLOB},
 #endif
 };
-
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
-    ColorManager::ColorSpaceName colorSpaceName)
-{
-    switch (colorSpaceName) {
-        case ColorManager::ColorSpaceName::DCI_P3:
-        case ColorManager::ColorSpaceName::DISPLAY_P3:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-        case ColorManager::ColorSpaceName::LINEAR_SRGB:
-            return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorManager::ColorSpaceName::SRGB:
-            return Drawing::ColorSpace::CreateSRGB();
-        case ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
-        case ColorManager::ColorSpaceName::ADOBE_RGB:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
-        default:
-            return Drawing::ColorSpace::CreateSRGB();
-    }
-}
 
 static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
 {
@@ -162,7 +140,7 @@ std::shared_ptr<Drawing::ColorSpace> RSPixelMapUtil::GetPixelmapColorSpace(
     if (!pixelMap) {
         return Drawing::ColorSpace::CreateSRGB();
     }
-    return ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
+    return RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
 }
 
 std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
@@ -188,7 +166,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
+        RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
     Drawing::Pixmap imagePixmap(drawingImageInfo,
         reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
@@ -355,7 +333,7 @@ void RSPixelMapUtil::DrawPixelMap(Drawing::Canvas& canvas, Media::PixelMap& pixe
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        ColorSpaceToDrawingColorSpace(pixelMap.InnerGetGrColorSpace().GetColorSpaceName()) };
+        RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap.InnerGetGrColorSpace().GetColorSpaceName()) };
     Drawing::Bitmap pixelBitmap;
     pixelBitmap.InstallPixels(
         drawingImageInfo, reinterpret_cast<void*>(pixelMap.GetWritablePixels()),

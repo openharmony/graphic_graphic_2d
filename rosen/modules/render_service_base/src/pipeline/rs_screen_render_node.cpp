@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_special_layer_manager.h"
+#include "feature/hdr/rs_colorspace_util.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -25,30 +26,10 @@
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
 #include "transaction/rs_render_service_client.h"
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "render/rs_colorspace_convert.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
-
-namespace {
-GraphicColorGamut SelectBigGamut(GraphicColorGamut oldGamut, GraphicColorGamut newGamut)
-{
-    if (oldGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
-        return oldGamut;
-    }
-    if (oldGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-        if (newGamut == GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020) {
-            return newGamut;
-        } else {
-            return oldGamut;
-        }
-    }
-    return newGamut;
-}
-}
 
 RSScreenRenderNode::RSScreenRenderNode(
     NodeId id, ScreenId screenId, const std::weak_ptr<RSContext>& context)
@@ -453,7 +434,7 @@ void RSScreenRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
 
 void RSScreenRenderNode::UpdateColorSpace(const GraphicColorGamut& colorSpace)
 {
-    GraphicColorGamut newColorSpace = SelectBigGamut(colorSpace_, colorSpace);
+    GraphicColorGamut newColorSpace = RSColorSpaceUtil::SelectBigGamut(colorSpace_, colorSpace);
     if (colorSpace_ == newColorSpace) {
         return;
     }

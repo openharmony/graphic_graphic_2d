@@ -381,6 +381,7 @@ ohos_source_set("render_service_base_src") {
 
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",

@@ -26,6 +26,7 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "feature/hdr/rs_colorspace_util.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
@@ -48,9 +49,6 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "metadata_helper.h"
 #include <v1_0/cm_color_space.h>
-#endif
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "render/rs_colorspace_convert.h"
 #endif
 
 namespace OHOS {
@@ -113,23 +111,6 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
     }
     return false;
 }
-
-#ifndef ROSEN_CROSS_PLATFORM
-GraphicColorGamut CMPrimariesToGamut(HDI::Display::Graphic::Common::V1_0::CM_ColorPrimaries primary)
-{
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    switch (primary) {
-        case COLORPRIMARIES_ADOBERGB:
-        case COLORPRIMARIES_P3_DCI:
-        case COLORPRIMARIES_P3_D65:
-            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-        case COLORPRIMARIES_BT2020: // COLORPRIMARIES_BT2100 = COLORPRIMARIES_BT2020
-            return GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020;
-        default:
-            return GRAPHIC_COLOR_GAMUT_SRGB;
-    }
-}
-#endif
 }
 
 void OcclusionParams::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
@@ -1461,7 +1442,7 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
         RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata get color space info failed.");
         return;
     }
-    SetColorSpace(CMPrimariesToGamut(colorSpaceInfo.primaries));
+    SetColorSpace(RSColorSpaceUtil::PrimariesToGraphicGamut(colorSpaceInfo.primaries));
 #endif
 }
 
