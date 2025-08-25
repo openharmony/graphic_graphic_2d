@@ -371,7 +371,6 @@ HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
     EXPECT_NE(0, test2);
 }
 
-
 /**
 *@tc.name: SetAndGetMaxUniRenderSizeTest
 *@tc.desc: Verify the return value of the GetMaxUniRenderSize founction after maxUniRenderSize_ is set.
