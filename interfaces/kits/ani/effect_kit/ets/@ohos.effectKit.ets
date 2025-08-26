@@ -17,7 +17,7 @@ import { BusinessError } from '@ohos.base';
 import image from '@ohos.multimedia.image';
 
 namespace effectKit {
-  loadLibrary('effectKit_ani')
+  loadLibraryWithPermissionCheck('effectKit_ani', "@ohos.effectKit")
   /**
    * The Filter of FilterChain.
    * @typedef Filter
