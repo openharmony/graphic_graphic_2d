@@ -27,10 +27,6 @@ public:
 
     static bool IsDirtyRegionEnable();
 
-    static bool IsExpandScreenDirtyRegionEnable();
-
-    static bool IsMirrorScreenDirtyRegionEnable();
-
     static bool IsAdvancedDirtyRegionEnable();
 
     static bool IsComposeDirtyRegionEnableInPartialDisplay();
@@ -42,10 +38,6 @@ public:
 protected:
     static void SetDirtyRegionEnable(bool isEnable);
 
-    static void SetExpandScreenDirtyRegionEnable(bool isEnable);
-
-    static void SetMirrorScreenDirtyRegionEnable(bool isEnable);
-
     static void SetAdvancedDirtyRegionEnable(bool isEnable);
 
     static void SetComposeDirtyRegionEnableInPartialDisplay(bool isEnable);
@@ -56,8 +48,6 @@ protected:
 
 private:
     inline static bool isDirtyRegionEnable_ = true;
-    inline static bool isExpandScreenDirtyRegionEnable_ = true;
-    inline static bool isMirrorScreenDirtyRegionEnable_ = true;
     inline static bool isAdvancedDirtyRegionEnable_ = false;
     // Controls whether compose dirty region is enabled in partial display mode
     // Partial display mode: the screen's active rect is not full screen
