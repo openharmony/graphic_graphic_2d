@@ -405,7 +405,7 @@ HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_001, TestSize.Level1)
 *@tc.name: CalMaxUniRenderSize_test_002
 *@tc.desc: Verify the return value of the CalMaxUniRenderSize founction when the maxUniRenderSize_ is set
 *@tc.type: FUNC
-*@tc.require: 
+*@tc.require:
 *@tc.author:
 */
 HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_002, TestSize.Level1)
@@ -421,7 +421,7 @@ HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_002, TestSize.Level1)
 *@tc.name: CalMaxUniRenderSize_test_003
 *@tc.desc: Verify the return value of the CalMaxUniRenderSize founction when the set maxUniRenderSize_ is invalid
 *@tc.type: FUNC
-*@tc.require: 
+*@tc.require:
 *@tc.author:
 */
 HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_003, TestSize.Level1)
