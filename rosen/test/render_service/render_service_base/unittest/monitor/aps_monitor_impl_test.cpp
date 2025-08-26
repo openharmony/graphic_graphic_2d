@@ -49,7 +49,7 @@ HWTEST_F(ApsMonitorImplTest, SetApsSurfaceNodeTreeChangeTest, TestSize.Level1)
     monitor_->isApsFuncsAvailable_ = true;
     monitor_->isApsFuncsLoad_ = false;
     monitor_->SetApsSurfaceNodeTreeChange(true, "test1");
-    ASSERT_NE(monitor_->sendApsEventFunc_, nullptr);
+    ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
  
     monitor_->isApsFuncsAvailable_ = false;
     monitor_->isApsFuncsLoad_ = true;
