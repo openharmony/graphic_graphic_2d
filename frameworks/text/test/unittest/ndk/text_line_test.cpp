@@ -106,13 +106,13 @@ void NdkTextLineTest::PrepareCreateTextLine(const std::string& text)
     double maxWidth = 500.0;
     uint32_t height = 40;
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_TRUE(typoStyle_ != nullptr);
+    EXPECT_TRUE(typoStyle_ != nullptr);
     txtStyle_ = OH_Drawing_CreateTextStyle();
-    ASSERT_TRUE(txtStyle_ != nullptr);
+    EXPECT_TRUE(txtStyle_ != nullptr);
     fontCollection_ = OH_Drawing_CreateFontCollection();
-    ASSERT_TRUE(fontCollection_ != nullptr);
+    EXPECT_TRUE(fontCollection_ != nullptr);
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    ASSERT_TRUE(handler_ != nullptr);
+    EXPECT_TRUE(handler_ != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
     OH_Drawing_SetTextStyleFontSize(txtStyle_, fontSize);
@@ -125,16 +125,16 @@ void NdkTextLineTest::PrepareCreateTextLine(const std::string& text)
     OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
     typography_ = OH_Drawing_CreateTypography(handler_);
-    ASSERT_TRUE(typography_ != nullptr);
+    EXPECT_TRUE(typography_ != nullptr);
     OH_Drawing_TypographyLayout(typography_, maxWidth);
     double position[2] = {10.0, 15.0};
     cBitmap_ = OH_Drawing_BitmapCreate();
-    ASSERT_TRUE(cBitmap_ != nullptr);
+    EXPECT_TRUE(cBitmap_ != nullptr);
     OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
     uint32_t width = 20;
     OH_Drawing_BitmapBuild(cBitmap_, width, height, &cFormat);
     canvas_ = OH_Drawing_CanvasCreate();
-    ASSERT_TRUE(canvas_ != nullptr);
+    EXPECT_TRUE(canvas_ != nullptr);
     OH_Drawing_CanvasBind(canvas_, cBitmap_);
     OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography_, canvas_, position[0], position[1]);
@@ -165,11 +165,11 @@ void NdkTextLineTest::PrepareCreateTextLineWithMulTextStyle()
     std::string text3 = "སངབངསབ སངབངསབ test ellipsisstyle";
     constexpr double maxWidth = 1000.0;
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    EXPECT_TRUE(typoStyle_ != nullptr);
+    ASSERT_NE(typoStyle_, nullptr);
     fontCollection_ = OH_Drawing_CreateFontCollection();
-    EXPECT_TRUE(fontCollection_ != nullptr);
+    ASSERT_NE(fontCollection_, nullptr);
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    EXPECT_TRUE(handler_ != nullptr);
+    ASSERT_NE(handler_, nullptr);
     // textstyle span1
     constexpr double fontSize1 = 80;
     CreateAndPushTextStyle(text1, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00), fontSize1,
@@ -184,7 +184,7 @@ void NdkTextLineTest::PrepareCreateTextLineWithMulTextStyle()
         TEXT_DECORATION_OVERLINE);
 
     typography_ = OH_Drawing_CreateTypography(handler_);
-    EXPECT_TRUE(typography_ != nullptr);
+    ASSERT_NE(typography_, nullptr);
     OH_Drawing_TypographyLayout(typography_, maxWidth);
 }
 
@@ -1459,10 +1459,12 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest044, TestSize.Level0)
     constexpr double paintPosY = 150;
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
+        ASSERT_NE(textLine, nullptr);
         OH_Drawing_TextLine* truncatedLine =
             OH_Drawing_TextLineCreateTruncatedLine(textLine, truncatedWidth, ELLIPSIS_MODAL_TAIL, "...");
-        EXPECT_TRUE(truncatedLine != nullptr);
+        ASSERT_NE(truncatedLine, nullptr);
+        canvas_ = OH_Drawing_CanvasCreate();
+        ASSERT_NE(canvas_, nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, paintPosX, paintPosY);
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
         // Evert textline contain glyph count 3
@@ -1494,10 +1496,12 @@ HWTEST_F(NdkTextLineTest, NdkTextLineTest045, TestSize.Level0)
     std::vector<double> glyphCountArr = {glyphCount1, glyphCount2, glyphCount3};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
+        ASSERT_NE(textLine, nullptr);
         OH_Drawing_TextLine* truncatedLine =
             OH_Drawing_TextLineCreateTruncatedLine(textLine, truncatedWidth, ELLIPSIS_MODAL_TAIL, "...");
-        EXPECT_TRUE(truncatedLine != nullptr);
+        ASSERT_NE(truncatedLine, nullptr);
+        canvas_ = OH_Drawing_CanvasCreate();
+        ASSERT_NE(canvas_, nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, paintPosX, paintPosY);
         // if ellipsis style change, glyph count will change.
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
