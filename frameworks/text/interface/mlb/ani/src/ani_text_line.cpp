@@ -102,7 +102,7 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":V");
     ani_status ret = env->Object_SetFieldByName_Long(textLineObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLine));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to set type set textLine, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to set type set textLine, ani_status %{public}d", ret);
         return AniTextUtils::CreateAniUndefined(env);
     }
     return textLineObj;
@@ -330,13 +330,13 @@ static bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vec
     ani_ref fnReturnVal;
     ret = env->FunctionalObject_Call(callback, vec.size(), vec.data(), &fnReturnVal);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to call callback function, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to call callback function, ani_status %{public}d", ret);
         return false;
     }
     ani_boolean result = false;
     ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to get result, ani_status %{public}d", ret);
         return false;
     }
     return result;
@@ -404,7 +404,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
         }
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(textLineBase.get()));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani textLineBase obj, ret: %{public}d", ret);
+            TEXT_LOGE("Failed to create ani textLineBase obj, ret %{public}d", ret);
             return AniTextUtils::CreateAniUndefined(env);
         }
         return staticObj;

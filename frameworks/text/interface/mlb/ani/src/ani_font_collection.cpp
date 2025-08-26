@@ -205,7 +205,7 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
         aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani font collection obj, ret: %{public}d", ret);
+            TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
             delete aniFontCollection;
             aniFontCollection = nullptr;
             return AniTextUtils::CreateAniUndefined(env);
@@ -221,7 +221,7 @@ ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class c
         napi_value dynamicObj = nullptr;
         napi_status status = JsFontCollection::CreateFontCollection(napiEnv, objValue, &dynamicObj);
         if (status != napi_ok || dynamicObj == nullptr) {
-            TEXT_LOGE("Failed to create font collection, status: %{public}d", status);
+            TEXT_LOGE("Failed to create font collection, status %{public}d", status);
             return dynamicObj = nullptr;
         }
         AniFontCollection* aniFontCollection = reinterpret_cast<AniFontCollection*>(nativeObj);
@@ -231,7 +231,7 @@ ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class c
         }
         status = JsFontCollection::SetFontCollection(napiEnv, dynamicObj, aniFontCollection->GetFontCollection());
         if (status != napi_ok) {
-            TEXT_LOGE("Failed to set inner font collection, status: %{public}d", status);
+            TEXT_LOGE("Failed to set inner font collection, status %{public}d", status);
             return dynamicObj = nullptr;
         }
         return dynamicObj;

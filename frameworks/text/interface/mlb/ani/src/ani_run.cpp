@@ -156,7 +156,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     OHOS::Text::ANI::RectRange rectRange;
     ani_status ret = AniTextRectConverter::ParseRangeToNative(env, range, rectRange);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to parse range, ani_status: %{public}d", ret);
+        TEXT_LOGE("Failed to parse range, ani_status %{public}d", ret);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -450,7 +450,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
         }
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(runPtr.get()));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani run obj, ret: %{public}d", ret);
+            TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
             return AniTextUtils::CreateAniUndefined(env);
         }
         return staticObj;
