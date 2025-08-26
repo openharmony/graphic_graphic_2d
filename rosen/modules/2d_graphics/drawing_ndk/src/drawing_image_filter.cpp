@@ -25,7 +25,7 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static const Rect& CatsToRect(const OH_Drawing_Rect& cRect)
+static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
 {
     return reinterpret_cast<const Rect&>(cRect);
 }
@@ -60,7 +60,7 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateBlurWithCrop(float sigmaX, f
             inputHandle ? inputHandle->value : nullptr, ImageBlurType::GAUSS);
     } else {
         imageFilterHandle->value = ImageFilterLazy::CreateBlur(sigmaX, sigmaY, static_cast<TileMode>(cTileMode),
-            inputHandle ? inputHandle->value : nullptr, ImageBlurType::GAUSS, CatsToRect(*rect));
+            inputHandle ? inputHandle->value : nullptr, ImageBlurType::GAUSS, CastToRect(*rect));
     }
     
     if (imageFilterHandle->value == nullptr) {

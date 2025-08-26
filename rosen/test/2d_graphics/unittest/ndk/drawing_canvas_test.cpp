@@ -307,6 +307,12 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawVertices007, TestS
     OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
                                   colors, 1, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    // test success
+    OH_Drawing_ErrorCodeReset();
+    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
+                                  colors, 3, indices, BLEND_MODE_COLOR);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_SUCCESS);
 }
 
 /*
