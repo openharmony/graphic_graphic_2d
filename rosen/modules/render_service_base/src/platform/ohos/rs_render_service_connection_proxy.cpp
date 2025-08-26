@@ -1188,7 +1188,7 @@ int32_t RSRenderServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
         return WRITE_PARCEL_ERR;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
 
     if (callback) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
