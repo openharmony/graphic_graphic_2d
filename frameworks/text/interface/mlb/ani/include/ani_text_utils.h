@@ -67,19 +67,35 @@ public:
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
 };
 
+static std::unordered_map<std::string, ani_ref> clsCache;
+static std::unordered_map<std::string, ani_method> methodCache;
+
 template <typename... Args>
 ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params)
 {
     ani_class cls = nullptr;
-    if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
+    if (clsCache.find(name) != clsCache.end()) {
+        cls = reinterpret_cast<ani_class>(clsCache[name]);
+    } else if (env->FindClass(name.c_str(), &cls) == ANI_OK) {
+        ani_ref savePtr;
+        env->GlobalReference_Create(reinterpret_cast<ani_ref>(cls), &savePtr);
+        clsCache[name] = savePtr;
+    } else {
         TEXT_LOGE("Failed to found %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
-    ani_method ctor;
-    if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) != ANI_OK) {
+
+    ani_method ctor = nullptr;
+    std::string methodKey = name + std::string(signature);
+    if (methodCache.find(methodKey) != methodCache.end()) {
+        ctor = methodCache[methodKey];
+    } else if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) == ANI_OK) {
+        methodCache[methodKey] = ctor;
+    } else {
         TEXT_LOGE("Failed to get ctor %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
+
     ani_object obj = {};
     if (env->Object_New(cls, ctor, &obj, params...) != ANI_OK) {
         TEXT_LOGE("Failed to create object %{public}s", name.c_str());

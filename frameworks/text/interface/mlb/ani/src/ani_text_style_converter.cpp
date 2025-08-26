@@ -272,7 +272,7 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
     
-    static string sign = ANI_INTERFACE_COLOR + "DDDD:V";
+    static std::string sign = std::string(ANI_INTERFACE_COLOR) + "DDDD:V";
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, nullptr,
         AniTextStyleConverter::ParseDecorationToAni(env, textStyle),
         aniColorObj,
@@ -289,7 +289,7 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         AniTextUtils::CreateAniBooleanObj(env, textStyle.heightOnly),
         AniTextUtils::CreateAniStringObj(env, textStyle.ellipsis),
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_ELLIPSIS_MODE, static_cast<int>(textStyle.ellipsisModal)),
-        AniTextUtils::CreateAniStringObj(env, textStyle.locale)),
+        AniTextUtils::CreateAniStringObj(env, textStyle.locale),
         AniTextUtils::CreateAniDoubleObj(env, textStyle.baseLineShift),
         ParseFontFeaturesToAni(env, textStyle.fontFeatures),
         AniTextUtils::CreateAniArrayAndInitData(env, textStyle.shadows, textStyle.shadows.size(),
@@ -343,7 +343,7 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
         TEXT_LOGE("Failed to parse color, ret %{public}d", status);
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
-    static string sign = ANI_INTERFACE_COLOR + "DDDD:V";
+    static std::string sign = std::string(ANI_INTERFACE_COLOR) + "DDDD:V";
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE, sign.c_str(),
         aniColorObj,
         rectStyle.leftTopRadius,
