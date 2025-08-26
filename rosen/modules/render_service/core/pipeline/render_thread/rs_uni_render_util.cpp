@@ -1424,16 +1424,12 @@ Drawing::Rect RSUniRenderUtil::GetImageRegions(float screenWidth, float screenHe
         // Left and right set black
         float halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
         float halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
-        dstRect = Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
-        return dstRect;
-    }
-
-    if (imageScaleWidth < imageScaleHeight) {
+        return Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
+    } else if (imageScaleWidth < imageScaleHeight) {
         // Up and down set black
         float halfBoundHeightTop = (screenHeight - imageHeight) / 2;
         float halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
-        dstRect = Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
-        return dstRect;
+        return Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
     }
     return dstRect;
 }
