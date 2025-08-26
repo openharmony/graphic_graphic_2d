@@ -28,7 +28,12 @@
 #include "pixel_map.h"
 #include "sk_image_chain.h"
 #include "sk_image_filter_factory.h"
-
+#include "filter_napi.h"
+ 
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -240,6 +245,77 @@ ani_object AniFilter::GetPixelMap(ani_env* env, ani_object obj)
     return Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
 }
 
+ani_object AniFilter::CreateEffectFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    auto aniFilter = std::make_unique<AniFilter>();
+    if (!pixelMap) {
+        EFFECT_LOG_E("AniFilter::CreateEffectFromPtr pixelMap is null");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    aniFilter->srcPixelMap_ = pixelMap;
+    static const char* className = ANI_CLASS_FILTER.c_str();
+    const char* methodSig = "J:V";
+    return AniEffectKitUtils::CreateAniObject(
+        env, className, methodSig, reinterpret_cast<ani_long>(aniFilter.release()));
+}
+
+ani_object AniFilter::KitTransferStaticEffect(ani_env* aniEnv, ani_class cls, ani_object obj)
+{
+    void *unwrapResult = nullptr;
+    if (!arkts_esvalue_unwrap(aniEnv, obj, &unwrapResult)) {
+        EFFECT_LOG_E("AniFilter::KitTransferStaticEffect fail to unwrap input");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    if (unwrapResult == nullptr) {
+        EFFECT_LOG_E("AniFilter::KitTransferStaticEffect unwrapResult is nullptr");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    FilterNapi* napiFilter = static_cast<FilterNapi*>(unwrapResult);
+    if (napiFilter == nullptr) {
+        EFFECT_LOG_E("AniFilter::KitTransferStaticEffect napiFilter is nullptr");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    return static_cast<ani_object>(CreateEffectFromPtr(aniEnv, napiFilter->GetSrcPixelMap()));
+}
+
+ani_object AniFilter::kitTransferDynamicEffect(ani_env* aniEnv,  ani_class cls, ani_long obj)
+{
+    AniFilter* aniFilter = reinterpret_cast<AniFilter*>(obj);
+    if (aniFilter == nullptr) {
+        EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect aniFilter is nullptr");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
+        EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect napi scope open failed");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    napi_value napiFilter = FilterNapi::CreateEffectFromPtr(napiEnv, aniFilter->GetSrcPixelMap());
+    hybridgref ref {};
+    if (!hybridgref_create_from_napi(napiEnv, napiFilter, &ref)) {
+        EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect create hybridgref failed");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    ani_object result {};
+    if (!hybridgref_get_esvalue(aniEnv, ref, &result)) {
+        EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect get esvalue failed");
+        hybridgref_delete_from_napi(napiEnv, ref);
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    if (!hybridgref_delete_from_napi(napiEnv, ref)) {
+        EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect delete hybridgref fail");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    if (!arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr)) {
+        EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect napi close scope fail");
+        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+    }
+    return result;
+}
+
+
 ani_status AniFilter::Init(ani_env* env)
 {
     static const char* className = ANI_CLASS_FILTER.c_str();
@@ -269,9 +345,18 @@ ani_status AniFilter::Init(ani_env* env)
         ani_native_function { "getPixelMapNative", ":L@ohos/multimedia/image/image/PixelMap;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMap) },
     };
-    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
-    if (ret != ANI_OK) {
-        EFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
+    
+    std::array static_methods = {
+        ani_native_function { "kitTransferStaticNative", "Lstd/interop/ESValue;:Lstd/core/Object;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::KitTransferStaticEffect) },
+        ani_native_function { "kitTransferDynamicNative", "J:Lstd/interop/ESValue;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::kitTransferDynamicEffect) }
+    };
+    ani_status ret1 = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret2 = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());
+    if (ret1 != ANI_OK || ret2 != ANI_OK) {
+        EFFECT_LOG_E("AniFilter::Init Class_BindNativeMethods ret1 : %{public}d", ret1);
+        EFFECT_LOG_E("AniFilter::Init Class_BindNativeMethods ret2 : %{public}d", ret2);
         return ANI_ERROR;
     }
     return ANI_OK;

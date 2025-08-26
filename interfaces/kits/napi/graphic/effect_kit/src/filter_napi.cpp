@@ -280,6 +280,23 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     return _this;
 }
 
+napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    std::unique_ptr<FilterNapi> filterNapi = std::make_unique<FilterNapi>();
+    filterNapi->srcPixelMap_  = pixelMap;
+    napi_wrap(env, objValue, filterNapi.release(), FilterNapi::Finalizer, nullptr, nullptr);
+
+    return objValue;
+}
+
+void FilterNapi::Finalizer(napi_env env, void* data, void* hint)
+{
+    std::unique_ptr<FilterNapi>(static_cast<FilterNapi*>(data));
+}
+
 DrawError FilterNapi::Render(bool forceCPU)
 {
     Rosen::SKImageChain skImage(srcPixelMap_);
