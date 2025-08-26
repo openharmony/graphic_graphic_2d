@@ -557,7 +557,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
         }
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyPtr.get()));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani typography obj, ret: %{public}d", ret);
+            TEXT_LOGE("Failed to create ani typography obj, ret %{public}d", ret);
             return AniTextUtils::CreateAniUndefined(env);
         }
         return staticObj;

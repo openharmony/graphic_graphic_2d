@@ -260,7 +260,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
         }
         ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyCreatePtr.get()));
         if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani typographyCreate obj, ret: %{public}d", ret);
+            TEXT_LOGE("Failed to create ani typographyCreate obj, ret %{public}d", ret);
             return AniTextUtils::CreateAniUndefined(env);
         }
         return staticObj;
@@ -274,7 +274,7 @@ ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class
         napi_value dynamicObj = nullptr;
         napi_status status = JsParagraphBuilder::CreateTypographyCreate(napiEnv, objValue, &dynamicObj);
         if (status != napi_ok || dynamicObj == nullptr) {
-            TEXT_LOGE("Failed to create paragraph builder, status: %{public}d", status);
+            TEXT_LOGE("Failed to create paragraph builder, status %{public}d", status);
             return dynamicObj = nullptr;
         }
         TypographyCreate* typographyCreate = reinterpret_cast<TypographyCreate*>(nativeObj);
@@ -284,7 +284,7 @@ ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class
         }
         status = JsParagraphBuilder::SetTypographyCreate(napiEnv, dynamicObj, std::shared_ptr<TypographyCreate>(typographyCreate));
         if (status != napi_ok) {
-            TEXT_LOGE("Failed to set inner paragraph builder, status: %{public}d", status);
+            TEXT_LOGE("Failed to set inner paragraph builder, status %{public}d", status);
             return dynamicObj = nullptr;
         }
         return dynamicObj;
