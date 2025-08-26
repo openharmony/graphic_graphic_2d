@@ -283,6 +283,47 @@ namespace text {
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
+    constructor(
+      decoration?: Decoration,
+      color?: common2D.Color,
+      fontWeight?: FontWeight,
+      fontStyle?: FontStyle,
+      baseline?: TextBaseline,
+      fontFamilies?: Array<string>,
+      fontSize?: double,
+      letterSpacing?: double,
+      wordSpacing?: double,
+      heightScale?: double,
+      halfLeading?: boolean,
+      heightOnly?: boolean,
+      ellipsis?: string,
+      ellipsisMode?: EllipsisMode,
+      locale?: string,
+      baselineShift?: double,
+      fontFeatures?: Array<FontFeature>,
+      textShadows?: Array<TextShadow>,
+      backgroundRect?: RectStyle,
+    ) {
+      this.decoration = decoration;
+      this.color = color;
+      this.fontWeight = fontWeight;
+      this.fontStyle = fontStyle;
+      this.baseline = baseline;
+      this.fontFamilies = fontFamilies;
+      this.fontSize = fontSize;
+      this.letterSpacing = letterSpacing;
+      this.wordSpacing = wordSpacing;
+      this.heightScale = heightScale;
+      this.halfLeading = halfLeading;
+      this.heightOnly = heightOnly;
+      this.ellipsis = ellipsis;
+      this.ellipsisMode = ellipsisMode;
+      this.locale = locale;
+      this.baselineShift = baselineShift;
+      this.fontFeatures = fontFeatures;
+      this.textShadows = textShadows;
+      this.backgroundRect = backgroundRect;
+    }
   }
 
   interface LineMetrics {
@@ -311,6 +352,31 @@ namespace text {
     lineNumber: int;
     topHeight: double;
     runMetrics: Map<int, RunMetrics>;
+    constructor(
+      startIndex: int,
+      endIndex: int,
+      ascent: double,
+      descent: double,
+      height: double,
+      width: double,
+      left: double,
+      baseline: double,
+      lineNumber: int,
+      topHeight: double,
+      runMetrics: Map<int, RunMetrics>
+    ) {
+      this.startIndex = startIndex;
+      this.endIndex = endIndex;
+      this.ascent = ascent;
+      this.descent = descent;
+      this.height = height;
+      this.width = width;
+      this.left = left;
+      this.baseline = baseline;
+      this.lineNumber = lineNumber;
+      this.topHeight = topHeight;
+      this.runMetrics = runMetrics;
+    }
   }
 
   export enum FontWeight {
@@ -405,6 +471,19 @@ namespace text {
     rightTopRadius: double;
     rightBottomRadius: double;
     leftBottomRadius: double;
+    constructor(
+      color: common2D.Color,
+      leftTopRadius: double,
+      rightTopRadius: double,
+      rightBottomRadius: double,
+      leftBottomRadius: double,
+    ) {
+      this.color = color;
+      this.leftTopRadius = leftTopRadius;
+      this.rightTopRadius = rightTopRadius;
+      this.rightBottomRadius = rightBottomRadius;
+      this.leftBottomRadius = leftBottomRadius;
+    }
   }
 
   export interface FontVariation {
