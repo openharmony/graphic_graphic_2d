@@ -282,19 +282,6 @@ void RSPropertiesFuzzTestInner04(RSProperties& properties)
     properties.SetDistortionDirty(distortionDirty);
 }
 
-bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)
-{
-    RSProperties properties;
-
-    // test
-    RSPropertiesFuzzTestInner01(properties);
-    RSPropertiesFuzzTestInner02(properties);
-    RSPropertiesFuzzTestInner03(properties);
-    RSPropertiesFuzzTestInner04(properties);
-
-    return true;
-}
-
 bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
 {
     // getdata
@@ -340,10 +327,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return -1;
     }
-    /* Run your code on data */
 
     // Run FuzzTest
-    OHOS::Rosen::RSPropertiesFuzzTest(data, size);
+    OHOS::Rosen::RSProperties properties;
+    RSPropertiesFuzzTestInner01(properties);
+    RSPropertiesFuzzTestInner02(properties);
+    RSPropertiesFuzzTestInner03(properties);
+    RSPropertiesFuzzTestInner04(properties);
+
     OHOS::Rosen::RSPropertiesPainterFuzzTest(data, size);
     return 0;
 }
