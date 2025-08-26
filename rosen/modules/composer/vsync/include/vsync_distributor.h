@@ -165,8 +165,7 @@ public:
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
         bool nativeDelayEnable, const std::vector<std::string>& rsDvsyncAnimationList);
-    // no input scene delay rs
-    int64_t GetRsDelayTime(const int32_t pid);
+    virtual int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
     int64_t GetVsyncCount();
