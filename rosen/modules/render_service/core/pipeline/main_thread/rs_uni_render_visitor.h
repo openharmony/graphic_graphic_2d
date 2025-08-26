@@ -335,6 +335,8 @@ private:
 
     void UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node);
 
+    void CollectSurfaceLockLayer(RSSurfaceRenderNode& node);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 

@@ -49,8 +49,9 @@ void RSClientTest::SetUpTestCase()
 {
     rsClient = std::make_shared<RSRenderServiceClient>();
     uint64_t tokenId;
-    const char* perms[1];
+    const char* perms[2];
     perms[0] = "ohos.permission.CAPTURE_SCREEN";
+    perms[1] = "ohos.permission.CAPTURE_SCREEN_ALL";
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,

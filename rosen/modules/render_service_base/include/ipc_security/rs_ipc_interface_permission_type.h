@@ -28,6 +28,7 @@ enum class PermissionType : CodeUnderlyingType {
     CAPTURE_SCREEN,
     UPDATE_CONFIGURATION,
     GET_RUNNING_INFO,
+    CAPTURE_SCREEN_ALL,
 };
 extern const std::unordered_map<PermissionType, std::string> PERMISSION_MAP;
 

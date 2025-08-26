@@ -2560,6 +2560,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             RS_LOGE("DoDirectComposition: surfaceNode is null!");
             continue;
         }
+        SetHasSurfaceLockLayer(surfaceNode->GetFixRotationByUser());
         RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, screenId);
         screenNode->CollectHdrStatus(surfaceNode->GetVideoHdrStatus());
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
@@ -4761,6 +4762,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         doDirectComposition_ = isHardwareForcedDisabled_ ? false : RSSystemProperties::GetDoDirectCompositionEnabled();
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
+        hasSurfaceLockLayer_ = false;
         hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
         ClearSelfDrawingNodes();
@@ -5452,6 +5454,16 @@ void RSMainThread::SetForceRsDVsync(const std::string& sceneId)
         RS_TRACE_NAME("RSMainThread::SetForceRsDVsync");
         rsVSyncDistributor_->ForceRsDVsync(sceneId);
     }
+}
+
+void RSMainThread::SetHasSurfaceLockLayer(bool hasSurfaceLockLayer)
+{
+    hasSurfaceLockLayer_ = hasSurfaceLockLayer_ || hasSurfaceLockLayer;
+}
+
+bool RSMainThread::HasDrmOrSurfaceLockLayer() const
+{
+    return hasSurfaceLockLayer_ || hasProtectedLayer_;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -446,6 +446,9 @@ public:
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeImageDirty(uint64_t nodeId);
 
+    void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
+    bool HasDrmOrSurfaceLockLayer() const;
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -621,6 +624,7 @@ private:
     bool watermarkFlag_ = false;
     bool lastWatermarkFlag_ = false;
     bool hasProtectedLayer_ = false;
+    bool hasSurfaceLockLayer_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isCachedSurfaceUpdated_ = false;
     // used for informing hgm the bundle name of SurfaceRenderNodes
