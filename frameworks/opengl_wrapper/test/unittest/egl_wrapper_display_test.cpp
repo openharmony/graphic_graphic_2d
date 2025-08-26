@@ -702,7 +702,6 @@ HWTEST_F(EglWrapperDisplayTest, SetDamageRegionKHR002, Level1)
     ASSERT_EQ(EGL_FALSE, result);
 }
 
-
 /**
  * @tc.name: SetDamageRegionKHR003
  * @tc.desc:

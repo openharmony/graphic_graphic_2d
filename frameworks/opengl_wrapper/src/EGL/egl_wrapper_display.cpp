@@ -1132,7 +1132,7 @@ EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageKHR(EGLSurface draw, EGLint *
         }
 
         if (nRects < 0 || (nRects > 0 && rects == NULL)) {
-            WLOGE("Paramter error.");
+            WLOGE("Parameter error.");
             ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
             return EGL_FALSE;
         }
@@ -1162,7 +1162,7 @@ EGLBoolean EglWrapperDisplay::SetDamageRegionKHR(EGLSurface surf, EGLint *rects,
     }
 
     if (nRects < 0 || (nRects > 0 && rects == nullptr)) {
-        WLOGE("Paramter error.");
+        WLOGE("Parameter error.");
         ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
         return EGL_FALSE;
     }
@@ -1330,7 +1330,7 @@ EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageEXT(EGLSurface surface, const
         }
 
         if (nRects < 0 || (nRects > 0 && rects == nullptr)) {
-            WLOGE("Paramter error.");
+            WLOGE("Parameter error.");
             ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
             return EGL_FALSE;
         }
