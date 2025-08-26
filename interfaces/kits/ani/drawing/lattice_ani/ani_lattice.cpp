@@ -168,8 +168,8 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
     ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors)
 {
-    uint32_t xCount = fXCount;
-    uint32_t yCount = fYCount;
+    uint32_t xCount = static_cast<uint32_t>(fXCount);
+    uint32_t yCount = static_cast<uint32_t>(fYCount);
 
     Lattice lat;
     if (!GetLatticeDividers(env, xDivs, xCount, lat.fXDivs)) {
@@ -182,8 +182,8 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
         return CreateAniUndefined(env);
     }
-    lat.fXCount = xCount;
-    lat.fYCount = yCount;
+    lat.fXCount = static_cast<int>(xCount);
+    lat.fYCount = static_cast<int>(yCount);
 
     Drawing::Rect drawingRect;
     if (GetRectFromAniRectObj(env, fBounds, drawingRect)) {
@@ -195,7 +195,7 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     ani_boolean isNull = ANI_TRUE;
     env->Reference_IsUndefined(fRectTypes, &isUndefined);
     env->Reference_IsNull(fRectTypes, &isNull);
-    int count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
+    uint32_t count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
     if (!isUndefined && !isNull) {
         if (!GetLatticeRectTypes(env, fRectTypes, count, lat.fRectTypes)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter6 type.");
