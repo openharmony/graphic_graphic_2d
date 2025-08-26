@@ -39,7 +39,9 @@ public:
     ColorPickerNapi();
     ~ColorPickerNapi();
     static napi_value Init(napi_env env, napi_value exports);
-
+    static napi_value CreateColorPickerFromPtr(napi_env env, std::shared_ptr<ColorPicker> picker);
+    std::shared_ptr<ColorPicker> GetColorPicker(){ return nativeColorPicker_; }
+    
 private:
     // methods constructor
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -68,6 +70,7 @@ private:
     static napi_value GetReverseColor(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
     static ImageType ParserArgumentType(napi_env env, napi_value argv);
+    static void Finalizer(napi_env env, void* data, void* hint);
 
     // napi var
     napi_env env_ = nullptr;
