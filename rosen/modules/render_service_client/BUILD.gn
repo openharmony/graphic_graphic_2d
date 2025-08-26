@@ -159,6 +159,7 @@ template("render_service_client_source_set") {
       #render_thread
       "core/render_thread/rs_render_thread_util.cpp",
       "core/render_thread/rs_render_thread_visitor.cpp",
+      "core/render_thread/rs_render_thread_stats.cpp",
 
       #jank_detector
       "core/render_thread/jank_detector/rs_jank_detector.cpp",
@@ -286,6 +287,7 @@ template("render_service_client_source_set") {
       ]
 
       external_deps = [
+        "ability_runtime:app_manager",
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
         "c_utils:utils",

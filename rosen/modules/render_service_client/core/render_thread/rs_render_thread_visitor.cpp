@@ -14,6 +14,7 @@
  */
 
 #include "render_thread/rs_render_thread_visitor.h"
+#include "render_thread/rs_render_thread_stats.h"
 
 #include <cmath>
 #include "draw/color.h"
@@ -22,6 +23,7 @@
 #include "rs_trace.h"
 
 #include "command/rs_base_node_command.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -784,9 +786,14 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     auto transform = surface->GetTransform();
     RectF bounds = {property.GetBoundsPositionX(), property.GetBoundsPositionY(),
         property.GetBoundsWidth(), property.GetBoundsHeight()};
+    /* add report for renderfit statistics */
+    ScalingMode scalingMode = surfaceBuffer->GetSurfaceBufferScalingMode();
+    const float frameWidth = static_cast<float>(surfaceBuffer->GetSurfaceBufferWidth());
+    const float frameHeight = static_cast<float>(surfaceBuffer->GetSurfaceBufferHeight());
+    RSRenderThreadStats::GetInstance().AddStaticInfo(frameWidth, frameHeight,
+        node.GetRenderProperties(), scalingMode);
     Drawing::Matrix transfromMatrix = CacRotationFromTransformType(transform, bounds);
     FlipMatrix(transform, transfromMatrix, bounds);
-    ScalingMode scalingMode = surfaceBuffer->GetSurfaceBufferScalingMode();
     Drawing::Rect srcRect { 0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight() };
     Drawing::Rect dstRect { 0, 0, bounds.width_, bounds.height_ };
     Drawing::Rect boundsRect = { bounds.left_, bounds.top_, bounds.left_ + bounds.width_,
