@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "ani_cache_manager.h"
 #include "ani_common.h"
 #include "utils/text_log.h"
 
@@ -67,19 +68,15 @@ public:
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
 };
 
-static std::unordered_map<std::string, ani_ref> clsCache;
-static std::unordered_map<std::string, ani_method> methodCache;
-
 template <typename... Args>
 ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params)
 {
     ani_class cls = nullptr;
-    if (clsCache.find(name) != clsCache.end()) {
-        cls = reinterpret_cast<ani_class>(clsCache[name]);
+    ani_ref clsRef = nullptr;
+    if (AniCacheManager::Instance().FindClass(name, clsRef)) {
+        cls = reinterpret_cast<ani_class>(clsRef);
     } else if (env->FindClass(name.c_str(), &cls) == ANI_OK) {
-        ani_ref savePtr;
-        env->GlobalReference_Create(reinterpret_cast<ani_ref>(cls), &savePtr);
-        clsCache[name] = savePtr;
+        AniCacheManager::Instance().InsertClass(env, name, cls);
     } else {
         TEXT_LOGE("Failed to found %{public}s", name.c_str());
         return CreateAniUndefined(env);
@@ -87,10 +84,9 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
 
     ani_method ctor = nullptr;
     std::string methodKey = name + std::string(signature);
-    if (methodCache.find(methodKey) != methodCache.end()) {
-        ctor = methodCache[methodKey];
+    if (AniCacheManager::Instance().FindMethod(methodKey, ctor)) {
     } else if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) == ANI_OK) {
-        methodCache[methodKey] = ctor;
+        AniCacheManager::Instance().InsertMethod(methodKey, ctor);
     } else {
         TEXT_LOGE("Failed to get ctor %{public}s", name.c_str());
         return CreateAniUndefined(env);
