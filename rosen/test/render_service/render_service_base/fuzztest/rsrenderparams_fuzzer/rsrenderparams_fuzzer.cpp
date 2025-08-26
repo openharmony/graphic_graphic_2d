@@ -51,7 +51,7 @@ T GetData()
     return object;
 }
 
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+bool DoSomethingInterestingWithMyAPI()
 {
     NodeId id = 0;
 
@@ -91,7 +91,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetShadowRect(const uint8_t* data, size_t size)
+bool DoSetShadowRect()
 {
     NodeId id = 0;
 
@@ -132,7 +132,7 @@ bool DoSetShadowRect(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOpincSetCacheChangeFlag(const uint8_t* data, size_t size)
+bool DoOpincSetCacheChangeFlag()
 {
     NodeId id = 0;
 
@@ -166,8 +166,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::g_pos = 0;
 
     /* Run your code on data */
-    OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
-    OHOS::Rosen::DoSetShadowRect(data, size);
-    OHOS::Rosen::DoOpincSetCacheChangeFlag(data, size);
+    OHOS::Rosen::DoSomethingInterestingWithMyAPI();
+    OHOS::Rosen::DoSetShadowRect();
+    OHOS::Rosen::DoOpincSetCacheChangeFlag();
     return 0;
 }

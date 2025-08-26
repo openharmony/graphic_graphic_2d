@@ -54,7 +54,7 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoIsValid(const uint8_t* data, size_t size)
+bool DoIsValid()
 {
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
@@ -123,7 +123,7 @@ bool DoSetUiTimeStamp(const uint8_t* data, size_t size)
     rsSurfaceOhosVulkan->SetUiTimeStamp(frame, uiTimestamp);
     return true;
 }
-bool DoSetSkContext(const uint8_t* data, size_t size)
+bool DoSetSkContext()
 {
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
@@ -158,7 +158,7 @@ bool DoRequestNativeWindowBuffer(const uint8_t* data, size_t size)
     rsSurfaceOhosVulkan->RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC);
     return true;
 }
-bool DoCreateVkSemaphore(const uint8_t* data, size_t size)
+bool DoCreateVkSemaphore()
 {
     sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
@@ -181,6 +181,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::g_pos = 0;
 
     /* Run your code on data */
-    OHOS::Rosen::DoIsValid(data, size);                   // IsValid
+    OHOS::Rosen::DoIsValid();                   // IsValid
     return 0;
 }

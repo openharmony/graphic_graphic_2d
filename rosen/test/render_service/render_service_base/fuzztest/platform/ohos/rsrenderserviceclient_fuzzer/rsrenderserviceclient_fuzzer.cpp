@@ -121,7 +121,7 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetMemoryGraphics(const uint8_t* data, size_t size)
+bool DoGetMemoryGraphics()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetMemoryGraphics();
@@ -162,7 +162,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoCreateRSSurface(const uint8_t* data, size_t size)
+bool DoCreateRSSurface()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     sptr<Surface> surface;
@@ -278,21 +278,21 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetDefaultScreenId(const uint8_t* data, size_t size)
+bool DoGetDefaultScreenId()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetDefaultScreenId();
     return true;
 }
 
-bool DoGetActiveScreenId(const uint8_t* data, size_t size)
+bool DoGetActiveScreenId()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetActiveScreenId();
     return true;
 }
 
-bool DoGetAllScreenIds(const uint8_t* data, size_t size)
+bool DoGetAllScreenIds()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetAllScreenIds();
@@ -462,7 +462,7 @@ bool DoGetScreenCurrentRefreshRate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetCurrentRefreshRateMode(const uint8_t* data, size_t size)
+bool DoGetCurrentRefreshRateMode()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetCurrentRefreshRateMode();
@@ -477,7 +477,7 @@ bool DoGetScreenSupportedRefreshRates(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetShowRefreshRateEnabled(const uint8_t* data, size_t size)
+bool DoGetShowRefreshRateEnabled()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetShowRefreshRateEnabled();
@@ -545,7 +545,7 @@ bool DoGetVirtualScreenResolution(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoMarkPowerOffNeedProcessOneFrame(const uint8_t* data, size_t size)
+bool DoMarkPowerOffNeedProcessOneFrame()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->MarkPowerOffNeedProcessOneFrame();
@@ -760,7 +760,7 @@ bool DoSetVirtualScreenRefreshRate(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
+bool DoRegisterOcclusionChangeCallback()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     OcclusionChangeCallback callback;
@@ -823,7 +823,7 @@ bool DoSetAppWindowNum(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetSystemAnimatedScenes(const uint8_t* data, size_t size)
+bool DoSetSystemAnimatedScenes()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     SystemAnimatedScenes systemAnimatedScenes = SystemAnimatedScenes::ENTER_MISSION_CENTER;
@@ -859,7 +859,7 @@ bool DoResizeVirtualScreen(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoReportJankStats(const uint8_t* data, size_t size)
+bool DoReportJankStats()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->ReportJankStats();
@@ -1012,7 +1012,7 @@ bool DoSetCacheEnabledForRotation(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetOnRemoteDiedCallback(const uint8_t* data, size_t size)
+bool DoSetOnRemoteDiedCallback()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     OnRemoteDiedCallback callback;
@@ -1020,7 +1020,7 @@ bool DoSetOnRemoteDiedCallback(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetActiveDirtyRegionInfo(const uint8_t* data, size_t size)
+bool DoGetActiveDirtyRegionInfo()
 {
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     client->GetActiveDirtyRegionInfo();
@@ -1167,7 +1167,7 @@ bool DoSetForceRefresh(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoExecuteSynchronousTask002(const uint8_t *data, size_t size)
+bool DoExecuteSynchronousTask002()
 {
     std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderServiceClient>();
     auto task = nullptr;
@@ -1642,19 +1642,19 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
     OHOS::Rosen::DoGetMemoryGraphic(data, size);
-    OHOS::Rosen::DoGetMemoryGraphics(data, size);
+    OHOS::Rosen::DoGetMemoryGraphics();
     OHOS::Rosen::DoGetTotalAppMemSize(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
-    OHOS::Rosen::DoCreateRSSurface(data, size);
+    OHOS::Rosen::DoCreateRSSurface();
     OHOS::Rosen::DoCreateVSyncReceiver(data, size);
     OHOS::Rosen::DoCreatePixelMapFromSurfaceId(data, size);
     OHOS::Rosen::DoTriggerSurfaceCaptureCallback(data, size);
     OHOS::Rosen::DoTakeSurfaceCapture(data, size);
     OHOS::Rosen::DoSetFocusAppInfo(data, size);
-    OHOS::Rosen::DoGetDefaultScreenId(data, size);
-    OHOS::Rosen::DoGetActiveScreenId(data, size);
-    OHOS::Rosen::DoGetAllScreenIds(data, size);
+    OHOS::Rosen::DoGetDefaultScreenId();
+    OHOS::Rosen::DoGetActiveScreenId();
+    OHOS::Rosen::DoGetAllScreenIds();
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoSetVirtualScreenBlackList(data, size);
@@ -1669,9 +1669,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSyncFrameRateRange(data, size);
     OHOS::Rosen::DoUnregisterFrameRateLinker(data, size);
     OHOS::Rosen::DoGetScreenCurrentRefreshRate(data, size);
-    OHOS::Rosen::DoGetCurrentRefreshRateMode(data, size);
+    OHOS::Rosen::DoGetCurrentRefreshRateMode();
     OHOS::Rosen::DoGetScreenSupportedRefreshRates(data, size);
-    OHOS::Rosen::DoGetShowRefreshRateEnabled(data, size);
+    OHOS::Rosen::DoGetShowRefreshRateEnabled();
     OHOS::Rosen::DoGetRefreshInfo(data, size);
     OHOS::Rosen::DoGetRefreshInfoToSP(data, size);
     OHOS::Rosen::DoSetShowRefreshRateEnabled(data, size);
@@ -1679,7 +1679,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetPhysicalScreenResolution(data, size);
     OHOS::Rosen::DoSetVirtualScreenResolution(data, size);
     OHOS::Rosen::DoGetVirtualScreenResolution(data, size);
-    OHOS::Rosen::DoMarkPowerOffNeedProcessOneFrame(data, size);
+    OHOS::Rosen::DoMarkPowerOffNeedProcessOneFrame();
     OHOS::Rosen::DoDisablePowerOffRenderControl(data, size);
     OHOS::Rosen::DoGetScreenActiveMode(data, size);
     OHOS::Rosen::DoGetScreenSupportedModes(data, size);
@@ -1699,15 +1699,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenSupportedColorSpaces(data, size);
     OHOS::Rosen::DoGetScreenType(data, size);
     OHOS::Rosen::DoSetVirtualScreenRefreshRate(data, size);
-    OHOS::Rosen::DoRegisterOcclusionChangeCallback(data, size);
+    OHOS::Rosen::DoRegisterOcclusionChangeCallback();
     OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback(data, size);
     OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
-    OHOS::Rosen::DoSetSystemAnimatedScenes(data, size);
+    OHOS::Rosen::DoSetSystemAnimatedScenes();
     OHOS::Rosen::DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
     OHOS::Rosen::DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
     OHOS::Rosen::DoResizeVirtualScreen(data, size);
-    OHOS::Rosen::DoReportJankStats(data, size);
+    OHOS::Rosen::DoReportJankStats();
     OHOS::Rosen::DoReportEventResponse(data, size);
     OHOS::Rosen::DoReportGameStateData(data, size);
     OHOS::Rosen::DoSetHardwareEnabled(data, size);
@@ -1721,8 +1721,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);
     OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);
     OHOS::Rosen::DoNotifyXComponentExpectedFrameRate(data, size);
-    OHOS::Rosen::DoSetOnRemoteDiedCallback(data, size);
-    OHOS::Rosen::DoGetActiveDirtyRegionInfo(data, size);
+    OHOS::Rosen::DoSetOnRemoteDiedCallback();
+    OHOS::Rosen::DoGetActiveDirtyRegionInfo();
     OHOS::Rosen::DoSetVmaCacheStatus(data, size);
     OHOS::Rosen::DoRegisterUIExtensionCallback(data, size);
     OHOS::Rosen::DoSetAncoForceDoDirect(data, size);
@@ -1731,7 +1731,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoTriggerSurfaceBufferCallback(data, size);
     OHOS::Rosen::DoSetLayerTop(data, size);
     OHOS::Rosen::DoSetForceRefresh(data, size);
-    OHOS::Rosen::DoExecuteSynchronousTask002(data, size);
+    OHOS::Rosen::DoExecuteSynchronousTask002();
     OHOS::Rosen::DoGetUniRenderEnabled(data, size);
     OHOS::Rosen::DoCreateNode002(data, size);
     OHOS::Rosen::DoGetTotalAppMemSize002(data, size);
