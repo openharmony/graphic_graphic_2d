@@ -106,13 +106,13 @@ void NdkTextLineTest::PrepareCreateTextLine(const std::string& text)
     double maxWidth = 500.0;
     uint32_t height = 40;
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    EXPECT_TRUE(typoStyle_ != nullptr);
+    ASSERT_TRUE(typoStyle_ != nullptr);
     txtStyle_ = OH_Drawing_CreateTextStyle();
-    EXPECT_TRUE(txtStyle_ != nullptr);
+    ASSERT_TRUE(txtStyle_ != nullptr);
     fontCollection_ = OH_Drawing_CreateFontCollection();
-    EXPECT_TRUE(fontCollection_ != nullptr);
+    ASSERT_TRUE(fontCollection_ != nullptr);
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    EXPECT_TRUE(handler_ != nullptr);
+    ASSERT_TRUE(handler_ != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
     OH_Drawing_SetTextStyleFontSize(txtStyle_, fontSize);
@@ -125,16 +125,16 @@ void NdkTextLineTest::PrepareCreateTextLine(const std::string& text)
     OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
     OH_Drawing_TypographyHandlerPopTextStyle(handler_);
     typography_ = OH_Drawing_CreateTypography(handler_);
-    EXPECT_TRUE(typography_ != nullptr);
+    ASSERT_TRUE(typography_ != nullptr);
     OH_Drawing_TypographyLayout(typography_, maxWidth);
     double position[2] = {10.0, 15.0};
     cBitmap_ = OH_Drawing_BitmapCreate();
-    EXPECT_TRUE(cBitmap_ != nullptr);
+    ASSERT_TRUE(cBitmap_ != nullptr);
     OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
     uint32_t width = 20;
     OH_Drawing_BitmapBuild(cBitmap_, width, height, &cFormat);
     canvas_ = OH_Drawing_CanvasCreate();
-    EXPECT_TRUE(canvas_ != nullptr);
+    ASSERT_TRUE(canvas_ != nullptr);
     OH_Drawing_CanvasBind(canvas_, cBitmap_);
     OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography_, canvas_, position[0], position[1]);
@@ -186,19 +186,6 @@ void NdkTextLineTest::PrepareCreateTextLineWithMulTextStyle()
     typography_ = OH_Drawing_CreateTypography(handler_);
     EXPECT_TRUE(typography_ != nullptr);
     OH_Drawing_TypographyLayout(typography_, maxWidth);
-    double position[2] = {10.0, 15.0};
-    cBitmap_ = OH_Drawing_BitmapCreate();
-    EXPECT_TRUE(cBitmap_ != nullptr);
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
-    // test for bitmap width 200, height 40
-    constexpr double bitmapWidth = 200;
-    constexpr double bitmapHeight = 40;
-    OH_Drawing_BitmapBuild(cBitmap_, bitmapWidth, bitmapHeight, &cFormat);
-    canvas_ = OH_Drawing_CanvasCreate();
-    EXPECT_TRUE(canvas_ != nullptr);
-    OH_Drawing_CanvasBind(canvas_, cBitmap_);
-    OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
-    OH_Drawing_TypographyPaint(typography_, canvas_, position[0], position[1]);
 }
 
 bool NdkTextLineTest::DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing_Rect* rect2)

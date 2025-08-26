@@ -233,7 +233,8 @@ void NdkTypographyStyleTest::PrepareCreateParagraphWithMulTextStyle(vector<std::
 
 /*
  * @tc.name: TypographyEllipsisStyleChange001
- * @tc.desc: test for tail ellipsis style when span change, maxwidth = 10.
+ * @tc.desc: test for tail ellipsis style when span change, layoutWidth is very small and the maxWidth can’t even fit
+ * the ellipsis, yet an ellipsis is still drawn.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange001, TestSize.Level0)
@@ -242,7 +243,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange001, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // When layoutWidth is very small and the paragraph contains only the ellipsis.
     constexpr double layoutWidth = 10;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -253,7 +253,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange001, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange002
- * @tc.desc: test for tail ellipsis style when span change, maxwidth = 28.
+ * @tc.desc: test for tail ellipsis style when span change, layoutWidth is small and the paragraph contains only
+ * the ellipsis
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange002, TestSize.Level0)
@@ -262,7 +263,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange002, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // When layoutWidth is small and the paragraph contains only the ellipsis.
     constexpr double layoutWidth = 28;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -273,7 +273,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange002, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange003
- * @tc.desc: test for tail ellipsis style when span change, maxwidth = 280.
+ * @tc.desc: test for tail ellipsis style when span change. The code will take the shapestring fallback branch
+ * (between span1 and span2)
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange003, TestSize.Level0)
@@ -282,7 +283,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange003, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // The code will take the shapestring fallback branch (between span1 and span2).
     constexpr double layoutWidth = 280;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -292,7 +292,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange003, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange004
- * @tc.desc: test for tail ellipsis style when span change, maxwidth = 580.
+ * @tc.desc: test for tail ellipsis style when span change. It marks the boundary between span2 and span3 in textstyles
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange004, TestSize.Level0)
@@ -301,7 +301,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange004, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // It marks the boundary between span2 and span3 in the text styles.
     constexpr double layoutWidth = 580;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -311,7 +310,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange004, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange005
- * @tc.desc: test for tail ellipsis style when span change, maxwidth = 820.
+ * @tc.desc: test for tail ellipsis style when span change. It marks the boundary between span3 and placeholderspan
+ * in the text styles.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange005, TestSize.Level0)
@@ -320,7 +320,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange005, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // It marks the boundary between span3 and placeholderspan in the text styles.
     constexpr double layoutWidth = 820;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -330,7 +329,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange005, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange006
- * @tc.desc: test for tail ellipsis style when span change, maxwidth = 890.
+ * @tc.desc: test for tail ellipsis style when span change. It marks the boundary between placeholderspan and span4
+ * in the text styles.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange006, TestSize.Level0)
@@ -339,7 +339,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange006, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // It marks the boundary between placeholderspan and span4 in the text styles.
     constexpr double layoutWidth = 890;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -349,7 +348,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange006, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange007
- * @tc.desc: test for tail ellipsis style when span change, maxwidth is 220, maxline is 3.
+ * @tc.desc: test for tail ellipsis style when span change. It marks the boundary between span2 and span3 in textstyles
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange007, TestSize.Level0)
@@ -358,7 +357,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange007, TestSize.Leve
     constexpr int maxline = 3;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_TAIL;
 
-    // It marks the boundary between span2 and span3 in the text styles
     constexpr double layoutWidth = 220;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -368,7 +366,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange007, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange008
- * @tc.desc: test for middle ellipsis style when span change: layoutWidth is very small.
+ * @tc.desc: test for middle ellipsis style when span change: layoutWidth is very small and the maxWidth can’t even fit
+ * the ellipsis, yet an ellipsis is still drawn.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange008, TestSize.Level0)
@@ -377,7 +376,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange008, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_MIDDLE;
 
-    // LayoutWidth is very small and the maxWidth can’t even fit the ellipsis, yet an ellipsis is still drawn.
     constexpr double layoutWidth = 10;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -388,7 +386,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange008, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange009
- * @tc.desc: test for middle ellipsis style when span change: layoutWidth is very small.
+ * @tc.desc: test for middle ellipsis style when span change: layoutWidth is very small and the paragraph contains only
+ * the ellipsis
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange009, TestSize.Level0)
@@ -397,7 +396,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange009, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_MIDDLE;
 
-    // LayoutWidth is very small and the paragraph contains only the ellipsis
     constexpr double layoutWidth = 28;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -417,7 +415,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange010, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_MIDDLE;
 
-    // LayoutWidth is very small and the paragraph contains only one cluster and ellipsis.
     constexpr double layoutWidth = 100;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -427,7 +424,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange010, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange011
- * @tc.desc: test for middle ellipsis style when span change: between span1 and span2.
+ * @tc.desc: test for middle ellipsis style when span change: the boundary between span1 and span2.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange011, TestSize.Level0)
@@ -436,7 +433,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange011, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_MIDDLE;
 
-    // It marks the boundary between span1 and span2 in the text styles.
     constexpr double layoutWidth = 120;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -446,7 +442,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange011, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange012
- * @tc.desc: test for middle ellipsis style when span change: between span2 and span3.
+ * @tc.desc: test for middle ellipsis style when span change: the boundary between span2 and span3.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange012, TestSize.Level0)
@@ -455,7 +451,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange012, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_MIDDLE;
 
-    // It marks the boundary between span2 and span3 in the text styles.
     constexpr double layoutWidth = 700;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -465,7 +460,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange012, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange013
- * @tc.desc: test for middle ellipsis style when span change: between span3 and span4.
+ * @tc.desc: test for middle ellipsis style when span change: the boundary between span3 and span4.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange013, TestSize.Level0)
@@ -474,7 +469,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange013, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_MIDDLE;
 
-    // It marks the boundary between span2 and span3 in the text styles.
     constexpr double layoutWidth = 1300;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     double longesline = OH_Drawing_TypographyGetLongestLine(typography_);
@@ -484,7 +478,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange013, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange014
- * @tc.desc: test for head ellipsis style when span change: layoutWidth is very small.
+ * @tc.desc: test for head ellipsis style when span change: layoutWidth is even smaller than the width of the ellipsis
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange014, TestSize.Level0)
@@ -493,7 +487,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange014, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_HEAD;
 
-    // It’s even smaller than the width of the ellipsis.
     constexpr double layoutWidth = 10;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     // Note: The head-ellipsis calculation currently over-counts by one ellipsis width in longestLine.
@@ -504,7 +497,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange014, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange015
- * @tc.desc: test for head ellipsis style when span change: layoutWidth is very small.
+ * @tc.desc: test for head ellipsis style when span change: layoutWidth is bigger than the width of the ellipsis
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange015, TestSize.Level0)
@@ -513,8 +506,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange015, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_HEAD;
 
-    // It’s bigger than the width of the ellipsis. But the current spec for head ellipsis
-    // requires at least the ellipsis itself plus one cluster to be shown.
+    // The current spec for head ellipsis requires at least the ellipsis itself plus one cluster to be shown.
     constexpr double layoutWidth = 28;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     // Note: The head-ellipsis calculation currently over-counts by one ellipsis width in longestLine.
@@ -525,7 +517,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange015, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange016
- * @tc.desc: test for head ellipsis style when span change.
+ * @tc.desc: test for head ellipsis style when span change: ellipsis always inherits the style of the first cluster
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange016, TestSize.Level0)
@@ -534,7 +526,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange016, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_HEAD;
 
-    // The ellipsis always inherits the style of the first cluster.
     constexpr double layoutWidth = 500;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     // Note: The head-ellipsis calculation currently over-counts by one ellipsis width in longestLine.
@@ -554,7 +545,6 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange017, TestSize.Leve
     constexpr int maxline = 1;
     OH_Drawing_EllipsisModal ellipsisModal = ELLIPSIS_MODAL_HEAD;
 
-    // The ellipsis always inherits the style of the first cluster.
     constexpr double layoutWidth = 1300;
     PrepareCreateParagraphWithMulTextStyle(textVec, maxline, ellipsisModal, layoutWidth);
     // Note: The head-ellipsis calculation currently over-counts by one ellipsis width in longestLine.
@@ -565,7 +555,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange017, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange018
- * @tc.desc: test for tail ellipsis style: Hard line-break
+ * @tc.desc: test for tail ellipsis style: only Hard line-break
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange018, TestSize.Level0)
@@ -582,7 +572,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange018, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange019
- * @tc.desc: test for tail ellipsis style: Hard line-break
+ * @tc.desc: test for tail ellipsis style: Hard line-break and other clusters
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange019, TestSize.Level0)
@@ -599,7 +589,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange019, TestSize.Leve
 
 /*
  * @tc.name: TypographyEllipsisStyleChange020
- * @tc.desc: test for tail ellipsis style: Hard line-break
+ * @tc.desc: test for tail ellipsis style: Hard line-break and other clusters
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographyEllipsisStyleChange020, TestSize.Level0)
