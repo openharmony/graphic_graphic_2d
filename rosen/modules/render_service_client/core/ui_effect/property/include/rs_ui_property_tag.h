@@ -73,14 +73,10 @@ using RSAnimatablePropertyTag = PropertyTagBase<Name, RSAnimatableProperty<T>>;
 
 class RSNGMaskBase;
 #define MASK_PTR std::shared_ptr<RSNGMaskBase>
-
 #include "effect/rs_render_property_tag_def.in"
-
-#undef MASK_PTR
 #undef DECLARE_ANIMATABLE_PROPERTY_TAG
 #undef DECLARE_NONANIMATABLE_PROPERTY_TAG
 
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_PROPERTY_TAG_H

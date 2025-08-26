@@ -19,8 +19,6 @@
 #include "draw/canvas.h"
 #include "effect/rs_render_effect_template.h"
 #include "effect/rs_render_property_tag.h"
-#include "effect/runtime_shader_builder.h"
-#include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -86,7 +84,7 @@ protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
 };
 
-class RSB_EXPORT RSUIFilterHelper {
+class RSUIFilterHelper {
 public:
     template<RSNGEffectType Type, typename... PropertyTags>
     static std::shared_ptr<RSNGRenderFilterTemplate<Type, PropertyTags...>> CreateRenderFilterByTuple(
@@ -110,96 +108,11 @@ public:
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
+#define DECLARE_FILTER(FilterName, FilterType, ...)                                                           \
+    using RSNGRender##FilterName##Filter = RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>; \
+    extern template class PROPERTY_EXPORT RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
 
-#define DECLARE_FILTER(FilterName, FilterType, ...) \
-    using RSNGRender##FilterName##Filter = RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
-
-DECLARE_FILTER(Blur, BLUR,
-    ADD_PROPERTY_TAG(Blur, RadiusX),
-    ADD_PROPERTY_TAG(Blur, RadiusY)
-);
-
-DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,
-    ADD_PROPERTY_TAG(DispDistort, Factor),
-    ADD_PROPERTY_TAG(DispDistort, Mask)
-);
-
-DECLARE_FILTER(SoundWave, SOUND_WAVE,
-    ADD_PROPERTY_TAG(SoundWave, ColorA),
-    ADD_PROPERTY_TAG(SoundWave, ColorB),
-    ADD_PROPERTY_TAG(SoundWave, ColorC),
-    ADD_PROPERTY_TAG(SoundWave, ColorProgress),
-    ADD_PROPERTY_TAG(SoundWave, Intensity),
-    ADD_PROPERTY_TAG(SoundWave, AlphaA),
-    ADD_PROPERTY_TAG(SoundWave, AlphaB),
-    ADD_PROPERTY_TAG(SoundWave, ProgressA),
-    ADD_PROPERTY_TAG(SoundWave, ProgressB),
-    ADD_PROPERTY_TAG(SoundWave, TotalAlpha)
-);
-
-DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
-    ADD_PROPERTY_TAG(EdgeLight, Color),
-    ADD_PROPERTY_TAG(EdgeLight, Alpha),
-    ADD_PROPERTY_TAG(EdgeLight, Mask),
-    ADD_PROPERTY_TAG(EdgeLight, Bloom),
-    ADD_PROPERTY_TAG(EdgeLight, UseRawColor)
-);
-
-DECLARE_FILTER(Dispersion, DISPERSION,
-    ADD_PROPERTY_TAG(Dispersion, Mask),
-    ADD_PROPERTY_TAG(Dispersion, Opacity),
-    ADD_PROPERTY_TAG(Dispersion, RedOffset),
-    ADD_PROPERTY_TAG(Dispersion, GreenOffset),
-    ADD_PROPERTY_TAG(Dispersion, BlueOffset)
-);
-
-DECLARE_FILTER(ColorGradient, COLOR_GRADIENT,
-    ADD_PROPERTY_TAG(ColorGradient, Colors),
-    ADD_PROPERTY_TAG(ColorGradient, Positions),
-    ADD_PROPERTY_TAG(ColorGradient, Strengths),
-    ADD_PROPERTY_TAG(ColorGradient, Mask)
-);
-
-DECLARE_FILTER(BezierWarp, BEZIER_WARP,
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint0),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint1),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint2),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint3),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint4),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint5),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint6),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint7),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint8),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint9),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint10),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint11)
-);
-
-DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
-    ADD_PROPERTY_TAG(DirectionLight, Mask),
-    ADD_PROPERTY_TAG(DirectionLight, Factor),
-    ADD_PROPERTY_TAG(DirectionLight, Direction),
-    ADD_PROPERTY_TAG(DirectionLight, Color),
-    ADD_PROPERTY_TAG(DirectionLight, Intensity)
-);
-
-DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
-    ADD_PROPERTY_TAG(MaskTransition, Mask),
-    ADD_PROPERTY_TAG(MaskTransition, Factor),
-    ADD_PROPERTY_TAG(MaskTransition, Inverse)
-);
-
-DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
-    ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
-    ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
-);
-
-DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
-    ADD_PROPERTY_TAG(ContentLight, Position),
-    ADD_PROPERTY_TAG(ContentLight, Color),
-    ADD_PROPERTY_TAG(ContentLight, Intensity),
-    ADD_PROPERTY_TAG(ContentLight, RotationAngle)
-);
+#include "effect/rs_render_filter_def.in"
 
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER

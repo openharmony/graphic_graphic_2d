@@ -27,8 +27,17 @@
 
 namespace OHOS {
 namespace Rosen {
-using FilterCreator = std::function<std::shared_ptr<RSNGRenderFilterBase>()>;
+// explicit instantiation
+#define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
+#define DECLARE_FILTER(FilterName, FilterType, ...) \
+    template class RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
 
+#include "effect/rs_render_filter_def.in"
+
+#undef ADD_PROPERTY_TAG
+#undef DECLARE_FILTER
+
+using FilterCreator = std::function<std::shared_ptr<RSNGRenderFilterBase>()>;
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::BLUR, [] {
             return std::make_shared<RSNGRenderBlurFilter>();

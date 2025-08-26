@@ -794,7 +794,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
     NodeId nodeId = 0;
     AnimationId animId = 0;
     uint64_t token = 0;
-    AnimationCallbackEvent event = REPEAT_FINISHED;
+    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
 }
 

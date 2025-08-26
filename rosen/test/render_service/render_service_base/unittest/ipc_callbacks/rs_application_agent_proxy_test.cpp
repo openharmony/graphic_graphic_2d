@@ -14,9 +14,10 @@
  */
 
 #include "gtest/gtest.h"
-
-#include "ipc_callbacks/rs_application_agent_proxy.h"
 #include "mock_iremote_object.h"
+
+#include "command/rs_command.h"
+#include "ipc_callbacks/rs_application_agent_proxy.h"
 #include "transaction/rs_transaction_data.h"
 
 using namespace testing;

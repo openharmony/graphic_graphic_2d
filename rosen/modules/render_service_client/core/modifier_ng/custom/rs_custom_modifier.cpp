@@ -15,6 +15,8 @@
 
 #include "modifier_ng/custom/rs_custom_modifier.h"
 
+#include "command/rs_node_command.h"
+#include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
@@ -59,5 +61,51 @@ std::shared_ptr<Drawing::DrawCmdList> RSCustomModifierHelper::FinishDrawing(RSDr
     delete ctx.canvas;
     ctx.canvas = nullptr;
     return recording;
+}
+void RSCustomModifier::UpdateToRender()
+{
+    auto node = node_.lock();
+    if (node == nullptr) {
+        return;
+    }
+    RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
+    Draw(ctx);
+    auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
+    bool isEmpty = drawCmdList == nullptr;
+    if (lastDrawCmdListEmpty_ && isEmpty) {
+        return;
+    }
+    if (drawCmdList) {
+        drawCmdList->SetNoNeedUICaptured(noNeedUICaptured_);
+        drawCmdList->SetIsNeedUnmarshalOnDestruct(!node->IsRenderServiceNode());
+    }
+    lastDrawCmdListEmpty_ = isEmpty;
+    auto it = properties_.find(GetInnerPropertyType());
+    if (it == properties_.end()) {
+        return;
+    }
+    if (it->second == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
+    node->AddCommand(command, node->IsRenderServiceNode());
+    if (node->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
+        node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
+    }
+}
+std::shared_ptr<RSRenderModifier> RSCustomModifier::CreateRenderModifier()
+{
+    auto node = node_.lock();
+    if (node == nullptr) {
+        return nullptr;
+    }
+    RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
+    Draw(ctx);
+    auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
+    Setter<RSProperty, std::shared_ptr<Drawing::DrawCmdList>>(GetInnerPropertyType(), drawCmdList);
+    return RSModifier::CreateRenderModifier();
 }
 } // namespace OHOS::Rosen::ModifierNG

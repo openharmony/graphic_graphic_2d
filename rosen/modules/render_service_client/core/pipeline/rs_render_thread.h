@@ -17,17 +17,18 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <event_handler.h>
 #include <functional>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include <event_handler.h>
+
+#include "render_thread/rs_render_thread_visitor.h"
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "render_thread/rs_render_thread_visitor.h"
 #include "platform/drawing/rs_vsync_client.h"
 #ifdef RS_ENABLE_GPU
 #include "render_context/render_context.h"

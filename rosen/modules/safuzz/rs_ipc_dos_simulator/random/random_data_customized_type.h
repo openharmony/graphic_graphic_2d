@@ -75,7 +75,6 @@ public:
     static GraphicColorGamut GetRandomGraphicColorGamut();
 #endif
     static RSSurfaceNodeAbilityState GetRandomRSSurfaceNodeAbilityState();
-    static std::optional<Drawing::Matrix> GetRandomOptionalDrawingMatrix();
 
     // RSAnimationCommand params
     static AnimationCallbackEvent GetRandomAnimationCallbackEvent();
@@ -101,13 +100,11 @@ public:
     static Drawing::Point GetRandomDrawingPoint();
     static Drawing::Color GetRandomDrawingColor();
     static Drawing::RectI GetRandomDrawingRectI();
-    static SkMatrix GetRandomSkMatrix();
     static Range<float> GetRandomFloatRange();
     static Range<int64_t> GetRandomInt64Range();
     static Range<Color> GetRandomColorRange();
     static std::vector<std::shared_ptr<EmitterUpdater>> GetRandomSmallEmitterUpdaterSharedPtrVector();
     static std::shared_ptr<ParticleNoiseFields> GetRandomSmallParticleNoiseFieldsSharedPtr();
-    static ForegroundColorStrategyType GetRandomForegroundColorStrategyType();
 };
 } // namespace Rosen
 } // namespace OHOS

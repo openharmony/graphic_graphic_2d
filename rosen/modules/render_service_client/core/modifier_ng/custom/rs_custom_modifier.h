@@ -16,9 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_CUSTOM_RS_CUSTOM_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_CUSTOM_RS_CUSTOM_MODIFIER_H
 
-#include "command/rs_node_command.h"
 #include "modifier_ng/rs_modifier_ng.h"
-#include "pipeline/rs_draw_cmd_list.h"
 
 namespace OHOS::Rosen {
 class RSNode;
@@ -38,7 +36,7 @@ public:
 class RSC_EXPORT RSCustomModifier : public RSModifier {
 public:
     RSCustomModifier() = default;
-    virtual ~RSCustomModifier() = default;
+    ~RSCustomModifier() override = default;
 
     virtual void Draw(RSDrawingContext& context) const = 0;
 
@@ -63,58 +61,14 @@ public:
     }
 
 protected:
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() override
-    {
-        auto node = node_.lock();
-        if (node == nullptr) {
-            return nullptr;
-        }
-        RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
-        Draw(ctx);
-        auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
-        Setter<RSProperty, std::shared_ptr<Drawing::DrawCmdList>>(GetInnerPropertyType(), drawCmdList);
-        return RSModifier::CreateRenderModifier();
-    }
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() override;
 
     virtual RSPropertyType GetInnerPropertyType() const
     {
         return RSPropertyType::CUSTOM;
     }
 
-    void UpdateToRender() override
-    {
-        auto node = node_.lock();
-        if (node == nullptr) {
-            return;
-        }
-        RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
-        Draw(ctx);
-        auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
-        bool isEmpty = drawCmdList == nullptr;
-        if (lastDrawCmdListEmpty_ && isEmpty) {
-            return;
-        }
-        if (drawCmdList) {
-            drawCmdList->SetNoNeedUICaptured(noNeedUICaptured_);
-            drawCmdList->SetIsNeedUnmarshalOnDestruct(!node->IsRenderServiceNode());
-        }
-        lastDrawCmdListEmpty_ = isEmpty;
-        auto it = properties_.find(GetInnerPropertyType());
-        if (it == properties_.end()) {
-            return;
-        }
-        if (it->second == nullptr) {
-            return;
-        }
-        std::unique_ptr<RSCommand> command =
-            std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
-        node->AddCommand(command, node->IsRenderServiceNode());
-        if (node->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote =
-                std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
-            node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
-        }
-    }
+    void UpdateToRender() override;
 
 private:
     bool lastDrawCmdListEmpty_ = false;

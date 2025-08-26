@@ -156,7 +156,7 @@ float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInt
 extern template class RSCurveValueEstimator<float>;
 
 template<typename T>
-class RSKeyframeValueEstimator : public RSValueEstimator {
+class RSB_EXPORT RSKeyframeValueEstimator : public RSValueEstimator {
 public:
     RSKeyframeValueEstimator() = default;
     virtual ~RSKeyframeValueEstimator() = default;
@@ -339,7 +339,7 @@ public:
 };
 
 template<typename T>
-class RSSpringValueEstimator : public RSSpringValueEstimatorBase {
+class RSB_EXPORT RSSpringValueEstimator : public RSSpringValueEstimatorBase {
 public:
     RSSpringValueEstimator() : RSSpringValueEstimatorBase()
     {
@@ -498,6 +498,18 @@ private:
     std::shared_ptr<RSSpringModel<T>> springModel_;
     std::shared_ptr<RSRenderAnimatableProperty<T>> property_;
 };
+
+#define DECLARE_PROPERTY(T, TYPE_ENUM)
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)      \
+    extern template class RSKeyframeValueEstimator<T>; \
+    extern template class RSCurveValueEstimator<T>;    \
+    extern template class RSSpringValueEstimator<T>
+
+#include "modifier/rs_property_def.in"
+
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
+
 } // namespace Rosen
 } // namespace OHOS
 

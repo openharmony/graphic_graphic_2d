@@ -17,6 +17,8 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
@@ -37,9 +39,9 @@
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
-#include "ui/rs_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 
@@ -6437,7 +6439,7 @@ HWTEST_F(RSNodeTest, AnimationCallback, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId animationId = 1;
-    AnimationCallbackEvent event = FINISHED;
+    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
     bool res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, false);
 
@@ -6446,11 +6448,11 @@ HWTEST_F(RSNodeTest, AnimationCallback, TestSize.Level1)
     res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, true);
 
-    event = REPEAT_FINISHED;
+    event = AnimationCallbackEvent::REPEAT_FINISHED;
     res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, true);
 
-    event = LOGICALLY_FINISHED;
+    event = AnimationCallbackEvent::LOGICALLY_FINISHED;
     res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, true);
 }
