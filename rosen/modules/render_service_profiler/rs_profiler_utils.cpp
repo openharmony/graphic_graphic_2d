@@ -498,6 +498,8 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
     if (IsRecordInMemoryFile(path)) {
         g_recordInMemory.seekg(0, std::ios_base::beg);
         g_recordInMemory.seekp(0, std::ios_base::beg);
+        g_recordInMemory.str("");
+        g_recordInMemory.clear();
         return g_recordInMemoryFile;
     }
 
@@ -529,6 +531,8 @@ void Utils::FileClose(FILE* file)
     if (file == g_recordInMemoryFile) {
         g_recordInMemory.seekg(0, std::ios_base::beg);
         g_recordInMemory.seekp(0, std::ios_base::beg);
+        g_recordInMemory.str("");
+        g_recordInMemory.clear();
         return;
     }
     if (fflush(file) != 0) {
