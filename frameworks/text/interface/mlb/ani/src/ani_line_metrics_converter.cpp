@@ -23,19 +23,19 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, ":V");
-    env->Object_SetPropertyByName_Int(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
-    env->Object_SetPropertyByName_Int(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
-    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(lineMetrics.ascender));
-    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(lineMetrics.descender));
-    env->Object_SetPropertyByName_Double(aniObj, "height", ani_double(lineMetrics.height));
-    env->Object_SetPropertyByName_Double(aniObj, "width", ani_double(lineMetrics.width));
-    env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(lineMetrics.x));
-    env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_double(lineMetrics.baseline));
-    env->Object_SetPropertyByName_Int(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
-    env->Object_SetPropertyByName_Double(aniObj, "topHeight", ani_double(lineMetrics.y));
-    env->Object_SetPropertyByName_Ref(
-        aniObj, "runMetrics", AniRunMetricsConverter::ParseRunMetricsToAni(env, lineMetrics.runMetrics));
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, "IIDDDDDDIDLescompat/Map;:V",
+        ani_int(lineMetrics.startIndex),
+        ani_int(lineMetrics.endIndex),
+        ani_double(lineMetrics.ascender),
+        ani_double(lineMetrics.descender),
+        ani_double(lineMetrics.height),
+        ani_double(lineMetrics.width),
+        ani_double(lineMetrics.x),
+        ani_double(lineMetrics.baseline),
+        ani_int(lineMetrics.lineNumber),
+        ani_double(lineMetrics.y),
+        AniRunMetricsConverter::ParseRunMetricsToAni(env, lineMetrics.runMetrics)
+    );
     return aniObj;
 }
 } // namespace OHOS::Text::ANI

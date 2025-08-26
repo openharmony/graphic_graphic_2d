@@ -49,6 +49,7 @@ constexpr const char* ANI_INTERFACE_PLACEHOLDER_SPAN = "L@ohos/graphics/text/tex
 constexpr const char* ANI_INTERFACE_TYPOGRAPHIC_BOUNDS = "L@ohos/graphics/text/text/TypographicBounds;";
 constexpr const char* ANI_INTERFACE_POINT = "L@ohos/graphics/common2D/common2D/Point;";
 constexpr const char* ANI_INTERFACE_RECT = "L@ohos/graphics/common2D/common2D/Rect;";
+constexpr const char* ANI_INTERFACE_COLOR = "L@ohos/graphics/common2D/common2D/Color;";
 constexpr const char* ANI_INTERFACE_POSITION_WITH_AFFINITY = "L@ohos/graphics/text/text/PositionWithAffinity;";
 /**
  * define class
