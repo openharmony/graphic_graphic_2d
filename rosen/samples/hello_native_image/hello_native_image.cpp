@@ -129,6 +129,7 @@ void AddBuffer(OHNativeWindow* nativeWindow)
     if (ret != GSERROR_OK) {
         std::cout << "NativeWindowHandleOpt SET_FORMAT failed" << std::endl;
     }
+    delete rect;
     delete region;
 }
 

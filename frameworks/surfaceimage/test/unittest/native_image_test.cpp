@@ -408,6 +408,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
         ASSERT_EQ(ret, SURFACE_ERROR_OK);
         ASSERT_EQ(NativeWindowDisconnect(nativeWindow), SURFACE_ERROR_OK);
     }
+    delete rect;
     delete region;
 }
 
@@ -606,6 +607,7 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix003, Function | MediumT
         bool bRet = CheckMatricIsSame(matrix, matrixArr[i]);
         ASSERT_EQ(bRet, true);
     }
+    delete rect;
     delete region;
 }
 
@@ -680,6 +682,7 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix004, Function | MediumT
         bool bRet = CheckMatricIsSame(matrix, matrixArrV2[i]);
         ASSERT_EQ(bRet, true);
     }
+    delete rect;
     delete region;
 }
 
@@ -776,6 +779,7 @@ HWTEST_F(NativeImageTest, OHNativeImageGetBufferMatrix001, Function | MediumTest
     ASSERT_EQ(CheckMatricIsSame(matrix, bufferMatrix), true);
     EXPECT_EQ(SURFACE_ERROR_INVALID_PARAM, OH_NativeImage_GetBufferMatrix(nullptr, matrix));
     EXPECT_EQ(SURFACE_ERROR_INVALID_PARAM, OH_NativeImage_GetBufferMatrix(image, nullptr));
+    delete rect;
     delete region;
 }
 
@@ -850,6 +854,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage004, Function | MediumT
     region->rects = rect;
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
     ASSERT_EQ(ret, GSERROR_OK);
+    delete rect;
     delete region;
 
     ret = OH_NativeImage_UpdateSurfaceImage(image);
@@ -935,6 +940,7 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage005, Function | MediumT
     region->rects = rect;
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
     ASSERT_EQ(ret, GSERROR_OK);
+    delete rect;
     delete region;
 
     ret = OH_NativeImage_UpdateSurfaceImage(image);
@@ -1035,6 +1041,7 @@ HWTEST_F(NativeImageTest, OHNativeImageSetOnFrameAvailableListener001, Function 
     region->rects = rect;
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
     ASSERT_EQ(ret, GSERROR_OK);
+    delete rect;
     delete region;
 
     ret = OH_NativeImage_UpdateSurfaceImage(image);

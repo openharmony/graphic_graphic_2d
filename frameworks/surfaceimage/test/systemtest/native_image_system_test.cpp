@@ -95,6 +95,8 @@ void ProducerThread(OHNativeWindow* nativeWindow)
     region->rects = rect;
     ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
     if (ret != GSERROR_OK) {
+        delete rect;
+        delete region;
         return;
     }
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
