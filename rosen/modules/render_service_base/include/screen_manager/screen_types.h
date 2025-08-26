@@ -201,7 +201,7 @@ typedef enum : uint32_t {
     READ_PARCEL_ERR,
 } StatusCode;
 
-typedef enum {
+typedef enum : uint32_t {
     VIRTUAL_SCREEN_PLAY = 0,
     VIRTUAL_SCREEN_PAUSE,
     VIRTUAL_SCREEN_INVALID_STATUS,

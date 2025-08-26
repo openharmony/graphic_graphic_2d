@@ -18,6 +18,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t MAX_PROP_COUNT = 1024;
+
 RSScreenCapability::RSScreenCapability(std::string name, ScreenInterfaceType type, uint32_t phyWidth,
     uint32_t phyHeight, uint32_t supportLayers, uint32_t virtualDispCount,
     bool supportWriteBack, const std::vector<RSScreenProps>& props)
@@ -120,6 +122,10 @@ bool RSScreenCapability::WriteVector(const std::vector<RSScreenProps> &props, Pa
 
 bool RSScreenCapability::ReadVector(std::vector<RSScreenProps> &unmarProps, uint32_t unmarPropCount, Parcel &parcel)
 {
+    if (unmarPropCount > MAX_PROP_COUNT) {
+        ROSEN_LOGE("RSScreenCapability::ReadVector unmarPropCount is over max size!");
+        return false;
+    }
     for (uint32_t propIndex = 0; propIndex < unmarPropCount; propIndex++) {
         sptr<RSScreenProps> itemProp = parcel.ReadParcelable<RSScreenProps>();
         if (itemProp == nullptr) {
