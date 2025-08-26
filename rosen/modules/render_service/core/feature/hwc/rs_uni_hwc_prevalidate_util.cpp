@@ -72,7 +72,9 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
 
 void RSUniHwcPrevalidateUtil::Init()
 {
+    RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
     if (handleEventFunc_ == nullptr) {
+        RS_LOGW("[%{public}s]:handleEventFunc is nullptr", __func__);
         return;
     }
     auto hdiBackend = HdiBackend::GetInstance();

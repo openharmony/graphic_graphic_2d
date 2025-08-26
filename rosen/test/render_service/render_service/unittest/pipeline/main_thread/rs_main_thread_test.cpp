@@ -6145,10 +6145,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::shared_ptr<AppExecFwk::EventRunner> runner = mainThread->runner_;
-    std::shared_ptr<AppExecFwk::EventHandler> handler = mainThread->handler_;
-    mainThread->runner_ = AppExecFwk::EventRunner::Create("RSMainThread");
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
     mainThread->hgmContext_.InitHgmTaskHandleThread(mainThread->rsVSyncController_, mainThread->appVSyncController_,
         mainThread->vsyncGenerator_, mainThread->appVSyncDistributor_);
     ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
@@ -6162,23 +6158,27 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
     ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+}
 
-    if (frameRateMgr != nullptr && frameRateMgr->forceUpdateCallback_) {
-        mainThread->hgmContext_.currVsyncId_ = mainThread->hgmContext_.currVsyncId_ + 100;
-        EXPECT_NE(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
-        frameRateMgr->forceUpdateCallback_(false, true);
-        usleep(100000);
-        EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
-        frameRateMgr->forceUpdateCallback_(false, true);
-        usleep(100000);
-        EXPECT_EQ(mainThread->hgmContext_.lastForceUpdateVsyncId_, mainThread->hgmContext_.currVsyncId_);
-    }
-    usleep(200000);
-    mainThread->runner_ = runner;
-    mainThread->handler_ = handler;
-    runner = nullptr;
-    handler = nullptr;
-    usleep(200000);
+/**
+ * @tc.name: RegisterHwcEvent
+ * @tc.desc: test RegisterHwcEvent
+ * @tc.type: FUNC
+ * @tc.require: issueICTY7B
+ */
+HWTEST_F(RSMainThreadTest, RegisterHwcEvent001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto screenManagerImpl = static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr());
+    ASSERT_NE(screenManagerImpl, nullptr);
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->RegisterHwcEvent();
+    // test screenManager is nullptr
+    screenManagerImpl->instance_ = nullptr;
+    mainThread->RegisterHwcEvent();
+    // reset screenManager in TearDownTestCase, so it can't be nullptr
+    screenManagerImpl->instance_ = new impl::RSScreenManager();
 }
 
 /**
