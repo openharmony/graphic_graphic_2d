@@ -459,7 +459,7 @@ void RSSurfaceOhosVulkan::PrepareHdrSemaphoreVector(
 void RSSurfaceOhosVulkan::CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface)
 {
     surface.fence.reset();
-    auto& buffer = mSurfaceList.front();
+    auto buffer = mSurfaceList.front();
     mSurfaceList.pop_front();
     NativeWindowCancelBuffer(mNativeWindow, buffer);
     mSurfaceMap.erase(buffer);
