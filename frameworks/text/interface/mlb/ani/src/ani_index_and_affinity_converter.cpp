@@ -24,10 +24,11 @@ using namespace OHOS::Rosen;
 ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
     ani_env* env, const OHOS::Rosen::IndexAndAffinity indexAndAffinity, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POSITION_WITH_AFFINITY, ":V");
-    env->Object_SetPropertyByName_Int(aniObj, "position", indexAndAffinity.index);
-    env->Object_SetPropertyByName_Ref(aniObj, "affinity",
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity)));
+    static std::string sign = "D" + std::string(ANI_ENUM_AFFINITY) + ":V";
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POSITION_WITH_AFFINITY, sign.c_str(),
+        ani_double(indexAndAffinity.index),
+        AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity))
+    );
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

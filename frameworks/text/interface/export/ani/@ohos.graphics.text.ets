@@ -241,6 +241,15 @@ namespace text {
     color?: common2D.Color;
     point?: common2D.Point;
     blurRadius?: double;
+    constructor(
+      color: common2D.Color,
+      point: common2D.Point,
+      blurRadius: double
+    ) {
+      this.color = color;
+      this.point = point;
+      this.blurRadius = blurRadius;
+    }
   }
 
   export interface TextStyle {
@@ -288,25 +297,25 @@ namespace text {
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
     constructor(
-      decoration?: Decoration,
-      color?: common2D.Color,
-      fontWeight?: FontWeight,
-      fontStyle?: FontStyle,
-      baseline?: TextBaseline,
-      fontFamilies?: Array<string>,
-      fontSize?: double,
-      letterSpacing?: double,
-      wordSpacing?: double,
-      heightScale?: double,
-      halfLeading?: boolean,
-      heightOnly?: boolean,
-      ellipsis?: string,
-      ellipsisMode?: EllipsisMode,
-      locale?: string,
-      baselineShift?: double,
-      fontFeatures?: Array<FontFeature>,
-      textShadows?: Array<TextShadow>,
-      backgroundRect?: RectStyle,
+      decoration: Decoration,
+      color: common2D.Color,
+      fontWeight: FontWeight,
+      fontStyle: FontStyle,
+      baseline: TextBaseline,
+      fontFamilies: Array<string>,
+      fontSize: double,
+      letterSpacing: double,
+      wordSpacing: double,
+      heightScale: double,
+      halfLeading: boolean,
+      heightOnly: boolean,
+      ellipsis: string,
+      ellipsisMode: EllipsisMode,
+      locale: string,
+      baselineShift: double,
+      fontFeatures: Array<FontFeature>,
+      textShadows: Array<TextShadow>,
+      backgroundRect: RectStyle
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -424,6 +433,17 @@ namespace text {
     color?: common2D.Color;
     decorationStyle?: TextDecorationStyle;
     decorationThicknessScale?: double;
+    constructor(
+      textDecoration: TextDecorationType,
+      color: common2D.Color,
+      decorationStyle: TextDecorationStyle,
+      decorationThicknessScale: double
+    ) {
+      this.textDecoration = textDecoration;
+      this.color = color;
+      this.decorationStyle = decorationStyle;
+      this.decorationThicknessScale = decorationThicknessScale;
+    }
   }
 
   export interface FontFeature {
@@ -434,6 +454,13 @@ namespace text {
   class FontFeatureInternal implements FontFeature {
     name: string;
     value: int;
+    constructor(
+      name: string,
+      value: int
+    ) {
+      this.name = name;
+      this.value = value;
+    }
   }
 
   export enum TextDecorationType {
@@ -459,6 +486,13 @@ namespace text {
   class RunMetricsInternal implements RunMetrics {
     textStyle: TextStyle;
     fontMetrics: drawing.FontMetrics;
+    constructor(
+      textStyle: TextStyle,
+      fontMetrics: drawing.FontMetrics
+    ) {
+      this.textStyle = textStyle;
+      this.fontMetrics = fontMetrics;
+    }
   }
 
   export interface RectStyle {
@@ -508,6 +542,13 @@ namespace text {
   class TextBoxInternal implements TextBox {
     rect: common2D.Rect;
     direction: TextDirection;
+    constructor(
+      rect: common2D.Rect,
+      direction: TextDirection
+    ) {
+      this.rect = rect;
+      this.direction = direction;
+    }
   }
 
   class RectInternal implements common2D.Rect {
@@ -515,6 +556,17 @@ namespace text {
     top: double;
     right: double;
     bottom: double;
+    constructor(
+      left: double,
+      top: double,
+      right: double,
+      bottom: double
+    ) {
+      this.left = left;
+      this.top = top;
+      this.right = right;
+      this.bottom = bottom;
+    }
   }
 
   class ColorInternal implements common2D.Color {
@@ -522,6 +574,17 @@ namespace text {
     red: int;
     green: int;
     blue: int;
+    constructor(
+      alpha: int,
+      red: int,
+      green: int,
+      blue: int
+    ) {
+      this.alpha = alpha;
+      this.red = red;
+      this.green = green;
+      this.blue = blue;
+    }
   }
 
   export interface Range {
@@ -532,6 +595,13 @@ namespace text {
   class RangeInternal implements Range {
     start: int;
     end: int;
+    constructor(
+      start: int,
+      end: int
+    ) {
+      this.start = start;
+      this.end = end;
+    }
   }
 
   export enum RectWidthStyle {
@@ -556,6 +626,13 @@ namespace text {
   class PositionWithAffinityInternal implements PositionWithAffinity {
     position: int;
     affinity: Affinity;
+    constructor(
+      position: int,
+      affinity: Affinity
+    ) {
+      this.position = position;
+      this.affinity = affinity;
+    }
   }
 
   export enum Affinity {
@@ -668,11 +745,29 @@ namespace text {
     descent: double;
     leading: double;
     width: double;
+    constructor(
+      ascent: double,
+      descent: double,
+      leading: double,
+      width: double,
+    ) {
+      this.ascent = ascent;
+      this.descent = descent;
+      this.leading = leading;
+      this.width = width;
+    }
   }
 
   class PointInternal implements common2D.Point {
     x: double;
     y: double;
+    constructor(
+      x: double,
+      y: double
+    ) {
+      this.x = x;
+      this.y = y;
+    }
   }
 
   native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
@@ -755,5 +850,28 @@ namespace text {
     italic?: int;
     monoSpace?: boolean;
     symbolic?: boolean;
+    constructor(
+      path: string,
+      postScriptName: string,
+      fullName: string,
+      fontFamily: string,
+      fontSubfamily: string,
+      weight: FontWeight,
+      width: int,
+      italic: int,
+      monoSpace: boolean,
+      symbolic: boolean,
+    ) {
+      this.path = path;
+      this.postScriptName = postScriptName;
+      this.fullName = fullName;
+      this.fontFamily = fontFamily;
+      this.fontSubfamily = fontSubfamily;
+      this.weight = weight;
+      this.width = width;
+      this.italic = italic;
+      this.monoSpace = monoSpace;
+      this.symbolic = symbolic;
+    }
   }
 }

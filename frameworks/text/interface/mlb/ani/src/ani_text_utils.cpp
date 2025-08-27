@@ -106,11 +106,11 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
     static std::string methodSign = "I:V";
     static std::string methodKey = std::string(ANI_ARRAY) + methodSign;
     if (AniCacheManager::Instance().FindMethod(methodKey, arrayCtor)) {
-    } else if ((status = env->Class_FindMethod(arrayCls, "<ctor>", methodSign.c_str(), &arrayCtor)) == ANI_OK) {
+    } else if ((ret = env->Class_FindMethod(arrayCls, "<ctor>", methodSign.c_str(), &arrayCtor)) == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(methodKey, arrayCtor);
     } else {
-        TEXT_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
-        return status;
+        TEXT_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(ret));
+        return CreateAniUndefined(env);
     }
 
     ani_object arrayObj = nullptr;
@@ -128,11 +128,16 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
 
 ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index)
 {
-    ani_enum enumType;
-    ani_status ret = env->FindEnum(enum_descriptor, &enumType);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find enum,%{public}s", enum_descriptor);
-        return nullptr;
+    ani_enum enumType = nullptr;
+    bool found = AniCacheManager::Instance().FindEnum(enum_descriptor, enumType);
+    if (!found) {
+        ani_status ret = env->FindEnum(enum_descriptor, &enumType);
+        if (ret == ANI_OK) {
+            AniCacheManager::Instance().InsertEnum(env, enum_descriptor, enumType);
+        } else {
+            TEXT_LOGE("Failed to find enum, %{public}s, ret %{public}d", enum_descriptor, ret);
+            return nullptr;
+        }
     }
     ani_enum_item enumItem;
     env->Enum_GetEnumItemByIndex(enumType, index, &enumItem);
