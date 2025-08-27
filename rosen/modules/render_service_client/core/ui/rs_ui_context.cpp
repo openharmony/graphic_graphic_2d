@@ -180,14 +180,14 @@ public:
             rsInterface.UnRegisterTypeface(uniqueID);
         };
         Drawing::Typeface::RegisterOnTypefaceDestroyed(typefaceDestroyedFunc);
-        Drawing::Typeface::RegisterUniqueIDCallBack(TypefaceMap::GetTypefaceByUniqueID);
+        Drawing::Typeface::RegisterUniqueIdCallBack(TypefaceMap::GetTypefaceByUniqueId);
     }
 
     ~TypefaceAutoRegister()
     {
         Drawing::Typeface::RegisterCallBackFunc(nullptr);
         Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
-        Drawing::Typeface::RegisterUniqueIDCallBack(nullptr);
+        Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
     }
 };
 
