@@ -35,7 +35,7 @@ public:
     static ani_object CreateAniUndefined(ani_env* env);
     static bool IsUndefined(ani_env* env, ani_ref ref);
     template <typename... Args>
-    static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params);
+    static ani_object CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params);
     static ani_object CreateAniArray(ani_env* env, size_t size);
     template <typename T, typename Converter>
     static ani_object CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size, Converter convert);
@@ -69,12 +69,10 @@ public:
 };
 
 template <typename... Args>
-ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params)
+ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params)
 {
     ani_class cls = nullptr;
-    ani_ref clsRef = nullptr;
-    if (AniCacheManager::Instance().FindClass(name, clsRef)) {
-        cls = reinterpret_cast<ani_class>(clsRef);
+    if (AniCacheManager::Instance().FindClass(name, cls)) {
     } else if (env->FindClass(name.c_str(), &cls) == ANI_OK) {
         AniCacheManager::Instance().InsertClass(env, name, cls);
     } else {
