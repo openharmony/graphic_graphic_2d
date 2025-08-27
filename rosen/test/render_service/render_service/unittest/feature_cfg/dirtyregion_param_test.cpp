@@ -50,16 +50,6 @@ HWTEST_F(DirtyRegionParamTest, ParamSettingAndGettingTest, Function | SmallTest 
     DirtyRegionParam::SetDirtyRegionEnable(false);
     ASSERT_FALSE(DirtyRegionParam::IsDirtyRegionEnable());
 
-    DirtyRegionParam::SetExpandScreenDirtyRegionEnable(true);
-    ASSERT_TRUE(DirtyRegionParam::IsExpandScreenDirtyRegionEnable());
-    DirtyRegionParam::SetExpandScreenDirtyRegionEnable(false);
-    ASSERT_FALSE(DirtyRegionParam::IsExpandScreenDirtyRegionEnable());
-
-    DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(true);
-    ASSERT_TRUE(DirtyRegionParam::IsMirrorScreenDirtyRegionEnable());
-    DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(false);
-    ASSERT_FALSE(DirtyRegionParam::IsMirrorScreenDirtyRegionEnable());
-
     DirtyRegionParam::SetAdvancedDirtyRegionEnable(true);
     ASSERT_TRUE(DirtyRegionParam::IsAdvancedDirtyRegionEnable());
     DirtyRegionParam::SetAdvancedDirtyRegionEnable(false);

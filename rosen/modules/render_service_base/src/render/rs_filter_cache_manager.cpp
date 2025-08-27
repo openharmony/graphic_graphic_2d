@@ -212,6 +212,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     takeNewSnapshot_ = false;
     RS_OPTIONAL_TRACE_FUNC();
 #if defined(ROSEN_OHOS)
+    RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
     if (nodeId != 0 && DrawFilterUsingHpae(canvas, filter, hpaeCacheManager_, nodeId)) {
         return;
     }
@@ -257,6 +258,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         return nullptr;
     }
     RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState().c_str());
+    RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     } else if (snapshotNeedUpdate_) {

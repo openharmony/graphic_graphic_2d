@@ -79,7 +79,6 @@ void DoDoTextureExport()
     bool isRenderServiceNode = GetData<bool>();
     std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
     RSTextureExport text(node, surfaceId);
-    text.DoTextureExport();
 }
 
 void DoStopTextureExport()

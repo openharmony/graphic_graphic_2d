@@ -473,7 +473,7 @@ HWTEST_F(RSPropertyTest, GetPropertyType002, TestSize.Level1)
 {
     std::vector<float> tempVec = {1.0f, 2.0f, 3.0f};
     auto rsAnimatableProperty = std::make_shared<RSAnimatableProperty<std::vector<float>>>(tempVec);
-    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSPropertyType::SHADER_PARAM);
+    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSPropertyType::VECTOR_FLOAT);
     std::vector<float> tempVec2 = {4.0f, 5.0f, 6.0f};
     rsAnimatableProperty->Set(tempVec2);
     EXPECT_EQ(rsAnimatableProperty->Get(), tempVec2);

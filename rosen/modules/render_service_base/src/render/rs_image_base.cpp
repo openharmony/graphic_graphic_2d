@@ -20,6 +20,7 @@
 #include "image/image.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "feature/hdr/rs_colorspace_util.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
@@ -682,9 +683,11 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeWithVKFormat(vkTextureInfo->format);
+    std::shared_ptr<Drawing::ColorSpace> colorSpace =
+        RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
         RS_LOGE("RSImageBase MakeFromTextureForVK build image failed");
         return nullptr;
@@ -746,28 +749,6 @@ static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pi
         default: return Drawing::CompressedType::NoneType;
     }
 }
-
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
- colorSpaceName)
-{
-    switch (colorSpaceName) {
-        case ColorManager::ColorSpaceName::DISPLAY_P3:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-        case ColorManager::ColorSpaceName::LINEAR_SRGB:
-            return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorManager::ColorSpaceName::SRGB:
-            return Drawing::ColorSpace::CreateSRGB();
-        case ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
-        case ColorManager::ColorSpaceName::ADOBE_RGB:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
-        default:
-            return Drawing::ColorSpace::CreateSRGB();
-    }
-}
 #endif
 
 void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
@@ -794,7 +775,7 @@ void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
             pixelMap_->GetAstcRealSize(realSize);
             auto image = std::make_shared<Drawing::Image>();
             std::shared_ptr<Drawing::ColorSpace> colorSpace =
-                ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
+                RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
             bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
                 static_cast<int>(realSize.width), static_cast<int>(realSize.height),
                 PixelFormatToCompressedType(imageInfo.pixelFormat, pixelMap_->IsHdr()), colorSpace);

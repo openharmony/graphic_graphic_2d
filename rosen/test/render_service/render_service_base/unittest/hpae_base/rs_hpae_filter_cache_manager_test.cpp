@@ -316,6 +316,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest, TestSize.Lev
     BufferHandle bufferHandleOut;
     outputBuffer.bufferHandle = &bufferHandleOut;
 
+    HianimationManager::GetInstance().OpenDevice();
     auto resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
     EXPECT_EQ(resultTask.taskPtr, reinterpret_cast<void*>(0x1234));
 }
@@ -430,6 +431,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest, TestSize.Leve
     outputBuffer.bufferHandle = &bufferHandleOut;
     hpaeCacheManager.outputBufferInfo_ = outputBuffer;
 
+    HianimationManager::GetInstance().OpenDevice();
     int ret = hpaeCacheManager.ProcessHianimationBlur(filter, 10.0f);
     EXPECT_EQ(ret, 0);
 }
@@ -618,7 +620,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GetBlurOutputTest01, TestSize.Level1)
     EXPECT_NE(item.blurImage_, nullptr);
     
     itemIn.blurImage_ = image;
-    itemIn.surface_ = nullptr;
+    itemIn.surface_.reset();
     hpaeCacheManager.hpaeBlurOutputQueue_.clear();
     hpaeCacheManager.hpaeBlurOutputQueue_.push_back(itemIn);
     item = hpaeCacheManager.GetBlurOutput();

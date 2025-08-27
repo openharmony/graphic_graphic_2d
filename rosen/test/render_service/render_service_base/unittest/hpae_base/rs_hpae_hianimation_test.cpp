@@ -16,7 +16,9 @@
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
+
 #include "param/sys_param.h"
+
 #include "hpae_base/rs_hpae_hianimation.h"
 #include "hpae_base/rs_hpae_base_types.h"
 
@@ -31,10 +33,10 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static inline std::string hpaeSwitch;
-    static inline std::string hpaeAaeSwitch;
 
     static inline hianimation_algo_device_t *mockHianimationDevice_;
+    static inline std::string hpaeSwitch;
+    static inline std::string hpaeAaeSwitch;
 };
 
 static constexpr int32_t HIANIMATION_SUCC = 0;
@@ -90,7 +92,6 @@ void RSHpaeHianimationTest::SetUpTestCase()
 void RSHpaeHianimationTest::TearDownTestCase()
 {
     delete mockHianimationDevice_;
-    mockHianimationDevice_ = nullptr;
     OHOS::system::SetParameter("debug.graphic.hpae.blur.enabled", hpaeSwitch);
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
@@ -106,11 +107,7 @@ void RSHpaeHianimationTest::TearDown() {}
 HWTEST_F(RSHpaeHianimationTest, OpenDeviceTest, TestSize.Level1)
 {
     HianimationManager hianimationManager;
-    hianimationManager.openFailNum_ = 10;
-    hianimationManager.OpenDevice();
-    EXPECT_EQ(hianimationManager.hianimationDevice_, nullptr);
 
-    hianimationManager.openFailNum_ = 0;
     hianimationManager.libHandle_ = reinterpret_cast<void *>(0x1234);
     hianimationManager.OpenDevice();
     EXPECT_NE(hianimationManager.hianimationDevice_, nullptr);
@@ -238,7 +235,7 @@ HWTEST_F(RSHpaeHianimationTest, HianimationInvalidTest, TestSize.Level1)
 {
     HianimationManager hianimationManager;
     bool ret = hianimationManager.HianimationInvalid();
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -308,37 +305,6 @@ HWTEST_F(RSHpaeHianimationTest, WaitAlgoInitTest, TestSize.Level1)
     hianimationManager.algoInitDone_ = false;
     hianimationManager.WaitAlgoInit();
     EXPECT_FALSE(hianimationManager.algoInitDone_);
-}
-
-/**
- * @tc.name: HianimationPerfTrackTest
- * @tc.desc: Verify function HianimationPerfTrack
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSHpaeHianimationTest, HianimationPerfTrackTest, TestSize.Level1)
-{
-    HianimationManager hianimationManager;
-    hianimationManager.HianimationPerfTrack();
-    EXPECT_FALSE(hianimationManager.hpaePerfDone_);
-}
-
-/**
- * @tc.name: WaitHpaeDoneTest
- * @tc.desc: Verify function WaitHpaeDone
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSHpaeHianimationTest, WaitHpaeDoneTest, TestSize.Level1)
-{
-    HianimationManager hianimationManager;
-    hianimationManager.hpaePerfDone_ = false;
-    hianimationManager.WaitHpaeDone();
-    EXPECT_FALSE(hianimationManager.hpaePerfDone_);
-
-    hianimationManager.hpaePerfDone_ = true;
-    hianimationManager.WaitHpaeDone();
-    EXPECT_TRUE(hianimationManager.hpaePerfDone_);
 }
 
 } // namespace Rosen

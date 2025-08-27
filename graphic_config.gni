@@ -108,9 +108,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "RS_ENABLE_GL",
     ]
   }
-  if (graphic_2d_feature_enable_stack_culling) {
-    gpu_defines += [ "RS_ENABLE_STACK_CULLING" ]
-  }
 
   if (graphic_2d_feature_enable_opinc) {
     gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]

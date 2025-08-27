@@ -53,12 +53,6 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(xmlNode &node)
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "DirtyRegionEnabled") {
             DirtyRegionParam::SetDirtyRegionEnable(isEnabled);
-        } else if (name == "ExpandScreenDirtyRegionEnabled") {
-            DirtyRegionParam::SetExpandScreenDirtyRegionEnable(isEnabled);
-        } else if (name == "ExpandScreenDirtyRegionEnabled") {
-            DirtyRegionParam::SetExpandScreenDirtyRegionEnable(isEnabled);
-        } else if (name == "MirrorScreenDirtyRegionEnabled") {
-            DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(isEnabled);
         } else if (name == "AdvancedDirtyRegionEnabled") {
             DirtyRegionParam::SetAdvancedDirtyRegionEnable(isEnabled);
         } else if (name == "ComposeDirtyRegionEnableInPartialDisplay") {

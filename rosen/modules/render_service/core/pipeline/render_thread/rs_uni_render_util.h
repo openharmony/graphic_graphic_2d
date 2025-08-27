@@ -61,9 +61,6 @@ public:
      * occlusion is calculated.
      * make sure this function is called after merge dirty history
      */
-    static Occlusion::Region MergeVisibleDirtyRegion(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
-        std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion = false);
     static Occlusion::Region MergeVisibleAdvancedDirtyRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec);

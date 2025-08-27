@@ -520,20 +520,4 @@ HWTEST_F(RSColorspaceConvertTest, GetSDRDynamicMetadata001, TestSize.Level1)
     ret = MetadataHelper::GetSDRDynamicMetadata(surfaceBuffer, metadataSet);
     ASSERT_TRUE(ret != GSERROR_OK);
 }
-
-/**
- * @tc.name: ColorSpaceNameToGraphicGamut001
- * @tc.desc: test ColorSpaceName to GraphicColorGamut case
- * @tc.type:FUNC
- * @tc.require: ICGKPE
- */
-HWTEST_F(RSColorspaceConvertTest, ColorSpaceNameToGraphicGamut001, TestSize.Level1)
-{
-    using OHOS::ColorManager::ColorSpaceName;
-    GraphicColorGamut gamut = RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(ColorSpaceName::SRGB);
-    ASSERT_EQ(gamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-
-    gamut = RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(ColorSpaceName::ACES);
-    ASSERT_EQ(gamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE); // unsupport ACES gamut.
-}
 } // namespace OHOS::Rosen

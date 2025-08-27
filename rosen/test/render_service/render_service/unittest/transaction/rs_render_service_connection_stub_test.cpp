@@ -1264,6 +1264,177 @@ HWTEST_F(RSRenderServiceConnectionStubTest, GetPidGpuMemoryInMBTest001, TestSize
 }
 
 /**
+ * @tc.name: AvcodecVideoStartTest001
+ * @tc.desc: Test AvcodecVideoStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStartTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStartTest002
+ * @tc.desc: Test AvcodecVideoStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStartTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStartTest003
+ * @tc.desc: Test AvcodecVideoStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStartTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    data.WriteString("surfaceName");
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStartTest004
+ * @tc.desc: Test AvcodecVideoStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStartTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    data.WriteString("surfaceName");
+    data.WriteUint32(60);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStartTest005
+ * @tc.desc: Test AvcodecVideoStart
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStartTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    data.WriteString("surfaceName");
+    data.WriteUint32(60);
+    data.WriteUint64(20);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: AvcodecVideoStopTest001
+ * @tc.desc: Test AvcodecVideoStop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStopTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStopTest002
+ * @tc.desc: Test AvcodecVideoStop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStopTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStopTest003
+ * @tc.desc: Test AvcodecVideoStop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStopTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    data.WriteString("surfaceName");
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: AvcodecVideoStopTest004
+ * @tc.desc: Test AvcodecVideoStop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStopTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(123);
+    data.WriteString("surfaceName");
+    data.WriteUint32(60);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
  * @tc.name: ProfilerServiceOpenFileTest
  * @tc.desc: ProfilerServiceOpenFileTest
  * @tc.type: FUNC

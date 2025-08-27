@@ -2083,6 +2083,8 @@ HWTEST_F(RSRenderNodeTest, AddChildTest005, TestSize.Level1)
     nodeTest->AddChild(childTest, 0);
     system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled",
         std::to_string(optimizeCanvasDrawRegionEnabled));
+    system::SetParameter("rosen.graphic.optimizeParentNodeRegion.enabled",
+        std::to_string(optimizeParentNodeRegionEnabled));
     pidList.assign(1, ExtractPid(INVALID_NODE_ID));
     RSOptimizeCanvasDirtyCollector::GetInstance().SetOptimizeCanvasDirtyPidList(pidList);
     ASSERT_EQ(RSOptimizeCanvasDirtyCollector::GetInstance().IsOptimizeCanvasDirtyEnabled(TARGET_NODE_ID), false);

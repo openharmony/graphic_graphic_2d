@@ -109,6 +109,7 @@ public:
     {
         brightnessForHPS_ = brightnessForHPS;
     }
+    void ForcePostProcess(Drawing::Canvas& canvas);
     void PreProcess(std::shared_ptr<Drawing::Image>& image);
     void PostProcess(Drawing::Canvas& canvas);
 

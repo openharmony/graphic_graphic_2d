@@ -684,6 +684,13 @@ void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)
     });
 }
 
+void RSDrawingFilter::ForcePostProcess(Drawing::Canvas& canvas)
+{
+    std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
+        filter->PostProcess(canvas);
+    });
+}
+
 void RSDrawingFilter::PostProcess(Drawing::Canvas& canvas)
 {
     std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {

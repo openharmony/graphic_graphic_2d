@@ -245,6 +245,9 @@ void RSUniRenderThread::Start()
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
         InitGrContext();
+#if defined(ROSEN_OHOS)
+        RSHpaeManager::GetInstance().InitHpaeBlurResource();
+#endif
         tid_ = gettid();
 #ifdef RES_SCHED_ENABLE
         SubScribeSystemAbility();

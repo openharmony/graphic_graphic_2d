@@ -277,53 +277,5 @@ void RSColorSpaceConvert::CloseLibraryHandle()
     }
     handle_ = nullptr;
 }
-
-GraphicColorGamut RSColorSpaceConvert::ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name)
-{
-    using OHOS::ColorManager::ColorSpaceName;
-    static const std::unordered_map<ColorSpaceName, GraphicColorGamut> RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP {
-        {ColorSpaceName::BT601_EBU, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
-        {ColorSpaceName::SMPTE_C, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
-        {ColorSpaceName::BT709, GRAPHIC_COLOR_GAMUT_STANDARD_BT709},
-        {ColorSpaceName::DCI_P3, GRAPHIC_COLOR_GAMUT_DCI_P3},
-        {ColorSpaceName::SRGB, GRAPHIC_COLOR_GAMUT_SRGB},
-        {ColorSpaceName::ADOBE_RGB, GRAPHIC_COLOR_GAMUT_ADOBE_RGB},
-        {ColorSpaceName::DISPLAY_P3, GRAPHIC_COLOR_GAMUT_DISPLAY_P3},
-        {ColorSpaceName::BT2020, GRAPHIC_COLOR_GAMUT_BT2020},
-        {ColorSpaceName::BT2020_PQ, GRAPHIC_COLOR_GAMUT_BT2100_PQ},
-        {ColorSpaceName::BT2020_HLG, GRAPHIC_COLOR_GAMUT_BT2100_HLG},
-        {ColorSpaceName::DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020},
-    };
-    if (auto itr = RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP.find(name); itr != RS_COLORSPACE_TO_GRAPHIC_GAMUT_MAP.end()) {
-        return itr->second;
-    }
-    return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
-}
-
-GraphicColorGamut RSColorSpaceConvert::PrimariesToGraphicGamut(CM_ColorPrimaries primary)
-{
-    switch (primary) {
-        case COLORPRIMARIES_ADOBERGB:
-        case COLORPRIMARIES_P3_DCI:
-        case COLORPRIMARIES_P3_D65:
-            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-        case COLORPRIMARIES_BT2020:
-            return GRAPHIC_COLOR_GAMUT_BT2020;
-        default:
-            return GRAPHIC_COLOR_GAMUT_SRGB;
-    }
-}
-
-GraphicColorGamut RSColorSpaceConvert::SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2)
-{
-    // Only Support DISPLAY_BT2020, DISPLAY_P3, SRGB
-    if (gamut1 == GRAPHIC_COLOR_GAMUT_BT2020) {
-        return gamut1;
-    }
-    if (gamut1 == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 && gamut2 == GRAPHIC_COLOR_GAMUT_SRGB) {
-        return gamut1;
-    }
-    return gamut2;
-}
 } // namespace Rosen
 } // namespace OHOS

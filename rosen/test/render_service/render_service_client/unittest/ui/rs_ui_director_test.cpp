@@ -782,6 +782,28 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessUIContextMessagesTest003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
+{
+    auto director = RSUIDirector::Create();
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto token = 12345;
+    auto command = std::make_unique<RSAnimationCallback>(0, 0, token, FINISHED);
+    std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
+    std::vector<std::unique_ptr<RSCommand>> commands;
+    commands.push_back(std::move(command));
+    cmdMap[token] = std::move(commands);
+    RSUIDirector::ProcessUIContextMessages(cmdMap, 1);
+    ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
+    ASSERT_NE(RSUIContextManager::Instance().GetRandomUITaskRunnerCtx(), nullptr);
+}
+
+/**
  * @tc.name: AnimationCallbackProcessor
  * @tc.desc:
  * @tc.type:FUNC

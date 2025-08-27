@@ -254,58 +254,6 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSScreenRenderNod
     }
 }
 
-Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
-    std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion)
-{
-    Occlusion::Region allSurfaceVisibleDirtyRegion;
-    for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
-        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
-        if (surfaceNodeDrawable == nullptr) {
-            RS_LOGI("MergeVisibleDirtyRegion surfaceNodeDrawable is nullptr");
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
-        if (!surfaceParams || !surfaceDirtyManager) {
-            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion node(%{public}" PRIu64") params or "
-                "dirty manager is nullptr", surfaceNodeDrawable->GetId());
-            continue;
-        }
-        if (!surfaceParams->IsLeashOrMainWindow() || surfaceParams->GetDstRect().IsEmpty()) {
-            continue;
-        }
-        // for cross-display surface, only consider the dirty region on the first display (use global dirty for others).
-        if (surfaceParams->IsFirstLevelCrossNode() &&
-            !RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsFirstVisitCrossNodeDisplay()) {
-            continue;
-        }
-        auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
-        Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_, surfaceDirtyRect.GetRight(),
-            surfaceDirtyRect.GetBottom() };
-        auto visibleRegion = surfaceParams->GetVisibleRegion();
-        Occlusion::Region surfaceDirtyRegion { dirtyRect };
-        Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
-
-        surfaceNodeDrawable->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
-        if (!surfaceVisibleDirtyRegion.IsEmpty()) {
-            hasVisibleDirtyRegionSurfaceVec.emplace_back(surfaceParams->GetId());
-        }
-        if (useAlignedDirtyRegion) {
-            Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
-            surfaceNodeDrawable->SetAlignedVisibleDirtyRegion(alignedRegion);
-            allSurfaceVisibleDirtyRegion.OrSelf(alignedRegion);
-            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceParams->GetId(),
-                surfaceNodeDrawable->GetName(), alignedRegion.GetRegionRectIs());
-        } else {
-            allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
-            GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceParams->GetId(),
-                surfaceNodeDrawable->GetName(), surfaceVisibleDirtyRegion.GetRegionRectIs());
-        }
-    }
-    return allSurfaceVisibleDirtyRegion;
-}
-
 Occlusion::Region RSUniRenderUtil::MergeVisibleAdvancedDirtyRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
     std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec)

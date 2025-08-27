@@ -143,22 +143,24 @@ void RSUIContext::PostDelayTask(const std::function<void()>& task, uint32_t dela
 void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out)
 {
     auto transaction = GetRSTransaction();
-    if (transaction) {
+    if (transaction == nullptr) {
+        return;
+    }
+
+    if (auto node = GetNodeMap().GetNode(nodeId)) {
         out.append("transactionFlags:[ ")
             .append(std::to_string(pid))
             .append(", ")
             .append(std::to_string(transaction->GetTransactionDataIndex()))
             .append("]\r");
-    }
-    if (auto node = GetNodeMap().GetNode(nodeId)) {
+
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);
     }
-    if (transaction) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSCommitDumpClientNodeTree>(nodeId, pid, taskId, out);
-        transaction->AddCommand(command, true);
-        transaction->FlushImplicitTransaction();
-    }
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCommitDumpClientNodeTree>(nodeId, pid, taskId, out);
+    transaction->AddCommand(command, true);
+    transaction->FlushImplicitTransaction();
 }
 } // namespace Rosen
 } // namespace OHOS

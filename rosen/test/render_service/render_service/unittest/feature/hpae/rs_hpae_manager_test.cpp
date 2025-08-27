@@ -19,6 +19,7 @@
 #include "common/rs_common_def.h"
 #include "gtest/gtest.h"
 #include "feature/hpae/rs_hpae_manager.h"
+#include "hgm_core.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_render_filter_base.h"
@@ -26,11 +27,14 @@
 #include "hpae_base/rs_hpae_base_data.h"
 #include "param/sys_param.h"
 
-
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr ScreenId DEFAULT_SCREEN_ID = 0xFFFF;
+
 class RSChildrenDrawableAdapter : public RSDrawable {
 public:
     RSChildrenDrawableAdapter() = default;
@@ -71,7 +75,10 @@ void RSHpaeManagerTest::TearDownTestCase()
     OHOS::system::SetParameter("rosen.graphic.hpae.blur.aae.enabled", hpaeAaeSwitch);
 }
 void RSHpaeManagerTest::SetUp() {}
-void RSHpaeManagerTest::TearDown() {}
+void RSHpaeManagerTest::TearDown()
+{
+    usleep(5000);
+}
 
 static inline std::weak_ptr<RSContext> context = {};
 
@@ -103,6 +110,45 @@ HWTEST_F(RSHpaeManagerTest, OnSyncTest, TestSize.Level1)
     RSHpaeManager::GetInstance().OnUniRenderStart();
     RSHpaeManager::GetInstance().OnSync(true);
     ASSERT_EQ(RSHpaeManager::GetInstance().HasHpaeBlurNode(), false);
+}
+
+/**
+ * @tc.name: OnSyncTestReleaseAllDone
+ * @tc.desc: Test OnSync function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeManagerTest, OnSyncTestReleaseAllDone, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+    hpaeManager.releaseAllDone_.store(false);
+    hpaeManager.OnSync(false);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus.gotHpaeBlurNode, false);
+    hpaeManager.releaseAllDone_.store(true);
+}
+
+/**
+ * @tc.name: OnSyncTestVsyncId
+ * @tc.desc: Test OnSync function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeManagerTest, OnSyncTestVsyncId, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+    auto vsyncId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
+    OHOS::Rosen::HgmCore::Instance().SetVsyncId(0);
+    hpaeManager.OnSync(true);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    hpaeManager.OnSync(false);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    OHOS::Rosen::HgmCore::Instance().SetVsyncId(1);
+    hpaeManager.OnSync(true);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    OHOS::Rosen::HgmCore::Instance().SetVsyncId(vsyncId);
 }
 
 /**
@@ -158,8 +204,8 @@ HWTEST_F(RSHpaeManagerTest, HandleHpaeStateChangeTest, TestSize.Level1)
     RSHpaeManager::GetInstance().hpaeStatus_.blurNodeId = 0;
     RSHpaeManager::GetInstance().prevBufferConfig_.width = 1000;
     RSHpaeManager::GetInstance().prevBufferConfig_.height = 2000;
-    RSHpaeManager::GetInstance().hpaeBufferWidth_ = 1000;
-    RSHpaeManager::GetInstance().hpaeBufferHeight_ = 2000;
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.bufferWidth = 1000;
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.bufferrHeight = 2000;
     RSHpaeManager::GetInstance().HandleHpaeStateChange();
 
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = true;
@@ -168,8 +214,8 @@ HWTEST_F(RSHpaeManagerTest, HandleHpaeStateChangeTest, TestSize.Level1)
     RSHpaeManager::GetInstance().hpaeStatus_.blurNodeId = 0;
     RSHpaeManager::GetInstance().prevBufferConfig_.width = 1000;
     RSHpaeManager::GetInstance().prevBufferConfig_.height = 2000;
-    RSHpaeManager::GetInstance().hpaeBufferWidth_ = 500;
-    RSHpaeManager::GetInstance().hpaeBufferHeight_ = 2000;
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.bufferWidth = 500;
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.bufferrHeight = 2000;
     RSHpaeManager::GetInstance().HandleHpaeStateChange();
 
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = true;
@@ -178,23 +224,10 @@ HWTEST_F(RSHpaeManagerTest, HandleHpaeStateChangeTest, TestSize.Level1)
     RSHpaeManager::GetInstance().hpaeStatus_.blurNodeId = 0;
     RSHpaeManager::GetInstance().prevBufferConfig_.width = 1000;
     RSHpaeManager::GetInstance().prevBufferConfig_.height = 1500;
-    RSHpaeManager::GetInstance().hpaeBufferWidth_ = 1000;
-    RSHpaeManager::GetInstance().hpaeBufferHeight_ = 2000;
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.bufferWidth = 1000;
+    RSHpaeManager::GetInstance().stagingHpaeStatus_.bufferrHeight = 2000;
     RSHpaeManager::GetInstance().HandleHpaeStateChange();
-    ASSERT_EQ(RSHpaeManager::GetInstance().releaseAllDone_, false);
-}
-
-/**
- * @tc.name: WaitPreviousReleaseAllTest
- * @tc.desc: Test WaitPreviousReleaseAll
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHpaeManagerTest, WaitPreviousReleaseAllTest, TestSize.Level1)
-{
-    RSHpaeManager::GetInstance().releaseAllDone_ = false;
-    RSHpaeManager::GetInstance().WaitPreviousReleaseAll();
-    ASSERT_EQ(RSHpaeManager::GetInstance().releaseAllDone_, true);
+    ASSERT_EQ(RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode, true);
 }
 
 /**
@@ -209,6 +242,93 @@ HWTEST_F(RSHpaeManagerTest, IsFirstFrameTest, TestSize.Level1)
     ASSERT_EQ(RSHpaeManager::GetInstance().IsFirstFrame(), true);
 }
 
+HWTEST_F(RSHpaeManagerTest, UpdateHpaeStateTest01, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+    hpaeManager.UpdateHpaeState();
+
+    hpaeManager.hpaeStatus_.gotHpaeBlurNode = false;
+
+    hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode = true;
+    hpaeManager.hpaeBufferNeedInit_.store(true);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::ALLOC_BUF);
+
+    hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode = true;
+    hpaeManager.hpaeBufferNeedInit_.store(false);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::IDLE);
+
+    hpaeManager.stagingHpaeStaus_.gotHpaeBlurNode = false;
+    hpaeManager.hpaeBufferNeedInit_.store(false);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrmaeState::DEACTIVE);
+}
+
+HWTEST_F(RSHpaeManagerTest, UpdateHpaeStateTest02, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+
+    hpaeManager.hpaeStatus_.gotHpaeBlurNdoe = true;
+    hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode = true;
+    hpaeManager.hpaeBufferNeedInit_.store(false);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::WORKEING);
+
+    hpaeManager.prevBufferConfig_.width = 100;
+    hpaeManager.stagingHpaeStatus_.bufferWidth = 200;
+    hpaeManager.prevBufferConfig_.height = 100;
+    hpaeManager.stagingHpaeStatus_.bufferHeight = 100;
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameeState::CHANGE_CONFIG);
+
+    hpaeManager.prevBufferConfig_.width = 100;
+    hpaeManager.stagingHpaeStatus_.bufferWidth = 100;
+    hpaeManager.prevBufferConfig_.height = 100;
+    hpaeManager.stagingHpaeStatus_.bufferHeight = 200;
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameeState::CHANGE_CONFIG);
+
+    hpaeManager.prevBufferConfig_.width = 100;
+    hpaeManager.stagingHpaeStatus_.bufferWidth = 200;
+    hpaeManager.prevBufferConfig_.height = 100;
+    hpaeManager.stagingHpaeStatus_.bufferHeight = 200;
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameeState::CHANGE_CONFIG);
+}
+
+HWTEST_F(RSHpaeManagerTest, UpdateHpaeStateTest03, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+
+    hpaeManager.hpaeBufferAllocating_.store(true);
+    hpaeManager.releaseAllDone_.store(true);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::WAITING);
+
+    hpaeManager.hpaeBufferAllocating_.store(true);
+    hpaeManager.releaseAllDone_.store(false);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::WAITING);
+
+    hpaeManager.hpaeBufferAllocating_.store(false);
+    hpaeManager.releaseAllDone_.store(false);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::WAITING);
+
+    hpaeManager.hpaeBufferAllocating_.store(false);
+    hpaeManager.releaseAllDone_.store(true);
+    hpaeManager.UpdateHpaeState();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::IDLE);
+}
+
+HWTEST_F(RSHpaeManagerTest, OnActiveTest01, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+    hpaeManager.hpaeFrameState_ = HpaeFrameState::ACTIVE;
+    hpaeManager.OnActive();
+    EXPECT_EQ(hpaeManager.hpaeFrameState_, HpaeFrameState::ACTIVE);
+}
 /**
  * @tc.name: InitIoBuffersTest
  * @tc.desc: Test InitIoBuffers
@@ -328,36 +448,72 @@ HWTEST_F(RSHpaeManagerTest, SetUpSurfaceOutTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckHpaeBlurTest
+ * @tc.desc: Test CheckHpaeBlur
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeManagerTest, CheckHpaeBlurTest01, TestSize.Level1)
+{
+    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+    RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = true;
+    RSHpaeManager::GetInstance().CheckHpaeBlur(true, pixelFormat, colorSpace, true);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, true);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(true, pixelFormat, colorSpace, false);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, false);
+
+    RSHpaeManager::GetInstance().hpaeStatus_.gotHpaeBlurNode = false;
+    RSHpaeManager::GetInstance().CheckHpaeBlur(true, pixelFormat, colorSpace, true);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, true);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(true, pixelFormat, colorSpace, false);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(false, pixelFormat, colorSpace, false);
+    ASSERT_EQ(RSHpaeManager::GetInstance().HasHpaeBlurNode(), false);
+}
+
+HWTEST_F(RSHpaeManagerTest, CheckHpaeBlurTest02, TestSize.Level1)
+{
+    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+    RSHpaeManager hpaeManager;
+    hpaeManager.hpaeFrameState_ = HpaeFrameState::ALLOC_BUF;
+    hpaeManager.hpaeStatus_.gotHpaeBlurNode = true;
+    hpaeManager.CheckHpaeBlur(true, pixelFormat, colorSpace, true);
+    hpaeManager.CheckHpaeBlur(false, pixelFormat, colorSpace, true);
+    hpaeManager.CheckHpaeBlur(true, pixelFormat, colorSpace, false);
+    hpaeManager.CheckHpaeBlur(false, pixelFormat, colorSpace, false);
+
+    hpaeManager.hpaeStatus_.gotHpaeBlurNode = false;
+    hpaeManager.CheckHpaeBlur(true, pixelFormat, colorSpace, true);
+    hpaeManager.CheckHpaeBlur(false, pixelFormat, colorSpace, true);
+    hpaeManager.CheckHpaeBlur(true, pixelFormat, colorSpace, false);
+    hpaeManager.CheckHpaeBlur(false, pixelFormat, colorSpace, false);
+    ASSERT_EQ(hpaeManager.HasHpaeBlurNode(), false);
+}
+
+/**
  * @tc.name: SetUpHpaeSurfaceTest
  * @tc.desc: Test SetUpHpaeSurface
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHpaeManagerTest, SetUpHpaeSurfaceTest, TestSize.Level1)
+HWTEST_F(RSHpaeManagerTest, SetUpHpaeSurfaceTest01, TestSize.Level1)
 {
-    RSHpaeManager::GetInstance().hpaeBufferIn_ = nullptr;
-    RSHpaeManager::GetInstance().hpaeBufferOut_ = nullptr;
-    RSHpaeManager::GetInstance().SetUpHpaeSurface(
-        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, false);
+    RSHpaeManager hpaeManager;
+    BufferRequestConfig prevConfig = hpaeManager.prevBufferConfig_;
+    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    RSHpaeBaseData::GetInstance().NotifyBufferUsed(false);
+    hpaeManager.SetUpHpaeSurface(pixelFormat, prevConfig.colorGamut, hpaeManager.prevIsHebc_);
 
-    RSHpaeManager::GetInstance().hpaeBufferIn_ = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer", 777);
-    RSHpaeManager::GetInstance().hpaeBufferOut_ = nullptr;
-    RSHpaeManager::GetInstance().SetUpHpaeSurface(
-        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, false);
+    RSHpaeBaseData::GetInstance().NotifyBufferUsed(true); // consume buffer
+    hpaeManager.SetUpHpaeSurface(pixelFormat, prevConfig.colorGamut, hpaeManager.prevIsHebc_);
 
-    RSHpaeManager::GetInstance().prevBufferConfig_ = bufferConfig;
-    RSHpaeManager::GetInstance().InitIoBuffers();
-    RSHpaeBaseData::GetInstance().bufferUsed_ = false;
-    RSHpaeManager::GetInstance().SetUpHpaeSurface(
-        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, false);
+    RSHpaeBaseData::GetInstance().NotifyBufferUsed(false); // don't consume buffer
+    hpaeManager.SetUpHpaeSurface(pixelFormat, prevConfig.colorGamut, hpaeManager.prevIsHebc_);
 
-    RSHpaeManager::GetInstance().prevBufferConfig_ = bufferConfig;
-    RSHpaeManager::GetInstance().InitIoBuffers();
-    RSHpaeBaseData::GetInstance().bufferUsed_ = true;
-    RSHpaeManager::GetInstance().SetUpHpaeSurface(
-        GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, false);
-
-    ASSERT_NE(RSHpaeManager::GetInstance().curIndex_, 1);
+    ASSERT_NE(hpaeManager.curIndex_, 0);
 }
 
 /**
@@ -368,33 +524,57 @@ HWTEST_F(RSHpaeManagerTest, SetUpHpaeSurfaceTest, TestSize.Level1)
  */
 HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
 {
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
+
     NodeId id0 = 1;
     RSRenderNode node0(id0, context);
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = false;
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node0, 1000, 2000);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node0, screenNode);
 
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = true;
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node0, 1000, 2000);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node0, screenNode);
 
     NodeId id1 = 1;
     RSRenderNode node1(id1, context);
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = true;
     node1.renderProperties_.backgroundFilter_ = nullptr;
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node1, 1000, 2000);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node0, screenNode);
 
     NodeId id2 = 1;
     RSRenderNode node2(id2, context);
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = true;
     auto rsDrawingFilter2 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     node2.renderProperties_.backgroundFilter_ = std::static_pointer_cast<RSFilter>(rsDrawingFilter2);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 0, 0);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 0, 2000);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 0, 9000);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 1000, 0);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 1000, 2000);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 3000, 0);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 3000, 2000);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, 3000, 9000);
+    screenNode->screenInfo_.phyWidth = 0;
+    screenNode->screenInfo_.phyHeight = 0;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 0;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 0;
+    screenNode->screenInfo_.phyHeight = 9000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 0;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 3000;
+    screenNode->screenInfo_.phyHeight = 0;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 3000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
+    screenNode->screenInfo_.phyWidth = 3000;
+    screenNode->screenInfo_.phyHeight = 9000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
 
     NodeId id3 = 1;
     RSRenderNode node3(id3, context);
@@ -407,8 +587,10 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     node3.renderProperties_.backgroundFilter_ = backgroundFilter3;
     node3.renderProperties_.SetBoundsWidth(1000);
     node3.renderProperties_.SetBoundsHeight(2000);
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node3, 1000, 2000);
-    ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, true);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node3, screenNode);
+    ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, false); // no BACKGROUND_FILTER
 
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = true;
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = false;
@@ -423,13 +605,17 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     node4.renderProperties_.backgroundFilter_ = backgroundFilter4;
     RectI rect1{0, 0, 1000, 2000};
     node4.renderProperties_.boundsGeo_->absRect_ = rect1;
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, 1000, 2000);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, screenNode);
     ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, true);
 
     RSDrawableSlot slot5 = RSDrawableSlot::PIXEL_STRETCH;
     node4.drawableVec_[static_cast<uint32_t>(slot5)] = filterDrawable;
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = false;
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, 1000, 2000);
+    screenNode->screenInfo_.phyWidth = 1000;
+    screenNode->screenInfo_.phyHeight = 2000;
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node4, screenNode);
     ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, true);
 }
 
@@ -519,6 +705,57 @@ HWTEST_F(RSHpaeManagerTest, IsHpaeBlurNodeTest, TestSize.Level1)
     RectI rect4{0, 0, 500, 1500};
     node5.renderProperties_.boundsGeo_->absRect_ = rect4;
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node5, 1000, 2000) == false);
+}
+
+/**
+ * @tc.name: RegisterHpaeCallbackTest1
+ * @tc.desc: Test RegisterHpaeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest1, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_SCREEN_ID, context);
+    RSHpaeManager hpaeManager;
+    RSRenderNode node(1, context);
+    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.renderProperities_backgroundFilter_ = std::static_pointer_cast<RSFilter>(filter);
+
+    hpaeManager.stagingHpaeStatus_.hpaeBlurEnabled = false;
+    hpaeManager.RegisterHpaeCallback(node, screenNode);
+    EXPECT_FALSE(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNdoe);
+
+    hpaeManager.stagingHpaeStatus_.hpaeBlurEnabled = true;
+    hpaeManager.stagingHpaeStatus_.hpaeBlurEnabled = true;
+    hpaeManager.RegisterHpaeCallback(node, screenNode);
+    EXPECT_FALSE(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNdoe);
+
+    hpaeManager.stagingHpaeStatus_.hpaeBlurEnabled = true;
+    hpaeManager.stagingHpaeStatus_.hpaeBlurEnabled = false;
+    hpaeManager.RegisterHpaeCallback(node, screenNode);
+    EXPECT_FALSE(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNdoe);
+}
+
+/**
+ * @tc.name: ReleaseIoBuffersTest
+ * @tc.desc: Test ReleaseIoBuffers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeManagerTest, ReleaseIoBuffersTest, TestSize.Level1)
+{
+    RSHpaeManager hpaeManager;
+    hpaeManager.hpaeBufferIn_ = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer4", 33);
+    hpaeManager.inBufferVec_ = {HpaeBufferInfo()};
+
+    hpaeManager.hpaeBufferIn_ = std::make_shared<DrawableV2::RSHpaeBuffer>("HPAEInputLayer4", 44);
+    hpaeManager.inBufferVec_ = {HpaeBufferInfo()};
+
+    hpaeManager.curIndex_ = 1;
+    hpaeManager.layerFrameIn_[0] = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    hpaeManager.layerFrameOut_[0] = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    hpaeManager.ReleaseIoBuffers();
+    EXPECT_EQ(hpaeManager.curIndex_, 0);
 }
 
 } // namespace OHOS::Rosen

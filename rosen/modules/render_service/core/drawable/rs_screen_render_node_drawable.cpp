@@ -30,6 +30,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -850,6 +851,11 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     // hpae offline: post offline task
     CheckAndPostAsyncProcessOfflineTask();
+#if defined(ROSEN_OHOS)
+    bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AncoHebcStatus::NOT_USE_HEBC);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(
+        isHdrOn, params->GetNewPixelFormat(), params->GetNewColorSpace(), isHebc);
+#endif
     RSUniRenderThread::Instance().WaitUntilScreenNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);

@@ -154,6 +154,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, SetNativeWindowInfo001, TestSize.Level1)
 
     EXPECT_TRUE(rsSurface.mSurfaceMap.empty());
 }
+
 /**
  * @tc.name: RequestNativeWindowBuffer001
  * @tc.desc: test results of RequestNativeWindowBuffer
@@ -192,8 +193,27 @@ HWTEST_F(RSSurfaceOhosVulkanTest, PreAllocateProtectedBuffer001, TestSize.Level1
     int32_t width = 1;
     int32_t height = 1;
     bool ret = rsSurface.PreAllocateProtectedBuffer(width, height);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
+
+HWTEST_F(RSSurfaceOhosVulkanTest, PreAllocateHpaaeBuffer001, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+    int32_t width =1;
+    int32_t height = 1;
+    rsSurface.PreAllocateHpaeBuffer(width, height, 1, true);
+
+    NativeWindowBuffer windowBuffer;
+    rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(&windowBuffer, 0));
+    rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(nullptr, 0));
+    rsSurface.PreAllocateHpaeBuffer(width, height, 1, false);
+    EXPECT_TRUE(rsSurface.mNativeWindow != nullptr);
+}
+
 /**
  * @tc.name: RequestFrame001
  * @tc.desc: test results of RequestFrame
@@ -213,6 +233,33 @@ HWTEST_F(RSSurfaceOhosVulkanTest, RequestFrame001, TestSize.Level1)
     std::unique_ptr<RSSurfaceFrame> ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, true);
     EXPECT_TRUE(ret == nullptr);
 }
+
+HWTEST_F(RSSurfaceOhosVulkanTest, RequestFrame002, TestSize.Level1)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+    int32_t width = 1;
+    int32_t height = 1;
+    uint64_t uiTimestamp = 1;
+
+    std::unique_ptr<RSSurfaceFrmae> ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, false);
+    EXPECT_TRUE(ret == nullptr);
+
+    std::shared_ptr<Drawing::GPUContext> skContext = std::make_shared<Drawing::GPUContext>();
+    rsSurface.SetSKContext(skContext);
+    ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, false);
+
+    rsSurface.MarkAsHpaeSurface();
+    ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, false);
+    EXPECT_TRUE(ret == nullptr);
+
+    rsSurface.hpaeSurfaceBufferList_.emplace_back(std::make_pair(nullptr, 0));
+    rsSurface.RequestFrame(width, height, uiTimestamp, true, false);
+}
+
 /**
  * @tc.name: GetCurrentBuffer001
  * @tc.desc: test results of GetCurrentBuffer
@@ -307,14 +354,13 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushFrame001, TestSize.Level1)
     }
 }
 
-#ifdef ENABLE_HPAE_BLUR
 /**
  * @tc.name: SubmitHpaeTaskTest
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require: wz
  */
-HWTEST_F(RSSurfaceOhosVulkanTest, SubmitHpaeTaskTest, TestSize.Level1)
+HWTEST_F(RSSurfaceOhosVulkanTest, SubmitHapeTaskTest, TestSize.Level1)
 {
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
     ASSERT_TRUE(cSurface != nullptr);
@@ -323,14 +369,14 @@ HWTEST_F(RSSurfaceOhosVulkanTest, SubmitHpaeTaskTest, TestSize.Level1)
     RSSurfaceOhosVulkan rsSurface(pSurface);
 
     uint64_t preFrameId = 1;
-    rsSurface.SubmitHpaeTask(preFrameId);
+    rsSurface.SubmitHapeTask(preFrameId);
     HpaeTask hpaeTask;
     hpaeTask.taskId = 1;
     hpaeTask.taskPtr = &preFrameId;
     HpaeBackgroundCacheItem item;
     item.hpaeTask_ = hpaeTask;
-    RSHpaeScheduler::GetInstance().GetCachedHpaeItem(item);
-    rsSurface.SubmitHpaeTask(preFrameId);
+    RSHpaeScheduler::GetInstance().CacheHpaeItem(item);
+    rsSurface.SubmitHapeTask(preFrameId);
 }
 
 /**
@@ -351,8 +397,8 @@ HWTEST_F(RSSurfaceOhosVulkanTest, SubmitGpuAndHpaeTaskTest, TestSize.Level1)
     uint64_t curFrameId = 1;
     rsSurface.SubmitGpuAndHpaeTask(preFrameId, curFrameId);
 
-    uint64_t preFrameId = 0;
-    uint64_t curFrameId = 0;
+    preFrameId = 0;
+    curFrameId = 0;
     rsSurface.SubmitGpuAndHpaeTask(preFrameId, curFrameId);
 }
 

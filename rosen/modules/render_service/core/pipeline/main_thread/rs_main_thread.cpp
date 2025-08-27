@@ -2575,6 +2575,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 // use offline buffer instead of original buffer,
                 // if succeed, params->SetBufferSynced will not be set true,
                 // origianl buffer will be released at next acquirement
+                param->SetOfflineOriginBufferSynced(false);
                 continue;
             }
             processor->CreateLayer(*surfaceNode, *params);

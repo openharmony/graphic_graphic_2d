@@ -124,7 +124,8 @@ public:
 
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const {
-        return cachedFilteredSnapshot_; }
+        return cachedFilteredSnapshot_;
+    }
     RectI GetSnapshotRegion() const { return snapshotRegion_; }
     void ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion,

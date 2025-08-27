@@ -516,8 +516,10 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
         } else {
             srcRect.left_ = srcRect.left_ * xScale;
             srcRect.top_ = srcRect.top_ * yScale;
-            srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(srcRect.width_ * xScale)), bufferWidth);
-            srcRect.height_ = std::min(static_cast<int32_t>(std::ceil(srcRect.height_ * yScale)), bufferHeight);
+            srcRect.width_ = std::min(static_cast<int32_t>(std::ceil(static_cast<int64_t>(srcRect.width_) * xScale)),
+                bufferWidth);
+            srcRect.height_ = std::min(static_cast<int32_t>(std::ceil(static_cast<int64_t>(srcRect.height_) * yScale)),
+                bufferHeight);
         }
     }
     RectI bufferRect(0, 0, bufferWidth, bufferHeight);

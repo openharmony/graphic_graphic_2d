@@ -31,6 +31,7 @@ public:
         TAG_SAVELAYER_COLOR_FILTER,
         TAG_ACQUIRE_SURFACE,
         TAG_FILTER,
+        TAG_FILTER_CACHE,
         TAG_RENDER_FRAME,
         TAG_UNTAGGED,
         TAG_CAPTURE,
