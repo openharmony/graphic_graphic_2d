@@ -85,11 +85,6 @@ void RSHdrManager::GetFixDstRectStatus(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
     bool isUifistR, RSSurfaceRenderParams *surfaceParams, RectI &finalDstRect, bool &isFixDstRect)
 {
-    if (surfaceParams == nullptr) {
-        RS_LOGE("surfaceParams is nullptr");
-        return;
-    }
-
     auto srcRect = surfaceParams->GetLayerInfo().srcRect;
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
