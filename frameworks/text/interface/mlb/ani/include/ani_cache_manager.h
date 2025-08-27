@@ -22,6 +22,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "utils/text_log.h"
+
 namespace OHOS::Text::ANI {
 class AniCacheManager {
 public:
@@ -33,10 +35,14 @@ public:
 
     void InsertClass(ani_env* env, const std::string& key, ani_class cls)
     {
-        ani_ref savePtr;
-        env->GlobalReference_Create(reinterpret_cast<ani_ref>(cls), &savePtr);
         std::unique_lock<std::shared_mutex> lock(clsMutex_);
-        clsCache_.insert({ key, savePtr });
+        ani_ref savePtr = nullptr;
+        ani_status status = env->GlobalReference_Create(reinterpret_cast<ani_ref>(cls), &savePtr);
+        if (status == ANI_OK) {
+            clsCache_.insert({ key, savePtr });
+        } else {
+            TEXT_LOGE("Failed to cache class %{public}s", key.c_str());
+        }
     }
 
     bool FindClass(const std::string& key, ani_class& cls)
