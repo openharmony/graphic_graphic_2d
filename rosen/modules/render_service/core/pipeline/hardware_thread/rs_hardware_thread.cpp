@@ -1166,7 +1166,8 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 void RSHardwareThread::ContextRegisterPostTask()
 {
 #if defined(RS_ENABLE_VK) && defined(IS_ENABLE_DRM)
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         RsVulkanContext::GetSingleton().SetIsProtected(true);
         auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
         if (context) {
