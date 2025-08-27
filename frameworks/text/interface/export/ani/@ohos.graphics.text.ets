@@ -22,14 +22,17 @@ import { BusinessError } from '@ohos.base';
 import type drawing from '@ohos.graphics.drawing';
 import type common2D from '@ohos.graphics.common2D';
 import { Resource } from 'global.resource';
+import hilog from '@ohos.hilog';
+const TEXT_LOG_DOMAIN = 0xD001408
+const TEXT_LOG_TAG = "Text"
 
 namespace text {
   loadLibrary('text_engine_ani.z');
 
   class Cleaner {
     static { loadLibrary('text_engine_ani.z') }
-    private ptr: long = 0;
-    private className: string;
+    public ptr: long = 0;
+    public className: string;
     constructor(className: string, ptr: long) {
       this.ptr = ptr;
       this.className = className;
@@ -38,6 +41,7 @@ namespace text {
   }
 
   let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+    hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `MM_LOG print clean name ${cleaner.className} ptr ${cleaner.ptr}`);
     cleaner.clean();
   });
   let unregisterToken = new object();

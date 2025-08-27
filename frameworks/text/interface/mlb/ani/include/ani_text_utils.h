@@ -66,22 +66,20 @@ public:
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
+    static ani_status FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls);
 };
 
 template <typename... Args>
 ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params)
 {
     ani_class cls = nullptr;
-    if (AniCacheManager::Instance().FindClass(name, cls)) {
-    } else if (env->FindClass(name.c_str(), &cls) == ANI_OK) {
-        AniCacheManager::Instance().InsertClass(env, name, cls);
-    } else {
+    if (FindClassWithCache(env, name.c_str(), cls) != ANI_OK) {
         TEXT_LOGE("Failed to found %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
 
     ani_method ctor = nullptr;
-    std::string methodKey = name + std::string(signature);
+    std::string methodKey = name + (signature == nullptr ? "" : std::string(signature));
     if (AniCacheManager::Instance().FindMethod(methodKey, ctor)) {
     } else if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(methodKey, ctor);

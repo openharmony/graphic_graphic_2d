@@ -26,7 +26,7 @@ using namespace OHOS::Rosen;
 ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_INTERFACE_TEXT_STYLE, &cls);
+    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_TEXT_STYLE, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ret;
@@ -127,7 +127,7 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
         env, obj, "textShadows", array, [&textShadow](ani_env* env, ani_ref ref) {
             ani_object shadowObj = reinterpret_cast<ani_object>(ref);
             ani_class cls = nullptr;
-            ani_status ret = env->FindClass(ANI_INTERFACE_TEXTSHADOW, &cls);
+            ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_TEXTSHADOW, cls);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to find class, ret %{public}d", ret);
                 return "";
@@ -164,7 +164,7 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
         env, obj, "fontFeatures", array, [&fontFeatures](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_class cls = nullptr;
-            ani_status ret = env->FindClass(ANI_INTERFACE_FONT_FEATURE, &cls);
+            ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_FONT_FEATURE, cls);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to find class, ret %{public}d", ret);
                 return "";
@@ -205,7 +205,7 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
         env, obj, "fontVariations", array, [&fontVariations](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_class cls = nullptr;
-            ani_status ret = env->FindClass(ANI_INTERFACE_FONT_VARIATION, &cls);
+            ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_FONT_VARIATION, cls);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to find class, ret %{public}d", ret);
                 return "";
@@ -242,7 +242,7 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
 void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_INTERFACE_RECT_STYLE, &cls);
+    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_RECT_STYLE, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return;
@@ -272,8 +272,19 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
     
-    static std::string sign = std::string(ANI_INTERFACE_COLOR) + "DDDD:V";
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, nullptr,
+    static std::string sign = std::string(ANI_INTERFACE_DECORATION) +
+        std::string(ANI_INTERFACE_COLOR) + std::string(ANI_ENUM_FONT_WEIGHT) +
+        std::string(ANI_ENUM_FONT_STYLE) + std::string(ANI_ENUM_TEXT_BASELINE) +
+        std::string(ANI_ARRAY) + std::string(ANI_DOUBLE) +
+        std::string(ANI_DOUBLE) + std::string(ANI_DOUBLE) +
+        std::string(ANI_DOUBLE) + std::string(ANI_BOOLEAN) +
+        std::string(ANI_BOOLEAN) + std::string(ANI_STRING) +
+        std::string(ANI_ENUM_ELLIPSIS_MODE) + std::string(ANI_STRING) +
+        std::string(ANI_DOUBLE) + std::string(ANI_ARRAY) +
+        std::string(ANI_ARRAY) + std::string(ANI_INTERFACE_RECT_STYLE) +
+        ":V";
+
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, sign.c_str(),
         AniTextStyleConverter::ParseDecorationToAni(env, textStyle),
         aniColorObj,
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(textStyle.fontWeight)),

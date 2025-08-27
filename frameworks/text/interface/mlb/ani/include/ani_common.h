@@ -27,12 +27,13 @@ constexpr const char* ANI_NAMESPACE_TEXT = "L@ohos/graphics/text/text;";
  * define ani
  */
 constexpr const char* NATIVE_OBJ = "nativeObj";
-constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
+constexpr const char* ANI_DOUBLE = "Lstd/core/Double;";
 constexpr const char* ANI_INT = "Lstd/core/Int;";
 constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
 constexpr const char* ANI_STRING = "Lstd/core/String;";
 constexpr const char* ANI_MAP = "Lescompat/Map;";
 constexpr const char* ANI_ARRAY = "Lescompat/Array;";
+constexpr const char* ANI_BUSINESS_ERROR = "L@ohos/base/BusinessError;";
 /**
  * define interface
  */
@@ -51,6 +52,7 @@ constexpr const char* ANI_INTERFACE_RECT = "L@ohos/graphics/common2D/common2D/Re
 constexpr const char* ANI_INTERFACE_COLOR = "L@ohos/graphics/common2D/common2D/Color;";
 constexpr const char* ANI_INTERFACE_POSITION_WITH_AFFINITY = "L@ohos/graphics/text/text/PositionWithAffinity;";
 constexpr const char* ANI_INTERFACE_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptor;";
+constexpr const char* ANI_INTERFACE_DECORATION = "L@ohos/graphics/text/text/Decoration;";
 /**
  * define class
  */
