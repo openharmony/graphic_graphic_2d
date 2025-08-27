@@ -103,12 +103,13 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
 ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDescSharedPtr& fontDesc)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_INTERFACE_FONT_DESCRIPTOR, &cls);
+    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_FONT_DESCRIPTOR, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         fontDesc = nullptr;
         return ret;
     }
+
     ani_boolean isObj = false;
     ret = env->Object_InstanceOf(aniObj, cls, &isObj);
     if (!isObj) {
