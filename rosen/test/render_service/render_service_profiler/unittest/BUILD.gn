@@ -30,7 +30,7 @@ group("unittest") {
     ":RSProfilerSocketTest",
     ":RSProfilerTelemetryTest",
     # ":RSProfilerTest",
-    # ":RSProfilerUtilsTest",
+    ":RSProfilerUtilsTest",
     ":subtest",
   ]
 }
