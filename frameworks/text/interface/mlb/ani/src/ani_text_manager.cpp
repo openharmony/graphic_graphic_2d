@@ -109,7 +109,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_CLEANER, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_CLEANER, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;

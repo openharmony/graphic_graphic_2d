@@ -41,6 +41,7 @@ namespace text {
   }
 
   let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+    hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `MM_LOG print clean name ${cleaner.className} ptr ${cleaner.ptr}`);
     cleaner.clean();
   });
   let unregisterToken = new object();

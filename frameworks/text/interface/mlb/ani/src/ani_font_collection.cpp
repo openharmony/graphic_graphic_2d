@@ -115,8 +115,13 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
 
-    ani_class stringClass;
-    env->FindClass("Lstd/core/String;", &stringClass);
+    ani_class stringClass = nullptr;
+    ret = AniTextUtils::FindClassWithCache(env, "Lstd/core/String;", stringClass);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to found Lstd/core/String;, ret %{public}d", ret);
+        return;
+    }
+
     ani_boolean isString = false;
     env->Object_InstanceOf(path, stringClass, &isString);
 
@@ -125,8 +130,12 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
 
-    ani_class resourceClass;
-    env->FindClass("Lglobal/resource/Resource", &resourceClass);
+    ani_class resourceClass = nullptr;
+    ret = AniTextUtils::FindClassWithCache(env, "Lglobal/resource/Resource;", resourceClass);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to found Lglobal/resource/Resource;, ret %{public}d", ret);
+        return;
+    }
     ani_boolean isResource = false;
     env->Object_InstanceOf(path, resourceClass, &isResource);
     if (isResource) {
@@ -155,7 +164,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_FONT_COLLECTION, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_FONT_COLLECTION, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
         return ANI_NOT_FOUND;
