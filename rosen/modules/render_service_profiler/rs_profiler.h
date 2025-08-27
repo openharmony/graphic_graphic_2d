@@ -816,6 +816,8 @@ private:
 
     friend class TestTreeBuilder;
     friend class RSRenderServiceConnection;
+
+    static uint64_t GetRootNodeId();
 };
 
 } // namespace OHOS::Rosen
