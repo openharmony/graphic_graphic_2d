@@ -193,7 +193,7 @@ bool RSLuminanceControl::IsCloseHardwareHdr()
         rSLuminanceControlInterface_->IsCloseHardwareHdr() : false;
 }
 
-bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId)
+bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId) const
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->IsScreenNoHeadroom(screenId) : false;
