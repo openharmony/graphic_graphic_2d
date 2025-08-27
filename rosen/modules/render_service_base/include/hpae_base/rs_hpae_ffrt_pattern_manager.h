@@ -21,9 +21,10 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
 #include "common/rs_macros.h"
-
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan_core.h"
+#endif
 namespace OHOS::Rosen {
 
 enum class PatternType_C {
@@ -159,7 +160,13 @@ public:
     {
         return true;
     }
+#ifdef RS_ENABLE_VK
+    void ClearSemaphoreMap();
 
+    void SetSemaphoreMap(uint16_t eventId, std::shared_ptr<VkSemaphore>& vkSemaphore);
+
+    std::shared_ptr<VkSemaphore> GetSemaphoreMap(uint16_t eventId);
+#endif
 protected:
     RSHpaeFfrtPatternManager();
     ~RSHpaeFfrtPatternManager();
@@ -177,6 +184,9 @@ protected:
     uint64_t curFrameId_ = 0;
     uint64_t lastFrameId_ = 0;
     static const int GRAPH_NUM = 5;
+#ifdef RS_ENABLE_VK
+    std::unordered_map<uint16_t, std::shared_ptr<VkSemaphore>> semaphoreMap_;
+#endif
 };
 
 }

@@ -17,7 +17,6 @@
 #if defined(ROSEN_OHOS)
 #include "ffrt_inner.h"
 #endif
-#include "hgm_core.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
 #include "hpae_base/rs_hpae_hianimation.h"
 #include "hpae_base/rs_hpae_log.h"
@@ -158,9 +157,10 @@ void RSHpaeManager::HandleHpaeStateChange()
 void RSHpaeManager::OnSync(bool isHdrOn)
 {
     // After prepare
-    HPAE_TRACE_NAME("HpaeManager::OnSync");
-    WaitPreviousReleaseAll();
-    if (isHdrOn) {
+    RS_OPTIONAL_TRACE_NAME("HpaeManager::OnSync");
+    hpaeVsyncId_++;
+    bool notHebc = RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC;
+    if (isHdrOn || hpaeVsyncId_ == 0 || notHebc) {
         stagingHpaeStatus_.gotHpaeBlurNode = false;
     }
 
@@ -172,8 +172,7 @@ void RSHpaeManager::OnSync(bool isHdrOn)
     RSHpaeBaseData::GetInstance().SetBlurContentChanged(false);
 
     // graphic pattern
-    auto vsyncId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
-    RSHpaeFfrtPatternManager::Instance().MHCSetVsyncId(vsyncId);
+    RSHpaeFfrtPatternManager::Instance().MHCSetVsyncId(hpaeVsyncId_);
     RSHpaeFfrtPatternManager::Instance().MHCSetCurFrameId(0);
 
     RSHpaeFfrtPatternManager::Instance().SetThreadId();

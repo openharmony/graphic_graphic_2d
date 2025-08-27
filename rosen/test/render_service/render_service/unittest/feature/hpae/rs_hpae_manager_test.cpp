@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include "common/rs_common_def.h"
 #include "gtest/gtest.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
@@ -103,6 +104,67 @@ HWTEST_F(RSHpaeManagerTest, OnSyncTest, TestSize.Level1)
     RSHpaeManager::GetInstance().OnUniRenderStart();
     RSHpaeManager::GetInstance().OnSync(true);
     ASSERT_EQ(RSHpaeManager::GetInstance().HasHpaeBlurNode(), false);
+}
+
+/**
+ * @tc.name: OnSyncTestVsyncId
+ * @tc.desc: Test OnSync function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeManagerTest, OnSyncTestVsyncId01, TestSize.Level1)
+{
+    auto hebc = system::GetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
+    auto hebcStatus = RSAncoManager::Instance()->GetAncoHebcStatus();
+    RSAncoManager::Instance()->SetAncoHebcStatus(AncoHebcStatus::NOT_USE_HEBC);
+    RSHpaeManager hpaeManager;
+    hpaeManager.hpaeVsyncId_ = -1;
+
+    hpaeManager.OnSync(true);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+    ASSERT_EQ(hpaeManager.hpaeVsyncId_, 0);
+
+    hpaeManager.hpaeVsyncId_ = -1;
+    hpaeManager.OnSync(false);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    hpaeManager.hpaeVsyncId_ = 0;
+    hpaeManager.OnSync(true);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+    ASSERT_EQ(hpaeManager.hpaeVsyncId_, 1);
+
+    hpaeManager.hpaeVsyncId_ = 0;
+    hpaeManager.OnSync(false);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", hebc);
+    RSAncoManager::Instance()->SetAncoHebcStatus(hebcStatus);
+}
+
+HWTEST_F(RSHpaeManagerTest, OnSyncTestVsyncId02, TestSize.Level1)
+{
+    auto hebc = system::GetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
+    auto hebcStatus = RSAncoManager::Instance()->GetAncoHebcStatus();
+    RSAncoManager::Instance()->SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
+    RSHpaeManager hpaeManager;
+    hpaeManager.hpaeVsyncId_ = -1;
+    hpaeManager.OnSync(true);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    hpaeManager.hpaeVsyncId_ = -1;
+    hpaeManager.OnSync(false);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    hpaeManager.hpaeVsyncId_ = -1;
+    hpaeManager.OnSync(true);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+
+    hpaeManager.hpaeVsyncId_ = 1;
+    hpaeManager.OnSync(false);
+    ASSERT_EQ(hpaeManager.stagingHpaeStatus_.gotHpaeBlurNode, false);
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", hebc);
+    RSAncoManager::Instance()->SetAncoHebcStatus(hebcStatus);
 }
 
 /**

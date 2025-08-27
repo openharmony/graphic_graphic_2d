@@ -3084,6 +3084,12 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
             UpdateRotationStatusForEffectNode(*effectNode);
         }
+#if defined(ROSEN_OHOS)
+        if (auto canvasNode = RSRenderNode::ReinterpretCast<RSCanvasRenderNode>(filterNode)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckSkipNode: %" PRId64 " ", filterNode->GetId());
+            RSHpaeManager::GetInstance().RegisterHpaeCallback(*filterNode, curScreenNode_);
+        }
+#endif
         filterNode->CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
         filterNode->MarkClearFilterCacheIfEffectChildrenChanged();
         if (filterNode->GetRenderProperties().GetBackgroundFilter()) {

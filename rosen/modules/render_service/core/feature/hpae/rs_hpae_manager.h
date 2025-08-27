@@ -92,6 +92,7 @@ private:
 
     // buffer queue
     uint32_t curIndex_ = 0;
+    uint64_t hpaeVsyncId_ = 0;
 
     std::mutex releaseAllMutex_;
     bool releaseAllDone_ = true;

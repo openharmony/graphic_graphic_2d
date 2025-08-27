@@ -279,8 +279,8 @@ bool RSSurfaceOhosVulkan::NeedSubmitWithFFTS()
     return RSHpaeFfrtPatternManager::Instance().IsUpdated();
 }
 
-int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskName, uint64_t* eventId,
-    uint16_t eventlen, uint31_t* event_handle, VkSemaphore &semaNotifyFfts)
+int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskName,
+    std::shared_ptr<VkSemaphore>& semaNotifyFfts, VkSemaphore& semaWaitFfts)
 {
     HPAE_TRACE_NAME_FMT("GetFftsSemaphore. taskName:=%d, frameId:=%u", taskName, frameId);
     
@@ -316,13 +316,27 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     semaphoreInfo.pNext = &senaphoreExtTypeCreateInfoHUAWEI;
     vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semaWaitFfts);
 
-    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI;
-    semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[1];
-    semaphoreInfo.pNext = &senaphoreExtTypeCreateInfoHUAWEI;
-    vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semNotifyFfts);
+    semaNotifyFfts = RSHpaeFfrtPatternManager::Instance().GetSemaphoreMap(eventId[1]);
+    if (semaNotifyFfts == nullptr) {
+        VkSemaphore innerNotifySemaphore;
+        semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI;
+        semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[1];
+        semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
+        vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &innerNotifySemaphore);
 
+        VkSemaphore* vkInnerNotifySem = new VkSemaphore(innerNotifySemaphore);
+        auto sharedNotifySem = std::shared_ptr<VkSemaphore>(vkInnerNotifySem, [vkDevice](VkSemaphore* semaphore) {
+            vkDestroySemaphore(vkDevice, *semaphore, nullptr);
+            delete semaphore;
+            semaphore = nullptr;
+        });
+
+        RSHpaeFfrtPatternManager::Instance().SetSemaphoreMap(eventId[1], sharedNotifySem);
+        semaNotifyFfts = sharedNotifySem;
+    }
     return 0;
 }
+
 void RSSurfaceOhosVulkan::SubmitHpaeTask(const uint64_t& curFrameId)
 {
         // Submit HPAE
@@ -404,18 +418,21 @@ void RSSurfaceOhosVulkan::SubmitGPGpuAndHpaeTask(const uint64_t& preFrameId, con
     RSHpaeFfrtPatternManager::Instance().ResetUpdateFlag();
 }
 
-void SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& curFrameId, const uint64_t& curFrameId,
+void RSSurfaceOhosVulkan::SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& curFrameId, const uint64_t& curFrameId,
     std::vector<GrBackendSemaphore>& semphoreVec, NativeBufferUtils::NativeSurfaceInfo& surface)
 {
     int ret = -1;
     if (preFrameId > 0) {
-        VkSemaphore preNotifySemaphore;
+        std::shared_ptr<VkSemaphore> preNotifySemaphore;
         VkSemaphore preWaitSemaphore;
         ret = GetGPEventAndSemaphoreNew(preFrameId, MHC_PATTERN_TASK_BLUR_GPU1,
             eventId, FFRTEVENTLEN, &event_handle, preNotifySemaphore, preWaitSemaphore);
         if (ret != -1) {
+#ifdef USE_M133_SKIA
+            GrBackendSemaphore htsSemaphore = GrBackendSemaphores::MakeVk(*preNotifySemaphore);
+#else
             GrBackendSemaphore htsSemaphore;
-            htsSemaphore.initVulkan(preNotifySemaphore);
+            htsSemaphore.initVulkan(*preNotifySemaphore);
             semphoreVec.emplace_back(std::move(htsSemaphore));
             surface.drawingSurface->Wait(1, preWaitSemaphore);
         } else {
@@ -424,19 +441,24 @@ void SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& curFrameId, const uin
     }
 
     if (curFrameId > 0) {
-        VkSemaphore notifySemaphore;
+        std::shared_ptr<VkSemaphore> notifySemaphore;
         VkSemaphore waitSemaphore;
         ret = GetGPEventAndSemaphoreNew(curFrameId, MHC_PATTERN_TASK_BLUR_GPU1,
             eventId, FFRTEVENTLEN, &event_handle, notifySemaphore, waitSemaphore);
         if (ret != -1) {
+#ifdef USE_M133_SKIA
+            GrBackendSemaphore htsSemaphore = GrBackendSemaphores::MakeVk(*notifySemaphore);
+#else
             GrBackendSemaphore htsSemaphore;
-            htsSemaphore.initVulkan(notifySemaphore);
+            htsSemaphore.initVulkan(*notifySemaphore);
             semphoreVec.emplace_back(std::move(htsSemaphore));
             surface.drawingSurface->Wait(1, waitSemaphore);
         } else {
             submitWithFFTS = false;
         }
     }
+    HPAE_LOGD("SetGpuSemaphore. submitWithFFTS=%d, preFrameId=%lu, curFrameId=%lu",
+        submitWithFFTS, preFrameId, curFrameId);
 }
 #endif
 
@@ -497,15 +519,13 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     PrepareHdrSemaphoreVector(backendSemaphore, surface, frameIdVec, semphoreVec);
    
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS)
     RSHpaeScheduler::GetInstance().WaitBuildTask();
     uint32_t event_handle = 0;
     uint16_t eventId[FFRTEVENTLEN] = {0};
     uint64_t preFrameId = RSHpaeScheduler::GetInstance().GetHpaeFrameId();
     uint64_t curFrameId = RSHpaeFfrtPatternManager::Instance().MHCGetCurFrameId();
     bool submitWithFFTS = NeedSubmitWithFFTS() && (preFrameId > 0 || curFrameId > 0);
-    HPAE_TRACE_NAME_FMT("shenh: FlushFrame. submitWithFFTS=%d, preFrameId=%u, curFrameId=%u",
-        submitWithFFTS, preFrameId, curFrameId);
     
     if (submitWithFFTS) {
         SetGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, semphoreVec);
