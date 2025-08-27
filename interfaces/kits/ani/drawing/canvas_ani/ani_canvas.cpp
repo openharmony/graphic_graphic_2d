@@ -433,8 +433,8 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         return;
     }
 
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(verticesObj, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(verticesObj, "length", &aniLength)) {
         AniThrowError(env, "Invalid params.");
         return;
     }
@@ -469,7 +469,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
 
     float* verticesMesh = verticesSize ? (vertices + vertOffset * 2) : nullptr; // offset two coordinates
 
-    if (ANI_OK != env->Object_GetPropertyByName_Double(colorsObj, "length", &aniLength)) {
+    if (ANI_OK != env->Object_GetPropertyByName_Int(colorsObj, "length", &aniLength)) {
         delete []vertices;
         AniThrowError(env, "Invalid params.");
         return;
