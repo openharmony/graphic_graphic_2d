@@ -53,6 +53,7 @@ constexpr const char* ANI_INTERFACE_COLOR = "L@ohos/graphics/common2D/common2D/C
 constexpr const char* ANI_INTERFACE_POSITION_WITH_AFFINITY = "L@ohos/graphics/text/text/PositionWithAffinity;";
 constexpr const char* ANI_INTERFACE_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptor;";
 constexpr const char* ANI_INTERFACE_DECORATION = "L@ohos/graphics/text/text/Decoration;";
+constexpr const char* ANI_INTERFACE_FONT_METRICS = "L@ohos/graphics/drawing/drawing/FontMetrics;";
 /**
  * define class
  */

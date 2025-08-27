@@ -73,6 +73,29 @@ public:
         return false;
     }
 
+    void InsertEnum(ani_env* env, const std::string& key, ani_enum enumType)
+    {
+        std::unique_lock<std::shared_mutex> lock(enumMutex_);
+        ani_ref savePtr = nullptr;
+        ani_status status = env->GlobalReference_Create(reinterpret_cast<ani_ref>(enumType), &savePtr);
+        if (status == ANI_OK) {
+            enumCache_.insert({ key, savePtr });
+        } else {
+            TEXT_LOGE("Failed to cache enum %{public}s", key.c_str());
+        }
+    }
+
+    bool FindEnum(const std::string& key, ani_enum& enumType)
+    {
+        std::shared_lock<std::shared_mutex> lock(enumMutex_);
+        auto it = enumCache_.find(key);
+        if (it != enumCache_.end()) {
+            enumType = reinterpret_cast<ani_enum>(it->second);
+            return true;
+        }
+        return false;
+    }
+
     void Clear(ani_env* env)
     {
         {
@@ -86,14 +109,23 @@ public:
             std::unique_lock<std::shared_mutex> lock(methodMutex_);
             methodCache_.clear();
         }
+        {
+            std::unique_lock<std::shared_mutex> lock(enumMutex_);
+            for (auto& pair : enumCache_) {
+                env->GlobalReference_Delete(pair.second);
+            }
+            enumCache_.clear();
+        }
     }
 
 private:
     AniCacheManager() = default;
     std::unordered_map<std::string, ani_ref> clsCache_;
     std::unordered_map<std::string, ani_method> methodCache_;
+    std::unordered_map<std::string, ani_ref> enumCache_;
     mutable std::shared_mutex clsMutex_;
     mutable std::shared_mutex methodMutex_;
+    mutable std::shared_mutex enumMutex_;
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_CACHE_MANAGER_H

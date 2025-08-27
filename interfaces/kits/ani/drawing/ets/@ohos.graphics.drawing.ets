@@ -986,6 +986,19 @@ namespace drawing {
      * @since 11
      */
     leading: double = 0;
+    constructor(
+      top: double,
+      ascent: double,
+      descent: double,
+      bottom: double,
+      leading: double,
+    ) {
+      this.top = top;
+      this.ascent = ascent;
+      this.descent = descent;
+      this.bottom = bottom;
+      this.leading = leading;
+    }
   }
 
   /**

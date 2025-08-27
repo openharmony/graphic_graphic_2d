@@ -40,16 +40,6 @@ std::unordered_map<int, int> g_weightMap = {
 };
 }
 
-#define SET_PROPERTY(env, obj, propName, value, type, error_var) \
-    do { \
-        ani_status ret = (env)->Object_SetPropertyByName_Ref( \
-            (obj), (propName), AniTextUtils::CreateAni##type##Obj((env), (value))); \
-        if (ret != ANI_OK) { \
-            TEXT_LOGE("Failed to parse %{public}s: ret %{public}d", propName, ret); \
-            (error_var) = ret; \
-        } \
-    } while (0)
-
 #define READ_OPTIONAL_FIELD(env, obj, field, type, fontDescPtr, error_var) \
     do { \
         ani_status ret = AniTextUtils::ReadOptional##type##Field( \
@@ -139,30 +129,26 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         TEXT_LOGE("Empty data fontDesc");
         return ANI_ERROR;
     }
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, ":V");
-
-    ani_status status = ANI_OK;
-    SET_PROPERTY(env, aniObj, "path", fontDesc->path, String, status);
-    SET_PROPERTY(env, aniObj, "postScriptName", fontDesc->postScriptName, String, status);
-    SET_PROPERTY(env, aniObj, "fullName", fontDesc->fullName, String, status);
-    SET_PROPERTY(env, aniObj, "fontFamily", fontDesc->fontFamily, String, status);
-    SET_PROPERTY(env, aniObj, "fontSubfamily", fontDesc->fontSubfamily, String, status);
-    SET_PROPERTY(env, aniObj, "width", fontDesc->width, Int, status);
-    SET_PROPERTY(env, aniObj, "italic", fontDesc->italic, Int, status);
-    SET_PROPERTY(env, aniObj, "monoSpace", fontDesc->monoSpace, Boolean, status);
-    SET_PROPERTY(env, aniObj, "symbolic", fontDesc->symbolic, Boolean, status);
 
     auto iter = g_weightMap.find(fontDesc->weight);
     if (iter == g_weightMap.end()) {
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
-    ani_status ret = env->Object_SetPropertyByName_Ref(
-        aniObj, "weight", AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(iter->second)));
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to create weight ani obj, ret:%{public}d", ret);
-        return ret;
-    }
+
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, ":V",
+        AniTextUtils::CreateAniStringObj(env, fontDesc->path),
+        AniTextUtils::CreateAniStringObj(env, fontDesc->postScriptName),
+        AniTextUtils::CreateAniStringObj(env, fontDesc->fullName),
+        AniTextUtils::CreateAniStringObj(env, fontDesc->fontFamily),
+        AniTextUtils::CreateAniStringObj(env, fontDesc->fontSubfamily),
+        AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(iter->second)),
+        ani_int(fontDesc->width),
+        ani_int(fontDesc->italic),
+        ani_boolean(fontDesc->monoSpace),
+        ani_boolean(fontDesc->symbolic)
+    );
+
     return ANI_OK;
 }
 

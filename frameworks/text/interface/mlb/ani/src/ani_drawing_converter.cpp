@@ -90,77 +90,46 @@ ani_status AniDrawingConverter::ParseDrawingPointToNative(
 
 ani_object AniDrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
-    env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(fontMetrics.fTop));
-    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(fontMetrics.fAscent));
-    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(fontMetrics.fDescent));
-    env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(fontMetrics.fBottom));
-    env->Object_SetPropertyByName_Double(aniObj, "leading", ani_double(fontMetrics.fLeading));
-    env->Object_SetPropertyByName_Double(aniObj, "avgCharWidth", ani_double(fontMetrics.fAvgCharWidth));
-    env->Object_SetPropertyByName_Double(aniObj, "maxCharWidth", ani_double(fontMetrics.fMaxCharWidth));
-    env->Object_SetPropertyByName_Double(aniObj, "xMin", ani_double(fontMetrics.fXMin));
-    env->Object_SetPropertyByName_Double(aniObj, "xMax", ani_double(fontMetrics.fXMax));
-    env->Object_SetPropertyByName_Double(aniObj, "xHeight", ani_double(fontMetrics.fXHeight));
-    env->Object_SetPropertyByName_Double(aniObj, "capHeight", ani_double(fontMetrics.fCapHeight));
-    env->Object_SetPropertyByName_Double(aniObj, "underlineThickness", ani_double(fontMetrics.fUnderlineThickness));
-    env->Object_SetPropertyByName_Double(aniObj, "underlinePosition", ani_double(fontMetrics.fUnderlinePosition));
-    env->Object_SetPropertyByName_Double(aniObj, "strikethroughThickness", ani_double(fontMetrics.fStrikeoutThickness));
-    env->Object_SetPropertyByName_Double(aniObj, "strikethroughPosition", ani_double(fontMetrics.fStrikeoutPosition));
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, "DDDDD:V",
+        ani_double(fontMetrics.fTop),
+        ani_double(fontMetrics.fAscent),
+        ani_double(fontMetrics.fDescent),
+        ani_double(fontMetrics.fBottom),
+        ani_double(fontMetrics.fLeading)
+    );
     return aniObj;
 }
 
 ani_status AniDrawingConverter::ParseRectToAni(ani_env* env, const OHOS::Rosen::Drawing::RectF& rect, ani_object& obj)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT, ":V");
-    if (env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(rect.left_)) != ANI_OK) {
-        TEXT_LOGE("Param left is invalid");
-        return ANI_INVALID_ARGS;
-    }
-    if (env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(rect.top_)) != ANI_OK) {
-        TEXT_LOGE("Param top is invalid");
-        return ANI_INVALID_ARGS;
-    }
-    if (env->Object_SetPropertyByName_Double(aniObj, "right", ani_double(rect.right_)) != ANI_OK) {
-        TEXT_LOGE("Param right is invalid");
-        return ANI_INVALID_ARGS;
-    }
-    if (env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(rect.bottom_)) != ANI_OK) {
-        TEXT_LOGE("Param bottom is invalid");
-        return ANI_INVALID_ARGS;
-    }
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT, "DDDD:V",
+        ani_double(rect.left_),
+        ani_double(rect.top_),
+        ani_double(rect.right_),
+        ani_double(rect.bottom_)
+    );
     obj = aniObj;
     return ANI_OK;
 }
 
 ani_status AniDrawingConverter::ParsePointToAni(ani_env* env, const OHOS::Rosen::Drawing::Point& point, ani_object& obj)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POINT, ":V");
-    if (env->Object_SetPropertyByName_Double(aniObj, "x", ani_double(point.GetX())) != ANI_OK) {
-        return ANI_INVALID_ARGS;
-    }
-    if (env->Object_SetPropertyByName_Double(aniObj, "y", ani_double(point.GetY())) != ANI_OK) {
-        return ANI_INVALID_ARGS;
-    }
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POINT, "DD:V", 
+        ani_double(point.GetX()),
+        ani_double(point.GetY())
+    );
     obj = aniObj;
     return ANI_OK;
 }
 
 ani_status AniDrawingConverter::ParseColorToAni(ani_env* env, const OHOS::Rosen::Drawing::Color& color, ani_object& obj)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_COLOR, ":V");
-    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "alpha", ani_double(color.GetAlpha()))) {
-        return ANI_INVALID_ARGS;
-    }
-    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "red", ani_double(color.GetRed()))) {
-        return ANI_INVALID_ARGS;
-    }
-    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "green", ani_double(color.GetGreen()))) {
-        return ANI_INVALID_ARGS;
-    }
-    if (ANI_OK != env->Object_SetPropertyByName_Int(aniObj, "blue", ani_double(color.GetBlue()))) {
-        return ANI_INVALID_ARGS;
-    }
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_COLOR, "IIII:V",
+        ani_int(color.GetAlpha()),
+        ani_int(color.GetRed()),
+        ani_int(color.GetGreen()),
+        ani_int(color.GetBlue())
+    );
     obj = aniObj;
     return ANI_OK;
 }
