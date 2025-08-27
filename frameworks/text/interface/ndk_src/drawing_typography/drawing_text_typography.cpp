@@ -244,7 +244,7 @@ static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyle
 int OH_Drawing_SetTextStyleAttributeDouble(OH_Drawing_TextStyle* style,
     OH_Drawing_TextStyleAttributeId id, double value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
 
@@ -258,10 +258,9 @@ int OH_Drawing_SetTextStyleAttributeDouble(OH_Drawing_TextStyle* style,
 int OH_Drawing_GetTextStyleAttributeDouble(const OH_Drawing_TextStyle* style,
     OH_Drawing_TextStyleAttributeId id, double* value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
-
     auto it = g_textStyleDoubleGetters.find(id);
     if (it == g_textStyleDoubleGetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
@@ -271,10 +270,9 @@ int OH_Drawing_GetTextStyleAttributeDouble(const OH_Drawing_TextStyle* style,
 
 int OH_Drawing_SetTextStyleAttributeInt(OH_Drawing_TextStyle* style, OH_Drawing_TextStyleAttributeId id, int value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
-
     auto it = g_textStyleIntSetters.find(id);
     if (it == g_textStyleIntSetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
@@ -285,10 +283,9 @@ int OH_Drawing_SetTextStyleAttributeInt(OH_Drawing_TextStyle* style, OH_Drawing_
 int OH_Drawing_GetTextStyleAttributeInt(const OH_Drawing_TextStyle* style,
     OH_Drawing_TextStyleAttributeId id, int* value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
-    }
- 
+    } 
     auto it = g_textStyleIntGetters.find(id);
     if (it == g_textStyleIntGetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
@@ -299,10 +296,9 @@ int OH_Drawing_GetTextStyleAttributeInt(const OH_Drawing_TextStyle* style,
 int OH_Drawing_SetTypographyStyleAttributeDouble(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, double value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
-
     auto it = g_typographyStyleDoubleSetters.find(id);
     if (it == g_typographyStyleDoubleSetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
@@ -313,10 +309,9 @@ int OH_Drawing_SetTypographyStyleAttributeDouble(OH_Drawing_TypographyStyle* sty
 int OH_Drawing_GetTypographyStyleAttributeDouble(const OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, double* value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
-
     auto it = g_typographyStyleDoubleGetters.find(id);
     if (it == g_typographyStyleDoubleGetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
@@ -327,10 +322,9 @@ int OH_Drawing_GetTypographyStyleAttributeDouble(const OH_Drawing_TypographyStyl
 int OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, int value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
-
     auto it = g_typographyStyleIntSetters.find(id);
     if (it == g_typographyStyleIntSetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
@@ -341,10 +335,9 @@ int OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_TypographyStyle* style,
 int OH_Drawing_GetTypographyStyleAttributeInt(const OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, int* value)
 {
-    if (!style) {
+    if (!style || !value) {
         return OHOS::Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER;
     }
-
     auto it = g_typographyStyleIntGetters.find(id);
     if (it == g_typographyStyleIntGetters.end()) {
         return OHOS::Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH;
