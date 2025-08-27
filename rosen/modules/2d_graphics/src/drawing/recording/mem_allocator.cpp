@@ -158,7 +158,7 @@ size_t MemAllocator::AddrToOffset(const void* addr) const
 void* MemAllocator::OffsetToAddr(size_t offset, size_t size) const
 {
     if (offset >= size_ || size > size_ || offset > size_ - size) {
-        LOGE("MemAllocator::OffsetToAddr return nullptr.");
+        LOGD("MemAllocator::OffsetToAddr return nullptr.");
         return nullptr;
     }
 
