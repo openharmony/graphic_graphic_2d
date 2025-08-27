@@ -280,7 +280,9 @@ void AniCanvas::NotifyDirty()
 
 void AniCanvas::Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj)
 {
-    if (pixelmapObj == nullptr) {
+    ani_boolean isUndefined = ANI_TRUE;
+    env->Reference_IsUndefined(pixelmapObj, &isUndefined);
+    if (isUndefined) {
         AniCanvas *aniCanvas = new AniCanvas();
         if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
             ROSEN_LOGE("AniCanvas::Constructor failed create AniCanvas with nullptr");
@@ -670,8 +672,10 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
         return CreateAniUndefined(env);
     }
 
+    ani_ref aniRef;
+    env->GetUndefined(&aniRef);
     auto aniCanvas = new AniCanvas(canvas);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_CANVAS_NAME, nullptr, nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_CANVAS_NAME, nullptr, aniRef);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
         ROSEN_LOGE("aniCanvas failed cause by Object_SetFieldByName_Long");
