@@ -514,7 +514,7 @@ void DoSetWindowFreezeImmediately()
 
 void DoSetHwcNodeBounds()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
