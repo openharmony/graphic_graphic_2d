@@ -160,15 +160,22 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 
     std::array methods = {
         ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance)},
         ani_native_function{"loadFontSync", loadFontSync.c_str(), reinterpret_cast<void*>(LoadFontSync)},
         ani_native_function{"clearCaches", ":V", reinterpret_cast<void*>(ClearCaches)},
     };
-
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for FontCollection: %{public}s", ANI_CLASS_FONT_COLLECTION);
         return ANI_ERROR;
+    }
+
+    std::array staticMethods = {
+        ani_native_function{"getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance)},
+    };
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to bind static methods: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        return ANI_NOT_FOUND;
     }
     return ANI_OK;
 }
