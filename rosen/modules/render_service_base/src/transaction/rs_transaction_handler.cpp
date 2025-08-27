@@ -430,5 +430,31 @@ void RSTransactionHandler::MoveRemoteCommandByNodeId(
     }
     implicitRemoteTransactionData_->MoveCommandByNodeId(transactionHandler->implicitRemoteTransactionData_, nodeId);
 }
+
+void RSTransactionHandler::DumpCommand(std::string& out)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+
+    std::string dumpString;
+    if (!implicitRemoteTransactionData_->IsEmpty()) {
+        dumpString.append("ImplicitRemoteTransactionData");
+        implicitRemoteTransactionData_->DumpCommand(dumpString);
+    }
+    if (!implicitCommonTransactionData_->IsEmpty()) {
+        dumpString.append("ImplicitCommonTransactionData");
+        implicitCommonTransactionData_->DumpCommand(dumpString);
+    }
+    if (!implicitRemoteTransactionDataStack_.empty()) {
+        dumpString.append("ImplicitRemoteTransactionDataStack");
+        auto& transactionData = implicitRemoteTransactionDataStack_.top();
+        transactionData->DumpCommand(dumpString);
+    }
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        dumpString.append("ImplicitCommonTransactionDataStack");
+        auto& transactionData = implicitCommonTransactionDataStack_.top();
+        transactionData->DumpCommand(dumpString);
+    }
+    out.append(dumpString);
+}
 } // namespace Rosen
 } // namespace OHOS

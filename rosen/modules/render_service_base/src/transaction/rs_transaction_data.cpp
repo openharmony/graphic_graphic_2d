@@ -430,7 +430,7 @@ void RSTransactionData::DumpCommand(std::string& dumpString)
                           ", Type:" + std::to_string(command->GetType()) +
                           ", SubType:" + std::to_string(command->GetSubType()) + ") ");
     }
-    dumpString.append("]");
+    dumpString.append("]\n");
 }
 } // namespace Rosen
 } // namespace OHOS
