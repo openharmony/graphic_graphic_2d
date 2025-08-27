@@ -3655,7 +3655,7 @@ bool DoSetGpuCrcDirtyEnabledPidList()
         return false;
     }
  
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     if (rsConnStub_ == nullptr) {
         return false;
     }
@@ -3683,7 +3683,7 @@ bool DoSetOptimizeCanvasDirtyPidList()
     }
 
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     if (rsConnStub_ == nullptr) {
         return false;
     }
