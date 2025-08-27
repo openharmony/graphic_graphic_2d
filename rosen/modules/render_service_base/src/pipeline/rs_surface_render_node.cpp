@@ -493,7 +493,7 @@ void RSSurfaceRenderNode::OnSubSurfaceChanged()
         return;
     }
     std::shared_ptr<RSSurfaceRenderNode> parentSurfaceNode = parentNode->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (!parentSurfaceNode || !parentSurfaceNode->IsMainWindowType()) {
+    if (!parentSurfaceNode || !parentSurfaceNode->IsLeashOrMainWindow()) {
         if (auto instanceRootNode = parentNode->GetInstanceRootNode()) {
             parentSurfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
         }

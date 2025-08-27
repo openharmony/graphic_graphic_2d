@@ -1751,6 +1751,31 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckFilterCacheFullyCovered_Rotating, 
 }
 
 /**
+ * @tc.name: CheckFilterCacheFullyCovered_SubSurface
+ * @tc.desc: Test CheckFilterCacheFullyCovered with SubSurface
+ * @tc.type: FUNC
+ * @tc.require: issueICV2KE
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckFilterCacheFullyCovered_SubSurface, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    RSSurfaceRenderParams surfaceParams(DEFAULT_SURFACE_NODE_ID);
+    surfaceParams.isTransparent_ = true;
+    surfaceParams.isRotating_ = false;
+    surfaceParams.isAttractionAnimation_ = false;
+    surfaceParams.isSubSurfaceNode_ = true;
+    int width = 100;
+    int height = 100;
+    RectI screenRect(0, 0, width, height);
+    RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(surfaceParams, screenRect);
+    EXPECT_FALSE(surfaceParams.GetFilterCacheFullyCovered());
+
+    surfaceParams.isSubSurfaceNode_ = false;
+    RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(surfaceParams, screenRect);
+    EXPECT_FALSE(surfaceParams.GetFilterCacheFullyCovered());
+}
+
+/**
  * @tc.name: CheckAndUpdateFilterCacheOcclusion
  * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion
  * @tc.type: FUNC
