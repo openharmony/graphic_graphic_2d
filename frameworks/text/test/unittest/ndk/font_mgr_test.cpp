@@ -270,6 +270,8 @@ HWTEST_F(NdkFontMgrTest, NdktMgrTest011, TestSize.Level0)
     ASSERT_NE(styleName, nullptr);
     EXPECT_STREQ(styleName, "");
 
+    OH_Drawing_FontStyleSetFreeStyleName(&styleName);
+    EXPECT_EQ(styleName, nullptr);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_FontMgrDestroy(mgr);
 }

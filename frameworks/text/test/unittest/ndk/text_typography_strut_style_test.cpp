@@ -195,6 +195,7 @@ HWTEST_F(NdkTypographyStrutStyleTest, TypographyStrutStyleTest005, TestSize.Leve
     strutstyle1->families = (char**)malloc(1 * sizeof(char*));
     OH_Drawing_SetTypographyStyleTextStrutStyle(typoStyle, strutstyle1);
     OH_Drawing_StrutStyle* structStyle = OH_Drawing_TypographyStyleGetStrutStyle(typoStyle);
+    ASSERT_NE(structStyle, nullptr);
     EXPECT_EQ(structStyle->familiesSize, 0);
     EXPECT_EQ(structStyle->families, nullptr);
 
