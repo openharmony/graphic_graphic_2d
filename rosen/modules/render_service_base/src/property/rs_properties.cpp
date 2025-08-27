@@ -3379,6 +3379,9 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     }
     auto preIntensity = lightSourcePtr_->GetPreLightIntensity();
     auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
     bool preIntensityIsZero = ROSEN_EQ(preIntensity, 0.f);
     bool curIntensityIsZero = ROSEN_EQ(lightIntensity, 0.f);
     if (preIntensityIsZero && !curIntensityIsZero) { // 0 --> non-zero
@@ -3433,6 +3436,9 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
         return;
     }
     auto renderNode = backref_.lock();
+    if (renderNode == nullptr) {
+        return;
+    }
     auto preIlluminatedType = illuminatedPtr_->GetPreIlluminatedType();
     bool preTypeIsNone = preIlluminatedType == IlluminatedType::NONE;
     bool curTypeIsNone = curIlluminateType == IlluminatedType::NONE;
