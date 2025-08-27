@@ -22,6 +22,7 @@ namespace OHOS {
 namespace Rosen {
 enum class RSIRenderServiceInterfaceCode : CodeUnderlyingType {
     CREATE_CONNECTION = 0,
+    REMOVE_CONNECTION = 1,
 };
 } // namespace Rosen
 } // namespace OHOS

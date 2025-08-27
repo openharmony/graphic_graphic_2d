@@ -255,18 +255,24 @@ sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RS
     return newConn;
 }
 
-void RSRenderService::RemoveConnection(sptr<IRemoteObject> token)
+bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
 {
+    if (token == nullptr) {
+        RS_LOGE("RemoveConnection: token is nullptr");
+        return false;
+    }
     // temporarily extending the life cycle
+    auto tokenObj = token->AsObject();
     std::unique_lock<std::mutex> lock(mutex_);
-    auto iter = connections_.find(token);
+    auto iter = connections_.find(tokenObj);
     if (iter == connections_.end()) {
         RS_LOGE("RemoveConnection: connections_ cannot find token");
-        return;
+        return false;
     }
     auto tmp = iter->second;
-    connections_.erase(token);
+    connections_.erase(tokenObj);
     lock.unlock();
+    return true;
 }
 
 int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)

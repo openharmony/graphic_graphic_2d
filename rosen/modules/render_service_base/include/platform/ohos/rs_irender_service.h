@@ -36,6 +36,7 @@ public:
     virtual ~RSIRenderService() noexcept = default;
 
     virtual sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) = 0;
+    virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

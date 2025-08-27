@@ -29,6 +29,7 @@ public:
     virtual ~RSRenderServiceProxy() noexcept = default;
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
 private:
     static inline BrokerDelegator<RSRenderServiceProxy> delegator_;
