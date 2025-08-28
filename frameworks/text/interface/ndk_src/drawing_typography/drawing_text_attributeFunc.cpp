@@ -159,19 +159,19 @@ static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyle
 
 static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleGetter>
     g_typographyStyleDoubleGetters = {
-    { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, GetLineHeightMaximum },
-    { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, GetLineHeightMinimum },
-    { TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, GetLineSpacing },
+        { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, GetLineHeightMaximum },
+        { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, GetLineHeightMinimum },
+        { TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, GetLineSpacing },
 };
 
 static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleIntSetter>
     g_typographyStyleIntSetters = {
-    { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, SetLineHeightStyle },
+        { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, SetLineHeightStyle },
 };
 
 static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleIntGetter>
     g_typographyStyleIntGetters = {
-    { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, GetLineHeightStyle },
+        { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, GetLineHeightStyle },
 };
 
 OH_Drawing_ErrorCode OH_Drawing_SetTextStyleAttributeDouble(OH_Drawing_TextStyle* style,

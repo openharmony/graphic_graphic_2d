@@ -21,10 +21,6 @@
 
 namespace OHOS::Rosen::Drawing {
 using OHOS::Rosen::TextEngine::FontParser;
-const size_t SUCCESS = 0;
-const size_t ERROR_CODE_PARAMETER_OUT_OF_RANGE = 26200001;
-const size_t ERROR_CODE_INVALID_PARAMETER = 26200003;
-const size_t ERROR_CODE_PARAMETER_TYPE_MISMATCH = 26200004;
 bool CopyFontDescriptor(OH_Drawing_FontDescriptor* dst, const FontParser::FontDescriptor& src);
 } // namespace OHOS::Rosen::Drawing
 
