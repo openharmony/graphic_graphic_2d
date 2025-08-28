@@ -353,8 +353,8 @@ ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* env, ani_class 
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ColorPickerNapi* napiColorPicker = static_cast<ColorPickerNapi*>(unwrapResult);
-    if (napiColorPicker->GetColorPicker()) {
-        std::shared_ptr<Media::PixelMap> pixelMap = napiColorPicker->GetColorPicker()->GetScaledPixelMap();
+    if (auto colorPicker = napiColorPicker->GetColorPicker()) {
+        std::shared_ptr<Media::PixelMap> pixelMap = colorPicker->GetScaledPixelMap();
         return static_cast<ani_object>(CreateColorPickerFromPtr(env, pixelMap));
     }
     return nullptr;
@@ -420,18 +420,20 @@ ani_status AniColorPicker::Init(ani_env *env)
         ani_native_function{"isBlackOrWhiteOrGrayColorNative", nullptr,
                             reinterpret_cast<void *>(OHOS::Rosen::AniColorPicker::IsBlackOrWhiteOrGrayColor)},
     };
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    if (ret != ANI_OK) {
+        EFFECT_LOG_E("AniColorPicker Class_BindNativeMethods ret : %{public}d", ret);
+        return ANI_ERROR;
+    }
     std::array static_methods = {
         ani_native_function { "kitTransferStaticNative", "Lstd/interop/ESValue;:Lstd/core/Object;",
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::KitTransferStaticColorPicker) },
         ani_native_function { "kitTransferDynamicNative", "J:Lstd/interop/ESValue;",
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::kitTransferDynamicColorPicker) }
     };
-
-    ani_status ret1 = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
-    ani_status ret2 = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());
-    if (ret1 != ANI_OK || ret2 != ANI_OK) {
-        EFFECT_LOG_E("Class_BindNativeMethods ret1 : %{public}d", ret1);
-        EFFECT_LOG_E("Class_BindNativeMethods ret2 : %{public}d", ret2);
+    ret = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());
+    if (ret != ANI_OK) {
+        EFFECT_LOG_E("AniColorPicker Class_BindStaticNativeMethods ret : %{public}d", ret);
         return ANI_ERROR;
     }
     return ANI_OK;
