@@ -4301,8 +4301,8 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBIQ0Q
  */
- HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
- {
+HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
+{
     auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManagerImpl, nullptr);
 
@@ -4312,7 +4312,7 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
     screenManagerImpl->screens_[sId1] = std::make_shared<impl::RSScreen>(sId1, true, nullptr, nullptr);
     screenManagerImpl->RSScreenManager::OnHwcDeadEvent();
     EXPECT_EQ(screenManagerImpl->screens_.size(), 1);
- }
+}
 
 /*
  * @tc.name: OnHotPlug
