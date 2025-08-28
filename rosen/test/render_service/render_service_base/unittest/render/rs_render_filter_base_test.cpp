@@ -380,7 +380,7 @@ HWTEST_F(RSRenderFilterBaseTest, DumpProperties001, TestSize.Level1)
  */
 HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
 {
-    auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
+    std::shared_ptr<RSNGRenderFilterBase> filter1 = std::make_shared<RSNGRenderBlurFilter>();
     auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
     filter1->nextEffect_ = filter2;
     EXPECT_FALSE(RSUIFilterHelper::CheckEnableEDR(filter1));

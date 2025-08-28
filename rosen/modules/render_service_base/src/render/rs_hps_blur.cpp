@@ -78,7 +78,7 @@ float HpsBlurFilter::ApplyMaskColorFilter(Drawing::Canvas& offscreenCanvas, floa
     const RSColor& maskColor) const
 {
     float newAlpha = alpha;
-    if(maskColor != RgbPalette::Transparent()) {
+    if (maskColor != RgbPalette::Transparent()) {
         float maskColorAlpha = static_cast<float>(maskColor.GetAlpha()) / MAX_ALPHA;
         newAlpha += maskColorAlpha - alpha * maskColorAlpha;
         Drawing::Brush maskBrush;

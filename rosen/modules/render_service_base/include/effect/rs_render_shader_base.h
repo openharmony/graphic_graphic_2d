@@ -31,12 +31,11 @@ namespace Drawing {
 class RSB_EXPORT RSNGRenderShaderBase : public RSNGRenderEffectBase<RSNGRenderShaderBase> {
 public:
     static std::shared_ptr<RSNGRenderShaderBase> Create(RSNGEffectType type);
+    virtual void GenerateGEVisualEffect() {}
 
-    virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {};
+    virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {}
 
-    virtual void OnSync()
-    {
-    }
+    virtual void OnSync() {}
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val);
     void Dump(std::string& out) const;
@@ -64,12 +63,10 @@ public:
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
             EffectTemplateBase::DumpProperties().c_str());
         auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
-        std::apply(
-            [&geShader](const auto&... propTag) {
-                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
-                    geShader, propTag), ...);
-                },
-                EffectTemplateBase::properties_);
+        std::apply([&geShader](const auto&... propTag) {
+            (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(geShader, propTag), ...);
+            },
+            EffectTemplateBase::properties_);
         RSNGRenderEffectHelper::AppendToGEContainer(ge, geShader);
         if (EffectTemplateBase::nextEffect_) {
             EffectTemplateBase::nextEffect_->AppendToGEContainer(ge);
@@ -82,12 +79,12 @@ protected:
 
 class RSB_EXPORT RSNGRenderShaderHelper {
 public:
-    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase> shader);
+    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase>& shader);
 
-    static void SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase> shader,
+    static void SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase>& shader,
         const Vector3f& rotationAngle);
 
-    static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase> shader,
+    static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase>& shader,
         float cornerRadius);
 };
 
@@ -105,9 +102,9 @@ DECLARE_SHADER(ContourDiagonalFlowLight, CONTOUR_DIAGONAL_FLOW_LIGHT,
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Length),
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color),
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Thickness),
-    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Radius),
-    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Weight1),
-    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, Weight2)
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, HaloRadius),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, LightWeight),
+    ADD_PROPERTY_TAG(ContourDiagonalFlowLight, HaloWeight)
 );
 
 DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
@@ -124,6 +121,24 @@ DECLARE_SHADER(ParticleCircularHalo, PARTICLE_CIRCULAR_HALO,
     ADD_PROPERTY_TAG(ParticleCircularHalo, Center),
     ADD_PROPERTY_TAG(ParticleCircularHalo, Radius),
     ADD_PROPERTY_TAG(ParticleCircularHalo, Noise)
+);
+
+DECLARE_SHADER(LightCave, LIGHT_CAVE,
+    ADD_PROPERTY_TAG(LightCave, ColorA),
+    ADD_PROPERTY_TAG(LightCave, ColorB),
+    ADD_PROPERTY_TAG(LightCave, ColorC),
+    ADD_PROPERTY_TAG(LightCave, Position),
+    ADD_PROPERTY_TAG(LightCave, RadiusXY),
+    ADD_PROPERTY_TAG(LightCave, Progress)
+);
+
+DECLARE_SHADER(BorderLight, BORDER_LIGHT,
+    ADD_PROPERTY_TAG(BorderLight, Position),
+    ADD_PROPERTY_TAG(BorderLight, Color),
+    ADD_PROPERTY_TAG(BorderLight, Intensity),
+    ADD_PROPERTY_TAG(BorderLight, Width),
+    ADD_PROPERTY_TAG(BorderLight, RotationAngle),
+    ADD_PROPERTY_TAG(BorderLight, CornerRadius)
 );
 
 DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
@@ -167,24 +182,6 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber),
     ADD_PROPERTY_TAG(ColorGradientEffect, Blend),
     ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
-);
-
-DECLARE_SHADER(LightCave, LIGHT_CAVE,
-    ADD_PROPERTY_TAG(LightCave, ColorA),
-    ADD_PROPERTY_TAG(LightCave, ColorB),
-    ADD_PROPERTY_TAG(LightCave, ColorC),
-    ADD_PROPERTY_TAG(LightCave, Position),
-    ADD_PROPERTY_TAG(LightCave, RadiusXY),
-    ADD_PROPERTY_TAG(LightCave, Progress)
-);
-
-DECLARE_SHADER(BorderLight, BORDER_LIGHT,
-    ADD_PROPERTY_TAG(BorderLight, Position),
-    ADD_PROPERTY_TAG(BorderLight, Color),
-    ADD_PROPERTY_TAG(BorderLight, Intensity),
-    ADD_PROPERTY_TAG(BorderLight, Width),
-    ADD_PROPERTY_TAG(BorderLight, RotationAngle),
-    ADD_PROPERTY_TAG(BorderLight, CornerRadius)
 );
 
 DECLARE_SHADER(AIBarGlow, AIBAR_GLOW,

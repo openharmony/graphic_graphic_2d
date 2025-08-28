@@ -444,7 +444,7 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     float radius = 0.0f;
     if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_number) {
         double scale = -1.0f;
-        if (napi_get_value_double(env, argv[0], &scale) == napi_ok) {
+        if (napi_get_value_double(env, argv[NUM_0], &scale) == napi_ok) {
             if (scale >= 0) {
                 radius = static_cast<float>(scale);
             }

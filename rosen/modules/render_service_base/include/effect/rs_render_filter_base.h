@@ -38,14 +38,14 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val);
 
-    virtual void GenerateGEVisualEffect() {};
+    virtual void GenerateGEVisualEffect() {}
 
     virtual void OnSync() {}
 
 protected:
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
-    static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
-                                std::shared_ptr<Drawing::GEVisualEffect> dest);
+    static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect>& src,
+                                std::shared_ptr<Drawing::GEVisualEffect>& dest);
  
 
 private:
@@ -71,9 +71,9 @@ public:
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
         std::apply([&geFilter](const auto&... propTag) {
-                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
-                    geFilter, propTag), ...);
-            }, EffectTemplateBase::properties_);
+            (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(geFilter, propTag), ...);
+            },
+            EffectTemplateBase::properties_);
         RSNGRenderFilterBase::UpdateCacheData(RSNGRenderFilterBase::geFilter_, geFilter);
         RSNGRenderFilterBase::geFilter_ = std::move(geFilter);
 
@@ -100,12 +100,12 @@ public:
     static void UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
         std::shared_ptr<Drawing::GEVisualEffectContainer>& container);
 
-    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter);
+    static bool CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase>& filter);
     
-    static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
-                                std::shared_ptr<Drawing::GEVisualEffect> target);
+    static void UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect>& src,
+                                std::shared_ptr<Drawing::GEVisualEffect>& target);
     
-    static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+    static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase>& filter,
         const Vector3f& rotationAngle);
 };
 

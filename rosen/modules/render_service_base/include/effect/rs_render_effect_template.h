@@ -17,13 +17,13 @@
 #include <tuple>
 #include <type_traits>
 
-#include "common/rs_optional_trace.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
 #include "src/core/SkOpts.h"
 #endif
 
+#include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -35,7 +35,6 @@ namespace Drawing {
 class GEVisualEffectContainer;
 class GEVisualEffect;
 } // namespace Drawing
-
 class RSNGRenderMaskBase;
 
 class RSB_EXPORT RSNGRenderEffectHelper {
@@ -79,7 +78,6 @@ public:
             case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
             case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
-            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
@@ -87,6 +85,7 @@ public:
             case RSNGEffectType::ROUNDED_RECT_FLOWLIGHT: return "RoundedRectFlowlight";
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
+            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             default:
                 return "UNKNOWN";
         }
@@ -163,6 +162,7 @@ public:
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
+
     bool ContainsType(RSNGEffectType type)
     {
         auto current = this;
@@ -270,7 +270,7 @@ public:
     bool Marshalling(Parcel& parcel) const override
     {
         auto count = Base::GetEffectCount();
-        if (count > Base::EFFECT_COUNT_LIMIT) {
+        if (count >= Base::EFFECT_COUNT_LIMIT) {
             return false;
         }
 
