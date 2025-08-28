@@ -335,6 +335,7 @@ ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_pt
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
+    // Constructor parameter type and return value type
     const char* methodSig = "J:V";
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
