@@ -49,4 +49,5 @@ group("fuzztest") {
   ]
   if (!is_emulator) {
     deps += ["ndkdrawing_gpu_context_fuzzer:fuzztest"]
+  }
 }
