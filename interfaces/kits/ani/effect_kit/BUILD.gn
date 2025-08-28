@@ -71,7 +71,7 @@ ohos_shared_library("effectKit_ani") {
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit:effectkit"
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit:effectkit",
   ]
 
   external_deps = [
@@ -82,7 +82,7 @@ ohos_shared_library("effectKit_ani") {
     "runtime_core:ani",
     "runtime_core:libarkruntime",
     "runtime_core:ani_helpers",
-    "napi:ace_napi"
+    "napi:ace_napi",
   ]
 
   part_name = "graphic_2d"
