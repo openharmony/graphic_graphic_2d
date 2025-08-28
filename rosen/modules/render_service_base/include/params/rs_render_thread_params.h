@@ -41,10 +41,12 @@ struct CaptureParam {
     bool isSoloNodeUiCapture_ = false;
     NodeId endNodeId_ = INVALID_NODEID;
     bool captureFinished_ = false;
+    bool ignoreSpecialLayer_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
-        bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID, bool captureFinished = false)
+        bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID, bool captureFinished = false,
+        bool ignoreSpecialLayer = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
@@ -54,7 +56,8 @@ struct CaptureParam {
         isNeedBlur_(isNeedBlur),
         isSoloNodeUiCapture_(isSoloNodeUiCapture),
         endNodeId_(endNodeId),
-        captureFinished_(captureFinished) {}
+        captureFinished_(captureFinished),
+        ignoreSpecialLayer_(ignoreSpecialLayer) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;

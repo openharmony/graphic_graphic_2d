@@ -1172,8 +1172,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     // Skip Drawing
     auto isSnapshotSkipLayer =
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && specialLayerManager.Find(SpecialLayerType::SNAPSHOT_SKIP);
-    if ((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
-        isSnapshotSkipLayer) {
+    if (((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
+        isSnapshotSkipLayer) && !RSUniRenderThread::GetCaptureParam().ignoreSpecialLayer_) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());

@@ -843,9 +843,11 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParams) {
         secExemption = uniParams->GetSecExemption();
-        uniParams->SetSecExemption(captureParam.secExemption || secExemption);
+        uniParams->SetSecExemption(captureParam.ignoreSpecialLayer || secExemption);
     }
-    RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
+    CaptureParam param(true, false, false);
+    param.ignoreSpecialLayer_ = captureParam.ignoreSpecialLayer;
+    RSUniRenderThread::SetCaptureParam(param);
     canvas.SetScreenshotType(type);
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
     std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
