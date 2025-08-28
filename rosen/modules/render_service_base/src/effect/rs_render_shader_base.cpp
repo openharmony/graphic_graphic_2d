@@ -55,7 +55,19 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     {RSNGEffectType::BORDER_LIGHT, [] {
             return std::make_shared<RSNGRenderBorderLight>();
         }
-    }
+    },
+    {RSNGEffectType::AIBAR_GLOW, [] {
+            return std::make_shared<RSNGRenderAIBarGlow>();
+        }
+    },
+    {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, [] {
+            return std::make_shared<RSNGRenderRoundedRectFlowlight>();
+        }
+    },
+    {RSNGEffectType::GRADIENT_FLOW_COLORS, [] {
+            return std::make_shared<RSNGRenderGradientFlowColors>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectType type)

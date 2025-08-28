@@ -55,25 +55,6 @@ bool GetEnableEDREffectEdgeLight(std::shared_ptr<RSNGRenderFilterBase> renderFil
     return ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f);
 }
 
-bool GetEnableEDRShaderColorGradient(std::shared_ptr<RSNGRenderShaderBase> renderShader)
-{
-    auto shader = std::static_pointer_cast<RSNGRenderColorGradientEffect>(renderShader);
-    if (!shader) {
-        return false;
-    }
-    bool isUseEDR = false;
-    auto lamba = [&isUseEDR](const Vector4f& v4) {
-        if (ROSEN_GNE(v4.x_, 1.0f) || ROSEN_GNE(v4.y_, 1.0f) || ROSEN_GNE(v4.z_, 1.0f)) {
-            isUseEDR = true;
-        }
-    };
-    ColorGradientEffectColorRenderTags colorTag{};
-    std::apply([&shader, &lamba](auto&&... args) {
-        (lamba(shader->Getter<std::decay_t<decltype(args)>>()->Get()), ...);
-        }, colorTag);
-    return isUseEDR;
-}
-
 bool GetEnableEDREffectColorGradient(std::shared_ptr<RSNGRenderFilterBase> renderFilter)
 {
     auto filter = std::static_pointer_cast<RSNGRenderColorGradientFilter>(renderFilter);
@@ -106,6 +87,55 @@ bool GetEnableEDREffectSoundWave(std::shared_ptr<RSNGRenderFilterBase> renderFil
            ROSEN_GNE(colorC.x_, 1.0f) || ROSEN_GNE(colorC.y_, 1.0f) || ROSEN_GNE(colorC.z_, 1.0f);
 }
 
+bool GetEnableEDRShaderColorGradient(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    auto shader = std::static_pointer_cast<RSNGRenderColorGradientEffect>(renderShader);
+    if (!shader) {
+        return false;
+    }
+    bool isUseEDR = false;
+    auto lamba = [&isUseEDR](const Vector4f& v4) {
+        if (ROSEN_GNE(v4.x_, 1.0f) || ROSEN_GNE(v4.y_, 1.0f) || ROSEN_GNE(v4.z_, 1.0f)) {
+            isUseEDR = true;
+        }
+    };
+    ColorGradientEffectColorRenderTags colorTag{};
+    std::apply([&shader, &lamba](auto&&... args) {
+        (lamba(shader->Getter<std::decay_t<decltype(args)>>()->Get()), ...);
+        }, colorTag);
+    return isUseEDR;
+}
+
+bool GetEnableEDRShaderRoundedRectFlowlight(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    auto shader = std::static_pointer_cast<RSNGRenderRoundedRectFlowlight>(renderShader);
+    if (!shader) {
+        return false;
+    }
+    const auto& color = shader->Getter<RoundedRectFlowlightColorRenderTag>()->Get();
+    const auto& brightness = shader->Getter<RoundedRectFlowlightBrightnessRenderTag>()->Get();
+    return ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f) ||
+           ROSEN_GNE(brightness, 1.0f);
+}
+
+bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    auto shader = std::static_pointer_cast<RSNGRenderAIBarGlow>(renderShader);
+    if (!shader) {
+        return false;
+    }
+    const auto& color0 = shader->Getter<AIBarGlowColor0RenderTag>()->Get();
+    const auto& color1 = shader->Getter<AIBarGlowColor1RenderTag>()->Get();
+    const auto& color2 = shader->Getter<AIBarGlowColor2RenderTag>()->Get();
+    const auto& color3 = shader->Getter<AIBarGlowColor3RenderTag>()->Get();
+    const auto& brightness = shader->Getter<AIBarGlowBrightnessRenderTag>()->Get();
+    return ROSEN_GNE(color0.x_, 1.0f) || ROSEN_GNE(color0.y_, 1.0f) || ROSEN_GNE(color0.z_, 1.0f) ||
+           ROSEN_GNE(color1.x_, 1.0f) || ROSEN_GNE(color1.y_, 1.0f) || ROSEN_GNE(color1.z_, 1.0f) ||
+           ROSEN_GNE(color2.x_, 1.0f) || ROSEN_GNE(color2.y_, 1.0f) || ROSEN_GNE(color2.z_, 1.0f) ||
+           ROSEN_GNE(color3.x_, 1.0f) || ROSEN_GNE(color3.y_, 1.0f) || ROSEN_GNE(color3.z_, 1.0f) ||
+           ROSEN_GNE(brightness, 1.0f);
+}
+
 static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT = {
     {RSNGEffectType::EDGE_LIGHT, GetEnableEDREffectEdgeLight},
     {RSNGEffectType::COLOR_GRADIENT, GetEnableEDREffectColorGradient},
@@ -114,6 +144,8 @@ static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT 
  
 static std::unordered_map<RSNGEffectType, ShaderEDRChecker> edrShaderCheckerLUT = {
     {RSNGEffectType::COLOR_GRADIENT_EFFECT, GetEnableEDRShaderColorGradient},
+    {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, GetEnableEDRShaderRoundedRectFlowlight},
+    {RSNGEffectType::AIBAR_GLOW, GetEnableEDRShaderAIBarGlow},
 };
 
 std::mutex g_dataMutex;

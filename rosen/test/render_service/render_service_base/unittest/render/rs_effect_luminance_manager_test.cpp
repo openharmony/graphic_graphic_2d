@@ -119,4 +119,46 @@ HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrShader, TestSize.Level1)
     EXPECT_FALSE(manager.GetEnableHdrEffect(cdflShader));
 }
 
+/**
+ * @tc.name: GetEnableEDRShaderAIBarGlowTest
+ * @tc.desc: test results of GetEnableHdrEffectSoundWave
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectLuminanceManagerTest, GetEnableEDRShaderAIBarGlow, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    auto shader = std::make_shared<RSNGRenderAIBarGlow>();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(shader));
+
+    Vector4f color0{0.5f, 1.5f, 0.5f, 1.0f};
+    Vector4f color1{0.5f, 1.5f, 0.5f, 1.0f};
+    Vector4f color2{0.5f, 1.5f, 0.5f, 1.0f};
+    Vector4f color3{0.5f, 1.5f, 0.5f, 1.0f};
+    float brightness = 1.5;
+    shader->Setter<AIBarGlowColor0RenderTag>(color0);
+    shader->Setter<AIBarGlowColor1RenderTag>(color1);
+    shader->Setter<AIBarGlowColor2RenderTag>(color2);
+    shader->Setter<AIBarGlowColor3RenderTag>(color3);
+    shader->Setter<AIBarGlowBrightnessRenderTag>(brightness);
+    EXPECT_TRUE(manager.GetEnableHdrEffect(shader));
+}
+
+/**
+ * @tc.name: GetEnableEDRShaderRoundedRectFlowlightTest
+ * @tc.desc: test results of GetEnableEDRShaderRoundedRectFlowlight
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectLuminanceManagerTest, GetEnableEDRShaderRoundedRectFlowlight, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    auto shader = std::make_shared<RSNGRenderRoundedRectFlowlight>();
+    EXPECT_FALSE(manager.GetEnableHdrEffect(shader));
+
+    Vector4f color{0.5f, 1.5f, 0.5f, 1.0f};
+    float brightness = 1.5;
+    shader->Setter<RoundedRectFlowlightColorRenderTag>(color);
+    shader->Setter<RoundedRectFlowlightBrightnessRenderTag>(brightness);
+    EXPECT_TRUE(manager.GetEnableHdrEffect(shader));
+}
+
 } // namespace OHOS::Rosen
