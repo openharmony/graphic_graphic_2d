@@ -209,11 +209,11 @@ void HgmFrameRateManager::SetTimeoutParamsFromConfig(const std::shared_ptr<Polic
     }
     if (upTimeoutMs != 0) {
         touchManager_.SetUpTimeout(upTimeoutMs);
-        HGM_LOGI("set upTimeout from Config");
+        HILOG_COMM_INFO("set upTimeout from Config");
     }
     if (rsIdleTimeoutMs != 0) {
         touchManager_.SetRsIdleTimeout(rsIdleTimeoutMs);
-        HGM_LOGI("set rsIdleTimeout from Config");
+        HILOG_COMM_INFO("set rsIdleTimeout from Config");
     }
 }
 
@@ -805,7 +805,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
     // LOW_LEVEL : not allowed to reduce the screen refresh rate, up to 90Hz;
     // MIDDLE_LEVEL : allowed to reduce the screen refresh rate, up to 90Hz;
     // HIGH_LEVEL : allowed to reduce the screen refresh rate, up to 120Hz
-    HGM_LOGI("HandleLightFactorStatus status:%{public}d", state);
+    HILOG_COMM_INFO("HandleLightFactorStatus status:%{public}d", state);
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
@@ -944,7 +944,7 @@ void HgmFrameRateManager::HandlePointerTask(pid_t pid, int32_t pointerStatus, in
 
 void HgmFrameRateManager::HandleDynamicModeEvent(bool enableDynamicModeEvent)
 {
-    HGM_LOGE("HandleDynamicModeEvent status:%{public}u", enableDynamicModeEvent);
+    HILOG_COMM_INFO("HandleDynamicModeEvent status:%{public}u", enableDynamicModeEvent);
     HgmCore::Instance().SetEnableDynamicMode(enableDynamicModeEvent);
     multiAppStrategy_.CalcVote();
 }
@@ -961,7 +961,7 @@ void HgmFrameRateManager::HandleIdleEvent(bool isIdle)
 
 void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
 {
-    HGM_LOGI("HandleRefreshRateMode curMode:%{public}d", refreshRateMode);
+    HILOG_COMM_INFO("HandleRefreshRateMode curMode:%{public}d", refreshRateMode);
     if (curRefreshRateMode_ == refreshRateMode) {
         return;
     }
@@ -980,7 +980,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
 void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     // hgm warning: strategy for screen off
-    HGM_LOGI("curScreen:%{public}d status:%{public}d", static_cast<int>(id), static_cast<int>(status));
+    HILOG_COMM_INFO("curScreen:%{public}d status:%{public}d", static_cast<int>(id), static_cast<int>(status));
     if (status == ScreenPowerStatus::POWER_STATUS_ON) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "ON"});
     } else if (status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
@@ -1071,7 +1071,7 @@ void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::
     if (curScreenStrategyId != curScreenStrategyId_) {
         RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenExtStrategyChange type:%s, status:%d",
             curScreenStrategyId.c_str(), status);
-        HGM_LOGI("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
+        HILOG_COMM_INFO("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
             curScreenStrategyId.c_str(), status);
         curScreenStrategyId_ = curScreenStrategyId;
         auto configVisitor = HgmCore::Instance().GetPolicyConfigVisitor();
@@ -1099,7 +1099,8 @@ std::string HgmFrameRateManager::GetCurScreenExtStrategyId()
     }
     std::string curScreenStrategyId = curScreenDefaultStrategyId_ + suffix;
     if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end()) {
-        HGM_LOGE("HgmFrameRateManager::HandleScreenExtStrategyChange not support %{public}s config", suffix.c_str());
+        HILOG_COMM_ERROR("HgmFrameRateManager::HandleScreenExtStrategyChange not support %{public}s config",
+            suffix.c_str());
         return curScreenDefaultStrategyId_;
     }
     return curScreenStrategyId;
@@ -1202,7 +1203,7 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
     }
     auto [pkgName, gamePid, appType] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
     if (gamePid == DEFAULT_PID) {
-        HGM_LOGE("unknow game pid: %{public}s, skip", eventInfo.description.c_str());
+        HILOG_COMM_ERROR("unknow game pid: %{public}s, skip", eventInfo.description.c_str());
         return;
     }
     if (pid != DEFAULT_PID) {
@@ -1315,16 +1316,16 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
     }
 
     if (isGameSupportAS_ != SupportASStatus::SUPPORT_AS) {
-        HGM_LOGI("this game does not support adaptive sync mode");
+        HILOG_COMM_INFO("this game does not support adaptive sync mode");
         return;
     }
 
     if (!IsCurrentScreenSupportAS()) {
-        HGM_LOGI("current screen not support adaptive sync mode");
+        HILOG_COMM_INFO("current screen not support adaptive sync mode");
         return;
     }
 
-    HGM_LOGI("ProcessHgmFrameRate RSAdaptiveVsync change mode");
+    HILOG_COMM_INFO("ProcessHgmFrameRate RSAdaptiveVsync change mode");
     RS_TRACE_BEGIN("ProcessHgmFrameRate RSAdaptiveVsync change mode");
     isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     RS_TRACE_END();

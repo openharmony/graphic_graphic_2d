@@ -50,7 +50,7 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
 {
     if (callback == nullptr) {
-        HGM_LOGE("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
+        HILOG_COMM_ERROR("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
     animDynamicCfgCallbacks_[pid] = callback;
@@ -91,7 +91,7 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
     pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
 {
     if (callback == nullptr) {
-        HGM_LOGE("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
+        HILOG_COMM_ERROR("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
     refreshRateModeCallbacks_[pid] = callback;
