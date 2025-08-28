@@ -298,7 +298,6 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     return result;
 }
 
-
 ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value)
 {
     ani_ref ref = nullptr;

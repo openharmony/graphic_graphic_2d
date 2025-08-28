@@ -28,8 +28,7 @@ ani_status AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
         ani_double(ascent),
         ani_double(descent),
         ani_double(leading),
-        ani_double(width)
-    );
+        ani_double(width));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

@@ -27,8 +27,7 @@ ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
     static std::string sign = "I" + std::string(ANI_ENUM_AFFINITY) + ":V";
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POSITION_WITH_AFFINITY, sign.c_str(),
         ani_int(indexAndAffinity.index),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity))
-    );
+        AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity)));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

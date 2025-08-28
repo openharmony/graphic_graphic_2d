@@ -103,7 +103,7 @@ public:
             for (auto& pair : clsCache_) {
                 env->GlobalReference_Delete(pair.second);
             }
-            clsCache_.clear();  
+            clsCache_.clear();
         }
         {
             std::unique_lock<std::shared_mutex> lock(methodMutex_);
