@@ -211,8 +211,8 @@ namespace effectKit {
 
   export class FilterInternal implements Filter {
     static {
-			loadLibrary('effectKit_ani')
-		}
+	  loadLibrary('effectKit_ani')
+    }
 
     private nativeObj: long = 0;
 
@@ -238,7 +238,7 @@ namespace effectKit {
 
     private static native kitTransferStaticNative(input: ESValue): Object;
 
-		private static native kitTransferDynamicNative(nativeObj: long): ESValue;
+	private static native kitTransferDynamicNative(nativeObj: long): ESValue;
 
     public blur(radius: double): Filter {
       return this.blurNative(radius);
@@ -278,12 +278,11 @@ namespace effectKit {
       return this.getPixelMapNative();
     }
     public static kitTransferStatic(input: Any): Object {
-			return FilterInternal.kitTransferStaticNative(ESValue.wrap(input));
-		}   // 1.1 => 1.2对象
-		public static kitTransferDynamic(input: Object): Any {
-			return FilterInternal.kitTransferDynamicNative((input as FilterInternal).nativeObj).unwrap();
-		}   // 1.2 => 1.1对象
-
+	  return FilterInternal.kitTransferStaticNative(ESValue.wrap(input));
+	}   
+	public static kitTransferDynamic(input: Object): Any {
+	  return FilterInternal.kitTransferDynamicNative((input as FilterInternal).nativeObj).unwrap();
+	}
   }
 
   export native function createEffect(source: image.PixelMap): Filter;
@@ -301,8 +300,8 @@ namespace effectKit {
 
   export class ColorPickerInternal implements ColorPicker {
     static {
-			loadLibrary('effectKit_ani')
-		}
+	  loadLibrary('effectKit_ani')
+	}
 
     private nativeObj: long = 0;
 
@@ -317,7 +316,7 @@ namespace effectKit {
     public native getAverageColorNative(): Color;
     public native isBlackOrWhiteOrGrayColorNative(color: int): boolean;
     private static native kitTransferStaticNative(input: ESValue): Object;
-		private static native kitTransferDynamicNative(nativeObj: long): ESValue;
+	private static native kitTransferDynamicNative(nativeObj: long): ESValue;
 
     public getMainColor(): Promise<Color> {
       return new Promise<Color>((resolve: (value: Color) => void,
@@ -351,12 +350,11 @@ namespace effectKit {
       return this.isBlackOrWhiteOrGrayColorNative(color);
     }
     public static kitTransferStatic(input: Any): Object {
-			return ColorPickerInternal.kitTransferStaticNative(ESValue.wrap(input));
-		}   // 1.1 => 1.2对象
-		public static kitTransferDynamic(input: Object): Any {
-			return ColorPickerInternal.kitTransferDynamicNative((input as ColorPickerInternal).nativeObj).unwrap();
-		}   // 1.2 => 1.1对象
-
+	  return ColorPickerInternal.kitTransferStaticNative(ESValue.wrap(input));
+	}
+	public static kitTransferDynamic(input: Object): Any {
+	  return ColorPickerInternal.kitTransferDynamicNative((input as ColorPickerInternal).nativeObj).unwrap();
+	}
   }
 
   native function createColorPickerNormal(source: image.PixelMap): ColorPicker
