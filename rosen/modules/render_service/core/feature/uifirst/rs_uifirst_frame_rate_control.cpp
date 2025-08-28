@@ -15,7 +15,7 @@
 
 #include "rs_uifirst_frame_rate_control.h"
 
-namespace OHOS{
+namespace OHOS {
 namespace Rosen {
 void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInfo)
 {
@@ -88,7 +88,7 @@ bool RSUifirstFrameRateControl::GetUifirstFrameDropInternal(int frameInterval)
 {
     std::lock_guard<std::mutex> lock(incrementCallCount_);
     callCount_++;
-    if(callCount_ % (frameInterval + 1) == 0) {
+    if (callCount_ % (frameInterval + 1) == 0) {
         callCount_ = 0;
         return false;
     }
