@@ -36,8 +36,8 @@ public:
     static ani_object GetAverageColor(ani_env* env, ani_object obj);
     static ani_boolean IsBlackOrWhiteOrGrayColor(ani_env* env, ani_object obj, ani_int colorValue);
     static ani_object CreateColorPickerFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap);
-    static ani_object KitTransferStaticColorPicker(ani_env* aniEnv, ani_class cls, ani_object obj);
-    static ani_object kitTransferDynamicColorPicker(ani_env* aniEnv, ani_class cls, ani_long obj);
+    static ani_object KitTransferStaticColorPicker(ani_env* env, ani_class cls, ani_object obj);
+    static ani_object kitTransferDynamicColorPicker(ani_env* env, ani_class cls, ani_long obj);
 
     std::shared_ptr<ColorPicker> nativeColorPicker_ = nullptr;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
