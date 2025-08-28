@@ -638,7 +638,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     }
     image = imageManager_->CreateImageFromBuffer(canvas, params, videoInfo.drawingColorSpace_);
     if (image == nullptr) {
-        RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: vk image is nullptr!");
+        HILOG_COMM_ERROR("RSBaseRenderEngine::CreateImageFromBuffer: vk image is nullptr!");
         return nullptr;
     }
 #endif

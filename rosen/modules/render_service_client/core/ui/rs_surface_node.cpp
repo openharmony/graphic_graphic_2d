@@ -668,7 +668,7 @@ void RSSurfaceNode::AttachToDisplay(uint64_t screenId)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeAttachToDisplay>(GetId(), screenId);
     if (AddCommand(command, IsRenderServiceNode())) {
-        RS_LOGI("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+        HILOG_COMM_INFO("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
             "screen id: %{public}" PRIu64, GetName().c_str(), GetId(), screenId);
         RS_TRACE_NAME_FMT("RSSurfaceNode:attach to display, node:[name: %s, id: %" PRIu64 "], "
             "screen id: %" PRIu64, GetName().c_str(), GetId(), screenId);
@@ -679,7 +679,7 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeDetachToDisplay>(GetId(), screenId);
     if (AddCommand(command, IsRenderServiceNode())) {
-        RS_LOGI("RSSurfaceNode:detach from display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+        HILOG_COMM_INFO("RSSurfaceNode:detach from display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
                 "screen id: %{public}" PRIu64,
             GetName().c_str(), GetId(), screenId);
         RS_TRACE_NAME_FMT("RSSurfaceNode:detach from display, node:[name: %s, id: %" PRIu64 "], "

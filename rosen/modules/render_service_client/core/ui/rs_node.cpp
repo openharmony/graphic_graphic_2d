@@ -3547,7 +3547,7 @@ void RSNode::AddChild(SharedPtr child, int index)
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetRSUIContext() != GetRSUIContext()) {
         if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>()) {
-            ROSEN_LOGI("RSNode::AddChild, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
+            HILOG_COMM_INFO("RSNode::AddChild, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
                        " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
                 id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
                 surfaceNode->GetName().c_str(),
@@ -3637,7 +3637,7 @@ void RSNode::RemoveChild(SharedPtr child)
 
     if (child->GetType() == RSUINodeType::SURFACE_NODE) {
         auto surfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(child);
-        ROSEN_LOGI("RSNode::RemoveChild, Id: %{public}" PRIu64 ", SurfaceNode:[Id: %{public}" PRIu64 ", "
+        HILOG_COMM_INFO("RSNode::RemoveChild, Id: %{public}" PRIu64 ", SurfaceNode:[Id: %{public}" PRIu64 ", "
             "name: %{public}s]", id_, childId, surfaceNode->GetName().c_str());
         RS_TRACE_NAME_FMT("RSNode::RemoveChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
             id_, childId, surfaceNode->GetName().c_str());

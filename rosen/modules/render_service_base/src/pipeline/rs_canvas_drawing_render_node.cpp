@@ -520,7 +520,7 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::InitRenderParams failed");
+        HILOG_COMM_ERROR("RSCanvasDrawingRenderNode::InitRenderParams failed");
         return;
     }
 #endif
