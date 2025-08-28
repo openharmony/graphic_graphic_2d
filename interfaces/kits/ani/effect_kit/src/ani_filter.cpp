@@ -272,6 +272,7 @@ ani_object AniFilter::KitTransferStaticEffect(ani_env* env, ani_class cls, ani_o
         EFFECT_LOG_E("AniFilter::KitTransferStaticEffect unwrapResult is nullptr");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
+    FilterNapi* napiFilter = static_cast<FilterNapi*>(unwrapResult);
     return static_cast<ani_object>(CreateEffectFromPtr(env, napiFilter->GetSrcPixelMap()));
 }
 
