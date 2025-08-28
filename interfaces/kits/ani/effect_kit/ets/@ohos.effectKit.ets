@@ -349,12 +349,12 @@ namespace effectKit {
     public isBlackOrWhiteOrGrayColor(color: int): boolean {
       return this.isBlackOrWhiteOrGrayColorNative(color);
     }
-		public static kitTransferStatic(input: Any): Object {
+    public static kitTransferStatic(input: Any): Object {
       return ColorPickerInternal.kitTransferStaticNative(ESValue.wrap(input));
-    }   // 1.1 => 1.2对象
-		public static kitTransferDynamic(input: Object): Any {
+    }
+    public static kitTransferDynamic(input: Object): Any {
       return ColorPickerInternal.kitTransferDynamicNative((input as ColorPickerInternal).nativeObj).unwrap();
-    }   // 1.2 => 1.1对象
+    }
   }
 
   native function createColorPickerNormal(source: image.PixelMap): ColorPicker
