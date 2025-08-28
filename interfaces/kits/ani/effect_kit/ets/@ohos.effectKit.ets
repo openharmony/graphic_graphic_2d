@@ -240,7 +240,6 @@ namespace effectKit {
 
     private static native kitTransferDynamicNative(nativeObj: long): ESValue;
 
-
     public blur(radius: double): Filter {
       return this.blurNative(radius);
     }
@@ -280,11 +279,10 @@ namespace effectKit {
     }
     public static kitTransferStatic(input: Any): Object {
       return FilterInternal.kitTransferStaticNative(ESValue.wrap(input));
-    }   // 1.1 => 1.2对象
+    }
     public static kitTransferDynamic(input: Object): Any {
       return FilterInternal.kitTransferDynamicNative((input as FilterInternal).nativeObj).unwrap();
-    }   // 1.2 => 1.1对象
-
+    }
   }
 
   export native function createEffect(source: image.PixelMap): Filter;
