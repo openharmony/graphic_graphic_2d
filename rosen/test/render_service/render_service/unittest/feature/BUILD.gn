@@ -31,10 +31,7 @@ group("unittest") {
     ":RSSurfaceCaptureTaskTest",
     ":RSUiCaptureSoloTaskParallelTest",
     ":RSUiCaptureTaskParallelTest",
-    ":RSUniDirtyComputeUtilTest",
     ":RSUniHwcComputeUtilTest",
-    ":RSUniHwcPrevalidateUtilTest",
-    ":RSUniHwcPrevalidateUtilTest1",
     ":RSUniUiCaptureTest",
     ":RSVBlankIdleCorrectorTest",
     ":LppVideoHandlerTest",
@@ -71,6 +68,13 @@ group("unittest") {
   }
   if (graphic_2d_feature_enable_chipset_vsync) {
     deps += [ ":RSChipsetVsyncTest" ]
+  }
+  if (graphic_2d_feature_rs_enable_uni_render) {
+    deps += [
+      ":RSUniDirtyComputeUtilTest",
+      ":RSUniHwcPrevalidateUtilTest",
+      ":RSUniHwcPrevalidateUtilTest1",
+    ]
   }
 }
 
