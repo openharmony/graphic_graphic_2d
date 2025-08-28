@@ -33,6 +33,9 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr size_t ARGC_TWO = 2;
+}
 
 ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -318,22 +321,34 @@ ani_double AniTextLine::GetOffsetForStringIndex(ani_env* env, ani_object object,
     return textLineBase->GetOffsetForStringIndex(index);
 }
 
-static bool CaretOffsetsCallBack(ani_env* env, ani_fn_object& callback, std::vector<ani_ref>& vec)
+static bool CaretOffsetsCallBack(
+    ani_env* env, ani_fn_object& callback, int32_t index, double leftOffset, double rightOffset)
 {
-    ani_status ret;
-    ani_ref fnReturnVal;
-    ret = env->FunctionalObject_Call(callback, vec.size(), vec.data(), &fnReturnVal);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to call callback function, ani_status: %{public}d", ret);
-        return false;
+    ani_object jsIndex = AniTextUtils::CreateAniIntObj(env, index);
+    for (size_t i = 0; i < ARGC_TWO; i++) {
+        ani_object jsOffset =
+            (i == 0) ? AniTextUtils::CreateAniIntObj(env, leftOffset) : AniTextUtils::CreateAniIntObj(env, rightOffset);
+        ani_object jsLeadingEdge =
+            (i == 0) ? AniTextUtils::CreateAniBooleanObj(env, true) : AniTextUtils::CreateAniBooleanObj(env, false);
+        std::vector<ani_object> vec = {jsOffset, jsIndex, jsLeadingEdge};
+        ani_ref fnReturnVal = nullptr;
+        ani_status ret = env->FunctionalObject_Call(callback, vec.size(), vec.data(), &fnReturnVal);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to call callback function, ani_status: %{public}d", ret);
+            return false;
+        }
+        ani_boolean result = false;
+        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);
+            return false;
+        }
+        if (result) {
+            TEXT_LOGI("Callback function call stoped");
+            return false;
+        }
     }
-    ani_boolean result = false;
-    ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":Z", &result);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get result, ani_status: %{public}d", ret);
-        return false;
-    }
-    return result;
+    return true;
 }
 
 void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_object object, ani_fn_object callback)
@@ -349,21 +364,13 @@ void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_objec
     std::map<int32_t, double> offsetMap = textLineBase->GetIndexAndOffsets(isHardBreak);
     double leftOffset = 0.0;
     for (auto it = offsetMap.begin(); it != offsetMap.end(); ++it) {
-        std::vector<ani_ref> vec;
-        vec.push_back(AniTextUtils::CreateAniIntObj(env, it->first));
-        vec.push_back(AniTextUtils::CreateAniIntObj(env, leftOffset));
-        vec.push_back(AniTextUtils::CreateAniBooleanObj(env, it->second));
-        if (!CaretOffsetsCallBack(env, callback, vec)) {
+        if (!CaretOffsetsCallBack(env, callback, it->first, leftOffset, it->second)) {
             return;
         }
         leftOffset = it->second;
     }
     if (isHardBreak && offsetMap.size() > 0) {
-        std::vector<ani_ref> vec;
-        vec.push_back(AniTextUtils::CreateAniIntObj(env, offsetMap.rbegin()->first + 1));
-        vec.push_back(AniTextUtils::CreateAniIntObj(env, leftOffset));
-        vec.push_back(AniTextUtils::CreateAniBooleanObj(env, leftOffset));
-        if (!CaretOffsetsCallBack(env, callback, vec)) {
+        if (!CaretOffsetsCallBack(env, callback, offsetMap.rbegin()->first + 1, leftOffset, leftOffset)) {
             return;
         }
     }

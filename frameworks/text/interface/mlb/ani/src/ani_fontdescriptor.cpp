@@ -135,8 +135,11 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
+    static std::string sign = std::string(ANI_STRING) + std::string(ANI_STRING) + std::string(ANI_STRING) +
+        std::string(ANI_STRING) + std::string(ANI_STRING) + std::string(ANI_ENUM_FONT_WEIGHT) +
+        "IIZZ:V";
 
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, ":V",
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, sign.c_str(),
         AniTextUtils::CreateAniStringObj(env, fontDesc->path),
         AniTextUtils::CreateAniStringObj(env, fontDesc->postScriptName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fullName),
