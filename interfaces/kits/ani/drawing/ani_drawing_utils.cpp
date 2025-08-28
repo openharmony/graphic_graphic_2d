@@ -35,7 +35,7 @@ ani_status AniThrowError(ani_env* env, const std::string& message)
     }
 
     ani_object errObj;
-    if (ANI_OK != env->Object_New(errCls, errCtor, &errObj, CreateAniString(env, message))) {
+    if (ANI_OK != env->Object_New(errCls, errCtor, &errObj, CreateAniString(env, message), CreateAniUndefined(env))) {
         ROSEN_LOGE("Create Object Failed %{public}s", className);
         return ANI_ERROR;
     }
