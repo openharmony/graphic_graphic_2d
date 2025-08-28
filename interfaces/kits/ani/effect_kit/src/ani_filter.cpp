@@ -29,7 +29,7 @@
 #include "sk_image_chain.h"
 #include "sk_image_filter_factory.h"
 #include "filter_napi.h"
- 
+
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
@@ -270,6 +270,7 @@ ani_object AniFilter::KitTransferStaticEffect(ani_env* env, ani_class cls, ani_o
         EFFECT_LOG_E("AniFilter::KitTransferStaticEffect unwrapResult is nullptr");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
+    FilterNapi* napiFilter = static_cast<FilterNapi*>(unwrapResult);
     return static_cast<ani_object>(CreateEffectFromPtr(env, napiFilter->GetSrcPixelMap()));
 }
 
