@@ -646,8 +646,6 @@ OH_Drawing_ErrorCode OH_Drawing_SetTextStyleAttributeDouble(OH_Drawing_TextStyle
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style or value is nullptr.
  *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
- *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if the value corresponding to the attribute id
- *                  exceeds the allowable range.
  * @since 21
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeDouble(const OH_Drawing_TextStyle* style,
@@ -680,8 +678,6 @@ OH_Drawing_ErrorCode OH_Drawing_SetTextStyleAttributeInt(OH_Drawing_TextStyle* s
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style or value is nullptr.
  *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
- *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if the value corresponding to the attribute id
- *                  exceeds the allowable range.
  * @since 21
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeInt(const OH_Drawing_TextStyle* style,
@@ -714,8 +710,6 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDouble(OH_Drawing_Typ
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style or value is nullptr.
  *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
- *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if the value corresponding to the attribute id
- *                  exceeds the allowable range.
  * @since 21
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDouble(const OH_Drawing_TypographyStyle* style,
@@ -748,8 +742,6 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_Typogr
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style or value is nullptr.
  *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
- *         Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if the value corresponding to the attribute id
- *                  exceeds the allowable range.
  * @since 21
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeInt(const OH_Drawing_TypographyStyle* style,
