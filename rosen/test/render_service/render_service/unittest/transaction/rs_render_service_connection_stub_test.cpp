@@ -1739,7 +1739,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     RSMainThread::Instance()->runner_->Run();
     sptr<RSRenderServiceConnection> connection = iface_cast<RSRenderServiceConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
- 
+
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCapturePermissions permissions;
     permissions.screenCapturePermission = true;
@@ -1770,7 +1770,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, true, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
- 
+
     RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }

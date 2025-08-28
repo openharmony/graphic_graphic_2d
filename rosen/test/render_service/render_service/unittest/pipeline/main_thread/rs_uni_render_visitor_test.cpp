@@ -5653,11 +5653,11 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSurfaceLockLayer001, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->CollectSurfaceLockLayer(node);
     EXPECT_FALSE(RSMainThread::Instance()->HasDrmOrSurfaceLockLayer());
- 
+
     node.childHardwareEnabledNodes_.resize(1);
     rsUniRenderVisitor->CollectSurfaceLockLayer(node);
     EXPECT_FALSE(RSMainThread::Instance()->HasDrmOrSurfaceLockLayer());
- 
+
     node.childHardwareEnabledNodes_.clear();
     RSSurfaceRenderNodeConfig config;
     auto childNode = std::make_shared<RSSurfaceRenderNode>(config);
