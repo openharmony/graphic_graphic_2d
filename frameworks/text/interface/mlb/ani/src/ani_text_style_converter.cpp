@@ -301,7 +301,9 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         textStyle.baseLineShift,
         ParseFontFeaturesToAni(env, textStyle.fontFeatures),
         AniTextUtils::CreateAniArrayAndInitData(env, textStyle.shadows, textStyle.shadows.size(),
-            [](ani_env* env, const TextShadow& item) { return AniTextStyleConverter::ParseTextShadowToAni(env, item); }),
+            [](ani_env* env, const TextShadow& item) {
+                return AniTextStyleConverter::ParseTextShadowToAni(env, item);
+            }),
         AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect)
     );
     return aniObj;
@@ -344,16 +346,14 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
         aniColorObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    static std::string sign = std::string(ANI_ENUM_TEXT_DECORATION_TYPE) +
-        std::string(ANI_INTERFACE_COLOR) + std::string(ANI_ENUM_TEXT_DECORATION_STYLE) +
-        "D:V";
+    static std::string sign = std::string(ANI_ENUM_TEXT_DECORATION_TYPE) + std::string(ANI_INTERFACE_COLOR) +
+        std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "D:V";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION, sign.c_str(),
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)),
         aniColorObj,
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE, static_cast<int>(textStyle.decorationStyle)),
-        textStyle.decorationThicknessScale
-    );
+        textStyle.decorationThicknessScale);
     return aniObj;
 }
 
@@ -372,8 +372,7 @@ ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectSt
         rectStyle.leftTopRadius,
         rectStyle.rightTopRadius,
         rectStyle.rightBottomRadius,
-        rectStyle.leftBottomRadius
-    );
+        rectStyle.leftBottomRadius);
     return aniObj;
 }
 
@@ -385,8 +384,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
             static std::string sign = std::string(ANI_STRING) + "I:V";
             ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_FEATURE, sign.c_str(),
                 AniTextUtils::CreateAniStringObj(env, feature.first),
-                ani_int(feature.second)
-            );
+                ani_int(feature.second));
             return aniObj;
         });
     return arrayObj;

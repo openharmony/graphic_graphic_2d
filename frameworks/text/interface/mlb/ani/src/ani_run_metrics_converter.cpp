@@ -28,11 +28,11 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
     ani_ref mapRef = nullptr;
     for (const auto& [key, runMetrics] : runMetrics) {
         if (runMetrics.textStyle != nullptr) {
-            static std::string sign = std::string(ANI_INTERFACE_TEXT_STYLE) + std::string(ANI_INTERFACE_FONT_METRICS) + ":V";
+            static std::string sign =
+                std::string(ANI_INTERFACE_TEXT_STYLE) + std::string(ANI_INTERFACE_FONT_METRICS) + ":V";
             ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS, sign.c_str(),
                 AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
-                AniDrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics)
-            );
+                AniDrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
             ani_status status =
                 env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
                 &mapRef, AniTextUtils::CreateAniIntObj(env, static_cast<int>(key)), aniObj);
