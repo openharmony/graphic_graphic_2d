@@ -104,6 +104,10 @@ public:
     bool halfLeading { false };
     bool enableAutoSpace{false};
     TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
+    double maxLineHeight{std::numeric_limits<float>::max()};
+    double minLineHeight{0.0f};
+    double lineSpacing{0.0f};
+    LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
 };
 } // namespace SPText
 } // namespace Rosen

@@ -261,8 +261,11 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
     SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
     SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
-
     textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
+    SetEnumValueFromJS(env, argValue, "badgeType", textStyle.badgeType);
+    SetEnumValueFromJS(env, argValue, "lineHeightStyle", textStyle.lineHeightStyle);
+    SetDoubleValueFromJS(env, argValue, "lineHeightMinimum", textStyle.minLineHeight);
+    SetDoubleValueFromJS(env, argValue, "lineHeightMaximum", textStyle.maxLineHeight);
 }
 
 void SetTextStyleFontType(napi_env env, napi_value argValue, TextStyle& textStyle)
@@ -378,11 +381,6 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
         textStyle.locale = textLocale;
     }
-    napi_get_named_property(env, argValue, "badgeType", &tempValue);
-    size_t textBadgeType = 0;
-    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textBadgeType)) {
-        textStyle.badgeType = static_cast<TextBadgeType>(textBadgeType);
-    }
 }
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
@@ -471,6 +469,7 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
     SetBoolValueFromJS(env, argValue, "autoSpace", pographyStyle.enableAutoSpace);
     SetEnumValueFromJS(env, argValue, "verticalAlign", pographyStyle.verticalAlignment);
+    SetDoubleValueFromJS(env, argValue, "lineSpacing", pographyStyle.lineSpacing);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)
@@ -770,7 +769,13 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(
             env, objValue, "fontFeatures", CreateFontFeatureArrayJsValue(env, textStyle.fontFeatures));
         napi_set_named_property(env, objValue, "badgeType", CreateJsNumber(
-            env, static_cast<uint32_t>(textStyle.badgeType)));
+            env, static_cast<size_t>(textStyle.badgeType)));
+        napi_set_named_property(env, objValue, "lineHeightMaximum", CreateJsNumber(
+            env, static_cast<double>(textStyle.maxLineHeight)));
+        napi_set_named_property(env, objValue, "lineHeightMinimum", CreateJsNumber(
+            env, static_cast<double>(textStyle.minLineHeight)));
+        napi_set_named_property(env, objValue, "lineHeightStyle", CreateJsNumber(
+            env, static_cast<size_t>(textStyle.lineHeightStyle)));
     }
     return objValue;
 }

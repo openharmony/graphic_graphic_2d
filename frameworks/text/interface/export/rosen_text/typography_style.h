@@ -172,7 +172,11 @@ struct RS_EXPORT TypographyStyle {
     TextTab tab;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
-    size_t defaultTextStyleUid { 0 };
+    size_t defaultTextStyleUid{0};
+    double maxLineHeight{std::numeric_limits<float>::max()};
+    double minLineHeight{0.0f};
+    double lineSpacing{0.0f};
+    LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
 };
 } // namespace Rosen
 } // namespace OHOS
