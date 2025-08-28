@@ -312,7 +312,6 @@ ani_object AniFilter::kitTransferDynamicEffect(ani_env* env,  ani_class cls, ani
     return result;
 }
 
-
 ani_status AniFilter::Init(ani_env* env)
 {
     static const char* className = ANI_CLASS_FILTER.c_str();
