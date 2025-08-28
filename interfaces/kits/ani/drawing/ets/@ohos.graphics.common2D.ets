@@ -67,6 +67,17 @@ namespace common2D {
     red: int;
     green: int;
     blue: int;
+    constructor(
+      alpha: int,
+      red: int,
+      green: int,
+      blue: int
+    ) {
+      this.alpha = alpha;
+      this.red = red;
+      this.green = green;
+      this.blue = blue;
+    }
   }
 
   /**
@@ -111,6 +122,17 @@ namespace common2D {
     top: double;
     right: double;
     bottom: double;
+    constructor(
+      left: double,
+      top: double,
+      right: double,
+      bottom: double
+    ) {
+      this.left = left;
+      this.top = top;
+      this.right = right;
+      this.bottom = bottom;
+    }
   }
 
   /**
@@ -140,6 +162,13 @@ namespace common2D {
   class PointInternal implements common2D.Point {
     x: double;
     y: double;
+    constructor(
+      x: double,
+      y: double
+    ) {
+      this.x = x;
+      this.y = y;
+    }
   }
 
   /**
