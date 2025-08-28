@@ -78,21 +78,22 @@ private:
     void DrawDirtyRectForDFX(RSPaintFilterCanvas& canvas, RectI dirtyRect, const Drawing::Color color,
         const RSPaintStyle fillType, int edgeWidth = 6, bool isTextOutsideRect = false) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& canvas,
-        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceNodeDrawable) const;
 #ifdef RS_ENABLE_GPU
     void DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams) const;
 #endif
     void DrawHwcRegionForDFX(RSPaintFilterCanvas& canvas) const;
 
     void DrawCurrentFrameVisibleDirtyRects(RSPaintFilterCanvas& canvas) const;
-    void DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, const std::vector<RectI>& dirtyRects) const;
+    void DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, std::vector<RectI> dirtyRects) const;
     void DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawMergedAndAllDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawAllSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawTargetSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawTargetSurfaceVisibleRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawAndTraceSingleDirtyRegionTypeForDFX(RSPaintFilterCanvas& canvas,
-        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, DirtyRegionType dirtyType, bool isDrawn = true) const;
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceNodeDrawable,
+        DirtyRegionType dirtyType, bool isDrawn = true) const;
     void DrawDirtyRegionInVirtual(RSPaintFilterCanvas& canvas) const;
 
     // dfx check if surface name is in dfx target list
