@@ -20,6 +20,7 @@
 #include "drawing_brush.h"
 #include "drawing_canvas.h"
 #include "drawing_color.h"
+#include "drawing_error_code.h"
 #include "drawing_font.h"
 #include "drawing_font_collection.h"
 #include "drawing_path.h"
@@ -3364,7 +3365,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest003, TestSiz
     // Invalid param 3
     int res = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 3);
-    EXPECT_EQ(res, Rosen::Drawing::ERROR_CODE_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(res, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
 }
  
 /*
@@ -3383,26 +3384,26 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyAttributeInterfaceTest001, Test
     OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
     int intAttributeSetInterfaceNullptrRes = OH_Drawing_SetTextStyleAttributeInt(nullptr,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
-    EXPECT_EQ(intAttributeSetInterfaceNullptrRes, Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER);
+    EXPECT_EQ(intAttributeSetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
     int intAttributeSetInterfaceInvalidParamRes = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0);
-    EXPECT_EQ(intAttributeSetInterfaceInvalidParamRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(intAttributeSetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     int doubleAttributeSetInterfaceInvalidParamRes = OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         0.0f);
-    EXPECT_EQ(doubleAttributeSetInterfaceInvalidParamRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(doubleAttributeSetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     int intParagraphStyleAttributeSetInterfaceNullptrRes = OH_Drawing_SetTypographyStyleAttributeInt(nullptr,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         0);
-    EXPECT_EQ(intParagraphStyleAttributeSetInterfaceNullptrRes, Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER);
+    EXPECT_EQ(intParagraphStyleAttributeSetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
     int intParagraphStyleAttributeSetInterfaceInvalidRes = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
         0);
-    EXPECT_EQ(intParagraphStyleAttributeSetInterfaceInvalidRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(intParagraphStyleAttributeSetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     int doubleParagraphStyleAttributeSetInterfaceInvalidRes = OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         0);
-    EXPECT_EQ(doubleParagraphStyleAttributeSetInterfaceInvalidRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(doubleParagraphStyleAttributeSetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
 }
  
 /*
@@ -3422,28 +3423,28 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyAttributeInterfaceTest002, Test
     int lineHeightStyleInt = 0;
     int intAttributeGetInterfaceNullptrRes = OH_Drawing_GetTextStyleAttributeInt(nullptr,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleInt);
-    EXPECT_EQ(intAttributeGetInterfaceNullptrRes, Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER);
+    EXPECT_EQ(intAttributeGetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
     int lineHeightMaxInt = 0.0f;
     int intAttributeGetInterfaceInvalidParamRes = OH_Drawing_GetTextStyleAttributeInt(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &lineHeightMaxInt);
-    EXPECT_EQ(intAttributeGetInterfaceInvalidParamRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(intAttributeGetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     double lineHeightStyleDouble = 0.0f;
     int doubleAttributeGetInterfaceInvalidParamRes = OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         &lineHeightStyleDouble);
-    EXPECT_EQ(doubleAttributeGetInterfaceInvalidParamRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(doubleAttributeGetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     int intParagraphStyleAttributeGetInterfaceNullptrRes = OH_Drawing_GetTypographyStyleAttributeInt(nullptr,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         &lineHeightStyleInt);
-    EXPECT_EQ(intParagraphStyleAttributeGetInterfaceNullptrRes, Rosen::Drawing::ERROR_CODE_INVALID_PARAMETER);
+    EXPECT_EQ(intParagraphStyleAttributeGetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
     int intParagraphStyleAttributeGetInterfaceInvalidRes = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
         &lineHeightMaxInt);
-    EXPECT_EQ(intParagraphStyleAttributeGetInterfaceInvalidRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(intParagraphStyleAttributeGetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     int doubleParagraphStyleAttributeGetInterfaceInvalidRes = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         &lineHeightStyleDouble);
-    EXPECT_EQ(doubleParagraphStyleAttributeGetInterfaceInvalidRes, Rosen::Drawing::ERROR_CODE_PARAMETER_TYPE_MISMATCH);
+    EXPECT_EQ(doubleParagraphStyleAttributeGetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
 }
 
 /*
