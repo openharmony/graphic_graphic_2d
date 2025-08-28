@@ -322,11 +322,11 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
 
 ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
 {
-    auto aniColorPicker = std::make_unique<AniColorPicker>();
     if (!pixelMap) {
         EFFECT_LOG_E("AniColorPicker::CreateColorPickerFromPtr pixelMap is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
+    auto aniColorPicker = std::make_unique<AniColorPicker>();
     aniColorPicker->srcPixelMap_ = pixelMap;
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     aniColorPicker->nativeColorPicker_ = ColorPicker::CreateColorPicker(pixelMap, errorCode);
