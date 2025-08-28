@@ -341,7 +341,7 @@ ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_pt
         env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
 }
 
-ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* aniEnv, ani_class cls, ani_object obj)
+ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* env, ani_class cls, ani_object obj)
 {
     void *unwrapResult = nullptr;
     if (!arkts_esvalue_unwrap(env, obj, &unwrapResult)) {
@@ -360,7 +360,7 @@ ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* aniEnv, ani_cla
     return nullptr;
 }
 
-ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* aniEnv, ani_class cls, ani_long obj)
+ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* env, ani_class cls, ani_long obj)
 {
     AniColorPicker* aniColorPicker = reinterpret_cast<AniColorPicker*>(obj);
     if (aniColorPicker == nullptr) {
