@@ -353,11 +353,6 @@ ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* env, ani_class 
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ColorPickerNapi* napiColorPicker = static_cast<ColorPickerNapi*>(unwrapResult);
-    
-    if (napiColorPicker == nullptr) {
-        EFFECT_LOG_E("AniColorPicker::KitTransferStaticColorPicker napiColorPicker is nullptr");
-        return AniEffectKitUtils::CreateAniUndefined(env);
-    }
     if (napiColorPicker->GetColorPicker()) {
         std::shared_ptr<Media::PixelMap> pixelMap = napiColorPicker->GetColorPicker()->GetScaledPixelMap();
         return static_cast<ani_object>(CreateColorPickerFromPtr(env, pixelMap));
