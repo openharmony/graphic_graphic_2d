@@ -32,6 +32,8 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/ohos/rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -41,6 +43,8 @@ namespace Rosen {
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+[[maybe_unused]] auto& rsRenderNodeGC = RSRenderNodeGC::Instance();
+[[maybe_unused]] auto& rsSurfaceBufferCallbackManager = RSSurfaceBufferCallbackManager::Instance();
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSRenderServiceConnectionStub> connectionStub_ = nullptr;
 
