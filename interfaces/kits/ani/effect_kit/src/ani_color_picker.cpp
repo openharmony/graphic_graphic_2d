@@ -341,63 +341,63 @@ ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_pt
         env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
 }
 
-ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* aniEnv, ani_class cls, ani_object obj)
+ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* env, ani_class cls, ani_object obj)
 {
     void *unwrapResult = nullptr;
-    if (!arkts_esvalue_unwrap(aniEnv, obj, &unwrapResult)) {
+    if (!arkts_esvalue_unwrap(env, obj, &unwrapResult)) {
         EFFECT_LOG_E("AniColorPicker::KitTransferStaticColorPicker fail to unwrap input");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         EFFECT_LOG_E("AniColorPicker::KitTransferStaticColorPicker unwrapResult is nullptr");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ColorPickerNapi* napiColorPicker = static_cast<ColorPickerNapi*>(unwrapResult);
     
     if (napiColorPicker == nullptr) {
         EFFECT_LOG_E("AniColorPicker::KitTransferStaticColorPicker napiColorPicker is nullptr");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     if (napiColorPicker->GetColorPicker()) {
         std::shared_ptr<Media::PixelMap> pixelMap = napiColorPicker->GetColorPicker()->GetScaledPixelMap();
-        return static_cast<ani_object>(CreateColorPickerFromPtr(aniEnv, pixelMap));
+        return static_cast<ani_object>(CreateColorPickerFromPtr(env, pixelMap));
     }
     return nullptr;
 }
 
-ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* aniEnv, ani_class cls, ani_long obj)
+ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* env, ani_class cls, ani_long obj)
 {
     AniColorPicker* aniColorPicker = reinterpret_cast<AniColorPicker*>(obj);
     if (aniColorPicker == nullptr) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker aniColorPicker is nullptr");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     napi_env napiEnv = {};
-    if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
+    if (!arkts_napi_scope_open(env, &napiEnv)) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker napi scope open failed");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     napi_value napiColorPicker = ColorPickerNapi::CreateColorPickerFromPtr(napiEnv, aniColorPicker->nativeColorPicker_);
     hybridgref ref {};
     if (!hybridgref_create_from_napi(napiEnv, napiColorPicker, &ref)) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker create hybridgref failed");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ani_object result {};
-    if (!hybridgref_get_esvalue(aniEnv, ref, &result)) {
+    if (!hybridgref_get_esvalue(env, ref, &result)) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker get esvalue failed");
         hybridgref_delete_from_napi(napiEnv, ref);
         arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     if (!hybridgref_delete_from_napi(napiEnv, ref)) {
         arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker delete hybridgref fail");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     if (!arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr)) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker napi close scope fail");
-        return AniEffectKitUtils::CreateAniUndefined(aniEnv);
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     return result;
 }
