@@ -144,6 +144,7 @@ void RSDrawFrame::EndCheck()
             getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }
+    timer_ = nullptr;
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
