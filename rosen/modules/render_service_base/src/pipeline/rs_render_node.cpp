@@ -259,7 +259,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     } else {
         if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            ROSEN_LOGI("RSRenderNode:: add child surfaceNode[id:%{public}" PRIu64 " name:%{public}s]"
+            HILOG_COMM_INFO("RSRenderNode:: add child surfaceNode[id:%{public}" PRIu64 " name:%{public}s]"
             " parent'S isOnTheTree_:%{public}d", surfaceNode->GetId(), surfaceNode->GetNodeName().c_str(),
             isOnTheTree_);
         }
@@ -4313,7 +4313,7 @@ void RSRenderNode::InitRenderParams()
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
 #ifndef ROSEN_ARKUI_X
-        RS_LOGE("RSRenderNode::InitRenderParams failed");
+        HILOG_COMM_ERROR("RSRenderNode::InitRenderParams failed");
 #endif
         return;
     }

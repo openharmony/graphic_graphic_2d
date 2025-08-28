@@ -246,7 +246,7 @@ void RSEffectRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
-        RS_LOGE("RSEffectRenderNode::InitRenderParams failed");
+        HILOG_COMM_ERROR("RSEffectRenderNode::InitRenderParams failed");
         return;
     }
 #endif
