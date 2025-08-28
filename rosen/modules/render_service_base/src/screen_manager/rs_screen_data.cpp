@@ -18,6 +18,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t MAX_MODE_COUNT = 1024;
+
 RSScreenData::RSScreenData(RSScreenCapability capability, RSScreenModeInfo activityModeInfo,
     const std::vector<RSScreenModeInfo>& supportModeInfo, ScreenPowerStatus powerStatus)
     : capability_(capability), activityModeInfo_(activityModeInfo),
@@ -79,6 +81,10 @@ bool RSScreenData::WriteVector(const std::vector<RSScreenModeInfo> &supportModes
 
 bool RSScreenData::ReadVector(std::vector<RSScreenModeInfo> &unmarsupportModes, uint32_t unmarModeCount, Parcel &parcel)
 {
+    if (unmarModeCount > MAX_MODE_COUNT) {
+        ROSEN_LOGE("RSScreenData::ReadVector unmarModeCount is over max size!");
+        return false;
+    }
     for (uint32_t modeIndex = 0; modeIndex < unmarModeCount; modeIndex++) {
         sptr<RSScreenModeInfo> itemMode = parcel.ReadParcelable<RSScreenModeInfo>();
         if (itemMode == nullptr) {

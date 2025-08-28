@@ -98,5 +98,35 @@ HWTEST_F(RSScreenCapabilityTest, marshallingAndUnmarshallling001, TestSize.Level
     free(buffer);
     ASSERT_TRUE(ret);
 }
+
+/**
+ * @tc.name: ReadVectorTest001
+ * @tc.desc: test ReadVector when unmarPropCount is invalid
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCapabilityTest, ReadVectorTest001, TestSize.Level1)
+{
+    RSScreenCapability capability;
+    std::vector<RSScreenProps> unmarProps;
+    uint32_t unmarPropCount = std::numeric_limits<uint32_t>::max();
+    Parcel parcel;
+    ASSERT_FALSE(capability.ReadVector(unmarProps, unmarPropCount, parcel));
+}
+
+/**
+ * @tc.name: ReadVectorTest002
+ * @tc.desc: test ReadVector when unmarPropCount is valid
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCapabilityTest, ReadVectorTest002, TestSize.Level1)
+{
+    RSScreenCapability capability;
+    std::vector<RSScreenProps> unmarProps;
+    uint32_t unmarPropCount = 0; // 0 is valid
+    Parcel parcel;
+    ASSERT_TRUE(capability.ReadVector(unmarProps, unmarPropCount, parcel));
+}
 } // namespace Rosen
 } // namespace OHOS
