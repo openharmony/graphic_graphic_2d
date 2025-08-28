@@ -213,6 +213,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ScheduleTask001, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     auto& modifiersDrawThread = RSModifiersDrawThread::Instance();
     NodeId nodeId = 1;
     auto mType = RSModifierType::CONTENT_STYLE;
@@ -227,6 +230,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
         RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit);
     });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -237,6 +243,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     auto mType = RSModifierType::CONTENT_STYLE;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -249,6 +258,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -259,6 +271,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     const int opCnt = 15;
@@ -281,6 +296,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -291,6 +309,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -303,6 +324,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -313,6 +337,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -331,6 +358,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -341,6 +371,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest006, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -359,6 +392,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest006, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -369,6 +405,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest006, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest007, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -384,6 +423,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest007, TestSize.Level1)
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -394,6 +436,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest007, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest008, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto transactionData = std::make_unique<RSTransactionData>();
@@ -412,6 +457,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest008, TestSize.Level1)
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -422,6 +470,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest008, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest009, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto transactionData = std::make_unique<RSTransactionData>();
@@ -441,6 +492,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest009, TestSize.Level1)
     RSModifiersDrawThread::SetIsFirstFrame(true);
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -451,6 +505,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest009, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest010, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto transactionData = std::make_unique<RSTransactionData>();
@@ -470,6 +527,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest010, TestSize.Level1)
     RSModifiersDrawThread::SetIsFirstFrame(false);
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -480,6 +540,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest010, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest011, TestSize.Level1)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     auto transactionData = std::make_unique<RSTransactionData>();
@@ -499,6 +562,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest011, TestSize.Level1)
     RSModifiersDrawThread::SetIsFirstFrame(false);
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
 }
 
 /**
@@ -509,6 +575,9 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest011, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest012, TestSize.Level2)
 {
+    // switch the process to the foreground
+    RSModifiersDraw::InsertForegroundRoot(0);
+
     NodeId nodeId = 1;
     uint16_t propertyId = 1;
     // generate canvas drawCmdList
@@ -544,6 +613,36 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest012, TestSize.Level2)
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
     ASSERT_NE(transactionData, nullptr);
+
+    // restore
+    RSModifiersDraw::EraseForegroundRoot(0);
+}
+
+/**
+ * @tc.name: ConvertTransactionTest013
+ * @tc.desc: test results of ConvertTransaction while switch the process to the background
+ * @tc.type: FUNC
+ * @tc.require: issueICVB68
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest013, TestSize.Level2)
+{
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::HMSYMBOL);
+    Drawing::Brush brush;
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
+
+    NodeId nodeId = 1;
+    uint16_t propertyId = 1;
+    auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
+    auto transactionData = std::make_unique<RSTransactionData>();
+    transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
+
+    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    bool isNeedCommit = true;
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
 }
 
 /**
