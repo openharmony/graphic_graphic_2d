@@ -1,0 +1,13 @@
+1.0 {
+    global:
+        *egl*;
+        *Hook*;
+        extern "C++" {
+            *Egl*;
+            *OHOS::Egl*;
+            *OHOS::BlobCache*;
+            *Hook*;
+        };
+    local:
+        *;
+};
