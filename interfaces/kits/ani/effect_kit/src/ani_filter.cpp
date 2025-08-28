@@ -289,6 +289,7 @@ ani_object AniFilter::kitTransferDynamicEffect(ani_env* env,  ani_class cls, ani
     hybridgref ref {};
     if (!hybridgref_create_from_napi(napiEnv, napiFilter, &ref)) {
         EFFECT_LOG_E("AniFilter::kitTransferDynamicEffect create hybridgref failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ani_object result {};
