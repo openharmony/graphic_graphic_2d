@@ -556,17 +556,6 @@ namespace text {
     top: double;
     right: double;
     bottom: double;
-    constructor(
-      left: double,
-      top: double,
-      right: double,
-      bottom: double
-    ) {
-      this.left = left;
-      this.top = top;
-      this.right = right;
-      this.bottom = bottom;
-    }
   }
 
   class ColorInternal implements common2D.Color {
@@ -574,17 +563,6 @@ namespace text {
     red: int;
     green: int;
     blue: int;
-    constructor(
-      alpha: int,
-      red: int,
-      green: int,
-      blue: int
-    ) {
-      this.alpha = alpha;
-      this.red = red;
-      this.green = green;
-      this.blue = blue;
-    }
   }
 
   export interface Range {
@@ -761,13 +739,6 @@ namespace text {
   class PointInternal implements common2D.Point {
     x: double;
     y: double;
-    constructor(
-      x: double,
-      y: double
-    ) {
-      this.x = x;
-      this.y = y;
-    }
   }
 
   native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
