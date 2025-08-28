@@ -18,8 +18,8 @@
         extern "C++" {
             *Hook*;
             *OHOS::*EglWrapper*;
-            *OHOS::*EglBundleMgrHelper*;
-            *OHOS::*GI*;
+            *OHOS::*EGLBundleMgrHelper*;
+            *OHOS::*Gl*;
             *OHOS::BlobCache*;
             *OHOS::Egl*;
             *OHOS::ThreadPrivate*;
