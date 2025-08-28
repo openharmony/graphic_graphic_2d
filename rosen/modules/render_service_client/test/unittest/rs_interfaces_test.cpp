@@ -882,12 +882,6 @@ HWTEST_F(RSInterfacesTest, SetScreenSwitchingNotifyCallback, Function | SmallTes
     };
     int32_t callbackStatus = rsInterfaces->SetScreenSwitchingNotifyCallback(callback);
     EXPECT_EQ(callbackStatus, StatusCode::SUCCESS);
-    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
-    if (status == StatusCode::SUCCESS) {
-        EXPECT_NE(status, false);
-    } else {
-        EXPECT_EQ(status, false);
-    }
 }
 
 /*

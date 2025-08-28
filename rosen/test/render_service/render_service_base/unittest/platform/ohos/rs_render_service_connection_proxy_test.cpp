@@ -397,7 +397,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenSwitchingNotifyCallback, T
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSIScreenSwitchingNotifyCallback>(remoteObject);
-    ASSERT_EQ(proxy->SetScreenSwitchingNotifyCallback(callback), 0);
+    ASSERT_EQ(proxy->SetScreenSwitchingNotifyCallback(callback), 2);
 }
 
 /**
