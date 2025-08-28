@@ -376,6 +376,7 @@ ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* env, ani_class
     hybridgref ref {};
     if (!hybridgref_create_from_napi(napiEnv, napiColorPicker, &ref)) {
         EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker create hybridgref failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ani_object result {};
