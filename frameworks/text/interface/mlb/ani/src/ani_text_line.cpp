@@ -336,7 +336,7 @@ static bool CaretOffsetsCallBack(
             (i == 0) ? AniTextUtils::CreateAniIntObj(env, leftOffset) : AniTextUtils::CreateAniIntObj(env, rightOffset);
         ani_object jsLeadingEdge =
             (i == 0) ? AniTextUtils::CreateAniBooleanObj(env, true) : AniTextUtils::CreateAniBooleanObj(env, false);
-        std::vector<ani_object> vec = {jsOffset, jsIndex, jsLeadingEdge};
+        std::vector<ani_ref> vec = {jsOffset, jsIndex, jsLeadingEdge};
         ani_ref fnReturnVal = nullptr;
         ani_status ret = env->FunctionalObject_Call(callback, vec.size(), vec.data(), &fnReturnVal);
         if (ret != ANI_OK) {
