@@ -692,6 +692,31 @@ enum class ComponentEnableSwitch : uint8_t {
     CANVAS,
     MAX_VALUE,
 };
+
+typedef enum : uint32_t {
+    WATER_MARK_SCCUSS = 0,
+    WATER_MARK_NAME_ERROR = (1U << 1),
+    WATER_MARK_RS_CONNECTION_ERROR = (1U << 2),
+    WATER_MARK_IMG_ASTC_ERROR = (1U << 3),
+    WATER_MARK_NOT_SUPPORT_ERROR = (1U << 4),
+    WATER_MARK_RENDER_SERVICE_NULL = (1U << 5),
+    WATER_MARK_WRITE_PARCEL_ERR = (1U << 6),
+    WATER_MARK_IPC_ERROR = (1U << 7),
+    WATER_MARK_READ_PARCEL_ERR = (1U << 8),
+    WATER_MARK_RS_NOT_FIND_NODE = (1U << 9),
+    WATER_MARK_PERMISSION_ERROR = (1U << 10),
+    WATER_MARK_IMG_SIZE_ERROR = (1U << 11),
+    WATER_MARK_NODE_NOT_SCREEN = (1U << 12),
+    WATER_MARK_PIXELMAP_INVALID = (1U << 13),
+    WATER_MARK_NOT_SURFACE_NODE_ERROR = (1U << 14),
+    WATER_MARK_INVLID_WATERMARK_TYPE = (1U << 15),
+} SurfaceWatermarkStatusCode;
+
+typedef enum : uint8_t {
+    CUSTOM_WATERMARK = 0,
+    SYSTEM_WATERMARK = 1,
+    INVALID_WATERMARK = 2,
+} SurfaceWatermarkType;
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
