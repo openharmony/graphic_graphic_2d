@@ -29,7 +29,6 @@
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
 
-
 namespace OHOS {
 namespace Rosen {
 
