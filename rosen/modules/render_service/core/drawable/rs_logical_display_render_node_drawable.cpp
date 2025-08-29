@@ -173,7 +173,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         if (!processor->UpdateMirrorInfo(*this)) {
             SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
-            RS_LOGE("RSLogicalDisplayRenderNodeDrawable::OnDraw processor init failed!");
+            HILOG_COMM_ERROR("RSLogicalDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
         if (mirroredRenderParams) {

@@ -173,7 +173,7 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
     }
 
     if (!processor->InitForRenderThread(*this, renderEngine)) {
-        RS_LOGE("RSScreenRenderNodeDrawable::RequestFrame processor init failed!");
+        HILOG_COMM_ERROR("RSScreenRenderNodeDrawable::RequestFrame processor init failed!");
         return nullptr;
     }
 

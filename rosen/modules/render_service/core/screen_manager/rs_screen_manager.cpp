@@ -91,7 +91,7 @@ bool RSScreenManager::Init() noexcept
     }
 
     if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) != 0) {
-        RS_LOGE("%{public}s: Failed to register OnHotPlug Func to composer.", __func__);
+        HILOG_COMM_ERROR("Init: Failed to register OnHotPlug Func to composer.");
         return false;
     }
 
@@ -100,7 +100,7 @@ bool RSScreenManager::Init() noexcept
     }
 
     if (composer_->RegHwcDeadListener(&RSScreenManager::OnHwcDead, this) != 0) {
-        RS_LOGE("%{public}s: Failed to register OnHwcDead Func to composer.", __func__);
+        HILOG_COMM_ERROR("Init: Failed to register OnHwcDead Func to composer.");
         return false;
     }
 
@@ -114,7 +114,7 @@ bool RSScreenManager::Init() noexcept
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     InitFoldSensor();
 #endif
-    RS_LOGI("Init succeed");
+    HILOG_COMM_INFO("Init succeed");
     return true;
 }
 
@@ -305,7 +305,7 @@ ScreenId RSScreenManager::GetActiveScreenId()
         std::chrono::milliseconds(WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT), [this]() {
             return isPostureSensorDataHandled_;
         });
-    RS_LOGW("%{public}s: activeScreenId: %{public}" PRIu64, __func__, activeScreenId_);
+    HILOG_COMM_WARN("GetActiveScreenId activeScreenId: %{public}" PRIu64, activeScreenId_);
     return activeScreenId_;
 }
 #else
@@ -359,7 +359,7 @@ void RSScreenManager::RemoveForceRefreshTask()
 void RSScreenManager::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data)
 {
     if (output == nullptr) {
-        RS_LOGE("%{public}s: output is nullptr.", __func__);
+        HILOG_COMM_ERROR("OnHotPlug: output is nullptr.");
         return;
     }
 
@@ -405,7 +405,7 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool co
         RS_LOGE("%{public}s: mainThread is nullptr.", __func__);
         return;
     }
-    RS_LOGI("%{public}s: mainThread->RequestNextVSync()", __func__);
+    HILOG_COMM_INFO("OnHotPlugEvent: mainThread->RequestNextVSync()");
     mainThread->RequestNextVSync();
 }
 
@@ -441,10 +441,10 @@ void RSScreenManager::OnRefreshEvent(ScreenId id)
 
 void RSScreenManager::OnHwcDead(void* data)
 {
-    RS_LOGW("%{public}s: The composer_host is already dead.", __func__);
+    HILOG_COMM_WARN("OnHwcDead: The composer_host is already dead.");
     RSScreenManager* screenManager = static_cast<RSScreenManager*>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
-        RS_LOGE("%{public}s: Failed to find RSScreenManager instance.", __func__);
+        HILOG_COMM_ERROR("OnHwcDead: Failed to find RSScreenManager instance.");
         return;
     }
 
@@ -667,7 +667,7 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput>& output)
 void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
-    RS_LOGI("%{public}s The screen for id %{public}" PRIu64 " connected.", __func__, id);
+    HILOG_COMM_INFO("ProcessScreenConnected The screen for id %{public}" PRIu64 " connected.", id);
 
     if (GetScreen(id)) {
         TriggerCallbacks(id, ScreenEvent::DISCONNECTED);
@@ -714,7 +714,7 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 void RSScreenManager::ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
-    RS_LOGW("%{public}s process screen disconnected, id: %{public}" PRIu64, __func__, id);
+    HILOG_COMM_WARN("ProcessScreenDisConnected process screen disconnected, id: %{public}" PRIu64, id);
     if (auto screen = GetScreen(id)) {
         TriggerCallbacks(id, ScreenEvent::DISCONNECTED);
         NotifyScreenNodeChange(id, false);
@@ -966,8 +966,8 @@ void RSScreenManager::GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenM
         return;
     }
 
-    RS_LOGI("%{public}s: screen[%{public}" PRIu64 "] pixel[%{public}d * %{public}d],"
-        "freshRate[%{public}d]", __func__, id, modeInfo->width, modeInfo->height, modeInfo->freshRate);
+    HILOG_COMM_INFO("GetScreenActiveMode: screen[%{public}" PRIu64 "] pixel[%{public}d * %{public}d],"
+        "freshRate[%{public}d]", id, modeInfo->width, modeInfo->height, modeInfo->freshRate);
     screenModeInfo.SetScreenWidth(modeInfo->width);
     screenModeInfo.SetScreenHeight(modeInfo->height);
     screenModeInfo.SetScreenRefreshRate(modeInfo->freshRate);
@@ -2659,7 +2659,7 @@ bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func)
 void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenChangeReason reason) const
 {
     std::shared_lock<std::shared_mutex> lock(screenChangeCallbackMutex_);
-    RS_LOGI("%{public}s: id %{public}" PRIu64
+    HILOG_COMM_INFO("%{public}s: id %{public}" PRIu64
             "event %{public}u reason %{public}u screenChangeCallbacks_.size() %{public}zu",
             __func__, id, static_cast<uint8_t>(event), static_cast<uint8_t>(reason), screenChangeCallbacks_.size());
     for (const auto& cb : screenChangeCallbacks_) {

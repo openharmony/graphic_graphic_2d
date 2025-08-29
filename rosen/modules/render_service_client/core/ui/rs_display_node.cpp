@@ -58,7 +58,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
             return nullptr;
         }
     }
-    ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
+    HILOG_COMM_INFO("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
         ", isMirror=%{public}d, mirroredNodeId=%{public}" PRIu64 ", isSync=%{public}d]",
         node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored,
         displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync);
@@ -87,7 +87,7 @@ void RSDisplayNode::AddDisplayNodeToTree()
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeAddToTree>(GetId());
     AddCommand(command, true);
     SetIsOnTheTree(true);
-    ROSEN_LOGI("RSDisplayNode::AddDisplayNodeToTree, id:%{public}" PRIu64, GetId());
+    HILOG_COMM_INFO("RSDisplayNode::AddDisplayNodeToTree, id:%{public}" PRIu64, GetId());
 }
 
 void RSDisplayNode::RemoveDisplayNodeFromTree()
@@ -95,7 +95,7 @@ void RSDisplayNode::RemoveDisplayNodeFromTree()
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeRemoveFromTree>(GetId());
     AddCommand(command, true);
     SetIsOnTheTree(false);
-    ROSEN_LOGI("RSDisplayNode::RemoveDisplayNodeFromTree, id:%{public}" PRIu64, GetId());
+    HILOG_COMM_INFO("RSDisplayNode::RemoveDisplayNodeFromTree, id:%{public}" PRIu64, GetId());
 }
 
 bool RSDisplayNode::Marshalling(Parcel& parcel) const
@@ -173,7 +173,7 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
         ROSEN_LOGE("SET_SCREENID Write HiSysEvent error, ret: %{public}d" PRIu64, ret);
     }
 #endif
-    ROSEN_LOGI(
+    HILOG_COMM_INFO(
         "RSDisplayNode::SetScreenId, DisplayNode: %{public}" PRIu64 ", ScreenId: %{public}" PRIu64, GetId(), screenId);
     RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64, GetId(), screenId);
 }
