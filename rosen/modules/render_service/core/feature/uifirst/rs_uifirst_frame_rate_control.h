@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef RS_UIFIRST_FRAMERATE_CONTROL_H
+#define RS_UIFIRST_FRAMERATE_CONTROL_H
+
 #include <parameter.h>
 #include <parameters.h>
 #include <string>
@@ -114,3 +117,4 @@ private:
     bool forceRefreshOnce_ = true;
 };
 }
+#endif
