@@ -1475,7 +1475,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     data.WriteFloat(captureConfig.specifiedAreaRect.bottom_);
     data.WriteUint32(captureConfig.backGroundColor);
     auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_QE(res, ERR_OK);
+    EXPECT_EQ(res, ERR_OK);
 }
 
 /**
