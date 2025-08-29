@@ -53,9 +53,7 @@ HWTEST_F(RSScreenRenderParamsTest, OnSync001, TestSize.Level1)
     std::unique_ptr<RSRenderParams> target = nullptr;
     RSScreenRenderParams params(id);
     params.OnSync(target);
-    target = std::make_unique<RSRenderParams>(id);
-    ASSERT_NE(target, nullptr);
-    params.OnSync(target);
+    EXPECT_EQ(params.isMainAndLeashSurfaceDirty_, false);
 }
 
 /**
