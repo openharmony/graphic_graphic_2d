@@ -258,7 +258,8 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
         Occlusion::Region alignedDirtyRegion = matrix.has_value() ?
             RSObjAbsGeometry::MapRegion(info.alignedFilterDirty_, matrix.value()) : info.alignedFilterDirty_;
         collector.AddPureCleanFilterDirtyRegion(dirtyRegion);
-        damageRegion.OrSelf(dirtyRegion);
+        // When dirty region alignment is enabled, both damageRegion and drawRegion require alignment
+        damageRegion.OrSelf(dirtyAlignEnabled_ ? alignedDirtyRegion : dirtyRegion);
         drawRegion.OrSelf(dirtyAlignEnabled_ ? alignedDirtyRegion : dirtyRegion);
         info.addToDirty_ = true;
         return true;
