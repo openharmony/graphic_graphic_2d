@@ -283,7 +283,7 @@ HWTEST_F(UtilTest, UtilTest_011, TestSize.Level2)
 }
 
 /**
- * @tc.name: UtilTest_013
+ * @tc.name: UtilTest_012
  * @tc.desc: Verify the ParseProgressData
  * @tc.type:FUNC
  */
@@ -315,5 +315,24 @@ HWTEST_F(UtilTest, UtilTest_012, TestSize.Level1)
     jsonData = cJSON_Parse(jsonStr.c_str());
     OHOS::ParseProgressData(jsonData, configs);
     EXPECT_EQ(configs.empty(), false);
+}
+
+/**
+ * @tc.name: UtilTest_013
+ * @tc.desc: Verify the StringToInt32
+ * @tc.type:FUNC
+ */
+HWTEST_F(UtilTest, UtilTest_013, TestSize.Level2)
+{
+    std::string str = "";
+    EXPECT_EQ(OHOS::StringToInt32(str), 0);
+    str = "1234567890";
+    EXPECT_EQ(OHOS::StringToInt32(str), 0);
+    str = "-123";
+    EXPECT_EQ(OHOS::StringToInt32(str), -123);
+    str = "123ab";
+    EXPECT_EQ(OHOS::StringToInt32(str), 0);
+    str = "123";
+    EXPECT_EQ(OHOS::StringToInt32(str), 123);
 }
 }
