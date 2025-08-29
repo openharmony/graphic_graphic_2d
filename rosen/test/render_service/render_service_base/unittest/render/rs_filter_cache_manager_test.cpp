@@ -161,7 +161,7 @@ HWTEST_F(RSFilterCacheManagerTest, CacheInfoTest, TestSize.Level1)
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     rsFilterCacheManager->cachedFilteredSnapshot_->cachedImage_ = nullptr;
-    EXPECT_EQ(rsFilterCacheManager->GetCacheState(), "No valid cacheImage found.");
+    EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_->GetInfo(), "No valid cacheImage found.");
 }
 
 /**
