@@ -64,7 +64,7 @@ public:
     // Vrate
     void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
     void EraseGameRateDiscountMap(pid_t pid);
-    void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; };
+    void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; }
 private:
     void Reset();
     void HandleLinkers();
@@ -107,7 +107,7 @@ private:
     uint32_t controllerRate_ = 0;
 
     std::atomic<bool> isPerformanceFirst_;
-    std::function<void(bool)> updateSoftVSyncFunc_{ nullptr };
+    std::function<void(bool)> updateSoftVSyncFunc_ { nullptr };
 };
 } // namespace Rosen
 } // namespace OHOS
