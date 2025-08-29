@@ -247,11 +247,11 @@ ani_object AniFilter::GetPixelMap(ani_env* env, ani_object obj)
 
 ani_object AniFilter::CreateEffectFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
 {
-    auto aniFilter = std::make_unique<AniFilter>();
     if (!pixelMap) {
         EFFECT_LOG_E("AniFilter::CreateEffectFromPtr pixelMap is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
+    auto aniFilter = std::make_unique<AniFilter>();
     aniFilter->srcPixelMap_ = pixelMap;
     static const char* className = ANI_CLASS_FILTER.c_str();
     const char* methodSig = "J:V";
