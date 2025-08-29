@@ -70,15 +70,17 @@ void RSDirtyRegionManager::UpdateCurrentFrameAdvancedDirtyRegion(RectI rect)
     }
 }
 
-void RSDirtyRegionManager::MergeHwcDirtyRect(const RectI& rect)
+void RSDirtyRegionManager::MergeHwcDirtyRect(const RectI& rect, RSSurfaceNodeType nodeType)
 {
     if (rect.IsEmpty()) {
         return;
     }
-    if (hwcDirtyRegion_.IsEmpty()) {
-        hwcDirtyRegion_ = rect;
+    if (nodeType == RSSurfaceNodeType::DEFAULT) {
+        hwcDirtyRegion_ = hwcDirtyRegion_.IsEmpty() ? rect : hwcDirtyRegion_.JoinRect(rect);
     } else {
-        hwcDirtyRegion_ = hwcDirtyRegion_.JoinRect(rect);
+        typeHwcDirtyRegion_[nodeType] =
+            typeHwcDirtyRegion_.find(nodeType) == typeHwcDirtyRegion_.end() ?
+            rect : typeHwcDirtyRegion_[nodeType].JoinRect(rect);
     }
     Occlusion::Region tempRegion = Occlusion::Region(Occlusion::Rect(rect));
     for (auto& r : advancedDirtyRegion_) {
@@ -194,6 +196,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     ptr->advancedDirtyRegion_ = advancedDirtyRegion_;
     ptr->advancedDirtyRegionType_ = advancedDirtyRegionType_;
     ptr->hwcDirtyRegion_ = hwcDirtyRegion_;
+    ptr->typeHwcDirtyRegion_ = typeHwcDirtyRegion_;
     ptr->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
     ptr->uifirstFrameDirtyRegion_ = uifirstFrameDirtyRegion_;
     ptr->currentFrameAdvancedDirtyRegion_ = currentFrameAdvancedDirtyRegion_;
@@ -268,6 +271,7 @@ void RSDirtyRegionManager::Clear()
     currentFrameDirtyRegion_.Clear();
     currentFrameAdvancedDirtyRegion_.clear();
     hwcDirtyRegion_.Clear();
+    typeHwcDirtyRegion_.clear();
     visitedDirtyRegions_.clear();
     mergedDirtyRegions_.clear();
     cacheableFilterRects_.clear();

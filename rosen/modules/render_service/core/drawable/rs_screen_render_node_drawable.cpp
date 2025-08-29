@@ -559,6 +559,11 @@ void RSScreenRenderNodeDrawable::SetDamageRegion(const std::vector<RectI>& rects
     expandRenderFrame_->SetDamageRegion(rects);
 }
 
+void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDirtyInSkipFrame)
+{
+    accumulateDirtyInSkipFrame_ = accumulateDirtyInSkipFrame;
+}
+
 void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
@@ -682,8 +687,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (SkipFrame(vsyncRefreshRate, screenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
-        RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
-            screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval, screenInfo.expectedRefreshRate);
+        accumulateDirtyInSkipFrame_ |= RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*this);
+        RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u, dirty:%d",
+            paramScreenId, screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval,
+            screenInfo.expectedRefreshRate, accumulateDirtyInSkipFrame_);
         screenManager->PostForceRefreshTask();
         return;
     }
