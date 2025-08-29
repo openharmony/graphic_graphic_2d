@@ -57,6 +57,19 @@ T GetData()
     return object;
 }
 
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+
 bool RSRoundCornerDisplayLoadCfgFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
@@ -64,7 +77,7 @@ bool RSRoundCornerDisplayLoadCfgFuzzTest(const uint8_t* data, size_t size)
     }
 
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
-    std::string randomConfig(reinterpret_cast<const char*>(data), size);
+    std::string randomConfig = GetData<std::string>();
     rcdCfg.Load(randomConfig);
     rcdCfg.IsDataLoaded();
     return true;
@@ -153,7 +166,7 @@ bool RSRoundCornerDisplayAddLayerFuzzTest(const uint8_t* data, size_t size)
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
     Rosen::NodeId id = GetData<Rosen::NodeId>();
-    std::string layerName(reinterpret_cast<const char*>(data), size);
+    std::string layerName = GetData<std::string>();
 
     auto rawLayerType = GetData<uint32_t>();
     auto layerType = static_cast<RCDLayerType>(rawLayerType);
@@ -264,7 +277,7 @@ bool RSRoundCornerDisplayManagerAPIsFuzzTest(const uint8_t* data, size_t size)
 
     // rcd stub
     Rosen::NodeId randomId = GetData<Rosen::NodeId>();
-    std::string layerName(reinterpret_cast<const char*>(data), size);
+    std::string layerName = GetData<std::string>();
 
     auto rawLayerType = GetData<uint32_t>();
     rawLayerType = rawLayerType % (static_cast<uint32_t>(RCDLayerType::BOTTOM) + 1);
