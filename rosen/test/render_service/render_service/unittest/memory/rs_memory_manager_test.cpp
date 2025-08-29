@@ -403,6 +403,7 @@ HWTEST_F(RSMemoryManagerTest, ReleaseUnlockAndSafeCacheGpuResource002, testing::
     EXPECT_TRUE(logMsg.find("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr") != std::string::npos);
 }
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: SetGpuCacheSuppressWindowSwitch001
  * @tc.desc: Verify SetGpuCacheSuppressWindowSwitch logs correct trace info
@@ -417,7 +418,9 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch001, testing::ext::
     MemoryManager::SetGpuCacheSuppressWindowSwitch(gpuContext, true);
     EXPECT_TRUE(logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") == std::string::npos);
 }
+#endif
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: SetGpuCacheSuppressWindowSwitch002
  * @tc.desc: Verify SetGpuCacheSuppressWindowSwitch logs correct trace info when context is nullptr
@@ -431,6 +434,7 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::
     MemoryManager::SetGpuCacheSuppressWindowSwitch(nullptr, true);
     EXPECT_TRUE(logMsg.find("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr") != std::string::npos);
 }
+#endif
 
 /**
  * @tc.name: SetGpuMemoryAsyncReclaimerSwitch001
@@ -478,6 +482,7 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue001, testing::ext::TestSi
     EXPECT_TRUE(logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") == std::string::npos);
 }
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: FlushGpuMemoryInWaitQueue002
  * @tc.desc: Verify FlushGpuMemoryInWaitQueue logs correct trace info
@@ -491,7 +496,9 @@ HWTEST_F(RSMemoryManagerTest, FlushGpuMemoryInWaitQueue002, testing::ext::TestSi
     MemoryManager::FlushGpuMemoryInWaitQueue(nullptr);
     EXPECT_TRUE(logMsg.find("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr") != std::string::npos);
 }
+#endif
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: SuppressGpuCacheBelowCertainRatio001
  * @tc.desc: Verify SuppressGpuCacheBelowCertainRatio logs correct trace info
@@ -507,7 +514,9 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio001, testing::ext
     MemoryManager::SuppressGpuCacheBelowCertainRatio(gpuContext, nextFrameHasArrived);
     EXPECT_TRUE(logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") == std::string::npos);
 }
+#endif
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: SuppressGpuCacheBelowCertainRatio002
  * @tc.desc: Verify SuppressGpuCacheBelowCertainRatio logs correct trace info
@@ -522,6 +531,7 @@ HWTEST_F(RSMemoryManagerTest, SuppressGpuCacheBelowCertainRatio002, testing::ext
     MemoryManager::SuppressGpuCacheBelowCertainRatio(nullptr, nextFrameHasArrived);
     EXPECT_TRUE(logMsg.find("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr") != std::string::npos);
 }
+#endif
 
 /**
  * @tc.name: GetAppGpuMemoryInMB_NullContextTest
