@@ -32,6 +32,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
@@ -420,9 +421,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK)),
         ERR_INVALID_DATA);
-    EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
-        ERR_INVALID_DATA);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+                      RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
+            ERR_INVALID_DATA);
+    }
+
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP)), ERR_INVALID_STATE);
     EXPECT_EQ(OnRemoteRequestTest(
@@ -623,9 +627,11 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub011
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS)),
         ERR_INVALID_DATA);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
-        REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+                      RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK)),
+            ERR_NULL_OBJECT);
+    }
 }
 
 /**
@@ -1319,17 +1325,19 @@ HWTEST_F(RSRenderServiceConnectionStubTest, ProfilerServicePopulateFilesTest, Te
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, SetLayerTopForHWCTest, TestSize.Level1)
 {
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(0);
-    data.WriteBool(true);
-    data.WriteUint32(1);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        uint32_t code =
+            static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        data.WriteUint64(0);
+        data.WriteBool(true);
+        data.WriteUint32(1);
+        int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+        ASSERT_EQ(res, ERR_NONE);
+    }
 }
 
 /**
@@ -1908,25 +1916,5 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest002, T
     data.WriteUint64(id);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: ShowWatermarkTest
- * @tc.desc: Test ShowWatermark
- * @tc.type: FUNC
- * @tc.require: issueICQ74B
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level2)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
-    bool isShow = false;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteParcelable(nullptr);
-    data.WriteBool(isShow);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen

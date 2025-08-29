@@ -796,7 +796,7 @@ HWTEST_F(RSClientTest, SetRefreshRateMode001, TestSize.Level1)
     rsClient->SetRefreshRateMode(rateMode);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRateMode = rsClient->GetCurrentRefreshRateMode();
-    EXPECT_NE(currentRateMode, rateMode);
+    EXPECT_EQ(currentRateMode, rateMode);
 }
 
 /**

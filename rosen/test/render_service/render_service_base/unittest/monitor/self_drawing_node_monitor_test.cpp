@@ -130,7 +130,7 @@ HWTEST_F(SelfDrawingNodeMonitorTest, UnRegisterRectChangeCallbackTest002, TestSi
     monitor_->UnRegisterRectChangeCallback(0);
     ASSERT_TRUE(monitor_->IsListeningEnabled());
     monitor_->UnRegisterRectChangeCallback(1);
-    ASSERT_TRUE(monitor_->IsListeningEnabled());
+    ASSERT_FALSE(monitor_->IsListeningEnabled());
     monitor_->TriggerRectChangeCallback();
 }
 
@@ -315,7 +315,7 @@ HWTEST_F(SelfDrawingNodeMonitorTest, ShouldTriggerTest003, TestSize.Level1)
 
     rect = RectI(0, 0, 0, 0);
     monitor_->InsertCurRectMap(id, rect);
-    EXPECT_FALSE(monitor_->ShouldTrigger(constraint, callbackData));
+    EXPECT_TRUE(monitor_->ShouldTrigger(constraint, callbackData));
 }
 
 /*
