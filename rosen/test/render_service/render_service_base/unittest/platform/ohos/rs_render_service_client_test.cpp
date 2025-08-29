@@ -1292,7 +1292,7 @@ HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
     int32_t pid = 1001;
     float gpuMemInMB = 0.0f;
     auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
+    EXPECT_EQ(res, ERR_UNKNOWN_OBJECT);
 }
 
 /**
