@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,34 +13,37 @@
  * limitations under the License.
  */
 
+#include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "gtest/gtest.h"
-#include "pipeline/rs_test_util.h"
+#include "pixel_map.h"
 #include "surface_buffer_impl.h"
 #include "surface_type.h"
- 
+
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "feature/capture/rs_surface_capture_task_parallel.h"
-#include "feature/hwc/rs_uni_hwc_compute_util.h"
-#include "pipeline/mock/mock_meta_data_helper.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/hwc/rs_uni_hwc_visitor.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/mock/mock_meta_data_helper.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/hwc/rs_uni_hwc_visitor.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "pixel_map.h"
+#include "pipeline/rs_test_util.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
+
+#if defined(MODIFIER_NG)
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
- 
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
- 
+
 namespace OHOS::Rosen {
 class RSUniHwcComputeUtilTest : public testing::Test {
 public:
@@ -58,7 +61,7 @@ void RSUniHwcComputeUtilTest::TearDownTestCase() {}
 void RSUniHwcComputeUtilTest::SetUp() {}
 void RSUniHwcComputeUtilTest::TearDown() {}
 
-/*
+/**
  * @tc.name: CalcSrcRectBufferFlip
  * @tc.desc: Verify function CalcSrcRectBufferFlip
  * @tc.type: FUNC
@@ -110,7 +113,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectBufferFlipTest, Function | SmallTes
     EXPECT_EQ(newSrcRect, desiredSrcRect);
 }
 
-/*
+/**
  * @tc.name: CalcSrcRectByBufferRotationTest_001
  * @tc.desc: Verify function CalcSrcRectByBufferRotation
  * @tc.type: FUNC
@@ -134,7 +137,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_001, Function 
     ASSERT_EQ(newSrcRect, srcRect);
 }
 
-/*
+/**
  * @tc.name: CalcSrcRectByBufferRotationTest_002
  * @tc.desc: Verify function CalcSrcRectByBufferRotation
  * @tc.type: FUNC
@@ -159,7 +162,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_002, Function 
     ASSERT_EQ(newSrcRect, expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: CalcSrcRectByBufferRotationTest_003
  * @tc.desc: Verify function CalcSrcRectByBufferRotation
  * @tc.type: FUNC
@@ -184,7 +187,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_003, Function 
     ASSERT_EQ(newSrcRect, expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: CalcSrcRectByBufferRotationTest_004
  * @tc.desc: Verify function CalcSrcRectByBufferRotation
  * @tc.type: FUNC
@@ -209,7 +212,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_004, Function 
     ASSERT_EQ(newSrcRect, expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: CheckForceHardwareAndUpdateDstRectTest
  * @tc.desc: Verify function CheckForceHardwareAndUpdateDstRectTest
  * @tc.type: FUNC
@@ -226,7 +229,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CheckForceHardwareAndUpdateDstRectTest, Functi
     EXPECT_TRUE(node.GetOriginalDstRect().IsEmpty());
 }
 
-/*
+/**
  * @tc.name: CheckForceHardwareAndUpdateDstRectTest002
  * @tc.desc: Test CheckForceHardwareAndUpdateDstRect without nullptr
  * @tc.type: FUNC
@@ -244,7 +247,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, CheckForceHardwareAndUpdateDstRectTest002, Fun
     EXPECT_TRUE(node.GetOriginalDstRect().IsEmpty());
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityOldVersionTest
  * @tc.desc: Verify function DealWithNodeGravity
  * @tc.type: FUNC
@@ -272,7 +275,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityOldVersionTest, Function | 
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityOldVersionTest002
  * @tc.desc: Test DealWithNodeGravityOldVersion when buffer is nullptr
  * @tc.type: FUNC
@@ -288,7 +291,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityOldVersionTest002, Function
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityOldVersionTest003
  * @tc.desc: Test DealWithNodeGravityOldVersion when screenInfo.rotation is modify
  * @tc.type: FUNC
@@ -311,7 +314,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityOldVersionTest003, Function
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityOldVersionTest004
  * @tc.desc: Test DealWithNodeGravityOldVersion
  * @tc.type: FUNC
@@ -343,7 +346,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityOldVersionTest004, Function
     EXPECT_TRUE(node.GetSrcRect() == expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest
  * @tc.desc: Verify function DealWithNodeGravity
  * @tc.type: FUNC
@@ -373,7 +376,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest, Function | SmallTest 
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest002
  * @tc.desc: Test DealWithNodeGravity when buffer is nullptr
  * @tc.type: FUNC
@@ -391,7 +394,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest002, Function | SmallTe
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest003
  * @tc.desc: Test DealWithNodeGravity when screenInfo.rotation is modify
  * @tc.type: FUNC
@@ -414,7 +417,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest003, Function | SmallTe
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest004
  * @tc.desc: Test DealWithNodeGravity when a component totalMatrix/bound/frame changed
  * @tc.type: FUNC
@@ -467,7 +470,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest004, Function | SmallTe
     EXPECT_TRUE(node2.GetSrcRect() == expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest005
  * @tc.desc: Test DealWithNodeGravity
  * @tc.type: FUNC
@@ -485,7 +488,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest005, Function | SmallTe
     EXPECT_TRUE(node.GetDstRect() == expectedDstRect);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest006
  * @tc.desc: Test DealWithNodeGravity
  * @tc.type: FUNC
@@ -504,7 +507,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest006, Function | SmallTe
     EXPECT_TRUE(node.GetDstRect() == expectedDstRect);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest007
  * @tc.desc: Test DealWithNodeGravity
  * @tc.type: FUNC
@@ -523,7 +526,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest007, Function | SmallTe
     EXPECT_TRUE(node.GetDstRect() == expectedDstRect);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest008
  * @tc.desc: Test DealWithNodeGravity
  * @tc.type: FUNC
@@ -548,7 +551,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest008, Function | SmallTe
     EXPECT_TRUE(node.GetDstRect() == expectedDstRect);
 }
 
-/*
+/**
  * @tc.name: DealWithNodeGravityTest009
  * @tc.desc: Test DealWithNodeGravity
  * @tc.type: FUNC
@@ -600,7 +603,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithNodeGravityTest009, Function | SmallTe
     EXPECT_TRUE(node2.GetSrcRect() == expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: DealWithScalingMode
  * @tc.desc: Verify function DealWithScalingMode
  * @tc.type: FUNC
@@ -631,7 +634,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, DealWithScalingModeTest, Function | SmallTest 
     EXPECT_TRUE(node1.GetSrcRect() == expectedSrcRect);
 }
 
-/*
+/**
  * @tc.name: IsHwcEnabledByGravity
  * @tc.desc: Verify function IsHwcEnabledByGravity
  * @tc.type: FUNC
@@ -661,7 +664,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsHwcEnabledByGravityTest, Function | SmallTes
     EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByGravity(node, Gravity::CENTER));
 }
 
-/*
+/**
  * @tc.name: IsHwcEnabledByScalingMode
  * @tc.desc: Verify function IsHwcEnabledByScalingMode
  * @tc.type: FUNC
@@ -680,7 +683,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsHwcEnabledByScalingModeTest, Function | Smal
     EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_NO_SCALE_CROP));
 }
 
-/*
+/**
  * @tc.name: LayerCropTest
  * @tc.desc: Verify function LayerCrop
  * @tc.type: FUNC
@@ -699,7 +702,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCropTest, Function | SmallTest | Level2)
     EXPECT_EQ(screenInfo.width, 0);
 }
 
-/*
+/**
  * @tc.name: LayerCrop002
  * @tc.desc: LayerCrop test when resDstRect != dstRectI
  * @tc.type: FUNC
@@ -717,7 +720,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop002, TestSize.Level2)
     EXPECT_EQ(screenInfo.width, 0);
 }
 
-/*
+/**
  * @tc.name: LayerCrop003
  * @tc.desc: LayerCrop test when isInFixedRotation_ is true
  * @tc.type: FUNC
@@ -736,7 +739,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop003, TestSize.Level2)
     EXPECT_EQ(screenInfo.width, 0);
 }
 
-/*
+/**
  * @tc.name: LayerCrop004
  * @tc.desc: LayerCrop test when isInFixedRotation_ is false
  * @tc.type: FUNC
@@ -757,9 +760,9 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop004, TestSize.Level2)
 
 /**
  * @tc.name: LayerCrop005
- * @tc.desc: LayerCrop test when node is PROTECTED
+ * @tc.desc: LayerCrop test when isInFixedRotation_ is false
  * @tc.type: FUNC
- * @tc.require: issuesICP8G6
+ * @tc.require: issuesIBT79X
  */
 HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop005, TestSize.Level2)
 {
@@ -775,7 +778,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerCrop005, TestSize.Level2)
     EXPECT_EQ(screenInfo.width, 0);
 }
 
-/*
+/**
  * @tc.name: LayerRotateTest
  * @tc.desc: Verify function LayerRotate
  * @tc.type: FUNC
@@ -800,7 +803,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, LayerRotateTest, Function | SmallTest | Level2
     EXPECT_EQ(screenInfo.width, 0);
 }
 
-/*
+/**
  * @tc.name: SrcRectRotateTransformTest
  * @tc.desc: Verify function SrcRectRotateTransform
  * @tc.type: FUNC
@@ -836,7 +839,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, SrcRectRotateTransformTest, Function | SmallTe
     ASSERT_EQ(newSrcRect, desiredSrcRect);
 }
 
-/*
+/**
  * @tc.name: UpdateRealSrcRectTest
  * @tc.desc: Verify function UpdateRealSrcRect
  * @tc.type: FUNC
@@ -856,7 +859,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateRealSrcRectTest, Function | SmallTest | 
     EXPECT_TRUE(node.GetRSSurfaceHandler()->buffer_.buffer);
 }
 
-/*
+/**
  * @tc.name: UpdateRealSrcRectTest002
  * @tc.desc: Test UpdateRealSrcRect when consumer is nullptr
  * @tc.type: FUNC
@@ -892,7 +895,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateRealSrcRectTest002, Function | SmallTest
     EXPECT_TRUE(node.GetRSSurfaceHandler()->buffer_.buffer);
 }
 
-/*
+/**
  * @tc.name: GetConsumerTransformTest
  * @tc.desc: Verify function GetConsumerTransform
  * @tc.type: FUNC
@@ -909,7 +912,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetConsumerTransformTest, Function | SmallTest
     ASSERT_EQ(consumerTransform, GRAPHIC_ROTATE_NONE);
 }
 
-/*
+/**
  * @tc.name: GetMatrix_001
  * @tc.desc: test GetMatrix with nullptr Node
  * @tc.type: FUNC
@@ -922,7 +925,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_001, TestSize.Level2)
     ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
 }
 
-/*
+/**
  * @tc.name: GetMatrix_002
  * @tc.desc: test GetMatrix with boundsGeo_
  * @tc.type: FUNC
@@ -936,9 +939,9 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_002, TestSize.Level2)
     ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), node->renderProperties_.boundsGeo_->GetMatrix());
 }
 
-/*
+/**
  * @tc.name: GetMatrix_003
- * @tc.desc: test GetMatrix sandbox hasValue and parent is nullptr
+ * @tc.desc: test GetMatrix with sandbox hasValue and parent is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAVIB4
  */
@@ -952,7 +955,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_003, TestSize.Level2)
     ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
 }
 
-/*
+/**
  * @tc.name: GetMatrix_004
  * @tc.desc: test GetMatrix sandbox hasvalue and parent has geo
  * @tc.type: FUNC
@@ -976,7 +979,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_004, TestSize.Level2)
     ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), assertResult);
 }
 
-/*
+/**
  * @tc.name: GetLayerTransformTest
  * @tc.desc: Verify function GetLayerTransform
  * @tc.type: FUNC
@@ -994,7 +997,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetLayerTransformTest, Function | SmallTest | 
     EXPECT_TRUE(type == GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
 
-/*
+/**
  * @tc.name: GetLayerTransformTest002
  * @tc.desc: Test GetLayerTransform when consumer and buffer is not nullptr
  * @tc.type: FUNC
@@ -1016,115 +1019,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetLayerTransformTest002, TestSize.Level2)
     EXPECT_TRUE(type == GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
 
-/*
- * @tc.name: FixedRotationTransformTest001
- * @tc.desc: Test GetLayerTransform when consumer and buffer is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueICCYNK
- */
-HWTEST_F(RSUniHwcComputeUtilTest, FixedRotationTransformTest001, TestSize.Level2)
-{
-    ScreenInfo screenInfo;
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->InitRenderParams();
-    node->SetForceHardwareAndFixRotation(true);
-    node->SetAbsRotation(0.f);
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    auto type1 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
-
-    node->SetAbsRotation(90.f);
-    auto type2 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
-    ASSERT_EQ(type1, type2);
-}
-
-/*
- * @tc.name: FixedRotationTransformTest002
- * @tc.desc: Test GetLayerTransform when consumer and buffer is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueICCYNK
- */
-HWTEST_F(RSUniHwcComputeUtilTest, FixedRotationTransformTest002, TestSize.Level2)
-{
-    ScreenInfo screenInfo;
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->InitRenderParams();
-    node->SetAbsRotation(0.f);
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    auto type1 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
-
-    node->SetAbsRotation(90.f);
-    auto type2 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
-    ASSERT_NE(type1, type2);
-}
-
-/*
- * @tc.name: UpdateHwcNodeProperty_001
- * @tc.desc: Test UpdateHwcNodeProperty
- * @tc.type: FUNC
- * @tc.require: issueIBJ6BZ
- */
-HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
-    leashWindowNode->InitRenderParams();
-    leashWindowNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
-    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    leashWindowNode->SetDstRect({10, 10, 450, 400});
-    Drawing::Matrix leashWindowMatrix;
-    leashWindowMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
-    leashWindowNode->renderProperties_.boundsGeo_->ConcatMatrix(leashWindowMatrix);
-    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
-    rootNode->InitRenderParams();
-    rootNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
-    rootNode->renderProperties_.clipToBounds_ = true;
-    rootNode->renderProperties_.clipToFrame_ = true;
-    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode1->InitRenderParams();
-    canvasNode1->renderProperties_.boundsGeo_->SetRect(0, 10, 20, 30);
-    canvasNode1->renderProperties_.clipToBounds_ = true;
-    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
-    canvasNode2->InitRenderParams();
-    canvasNode2->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
-    canvasNode2->renderProperties_.clipToBounds_ = true;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode->InitRenderParams();
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::RESIZE;
-    Drawing::Matrix surfaceMatrix;
-    surfaceMatrix.SetMatrix(1.f, 0.f, 0.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
-    surfaceNode->renderProperties_.boundsGeo_->ConcatMatrix(surfaceMatrix);
-    surfaceNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 10);
-    surfaceNode->renderProperties_.clipToBounds_ = true;
-    surfaceNode->renderProperties_.clipToFrame_ = true;
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
-        SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
-        SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1653);
-    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    surfaceNode->isFixRotationByUser_ = false;
-    surfaceNode->SetIsOnTheTree(true);
-    surfaceNode->SetCalcRectInPrepare(false);
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->isHardwareEnabledNode_ = true;
-    leashWindowNode->childHardwareEnabledNodes_.emplace_back(surfaceNode);
-    leashWindowNode->AddChild(rootNode);
-    rootNode->AddChild(canvasNode1);
-    canvasNode1->AddChild(canvasNode2);
-    canvasNode2->AddChild(surfaceNode);
-    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
-    ASSERT_TRUE(surfaceNode->IsHardwareEnabledType());
-}
-
-/*
+/**
  * @tc.name: HasNonZRotationTransform_001
  * @tc.desc:
  * @tc.type: FUNC
@@ -1139,7 +1034,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, HasNonZRotationTransform_001, Function | Small
     ASSERT_FALSE(hasNonZRotationTransform);
 }
 
-/*
+/**
  * @tc.name: HasNonZRotationTransform_002
  * @tc.desc: test HasNonZRotationTransform with ScaleX and ScaleY have same sign
  * @tc.type: FUNC
@@ -1154,7 +1049,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, HasNonZRotationTransform_002, Function | Small
     ASSERT_FALSE(hasNonZRotationTransform);
 }
 
-/*
+/**
  * @tc.name: HasNonZRotationTransform_003
  * @tc.desc: Test HasNonZRotationTransform when ScaleX and ScaleY have different sign
  * @tc.type: FUNC
@@ -1197,10 +1092,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, IntersectRect_002, Function | SmallTest | Leve
     Drawing::Rect rectf1(1.0f, 2.0f, 3.0f, 4.0f);
     Drawing::Rect rectf2(1.0f, 2.0f, 3.0f, 5.0f);
     RSUniHwcComputeUtil::IntersectRect(rectf1, rectf2);
-    EXPECT_EQ(1.0f, rectf2.GetLeft());
-    EXPECT_EQ(2.0f, rectf2.GetTop());
-    EXPECT_EQ(3.0f, rectf2.GetRight());
-    EXPECT_EQ(4.0f, rectf2.GetBottom());
+    EXPECT_EQ(1.0f, rectf1.GetLeft());
+    EXPECT_EQ(2.0f, rectf1.GetTop());
+    EXPECT_EQ(3.0f, rectf1.GetRight());
+    EXPECT_EQ(4.0f, rectf1.GetBottom());
 }
 
 /**
@@ -1279,7 +1174,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_002, Function | SmallTest | Lev
     char* ptr2 = nullptr;
     float* ptr3 = new float;
     auto result = RSUniHwcComputeUtil::IS_ANY_NULLPTR(ptr1, ptr2, ptr3);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
     delete ptr1;
     delete ptr2;
     delete ptr3;
@@ -1328,7 +1223,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_004, Function | SmallTest | Lev
     ptr2 = nullptr;
 }
 
-/*
+/**
  * @tc.name: IsBlendNeedFilter_001
  * @tc.desc: Test IsBlendNeedFilter
  * @tc.type: FUNC
@@ -1344,9 +1239,18 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedFilter_001, Function | SmallTest | 
     node.renderProperties_.needFilter_ = false;
     node.GetHwcRecorder().SetBlendWithBackground(true);
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
+
+    node.GetHwcRecorder().SetBlendWithBackground(false);
+    auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
+    property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
+    modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
+    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR)].emplace_back(modifier);
+    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
 }
 
-/*
+/**
  * @tc.name: IsBlendNeedBackground_001
  * @tc.desc: Test IsBlendNeedBackground
  * @tc.type: FUNC
@@ -1364,7 +1268,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedBackground_001, Function | SmallTes
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedBackground(node));
 }
 
-/*
+/**
  * @tc.name: IsBlendNeedChildNode_001
  * @tc.desc: Test IsBlendNeedChildNode
  * @tc.type: FUNC
@@ -1379,7 +1283,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedChildNode_001, Function | SmallTest
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedChildNode(node));
 }
 
-/*
+/**
  * @tc.name: IsForegroundColorStrategyValid_001
  * @tc.desc: Test IsForegroundColorStrategyValid
  * @tc.type: FUNC
@@ -1393,7 +1297,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_001, Function |
     EXPECT_FALSE(result);
 }
 
-/*
+
+/**
  * @tc.name: IsForegroundColorStrategyValid_002
  * @tc.desc: Test IsForegroundColorStrategyValid
  * @tc.type: FUNC
@@ -1413,7 +1318,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function |
     EXPECT_TRUE(result);
 }
 
-/*
+/**
  * @tc.name: IsDangerousBlendMode_001
  * @tc.desc: Test IsDangerousBlendMode
  * @tc.type: FUNC
@@ -1426,7 +1331,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsDangerousBlendMode_001, Function | SmallTest
     EXPECT_TRUE(RSUniHwcComputeUtil::IsDangerousBlendMode(1, 1));
 }
 
-/*
+/**
  * @tc.name: GetFloatRotationDegreeFromMatrix_001
  * @tc.desc: Test GetFloatRotationDegreeFromMatrix
  * @tc.type: FUNC
@@ -1439,6 +1344,252 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetFloatRotationDegreeFromMatrix_001, Function
 
     float result = RSUniHwcComputeUtil::GetFloatRotationDegreeFromMatrix(matrix);
     EXPECT_NEAR(result, -45.0f, 1e-6);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeDrawingCache_001
+ * @tc.desc: Test UpdateHwcNodeDrawingCache
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeDrawingCache_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto node = std::make_shared<RSRenderNode>(id);
+    node->isStaticCached_ = true;
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    RSUniHwcComputeUtil::UpdateHwcNodeDrawingCache(node, ctx);
+    EXPECT_TRUE(ctx.isNodeRenderByDrawingCache);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeBlendNeedChildNode_001
+ * @tc.desc: Test UpdateHwcNodeBlendNeedChildNode
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeBlendNeedChildNode_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto node = std::make_shared<RSRenderNode>(id);
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
+    node->renderProperties_.SetShadowColorStrategy(shadowColorStrategy);
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    RSUniHwcComputeUtil::UpdateHwcNodeBlendNeedChildNode(node, ctx);
+    EXPECT_TRUE(ctx.isNodeRenderByChildNode);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeTotalMatrix_001
+ * @tc.desc: Test UpdateHwcNodeTotalMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeTotalMatrix_001, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    RSUniHwcComputeUtil::UpdateHwcNodeTotalMatrix(node, ctx);
+    Drawing::Matrix result;
+    EXPECT_EQ(ctx.totalMatrix, result);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeAbsRotation_001
+ * @tc.desc: Test UpdateHwcNodeAbsRotation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeAbsRotation_001, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSCanvasRenderNode>(0);
+    node->GetMutableRenderProperties().SetRotation(0.f);
+    node->GetMutableRenderProperties().SetQuaternion(Quaternion(0.f, 0.f, 0.7f, 0.7f));
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    ctx.absRotation = 0.f;
+    RSUniHwcComputeUtil::UpdateHwcNodeAbsRotation(node, ctx);
+    EXPECT_EQ(round(ctx.absRotation), 90.f);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeAbsRotation_002
+ * @tc.desc: Test UpdateHwcNodeAbsRotation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeAbsRotation_002, Function | SmallTest | Level2)
+{
+    float ret = 180.f;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSCanvasRenderNode>(0);
+    node->GetMutableRenderProperties().SetRotation(ret);
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    ctx.absRotation = 0.f;
+    RSUniHwcComputeUtil::UpdateHwcNodeAbsRotation(node, ctx);
+    EXPECT_EQ(ctx.absRotation, ret);
+}
+
+/**
+ * @tc.name: UpdateHwcEnableByProperty_001
+ * @tc.desc: Test UpdateHwcEnableByProperty
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcEnableByProperty_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->InitRenderParams();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    ctx.isNodeRenderByDrawingCache = true;
+    ctx.isNodeRenderByChildNode = true;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    RSUniHwcComputeUtil::UpdateHwcEnableByProperty(surfaceNode, ctx);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    ctx.isNodeRenderByDrawingCache = true;
+    ctx.isNodeRenderByChildNode = false;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    RSUniHwcComputeUtil::UpdateHwcEnableByProperty(surfaceNode, ctx);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    ctx.isNodeRenderByDrawingCache = false;
+    ctx.isNodeRenderByChildNode = true;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    RSUniHwcComputeUtil::UpdateHwcEnableByProperty(surfaceNode, ctx);
+    EXPECT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+
+    ctx.isNodeRenderByDrawingCache = false;
+    ctx.isNodeRenderByChildNode = false;
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    RSUniHwcComputeUtil::UpdateHwcEnableByProperty(surfaceNode, ctx);
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeProperty_001
+ * @tc.desc: Test UpdateHwcNodeProperty
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
+    leashWindowNode->InitRenderParams();
+    leashWindowNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindowNode->SetDstRect({10, 10, 450, 400});
+    Drawing::Matrix leashWindowMatrix;
+    leashWindowMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
+    leashWindowNode->renderProperties_.boundsGeo_->ConcatMatrix(leashWindowMatrix);
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    rootNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
+    rootNode->renderProperties_.clipToBounds_ = true;
+    rootNode->renderProperties_.clipToFrame_ = true;
+    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode1->InitRenderParams();
+    canvasNode1->renderProperties_.boundsGeo_->SetRect(0, 10, 20, 30);
+    canvasNode1->renderProperties_.clipToBounds_ = true;
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode2->InitRenderParams();
+    canvasNode2->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
+    canvasNode2->renderProperties_.clipToBounds_ = true;
+    canvasNode2->isStaticCached_ = true;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.frameGravity_ = Gravity::RESIZE;
+    Drawing::Matrix surfaceMatrix;
+    surfaceMatrix.SetMatrix(1.f, 0.f, 0.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
+    surfaceNode->renderProperties_.boundsGeo_->ConcatMatrix(surfaceMatrix);
+    surfaceNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 10);
+    surfaceNode->renderProperties_.clipToBounds_ = true;
+    surfaceNode->renderProperties_.clipToFrame_ = true;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
+        SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
+        SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1653);
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    surfaceNode->isFixRotationByUser_ = false;
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetCalcRectInPrepare(false);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareEnabledNode_ = true;
+    leashWindowNode->childHardwareEnabledNodes_.emplace_back(surfaceNode);
+    leashWindowNode->AddChild(rootNode);
+    rootNode->AddChild(canvasNode1);
+    canvasNode1->AddChild(canvasNode2);
+    canvasNode2->AddChild(surfaceNode);
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
+    EXPECT_TRUE(surfaceNode->IsHardwareEnabledType());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeProperty_002
+ * @tc.desc: Test UpdateHwcNodeProperty
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
+    leashWindowNode->InitRenderParams();
+    leashWindowNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindowNode->SetDstRect({10, 10, 450, 400});
+    Drawing::Matrix leashWindowMatrix;
+    leashWindowMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
+    leashWindowNode->renderProperties_.boundsGeo_->ConcatMatrix(leashWindowMatrix);
+    auto rootNode = std::make_shared<RSRootRenderNode>(++id);
+    rootNode->InitRenderParams();
+    rootNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
+    rootNode->renderProperties_.clipToBounds_ = true;
+    rootNode->renderProperties_.clipToFrame_ = true;
+    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode1->InitRenderParams();
+    canvasNode1->renderProperties_.boundsGeo_->SetRect(0, 10, 20, 30);
+    canvasNode1->renderProperties_.clipToBounds_ = true;
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
+    canvasNode1->renderProperties_.SetShadowColorStrategy(shadowColorStrategy);
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode2->InitRenderParams();
+    canvasNode2->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
+    canvasNode2->renderProperties_.clipToBounds_ = true;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.frameGravity_ = Gravity::RESIZE;
+    Drawing::Matrix surfaceMatrix;
+    surfaceMatrix.SetMatrix(1.f, 0.f, 0.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
+    surfaceNode->renderProperties_.boundsGeo_->ConcatMatrix(surfaceMatrix);
+    surfaceNode->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 10);
+    surfaceNode->renderProperties_.clipToBounds_ = true;
+    surfaceNode->renderProperties_.clipToFrame_ = true;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
+        SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
+        SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1653);
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    surfaceNode->isFixRotationByUser_ = false;
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetCalcRectInPrepare(false);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    surfaceNode->isHardwareEnabledNode_ = true;
+    leashWindowNode->childHardwareEnabledNodes_.emplace_back(surfaceNode);
+    leashWindowNode->AddChild(rootNode);
+    rootNode->AddChild(canvasNode1);
+    canvasNode1->AddChild(canvasNode2);
+    canvasNode2->AddChild(surfaceNode);
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
+    EXPECT_TRUE(surfaceNode->IsHardwareEnabledType());
 }
 
 } // namespace OHOS::Rosen
