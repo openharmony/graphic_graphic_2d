@@ -19,17 +19,13 @@ group("unittest") {
   testonly = true
   deps = [
     ":RSProfilerArchiveTest",
-    # ":RSProfilerBaseTest",
     ":RSProfilerCaptureDataTest",
     ":RSProfilerCapturingTest",
     ":RSProfilerCommandTest",
-    # ":RSProfilerDumpTest",
     ":RSProfilerNetworkTest",
     ":RSProfilerPacketTest",
-    # ":RSProfilerPixelMapTest",
     ":RSProfilerSocketTest",
     ":RSProfilerTelemetryTest",
-    # ":RSProfilerTest",
     ":RSProfilerUtilsTest",
     ":subtest",
   ]
