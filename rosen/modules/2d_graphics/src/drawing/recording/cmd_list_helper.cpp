@@ -15,6 +15,8 @@
 
 #include "recording/cmd_list_helper.h"
 
+#include <hilog/log.h>
+
 #include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
@@ -529,13 +531,13 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
     const OpDataHandle& pathHandle)
 {
     if (pathHandle.size == 0) {
-        LOGE("pathHandle is invalid!");
+        HILOG_COMM_ERROR("pathHandle is invalid!");
         return nullptr;
     }
 
     const void* ptr = cmdList.GetImageData(pathHandle.offset, pathHandle.size);
     if (ptr == nullptr) {
-        LOGE("get path data failed!");
+        HILOG_COMM_ERROR("get path data failed!");
         return nullptr;
     }
 
@@ -543,7 +545,7 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
     pathData->BuildWithoutCopy(ptr, pathHandle.size);
     auto path = std::make_shared<Path>();
     if (path->Deserialize(pathData) == false) {
-        LOGE("path deserialize failed!");
+        HILOG_COMM_ERROR("path deserialize failed!");
         return nullptr;
     }
 
