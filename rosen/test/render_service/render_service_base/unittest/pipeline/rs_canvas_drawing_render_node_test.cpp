@@ -179,6 +179,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest002, TestSize.Level1)
     NodeId rootNodeId = 2;
     auto context = std::make_shared<RSContext>();
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
+    rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
     surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     context->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
@@ -188,7 +189,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest002, TestSize.Level1)
         RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(rsCanvasDrawingRenderNode.GetInstanceRootNode());
     EXPECT_NE(appSurfaceNode, nullptr);
     rsCanvasDrawingRenderNode.ResetSurface(width, height);
-    ASSERT_EQ(rsCanvasDrawingRenderNode.stagingRenderParams_->surfaceParams_.colorSpace,
+    EXPECT_EQ(rsCanvasDrawingRenderNode.stagingRenderParams_->surfaceParams_.colorSpace,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
