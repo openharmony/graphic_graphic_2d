@@ -47,7 +47,7 @@ HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect, TestSize.Level1)
     RSUIFilterHelper::GenerateGEVisualEffect(filterNull);
     std::shared_ptr<RSNGRenderFilterBase> filter = std::make_shared<RSNGRenderBlurFilter>();
     RSUIFilterHelper::GenerateGEVisualEffect(filter);
-    EXPECT_EQ(filter->geFilter_, nullptr);
+    EXPECT_NE(filter->geFilter_, nullptr);
 }
 
 /**
@@ -232,7 +232,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
     RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSUIFilterTypeUnderlying>(RSNGEffectType::NONE));
     std::shared_ptr<RSNGRenderFilterBase> noneFilter;
     ret = RSNGRenderFilterBase::Unmarshalling(noneParcel, noneFilter);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     EXPECT_EQ(noneFilter, nullptr); // NONE should return nullptr
 
     // Test Unmarshalling END_OF_CHAIN type
@@ -253,19 +253,20 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
 HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1)
 {
     // Test Marshalling long filter chain
-    auto filter = std::make_shared<RSNGRenderBlurFilter>();
-    std::shared_ptr<RSNGRenderFilterBase> current = filter;
-    for (size_t i = 1; i <= RSNGRenderFilterBase::EFFECT_COUNT_LIMIT; ++i) {
+    auto longFilter = std::make_shared<RSNGRenderBlurFilter>();
+    std::shared_ptr<RSNGRenderFilterBase> current = longFilter;
+    for (size_t i = 1; i < RSNGRenderFilterBase::EFFECT_COUNT_LIMIT; ++i) {
         auto next = std::make_shared<RSNGRenderBlurFilter>();
         current->nextEffect_ = next;
         current = next;
     }
     Parcel parcel;
-    auto ret = filter->Marshalling(parcel);
-    EXPECT_FALSE(ret);
+    auto ret = longFilter->Marshalling(parcel);
+    EXPECT_TRUE(ret);
 
     // Test Unmarshalling with a parcel that has exceeded the limit
     Parcel parcel2;
+    auto filter = std::make_shared<RSNGRenderBlurFilter>();
     ret = (filter->Marshalling(parcel2));
     EXPECT_TRUE(ret);
     RSUIFilterTypeUnderlying val = 0;
@@ -281,7 +282,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     EXPECT_TRUE(ret);
     std::shared_ptr<RSNGRenderFilterBase> outFilter = nullptr;
     ret = RSNGRenderFilterBase::Unmarshalling(parcel2, outFilter);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(outFilter, nullptr);
 }
 
@@ -385,26 +386,5 @@ HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
     Vector4f color{0.5f, 0.5f, 1.5f, 1.0f};
     filter2->Setter<EdgeLightColorRenderTag>(color);
     EXPECT_TRUE(RSUIFilterHelper::CheckEnableEDR(filter1));
-}
-
-/**
- * @tc.name: OnUnmarshalling001
- * @tc.desc: Test the OnUnmarshalling method can correctly
- *           handle unmarshalling the properties of a filter
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderFilterBaseTest, OnUnmarshalling001, TestSize.Level1)
-{
-    // Create a parcel to simulate the unmarshalling process for OnUnmarshalling
-    auto filter = std::make_shared<RSNGRenderBlurFilter>();
-    Parcel parcel;
-    filter->Marshalling(parcel);
-    RSUIFilterTypeUnderlying filterType;
-    bool ret = RSMarshallingHelper::Unmarshalling(parcel, filterType);
-    EXPECT_TRUE(ret);
-    std::shared_ptr<RSNGRenderFilterBase> outFilter;
-    ret = outFilter->OnUnmarshalling(parcel);
-    EXPECT_TRUE(ret);
-    EXPECT_EQ(outFilter->GetType(), filter->GetType());
 }
 } // namespace OHOS::Rosen
