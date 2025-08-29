@@ -18,16 +18,15 @@
 #include "ani_effect_kit_utils.h"
 #include "color.h"
 #include "color_picker.h"
+#include "color_picker_napi.h"
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "hilog/log.h"
-#include "pixel_map_taihe_ani.h"
-#include "color_picker_napi.h"
-
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
+#include "pixel_map_taihe_ani.h"
 
 namespace OHOS {
 namespace Rosen {
