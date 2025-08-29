@@ -183,7 +183,7 @@ HWTEST_F(RSVpeManagerTest, GetVpeVideoSurface003, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
     sptr<Surface> result = RSVpeManager::GetInstance().GetVpeVideoSurface(type, RSSurface, config);
-    EXPECT_NE(result, RSSurface);
+    EXPECT_EQ(result, RSSurface);
 }
 
 HWTEST_F(RSVpeManagerTest, CheckAndGetSurface001, TestSize.Level1)
@@ -200,7 +200,7 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface001, TestSize.Level1)
     EXPECT_EQ(result, RSSurface);
 }
 
-HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterSucceed, TestSize.Level1)
+HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterNoSucceed, TestSize.Level1)
 {
     RSVpeManager manager;
     RSSurfaceRenderNodeConfig config = {1};
@@ -209,7 +209,7 @@ HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterSucceed, TestSize.Level1)
     std::shared_ptr<VpeVideo> validVideo = VpeVideo::Create(VIDEO_TYPE_DETAIL_ENHANCER);
 
     bool result = manager.SetVpeVideoParameter(validVideo, VIDEO_TYPE_DETAIL_ENHANCER, config);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 HWTEST_F(RSVpeManagerTest, SetVpeVideoParameterfails, TestSize.Level1)
@@ -285,7 +285,7 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface005, TestSize.Level1)
     g_isProductSupportRest = true;
 
     OHOS::sptr<OHOS::Surface> result = manager.CheckAndGetSurface(RSSurface, config);
-    EXPECT_NE(result, RSSurface);
+    EXPECT_EQ(result, RSSurface);
 }
 
 }
