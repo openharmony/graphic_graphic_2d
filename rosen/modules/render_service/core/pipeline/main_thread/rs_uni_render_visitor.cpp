@@ -1582,7 +1582,7 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
     }
     if (allDstCurVisVec_ != allLastVisVec_) {
         RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
-        RS_LOGI("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());
+        HILOG_COMM_INFO("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());
         allLastVisVec_ = std::move(allDstCurVisVec_);
     }
 }
