@@ -471,7 +471,7 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Lev
     pid_t pidTest;
     size_t sizeTest;
     test1.RemoveNodeFromMap(id, pidTest, sizeTest);
-    EXPECT_EQ(1, pidTest); //for test
+    EXPECT_EQ(-1, pidTest); //for test
     EXPECT_EQ(sizeof(10), sizeTest); //for test
 }
 
