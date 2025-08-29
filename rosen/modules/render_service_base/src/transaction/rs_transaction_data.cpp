@@ -130,6 +130,10 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                     marshallingIndex_);
                 success = false;
             }
+            if (OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled()) {
+                RS_OPTIONAL_TRACE_NAME_TESTMODE("RSTransactionData::Marshalling nodeId:%ld type:%s",
+                    command->GetNodeId(), command->PrintType().c_str());
+            }
 #ifndef ROSEN_TRACE_DISABLE
             RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(
                 TRACE_LEVEL_THREE, "RSTransactionData::Marshalling type:%s", command->PrintType().c_str());
