@@ -371,5 +371,88 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
         params.GetAccumulatedDirty(), params.GetAccumulatedHdrStatusChanged());
     return !params.GetAccumulatedDirty() && !params.GetAccumulatedHdrStatusChanged();
 }
+
+bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
+{
+    auto mirrorScreenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    auto mainDrawable = mirrorScreenParams->GetMirrorSourceDrawable().lock();
+    if (mainDrawable == nullptr) {
+        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get mainDrawable!");
+        return false;
+    }
+    auto mainScreenParams = static_cast<RSScreenRenderParams*>(mainDrawable->GetRenderParams().get());
+    if (mainScreenParams == nullptr) {
+        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get mirroredRenderParams!");
+        return false;
+    }
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get screen manager!");
+        return false;
+    }
+
+    auto screenDirtyManager = mainDrawable->GetSyncDirtyManager();
+    if (screenDirtyManager == nullptr) {
+        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual screenDirtyManager is nullptr");
+        return false;
+    }
+
+    if (!screenDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty() ||
+        !screenDirtyManager->GetHwcDirtyRegion().IsEmpty()) {
+        RS_TRACE_NAME("CheckCurrentFrameHasDirtyInVirtual has globaldirty or hwcRect");
+        return true;
+    }
+    const auto& displayDrawables = mirrorScreenParams->GetDisplayDrawables();
+    auto& curAllSurfaceDrawables = mainScreenParams->GetAllMainAndLeashSurfaceDrawables();
+    for (const auto& drawable : displayDrawables) {
+        if (drawable == nullptr) {
+            continue;
+        }
+        const auto& displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
+        if (displayParams == nullptr) {
+            continue;
+        }
+        ScreenId screenId = displayParams->GetScreenId();
+        auto curBlackList = screenManager->GetVirtualScreenBlackList(screenId);
+        auto curTypeBlackList = screenManager->GetVirtualScreenTypeBlackList(screenId);
+
+        const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
+            screenDirtyManager->GetTypeHwcDirtyRegion();
+        for (auto& typeHwcRect : typeHwcRectList) {
+            NodeType nodeType = static_cast<NodeType>(typeHwcRect.first);
+            if (curTypeBlackList.find(nodeType) == curTypeBlackList.end() &&
+                !typeHwcRect.second.IsEmpty()) {
+                RS_TRACE_NAME("CheckCurrentFrameHasDirtyInVirtual has typeHwcRect");
+                return true;
+            }
+        }
+        for (const auto& adapter : curAllSurfaceDrawables) {
+            if (adapter == nullptr || adapter->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+                RS_LOGD("CheckCurrentFrameHasDirtyInVirtual adapter is nullptr or error type");
+                continue;
+            }
+            auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(adapter);
+            auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+            if (surfaceDirtyManager == nullptr || surfaceParams == nullptr) {
+                RS_LOGD("CheckCurrentFrameHasDirtyInVirtual surfaceDirtyManager or surfaceparams is nullptr");
+                continue;
+            }
+
+            if (surfaceParams->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::IS_BLACK_LIST) ||
+                surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
+                continue;
+            }
+            auto curDirtyRegion = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
+            if (surfaceParams->GetVisibleRegionInVirtual().IsIntersectWith(curDirtyRegion)) {
+                RS_TRACE_NAME_FMT("CheckCurrentFrameHasDirtyInVirtual name: %s",
+                    surfaceParams->GetName().c_str());
+                return true;
+            }
+        }
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

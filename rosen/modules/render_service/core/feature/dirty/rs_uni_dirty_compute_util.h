@@ -41,6 +41,7 @@ public:
         RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     static bool CheckVirtualExpandScreenSkip(
         RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+    static bool CheckCurrentFrameHasDirtyInVirtual(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
 };
 
 class DirtyStatusAutoUpdate {
