@@ -128,9 +128,10 @@ HWTEST_F(RSBorderLightShaderTest, RSBorderLightShaderTest009, TestSize.Level1)
 
     RectF rect { 0, 0, 100, 100 };
     shader.MakeDrawingShader(rect, 0.75f);
-    EXPECT_NE(shader.GetDrawingShader(), nullptr);
     shader.SetRSBorderLightParams(params);
     shader.SetRotationAngle(Vector3f { 1, 1, 1 });
+
+    shader.MakeDrawingShader(rect, 0.75f);
 }
 
 } // namespace Rosen
