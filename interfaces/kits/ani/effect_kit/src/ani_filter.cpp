@@ -25,15 +25,14 @@
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "effect/shader_effect.h"
-#include "pixel_map.h"
-#include "sk_image_chain.h"
-#include "sk_image_filter_factory.h"
 #include "filter_napi.h"
-
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
+#include "pixel_map.h"
+#include "sk_image_chain.h"
+#include "sk_image_filter_factory.h"
 
 namespace OHOS {
 namespace Rosen {
