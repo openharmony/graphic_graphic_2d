@@ -92,4 +92,13 @@ HWTEST_F(RSCustomModifierHelperTest, FinishDrawingTest, TestSize.Level1)
     auto drawCmdList4 = RSCustomModifierHelper::FinishDrawing(context4);
     EXPECT_EQ(drawCmdList4, nullptr);
 }
+
+/**
+ * @tc.name: UpdateDrawCmdList
+ * @tc.desc: Test the function UpdateDrawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdList, TestSize.Level1)
+{
+}
 } // namespace OHOS::Rosen

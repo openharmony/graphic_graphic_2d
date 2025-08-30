@@ -60,4 +60,9 @@ std::shared_ptr<Drawing::DrawCmdList> RSCustomModifierHelper::FinishDrawing(RSDr
     ctx.canvas = nullptr;
     return recording;
 }
+
+std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> RSCustomModifier::UpdateDrawCmdList()
+{
+
+}
 } // namespace OHOS::Rosen::ModifierNG
