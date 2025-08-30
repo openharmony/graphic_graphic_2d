@@ -63,7 +63,12 @@ void RSUniRenderUtilDirtyRegionTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderUtilDirtyRegionTest::TearDownTestCase() {}
-void RSUniRenderUtilDirtyRegionTest::SetUp() {}
+void RSUniRenderUtilDirtyRegionTest::SetUp()
+{
+    auto& rtThread = RSUniRenderThread::Instance();
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rtThread.Sync(std::move(rsRenderThreadParams));
+}
 void RSUniRenderUtilDirtyRegionTest::TearDown() {}
 
 void RSUniRenderUtilDirtyRegionTest::InitForMergeDirtyHistory(
