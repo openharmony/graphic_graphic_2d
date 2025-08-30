@@ -17,13 +17,13 @@
 #include <tuple>
 #include <type_traits>
 
-#include "common/rs_optional_trace.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
 #include "src/core/SkOpts.h"
 #endif
 
+#include "common/rs_optional_trace.h"
 #include "effect/rs_render_property_tag.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -35,7 +35,6 @@ namespace Drawing {
 class GEVisualEffectContainer;
 class GEVisualEffect;
 } // namespace Drawing
-
 class RSNGRenderMaskBase;
 
 class RSB_EXPORT RSNGRenderEffectHelper {
