@@ -21,7 +21,9 @@ module_output_path =
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSIRenderServiceIpcInterfaceCodeTest" ]
+  deps = [ 
+    ":RSIRenderServiceIpcInterfaceCodeTest"
+  ]
 }
 
 ###############################################################################
