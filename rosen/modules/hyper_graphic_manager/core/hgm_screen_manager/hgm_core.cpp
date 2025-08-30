@@ -452,9 +452,12 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
 
     // for each supported mode, use the index as modeId to add the detailed mode to hgm
     int32_t modeId = 0;
+    int32_t result = EXEC_SUCCESS;
     for (const auto& mode : supportedModes) {
         if (newScreen->AddScreenModeInfo(mode.width, mode.height, mode.freshRate, modeId) != EXEC_SUCCESS) {
             HGM_LOGW("failed to add a screen profile to the screen : %{public}" PRIu64, id);
+            result = HGM_ERROR;
+            continue;
         }
         modeId++;
     }
@@ -465,7 +468,7 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
 
     int32_t screenNum = GetScreenListSize();
     HILOG_COMM_INFO("HgmCore num of screen is %{public}d", screenNum);
-    return EXEC_SUCCESS;
+    return result;
 }
 
 int32_t HgmCore::RemoveScreen(ScreenId id)

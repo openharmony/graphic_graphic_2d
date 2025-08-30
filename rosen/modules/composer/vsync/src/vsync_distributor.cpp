@@ -908,6 +908,12 @@ void VSyncDistributor::ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &
             && !isDvsyncController) {
             actualPeriod = period * static_cast<int64_t>(generatorRefreshRate / conns[i]->refreshRate_);
         }
+        if (vsyncMode_ == VSYNC_MODE_LTPS && conns[i]->highPriorityState_ &&
+            conns[i]->highPriorityRate_ > 0 && !isDvsyncController) {
+            actualPeriod = period * conns[i]->highPriorityRate_;
+            SCOPED_DEBUG_TRACE_FMT("VSYNC_MODE_LTPS highPriorityRate: %d period: %d, actualPeriod: %d",
+                conns[i]->highPriorityRate_, period, actualPeriod);
+        }
         // Start of DVSync
         if (DVSyncCheckSkipAndUpdateTs(conns[i], timestamp)) {
             TriggerNext(conns[i]);
