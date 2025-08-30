@@ -94,11 +94,30 @@ HWTEST_F(RSCustomModifierHelperTest, FinishDrawingTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDrawCmdList
+ * @tc.name: UpdateDrawCmdListTest
  * @tc.desc: Test the function UpdateDrawCmdList
  * @tc.type: FUNC
  */
-HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdList, TestSize.Level1)
+HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListTest, TestSize.Level1)
 {
+    auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    modifier->UpdateDrawCmdList();
+    EXPECT_EQ(modifier->node_.lock(), nullptr);
+    auto node = std::make_shared<RSCanvasNode>(true);
+    modifier->OnAttach(*node);
+    modifier->UpdateDrawCmdList();
+    EXPECT_NE(modifier->node_.lock(), nullptr);
+    auto property = modifier->UpdateDrawCmdList();
+    EXPECT_NE(modifier->node_.lock(), nullptr);
+    EXPECT_NE(property, nullptr);
+    EXPECT_NE(property->Get(), nullptr);
+    property->isCustom_ = true;
+    property = modifier->UpdateDrawCmdList();
+    EXPECT_NE(modifier->node_.lock(), nullptr);
+    EXPECT_NE(property, nullptr);
+    EXPECT_NE(property->Get(), nullptr);
+    modifier->ClearDrawCmdList(nullptr);
+    modifier->ClearDrawCmdList(property);
+    EXPECT_EQ(property->Get(), nullptr);
 }
 } // namespace OHOS::Rosen
