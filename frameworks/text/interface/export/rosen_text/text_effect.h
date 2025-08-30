@@ -17,7 +17,6 @@
 #define OHOS_ROSEN_TEXT_TEXT_EFFECT_H
 
 #include <memory>
-#include <mutex>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
