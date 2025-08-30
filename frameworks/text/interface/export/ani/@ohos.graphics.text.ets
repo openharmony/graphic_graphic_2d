@@ -80,7 +80,8 @@ namespace text {
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
-        throw new Error("Param is null or undefined");
+        const error = new Error("Param is null or undefined");
+        throw new BusinessError(401 ,error);
       }
       return FontCollection.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -126,7 +127,8 @@ namespace text {
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
-        throw new Error("Param is null or undefined");
+        const error = new Error("Param is null or undefined");
+        throw new BusinessError(401 ,error);
       }
       return ParagraphBuilder.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -203,7 +205,8 @@ namespace text {
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
-        throw new Error("Param is null or undefined");
+        const error = new Error("Param is null or undefined");
+        throw new BusinessError(401 ,error);
       }
       return Paragraph.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -585,7 +588,8 @@ namespace text {
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
-        throw new Error("Param is null or undefined");
+        const error = new Error("Param is null or undefined");
+        throw new BusinessError(401 ,error);
       }
       return TextLine.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -641,7 +645,8 @@ namespace text {
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
-        throw new Error("Param is null or undefined");
+        const error = new Error("Param is null or undefined");
+        throw new BusinessError(401 ,error);
       }
       return Run.nativeTransferStatic(ESValue.wrap(input));
     }
