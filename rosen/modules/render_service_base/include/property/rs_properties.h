@@ -816,6 +816,8 @@ private:
     void GenerateForegroundBlurFilter();
     void GenerateBackgroundMaterialBlurFilter();
     void GenerateForegroundMaterialBlurFilter();
+    void GenerateBackgroundMaterialFuzedBlurFilter();
+    void GenerateCompositingMaterialFuzedBlurFilter();
     std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness);
     void GenerateAIBarFilter();
     void GenerateAlwaysSnapshotFilter();
