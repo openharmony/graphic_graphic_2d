@@ -305,11 +305,7 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    Drawing::AniFont* aniFont = new(std::nothrow) Drawing::AniFont(run->GetFont());
-    if (aniFont == nullptr) {
-        TEXT_LOGE("Failed to new ani font");
-        return AniTextUtils::CreateAniUndefined(env);
-    }
+    Drawing::AniFont* aniFont = new Drawing::AniFont(run->GetFont());
     ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
     ani_status ret = env->Object_SetFieldByName_Long(fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
