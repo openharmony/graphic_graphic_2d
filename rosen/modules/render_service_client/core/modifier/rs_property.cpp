@@ -347,30 +347,6 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(renderProp, id_);
 }
 
-template<>
-std::shared_ptr<RSRenderPropertyBase> RSProperty<Drawing::DrawCmdListPtr>::GetRenderProperty()
-{
-    auto renderProperty = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(stagingValue_, id_);
-    // Client does not cache drawCmdList for performance optimization
-    stagingValue_ = nullptr;
-    return renderProperty;
-}
-
-template<>
-void RSProperty<Drawing::DrawCmdListPtr>::UpdateDrawCmdList(Drawing::DrawCmdListPtr drawCmdList)
-{
-    stagingValue_ = drawCmdList;
-    auto node = target_.lock();
-    if (node == nullptr) {
-        return;
-    }
-
-    MarkNodeDirty();
-    if (isCustom_) {
-        MarkCustomModifierDirty();
-    }
-}
-
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
     auto node = target_.lock();                                                                                      \
     if (node != nullptr) {                                                                                           \

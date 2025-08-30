@@ -72,8 +72,6 @@ public:
         }
     }
 
-    virtual void UpdateDrawCmdList() {}
-
 protected:
     RSModifier() : id_(GenerateModifierId()) {}
     virtual ~RSModifier() = default;

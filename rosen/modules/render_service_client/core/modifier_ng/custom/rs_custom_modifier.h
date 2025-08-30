@@ -62,35 +62,15 @@ public:
         Setter<RSProperty, int16_t>(RSPropertyType::CUSTOM_INDEX, index);
     }
 
-    void UpdateDrawCmdList() override
-    {
-        auto node = node_.lock();
-        if (node == nullptr) {
-            return;
-        }
-        RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
-        Draw(ctx);
-        auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
-        auto propertyType = GetInnerPropertyType();
-        auto it = properties_.find(propertyType);
-        if (it != properties_.end()) {
-            auto property = std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(it->second);
-            property->UpdateDrawCmdList(drawCmdList);
-        } else {
-            auto property = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>(value);
-            property->SetPropertyTypeNG(propertyType);
-            properties_[type] = property;
-            SetPropertyThresholdType(propertyType, property);
-            property->Attach(*node, weak_from_this());
-            MarkNodeDirty();
-        }
-    }
-
 protected:
     virtual RSPropertyType GetInnerPropertyType() const
     {
         return RSPropertyType::CUSTOM;
     }
+
+    std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> UpdateDrawCmdList();
+
+    void ClearDrawCmdList(std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> drawCmdListProperty);
 
     void UpdateToRender() override
     {

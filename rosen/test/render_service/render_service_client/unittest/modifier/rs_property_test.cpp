@@ -1008,30 +1008,6 @@ HWTEST_F(RSPropertyTest, RSNGMaskBaseGetRenderPropertyTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawCmdListGetRenderPropertyTest
- * @tc.desc: Test GetRenderPropertyTest for RSProperty<Drawing::DrawCmdListPtr>
- * @tc.type:FUNC
- */
-HWTEST_F(RSPropertyTest, DrawCmdListGetRenderPropertyTest, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>();
-    auto result = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop->GetRenderProperty());
-    EXPECT_NE(result, nullptr);
-    EXPECT_EQ(result->stagingValue_, nullptr);
-
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
-    prop->Set(cmdList);
-    result = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop->GetRenderProperty());
-    EXPECT_NE(result, nullptr);
-
-    auto node = RSCanvasNode::Create();
-    prop->target_ = node;
-    prop->Set(cmdList);
-    result = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop->GetRenderProperty());
-    EXPECT_NE(result, nullptr);
-}
-
-/**
  * @tc.name: GetPropertyTypeNG
  * @tc.desc: test results of GetPropertyTypeNG
  * @tc.type: FUNC

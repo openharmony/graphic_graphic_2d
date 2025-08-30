@@ -334,7 +334,7 @@ struct RSRenderPropertyTraits<std::shared_ptr<RSNGMaskBase>> {
  * @brief The class for properties.
  */
 template<typename T>
-class RSC_EXPORT_TMP RSProperty : public RSPropertyBase {
+class RSProperty : public RSPropertyBase {
     static_assert(std::is_base_of_v<RSArithmetic<T>, T> || supports_arithmetic<T>::value);
 
 public:
@@ -382,8 +382,6 @@ public:
             UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
         }
     }
-
-    void UpdateDrawCmdList(Drawing::DrawCmdListPtr drawCmdList) {}
 
     /**
      * @brief Gets the value of the staging.
@@ -468,7 +466,7 @@ protected:
  * @brief The class for animatable properties.
  */
 template<typename T>
-class RSC_EXPORT_TMP RSAnimatableProperty : public RSProperty<T> {
+class RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_floating_point_v<T> || std::is_same_v<Color, T> || std::is_same_v<Matrix3f, T> ||
                   std::is_same_v<Vector2f, T> || std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
                   std::is_same_v<Quaternion, T> || std::is_same_v<Vector4<Color>, T> ||
@@ -922,11 +920,6 @@ template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty();
 
 template<>
-RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<Drawing::DrawCmdListPtr>::GetRenderProperty();
-template<>
-RSC_EXPORT void RSProperty<Drawing::DrawCmdListPtr>::UpdateDrawCmdList(Drawing::DrawCmdListPtr drawCmdList);
-
-template<>
 RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType type) const;
@@ -952,9 +945,6 @@ RSC_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
     const std::shared_ptr<RSPath>& value, PropertyUpdateType type) const;
-template<>
-RSC_EXPORT void RSProperty<RSDynamicBrightnessPara>::UpdateToRender(
-    const RSDynamicBrightnessPara& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<RSWaterRipplePara>::UpdateToRender(
     const RSWaterRipplePara& value, PropertyUpdateType type) const;
@@ -1010,17 +1000,10 @@ RSC_EXPORT bool RSProperty<Vector2f>::IsValid(const Vector2f& value);
 template<>
 RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 
-#if defined(_WIN32)
-#define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSProperty<T>
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
-extern template class RSAnimatableProperty<T>;    \
-extern template class RSProperty<T>
-#else
 #define DECLARE_PROPERTY(T, TYPE_ENUM) \
 template<>                             \
 inline const RSPropertyType RSProperty<T>::type_ = RSPropertyType::TYPE_ENUM
 #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) DECLARE_PROPERTY(T, TYPE_ENUM)
-#endif
 
 #include "modifier/rs_property_def.in"
 
