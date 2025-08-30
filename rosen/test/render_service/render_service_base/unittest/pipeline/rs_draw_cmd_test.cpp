@@ -630,6 +630,67 @@ HWTEST_F(RSDrawCmdTest, Playback010, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawHybridPixelMapOpItem_Playback
+ * @tc.desc: test Playback with fence
+ * @tc.type: FUNC
+ * @tc.require: issueICVB68
+ */
+HWTEST_F(RSDrawCmdTest, Playback011, TestSize.Level2)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::SamplingOptions sampling;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle, -1, false);
+    Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(cmdList, &handle);
+
+    drawHybridPixelMapOpItem.objectHandle_ = std::make_shared<RSExtendImageObject>();
+    auto object = static_cast<RSExtendImageObject*>(drawHybridPixelMapOpItem.objectHandle_.get());
+    ASSERT_NE(object, nullptr);
+    object->rsImage_ = std::make_shared<RSImage>();
+    object->rsImage_->pixelMap_ = std::make_shared<Media::PixelMap>();
+    drawHybridPixelMapOpItem.fence_ = new SyncFence(-1);
+
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    drawHybridPixelMapOpItem.Playback(&canvas, &rect);
+    ASSERT_EQ(drawHybridPixelMapOpItem.fence_->Get(), -1);
+
+    // clear fence
+    delete drawHybridPixelMapOpItem.fence_;
+    drawHybridPixelMapOpItem.fence_ = nullptr;
+}
+
+/**
+ * @tc.name: DrawHybridPixelMapOpItem_Playback
+ * @tc.desc: test Playback without fence
+ * @tc.type: FUNC
+ * @tc.require: issueICVB68
+ */
+HWTEST_F(RSDrawCmdTest, Playback012, TestSize.Level2)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::SamplingOptions sampling;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle, -1, false);
+    Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(cmdList, &handle);
+
+    drawHybridPixelMapOpItem.objectHandle_ = std::make_shared<RSExtendImageObject>();
+    auto object = static_cast<RSExtendImageObject*>(drawHybridPixelMapOpItem.objectHandle_.get());
+    ASSERT_NE(object, nullptr);
+    object->rsImage_ = std::make_shared<RSImage>();
+    object->rsImage_->pixelMap_ = std::make_shared<Media::PixelMap>();
+    drawHybridPixelMapOpItem.fence_ = nullptr;
+
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    // if the fence is invalid, create a new fence
+    drawHybridPixelMapOpItem.Playback(&canvas, &rect);
+    ASSERT_NE(drawHybridPixelMapOpItem.fence_, nullptr);
+}
+
+/**
  * @tc.name: GetRsImageCache
  * @tc.desc: test results of GetRsImageCache
  * @tc.type:FUNC
