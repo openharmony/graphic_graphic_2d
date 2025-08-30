@@ -33,93 +33,22 @@ public:
         return instance;
     }
 
-    void InsertClass(ani_env* env, const std::string& key, ani_class cls)
-    {
-        std::unique_lock<std::shared_mutex> lock(clsMutex_);
-        ani_ref savePtr = nullptr;
-        ani_status status = env->GlobalReference_Create(reinterpret_cast<ani_ref>(cls), &savePtr);
-        if (status == ANI_OK) {
-            clsCache_.insert({ key, savePtr });
-        } else {
-            TEXT_LOGE("Failed to cache class %{public}s", key.c_str());
-        }
-    }
-
-    bool FindClass(const std::string& key, ani_class& cls)
-    {
-        std::shared_lock<std::shared_mutex> lock(clsMutex_);
-        auto it = clsCache_.find(key);
-        if (it != clsCache_.end()) {
-            cls = reinterpret_cast<ani_class>(it->second);
-            return true;
-        }
-        return false;
-    }
-
-    void InsertMethod(const std::string& key, ani_method method)
-    {
-        std::unique_lock<std::shared_mutex> lock(methodMutex_);
-        methodCache_.insert({ key, method });
-    }
-
-    bool FindMethod(const std::string& key, ani_method& method)
-    {
-        std::shared_lock<std::shared_mutex> lock(methodMutex_);
-        auto it = methodCache_.find(key);
-        if (it != methodCache_.end()) {
-            method = it->second;
-            return true;
-        }
-        return false;
-    }
-
-    void InsertEnum(ani_env* env, const std::string& key, ani_enum enumType)
-    {
-        std::unique_lock<std::shared_mutex> lock(enumMutex_);
-        ani_ref savePtr = nullptr;
-        ani_status status = env->GlobalReference_Create(reinterpret_cast<ani_ref>(enumType), &savePtr);
-        if (status == ANI_OK) {
-            enumCache_.insert({ key, savePtr });
-        } else {
-            TEXT_LOGE("Failed to cache enum %{public}s", key.c_str());
-        }
-    }
-
-    bool FindEnum(const std::string& key, ani_enum& enumType)
-    {
-        std::shared_lock<std::shared_mutex> lock(enumMutex_);
-        auto it = enumCache_.find(key);
-        if (it != enumCache_.end()) {
-            enumType = reinterpret_cast<ani_enum>(it->second);
-            return true;
-        }
-        return false;
-    }
-
-    void Clear(ani_env* env)
-    {
-        {
-            std::unique_lock<std::shared_mutex> lock(clsMutex_);
-            for (auto& pair : clsCache_) {
-                env->GlobalReference_Delete(pair.second);
-            }
-            clsCache_.clear();
-        }
-        {
-            std::unique_lock<std::shared_mutex> lock(methodMutex_);
-            methodCache_.clear();
-        }
-        {
-            std::unique_lock<std::shared_mutex> lock(enumMutex_);
-            for (auto& pair : enumCache_) {
-                env->GlobalReference_Delete(pair.second);
-            }
-            enumCache_.clear();
-        }
-    }
+    void InsertClass(ani_env* env, const std::string& key, ani_class cls);
+    bool FindClass(const std::string& key, ani_class& cls);
+    void InsertMethod(const std::string& key, ani_method method);
+    bool FindMethod(const std::string& key, ani_method& method);
+    void InsertEnum(ani_env* env, const std::string& key, ani_enum enumType);
+    bool FindEnum(const std::string& key, ani_enum& enumType);
+    void Clear(ani_env* env);
 
 private:
     AniCacheManager() = default;
+    ~AniCacheManager() = default;
+    AniCacheManager(AniCacheManager&&) = delete;
+    AniCacheManager& operator=(AniCacheManager&&) = delete;
+    AniCacheManager(const AniCacheManager&) = delete;
+    AniCacheManager& operator=(const AniCacheManager&) = delete;
+
     std::unordered_map<std::string, ani_ref> clsCache_;
     std::unordered_map<std::string, ani_method> methodCache_;
     std::unordered_map<std::string, ani_ref> enumCache_;
