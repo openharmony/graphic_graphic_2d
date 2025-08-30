@@ -81,7 +81,7 @@ namespace text {
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
         const error = new Error("Param is null or undefined");
-        throw new BusinessError(401 ,error);
+        throw new BusinessError(401, error);
       }
       return FontCollection.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -94,12 +94,13 @@ namespace text {
           return esValue.unwrap();
         } else {
           hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer FontCollection to dynamic, input: ${JSON.stringify(input)}`);
-          return esValue;
         }
       } else {
         hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid font collection`);
-        return undefined;
       }
+      const error = new Error("Failed to transfer fontCollection");
+      throw new BusinessError(401, error);
+      return undefined;
     }
   }
 
@@ -128,7 +129,7 @@ namespace text {
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
         const error = new Error("Param is null or undefined");
-        throw new BusinessError(401 ,error);
+        throw new BusinessError(401, error);
       }
       return ParagraphBuilder.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -140,13 +141,14 @@ namespace text {
         if (esValue) {
           return esValue.unwrap();
         } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer ParagraphBuilder to dynamic, input: ${JSON.stringify(input)}`);
-          return esValue;
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph builder to dynamic, input: ${JSON.stringify(input)}`);
         }
       } else {
         hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not ParagraphBuilder`);
-        return undefined;
       }
+      const error = new Error("Failed to transfer paragraph builder");
+      throw new BusinessError(401, error);
+      return undefined;
     }
   }
 
@@ -206,7 +208,7 @@ namespace text {
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
         const error = new Error("Param is null or undefined");
-        throw new BusinessError(401 ,error);
+        throw new BusinessError(401, error);
       }
       return Paragraph.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -218,13 +220,14 @@ namespace text {
         if (esValue) {
           return esValue.unwrap();
         } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer Paragraph to dynamic, input: ${JSON.stringify(input)}`);
-          return esValue;
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph to dynamic, input: ${JSON.stringify(input)}`);
         }
       } else {
         hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not Paragraph`);
-        return undefined;
       }
+      const error = new Error("Failed to transfer paragraph");
+      throw new BusinessError(401, error);
+      return undefined;
     }
   }
 
@@ -589,7 +592,7 @@ namespace text {
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
         const error = new Error("Param is null or undefined");
-        throw new BusinessError(401 ,error);
+        throw new BusinessError(401, error);
       }
       return TextLine.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -601,13 +604,14 @@ namespace text {
         if (esValue) {
           return esValue.unwrap();
         } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer TextLine to dynamic, input: ${JSON.stringify(input)}`);
-          return esValue;
+          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer text line to dynamic, input: ${JSON.stringify(input)}`);
         }
       } else {
         hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not TextLine`);
-        return undefined;
       }
+      const error = new Error("Failed to transfer text line");
+      throw new BusinessError(401, error);
+      return undefined;
     }
   }
 
@@ -646,7 +650,7 @@ namespace text {
     static transferStatic(input: Any): Object {
       if (input == null || input == undefined) {
         const error = new Error("Param is null or undefined");
-        throw new BusinessError(401 ,error);
+        throw new BusinessError(401, error);
       }
       return Run.nativeTransferStatic(ESValue.wrap(input));
     }
@@ -659,12 +663,13 @@ namespace text {
           return esValue.unwrap();
         } else {
           hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer Run to dynamic, input: ${JSON.stringify(input)}`);
-          return esValue;
         }
       } else {
         hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not Run`);
-        return undefined;
       }
+      const error = new Error("Failed to transfer run");
+      throw new BusinessError(401, error);
+      return undefined;
     }
   }
 
