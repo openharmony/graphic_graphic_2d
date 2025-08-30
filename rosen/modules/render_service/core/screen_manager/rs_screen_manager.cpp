@@ -138,6 +138,7 @@ void RSScreenManager::InitFoldSensor()
 
 void RSScreenManager::RegisterSensorCallback()
 {
+    std::unique_lock<std::mutex> lock(registerSensorMutex_);
     if (hasRegisterSensorCallback_) {
         RS_LOGE("%{public}s hasRegisterSensorCallback_ is true", __func__);
         return;
@@ -171,6 +172,7 @@ void RSScreenManager::RegisterSensorCallback()
 
 void RSScreenManager::UnRegisterSensorCallback()
 {
+    std::unique_lock<std::mutex> lock(registerSensorMutex_);
     if (!hasRegisterSensorCallback_) {
         RS_LOGE("%{public}s hasRegisterSensorCallback_ is false", __func__);
         return;
@@ -202,23 +204,9 @@ void RSScreenManager::OnBootComplete(const char* key, const char* value, void *c
 
 void RSScreenManager::OnBootCompleteEvent()
 {
-    RS_LOGI("%{public}s", __func__);
     if (isFoldScreenFlag_) {
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            auto mainThread = RSMainThread::Instance();
-            mainThread->PostTask([this]() {
-                RS_LOGI("OnBootCompleteEvent: mainThread UnRegisterSensorCallback");
-                UnRegisterSensorCallback();
-            });
-        } else {
-#ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().PostTask([this]() {
-                RS_LOGI("OnBootCompleteEvent: hardwareThread UnRegisterSensorCallback");
-                UnRegisterSensorCallback();
-            });
-#endif
-        }
+        RS_LOGI("OnBootCompleteEvent: UnRegisterSensorCallback");
+        UnRegisterSensorCallback();
     }
 }
 
