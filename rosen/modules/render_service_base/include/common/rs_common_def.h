@@ -713,9 +713,9 @@ typedef enum : uint32_t {
 } SurfaceWatermarkStatusCode;
 
 typedef enum : uint8_t {
-    CUSTOM_WATERMARK = 0,
-    SYSTEM_WATERMARK = 1,
-    INVALID_WATERMARK = 2,
+    CUSTOM_WATER_MARK = 0,
+    SYSTEM_WATER_MARK = 1,
+    INVALID_WATER_MARK = 2,
 } SurfaceWatermarkType;
 } // namespace Rosen
 } // namespace OHOS
