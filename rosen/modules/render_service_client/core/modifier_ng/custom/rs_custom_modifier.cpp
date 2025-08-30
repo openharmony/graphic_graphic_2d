@@ -88,7 +88,7 @@ void RSCustomModifier::UpdateDrawCmdList()
         MarkNodeDirty();
     }
 }
- 
+
 void RSCustomModifier::ClearDrawCmdList()
 {
     if (auto property = GetProperty(GetInnerPropertyType())) {
