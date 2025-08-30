@@ -549,4 +549,19 @@ HWTEST_F(RSNodeTest2, AttachProperty, TestSize.Level1)
     rsNode->AttachProperty(property4);
     EXPECT_EQ(property4->GetPropertyTypeNG(), ModifierNG::RSPropertyType::INVALID);
 }
+
+/**
+ * @tc.name: GetModifierCreatedBySetter
+ * @tc.desc: test results of GetModifierCreatedBySetter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, GetModifierCreatedBySetter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto alphaModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::ALPHA);
+    EXPECT_EQ(alphaModifier, nullptr);
+    rsNode->SetAlpha(0.5f);
+    alphaModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::ALPHA);
+    EXPECT_NE(alphaModifier, nullptr);
+}
 } // namespace OHOS::Rosen

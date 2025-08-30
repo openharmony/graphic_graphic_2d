@@ -72,6 +72,8 @@ public:
         }
     }
 
+    virtual void UpdateDrawCmdList() {}
+
 protected:
     RSModifier() : id_(GenerateModifierId()) {}
     virtual ~RSModifier() = default;
@@ -81,9 +83,11 @@ protected:
     ModifierId id_;
     std::weak_ptr<RSNode> node_;
 
-    virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier();
+    virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier() const;
     virtual void UpdateToRender() {}
     virtual void MarkNodeDirty() {}
+
+    void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
 
     template<typename T>
     inline T Getter(RSPropertyType type, const T& defaultValue) const
@@ -110,7 +114,7 @@ protected:
             auto property = std::static_pointer_cast<PropertyType<T>>(it->second);
             property->Set(value);
         } else {
-            std::shared_ptr<RSPropertyBase> property = std::make_shared<PropertyType<T>>(value);
+            auto property = std::make_shared<PropertyType<T>>(value);
             AttachProperty(type, property);
         }
     }
@@ -145,7 +149,6 @@ protected:
 
 private:
     static ModifierId GenerateModifierId();
-    void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
     bool isDirty_ { false };
 
     friend class OHOS::Rosen::RSModifierExtractor;

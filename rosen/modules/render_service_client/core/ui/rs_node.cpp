@@ -925,11 +925,12 @@ template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetPropertyNG(T value)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType::Type)];
+    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
     // Create corresponding modifier if not exist
     if (modifier == nullptr) {
         modifier = std::make_shared<ModifierType>();
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
         AddModifier(modifier);
     } else {
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
@@ -941,11 +942,12 @@ template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetPropertyNG(T value, bool animatable)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType::Type)];
+    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
     // Create corresponding modifier if not exist
     if (modifier == nullptr) {
         modifier = std::make_shared<ModifierType>();
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
         AddModifier(modifier);
     } else {
         (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
@@ -957,10 +959,11 @@ template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetUIFilterPropertyNG(T value)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType::Type)];
+    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
     // Create corresponding modifier if not exist
     if (modifier == nullptr) {
         modifier = std::make_shared<ModifierType>();
+        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
         AddModifier(modifier);
     }
     (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
@@ -1009,7 +1012,7 @@ void RSNode::SetBoundsWidth(float width)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BOUNDS)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::BOUNDS)) {
             SetBounds(0.f, 0.f, width, 0.f);
             return;
@@ -1033,7 +1036,7 @@ void RSNode::SetBoundsHeight(float height)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BOUNDS)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::BOUNDS)) {
             SetBounds(0.f, 0.f, 0.f, height);
             return;
@@ -1072,7 +1075,7 @@ void RSNode::SetFramePositionX(float positionX)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FRAME)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::FRAME);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::FRAME)) {
             SetFrame(positionX, 0.f, 0.f, 0.f);
             return;
@@ -1097,7 +1100,7 @@ void RSNode::SetFramePositionY(float positionY)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FRAME)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::FRAME);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::FRAME)) {
             SetFrame(0.f, positionY, 0.f, 0.f);
             return;
@@ -1121,7 +1124,7 @@ void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
     if (!parentPosition.has_value()) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::SANDBOX);
         }
@@ -1162,7 +1165,7 @@ void RSNode::SetPivotX(float pivotX)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::PIVOT)) {
             SetPivot(pivotX, 0.5f);
             return;
@@ -1184,7 +1187,7 @@ void RSNode::SetPivotY(float pivotY)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::PIVOT)) {
             SetPivot(0.5f, pivotY);
             return;
@@ -1265,7 +1268,7 @@ void RSNode::SetTranslateX(float translate)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::TRANSLATE)) {
             SetTranslate({ translate, 0.f });
             return;
@@ -1288,7 +1291,7 @@ void RSNode::SetTranslateY(float translate)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::TRANSLATE)) {
             SetTranslate({ 0.f, translate });
             return;
@@ -1331,7 +1334,7 @@ void RSNode::SetScaleX(float scaleX)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SCALE)) {
             SetScale(scaleX, 1.f);
             return;
@@ -1354,7 +1357,7 @@ void RSNode::SetScaleY(float scaleY)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SCALE)) {
             SetScale(1.f, scaleY);
             return;
@@ -1402,7 +1405,7 @@ void RSNode::SetSkewX(float skewX)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SKEW)) {
             SetSkew(skewX, 0.f);
             return;
@@ -1425,7 +1428,7 @@ void RSNode::SetSkewY(float skewY)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SKEW)) {
             SetSkew(0.f, skewY);
             return;
@@ -1447,7 +1450,7 @@ void RSNode::SetSkewZ(float skewZ)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SKEW)) {
             SetSkew(0.f, 0.f, skewZ);
             return;
@@ -1531,7 +1534,7 @@ void RSNode::SetPerspX(float perspX)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::PERSP)) {
             SetPersp({ perspX, 0.f, 0.0f, 1.0f });
             return;
@@ -1554,7 +1557,7 @@ void RSNode::SetPerspY(float perspY)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::PERSP)) {
             SetPersp({ 0.f, perspY, 0.f, 1.f });
             return;
@@ -1576,7 +1579,7 @@ void RSNode::SetPerspZ(float perspZ)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::PERSP)) {
             SetPersp({ 0.f, 0.f, perspZ, 1.f });
             return;
@@ -1598,7 +1601,7 @@ void RSNode::SetPerspW(float perspW)
     {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::PERSP)) {
             SetPersp({ 0.f, 0.f, 0.f, perspW });
             return;
@@ -2215,8 +2218,7 @@ void RSNode::SetBackgroundNGFilter(const std::shared_ptr<RSNGFilterBase>& backgr
 {
     if (!backgroundFilter) {
         ROSEN_LOGW("RSNode::SetBackgroundNGFilter background filter is nullptr");
-        auto& modifier =
-            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_FILTER)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BACKGROUND_FILTER);
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_FILTER);
         }
@@ -2230,8 +2232,7 @@ void RSNode::SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregr
 {
     if (!foregroundFilter) {
         ROSEN_LOGW("RSNode::SetForegroundNGFilter background filter is nullptr");
-        auto& modifier =
-            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_FILTER)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::FOREGROUND_FILTER);
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::FOREGROUND_NG_FILTER);
         }
@@ -2246,8 +2247,7 @@ void RSNode::SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgr
     if (!backgroundShader) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier =
-            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER)) {
             return;
         }
@@ -2263,8 +2263,7 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
     if (!foregroundShader) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto& modifier =
-            modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::FOREGROUND_SHADER)];
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::FOREGROUND_SHADER);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::FOREGROUND_SHADER)) {
             return;
         }
@@ -2888,6 +2887,7 @@ void RSNode::DoFlushModifier()
         std::unique_ptr<RSCommand> removeAllModifiersCommand = std::make_unique<RSRemoveAllModifiersNG>(GetId());
         AddCommand(removeAllModifiersCommand, IsRenderServiceNode(), GetFollowType(), GetId());
         for (const auto& [_, modifier] : modifiersNG_) {
+            modifier->UpdateDrawCmdList();
             std::unique_ptr<RSCommand> command =
                 std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
             AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
@@ -4102,11 +4102,13 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+    modifier->UpdateDrawCmdList();
+    auto renderModifier = modifier->CreateRenderModifier();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, renderModifier);
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
         std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+            std::make_unique<RSAddModifierNG>(id_, renderModifier);
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
 }
@@ -4147,11 +4149,20 @@ const std::shared_ptr<RSPropertyBase> RSNode::GetPropertyById(const PropertyId& 
 const std::shared_ptr<RSPropertyBase> RSNode::GetPropertyByType(
     const ModifierNG::RSModifierType& modifierType, const ModifierNG::RSPropertyType& propertyType)
 {
-    auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint16_t>(modifierType)];
+    auto modifier = GetModifierCreatedBySetter(modifierType);
     if (!modifier) {
         return {};
     }
     return modifier->GetProperty(propertyType);
+}
+
+std::shared_ptr<ModifierNG::RSModifier> RSNode::GetModifierCreatedBySetter(ModifierNG::RSModifierType modifierType)
+{
+    auto it = modifiersNGCreatedBySetter_.find(modifierType);
+    if (it != modifiersNGCreatedBySetter_.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

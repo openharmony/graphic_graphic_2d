@@ -298,11 +298,11 @@ void RSModifier::OnAttach(RSNode& node)
 
 void RSModifier::OnDetach()
 {
-    node_.reset();
     for (auto& [_, property] : properties_) {
         property->Detach();
     }
     MarkNodeDirty();
+    node_.reset();
 }
 
 void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager)
@@ -325,7 +325,7 @@ void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>
     modifierManager->AddModifier(shared_from_this());
 }
 
-std::shared_ptr<RSRenderModifier> RSModifier::CreateRenderModifier()
+std::shared_ptr<RSRenderModifier> RSModifier::CreateRenderModifier() const
 {
     const auto& constructor = RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(GetType())];
     if (constructor == nullptr) {

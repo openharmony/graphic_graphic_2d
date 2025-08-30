@@ -251,7 +251,7 @@ PropertyId RSPathAnimation::GetRotationPropertyId(const std::shared_ptr<RSNode>&
         return 0;
     }
     std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
-    auto& modifier = node->modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+    auto modifier = node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
     if (modifier) {
         if (const auto& property = modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION)) {
             return property->GetId();
@@ -273,7 +273,7 @@ void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const flo
         std::static_pointer_cast<RSProperty<float>>(property)->stagingValue_ = rotation;
         return;
     }
-    auto& modifier = node->modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSFORM)];
+    auto modifier = node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
     if (modifier) {
         return;
     }

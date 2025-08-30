@@ -4069,8 +4069,7 @@ HWTEST_F(RSNodeTest, SetVisualEfffect003, TestSize.Level1)
     auto colorGradient = std::make_shared<ColorGradientEffectPara>();
     effectObj->AddPara(colorGradient);
     rsNode->SetVisualEffect(effectObj.get());
-    auto& modifier = rsNode->modifiersNGCreatedBySetter_[static_cast<uint16_t>(
-        ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
+    auto modifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER);
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER));
     std::shared_ptr<VisualEffectPara> effectPara = nullptr;
     auto shader = RSNGShaderBase::Create(effectPara);
