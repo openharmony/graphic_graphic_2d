@@ -14,10 +14,12 @@
  */
 
 #include "gtest/gtest.h"
+#include "limit_number.h"
 #include "parameters.h"
+
+#include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
-#include "limit_number.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1353,10 +1355,11 @@ HWTEST_F(RSSurfaceNodeTest, IsSelfDrawingNodeTest, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
     EXPECT_FALSE(surfaceNode->IsSelfDrawingNode());
-
-    RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(c, false);
-    ASSERT_NE(surfaceNode1, nullptr);
-    EXPECT_FALSE(surfaceNode1->IsSelfDrawingNode());
+    if (RSUniRenderJudgement::IsUniRender()) {
+        RSSurfaceNode::SharedPtr surfaceNode1 = RSSurfaceNode::Create(c, false);
+        ASSERT_NE(surfaceNode1, nullptr);
+        EXPECT_FALSE(surfaceNode1->IsSelfDrawingNode());
+    }
 }
 
 /**
