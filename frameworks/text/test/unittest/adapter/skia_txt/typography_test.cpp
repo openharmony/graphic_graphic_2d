@@ -17,6 +17,7 @@
 
 #include "font_collection.h"
 #include "impl/paragraph_impl.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph.h"
 #include "src/ParagraphImpl.h"
 #include "typography.h"

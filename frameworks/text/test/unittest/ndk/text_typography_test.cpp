@@ -33,6 +33,7 @@
 #include "drawing_text_typography.h"
 #include "font_utils.h"
 #include "gtest/gtest.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "text_style.h"
