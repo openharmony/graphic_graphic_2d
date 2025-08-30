@@ -136,6 +136,7 @@ HWTEST_F(RSScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
     EXPECT_EQ(screenManagerImpl.activeScreenId_, screenManagerImpl.innerScreenId_);
     screenManagerImpl.HandleSensorData(0.f);
     EXPECT_EQ(screenManagerImpl.activeScreenId_, screenManagerImpl.externalScreenId_);
+    screenManagerImpl.activeScreenId_ = 0;
 }
 
 /*
