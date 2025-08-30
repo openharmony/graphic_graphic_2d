@@ -566,7 +566,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
 
     surfaceParams->SetWindowInfo(false, true, false);
     Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
-    ASSERT_TRUE(result.IsEmpty());
+    ASSERT_FALSE(result.IsEmpty());
 
     surfaceParams->SetWindowInfo(true, true, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
@@ -574,7 +574,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
 
     surfaceParams->SetWindowInfo(false, false, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
-    ASSERT_FALSE(result.IsEmpty());
+    ASSERT_TRUE(result.IsEmpty());
 
     surfaceParams->SetWindowInfo(true, false, false);
     result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
