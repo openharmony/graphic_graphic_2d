@@ -61,41 +61,38 @@ std::shared_ptr<Drawing::DrawCmdList> RSCustomModifierHelper::FinishDrawing(RSDr
     return recording;
 }
 
-std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> RSCustomModifier::UpdateDrawCmdList()
+void RSCustomModifier::UpdateDrawCmdList()
 {
     auto node = node_.lock();
     if (node == nullptr) {
-        return nullptr;
+        return;
     }
     RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
     Draw(ctx);
     auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
     auto propertyType = GetInnerPropertyType();
-    std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> property;
     auto it = properties_.find(propertyType);
     if (it != properties_.end()) {
-        property = std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(it->second);
+        auto property = std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(it->second);
         property->stagingValue_ = drawCmdList;
         MarkNodeDirty();
         if (property->isCustom_) {
             property->MarkCustomModifierDirty();
         }
     } else {
-        property = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+        auto property = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
         property->SetPropertyTypeNG(propertyType);
         properties_[propertyType] = property;
         SetPropertyThresholdType(propertyType, property);
         property->Attach(*node, weak_from_this());
         MarkNodeDirty();
     }
-    return property;
 }
  
-void RSCustomModifier::ClearDrawCmdList(
-    std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> drawCmdListProperty)
+void RSCustomModifier::ClearDrawCmdList()
 {
-    if (drawCmdListProperty != nullptr) {
-        drawCmdListProperty->stagingValue_ = nullptr;
+    if (auto property = GetProperty(GetInnerPropertyType())) {
+        std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(property)->stagingValue_ = nullptr;
     }
 }
 } // namespace OHOS::Rosen::ModifierNG

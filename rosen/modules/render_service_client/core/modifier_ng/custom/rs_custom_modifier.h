@@ -68,9 +68,9 @@ protected:
         return RSPropertyType::CUSTOM;
     }
 
-    std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> UpdateDrawCmdList();
+    void UpdateDrawCmdList();
 
-    void ClearDrawCmdList(std::shared_ptr<RSProperty<Drawing::DrawCmdListPtr>> drawCmdListProperty);
+    void ClearDrawCmdList();
 
     void UpdateToRender() override
     {

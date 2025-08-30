@@ -2887,13 +2887,14 @@ void RSNode::DoFlushModifier()
         std::unique_ptr<RSCommand> removeAllModifiersCommand = std::make_unique<RSRemoveAllModifiersNG>(GetId());
         AddCommand(removeAllModifiersCommand, IsRenderServiceNode(), GetFollowType(), GetId());
         for (const auto& [_, modifier] : modifiersNG_) {
-            auto drawCmdListProperty = modifier->IsCustom() ?
-                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList() : nullptr;
+            if (modifier->IsCustom()) {
+                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
+            }
             std::unique_ptr<RSCommand> command =
                 std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
             AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
             if (modifier->IsCustom()) {
-                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList(drawCmdListProperty);
+                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
             }
         }
     }
@@ -4106,8 +4107,9 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
     }
-    auto drawCmdListProperty = modifier->IsCustom() ?
-        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList() : nullptr;
+    if (modifier->IsCustom()) {
+        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
@@ -4116,7 +4118,7 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
     if (modifier->IsCustom()) {
-        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList(drawCmdListProperty);
+        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
     }
 }
 
