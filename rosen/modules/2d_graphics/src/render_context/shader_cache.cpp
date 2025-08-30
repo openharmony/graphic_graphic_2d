@@ -53,7 +53,9 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
         return;
     }
     cacheData_.reset();
-    size_t totalSize = isUni ? MAX_UNIRENDER_SIZE : MAX_TOTAL_SIZE;
+    size_t maxUniRenderSize =  CalMaxUniRenderSize();
+    size_t totalSize = isUni ? maxUniRenderSize : MAX_TOTAL_SIZE;
+    LOGI("ShaderCache totalSize: %{public}zu.", totalSize);
     saveDelaySeconds_ = isUni ? UNI_DELAY_SECONDS : DEFAULT_DELAY_SECONDS;
     cacheData_ = std::make_unique<CacheData>(MAX_KEY_SIZE, MAX_VALUE_SIZE, totalSize, filePath_);
     cacheData_->ReadFromFile();
@@ -260,6 +262,24 @@ void ShaderCache::PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& 
         return;
     }
     cacheData_->PurgeShaderCacheAfterAnimate(nextFrameHasArrived);
+}
+
+int ShaderCache::GetMaxUniRenderSize()
+{
+    return maxUniRenderSize_;
+}
+ 
+void ShaderCache::SetMaxUniRenderSize(int maxUniRenderSize)
+{
+    maxUniRenderSize_ = maxUniRenderSize;
+}
+ 
+int ShaderCache::CalMaxUniRenderSize()
+{
+    if (maxUniRenderSize_ > 0) {
+        return MAX_VALUE_SIZE * maxUniRenderSize_;
+    }
+    return MAX_UNIRENDER_SIZE;
 }
 }   // namespace Rosen
 }   // namespace OHOS

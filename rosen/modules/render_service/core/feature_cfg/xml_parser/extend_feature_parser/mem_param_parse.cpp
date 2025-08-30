@@ -59,6 +59,9 @@ int32_t MEMParamParse::ParseMemInternal(xmlNode &node)
             MemorySnapshot::Instance().SetMemSnapshotPrintHilogLimit(stoi(val));
             RS_LOGI("memSnapshotPrintHilogLimit %{public}d",
                 MemorySnapshot::Instance().GetMemSnapshotPrintHilogLimit());
+        } else if (name == "MaxUniRenderSize" && IsNumber(val)) {
+            ShaderCache::Instance().SetMaxUniRenderSize(stoi(val));
+            RS_LOGI("MaxUniRenderSize %{public}d", ShaderCache::Instance().GetMaxUniRenderSize());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);

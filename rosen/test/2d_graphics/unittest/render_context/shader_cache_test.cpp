@@ -370,5 +370,67 @@ HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
     size_t test2 = cache.QuerryShaderSize();
     EXPECT_NE(0, test2);
 }
+
+/**
+*@tc.name: SetAndGetMaxUniRenderSizeTest
+*@tc.desc: Verify the return value of the GetMaxUniRenderSize founction after maxUniRenderSize_ is set.
+*@tc.type: FUNC
+*@tc.require:
+*@tc.author:
+*/
+HWTEST_F(ShaderCacheTest, SetAndGetMaxUniRenderSizeTest, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    EXPECT_EQ(0, cache.GetMaxUniRenderSize());
+    const int maxUniRenderSize = 20;
+    cache.SetMaxUniRenderSize(maxUniRenderSize);
+    EXPECT_EQ(20, cache.GetMaxUniRenderSize());
+}
+ 
+/**
+*@tc.name: CalMaxUniRenderSize_test_001
+*@tc.desc: Verify the return value of the CalMaxUniRenderSize founction when the maxUniRenderSize_ is not set
+*@tc.type: FUNC
+*@tc.require:
+*@tc.author:
+*/
+HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_001, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    int result = cache.CalMaxUniRenderSize();
+    EXPECT_EQ(ShaderCache::MAX_UNIRENDER_SIZE, result);
+}
+ 
+/**
+*@tc.name: CalMaxUniRenderSize_test_002
+*@tc.desc: Verify the return value of the CalMaxUniRenderSize founction when the maxUniRenderSize_ is set
+*@tc.type: FUNC
+*@tc.require:
+*@tc.author:
+*/
+HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_002, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    const int maxUniRenderSize = 20;
+    cache.SetMaxUniRenderSize(maxUniRenderSize);
+    int result = cache.CalMaxUniRenderSize();
+    EXPECT_EQ(ShaderCache::MAX_VALUE_SIZE * maxUniRenderSize, result);
+}
+ 
+/**
+*@tc.name: CalMaxUniRenderSize_test_003
+*@tc.desc: Verify the return value of the CalMaxUniRenderSize founction when the set maxUniRenderSize_ is invalid
+*@tc.type: FUNC
+*@tc.require:
+*@tc.author:
+*/
+HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_003, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    const int maxUniRenderSize = -20;
+    cache.SetMaxUniRenderSize(maxUniRenderSize);
+    int result = cache.CalMaxUniRenderSize();
+    EXPECT_EQ(ShaderCache::MAX_UNIRENDER_SIZE, result);
+}
 } // namespace Rosen
 } // namespace OHOS
