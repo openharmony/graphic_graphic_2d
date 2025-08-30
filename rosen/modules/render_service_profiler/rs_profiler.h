@@ -575,6 +575,9 @@ private:
 
     RSB_EXPORT static bool IsSecureScreen();
 
+    RSB_EXPORT static bool IsRenderFrameWorking();
+    RSB_EXPORT static std::mutex& RenderFrameMutexGet();
+
     RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 

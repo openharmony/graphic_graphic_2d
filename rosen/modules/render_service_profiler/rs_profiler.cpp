@@ -101,6 +101,8 @@ static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
+static std::mutex g_renderFrameMutex;
+static std::atomic<bool> g_renderFrameWorking = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
 } // namespace
 
@@ -551,10 +553,17 @@ void RSProfiler::OnParallelRenderBegin()
     }
 
     g_frameRenderBeginTimestamp = RawNowNano();
+
+    g_renderFrameMutex.lock();
+    g_renderFrameWorking = true;
 }
 
 void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 {
+    if (g_renderFrameWorking) {
+        g_renderFrameWorking = false;
+        g_renderFrameMutex.unlock();
+    }
     g_renderServiceRenderCpuId = Utils::GetCpuId();
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameRenderBeginTimestamp;
     CalcNodeWeigthOnFrameEnd(frameLengthNanosecs);
@@ -628,6 +637,9 @@ void RSProfiler::ProcessPauseMessage()
 
 void RSProfiler::OnFrameEnd()
 {
+    // must be always called mutex must be freed inside no matter happens
+    BetaRecordOnFrameEnd();
+
     if (!IsEnabled()) {
         return;
     }
@@ -665,8 +677,6 @@ void RSProfiler::OnFrameEnd()
             LogEventMsg(log_value.time_, log_value.type_, log_value.msg_);
         }
     }
-
-    BetaRecordOnFrameEnd();
 }
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
@@ -2100,6 +2110,16 @@ void RSProfiler::ProcessCommands()
 uint32_t RSProfiler::GetFrameNumber()
 {
     return g_frameNumber;
+}
+
+bool RSProfiler::IsRenderFrameWorking()
+{
+    return g_renderFrameWorking;
+}
+
+std::mutex& RSProfiler::RenderFrameMutexGet()
+{
+    return g_renderFrameMutex;
 }
 
 void RSProfiler::BlinkNodeUpdate()
