@@ -2889,12 +2889,11 @@ void RSNode::DoFlushModifier()
         for (const auto& [_, modifier] : modifiersNG_) {
             auto drawCmdListProperty = modifier->IsCustom() ?
                 std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList() : nullptr;
-            modifier->UpdateDrawCmdList();
             std::unique_ptr<RSCommand> command =
                 std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
             AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
             if (modifier->IsCustom()) {
-                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
+                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList(drawCmdListProperty);
             }
         }
     }
@@ -4109,16 +4108,15 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
     }
     auto drawCmdListProperty = modifier->IsCustom() ?
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList() : nullptr;
-    auto renderModifier = modifier->CreateRenderModifier();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, renderModifier);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
         std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAddModifierNG>(id_, renderModifier);
+            std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
     if (modifier->IsCustom()) {
-        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
+        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList(drawCmdListProperty);
     }
 }
 
