@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//
 #ifndef RS_UNI_HWC_VISITOR_H
 #define RS_UNI_HWC_VISITOR_H
 

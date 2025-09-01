@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+//
 #include "hwc_param_parse.h"
 
 #include "common/rs_common_hook.h"

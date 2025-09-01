@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+//
 #ifndef RS_COMMON_HOOK_H
 #define RS_COMMON_HOOK_H
 
