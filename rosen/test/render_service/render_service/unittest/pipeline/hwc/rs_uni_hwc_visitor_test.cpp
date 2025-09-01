@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//
+
 #include "common/rs_common_hook.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -2677,6 +2677,13 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha003, TestSize.
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
     surfaceConfig.name = "solidColorNode";
+    surfaceConfig.bundleName = "key1";
+    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
+    solidLayerConfigFromHgm["key1"] = "value1";
+    hwcSolidLayerConfigFromHgm["key1"] = "value1";
+    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
+    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode->SetAncoForceDoDirect(false);
     auto& renderProperties = surfaceNode->GetMutableRenderProperties();
@@ -2732,6 +2739,13 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha004, TestSize.
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = ++id;
     surfaceConfig.name = "alphaColorNode";
+    surfaceConfig.bundleName = "key1";
+    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
+    solidLayerConfigFromHgm["key1"] = "value1";
+    hwcSolidLayerConfigFromHgm["key1"] = "value1";
+    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
+    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode->SetAncoForceDoDirect(false);
     auto& renderProperties = surfaceNode->GetMutableRenderProperties();
@@ -2860,6 +2874,13 @@ HWTEST_F(RSUniHwcVisitorTest, CheckNodeOcclusion001, TestSize.Level2)
 
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
+    surfaceConfig.bundleName = "key1";
+    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
+    solidLayerConfigFromHgm["key1"] = "value1";
+    hwcSolidLayerConfigFromHgm["key1"] = "value1";
+    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
+    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
 
     auto result1 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, absRect, bgColor);
