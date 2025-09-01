@@ -325,7 +325,7 @@ ani_object AniTextStyleConverter::ParseTextShadowToAni(ani_env* env, const TextS
         aniPointObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    static std::string sign = 
+    static std::string sign =
         std::string(ANI_INTERFACE_COLOR) + std::string(ANI_INTERFACE_POINT) +
         "D:V";
 
