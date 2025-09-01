@@ -45,7 +45,6 @@ public:
     void SyncXComponentExpectedFrameRateCallback(pid_t pid, const std::string& xcomponentId, int32_t expectedFrameRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
 
-
 private:
     HgmConfigCallbackManager();
     ~HgmConfigCallbackManager() noexcept override;
