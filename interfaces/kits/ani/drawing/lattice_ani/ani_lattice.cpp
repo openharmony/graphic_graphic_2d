@@ -21,8 +21,8 @@ const char* ANI_CLASS_ANI_LATTICE_NAME = "L@ohos/graphics/drawing/drawing/Lattic
 
 bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, std::vector<int>& dividers)
 {
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(dividersArray, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(dividersArray, "length", &aniLength)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice dividers are invalid");
         return false;
     }
@@ -57,8 +57,8 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
 bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count,
     std::vector<Lattice::RectType>& latticeRectTypes)
 {
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(rectTypesArray, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(rectTypesArray, "length", &aniLength)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice rectTypes are invalid");
         return false;
     }
@@ -91,8 +91,8 @@ bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count
 
 bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std::vector<Color>& latticeColors)
 {
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(colorsArray, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(colorsArray, "length", &aniLength)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice colors are invalid");
         return false;
     }
@@ -168,34 +168,34 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
     ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors)
 {
-    uint32_t xCount = fXCount;
-    uint32_t yCount = fYCount;
+    uint32_t xCount = static_cast<uint32_t>(fXCount);
+    uint32_t yCount = static_cast<uint32_t>(fYCount);
 
     Lattice lat;
     if (!GetLatticeDividers(env, xDivs, xCount, lat.fXDivs)) {
-        ROSEN_LOGE("AniLattice::CreateImageLattice xDividers are invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
         return CreateAniUndefined(env);
     }
     if (!GetLatticeDividers(env, yDivs, yCount, lat.fYDivs)) {
-        ROSEN_LOGE("AniLattice::CreateImageLattice yDividers are invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
         return CreateAniUndefined(env);
     }
-    lat.fXCount = xCount;
-    lat.fYCount = yCount;
+    lat.fXCount = static_cast<int>(xCount);
+    lat.fYCount = static_cast<int>(yCount);
 
+    ani_boolean isUndefined = ANI_TRUE;
+    ani_boolean isNull = ANI_TRUE;
+    env->Reference_IsUndefined(fBounds, &isUndefined);
+    env->Reference_IsNull(fBounds, &isNull);
     Drawing::Rect drawingRect;
-    if (GetRectFromAniRectObj(env, fBounds, drawingRect)) {
+    if (!isUndefined && !isNull && GetRectFromAniRectObj(env, fBounds, drawingRect)) {
         lat.fBounds.push_back(Drawing::RectI(
             drawingRect.left_, drawingRect.top_, drawingRect.right_, drawingRect.bottom_));
     }
 
-    ani_boolean isUndefined = ANI_TRUE;
-    ani_boolean isNull = ANI_TRUE;
     env->Reference_IsUndefined(fRectTypes, &isUndefined);
     env->Reference_IsNull(fRectTypes, &isNull);
-    int count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
+    uint32_t count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
     if (!isUndefined && !isNull) {
         if (!GetLatticeRectTypes(env, fRectTypes, count, lat.fRectTypes)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter6 type.");

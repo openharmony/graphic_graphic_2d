@@ -43,11 +43,14 @@ public:
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
     
-    static ani_object Blur(ani_env* env, ani_object obj, ani_double param,  ani_enum_item enumItem);
+    static ani_object Blur(ani_env* env, ani_object obj, ani_double param, ani_enum_item enumItem);
     static ani_object Brightness(ani_env* env, ani_object obj, ani_double param);
     static ani_object Invert(ani_env* env, ani_object obj);
     static ani_object SetColorMatrix(ani_env* env, ani_object obj, ani_object arrayObj);
     static ani_object GetPixelMap(ani_env* env, ani_object obj);
+    static ani_object CreateEffectFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap);
+    static ani_object KitTransferStaticEffect(ani_env* env, ani_class cls, ani_object obj);
+    static ani_object kitTransferDynamicEffect(ani_env* env, ani_class cls, ani_long obj);
 
 private:
     void AddNextFilter(sk_sp<SkImageFilter> filter);

@@ -31,7 +31,7 @@ public:
     static void ParseParagraphStyleStrutStyleToNative(
         ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle);
     static void ParseTextTabToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextTab& textTab);
-    static void ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies);
+    static void ParseFontFamiliesToNative(ani_env* env, ani_array obj, std::vector<std::string>& fontFamilies);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_STYLE_CONVERTER_H

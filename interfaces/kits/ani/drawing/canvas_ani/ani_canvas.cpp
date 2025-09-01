@@ -165,6 +165,10 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
     }
     Drawing::Point* texsPoint = builder.TexCoords();
     uint16_t* indices = builder.Indices();
+    if (!texsPoint || !indices) {
+        ROSEN_LOGE("DrawingPixelMapMesh: texsPoint or indices is nullptr");
+        return;
+    }
 
     const float height = static_cast<float>(pixelMap->GetHeight());
     const float width = static_cast<float>(pixelMap->GetWidth());
@@ -276,7 +280,9 @@ void AniCanvas::NotifyDirty()
 
 void AniCanvas::Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj)
 {
-    if (pixelmapObj == nullptr) {
+    ani_boolean isUndefined = ANI_TRUE;
+    env->Reference_IsUndefined(pixelmapObj, &isUndefined);
+    if (isUndefined) {
         AniCanvas *aniCanvas = new AniCanvas();
         if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
             ROSEN_LOGE("AniCanvas::Constructor failed create AniCanvas with nullptr");
@@ -429,8 +435,8 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         return;
     }
 
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(verticesObj, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(verticesObj, "length", &aniLength)) {
         AniThrowError(env, "Invalid params.");
         return;
     }
@@ -465,7 +471,8 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
 
     float* verticesMesh = verticesSize ? (vertices + vertOffset * 2) : nullptr; // offset two coordinates
 
-    if (ANI_OK != env->Object_GetPropertyByName_Double(colorsObj, "length", &aniLength)) {
+    if (ANI_OK != env->Object_GetPropertyByName_Int(colorsObj, "length", &aniLength)) {
+        delete []vertices;
         AniThrowError(env, "Invalid params.");
         return;
     }
@@ -665,8 +672,10 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
         return CreateAniUndefined(env);
     }
 
+    ani_ref aniRef;
+    env->GetUndefined(&aniRef);
     auto aniCanvas = new AniCanvas(canvas);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_CANVAS_NAME, nullptr, nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_CANVAS_NAME, nullptr, aniRef);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
         ROSEN_LOGE("aniCanvas failed cause by Object_SetFieldByName_Long");

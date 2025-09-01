@@ -45,37 +45,37 @@ namespace effectKit {
    */
 
   export interface Color {
-    red: number;
-    green: number;
-    blue: number;
-    alpha: number;
+    red: int;
+    green: int;
+    blue: int;
+    alpha: int;
   }
 
   export class ColorInternal implements Color {
-    red: number;
-    green: number;
-    blue: number;
-    alpha: number;
+    red: int;
+    green: int;
+    blue: int;
+    alpha: int;
   }
   
   export interface Filter {
     /**
     * A blur effect is added to the image.
-    * @param { number } radius - The degree of blur, the value is measured in pixels.
+    * @param { double } radius - The degree of blur, the value is measured in pixels.
     * @returns { Filter } Filters for the current effect have been added.
     * @syscap SystemCapability.Multimedia.Image.Core
     * @since 9
     */
     /**
     * A blur effect is added to the image.
-    * @param { number } radius - The degree of blur, the value is measured in pixels.
+    * @param { double } radius - The degree of blur, the value is measured in pixels.
     * @returns { Filter } Filters for the current effect have been added.
     * @syscap SystemCapability.Multimedia.Image.Core
     * @form
     * @atomicservice
     * @since 12
     */
-    blur(radius: number): Filter;
+    blur(radius: double): Filter;
 
     /**
     * A Grayscale effect is added to the image.
@@ -119,7 +119,7 @@ namespace effectKit {
     
     /**
      * Adds the blur effect to the filter linked list, and returns the head node of the linked list.
-     * @param { number } radius - Blur radius, in pixels. The blur effect is proportional to the configured value.
+     * @param { double } radius - Blur radius, in pixels. The blur effect is proportional to the configured value.
      * A larger value indicates a more obvious effect.
      * @param { TileMode } tileMode - Tile mode of the shader effect. The blur effect of image edges is affected. Currently,
      * only CPU rendering is supported. Therefore, the tile mode supports only DECAL.
@@ -127,18 +127,18 @@ namespace effectKit {
      * @syscap SystemCapability.Multimedia.Image.Core
      * @since 14
      */
-    blur(radius: number, tileMode: TileMode): Filter;
+    blur(radius: double, tileMode: TileMode): Filter;
 
     /**
      * A Brightness effect is added to the image.
-     * @param { number } bright - The degree of light and darkness,the value range is 0 to 1.
+     * @param { double } bright - The degree of light and darkness,the value range is 0 to 1.
      * @returns { Filter } Filters for the current effect have been added.
      * @syscap SystemCapability.Multimedia.Image.Core
      * @since 9
      */
     /**
      * A Brightness effect is added to the image.
-     * @param { number } bright - The degree of light and darkness,the value range is 0 to 1.
+     * @param { double } bright - The degree of light and darkness,the value range is 0 to 1.
      * @returns { Filter } Filters for the current effect have been added.
      * @syscap SystemCapability.Multimedia.Image.Core
      * @form
@@ -147,7 +147,7 @@ namespace effectKit {
      */
     /**
      * Adds the brightness effect to the filter linked list, and returns the head node of the linked list.
-     * @param { number } bright - Brightness value, ranging from 0 to 1. When the value is 0, the image brightness remains unchanged.
+     * @param { double } bright - Brightness value, ranging from 0 to 1. When the value is 0, the image brightness remains unchanged.
      * @returns { Filter } Final image effect.
      * @syscap SystemCapability.Multimedia.Image.Core
      * @crossplatform
@@ -155,7 +155,7 @@ namespace effectKit {
      * @atomicservice
      * @since 14
      */
-    brightness(bright: number): Filter;
+    brightness(bright: double): Filter;
 
     /**
      * A invert effect is added to the image.
@@ -175,7 +175,7 @@ namespace effectKit {
     /**
      * A custom effect is added to the image.
      *
-     * @param { Array<number> } colorMatrix - A matrix of 5x4 size for create effect filter.
+     * @param { Array<double> } colorMatrix - A matrix of 5x4 size for create effect filter.
      * @returns { Filter } Filters for the current effect have been added.
      * @throws { BusinessError } 401 - Input parameter error.
      * @syscap SystemCapability.Multimedia.Image.Core
@@ -184,7 +184,7 @@ namespace effectKit {
     /**
      * Adds a custom effect to the filter linked list, and returns the head node of the linked list.
      *
-     * @param { Array<number> } colorMatrix - Custom color matrix.
+     * @param { Array<double> } colorMatrix - Custom color matrix.
      * A 5 x 4 matrix can be created. The value range of the matrix element is [0, 1],
      * where 0 indicates that the color channel is not involved in the calculation,
      * and 1 indicates that the color channel is involved in the calculation and retains the original weight.
@@ -194,7 +194,7 @@ namespace effectKit {
      * @crossplatform
      * @since 14
      */
-    setColorMatrix(colorMatrix: Array<number>): Filter;
+    setColorMatrix(colorMatrix: Array<double>): Filter;
 
     /**
      * Obtains image.PixelMap of the source image to which the filter linked list is added.
@@ -210,29 +210,37 @@ namespace effectKit {
 
 
   export class FilterInternal implements Filter {
+    static {
+	  loadLibrary('effectKit_ani')
+    }
+
     private nativeObj: long = 0;
 
     constructor(context:long) {
       this.nativeObj = context;
     }
 
-    public native blurNative(radius: number): Filter;
+    public native blurNative(radius: double): Filter;
 
     public native grayscaleNative(): Filter;
 
     public native getEffectPixelMapNative(): image.PixelMap;
 
-    public native blurNative(radius: number, tileMode: TileMode): Filter;
+    public native blurNative(radius: double, tileMode: TileMode): Filter;
 
-    public native brightnessNative(bright: number): Filter;
+    public native brightnessNative(bright: double): Filter;
 
     public native invertNative(): Filter;
 
-    public native setColorMatrixNative(colorMatrix: Array<number>): Filter;
+    public native setColorMatrixNative(colorMatrix: Array<double>): Filter;
 
     public native getPixelMapNative(): image.PixelMap;
 
-    public blur(radius: number): Filter {
+    private static native kitTransferStaticNative(input: ESValue): Object;
+
+	private static native kitTransferDynamicNative(nativeObj: long): ESValue;
+
+    public blur(radius: double): Filter {
       return this.blurNative(radius);
     }
 
@@ -254,21 +262,27 @@ namespace effectKit {
       });
     }
 
-    public blur(radius: number, tileMode: TileMode): Filter {
+    public blur(radius: double, tileMode: TileMode): Filter {
       return this.blurNative(radius, tileMode);
     }
-    public brightness(bright: number): Filter {
+    public brightness(bright: double): Filter {
       return this.brightnessNative(bright);
     }
     public invert(): Filter {
       return this.invertNative();
     }
-    public setColorMatrix(colorMatrix: Array<number>): Filter {
+    public setColorMatrix(colorMatrix: Array<double>): Filter {
       return this.setColorMatrixNative(colorMatrix);
     }
     public getPixelMap(): image.PixelMap {
       return this.getPixelMapNative();
     }
+    public static kitTransferStatic(input: Any): Object {
+	  return FilterInternal.kitTransferStaticNative(ESValue.wrap(input));
+	}   
+	public static kitTransferDynamic(input: Object): Any {
+	  return FilterInternal.kitTransferDynamicNative((input as FilterInternal).nativeObj).unwrap();
+	}
   }
 
   export native function createEffect(source: image.PixelMap): Filter;
@@ -278,13 +292,17 @@ namespace effectKit {
     getMainColor(): Promise<Color>;
     getMainColorSync(): Color;
     getLargestProportionColor(): Color;
-    getTopProportionColors(colorCount: number): Array<Color | null>;
+    getTopProportionColors(colorCount: int): Array<Color | null>;
     getHighestSaturationColor(): Color;
     getAverageColor(): Color;
-    isBlackOrWhiteOrGrayColor(color: number): boolean;
+    isBlackOrWhiteOrGrayColor(color: int): boolean;
   }
 
   export class ColorPickerInternal implements ColorPicker {
+    static {
+	  loadLibrary('effectKit_ani')
+	}
+
     private nativeObj: long = 0;
 
     constructor(context:long) {
@@ -293,10 +311,12 @@ namespace effectKit {
 
     public native getMainColorSyncNative(): Color;
     public native getLargestProportionColorNative(): Color;
-    public native getTopProportionColorsNative(colorCount: number): Array<Color | null>;
+    public native getTopProportionColorsNative(colorCount: int): Array<Color | null>;
     public native getHighestSaturationColorNative(): Color;
     public native getAverageColorNative(): Color;
-    public native isBlackOrWhiteOrGrayColorNative(color: number): boolean;
+    public native isBlackOrWhiteOrGrayColorNative(color: int): boolean;
+    private static native kitTransferStaticNative(input: ESValue): Object;
+	private static native kitTransferDynamicNative(nativeObj: long): ESValue;
 
     public getMainColor(): Promise<Color> {
       return new Promise<Color>((resolve: (value: Color) => void,
@@ -317,7 +337,7 @@ namespace effectKit {
     public getLargestProportionColor(): Color {
       return this.getLargestProportionColorNative();
     }
-    public getTopProportionColors(colorCount: number): Array<Color | null> {
+    public getTopProportionColors(colorCount: int): Array<Color | null> {
       return this.getTopProportionColorsNative(colorCount);
     }
     public getHighestSaturationColor(): Color {
@@ -326,13 +346,19 @@ namespace effectKit {
     public getAverageColor(): Color {
       return this.getAverageColorNative();
     }
-    public isBlackOrWhiteOrGrayColor(color: number): boolean {
+    public isBlackOrWhiteOrGrayColor(color: int): boolean {
       return this.isBlackOrWhiteOrGrayColorNative(color);
     }
+    public static kitTransferStatic(input: Any): Object {
+	  return ColorPickerInternal.kitTransferStaticNative(ESValue.wrap(input));
+	}
+	public static kitTransferDynamic(input: Object): Any {
+	  return ColorPickerInternal.kitTransferDynamicNative((input as ColorPickerInternal).nativeObj).unwrap();
+	}
   }
 
   native function createColorPickerNormal(source: image.PixelMap): ColorPicker
-  native function createColorPickerWithRegion(source: image.PixelMap, region: Array<number>): ColorPicker
+  native function createColorPickerWithRegion(source: image.PixelMap, region: Array<double>): ColorPicker
 
   export function createColorPicker(source: image.PixelMap): Promise<ColorPicker> {
     return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
@@ -358,7 +384,7 @@ namespace effectKit {
     });
   }
 
-  export function createColorPicker(source: image.PixelMap, region: Array<number>): Promise<ColorPicker> {
+  export function createColorPicker(source: image.PixelMap, region: Array<double>): Promise<ColorPicker> {
     return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
       let cb = (): ColorPicker => { return createColorPickerWithRegion(source, region) };
       taskpool.execute(cb).then((ret: NullishType): void => {
@@ -405,7 +431,7 @@ namespace effectKit {
 
   }
 
-  export function createColorPicker(source: image.PixelMap, region: Array<number>, callback: AsyncCallback<ColorPicker | undefined>): void {
+  export function createColorPicker(source: image.PixelMap, region: Array<double>, callback: AsyncCallback<ColorPicker | undefined>): void {
     try {
       const result = createColorPickerWithRegion(source, region);
       if (result) {

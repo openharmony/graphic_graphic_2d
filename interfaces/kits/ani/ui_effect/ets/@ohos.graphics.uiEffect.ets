@@ -14,14 +14,14 @@
  */
 
 export interface BrightnessBlenderParam {
-  cubicRate: number;
-  quadraticRate: number;
-  linearRate: number;
-  degree: number;
-  saturation: number;
-  positiveCoefficient: [number, number, number];
-  negativeCoefficient: [number, number, number];
-  fraction: number;
+  cubicRate: double;
+  quadraticRate: double;
+  linearRate: double;
+  degree: double;
+  saturation: double;
+  positiveCoefficient: [double, double, double];
+  negativeCoefficient: [double, double, double];
+  fraction: double;
 }
 namespace uiEffect {
   loadLibrary('uiEffect_ani')
@@ -46,28 +46,28 @@ namespace uiEffect {
   }
 
   export interface BrightnessBlender {
-    cubicRate: number;
-    quadraticRate: number;
-    linearRate: number;
-    degree: number;
-    saturation: number;
-    positiveCoefficient: [number, number, number];
-    negativeCoefficient: [number, number, number];
-    fraction: number;
+    cubicRate: double;
+    quadraticRate: double;
+    linearRate: double;
+    degree: double;
+    saturation: double;
+    positiveCoefficient: [double, double, double];
+    negativeCoefficient: [double, double, double];
+    fraction: double;
   }
   export class BrightnessBlenderInternal implements BrightnessBlender {
     private brightnessBlenderNativeObj: long = 0;
     constructor(context: long) {
       this.brightnessBlenderNativeObj = context;
     }
-    cubicRate: number;
-    quadraticRate: number;
-    linearRate: number;
-    degree: number;
-    saturation: number;
-    positiveCoefficient: [number, number, number];
-    negativeCoefficient: [number, number, number];
-    fraction: number;
+    cubicRate: double;
+    quadraticRate: double;
+    linearRate: double;
+    degree: double;
+    saturation: double;
+    positiveCoefficient: [double, double, double];
+    negativeCoefficient: [double, double, double];
+    fraction: double;
   }
   export interface VisualEffect {
     backgroundColorBlender(blender: BrightnessBlender): VisualEffect;
@@ -83,40 +83,40 @@ namespace uiEffect {
     }
   }
   export interface Filter {
-    pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter;
-    blur(blurRadius: number): Filter;
-    flyInFlyOutEffect(degree: number, flyMode: FlyMode ): Filter;
-    waterRipple(progress: number, waveCount: number, x: number, y: number, rippleMode: WaterRippleMode): Filter;
-    distort(distortionK: number): Filter;
+    pixelStretch(stretchSizes: Array<double>, tileMode: TileMode): Filter;
+    blur(blurRadius: double): Filter;
+    flyInFlyOutEffect(degree: double, flyMode: FlyMode ): Filter;
+    waterRipple(progress: double, waveCount: int, x: double, y: double, rippleMode: WaterRippleMode): Filter;
+    distort(distortionK: double): Filter;
   }
   export class FilterInternal implements Filter {
     private filterNativeObj: long = 0;
     private interface waterRipplePara {
-      progress: number;
-      waveCount: number;
-      x: number; 
-      y: number; 
+      progress: double;
+      waveCount: int;
+      x: double; 
+      y: double; 
       rippleMode: WaterRippleMode;
     }
     constructor(context: long) {
       this.filterNativeObj = context;
     }
-    public native pixelStretchNative(stretchSizes: Array<number>, tileMode: TileMode): Filter;
-    public native blurNative(blurRadius: number): Filter;
-    public native flyInFlyOutEffectNative(degree: number, flyMode: FlyMode ): Filter;
+    public native pixelStretchNative(stretchSizes: Array<double>, tileMode: TileMode): Filter;
+    public native blurNative(blurRadius: double): Filter;
+    public native flyInFlyOutEffectNative(degree: double, flyMode: FlyMode ): Filter;
     public native waterRippleNative(waterPara: waterRipplePara): Filter;
-    public native distortNative(distortionK: number): Filter;
+    public native distortNative(distortionK: double): Filter;
 
-    public pixelStretch(stretchSizes: Array<number>, tileMode: TileMode): Filter {
+    public pixelStretch(stretchSizes: Array<double>, tileMode: TileMode): Filter {
       return this.pixelStretchNative(stretchSizes, tileMode);
     }
-    public blur(blurRadius: number): Filter {
+    public blur(blurRadius: double): Filter {
       return this.blurNative(blurRadius);
     }
-    public flyInFlyOutEffect(degree: number, flyMode: FlyMode ): Filter{
+    public flyInFlyOutEffect(degree: double, flyMode: FlyMode ): Filter{
       return this.flyInFlyOutEffectNative(degree, flyMode);
     }
-    public waterRipple(progress: number, waveCount: number, x: number, y: number, rippleMode: WaterRippleMode): Filter{
+    public waterRipple(progress: double, waveCount: int, x: double, y: double, rippleMode: WaterRippleMode): Filter{
       let waterPara: waterRipplePara = {
         progress: progress,
         waveCount: waveCount,
@@ -126,7 +126,7 @@ namespace uiEffect {
       };
       return this.waterRippleNative(waterPara);
     }
-    public distort(distortionK: number): Filter{
+    public distort(distortionK: double): Filter{
       return this.distortNative(distortionK);
     }
   }

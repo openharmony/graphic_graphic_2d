@@ -24,7 +24,7 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_INTERFACE_PLACEHOLDER_SPAN, &cls);
+    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_PLACEHOLDER_SPAN, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ret;
