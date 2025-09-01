@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//
 #ifndef RS_UNI_HWC_VISITOR_H
 #define RS_UNI_HWC_VISITOR_H
 
@@ -97,6 +96,7 @@ public:
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
+    bool IsTargetedSolidLayer(RSSurfaceRenderNode& node);
 
 private:
     friend class RSUniRenderVisitor;
