@@ -350,6 +350,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
     Drawing::Surface surfaceTest1;
     paintFilterCanvasTest1.surface_ = &surfaceTest1;
     rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvasTest1, 0.0f);
+    Drawing::Canvas canvas(10, 10); // width and height
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    Drawing::Surface surface;
+    paintFilterCanvas.surface_ = &surface;
+    rsPropertyDrawableUtilsTest1->DrawLightUpEffect(&paintFilterCanvas, 0.0f);
 
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest2, nullptr);
@@ -399,6 +404,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtilsTest5, nullptr);
     params.fraction_ = 0.0;
     EXPECT_NE(rsPropertyDrawableUtilsTest5->MakeDynamicBrightnessBlender(params), nullptr);
+
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest6 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest6, nullptr);
+    std::shared_ptr<Drawing::ShaderEffect> imageShaderTest3 = std::make_shared<Drawing::ShaderEffect>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest6->MakeLightUpShader(1.0f, imageShaderTest3), nullptr);
 }
 /**
  * @tc.name: DrawBinarizationTest012
