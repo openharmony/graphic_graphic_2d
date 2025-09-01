@@ -109,7 +109,7 @@ public:
 
     void ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence);
 
-    void SetMaskLayer(LayerPtr maskLayer)
+    void SetMaskLayer(const LayerPtr& maskLayer)
     {
         maskLayer_ = maskLayer;
     }
