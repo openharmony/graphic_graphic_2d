@@ -199,31 +199,3 @@ HWTEST_F(HwcParamParseTest, TestParseHwcInternal003, TestSize.Level1)
 }
 }
 }
-    surfaceConfig.bundleName = "key1";
-    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
-    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
-    solidLayerConfigFromHgm["key1"] = "value1";
-    hwcSolidLayerConfigFromHgm["key1"] = "value1";
-    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
-    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
-
-
-
-    surfaceConfig.bundleName = "key1";
-    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
-    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
-    solidLayerConfigFromHgm["key1"] = "value1";
-    hwcSolidLayerConfigFromHgm["key1"] = "value1";
-    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
-    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
-
-
-
-    surfaceConfig.bundleName = "key1";
-    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
-    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
-    solidLayerConfigFromHgm["key1"] = "value1";
-    hwcSolidLayerConfigFromHgm["key1"] = "value1";
-    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
-    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
-
