@@ -40,7 +40,7 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_RUN, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_RUN, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;

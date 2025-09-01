@@ -25,8 +25,8 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
-    ani_class cls;
-    ani_status ret = env->FindClass(ANI_INTERFACE_RANGE, &cls);
+    ani_class cls = nullptr;
+    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_RANGE, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ret;
@@ -83,12 +83,15 @@ ani_status AniTextRectConverter::ParseHeightStyleToNative(
 ani_status AniTextRectConverter::ParseTextBoxToAni(
     ani_env* env, const OHOS::Rosen::TextRect& textRect, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, ":V");
     ani_object rectObj = nullptr;
-    if (ANI_OK == AniDrawingConverter::ParseRectToAni(env, textRect.rect, rectObj)) {
-        env->Object_SetPropertyByName_Ref(aniObj, "rect", rectObj);
+    ani_status ret = AniDrawingConverter::ParseRectToAni(env, textRect.rect, rectObj);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to parse rect to ani, ret %{public}d", ret);
+        rectObj = AniTextUtils::CreateAniUndefined(env);
     }
-    env->Object_SetPropertyByName_Ref(aniObj, "direction",
+
+    static std::string sign = std::string(ANI_INTERFACE_RECT) + std::string(ANI_ENUM_TEXT_DIRECTION) + ":V";
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, sign.c_str(), rectObj,
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DIRECTION, static_cast<int>(textRect.direction)));
     return ANI_OK;
 }
@@ -96,9 +99,9 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RANGE, ":V");
-    env->Object_SetPropertyByName_Int(aniObj, "start", boundary.leftIndex);
-    env->Object_SetPropertyByName_Int(aniObj, "end", boundary.rightIndex);
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RANGE, "II:V",
+        ani_int(boundary.leftIndex),
+        ani_int(boundary.rightIndex));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

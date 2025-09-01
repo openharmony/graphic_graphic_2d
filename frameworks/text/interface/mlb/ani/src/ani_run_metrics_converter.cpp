@@ -27,20 +27,19 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
     ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
     ani_ref mapRef = nullptr;
     for (const auto& [key, runMetrics] : runMetrics) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS, ":V");
         if (runMetrics.textStyle != nullptr) {
-            env->Object_SetPropertyByName_Ref(
-                aniObj, "textStyle", AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle));
-            env->Object_SetPropertyByName_Ref(
-                aniObj, "fontMetrics", AniDrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
-        }
-        ani_status status =
-            env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
+            static std::string sign =
+                std::string(ANI_INTERFACE_TEXT_STYLE) + std::string(ANI_INTERFACE_FONT_METRICS) + ":V";
+            ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS, sign.c_str(),
+                AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
+                AniDrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
+            ani_status status =
+                env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
                 &mapRef, AniTextUtils::CreateAniIntObj(env, static_cast<int>(key)), aniObj);
-        if (status != ANI_OK) {
-            TEXT_LOGE("Failed to set run metrics map, ret %{public}d", status);
-            continue;
-        };
+            if (status != ANI_OK) {
+                TEXT_LOGE("Failed to set run metrics map, key %{public}zu, ret %{public}d", key, status);
+            }
+        }
     }
     return mapAniObj;
 }
