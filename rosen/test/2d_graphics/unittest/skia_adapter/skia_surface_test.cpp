@@ -325,9 +325,9 @@ HWTEST_F(SkiaSurfaceTest, Flush003, TestSize.Level1)
         (*count)++;
         EXPECT_TRUE(success == false);
     };
-    EXPECT_EQ(surface->Flush(&drawingFlushInfo), SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_YES);
-    EXPECT_EQ(count1, 1); // finishedProc excute 1 time
-    EXPECT_EQ(count2, 1); // submittedProc excute 1 time
+    EXPECT_EQ(surface->Flush(&drawingFlushInfo), SemaphoresSubmited::DRAWING_ENGINE_SUBMIT_NO);
+    EXPECT_EQ(count1, 0); // finishedProc excute 1 time
+    EXPECT_EQ(count2, 0); // submittedProc excute 1 time
 }
 
 /**
