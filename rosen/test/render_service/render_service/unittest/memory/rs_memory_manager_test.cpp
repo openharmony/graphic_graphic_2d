@@ -436,6 +436,7 @@ HWTEST_F(RSMemoryManagerTest, SetGpuCacheSuppressWindowSwitch002, testing::ext::
 }
 #endif
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: SetGpuMemoryAsyncReclaimerSwitch001
  * @tc.desc: Verify SetGpuMemoryAsyncReclaimerSwitch logs correct trace info
@@ -451,7 +452,9 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch001, testing::ext:
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(gpuContext, true, setThreadPriority);
     EXPECT_TRUE(logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") == std::string::npos);
 }
+#endif
 
+#if defined(RS_ENABLE_VK)
 /**
  * @tc.name: SetGpuMemoryAsyncReclaimerSwitch002
  * @tc.desc: Verify SetGpuMemoryAsyncReclaimerSwitch logs correct trace info when context is nullptr
@@ -466,6 +469,7 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryAsyncReclaimerSwitch002, testing::ext:
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(nullptr, true, setThreadPriority);
     EXPECT_TRUE(logMsg.find("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr") != std::string::npos);
 }
+#endif
 
 /**
  * @tc.name: FlushGpuMemoryInWaitQueue001
