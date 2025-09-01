@@ -385,7 +385,7 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
     IncreaseSolidLayerHwcEnableCount();
 }
 
-bool RSUniHwcVisitor::IsTargetedSolidLayerScheme(RSSurfaceRenderNode& node)
+bool RSUniHwcVisitor::IsTargetedSolidLayer(RSSurfaceRenderNode& node)
 {
     const std::string& solidLayerConfigFromHgm = RsCommonHook::Instance().GetSolidColorLayerConfigFromHgm();
     const std::string& hwcSolidLayerConfigFromHgm = RsCommonHook::Instance().GetHwcSolidColorLayerConfigFromHgm();
