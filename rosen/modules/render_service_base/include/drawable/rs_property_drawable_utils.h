@@ -69,6 +69,8 @@ public:
         Drawing::RectI& bounds, bool behindWindow = false);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
     static void DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpShader(float lightUpDeg,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static void DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(float dynamicDimDeg,
         std::shared_ptr<Drawing::ShaderEffect> imageShader);
@@ -124,6 +126,7 @@ private:
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessLinearBlenderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> shadowBlenderEffect_;
     inline static std::atomic<int> g_blurCnt = 0;
 };
