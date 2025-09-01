@@ -31,7 +31,7 @@ std::vector<std::pair<RSIRenderServiceConnectionInterfaceCodeAccessVerifier::Cod
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::CREATE_VIRTUAL_SCREEN,
             PermissionType::CAPTURE_SCREEN },
         { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS,
-            PermissionType::CAPTURE_SCREEN }
+            PermissionType::CAPTURE_SCREEN_ALL }
 };
 
 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::RSIRenderServiceConnectionInterfaceCodeAccessVerifier()

@@ -522,6 +522,40 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CaptureSurface009
+ * @tc.desc: Test CaptureSurface for ignore special layer
+ * @tc.type: FUNC
+ * @tc.require: issueICUQ08
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface009, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    uniParams->SetSecExemption(true);
+    RSSpecialLayerManager slManager;
+    surfaceParams->specialLayerManager_ = slManager;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    CaptureParam captureParam1;
+    captureParam1.isSingleSurface_ = false;
+    captureParam1.ignoreSpecialLayer_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam1);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    CaptureParam captureParam2;
+    captureParam2.isSingleSurface_ = false;
+    captureParam2.ignoreSpecialLayer_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam2);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    EXPECT_TRUE(uniParams->GetSecExemption());
+}
+
+/**
  * @tc.name: CrossDisplaySurfaceDirtyRegionConversion
  * @tc.desc: Test CrossDisplaySurfaceDirtyRegionConversion, if node is cross-display, the surface dirty will be offset.
  * @tc.type: FUNC

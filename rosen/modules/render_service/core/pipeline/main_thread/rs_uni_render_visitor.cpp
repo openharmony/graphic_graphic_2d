@@ -1263,6 +1263,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     HandleTunnelLayerId(node);
     PrepareForMultiScreenViewSurfaceNode(node);
+    CollectSurfaceLockLayer(node);
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
@@ -3620,6 +3621,20 @@ void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node
         }
         child->GetRenderProperties().GetBoundsGeometry()->SetAbsMatrix(absMatrix);
     }
+}
+
+void RSUniRenderVisitor::CollectSurfaceLockLayer(RSSurfaceRenderNode& node)
+{
+    bool isSurfaceLockLayer = node.GetFixRotationByUser();
+    auto hardwareEnabledNodes = node.GetChildHardwareEnabledNodes();
+    for (auto surfaceNode : hardwareEnabledNodes) {
+        auto surfaceNodePtr = surfaceNode.lock();
+        if (!surfaceNodePtr || !(surfaceNodePtr->IsOnTheTree())) {
+            continue;
+        }
+        isSurfaceLockLayer = isSurfaceLockLayer || surfaceNodePtr->GetFixRotationByUser();
+    }
+    RSMainThread::Instance()->SetHasSurfaceLockLayer(isSurfaceLockLayer);
 }
 } // namespace Rosen
 } // namespace OHOS
