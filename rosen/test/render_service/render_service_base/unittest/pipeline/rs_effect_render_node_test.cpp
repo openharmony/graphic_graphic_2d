@@ -341,10 +341,10 @@ HWTEST_F(RSEffectRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestS
 
     auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     EXPECT_NE(backgroundFilterDrawable, nullptr);
+    backgroundFilterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    backgroundFilterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
     renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
     renderNode->CheckBlurFilterCacheNeedForceClearOrSave(true);
-
-    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
 }
 
