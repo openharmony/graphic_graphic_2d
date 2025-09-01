@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//
+
 #include "hwc_param.h"
 
 #include "hgm_core.h"
@@ -57,5 +57,15 @@ bool HWCParam::IsSolidLayerEnable()
 void HWCParam::SetSolidLayerEnable(bool isEnable)
 {
     isSolidLayerEnable_ = isEnable;
+}
+ 
+bool HWCParam::IsSolidLayerInMultiWindowEnable()
+{
+    return isSolidLayerInMultiWindowEnable_;
+}
+ 
+void HWCParam::SetSolidLayerInMultiWindowEnable(bool isEnable)
+{
+    isSolidLayerInMultiWindowEnable_ = isEnable;
 }
 } // namespace OHOS::Rosen
