@@ -79,14 +79,15 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
     if (!config.screenStatus.empty()) {
-        screenStatus_ = std::atoi(config.screenStatus.c_str());
+        screenStatus_ = StringToInt32(config.screenStatus.c_str());
     }
     ParseProgressConfig(configPath, progressConfigsMap_);
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
-    fontSize_ = TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? FONT_SIZE_OTHER : FONT_SIZE_PHONE);
+    fontSize_ = isWearable_ ? FONT_SIZE_WEARABLE :
+        TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? FONT_SIZE_OTHER : FONT_SIZE_PHONE);
     currentRadius_ = isWearable_ ? RADIUS_WEARABLE :
         TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * DOUBLE_TIMES : RADIUS);
 
@@ -217,7 +218,7 @@ void BootCompileProgress::DrawCompileProgress()
 
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);
-    font.SetSize(isWearable_ ? FONT_SIZE_WEARABLE : fontSize_);
+    font.SetSize(fontSize_);
     char info[64] = {0};
     int ret = sprintf_s(info, sizeof(info), "%s %d%%", displayInfo_.c_str(), progress_);
     if (ret == -1) {

@@ -63,7 +63,6 @@ FunctionHeader* create_function_wrapper(F&& func)
     if (func == nullptr) {
         return nullptr;
     }
-
     auto* func_copy = new std::decay_t<F>(std::forward<F>(func));
 
     auto* header = new FunctionHeader;

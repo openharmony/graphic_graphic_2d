@@ -60,4 +60,39 @@ std::shared_ptr<Drawing::DrawCmdList> RSCustomModifierHelper::FinishDrawing(RSDr
     ctx.canvas = nullptr;
     return recording;
 }
+
+void RSCustomModifier::UpdateDrawCmdList()
+{
+    auto node = node_.lock();
+    if (node == nullptr) {
+        return;
+    }
+    RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
+    Draw(ctx);
+    auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
+    auto propertyType = GetInnerPropertyType();
+    auto it = properties_.find(propertyType);
+    if (it != properties_.end()) {
+        auto property = std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(it->second);
+        property->stagingValue_ = drawCmdList;
+        MarkNodeDirty();
+        if (property->isCustom_) {
+            property->MarkCustomModifierDirty();
+        }
+    } else {
+        auto property = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+        property->SetPropertyTypeNG(propertyType);
+        properties_[propertyType] = property;
+        SetPropertyThresholdType(propertyType, property);
+        property->Attach(*node, weak_from_this());
+        MarkNodeDirty();
+    }
+}
+
+void RSCustomModifier::ClearDrawCmdList()
+{
+    if (auto property = GetProperty(GetInnerPropertyType())) {
+        std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(property)->stagingValue_ = nullptr;
+    }
+}
 } // namespace OHOS::Rosen::ModifierNG

@@ -55,7 +55,7 @@ constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
 constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 256;
 constexpr std::string_view URGENT_SELF_DRAWING = "UrgentSelfdrawing";
 constexpr int64_t MAX_SIZE_OF_DIGIT_NUM_FOR_PID = 8;
-constexpr int32_t MAX_VSYNC_QUEUE_SIZE = 30;
+constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -104,7 +104,6 @@ VSyncConnection::VSyncConnection(
     if (name == CONN_DEFAULT_RS_NAME) {
         isRsConn_ = true;
     }
-
     socketPair_ = new LocalSocketPair();
     int32_t err = socketPair_->CreateChannel(SOCKET_CHANNEL_SIZE, SOCKET_CHANNEL_SIZE);
     if (err != 0) {
@@ -294,6 +293,7 @@ bool VSyncConnection::AddRequestVsyncTimestamp(const int64_t& timestamp)
     if (!isRsConn_ || timestamp <= 0) {
         return false;
     }
+
     std::lock_guard<std::recursive_mutex> lock(vsyncTimeMutex_);
     RS_TRACE_NAME_FMT("AddRequestVsyncTimestamp in, timestamp=%lld, size=%u",
         timestamp, requestVsyncTimestamp_.size());
@@ -308,9 +308,11 @@ void VSyncConnection::RemoveTriggeredVsyncLocked(const int64_t& currentTime)
 {
     SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked In, TriggeredTime=%lld, size=%u",
         currentTime, requestVsyncTimestamp_.size());
+
     if (requestVsyncTimestamp_.empty()) {
         return;
     }
+
     for (auto iter = requestVsyncTimestamp_.begin(); iter != requestVsyncTimestamp_.end();) {
         if (*iter <= currentTime) {
             SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked, TriggeredTime=%lld, removeTime=%lld, size=%u",
@@ -329,8 +331,8 @@ bool VSyncConnection::IsRequestVsyncTimestampEmpty()
     if (!isRsConn_) {
         return true;
     }
-
     std::lock_guard<std::recursive_mutex> lock(vsyncTimeMutex_);
+    SCOPED_DEBUG_TRACE_FMT("IsRequestVsyncTimestampEmpty in, size=%u", requestVsyncTimestamp_.size());
     return requestVsyncTimestamp_.empty();
 }
 
@@ -1044,10 +1046,8 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
 #endif
         int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
                                                              connections_[i]->rate_;
-        if (rate < 0) {
-            if (!NeedForceUpdateRate(connections_[i], rate)) {
+        if (rate < 0 && !NeedForceUpdateRate(connections_[i], rate)) {
                 continue;
-            }
         }
 
         if (rate == 0) {  // for RequestNextVSync

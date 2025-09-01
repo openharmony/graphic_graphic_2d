@@ -68,7 +68,7 @@ private:
     void ClearFps(std::string& dumpString, std::string& layerName) const;
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
-    void RemoveConnection(sptr<IRemoteObject> token);
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
     // RS dump init
     void RSGfxDumpInit();

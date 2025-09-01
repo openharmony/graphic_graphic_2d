@@ -53,7 +53,8 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
         }
         auto pointerWindowDirtyRegion = dirtyManager->GetCurrentFrameDirtyRegion();
         if (!pointerWindowDirtyRegion.IsEmpty()) {
-            curScreenNode->GetDirtyManager()->MergeHwcDirtyRect(pointerWindowDirtyRegion);
+            curScreenNode->GetDirtyManager()->MergeHwcDirtyRect(
+                pointerWindowDirtyRegion, pointWindow->GetSurfaceNodeType());
             dirtyManager->SetCurrentFrameDirtyRect(RectI());
             isNeedForceCommitByPointer_ = true;
         } else {

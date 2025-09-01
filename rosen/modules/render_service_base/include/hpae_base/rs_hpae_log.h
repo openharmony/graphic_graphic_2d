@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_LOG_H
 #define RENDER_SERVICE_BASE_INCLUDE_HPAE_BASE_LOG_H
 
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS)
 
 #include "rs_trace.h"
 #include <hilog/log.h>
@@ -38,30 +38,12 @@
 
 #define HPAE_LOGD(format, ...) \
     HILOG_DEBUG(LOG_CORE, "[HPAE] " format, ##__VA_ARGS__)
-
-#define HPAE_TRACE_NAME(name) \
-    HITRACE_METER_NAME(HITRACE_TAG_GRAPHIC_AGP, name)
-
-#define HPAE_TRACE_NAME_FMT(fmt, ...) \
-    HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_ARGS__)
-
-#define HPAE_TRACE_BEGIN(name) \
-    StartTrace(HITRACE_TAG_GRAPHIC_AGP, name)
-
-#define HPAE_TRACE_END() \
-    FinishTrace(HITRACE_TAG_GRAPHIC_AGP)
-
 #else
 
 #define HPAE_LOGE(format, ...)
 #define HPAE_LOGW(format, ...)
 #define HPAE_LOGI(format, ...)
 #define HPAE_LOGD(format, ...)
-
-#define HPAE_TRACE_NAME(name)
-#define HPAE_TRACE_NAME_FMT(fmt, ...)
-#define HPAE_TRACE_BEGIN(name)
-#define HPAE_TRACE_END()
 
 #endif // LOG switch
 

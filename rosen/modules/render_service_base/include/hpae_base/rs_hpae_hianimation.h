@@ -63,25 +63,14 @@ public:
 
     void WaitAlgoInit();
 
-    void HianimationPerfTrack();
-
 private:
     std::mutex mutex_; // mutex for public api
 
     HianimationManager();
     ~HianimationManager();
 
-    void WaitHpaeDone();
-    void NotifyHpaeDone();
-
     hianimation_algo_device_t *hianimationDevice_ = nullptr;
     void *libHandle_ = nullptr;
-
-    std::mutex hpaePerfMutex_;
-    bool hpaePerfDone_ = true;
-    std::condition_variable hpaePerfCv_;
-
-    int openFailNum_ = 0;
 
     std::set<uint32_t> taskIdMap_;
     std::condition_variable taskAvailableCv_;

@@ -796,7 +796,7 @@ HWTEST_F(RSClientTest, SetRefreshRateMode001, TestSize.Level1)
     rsClient->SetRefreshRateMode(rateMode);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRateMode = rsClient->GetCurrentRefreshRateMode();
-    EXPECT_NE(currentRateMode, rateMode);
+    EXPECT_EQ(currentRateMode, rateMode);
 }
 
 /**
@@ -1292,7 +1292,7 @@ HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
     int32_t pid = 1001;
     float gpuMemInMB = 0.0f;
     auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
+    EXPECT_EQ(res, ERR_UNKNOWN_OBJECT);
 }
 
 /**

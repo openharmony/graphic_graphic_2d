@@ -17,6 +17,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
+#include <fuzzer/FuzzedDataProvider.h>
 #include <securec.h>
 
 #include "get_object.h"
@@ -312,18 +314,14 @@ bool FontMgrFuzzTest009(const uint8_t* data, size_t size)
 
 bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
+    FuzzedDataProvider fdp(data, size);
+    std::string tmpPath = std::filesystem::temp_directory_path() / "config.json";
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
     std::vector<std::string> fontPathVec;
-    int strSize = GetObject<int>() % MAX_SIZE;
-    std::string strPath(strSize, '0');
-    for (char& c : strPath) {
-        c = GetObject<char>();
-    }
-    fontMgr->ParseInstallFontConfig(strPath, fontPathVec);
+    std::ofstream ofs(tmpPath);
+    ofs << fdp.ConsumeRandomLengthString();
+    fontMgr->ParseInstallFontConfig(tmpPath, fontPathVec);
+    std::filesystem::remove(tmpPath);
     return true;
 }
 } // namespace Drawing

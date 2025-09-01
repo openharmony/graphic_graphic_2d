@@ -31,7 +31,7 @@ void HgmAppPageUrlStrategy::RegisterPageUrlVoterCallback(const PageUrlVoterCallb
 
 void HgmAppPageUrlStrategy::ProcessRemoveVoter(pid_t pid)
 {
-    HGM_LOGI("HgmAppPageUrlStrategy: Remove Voter pid = %{public}d", pid);
+    HILOG_COMM_INFO("HgmAppPageUrlStrategy: Remove Voter pid = %{public}d", pid);
     if (pageUrlVoterCallback_ != nullptr) {
         pageUrlVoterCallback_(pid, "", false);
     }
@@ -39,7 +39,7 @@ void HgmAppPageUrlStrategy::ProcessRemoveVoter(pid_t pid)
 
 void HgmAppPageUrlStrategy::ProcessAddVoter(pid_t pid, std::string strategy)
 {
-    HGM_LOGI("HgmAppPageUrlStrategy: Add Voter pid = %{public}d", pid);
+    HILOG_COMM_INFO("HgmAppPageUrlStrategy: Add Voter pid = %{public}d", pid);
     if (pageUrlVoterCallback_ != nullptr) {
         pageUrlVoterCallback_(pid, strategy, true);
     }

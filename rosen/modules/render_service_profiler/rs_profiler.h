@@ -575,6 +575,9 @@ private:
 
     RSB_EXPORT static bool IsSecureScreen();
 
+    RSB_EXPORT static bool IsRenderFrameWorking();
+    RSB_EXPORT static std::mutex& RenderFrameMutexGet();
+
     RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
@@ -732,6 +735,7 @@ private:
     static void Version(const ArgList& args);
     static void FileVersion(const ArgList& args);
 
+    static bool AbortOnSecureScreenSKP();
     static void SaveSkp(const ArgList& args);
     static void SaveOffscreenSkp(const ArgList& args);
     static void SaveComponentSkp(const ArgList& args);
@@ -816,6 +820,8 @@ private:
 
     friend class TestTreeBuilder;
     friend class RSRenderServiceConnection;
+
+    static uint64_t GetRootNodeId();
 };
 
 } // namespace OHOS::Rosen

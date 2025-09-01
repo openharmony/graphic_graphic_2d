@@ -1273,5 +1273,43 @@ HWTEST_F(RSTransactionHandlerTest, StartCloseSyncTransactionFallbackTaskTest, Te
     sleep(8);
     ASSERT_TRUE(transaction->taskNames_.empty());
 }
+
+/**
+ * @tc.name: DumpCommandTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require: issueICV186
+ */
+HWTEST_F(RSTransactionHandlerTest, DumpCommandTest, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto renderThreadClient = CreateRenderThreadClient();
+    transaction->SetRenderThreadClient(renderThreadClient);
+    std::string dumpString;
+    auto nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddCommonCommand(command);
+    transaction->Begin();
+    command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+    command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    transaction->AddCommonCommand(command);
+    transaction->DumpCommand(dumpString);
+    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionData") != std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionData") != std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionDataStack") != std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionDataStack") != std::string::npos);
+    ASSERT_TRUE(dumpString.find(std::to_string(nodeId)) != std::string::npos);
+    transaction->Commit();
+    transaction->FlushImplicitTransaction();
+    dumpString.clear();
+    transaction->DumpCommand(dumpString);
+    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionData") == std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionData") == std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionDataStack") == std::string::npos);
+    ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionDataStack") == std::string::npos);
+}
 } // namespace Rosen
 } // namespace OHOS

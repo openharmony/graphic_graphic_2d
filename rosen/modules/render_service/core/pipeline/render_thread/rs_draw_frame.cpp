@@ -96,7 +96,7 @@ void RSDrawFrame::RenderFrame()
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Clear();
 #endif
-    ReleaseSpecialDrawingNodeBuffer();
+    ReleaseDrawingNodeBuffer();
     NotifyClearGpuCache();
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
@@ -144,6 +144,7 @@ void RSDrawFrame::EndCheck()
             getpid(), getuid(), exceptionCheck_.processName_.c_str(), longFrameCount_,
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }
+    timer_ = nullptr;
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
@@ -154,10 +155,10 @@ void RSDrawFrame::NotifyClearGpuCache()
     }
 }
 
-void RSDrawFrame::ReleaseSpecialDrawingNodeBuffer()
+void RSDrawFrame::ReleaseDrawingNodeBuffer()
 {
     unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
-    unirenderInstance_.ReleaseSurfaceBufferOpItemBuffer();
+    unirenderInstance_.ReleaseSurfaceOpItemBuffer();
 }
 
 void RSDrawFrame::PostAndWait()
@@ -255,7 +256,7 @@ void RSDrawFrame::Sync()
     if (stagingRenderThreadParams_ && stagingRenderThreadParams_->HasDisplayHdrOn()) {
         isHdrOn = true;
     }
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS)
     RSHpaeManager::GetInstance().OnSync(isHdrOn);
 #endif
 

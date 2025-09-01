@@ -20,6 +20,11 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class LineHeightStyle {
+    kFontSize,
+    kFontHeight
+};
+
 enum class TextVerticalAlign {
     BASELINE = 0,
     BOTTOM = 1,

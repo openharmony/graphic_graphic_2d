@@ -638,7 +638,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     }
     image = imageManager_->CreateImageFromBuffer(canvas, params, videoInfo.drawingColorSpace_);
     if (image == nullptr) {
-        RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: vk image is nullptr!");
+        HILOG_COMM_ERROR("RSBaseRenderEngine::CreateImageFromBuffer: vk image is nullptr!");
         return nullptr;
     }
 #endif
@@ -773,7 +773,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    auto& rsLuminance = RSLuminanceControl::Get();
+    const auto& rsLuminance = RSLuminanceControl::Get();
     // Fix tonemapping: all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
     params.isTmoNitsFixed = canvas.IsOnMultipleScreen() ||
         (!canvas.GetHdrOn() &&

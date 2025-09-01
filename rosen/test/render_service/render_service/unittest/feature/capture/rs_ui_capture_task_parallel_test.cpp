@@ -714,6 +714,51 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNo
 }
 
 /*
+ * @tc.name: CalendarIconNeedDump
+ * @tc.desc: Test the branch where calendar icon is transparent and should be dumped
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, CalendarIconNeedDump, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSCanvasNode> canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
+    canvasNode->SetAlpha(0.0f);
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    ASSERT_EQ(ret, true);
+    usleep(SLEEP_TIME_IN_US);
+    canvasNode->SetNodeName("CalendarTest");
+    ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    ASSERT_EQ(ret, true);
+}
+
+/*
+ * @tc.name: DumpInfoTest
+ * @tc.desc: Test RSUiCaptureTaskParallel::DumpInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, DumpInfoTest, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 103;
+    NodeId parentNodeId = 1003;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(1024.0f);
+    renderNode->renderProperties_.SetBoundsHeight(1024.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    RSUiCaptureTaskParallel::DumpInfo(nodeId);
+    RSUiCaptureTaskParallel::DumpInfo(parentNodeId);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), true);
+}
+
+/*
  * @tc.name: RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask
  * @tc.type: FUNC

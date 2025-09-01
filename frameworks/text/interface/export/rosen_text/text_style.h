@@ -163,6 +163,9 @@ struct RS_EXPORT TextStyle {
     bool isPlaceholder{false};
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
     TextBadgeType badgeType{TextBadgeType::BADGE_NONE};
+    double maxLineHeight{std::numeric_limits<float>::max()};
+    double minLineHeight{0.0f};
+    LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
 };
 } // namespace Rosen
 } // namespace OHOS

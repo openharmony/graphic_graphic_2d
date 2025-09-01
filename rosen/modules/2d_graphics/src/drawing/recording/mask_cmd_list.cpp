@@ -15,6 +15,8 @@
 
 #include "recording/mask_cmd_list.h"
 
+#include <hilog/log.h>
+
 #include "recording/cmd_list_helper.h"
 #include "utils/log.h"
 
@@ -60,7 +62,7 @@ bool MaskCmdList::Playback(MaskPlayer &player) const
             }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
-            LOGE("MaskCmdList::Playback failed, opItem is nullptr");
+            HILOG_COMM_ERROR("MaskCmdList::Playback failed, opItem is nullptr");
             break;
         }
     } while (offset != 0 && count <= MAX_OPITEMSIZE);

@@ -187,3 +187,44 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Intensity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Width, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, RotationAngle, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, CornerRadius, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, LTWH, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, StretchFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, BarAngle, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Color0, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Color1, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Color2, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Color3, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Position0, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Position1, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Position2, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Position3, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Strength, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Brightness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, Progress, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, StartEndPosition, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, WaveLength, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, WaveTop, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, CornerRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Brightness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Scale, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Sharping, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Feathering, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, FeatheringBezierControlPoints, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, GradientBezierControlPoints, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(RoundedRectFlowlight, Progress, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, CornerRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrameGradientMask, FrameWidth, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Color0, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Color1, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Color2, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Color3, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientBegin, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientEnd, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, EffectAlpha, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Progress, float);

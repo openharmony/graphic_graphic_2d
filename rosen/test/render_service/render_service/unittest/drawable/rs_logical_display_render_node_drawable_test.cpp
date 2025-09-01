@@ -24,13 +24,16 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/common/rs_system_properties.h"
-#include "screen_manager/rs_screen.h"
-#include "policy/rs_parallel_rb_policy.h"
-#include "rs_parallel_manager.h"
-
 #include "render/rs_pixel_map_util.h"
+#include "screen_manager/rs_screen.h"
+
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
+#endif
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "policy/rs_parallel_rb_policy.h"
+#include "rs_parallel_manager.h"
 #endif
 
 using namespace testing;
@@ -473,6 +476,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     ASSERT_NE(displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second, nullptr);
 }
 
+#ifdef SUBTREE_PARALLEL_ENABLE
 /**
  * @tc.name: OnDrawTest010
  * @tc.desc: Test OnDraw When GetRotateOffScreenScreenNodeEnable is true
@@ -505,6 +509,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest010, TestSize.Level1)
     ASSERT_EQ(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
     ASSERT_TRUE(RotateOffScreenParam::GetRotateOffScreenScreenNodeEnable());
 }
+#endif
 
 /**
  * @tc.name: OnCaptureTest001

@@ -32,7 +32,7 @@ OH_DisplaySoloist* OH_DisplaySoloist_Create(bool useExclusiveThread)
     soloistManager.InsertUseExclusiveThreadFlag(soloistId->GetId(), useExclusiveThread);
 
     OH_DisplaySoloist* displaySoloist = new OH_DisplaySoloist({ soloistId });
-    HGM_LOGI("[DisplaySoloist] Create DisplaySoloist SoloistId: %{public}d", soloistId->GetId());
+    HILOG_COMM_INFO("[DisplaySoloist] Create DisplaySoloist SoloistId: %{public}d", soloistId->GetId());
     return displaySoloist;
 }
 
@@ -51,7 +51,7 @@ int32_t OH_DisplaySoloist_Destroy(OH_DisplaySoloist* displaySoloist)
     SoloistIdType soloistId = displaySoloist->soloistId_->GetId();
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     soloistManager.RemoveSoloist(soloistId);
-    HGM_LOGI("[DisplaySoloist] Destroy DisplaySoloist SoloistId: %{public}d", soloistId);
+    HILOG_COMM_INFO("[DisplaySoloist] Destroy DisplaySoloist SoloistId: %{public}d", soloistId);
 
     delete displaySoloist;
     displaySoloist = nullptr;
@@ -75,7 +75,7 @@ int32_t OH_DisplaySoloist_Start(OH_DisplaySoloist* displaySoloist,
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     soloistManager.InsertOnVsyncCallback(soloistId, callback, data);
     soloistManager.Start(soloistId);
-    HGM_LOGI("[DisplaySoloist] Start DisplaySoloist SoloistId: %{public}d", soloistId);
+    HILOG_COMM_INFO("[DisplaySoloist] Start DisplaySoloist SoloistId: %{public}d", soloistId);
     return EXEC_SUCCESS;
 }
 
@@ -94,7 +94,7 @@ int32_t OH_DisplaySoloist_Stop(OH_DisplaySoloist* displaySoloist)
     SoloistIdType soloistId = displaySoloist->soloistId_->GetId();
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     soloistManager.Stop(soloistId);
-    HGM_LOGI("[DisplaySoloist] Stop DisplaySoloist SoloistId: %{public}d", soloistId);
+    HILOG_COMM_INFO("[DisplaySoloist] Stop DisplaySoloist SoloistId: %{public}d", soloistId);
     return EXEC_SUCCESS;
 }
 
@@ -120,7 +120,8 @@ int32_t OH_DisplaySoloist_SetExpectedFrameRateRange(OH_DisplaySoloist* displaySo
     SoloistIdType soloistId = displaySoloist->soloistId_->GetId();
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     soloistManager.InsertFrameRateRange(soloistId, frameRateRange);
-    HGM_LOGI("[DisplaySoloist] SoloistId: %{public}d SetExpectedFrameRateRange{%{public}d, %{public}d, %{public}d}",
+    HILOG_COMM_INFO(
+        "[DisplaySoloist] SoloistId: %{public}d SetExpectedFrameRateRange{%{public}d, %{public}d, %{public}d}",
         soloistId, frameRateRange.min_, frameRateRange.max_, frameRateRange.preferred_);
     return EXEC_SUCCESS;
 }

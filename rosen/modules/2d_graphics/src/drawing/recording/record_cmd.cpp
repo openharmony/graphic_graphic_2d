@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <hilog/log.h>
+
 #include "recording/record_cmd.h"
 #include "recording/draw_cmd_list.h"
 #include "utils/log.h"
@@ -27,7 +29,7 @@ RecordCmd::RecordCmd(const std::shared_ptr<DrawCmdList>& cmdList, const Rect& bo
 void RecordCmd::Playback(Canvas* canvas)
 {
     if (drawCmdList_ == nullptr || canvas == nullptr) {
-        LOGE("RecordCmd::Playback failed, drawCmdList_ or canvas is nullptr");
+        HILOG_COMM_ERROR("RecordCmd::Playback failed, drawCmdList_ or canvas is nullptr");
         return;
     }
     drawCmdList_->Playback(*canvas);

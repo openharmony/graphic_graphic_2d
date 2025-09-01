@@ -125,6 +125,7 @@ if (current_os != "ohos") {
     }
     output_name = "EGL"
     output_extension = "so"
+    version_script = "EGL.versionscript"
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"

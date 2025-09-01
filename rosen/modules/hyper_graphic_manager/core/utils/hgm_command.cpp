@@ -34,7 +34,7 @@ const PolicyConfigData& PolicyConfigVisitorImpl::GetXmlData() const
 
 void PolicyConfigVisitorImpl::SetSettingModeId(int32_t settingModeId)
 {
-    HGM_LOGI("Cur settingModeId: %{public}d, new settingModeId: %{public}d", settingModeId_, settingModeId);
+    HILOG_COMM_INFO("Cur settingModeId: %{public}d, new settingModeId: %{public}d", settingModeId_, settingModeId);
     // index of non-auto mode is settingModeId
     auto xmlModeId = SettingModeId2XmlModeId(settingModeId);
     if (!xmlModeId.has_value()) {
@@ -60,7 +60,7 @@ void PolicyConfigVisitorImpl::SetXmlModeId(const std::string& xmlModeId)
         HGM_LOGE("SetXmlModeId %{public}s fail", xmlModeId.c_str());
         return;
     }
-    HGM_LOGI("SetXmlModeId : %{public}s -> settingModeId: %{public}d", xmlModeId.c_str(), settingModeId.value());
+    HILOG_COMM_INFO("SetXmlModeId : %{public}s -> settingModeId: %{public}d", xmlModeId.c_str(), settingModeId.value());
     xmlModeId_ = xmlModeId;
     settingModeId_ = settingModeId.value();
     OnUpdate();
@@ -161,10 +161,10 @@ std::optional<std::string> PolicyConfigVisitorImpl::SettingModeId2XmlModeId(int3
     std::optional<std::string> xmlModeId;
     auto ret = configData_.SettingModeId2XmlModeId(settingModeId);
     if (ret == 0) {
-        HGM_LOGI("In SettingModeId2XmlModeId settingModeId: %{public}d -> ret: 0", settingModeId);
+        HILOG_COMM_INFO("In SettingModeId2XmlModeId settingModeId: %{public}d -> ret: 0", settingModeId);
         return xmlModeId;
     }
-    HGM_LOGI("In SettingModeId2XmlModeId settingModeId: %{public}d -> ret: %{public}d", settingModeId, ret);
+    HILOG_COMM_INFO("In SettingModeId2XmlModeId settingModeId: %{public}d -> ret: %{public}d", settingModeId, ret);
     return std::to_string(ret);
 }
 

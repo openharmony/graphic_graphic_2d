@@ -143,7 +143,7 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
 {
     RS_TRACE_NAME_FMT("RSVpeManager::Creat name %{public}s nodeId:%{public}" PRIu64, config.name.c_str(), config.id);
 
-    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE) {
+    if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE || config.name == "RosenWeb") {
         return surface;
     }
     if (!VpeVideo::IsSupported()) {

@@ -46,6 +46,7 @@ enum class PackageID {
     RS_PROFILER_BETAREC_FILEPATH,
     RS_PROFILER_RENDER_METRICS,
     RS_PROFILER_RS_EVENT,
+    RS_PROFILER_SKP_ABORT,
 };
 
 template<typename T, typename = void>

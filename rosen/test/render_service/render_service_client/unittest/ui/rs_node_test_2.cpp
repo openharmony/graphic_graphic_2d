@@ -44,6 +44,7 @@
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
 #include "modifier_ng/background/rs_background_shader_modifier.h"
+#include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "modifier_ng/custom/rs_node_modifier.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_modifier.h"
@@ -548,5 +549,36 @@ HWTEST_F(RSNodeTest2, AttachProperty, TestSize.Level1)
     property4->SetPropertyTypeNG(ModifierNG::RSPropertyType::INVALID);
     rsNode->AttachProperty(property4);
     EXPECT_EQ(property4->GetPropertyTypeNG(), ModifierNG::RSPropertyType::INVALID);
+}
+
+/**
+ * @tc.name: GetModifierCreatedBySetter
+ * @tc.desc: test results of GetModifierCreatedBySetter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, GetModifierCreatedBySetter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto alphaModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::ALPHA);
+    EXPECT_EQ(alphaModifier, nullptr);
+    rsNode->SetAlpha(0.5f);
+    alphaModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::ALPHA);
+    EXPECT_NE(alphaModifier, nullptr);
+}
+
+/**
+ * @tc.name: DoFlushModifier
+ * @tc.desc: test results of DoFlushModifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, DoFlushModifier, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetAlpha(0.5f);
+    EXPECT_EQ(rsNode->modifiersNG_.size(), 1);
+    auto contentStyleModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    rsNode->AddModifier(contentStyleModifier);
+    rsNode->DoFlushModifier();
+    EXPECT_EQ(rsNode->modifiersNG_.size(), 2);
 }
 } // namespace OHOS::Rosen

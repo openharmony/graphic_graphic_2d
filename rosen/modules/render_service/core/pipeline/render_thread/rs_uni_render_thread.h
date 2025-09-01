@@ -64,7 +64,7 @@ public:
     bool IsIdle() const;
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
-    void ReleaseSurfaceBufferOpItemBuffer();
+    void ReleaseSurfaceOpItemBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
     void NotifyScreenNodeBufferReleased();
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);

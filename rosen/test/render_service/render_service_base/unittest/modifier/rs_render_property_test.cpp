@@ -180,7 +180,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC001, TestSize.Level1)
     MessageParcel parcel1;
     auto intProp = std::make_shared<RSRenderProperty<int>>();
     std::shared_ptr<RSRenderPropertyBase> tmpProp;
-    ASSERT_FALSE(RSMarshallingHelper::Marshalling(parcel1, intProp));
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel1, intProp));
     ASSERT_TRUE(RSRenderPropertyBase::Unmarshalling(parcel1, tmpProp));
 
     MessageParcel parcel2;
@@ -329,7 +329,7 @@ HWTEST_F(RSRenderPropertyTest, OnChange002, TestSize.Level1)
     props.push_back(std::make_shared<MockRSRenderProperty<Color>>());
     for (auto& prop : props) {
         MessageParcel parcel;
-        ASSERT_FALSE(RSMarshallingHelper::Marshalling(parcel, prop));
+        ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, prop));
         ASSERT_TRUE(RSRenderPropertyBase::Unmarshalling(parcel, prop));
     }
 }
@@ -460,139 +460,1035 @@ HWTEST_F(RSRenderPropertyTest, tofloattest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSRenderPropertyOnUnmarshalling001
- * @tc.desc: OnUnmarshalling should return true when Unmarshalling succeed
+ * @tc.name: RSRenderPropertyBoolOnUnmarshalling
+ * @tc.desc: RSRenderPropertyBool On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling001, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyBoolOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
-    int32_t expectId = 42;
-    int expectValue = 5;
-    parcel.WriteInt32(expectId);
-    parcel.WriteInt32(expectValue);
+    bool value = false;
+    std::shared_ptr<RSRenderProperty<bool>> prop = std::make_shared<RSRenderProperty<bool>>(value, 1);
 
-    bool result = RSRenderProperty<int>::OnUnmarshalling(parcel, val);
-    EXPECT_TRUE(result);
-    EXPECT_NE(val, nullptr);
-    auto prop = std::static_pointer_cast<RSRenderProperty<int>>(val);
-    EXPECT_EQ(prop->GetId(), expectId);
-    EXPECT_EQ(prop->Get(), expectValue);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<bool>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<bool>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<bool>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
 
 /**
- * @tc.name: RSRenderPropertyOnUnmarshalling002
- * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on id
+ * @tc.name: RSRenderPropertyIntOnUnmarshalling
+ * @tc.desc: RSRenderPropertyInt On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling002, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyIntOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
+    int value = 1;
+    std::shared_ptr<RSRenderProperty<int>> prop = std::make_shared<RSRenderProperty<int>>(value, 1);
 
-    bool result = RSRenderProperty<int>::OnUnmarshalling(parcel, val);
-    EXPECT_FALSE(result);
-    EXPECT_EQ(val, nullptr);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<int>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<int>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<int>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
 
 /**
- * @tc.name: RSRenderPropertyOnUnmarshalling003
- * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on value
+ * @tc.name: RSRenderPropertyVector4uint32_tOnUnmarshalling
+ * @tc.desc: RSRenderPropertyVector4uint32_t On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderPropertyOnUnmarshalling003, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyVector4uint32_tOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
-    int32_t expectId = 42;
-    parcel.WriteInt32(expectId);
+    Vector4<uint32_t> value = { 1, 1, 1, 1 };
+    std::shared_ptr<RSRenderProperty<Vector4<uint32_t>>> prop =
+        std::make_shared<RSRenderProperty<Vector4<uint32_t>>>(value, 1);
 
-    bool result = RSRenderProperty<int>::OnUnmarshalling(parcel, val);
-    EXPECT_FALSE(result);
-    EXPECT_EQ(val, nullptr);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<Vector4<uint32_t>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Vector4<uint32_t>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Vector4<uint32_t>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
 
 /**
- * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling001
- * @tc.desc: OnUnmarshalling should return false when Unmarshalling succeed
+ * @tc.name: RSRenderPropertySkMatrixOnUnmarshalling
+ * @tc.desc: RSRenderPropertySkMatrix On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling001, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySkMatrixOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
-    int32_t expectId = 42;
-    float expectValue = 3.14f;
-    uint8_t expectedUnit = 1;
-    parcel.WriteInt32(expectId);
-    parcel.WriteFloat(expectValue);
-    parcel.WriteUint8(expectedUnit);
+    SkMatrix value = {};
+    std::shared_ptr<RSRenderProperty<SkMatrix>> prop = std::make_shared<RSRenderProperty<SkMatrix>>(value, 1);
 
-    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
-    EXPECT_TRUE(result);
-    EXPECT_NE(val, nullptr);
-    auto prop = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(val);
-    EXPECT_EQ(prop->GetId(), expectId);
-    EXPECT_TRUE(ROSEN_EQ(prop->Get(), expectValue));
-    EXPECT_EQ(static_cast<uint8_t>(prop->GetPropertyUnit()), expectValue);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<SkMatrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<SkMatrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<SkMatrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
 
 /**
- * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling002
- * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on id
+ * @tc.name: RSRenderPropertyDrawingDrawCmdListPtrOnUnmarshalling
+ * @tc.desc: RSRenderPropertyDrawingDrawCmdListPtr On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling002, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyDrawingDrawCmdListPtrOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
+    Drawing::DrawCmdListPtr value = {};
+    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> prop =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(value, 1);
 
-    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
-    EXPECT_FALSE(result);
-    EXPECT_EQ(val, nullptr);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<Drawing::DrawCmdListPtr>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Drawing::DrawCmdListPtr>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Drawing::DrawCmdListPtr>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
 
 /**
- * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling003
- * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on value
+ * @tc.name: RSRenderPropertyForegroundColorStrategyTypeOnUnmarshalling
+ * @tc.desc: RSRenderPropertyForegroundColorStrategyType On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling003, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyForegroundColorStrategyTypeOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
-    int32_t expectId = 42;
-    parcel.WriteInt32(expectId);
+    ForegroundColorStrategyType value = {};
+    std::shared_ptr<RSRenderProperty<ForegroundColorStrategyType>> prop =
+        std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>(value, 1);
 
-    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
-    EXPECT_FALSE(result);
-    EXPECT_EQ(val, nullptr);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<ForegroundColorStrategyType>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<ForegroundColorStrategyType>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<ForegroundColorStrategyType>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
 
 /**
- * @tc.name: RSRenderAnimatablePropertyOnUnmarshalling004
- * @tc.desc: OnUnmarshalling should return false when Unmarshalling fail on PropertyUnit
+ * @tc.name: RSRenderPropertySharedPtrRSShaderOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrRSShader On Unmarshalling Test
  * @tc.type: FUNC
  * @tc.require: issueICDSPJ
  */
-HWTEST_F(RSRenderPropertyTest, RSRenderAnimatablePropertyOnUnmarshalling004, TestSize.Level1)
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSShaderOnUnmarshalling, TestSize.Level1)
 {
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> val;
-    int32_t expectId = 42;
-    float expectValue = 3.14f;
-    parcel.WriteInt32(expectId);
-    parcel.WriteFloat(expectValue);
+    auto value = std::make_shared<RSShader>();
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSShader>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<RSShader>>>(value, 1);
 
-    bool result = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, val);
-    EXPECT_FALSE(result);
-    EXPECT_EQ(val, nullptr);
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<RSShader>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSShader>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSShader>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrRSImageOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrRSImage On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSImageOnUnmarshalling, TestSize.Level1)
+{
+    auto value = std::make_shared<RSImage>();
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSImage>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<RSImage>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<RSImage>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSImage>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSImage>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
 }
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrRSPathOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrRSPath On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSPathOnUnmarshalling, TestSize.Level1)
+{
+    auto value = std::make_shared<RSPath>();
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSPath>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<RSPath>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<RSPath>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSPath>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSPath>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyGravityOnUnmarshalling
+ * @tc.desc: RSRenderPropertyGravity On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyGravityOnUnmarshalling, TestSize.Level1)
+{
+    Gravity value = {};
+    std::shared_ptr<RSRenderProperty<Gravity>> prop = std::make_shared<RSRenderProperty<Gravity>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<Gravity>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Gravity>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Gravity>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyDrawingMatrixOnUnmarshalling
+ * @tc.desc: RSRenderPropertyDrawingMatrix On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyDrawingMatrixOnUnmarshalling, TestSize.Level1)
+{
+    Drawing::Matrix value = {};
+    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> prop =
+        std::make_shared<RSRenderProperty<Drawing::Matrix>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<Drawing::Matrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Drawing::Matrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Drawing::Matrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrRSMagnifierParamsOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrRSMagnifierParams On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSMagnifierParamsOnUnmarshalling, TestSize.Level1)
+{
+    auto value = std::make_shared<RSMagnifierParams>();
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSMagnifierParams>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<RSMagnifierParams>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrMotionBlurParamOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrMotionBlurParam On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrMotionBlurParamOnUnmarshalling, TestSize.Level1)
+{
+    float radius = 0.f;
+    Vector2f scaleAnchor = Vector2f(0.f, 0.f);
+    auto value = std::make_shared<MotionBlurParam>(radius, scaleAnchor);
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<MotionBlurParam>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<MotionBlurParam>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<MotionBlurParam>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<MotionBlurParam>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<MotionBlurParam>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrEmitterUpdaterOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrEmitterUpdater On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrEmitterUpdaterOnUnmarshalling, TestSize.Level1)
+{
+    std::vector<std::shared_ptr<EmitterUpdater>> value;
+    auto item = std::make_shared<EmitterUpdater>(0);
+    value.push_back(item);
+    std::shared_ptr<RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>> prop =
+        std::make_shared<RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrParticleNoiseFieldsOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrParticleNoiseFields On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrParticleNoiseFieldsOnUnmarshalling, TestSize.Level1)
+{
+    auto field = std::make_shared<ParticleNoiseField>(
+        0, ShapeType::RECT, Vector2f(1.f, 1.f), Vector2f(1.f, 1.f), 0, 0.f, 0.f, 0.f);
+    auto value = std::make_shared<ParticleNoiseFields>();
+    value->AddField(field);
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    parcel.WriteInt32(100);
+    parcel.WriteUint32(100000);
+    parcel.WriteUint32(100000);
+    ret = RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrRSMaskOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrRSMask On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSMaskOnUnmarshalling, TestSize.Level1)
+{
+    auto value = std::make_shared<RSMask>();
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSMask>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<RSMask>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<RSMask>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSMask>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<RSMask>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyRSWaterRippleParaOnUnmarshalling
+ * @tc.desc: RSRenderPropertyRSWaterRipplePara On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyRSWaterRippleParaOnUnmarshalling, TestSize.Level1)
+{
+    RSWaterRipplePara value = {};
+    std::shared_ptr<RSRenderProperty<RSWaterRipplePara>> prop =
+        std::make_shared<RSRenderProperty<RSWaterRipplePara>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<RSWaterRipplePara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<RSWaterRipplePara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<RSWaterRipplePara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyRSFlyOutParaOnUnmarshalling
+ * @tc.desc: RSRenderPropertyRSFlyOutPara On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyRSFlyOutParaOnUnmarshalling, TestSize.Level1)
+{
+    RSFlyOutPara value = {};
+    std::shared_ptr<RSRenderProperty<RSFlyOutPara>> prop = std::make_shared<RSRenderProperty<RSFlyOutPara>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<RSFlyOutPara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<RSFlyOutPara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<RSFlyOutPara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertySharedPtrPixelMapOnUnmarshalling
+ * @tc.desc: RSRenderPropertySharedPtrPixelMap On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrPixelMapOnUnmarshalling, TestSize.Level1)
+{
+    std::shared_ptr<OHOS::Media::PixelMap> value;
+    OHOS::Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::unique_ptr<OHOS::Media::PixelMap> pixelMap = OHOS::Media::PixelMap::Create(opts);
+    value.reset(pixelMap.get());
+    pixelMap.release();
+
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<OHOS::Media::PixelMap>>> prop =
+        std::make_shared<RSRenderProperty<std::shared_ptr<OHOS::Media::PixelMap>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<std::shared_ptr<OHOS::Media::PixelMap>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<OHOS::Media::PixelMap>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<std::shared_ptr<OHOS::Media::PixelMap>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyRSDynamicBrightnessParaOnUnmarshalling
+ * @tc.desc: RSRenderPropertyRSDynamicBrightnessPara On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyRSDynamicBrightnessParaOnUnmarshalling, TestSize.Level1)
+{
+    RSDynamicBrightnessPara value = {};
+    std::shared_ptr<RSRenderProperty<RSDynamicBrightnessPara>> prop =
+        std::make_shared<RSRenderProperty<RSDynamicBrightnessPara>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<RSDynamicBrightnessPara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<RSDynamicBrightnessPara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<RSDynamicBrightnessPara>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyFloatOnUnmarshalling
+ * @tc.desc: AnimatablePropertyFloat On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyFloatOnUnmarshalling, TestSize.Level1)
+{
+    float value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<float>> prop =
+        std::make_shared<RSRenderAnimatableProperty<float>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<float>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyQuaternionOnUnmarshalling
+ * @tc.desc: AnimatablePropertyQuaternion On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyQuaternionOnUnmarshalling, TestSize.Level1)
+{
+    Quaternion value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Quaternion>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Quaternion>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Quaternion>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Quaternion>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Quaternion>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Quaternion>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyVector2fOnUnmarshalling
+ * @tc.desc: AnimatablePropertyVector2f On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyVector2fOnUnmarshalling, TestSize.Level1)
+{
+    Vector2f value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Vector2f>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Vector2f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector2f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector2f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector2f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyVector3fOnUnmarshalling
+ * @tc.desc: AnimatablePropertyVector3f On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyVector3fOnUnmarshalling, TestSize.Level1)
+{
+    Vector3f value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Vector3f>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Vector3f>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Vector3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyVector4fOnUnmarshalling
+ * @tc.desc: AnimatablePropertyVector4f On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyVector4fOnUnmarshalling, TestSize.Level1)
+{
+    Vector4f value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Vector4f>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Vector4f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector4f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector4f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector4f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyMatrix3fOnUnmarshalling
+ * @tc.desc: AnimatablePropertyMatrix3f On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyMatrix3fOnUnmarshalling, TestSize.Level1)
+{
+    Matrix3f value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Matrix3f>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Matrix3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Matrix3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Matrix3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Matrix3f>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyRRectOnUnmarshalling
+ * @tc.desc: AnimatablePropertyRRect On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyRRectOnUnmarshalling, TestSize.Level1)
+{
+    RRect value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<RRect>> prop =
+        std::make_shared<RSRenderAnimatableProperty<RRect>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<RRect>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<RRect>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<RRect>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<RRect>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyColorOnUnmarshalling
+ * @tc.desc: AnimatablePropertyColor On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyColorOnUnmarshalling, TestSize.Level1)
+{
+    Color value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Color>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Color>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Color>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Color>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Color>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Color>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyVector4ColorOnUnmarshalling
+ * @tc.desc: AnimatablePropertyVector4Color On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyVector4ColorOnUnmarshalling, TestSize.Level1)
+{
+    Vector4<Color> value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<Vector4<Color>>> prop =
+        std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<Vector4<Color>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector4<Color>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector4<Color>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<Vector4<Color>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: AnimatablePropertyVectorFloatOnUnmarshalling
+ * @tc.desc: AnimatablePropertyVectorFloat On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, AnimatablePropertyVectorFloatOnUnmarshalling, TestSize.Level1)
+{
+    std::vector<float> value = {};
+    std::shared_ptr<RSRenderAnimatableProperty<std::vector<float>>> prop =
+        std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderAnimatableProperty<std::vector<float>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<std::vector<float>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<std::vector<float>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetPropertyUnit());
+    EXPECT_TRUE(ret);
+    ret = RSRenderAnimatableProperty<std::vector<float>>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+} // namespace OHOS::Rosen

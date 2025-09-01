@@ -188,6 +188,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest009, TestSize.Level0)
     EXPECT_EQ(static_cast<int>(sptextStyle.decoration), static_cast<int>(textStyle.decoration));
     EXPECT_EQ(static_cast<int>(sptextStyle.decorationStyle), static_cast<int>(textStyle.decorationStyle));
     EXPECT_EQ(static_cast<int>(sptextStyle.fontWeight), static_cast<int>(textStyle.fontWeight));
+    EXPECT_EQ(static_cast<int>(sptextStyle.fontWidth), static_cast<int>(textStyle.fontWidth));
     EXPECT_EQ(static_cast<int>(sptextStyle.fontStyle), static_cast<int>(textStyle.fontStyle));
     EXPECT_EQ(sptextStyle.decorationColor, textStyle.decorationColor);
     EXPECT_EQ(sptextStyle.decorationThicknessMultiplier, textStyle.decorationThicknessScale);
@@ -233,7 +234,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest010, TestSize.Level0)
     EXPECT_EQ(sptextStyle.fontFeatures.GetFontFeatures().size(), 1);
     EXPECT_EQ(sptextStyle.fontFeatures.GetFontFeatures().begin()->first, "tag");
     EXPECT_EQ(sptextStyle.fontFeatures.GetFontFeatures().begin()->second, tagFeature);
-    EXPECT_EQ(sptextStyle.fontVariations.GetAxisValues().size(), 1);
+    EXPECT_EQ(sptextStyle.fontVariations.GetAxisValues().size(), 2);
     EXPECT_EQ(sptextStyle.fontVariations.GetAxisValues().at("tag"), tagAxis);
     EXPECT_EQ(sptextStyle.background->brush.value().GetColor(), Drawing::Color::COLOR_CYAN);
     EXPECT_EQ(sptextStyle.background->pen.value().GetColor(), Drawing::Color::COLOR_CYAN);

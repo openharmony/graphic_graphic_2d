@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameters.h>
+
 #include "gtest/gtest.h"
 
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
@@ -684,7 +686,8 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
     auto img = std::make_shared<Drawing::Image>();
     imageCache.CacheRenderDrawingImageByPixelMapId(123, img, 0);
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
-    rsImageDetailEnhancerThread.isEnable_ = true;
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     rsImageDetailEnhancerThread.SetOutImage(123, img);
     imageCache.ReleaseDrawingImageCacheByPixelMapId(123);
     EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
@@ -694,5 +697,6 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
     imageCache.ReleaseDrawingImageCacheByPixelMapId(345);
     EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
 } // namespace OHOS::Rosen

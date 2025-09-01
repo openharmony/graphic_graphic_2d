@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "message_parcel.h"
 #include "pixel_map.h"
@@ -1267,7 +1269,8 @@ HWTEST_F(RSImageTest, EnhanceImageAsyncTest001, TestSize.Level1)
     bool result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
     EXPECT_FALSE(result);
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
-    rsImageDetailEnhancerThread.isEnable_ = true;
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     auto pixelMap = std::make_shared<Media::PixelMap>();
     image->pixelMap_ = pixelMap;
     result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
@@ -1283,5 +1286,6 @@ HWTEST_F(RSImageTest, EnhanceImageAsyncTest001, TestSize.Level1)
     image->pixelMap_ = nullptr;
     result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
     EXPECT_FALSE(result);
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
 } // namespace OHOS::Rosen

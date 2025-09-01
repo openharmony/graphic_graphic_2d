@@ -124,6 +124,6 @@ HWTEST_F(RSSyncTransactionControllerTest, CloseSyncTransaction002, TestSize.Leve
     EXPECT_FALSE(instance->needCloseSync_);
     instance->needCloseSync_ = true;
     instance->OpenSyncTransaction();
-    EXPECT_FALSE(instance->needCloseSync_);
+    EXPECT_TRUE(instance->needCloseSync_);
 }
 } // namespace OHOS::Rosen

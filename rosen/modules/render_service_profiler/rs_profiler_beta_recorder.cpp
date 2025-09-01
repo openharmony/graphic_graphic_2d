@@ -27,7 +27,7 @@
 
 namespace OHOS::Rosen {
 
-static constexpr uint32_t INACTIVITY_THRESHOLD_SECONDS = 5u;
+static constexpr float INACTIVITY_THRESHOLD_SECONDS = 0.5f;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
 static std::atomic_bool g_started = false;
@@ -57,29 +57,6 @@ static std::string GetBetaRecordFileName(uint32_t index)
     constexpr uint32_t ten = 10u;
     const std::string cacheFile("/data/service/el0/render_service/file");
     return cacheFile + ((index < ten) ? "0" : "") + std::to_string(index) + ".ohr";
-}
-
-bool RSProfiler::IsBetaRecordInactive()
-{
-    return (Now() - g_inactiveTimestamp) > INACTIVITY_THRESHOLD_SECONDS;
-}
-
-void RSProfiler::RequestVSyncOnBetaRecordInactivity()
-{
-    if (IsBetaRecordInactive()) {
-        RequestNextVSync();
-    }
-}
-
-void RSProfiler::LaunchBetaRecordNotificationThread()
-{
-    std::thread thread([]() {
-        while (IsBetaRecordStarted()) {
-            RequestVSyncOnBetaRecordInactivity();
-            std::this_thread::sleep_for(std::chrono::seconds(INACTIVITY_THRESHOLD_SECONDS));
-        }
-    });
-    thread.detach();
 }
 
 void RSProfiler::LaunchBetaRecordFileSplitThread()
@@ -146,7 +123,6 @@ void RSProfiler::StartBetaRecord()
         g_inactiveTimestamp = Now();
         g_recordsTimestamp = Now();
 
-        LaunchBetaRecordNotificationThread();
         LaunchBetaRecordMetricsUpdateThread();
 
         if (!IsSecureScreen()) {
@@ -187,29 +163,34 @@ void RSProfiler::SaveBetaRecord()
     }
 
     constexpr double recordMinLengthSeconds = 30.0;
-    constexpr double recordMaxLengthSeconds = 50.0;
+    constexpr double recordMaxLengthSeconds = 4 * recordMinLengthSeconds;
     const auto recordLength = Now() - g_recordsTimestamp;
     bool saveShouldBeDone = recordLength > recordMinLengthSeconds;
     bool saveMustBeDone = recordLength > recordMaxLengthSeconds;
-    
-    if (g_animationCount && !saveMustBeDone) {
-        // avoid start beta recording during animations
-        return;
-    }
 
     if (IsNoneMode()) {
-        std::unique_lock<std::mutex> lock(g_mutexBetaRecording);
-        if (!IsSecureScreen()) {
-            if (RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
-                // rendering thread doesn't work
+        if (!IsSecureScreen() && !g_animationCount && g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS < Now() &&
+            RSUniRenderThread::Instance().IsTaskQueueEmpty() && !IsRenderFrameWorking()) {
+            // rendering thread doesn't work
+            constexpr int minMemoryNecessary = 32'000'000;
+            auto ptr = new (std::nothrow) uint8_t[minMemoryNecessary];
+            if (ptr) {
+                delete[] ptr;
+                std::unique_lock<std::mutex> lockMainTread(g_mutexBetaRecording);
+                std::unique_lock<std::mutex> lockRenderTread(RenderFrameMutexGet());
                 RecordStart(ArgList());
             }
         }
         return;
     }
 
+    if ((g_animationCount || g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS > Now()) && !saveMustBeDone) {
+        // avoid stop beta recording during animations + stop when inactive for 0.5 seconds
+        return;
+    }
+
     if (!IsBetaRecordSavingTriggered() && !saveShouldBeDone) {
-        // start new beta-record file every recordMinLengthSeconds
+        // don't stop when 30 seconds not reached
         return;
     }
 

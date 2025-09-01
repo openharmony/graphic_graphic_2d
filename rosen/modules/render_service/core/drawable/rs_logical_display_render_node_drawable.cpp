@@ -490,6 +490,24 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
         return mappedDamageRegion.GetRegionRectIs();
     }
+
+    bool needRefresh = !(lastCanvasMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
+        uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
+        lastTypeBlackList_ != currentTypeBlackList_ || params.IsSpecialLayerChanged() ||
+        lastSecExemption_ != curSecExemption_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
+        (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged()));
+    if (needRefresh) {
+        curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
+        virtualDirtyNeedRefresh_ = false;
+        lastCanvasMatrix_ = canvasMatrix;
+        lastMirrorMatrix_ = mirrorParams->GetMatrix();
+    }
+    if (!RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(curScreenDrawable) &&
+        !curScreenDrawable.GetAccumulateDirtyInSkipFrame() && !needRefresh) {
+        isSkipDisplayInVirtual_ = true;
+        return mappedDamageRegion.GetRegionRectIs();
+    }
+    curScreenDrawable.SetAccumulateDirtyInSkipFrame(false);
     const auto& curScreenInfo = curScreenParams->GetScreenInfo();
     if (!curScreenInfo.isEqualVsyncPeriod) {
         RS_LOGD("RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty frame rate is irregular");
@@ -506,18 +524,15 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(mappedRect)));
     }
 
-    bool needRefresh = !(lastCanvasMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
-        uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        lastTypeBlackList_ != currentTypeBlackList_ || params.IsSpecialLayerChanged() ||
-        lastSecExemption_ != curSecExemption_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
-        (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged()));
-    if (needRefresh) {
-        curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
-        virtualDirtyNeedRefresh_ = false;
-        lastCanvasMatrix_ = canvasMatrix;
-        lastMirrorMatrix_ = mirrorParams->GetMatrix();
-    }
     RectI hwcRect = mirroredDrawable->GetSyncDirtyManager()->GetHwcDirtyRegion();
+    const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
+        mirroredDrawable->GetSyncDirtyManager()->GetTypeHwcDirtyRegion();
+    for (auto& typeHwcRect : typeHwcRectList) {
+        NodeType nodeType = static_cast<NodeType>(typeHwcRect.first);
+        if (currentTypeBlackList_.find(nodeType) == currentTypeBlackList_.end()) {
+            hwcRect = hwcRect.JoinRect(typeHwcRect.second);
+        }
+    }
     if (!hwcRect.IsEmpty()) {
         if (mainScreenInfo.isSamplingOn && mainScreenInfo.samplingScale > 0) {
             Drawing::Matrix scaleMatrix;
@@ -1106,6 +1121,12 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
         Drawing::Matrix matrix = curCanvas_->GetTotalMatrix();
         std::vector<RectI> dirtyRects = CalculateVirtualDirty(virtualProcesser, *curScreenDrawable, params, matrix);
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, curScreenParams->GetScreenInfo());
+        if (isSkipDisplayInVirtual_) {
+            RS_TRACE_NAME("display node skip in virtual");
+            isSkipDisplayInVirtual_ = false;
+            curCanvas_->RestoreToCount(0);
+            return;
+        }
     } else {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);

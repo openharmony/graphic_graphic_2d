@@ -774,7 +774,7 @@ bool RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& result, const Drawing::Re
 bool RSUniHwcComputeUtil::IsBlendNeedFilter(RSRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
-    return property.NeedFilter() || node.GetHwcRecorder().IsBlendWithBackground() ||
+    return property.DisableHWCForFilter() || node.GetHwcRecorder().IsBlendWithBackground() ||
         IsForegroundColorStrategyValid(node);
 }
 

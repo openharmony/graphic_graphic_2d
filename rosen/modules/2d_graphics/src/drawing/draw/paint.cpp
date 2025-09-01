@@ -301,6 +301,10 @@ void Paint::Disable()
 {
     style_ = PaintStyle::PAINT_NONE;
     hasFilter_ = false;
+    filter_.Reset();
+
+    colorSpace_ = nullptr;
+    shaderEffect_ = nullptr;
 }
 
 bool operator==(const Paint& p1, const Paint& p2)

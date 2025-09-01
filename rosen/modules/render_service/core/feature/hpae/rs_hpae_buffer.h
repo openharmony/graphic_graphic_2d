@@ -16,6 +16,7 @@
 #ifndef HPAE_RS_HPAE_BUFFER_H
 #define HPAE_RS_HPAE_BUFFER_H
 
+#if defined(ROSEN_OHOS)
 #include <string>
 
 #include "common/rs_common_def.h"
@@ -25,7 +26,7 @@
 
 namespace OHOS::Rosen {
 
-constexpr uint32_t HPAE_BUFFER_SIZE = 5;
+constexpr uint32_t HPAE_BUFFER_SIZE = 4;
 
 namespace DrawableV2 {
 class RSHpaeBuffer {
@@ -33,7 +34,11 @@ public:
     RSHpaeBuffer(const std::string& name, const int layerId);
     ~RSHpaeBuffer();
 
+    void Init(const BufferRequestConfig& config, bool isHebc);
+    void PreAllocateBuffer(int32_t width, int32_t height, bool isHebc);
+
     std::unique_ptr<RSRenderFrame> RequestFrame(const BufferRequestConfig& config, bool isHebc);
+    std::unique_ptr<RSRenderFrame> RequestFrame(int32_t width, int32_t height, bool isHebc);
     bool FlushFrame();
     GSError ForceDropFrame(uint64_t presentWhen = 0);
 
@@ -43,24 +48,23 @@ public:
     }
 
     void* GetBufferHandle();
-    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const { return surfaceHandler_; }
 
 private:
-#if defined(ROSEN_OHOS)
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
-#endif
 
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
     bool surfaceCreated_ = false;
     std::string layerName_;
     std::shared_ptr<Drawing::GPUContext> grContext_;
     sptr<Surface> producerSurface_;
-    BufferRequestConfig bufferConfig_;
+    BufferRequestConfig bufferConfig_ {};
     void* bufferHandle_ = nullptr;
     std::shared_ptr<RSSurfaceOhos> rsSurface_ = nullptr;
 };
 
 } // DrawableV2
 } // OHOS::Rosen
+
+#endif // (ROSEN_OHOS)
 
 #endif

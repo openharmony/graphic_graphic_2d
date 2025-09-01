@@ -193,6 +193,7 @@ group("test") {
     "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/modifier:unittest",
     "render_service_client/unittest/pipeline:unittest",
+    "render_service_client/unittest/property:unittest",
     "render_service_client/unittest/render_thread:unittest",
     "render_service_client/unittest/render_thread/jank_detector:unittest",
     "render_service_client/unittest/transaction:unittest",
@@ -249,7 +250,8 @@ group("test") {
     deps += [ "render_service_profiler/unittest:unittest" ]
   }
 
-  if (defined(ddgr_feature_enable_batchsubmit) && ddgr_feature_enable_batchsubmit) {
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
+      && defined(graphic_2d_subtree_configs.subtree_root)) {
     deps += [ "render_service/unittest/subtree:unittest" ]
   }
 }

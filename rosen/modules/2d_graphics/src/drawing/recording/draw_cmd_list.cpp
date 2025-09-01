@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <memory>
 #include <unordered_set>
+#include <hilog/log.h>
 
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
@@ -311,13 +312,13 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
     do {
         count++;
         if (opItemCount && ++(*opItemCount) > MAX_OPITEMSIZE) {
-            LOGE("DrawCmdList::UnmarshallingOps failed, opItem count exceed limit");
+            HILOG_COMM_ERROR("DrawCmdList::UnmarshallingOps failed, opItem count exceed limit");
             break;
         }
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr == nullptr) {
-            LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
+            HILOG_COMM_ERROR("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
             break;
         }
         uint32_t type = curOpItemPtr->GetType();
@@ -334,7 +335,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
             auto* replacePtr = opAllocator_.OffsetToAddr(
                 replacedOpListForBuffer_[opReplaceIndex].second, sizeof(OpItem));
             if (replacePtr == nullptr) {
-                LOGE("DrawCmdList::Unmarshalling replace Ops failed, replace op is nullptr");
+                HILOG_COMM_ERROR("DrawCmdList::Unmarshalling replace Ops failed, replace op is nullptr");
                 break;
             }
             auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
@@ -541,7 +542,7 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr == nullptr) {
-            LOGE("DrawCmdList::GenerateCacheByBuffer failed, opItem is nullptr");
+            HILOG_COMM_ERROR("DrawCmdList::GenerateCacheByBuffer failed, opItem is nullptr");
             break;
         }
         size_t avaliableSize = opAllocator_.GetSize() - offset;
@@ -551,7 +552,7 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
             itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
             curOpItemPtr = static_cast<OpItem*>(itemPtr);
             if (curOpItemPtr == nullptr) {
-                LOGE("DrawCmdList::GenerateCache failed, opItem is nullptr");
+                HILOG_COMM_ERROR("DrawCmdList::GenerateCache failed, opItem is nullptr");
                 break;
             }
         }

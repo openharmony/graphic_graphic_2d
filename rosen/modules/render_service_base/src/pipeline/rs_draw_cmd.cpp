@@ -57,6 +57,7 @@ namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
 #if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GPU))
 constexpr uint32_t FENCE_WAIT_TIME = 3000; // ms
+constexpr uint32_t HYBRID_FENCE_WAIT_TIME = 30; // ms
 #endif
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 constexpr uint8_t ASTC_HEADER_SIZE = 16;
@@ -87,7 +88,7 @@ bool WaitFence(const sptr<SyncFence>& fence)
     if (fence == nullptr) {
         return false;
     }
-    int ret = fence->Wait(FENCE_WAIT_TIME);
+    int ret = fence->Wait(HYBRID_FENCE_WAIT_TIME);
     auto fenceFd = fence->Get();
     if (ret < 0 && fenceFd != -1) {
         return false;
@@ -881,6 +882,8 @@ void DrawHybridPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
         paintCanvas->AttachPaint(paint_);
     }
     if (objectHandle_->IsValid() && !WaitFence(fence_)) {
+        // if waiting for the fencce failed, reset the fence.
+        fence_ = SyncFence::InvalidFence();
         if (auto rsExtendImageObject = static_cast<RSExtendImageObject*>(objectHandle_.get())) {
             RS_TRACE_NAME_FMT("DrawHybridPixelMap waitfence error, nodeId: %llu", rsExtendImageObject->GetNodeId());
             LOGW("DrawHybridPixelMap waitfence timeout, nodeId: %{public}lu", rsExtendImageObject->GetNodeId());

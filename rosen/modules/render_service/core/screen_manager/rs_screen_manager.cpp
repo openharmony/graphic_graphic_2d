@@ -125,14 +125,15 @@ void RSScreenManager::InitFoldSensor()
         RS_LOGI("%{public}s not FoldScreen no need to InitFoldSensor.", __func__);
         return;
     }
+    RS_LOGI("%{public}s FoldScreen need to RegisterSensorCallback.", __func__);
+    RegisterSensorCallback();
     RSSystemProperties::WatchSystemProperty(BOOTEVENT_BOOT_COMPLETED.c_str(), OnBootComplete, nullptr);
     bool bootCompleted = RSSystemProperties::GetBootCompleted();
     if (UNLIKELY(bootCompleted)) {
         RS_LOGW("%{public}s boot completed.", __func__);
+        UnRegisterSensorCallback();
         return;
     }
-    RS_LOGI("%{public}s FoldScreen need to RegisterSensorCallback.", __func__);
-    RegisterSensorCallback();
 }
 
 void RSScreenManager::RegisterSensorCallback()

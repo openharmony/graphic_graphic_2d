@@ -71,7 +71,7 @@ public:
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
     virtual bool IsCloseHardwareHdr() const = 0;
-    virtual bool IsScreenNoHeadroom(ScreenId) = 0;
+    virtual bool IsScreenNoHeadroom(ScreenId) const = 0;
     virtual bool IsEnableImageDetailEnhance() = 0;
 };
 
@@ -104,7 +104,7 @@ public:
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
     RSB_EXPORT bool IsCloseHardwareHdr();
-    RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId);
+    RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId) const;
     RSB_EXPORT bool IsEnableImageDetailEnhance();
 
 private:

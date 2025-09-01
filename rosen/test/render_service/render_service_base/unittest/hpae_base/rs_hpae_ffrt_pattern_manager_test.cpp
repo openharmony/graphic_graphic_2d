@@ -235,6 +235,7 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
     EXPECT_TRUE(ret);
 }
 
+#ifdef RS_ENABLE_VK
 /**
  * @tc.name: SemaphoreMapTest001
  * @tc.desc: Verify function SetSemaphoreMap/GetSemaphoreMap
@@ -266,6 +267,6 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, SemaphoreMapTest002, TestSize.Level1)
     auto getSemaphore = ffrtManager.GetSemaphoreMap(1);
     EXPECT_EQ(getSemaphore.get(), nullptr);
 }
-
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -300,8 +300,8 @@ HWTEST_F(RSRenderServiceUnitTest, RSParamManager005, TestSize.Level1) {
     std::vector<std::string> cloudVersion1 = {"4", "0", "0", "0"};
     bool versionCompare1 = paramManager.CompareVersion(localVersion1, cloudVersion1);
     ASSERT_FALSE(versionCompare1);
-    std::vector<std::string> localVersion2 = {"a", "0", "0", "0"};
-    std::vector<std::string> cloudVersion2 = {"a", "1", "0", "0"};
+    std::vector<std::string> localVersion2 = {"5", "0", "0", "0"};
+    std::vector<std::string> cloudVersion2 = {"5", "a", "0", "0"};
     bool versionCompare2 = paramManager.CompareVersion(localVersion2, cloudVersion2);
     ASSERT_FALSE(versionCompare2);
 }

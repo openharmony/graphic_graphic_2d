@@ -43,6 +43,7 @@ public:
     static void SendBetaRecordPath(const std::string& path);
 
     static void SendSkp(const void* data, size_t size);
+    static void SendSkpAbort();
     static void SendCaptureData(const RSCaptureData& data);
     static void SendRSTreeDumpJSON(const std::string& jsonstr);
     static void SendRSTreePerfNodeList(const std::unordered_set<uint64_t>& perfNodesList);

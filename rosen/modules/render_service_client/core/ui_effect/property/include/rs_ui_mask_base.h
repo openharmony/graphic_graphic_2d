@@ -80,6 +80,12 @@ DECLARE_MASK(WaveGradientMask, WAVE_GRADIENT_MASK,
     ADD_PROPERTY_TAG(WaveGradientMask, TurbulenceStrength)
 );
 
+DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
+    ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
+    ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
+);
+
 #undef DECLARE_MASK
 #undef ADD_PROPERTY_TAG
 

@@ -31,6 +31,7 @@ namespace RSEventName {
     const std::string EPS_LCD_FREQ = "EPS_LCD_FREQ";
     const std::string JANK_STATS_RS = "JANK_STATS_RS";
     const std::string JANK_FRAME_RS = "JANK_FRAME_RS";
+    const std::string CALENDAR_ICON_TRANSPARENT = "CALENDAR_ICON_TRANSPARENT";
     const std::string INTERACTION_RESPONSE_LATENCY = "INTERACTION_RESPONSE_LATENCY";
     const std::string INTERACTION_COMPLETED_LATENCY = "INTERACTION_COMPLETED_LATENCY";
     const std::string INTERACTION_RENDER_JANK = "INTERACTION_RENDER_JANK";

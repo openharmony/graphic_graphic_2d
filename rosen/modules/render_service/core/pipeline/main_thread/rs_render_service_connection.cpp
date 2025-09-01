@@ -293,14 +293,13 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     }
 
     if (toDelete) {
-        auto renderService = renderService_.promote();
-        if (renderService == nullptr) {
-            RS_LOGW("CleanAll() RenderService is dead.");
+        if (auto renderService = renderService_.promote()) {
+            auto token = iface_cast<RSIConnectionToken>(GetToken());
+            renderService->RemoveConnection(token);
         } else {
-            renderService->RemoveConnection(GetToken());
+            RS_LOGW("CleanAll() RenderService is dead.");
         }
     }
-
     RS_LOGD("CleanAll() end.");
     RS_TRACE_NAME("RSRenderServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
 }

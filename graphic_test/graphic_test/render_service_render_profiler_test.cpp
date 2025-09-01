@@ -40,6 +40,12 @@ constexpr int MAX_WAITING_TIMES = 1000;
 [[maybe_unused]] constexpr int SOCKET_REFRESH_TIME = 20;
 [[maybe_unused]] constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
 
+const std::string CMD_RECORD_START = "record_start";
+const std::string CMD_RECORD_STOP = "record_stop";
+const std::string CMD_SAVE_SUBTREE = "save_subtree";
+const std::string CMD_REPLAY_START = "replay_start";
+const std::string CMD_REPLAY_STOP = "replay_stop";
+
 class RenderServiceRenderProfilerTest : public OHOS::Rosen::RSGraphicTest {
 public:
     void TestBody() override {}
@@ -274,6 +280,18 @@ void RecordStart(std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread
     profilerThread->Stop();
 }
 
+void SaveSubtree(std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread, std::string fileName)
+{
+    profilerThread->Start();
+    sleep(1);
+    std::string cmd = "rssubtree_save -f /data/service/el0/render_service/" + fileName;
+    std::cout << cmd << std::endl;
+    profilerThread->SendCommand(cmd);
+    std::cout << "Save SubTree!" << std::endl;
+    sleep(1);
+    profilerThread->Stop();
+}
+
 void RecordStop()
 {
     // 命令示例 ./demo record_stop
@@ -344,19 +362,25 @@ int main(int argc, char * argv[])
     std::string cmd = "";
     std::string message = "";
 
-    if (cmdType == "record_start") {
+    if (cmdType == CMD_RECORD_START) {
         std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread =
             std::make_shared<RenderServiceRenderProfilerTest>();
         RecordStart(profilerThread);
-    } else if (cmdType == "record_stop") {
+    } else if (cmdType == CMD_RECORD_STOP) {
         RecordStop();
-    } else if (cmdType == "replay_start") {
+    } else if (cmdType == CMD_REPLAY_START) {
         std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread =
             std::make_shared<RenderServiceRenderProfilerTest>();
         std::string ohrFile = argv[3];
         ReplayStart(profilerThread, ohrFile);
-    } else if (cmdType == "replay_stop") {
+    } else if (cmdType == CMD_REPLAY_STOP) {
         ReplayStop();
+    } else if (cmdType == CMD_SAVE_SUBTREE) {
+        std::shared_ptr<RenderServiceRenderProfilerTest> profilerThread =
+            std::make_shared<RenderServiceRenderProfilerTest>();
+        std::string fileName = argv[2];
+        fileName = !fileName.empty() ? fileName : "SubTree";
+        SaveSubtree(profilerThread, fileName);
     }
     return 0;
 }

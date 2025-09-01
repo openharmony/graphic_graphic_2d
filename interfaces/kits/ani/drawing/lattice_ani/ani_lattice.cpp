@@ -169,26 +169,26 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
 
     Lattice lat;
     if (!GetLatticeDividers(env, xDivs, xCount, lat.fXDivs)) {
-        ROSEN_LOGE("AniLattice::CreateImageLattice xDividers are invalid");
         AniThrowError(env, "Incorrect parameter0 type.");
         return CreateAniUndefined(env);
     }
     if (!GetLatticeDividers(env, yDivs, yCount, lat.fYDivs)) {
-        ROSEN_LOGE("AniLattice::CreateImageLattice yDividers are invalid");
         AniThrowError(env, "Incorrect parameter1 type.");
         return CreateAniUndefined(env);
     }
     lat.fXCount = static_cast<int>(xCount);
     lat.fYCount = static_cast<int>(yCount);
 
+    ani_boolean isUndefined = ANI_TRUE;
+    ani_boolean isNull = ANI_TRUE;
+    env->Reference_IsUndefined(fBounds, &isUndefined);
+    env->Reference_IsNull(fBounds, &isNull);
     Drawing::Rect drawingRect;
-    if (GetRectFromAniRectObj(env, fBounds, drawingRect)) {
+    if (!isUndefined && !isNull && GetRectFromAniRectObj(env, fBounds, drawingRect)) {
         lat.fBounds.push_back(Drawing::RectI(
             drawingRect.left_, drawingRect.top_, drawingRect.right_, drawingRect.bottom_));
     }
 
-    ani_boolean isUndefined = ANI_TRUE;
-    ani_boolean isNull = ANI_TRUE;
     env->Reference_IsUndefined(fRectTypes, &isUndefined);
     env->Reference_IsNull(fRectTypes, &isNull);
     uint32_t count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1

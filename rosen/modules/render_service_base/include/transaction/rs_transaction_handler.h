@@ -93,6 +93,8 @@ public:
 
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);
 
+    void DumpCommand(std::string& out);
+
 private:
     RSTransactionHandler(const RSTransactionHandler&) = delete;
     RSTransactionHandler(const RSTransactionHandler&&) = delete;

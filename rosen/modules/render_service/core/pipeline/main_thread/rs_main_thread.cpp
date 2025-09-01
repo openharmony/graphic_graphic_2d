@@ -2329,7 +2329,7 @@ void RSMainThread::ClearUnmappedCache()
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
 #ifdef RS_ENABLE_GPU
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS)
     RSHpaeManager::GetInstance().OnUniRenderStart();
 #endif
     if (isAccessibilityConfigChanged_) {
@@ -2575,6 +2575,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 // use offline buffer instead of original buffer,
                 // if succeed, params->SetBufferSynced will not be set true,
                 // origianl buffer will be released at next acquirement
+                params->SetOfflineOriginBufferSynced(false);
                 continue;
             }
             processor->CreateLayer(*surfaceNode, *params);

@@ -33,23 +33,35 @@ RSPointLightManager* RSPointLightManager::Instance()
 
 void RSPointLightManager::RegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode)
 {
+    if (!renderNode) {
+        return;
+    }
     NodeId nodeId = renderNode->GetId();
     lightSourceNodeMap_.emplace(nodeId, renderNode->weak_from_this());
 }
 
 void RSPointLightManager::RegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
 {
+    if (!renderNode) {
+        return;
+    }
     NodeId nodeId = renderNode->GetId();
     illuminatedNodeMap_.emplace(nodeId, renderNode->weak_from_this());
 }
 
 void RSPointLightManager::UnRegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode)
 {
+    if (!renderNode) {
+        return;
+    }
     NodeId nodeId = renderNode->GetId();
     lightSourceNodeMap_.erase(nodeId);
 }
 void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
 {
+    if (!renderNode) {
+        return;
+    }
     NodeId nodeId = renderNode->GetId();
     illuminatedNodeMap_.erase(nodeId);
 }

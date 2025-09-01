@@ -18,6 +18,7 @@
 
 #include "xml_parser_base.h"
 #include "mem_param.h"
+#include "render_context/shader_cache.h"
 
 namespace OHOS::Rosen {
 class MEMParamParse : public XMLParserBase {

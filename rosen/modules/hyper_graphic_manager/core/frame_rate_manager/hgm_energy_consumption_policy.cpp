@@ -39,7 +39,7 @@ constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
 constexpr int64_t DEFAULT_RS_ANIMATION_TOUCH_UP_TIME = 1000;
 constexpr int32_t UNKNOWN_IDLE_FPS = -1;
-constexpr int64_t DESCISION_VIDEO_CALL_TIME = 1000;
+constexpr int64_t DESCISION_VIDEO_CALL_TIME = 500;
 }
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
@@ -287,7 +287,7 @@ void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo &eventInf
         videoCallPid_.store(DEFAULT_PID);
         videoCallMaxFrameRate_ = 0;
         isEnableVideoCall_.store(false);
-        isVideoCallVsyncChange_.store(false);
+        isVideoCallVsyncChange_.store(true);
     }
     if (eventInfo.eventStatus) {
         auto [vsyncName, pid, _] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);

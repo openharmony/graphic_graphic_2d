@@ -1310,7 +1310,6 @@ public:
     void SetBgBrightnessFract(const float& fract);
     void SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara);
 
-
     /**
      * @brief Sets the grey coefficient.
      *
@@ -1902,7 +1901,6 @@ protected:
      */
     void SetIsOnTheTree(bool flag);
 
-    std::array<std::shared_ptr<ModifierNG::RSModifier>, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNGCreatedBySetter_;
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -1982,7 +1980,6 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id, const bool needForceSync = false);
 
-
     /**
      * @brief Retrieves the modifier associated with the specified property ID.
      *
@@ -1994,7 +1991,6 @@ private:
     void RegisterProperty(std::shared_ptr<RSPropertyBase> property);
     void UnregisterProperty(const PropertyId& propertyId);
 
-
     /**
      * @brief Called when the bounds size of the node has changed.
      */
@@ -2005,6 +2001,8 @@ private:
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
 
     void DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
+
+    std::shared_ptr<ModifierNG::RSModifier> GetModifierCreatedBySetter(ModifierNG::RSModifierType modifierType);
 
     /**
      * @brief Clears all modifiers associated with this node.
@@ -2047,6 +2045,7 @@ private:
     std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
+    std::map<ModifierNG::RSModifierType, std::shared_ptr<ModifierNG::RSModifier>> modifiersNGCreatedBySetter_;
 
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;

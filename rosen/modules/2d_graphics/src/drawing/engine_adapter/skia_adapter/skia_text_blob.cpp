@@ -16,6 +16,8 @@
 #include "skia_text_blob.h"
 
 #include <map>
+#include <memory>
+#include <new>
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkRSXform.h"
@@ -75,11 +77,15 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromPosText(const void* text, size_t
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
     auto skFont = skiaFont->GetFont();
     const int count = skFont.countText(text, byteLength, skEncoding);
-    SkPoint skPts[count];
+    std::unique_ptr<SkPoint[]> skPts = std::unique_ptr<SkPoint[]>(new(std::nothrow) SkPoint[count]);
+    if (skPts == nullptr) {
+        LOGD("failed to init skPts of size %{public}d, %{public}s, %{public}d", count, __FUNCTION__, __LINE__);
+        return nullptr;
+    }
     for (int i = 0; i < count; ++i) {
         skPts[i] = {pos[i].GetX(), pos[i].GetY()};
     }
-    sk_sp<SkTextBlob> skTextBlob = SkTextBlob::MakeFromPosText(text, byteLength, skPts, skFont, skEncoding);
+    sk_sp<SkTextBlob> skTextBlob = SkTextBlob::MakeFromPosText(text, byteLength, skPts.get(), skFont, skEncoding);
     if (!skTextBlob) {
         LOGD("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;

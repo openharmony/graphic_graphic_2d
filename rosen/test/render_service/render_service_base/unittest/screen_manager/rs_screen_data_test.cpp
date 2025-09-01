@@ -103,5 +103,34 @@ HWTEST_F(RSScreenDataTest, marshallingAndUnmarshallling001, TestSize.Level1)
     ASSERT_TRUE(ret);
 }
 
+/**
+ * @tc.name: ReadVectorTest001
+ * @tc.desc: test ReadVector when unmarModeCount is invalid
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenDataTest, ReadVectorTest001, TestSize.Level1)
+{
+    RSScreenData screenData;
+    std::vector<RSScreenModeInfo> unmarsupportModes;
+    uint32_t unmarModeCount = std::numeric_limits<uint32_t>::max();
+    Parcel parcel;
+    ASSERT_FALSE(screenData.ReadVector(unmarsupportModes, unmarModeCount, parcel));
+}
+
+/**
+ * @tc.name: ReadVectorTest002
+ * @tc.desc: test ReadVector when unmarModeCount is valid
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenDataTest, ReadVectorTest002, TestSize.Level1)
+{
+    RSScreenData screenData;
+    std::vector<RSScreenModeInfo> unmarsupportModes;
+    uint32_t unmarModeCount = 0; // 0 is valid
+    Parcel parcel;
+    ASSERT_TRUE(screenData.ReadVector(unmarsupportModes, unmarModeCount, parcel));
+}
 } // namespace Rosen
 } // namespace OHOS

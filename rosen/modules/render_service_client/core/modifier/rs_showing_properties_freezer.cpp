@@ -37,7 +37,7 @@ std::optional<T> RSShowingPropertiesFreezer::GetPropertyImplNG() const
         return std::nullopt;
     }
     std::unique_lock<std::recursive_mutex> lock(node->propertyMutex_);
-    auto& modifier = node->modifiersNGCreatedBySetter_[static_cast<uint16_t>(ModifierType)];
+    auto modifier = node->GetModifierCreatedBySetter(ModifierType);
     if (!modifier) {
         ROSEN_LOGE("RSShowingPropertiesFreezer::GetPropertyImplNG Type %{public}d failed, modifierNG is null!",
             static_cast<int>(ModifierType));

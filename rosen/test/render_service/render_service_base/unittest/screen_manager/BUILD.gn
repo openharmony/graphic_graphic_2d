@@ -48,6 +48,11 @@ ohos_unittest("RSRenderServiceBaseScreenMangerTest") {
     "skia:skia_canvaskit",
   ]
 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   subsystem_name = "graphic"
 }
 

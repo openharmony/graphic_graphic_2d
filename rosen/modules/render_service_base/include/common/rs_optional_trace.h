@@ -57,6 +57,11 @@ static inline int g_debugLevel = OHOS::Rosen::RSSystemProperties::GetDebugTraceL
         }                                                                   \
     } while (0)
 
+#define RS_OPTIONAL_TRACE_NAME_TESTMODE(fmt, ...)                           \
+    do {                                                                    \
+        HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, fmt, ##__VA_ARGS__);     \
+    } while (0)
+
 #define RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(Level, fmt, ...)                   \
     do {                                                                    \
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= Level) {     \
@@ -181,6 +186,7 @@ private:
 #define RS_OPTIONAL_TRACE_END()
 #define RS_OPTIONAL_TRACE_NAME_FMT(fmt, ...)
 #define RS_OPTIONAL_TRACE_FMT(fmt, ...)
+#define RS_OPTIONAL_TRACE_NAME_TESTMODE(fmt, ...)
 #define RS_APPOINTED_TRACE_BEGIN(node, name)
 #define RS_OPTIONAL_TRACE_NAME(name)
 #define RS_OPTIONAL_TRACE_FUNC()

@@ -156,8 +156,10 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
         GetSampledDamageAndDrawnRegion(screenInfo, damageRegion, uniParam->IsDirtyAlignEnabled(),
             damageRegion, drawnRegion);
     } else {
-        drawnRegion = uniParam->IsDirtyAlignEnabled() ?
-            damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
+        if (uniParam->IsDirtyAlignEnabled()) {
+            damageRegion = damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+        }
+        drawnRegion = damageRegion;
         RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
             damageRegion, drawnRegion, screenDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
     }
@@ -1399,8 +1401,10 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         sampledDamageRegion.OrSelf(mappedAndExpandedRegion);
     }
 
-    Occlusion::Region drawnRegion = isDirtyAlignEnabled ?
-        sampledDamageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : sampledDamageRegion;
+    if (isDirtyAlignEnabled) {
+        sampledDamageRegion = sampledDamageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+    }
+    Occlusion::Region drawnRegion = sampledDamageRegion;
 
     Drawing::Matrix invertedScaleMatrix;
     if (!scaleMatrix.Invert(invertedScaleMatrix)) {

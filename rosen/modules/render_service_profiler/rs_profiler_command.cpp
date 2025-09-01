@@ -33,6 +33,7 @@
 #include "rs_profiler_packet.h"
 #include "rs_profiler_settings.h"
 #include "rs_profiler_telemetry.h"
+#include "parameters.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -127,11 +128,32 @@ void RSProfiler::RecordCompression(const ArgList& args)
     SendMessage("Texture Compression Level %d", type);
 }
 
+bool IsDebugMode()
+{
+    std::string debugMode = "0";
+    debugMode = OHOS::system::GetParameter("const.debuggable", debugMode);
+    return debugMode == "1";
+}
+
+bool RSProfiler::AbortOnSecureScreenSKP()
+{
+    static bool enforceSecureScreenBlocking = !IsDebugMode();
+    if (enforceSecureScreenBlocking && IsSecureScreen()) {
+        SendMessage("Secure Screen! Can't capture .skp for secure screen");
+        Network::SendSkpAbort();
+        return true;
+    }
+    return false;
+}
+
 void RSProfiler::SaveSkp(const ArgList& args)
 {
     const auto nodeId = args.Node();
     RSCaptureRecorder::GetInstance().SetDrawingCanvasNodeId(nodeId);
     if (nodeId == 0) {
+        if (AbortOnSecureScreenSKP()) {
+            return;
+        }
         RSSystemProperties::SetInstantRecording(true);
         SendMessage("Recording full frame .skp");
     } else {
@@ -149,6 +171,9 @@ static void SetSkpAndClear()
 void RSProfiler::SaveSkpImgCache(const ArgList& args)
 {
     const auto option = args.Uint32();
+    if (AbortOnSecureScreenSKP()) {
+        return;
+    }
     if (option == 0) {
         RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::DEFAULT);
         SetSkpAndClear();

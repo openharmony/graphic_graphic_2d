@@ -219,7 +219,12 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
     std::shared_ptr<RSIRenderClient> renderServiceClient,
     bool& isNeedCommit)
 {
-    // 1. extract the drawCmdList that enable hybrid render
+    // 1. check if the process is running in the background.
+    if (RSModifiersDraw::IsBackground()) {
+        return transactionData;
+    }
+    
+    // 2. extract the drawCmdList that enable hybrid render
     std::vector<DrawOpInfo> targetCmds;
     uint32_t enableHybridTextOpCnt = 0;
     bool isEnableHybridByOpCnt =
@@ -228,7 +233,7 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
         return transactionData;
     }
 
-    // 2. check if the number of op exceeds the limit
+    // 3. check if the number of op exceeds the limit
     bool isFirstFrame = RSModifiersDrawThread::GetIsFirstFrame();
     if (!isEnableHybridByOpCnt) {
         if (isFirstFrame) {
@@ -241,7 +246,7 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
         }
     }
 
-    // 3. convert drawCmdList
+    // 4. convert drawCmdList
     RS_TRACE_NAME_FMT("%s opCnt=%zu, textOpCnt=%" PRIu32 ", isEnableHybridByOpCnt=%d, isFirstFrame=%d",
         __func__, targetCmds.size(), enableHybridTextOpCnt, isEnableHybridByOpCnt, isFirstFrame);
     RSModifiersDraw::MergeOffTreeNodeSet();
@@ -251,7 +256,7 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
         RSModifiersDraw::ConvertTransactionWithoutFFRT(transactionData, targetCmds);
     }
 
-    // 4. get fence from semaphore and add pixelMap to drawOp
+    // 5. get fence from semaphore and add pixelMap to drawOp
     RSModifiersDraw::GetFenceAndAddDrawOp(targetCmds);
     return transactionData;
 }

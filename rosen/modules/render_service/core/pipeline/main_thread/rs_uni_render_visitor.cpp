@@ -1582,7 +1582,7 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
     }
     if (allDstCurVisVec_ != allLastVisVec_) {
         RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
-        RS_LOGI("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());
+        HILOG_COMM_INFO("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());
         allLastVisVec_ = std::move(allDstCurVisVec_);
     }
 }
@@ -1855,8 +1855,8 @@ inline void RSUniRenderVisitor::CollectNodeForOcclusion(RSRenderNode& node)
 
 void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
 {
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node, screenInfo_.phyWidth, screenInfo_.phyHeight);
+#if defined(ROSEN_OHOS)
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node, curScreenNode_);
 #endif
 }
 

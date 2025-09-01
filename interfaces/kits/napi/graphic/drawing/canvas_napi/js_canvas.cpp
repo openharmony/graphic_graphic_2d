@@ -241,9 +241,16 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    Canvas* canvas = new Canvas();
+    Canvas* canvas = new(std::nothrow) Canvas();
+    if (canvas == nullptr) {
+        return nullptr;
+    }
     canvas->Bind(bitmap);
-    JsCanvas *jsCanvas = new JsCanvas(canvas, true);
+    JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas, true);
+    if (jsCanvas == nullptr) {
+        delete canvas;
+        return nullptr;
+    }
     jsCanvas->mPixelMap_ = pixelMapNapi->GetPixelNapiInner();
     status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

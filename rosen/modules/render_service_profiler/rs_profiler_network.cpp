@@ -163,6 +163,12 @@ void Network::SendBetaRecordPath(const std::string& path)
     SendPath(path, PackageID::RS_PROFILER_BETAREC_FILEPATH);
 }
 
+void Network::SendSkpAbort()
+{
+    std::vector<char> buffer { static_cast<char>(PackageID::RS_PROFILER_SKP_ABORT) };
+    SendBinary(buffer);
+}
+
 void Network::SendSkp(const void* data, size_t size)
 {
     if (data && (size > 0)) {

@@ -82,7 +82,6 @@ private:
     std::unordered_map<uint64_t, bool> processReadyMap_ = {};
     std::function<void(uint64_t)> callback_{};
     mutable std::mutex mapMutex_{};
-    bool isEnable_ = false;
 };
 
 class RSB_EXPORT DetailEnhancerUtils {

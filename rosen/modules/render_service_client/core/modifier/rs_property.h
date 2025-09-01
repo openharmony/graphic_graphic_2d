@@ -456,6 +456,7 @@ protected:
     friend class RSImplicitAnimator;
     friend class RSExtendedModifier;
     friend class RSModifier;
+    friend class ModifierNG::RSCustomModifier;
     friend class RSNGEffectUtils;
 };
 

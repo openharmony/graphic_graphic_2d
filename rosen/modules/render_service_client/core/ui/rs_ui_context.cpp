@@ -153,6 +153,7 @@ void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskI
             .append(", ")
             .append(std::to_string(transaction->GetTransactionDataIndex()))
             .append("]\r");
+        transaction->DumpCommand(out);
 
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);

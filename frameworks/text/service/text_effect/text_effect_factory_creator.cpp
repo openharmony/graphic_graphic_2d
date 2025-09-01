@@ -15,6 +15,8 @@
 
 #include "text_effect.h"
 
+#include <mutex>
+
 namespace OHOS::Rosen {
 
 TextEffectFactoryCreator& TextEffectFactoryCreator::GetInstance()

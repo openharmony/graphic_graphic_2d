@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameters.h>
+
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "gtest/gtest.h"
 #include "platform/common/rs_system_properties.h"
@@ -647,15 +649,17 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, RegisterCallbackTest, TestSize.Level1)
 {
     std::function<void(uint64_t)> callback = [](uint64_t) -> void {};
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
-    rsImageDetailEnhancerThread.isEnable_ = true;
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     bool result = rsImageDetailEnhancerThread.RegisterCallback(callback);
     EXPECT_TRUE(result);
-    rsImageDetailEnhancerThread.isEnable_ = false;
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
     result = rsImageDetailEnhancerThread.RegisterCallback(callback);
     EXPECT_FALSE(result);
-    rsImageDetailEnhancerThread.isEnable_ = true;
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     result = rsImageDetailEnhancerThread.RegisterCallback(nullptr);
     EXPECT_FALSE(result);
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
 
 /**
@@ -667,10 +671,12 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, RegisterCallbackTest, TestSize.Level1)
 HWTEST_F(RSImageDetailEnhancerThreadTest, GetEnableStatusTest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
     bool result = rsImageDetailEnhancerThread.GetEnableStatus();
-    rsImageDetailEnhancerThread.isEnable_ = true;
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     result = rsImageDetailEnhancerThread.GetEnableStatus();
     EXPECT_TRUE(result);
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

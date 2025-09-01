@@ -61,7 +61,7 @@ void HgmCore::SysModeChangeProcess(const char* key, const char* value, void* con
         HgmCore::Instance().GetPolicyConfigData()->UpdateRefreshRateForSettings(mode);
         HgmCore::Instance().SetRefreshRateMode(curMode);
         RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(curMode));
-        HGM_LOGI("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
+        HILOG_COMM_INFO("System mode changed to %{public}s, cur refresh mode is %{public}d", mode.c_str(), curMode);
     });
 }
 
@@ -74,7 +74,7 @@ HgmCore& HgmCore::Instance()
 
 HgmCore::HgmCore()
 {
-    HGM_LOGI("Construction of Hgmcore");
+    HILOG_COMM_INFO("Construction of Hgmcore");
 }
 
 void HgmCore::Init()
@@ -91,14 +91,14 @@ void HgmCore::Init()
 
         auto newRateMode = static_cast<int32_t>(RSSystemProperties::GetHgmRefreshRateModesEnabled());
         if (newRateMode == 0) {
-            HGM_LOGI("HgmCore No customer refreshrate mode found, set to xml default");
+            HILOG_COMM_INFO("HgmCore No customer refreshrate mode found, set to xml default");
             if (mPolicyConfigData_ == nullptr || !XMLParser::IsNumber(mPolicyConfigData_->defaultRefreshRateMode_)) {
                 HGM_LOGE("HgmCore failed to get parsed data");
             } else {
                 customFrameRateMode_ = std::stoi(mPolicyConfigData_->defaultRefreshRateMode_);
             }
         } else {
-            HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
+            HILOG_COMM_INFO("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
             customFrameRateMode_ = newRateMode;
             if (customFrameRateMode_ != HGM_REFRESHRATE_MODE_AUTO &&
                 mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
@@ -120,7 +120,7 @@ int HgmCore::AddParamWatcher() const
     // SysModeChangeProcess will be called when first WatchParameter
     int ret = WatchParameter("persist.sys.mode", HgmCore::SysModeChangeProcess, nullptr);
     if (ret != SUCCESS) {
-        HGM_LOGE("WatchParameter fail: %{public}d", ret);
+        HILOG_COMM_ERROR("WatchParameter fail: %{public}d", ret);
     }
     return ret;
 }
@@ -244,7 +244,7 @@ void HgmCore::SetLtpoConfig()
 
     SetScreenConstraintConfig();
     SetPerformanceConfig();
-    HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, "
+    HILOG_COMM_INFO("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, "
         "pipelineOffsetPulseNum: %{public}d, vBlankIdleCorrectSwitch: %{public}d, "
         "lowRateToHighQuickSwitch: %{public}d, pluseNum_: %{public}d, isDelayMode_: %{public}d",
         ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_, vBlankIdleCorrectSwitch_.load(),
@@ -426,7 +426,7 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
     const std::vector<GraphicDisplayModeInfo>& supportedModes)
 {
     // add a physical screen to hgm during hotplug event
-    HGM_LOGI("HgmCore adding screen : " PUBI64 "", id);
+    HILOG_COMM_INFO("HgmCore adding screen : " PUBI64 "", id);
     bool removeId = std::any_of(screenIds_.begin(), screenIds_.end(),
         [id](const ScreenId screen) { return screen == id; });
     if (removeId) {
@@ -464,7 +464,7 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
     screenIds_.push_back(id);
 
     int32_t screenNum = GetScreenListSize();
-    HGM_LOGI("HgmCore num of screen is %{public}d", screenNum);
+    HILOG_COMM_INFO("HgmCore num of screen is %{public}d", screenNum);
     return EXEC_SUCCESS;
 }
 
@@ -503,7 +503,8 @@ int32_t HgmCore::GetCurrentRefreshRateMode() const
 {
     if (mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {
         auto ret = mPolicyConfigData_->XmlModeId2SettingModeId(std::to_string(customFrameRateMode_));
-        HGM_LOGI("In GetCurrentRefreshRateMode, xmlid: %{public}d, setid: %{public}d", customFrameRateMode_, ret);
+        HILOG_COMM_INFO("In GetCurrentRefreshRateMode, xmlid: %{public}d, setid: %{public}d",
+            customFrameRateMode_, ret);
         return ret;
     }
     return customFrameRateMode_;

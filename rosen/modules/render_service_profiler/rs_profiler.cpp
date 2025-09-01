@@ -101,6 +101,8 @@ static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
+static std::mutex g_renderFrameMutex;
+static std::atomic<bool> g_renderFrameWorking = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
 } // namespace
 
@@ -551,10 +553,17 @@ void RSProfiler::OnParallelRenderBegin()
     }
 
     g_frameRenderBeginTimestamp = RawNowNano();
+
+    g_renderFrameMutex.lock();
+    g_renderFrameWorking = true;
 }
 
 void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 {
+    if (g_renderFrameWorking) {
+        g_renderFrameWorking = false;
+        g_renderFrameMutex.unlock();
+    }
     g_renderServiceRenderCpuId = Utils::GetCpuId();
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameRenderBeginTimestamp;
     CalcNodeWeigthOnFrameEnd(frameLengthNanosecs);
@@ -628,6 +637,9 @@ void RSProfiler::ProcessPauseMessage()
 
 void RSProfiler::OnFrameEnd()
 {
+    // must be always called mutex must be freed inside no matter happens
+    BetaRecordOnFrameEnd();
+
     if (!IsEnabled()) {
         return;
     }
@@ -665,13 +677,11 @@ void RSProfiler::OnFrameEnd()
             LogEventMsg(log_value.time_, log_value.type_, log_value.msg_);
         }
     }
-
-    BetaRecordOnFrameEnd();
 }
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
 {
-    if (g_calcPerfNode == 0) {
+    if (g_calcPerfNode == 0 || g_calcPerfNodeTry >= CALC_PERF_NODE_TIME_COUNT_MAX) {
         return;
     }
 
@@ -2102,6 +2112,16 @@ uint32_t RSProfiler::GetFrameNumber()
     return g_frameNumber;
 }
 
+bool RSProfiler::IsRenderFrameWorking()
+{
+    return g_renderFrameWorking;
+}
+
+std::mutex& RSProfiler::RenderFrameMutexGet()
+{
+    return g_renderFrameMutex;
+}
+
 void RSProfiler::BlinkNodeUpdate()
 {
     if (g_blinkSavedParentChildren.empty()) {
@@ -2275,7 +2295,18 @@ void RSProfiler::RsMetricSet(std::string name, std::string value)
 
 void RSProfiler::TestSaveSubTree(const ArgList& args)
 {
-    const auto nodeId = args.Node();
+    uint64_t nodeId;
+    std::string overridePath;
+    std::string path;
+    auto argStr = args.String();
+    if (args.String(0) == "-f") {
+        overridePath = args.String(1);
+        path = (!overridePath.empty()) ? overridePath : "";
+        nodeId = RSProfiler::GetRootNodeId();
+        Respond("Current root nood ID: " + std::to_string(nodeId));
+    } else {
+        nodeId = args.Node();
+    }
     auto node = GetRenderNode(nodeId);
     if (!node) {
         Respond("Error: node not found");
@@ -2295,14 +2326,19 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     Respond("Save SubTree Size: " + std::to_string(testDataSubTree.size()));
 
     // save file need setenforce 0
-    std::string rootPath = "/data";
-    char realRootPath[PATH_MAX] = {0};
-    if (!realpath(rootPath.c_str(), realRootPath)) {
-        Respond("Error: data path is invalid");
-        return;
+    std::string filePath;
+    if (!path.empty()) {
+        filePath = path;
+    } else {
+        std::string rootPath = "/data";
+        char realRootPath[PATH_MAX] = {0};
+        if (!realpath(rootPath.c_str(), realRootPath)) {
+            Respond("Error: data path is invalid");
+            return;
+        }
+        filePath = realRootPath;
+        filePath = filePath + "/rssbtree_test_" + std::to_string(nodeId);
     }
-    std::string filePath = realRootPath;
-    filePath = filePath + "/rssbtree_test_" + std::to_string(nodeId);
     std::ofstream file(filePath);
     if (file.is_open()) {
         file << testDataSubTree;
@@ -2440,5 +2476,59 @@ std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& 
     g_mainThread->SetDirtyFlag();
     AwakeRenderServiceThread();
     return errReason;
+}
+
+uint64_t RSProfiler::GetRootNodeId()
+{
+    auto pid = 0;
+    if (auto mainThread = RSMainThread::Instance()) {
+        const auto nodeId = mainThread->GetFocusNodeId();
+        if (auto renderNode = GetRenderNode(nodeId)) {
+            pid = GetPid(renderNode);
+            Respond("Focus Node pid: " + std::to_string(pid));
+        }
+    }
+
+    if (pid == 0) {
+        return 0;
+    }
+
+    std::optional<NodeId> rootNodeId;
+    size_t rootNodeChildrenCount = 0;
+    auto rootNode = context_->GetGlobalRootRenderNode();
+    if (!rootNode) {
+        Respond("Cannot get root node");
+        return 0;
+    }
+
+    std::queue<const std::shared_ptr<RSRenderNode>> nodes;
+    nodes.push(rootNode);
+
+    while (!nodes.empty()) {
+        const auto node = nodes.front();
+        nodes.pop();
+
+        if (!node) {
+            continue;
+        }
+
+        if (pid == GetPid(node) && rootNodeChildrenCount < node->GetChildrenCount()) {
+            const auto parentNode = node->GetParent().lock();
+            if (!parentNode || pid != GetPid(parentNode)) {
+                rootNodeId = node->GetId();
+                rootNodeChildrenCount = node->GetChildrenCount();
+            }
+        }
+        if (const auto children = node->GetChildren()) {
+            for (const auto child: *children) {
+                nodes.push(child);
+            }
+        }
+    }
+
+    if (rootNodeId) {
+        return *rootNodeId;
+    }
+    return 0;
 }
 } // namespace OHOS::Rosen

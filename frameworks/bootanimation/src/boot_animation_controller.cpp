@@ -61,9 +61,8 @@ void BootAnimationController::WaitRenderServiceInit() const
             usleep(SLEEP_TIME_US);
             continue;
         }
-        sptr<IRemoteObject> renderObj = saMgr->GetSystemAbility(RENDER_SERVICE);
+        sptr<IRemoteObject> renderObj = saMgr->CheckSystemAbility(RENDER_SERVICE);
         if (renderObj == nullptr || !system::GetBoolParameter("bootevent.renderservice.ready", false)) {
-            LOGI("renderService is not initialized, please wait...");
             usleep(SLEEP_TIME_US);
         } else {
             LOGI("renderService is initialized");

@@ -199,10 +199,6 @@ void RSUniRenderThread::InitGrContext()
             auto& schedClient = ResSchedClient::GetInstance();
             schedClient.ReportData(ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
         });
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
-    RSHpaeManager::GetInstance().InitIoBuffers();
-    RSHpaeManager::GetInstance().InitHpaeBlurResource();
-#endif
 }
 
 void RSUniRenderThread::Inittcache()
@@ -249,6 +245,9 @@ void RSUniRenderThread::Start()
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
         InitGrContext();
+#if defined(ROSEN_OHOS)
+        RSHpaeManager::GetInstance().InitHpaeBlurResource();
+#endif
         tid_ = gettid();
 #ifdef RES_SCHED_ENABLE
         SubScribeSystemAbility();
@@ -460,13 +459,17 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
     }
 }
 
-void RSUniRenderThread::ReleaseSurfaceBufferOpItemBuffer()
+void RSUniRenderThread::ReleaseSurfaceOpItemBuffer()
 {
-    auto fence = GetAcquireFence();
-    int32_t fenceFd = fence->Dup();
+    int32_t fenceFd = INVALID_FD;
+    if (acquireFence_ && acquireFence_->GetStatus() != SIGNALED) {
+        fenceFd = acquireFence_->Dup();
+    }
     RSSurfaceBufferCallbackManager::Instance().SetReleaseFence(fenceFd);
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
-    ::close(fenceFd);
+    if (fenceFd != INVALID_FD) {
+        ::close(fenceFd);
+    }
 }
 
 sptr<SyncFence> RSUniRenderThread::GetAcquireFence()

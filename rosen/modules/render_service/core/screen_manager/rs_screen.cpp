@@ -552,7 +552,7 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
         return StatusCode::HDI_ERROR;
     }
 
-    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
+    HILOG_COMM_WARN("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     hasLogBackLightAfterPowerStatusChanged_ = false;
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {

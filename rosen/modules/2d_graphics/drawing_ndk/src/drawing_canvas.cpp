@@ -14,6 +14,8 @@
  */
 
 #include "drawing_canvas.h"
+#include <memory>
+#include <new>
 
 #ifdef USE_M133_SKIA
 #include "src/base/SkUTF.h"
@@ -384,7 +386,7 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         return;
     }
 
-    Point* positionsPoint = new(std::nothrow) Point[vertexCount];
+    std::unique_ptr<Point[]> positionsPoint = std::unique_ptr<Point[]>(new(std::nothrow) Point[vertexCount]);
     if (positionsPoint == nullptr) {
         LOGE("OH_Drawing_CanvasDrawVertices: new position point failed.");
         return;
@@ -393,11 +395,10 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         positionsPoint[i] = CastToPoint(positions[i]);
     }
 
-    Point* texsPoint = nullptr;
+    std::unique_ptr<Point[]> texsPoint = nullptr;
     if (texs != nullptr) {
-        texsPoint = new(std::nothrow) Point[vertexCount];
+        texsPoint = std::unique_ptr<Point[]>(new(std::nothrow) Point[vertexCount]);
         if (texsPoint == nullptr) {
-            delete [] positionsPoint;
             LOGE("OH_Drawing_CanvasDrawVertices: new texs point failed.");
             return;
         }
@@ -406,9 +407,12 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         }
     }
 
-    Vertices* vertices = new Vertices();
-    bool result = vertices->MakeCopy(static_cast<VertexMode>(vertexMode), vertexCount, positionsPoint,
-        texsPoint, colors, indices ? indexCount : 0, indices);
+    std::unique_ptr<Vertices> vertices = std::unique_ptr<Vertices>(new(std::nothrow) Vertices());
+    if (vertices == nullptr) {
+        return;
+    }
+    bool result = vertices->MakeCopy(static_cast<VertexMode>(vertexMode), vertexCount, positionsPoint.get(),
+        texsPoint.get(), colors, indices ? indexCount : 0, indices);
     if (result) {
         canvas->DrawVertices(*vertices, static_cast<BlendMode>(mode));
 #ifdef OHOS_PLATFORM
@@ -418,9 +422,6 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         }
 #endif
     }
-    delete vertices;
-    delete [] positionsPoint;
-    delete [] texsPoint;
 }
 
 void OH_Drawing_CanvasDrawBackground(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Brush* cBrush)
@@ -529,7 +530,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapRectConstraint(OH_Drawing_Canv
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
-    OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapRectConstraint(CastToCanvas(cCanvas), p,
+    OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapRectConstraint(canvas, p,
         reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
         reinterpret_cast<const Drawing::SamplingOptions*>(cSamplingOptions),
         static_cast<SrcRectConstraint>(cConstraint));

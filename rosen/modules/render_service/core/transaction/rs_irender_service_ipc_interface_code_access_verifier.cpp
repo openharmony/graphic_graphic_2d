@@ -33,6 +33,10 @@ bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_CONNECTION): {
+            hasPermission = CheckPermission(code);
+            break;
+        }
         default: {
             break;
         }

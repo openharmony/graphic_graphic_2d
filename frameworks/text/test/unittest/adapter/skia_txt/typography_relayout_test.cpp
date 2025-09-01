@@ -20,6 +20,7 @@
 #include "hm_symbol_txt.h"
 #include "impl/paragraph_impl.h"
 #include "modules/skparagraph/include/ParagraphStyle.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "typography_style.h"

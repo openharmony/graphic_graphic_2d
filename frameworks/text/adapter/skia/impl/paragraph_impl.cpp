@@ -306,19 +306,23 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
-void ParagraphImpl::GetExtraTextStyleAttributes(const skia::textlayout::TextStyle& skStyle, TextStyle& textstyle)
+void ParagraphImpl::GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textStyle)
 {
     for (const auto& [tag, value] : skStyle.getFontFeatures()) {
-        textstyle.fontFeatures.SetFeature(tag.c_str(), value);
+        textStyle.fontFeatures.SetFeature(tag.c_str(), value);
     }
-    textstyle.textShadows.clear();
+    textStyle.textShadows.clear();
     for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
         TextShadow shadow;
         shadow.offset = skShadow.fOffset;
         shadow.blurSigma = skShadow.fBlurSigma;
         shadow.color = skShadow.fColor;
-        textstyle.textShadows.emplace_back(shadow);
+        textStyle.textShadows.emplace_back(shadow);
     }
+    textStyle.badgeType = static_cast<OHOS::Rosen::TextBadgeType>(skStyle.getTextBadgeType());
+    textStyle.maxLineHeight = skStyle.getMaxLineHeight();
+    textStyle.minLineHeight = skStyle.getMinLineHeight();
+    textStyle.lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(skStyle.getLineHeightStyle());
 }
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)

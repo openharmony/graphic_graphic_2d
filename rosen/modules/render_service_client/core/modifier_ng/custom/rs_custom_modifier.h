@@ -63,23 +63,14 @@ public:
     }
 
 protected:
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() override
-    {
-        auto node = node_.lock();
-        if (node == nullptr) {
-            return nullptr;
-        }
-        RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
-        Draw(ctx);
-        auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
-        Setter<RSProperty, std::shared_ptr<Drawing::DrawCmdList>>(GetInnerPropertyType(), drawCmdList);
-        return RSModifier::CreateRenderModifier();
-    }
-
     virtual RSPropertyType GetInnerPropertyType() const
     {
         return RSPropertyType::CUSTOM;
     }
+
+    void UpdateDrawCmdList();
+
+    void ClearDrawCmdList();
 
     void UpdateToRender() override
     {

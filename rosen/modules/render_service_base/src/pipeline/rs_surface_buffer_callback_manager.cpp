@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint64_t SURFACE_BUFFER_CALLBACK_LIMIT = 10000;
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
 {
     static RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr;
@@ -75,7 +76,14 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
     auto iter = surfaceBufferCallbacks_.find({pid, uid});
+    if (processCallbackCount_[pid] > SURFACE_BUFFER_CALLBACK_LIMIT) {
+        RS_LOGE("RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback Pair:"
+            "[Pid:%{public}s, uid:%{public}s] limit",
+            std::to_string(pid).c_str(), std::to_string(uid).c_str());
+        return;
+    }
     if (iter == std::end(surfaceBufferCallbacks_)) {
+        processCallbackCount_[pid]++;
         surfaceBufferCallbacks_.insert({{pid, uid}, callback});
     } else {
         RS_LOGE("RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback Pair:"
@@ -87,6 +95,7 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
+    processCallbackCount_.erase(pid);
     EraseIf(surfaceBufferCallbacks_, [pid](const auto& pair) {
         return pair.first.first == pid;
     });
@@ -101,6 +110,9 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
             "[Pid: %{public}s, Uid: %{public}s] not exists.",
             std::to_string(pid).c_str(), std::to_string(uid).c_str());
     } else {
+        if (processCallbackCount_[pid] > 0) {
+            processCallbackCount_[pid]--;
+        }
         surfaceBufferCallbacks_.erase(iter);
     }
 }

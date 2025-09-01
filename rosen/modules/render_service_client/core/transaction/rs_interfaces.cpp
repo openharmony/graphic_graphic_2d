@@ -169,6 +169,22 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 #endif
 }
 
+uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType type)
+{
+    return 0 ;
+}
+
+void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid,
+    const std::string &name, const std::vector<NodeId> &nodeIdList)
+{
+}
+
+void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+}
+
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
@@ -597,7 +613,7 @@ void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
 
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    RS_LOGI("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64
+    HILOG_COMM_INFO("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64
             ", ScreenPowerStatus: %{public}u",
         id, static_cast<uint32_t>(status));
     renderServiceClient_->SetScreenPowerStatus(id, status);

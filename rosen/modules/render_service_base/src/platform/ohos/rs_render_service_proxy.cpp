@@ -20,6 +20,9 @@
 #include <platform/common/rs_log.h>
 #include "ipc_callbacks/rs_ipc_callbacks_check.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSRenderServiceProxy"
+
 namespace OHOS {
 namespace Rosen {
 
@@ -28,7 +31,7 @@ RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl) : IR
 sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     if (token == nullptr) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): token is null.");
+        ROSEN_LOGE("CreateConnection(): token is null.");
         return nullptr;
     }
 
@@ -37,37 +40,66 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): WriteInterfaceToken failed.");
+        ROSEN_LOGE("CreateConnection(): WriteInterfaceToken failed.");
         return nullptr;
     }
     if (!data.WriteRemoteObject(token->AsObject())) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): WriteRemoteObject failed.");
+        ROSEN_LOGE("CreateConnection(): WriteRemoteObject failed.");
         return nullptr;
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): SendRequest failed, err is %{public}d.", err);
+        ROSEN_LOGE("CreateConnection(): SendRequest failed, err is %{public}d.", err);
         return nullptr;
     }
-
     bool isReadRemoteObj{0};
     if (!reply.ReadBool(isReadRemoteObj)) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection Read isReadRemoteObj failed, connection is nullptr.");
+        ROSEN_LOGE("CreateConnection Read isReadRemoteObj failed, connection is nullptr.");
         return nullptr;
     }
     if (!isReadRemoteObj) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): ReadBool failed, connection is nullptr.");
+        ROSEN_LOGE("CreateConnection(): ReadBool failed, connection is nullptr.");
         return nullptr;
     }
     auto remoteObj = reply.ReadRemoteObject();
     if (remoteObj == nullptr || !remoteObj->IsProxyObject()) {
-        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");
+        ROSEN_LOGE("CreateConnection(): Reply is not valid.");
         return nullptr;
     }
 
     return iface_cast<RSIRenderServiceConnection>(remoteObj);
+}
+
+bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
+{
+    if (token == nullptr) {
+        ROSEN_LOGE("RemoveConnection(): token is null.");
+        return false;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+        ROSEN_LOGE("RemoveConnection(): WriteInterfaceToken failed.");
+        return false;
+    }
+    if (!data.WriteRemoteObject(token->AsObject())) {
+        ROSEN_LOGE("RemoveConnection(): WriteRemoteObject failed.");
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
+    int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RemoveConnection(): SendRequest failed, err is %{public}d.", err);
+        return false;
+    }
+
+    return reply.ReadBool();
 }
 } // namespace Rosen
 } // namespace OHOS
