@@ -79,6 +79,7 @@
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) \
     RSProfiler::IfNeedToSkipDuringReplay(parcel, skipBytes)
+#define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel) RSProfiler::IsFirstFrameParcel(parcel)
 #define RS_PROFILER_RSLOGEOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::ERROR, format, argptr)
 #define RS_PROFILER_RSLOGWOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::WARNING, format, argptr)
 #define RS_PROFILER_RSLOGDOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::WARNING, format, argptr)
@@ -140,6 +141,7 @@
 #define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) drawCmdListNeedSync = true
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) false
+#define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel)
 #define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize)
 #define RS_PROFILER_RSLOGEOUTPUT(format, argptr)
 #define RS_PROFILER_RSLOGWOUTPUT(format, argptr)
@@ -503,6 +505,8 @@ public:
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
     RSB_EXPORT static void SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize);
+
+    RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
 
     RSB_EXPORT static void RsMetricClear();
     RSB_EXPORT static void RsMetricSet(std::string name, std::string value);
