@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//
+
 #ifndef RS_COMMON_HOOK_H
 #define RS_COMMON_HOOK_H
 
@@ -56,6 +56,13 @@ public:
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
 
+    void SetSolidColorLayerConfigFromHgm(
+        const std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm);
+    void SetHwcSolidColorLayerConfigFromHgm(
+        const std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm);
+    std::unordered_map<std::string, std::string> GetSolidColorLayerConfigFromHgm() const;
+    std::unordered_map<std::string, std::string> GetHwcSolidColorLayerConfigFromHgm() const;
+
     void SetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName, const std::string& val);
     std::string GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName);
 
@@ -86,6 +93,8 @@ private:
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 
+    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm_;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm_;
     // DISPLAY ENGINE
     std::string pkgName_{};
     mutable std::mutex setMutex_{};
