@@ -63,10 +63,10 @@ namespace common2D {
   }
 
   class ColorInternal implements common2D.Color {
-    alpha: int;
-    red: int;
-    green: int;
-    blue: int;
+    alpha: int = 0;
+    red: int = 0;
+    green: int = 0;
+    blue: int = 0;
     constructor(
       alpha: int,
       red: int,
@@ -118,10 +118,10 @@ namespace common2D {
   }
 
   class RectInternal implements common2D.Rect {
-    left: double;
-    top: double;
-    right: double;
-    bottom: double;
+    left: double = 0;
+    top: double = 0;
+    right: double = 0;
+    bottom: double = 0;
     constructor(
       left: double,
       top: double,
@@ -160,8 +160,8 @@ namespace common2D {
   }
 
   class PointInternal implements common2D.Point {
-    x: double;
-    y: double;
+    x: double = 0;
+    y: double = 0;
     constructor(
       x: double,
       y: double
