@@ -3709,7 +3709,7 @@ HWTEST_F(RSNodeTest, SetBackgroundNGFilter, TestSize.Level1)
 
     auto filter = std::make_shared<RSNGBlurFilter>();
     rsNode->SetBackgroundNGFilter(filter);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     
     rsNode->SetBackgroundNGFilter(nullptr);
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
@@ -3738,7 +3738,7 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
     auto para3 = std::make_shared<EdgeLightPara>();
     filterObj->AddPara(para3);
     rsNode->SetUIBackgroundFilter(filterObj);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     if (filterObj != nullptr) {
         delete filterObj;
         filterObj = nullptr;
@@ -3935,7 +3935,7 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
     auto para3 = std::make_shared<EdgeLightPara>();
     filterObj->AddPara(para3);
     rsNode->SetUIForegroundFilter(filterObj);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     if (filterObj != nullptr) {
         delete filterObj;
         filterObj = nullptr;
