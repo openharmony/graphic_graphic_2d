@@ -285,9 +285,11 @@ napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
 
-    std::unique_ptr<FilterNapi> filterNapi = std::make_unique<FilterNapi>();
+    FilterNapi* filterNapi = new(std::nothrow) FilterNapi();
     filterNapi->srcPixelMap_  = pixelMap;
-    napi_wrap(env, objValue, filterNapi.release(), FilterNapi::Finalizer, nullptr, nullptr);
+    auto status = napi_wrap(env, objValue, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
+        EFFECT_LOG_E("FilterNapi CreateEffectFromPtr wrap fail"));
 
     return objValue;
 }
