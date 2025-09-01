@@ -45,6 +45,8 @@ private:
         ani_env* env, ani_object object, ani_double alignmentFactor, ani_double alignmentWidth);
     static ani_object NativeTransferStatic(ani_env* env, ani_class cls, ani_object input);
     static ani_object NativeTransferDynamic(ani_env* env, ani_class cls, ani_long nativeObj);
+
+    std::shared_ptr<Rosen::TextLineBase> textLine_ = nullptr;
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_TEXT_LINE_H
