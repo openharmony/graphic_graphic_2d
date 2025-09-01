@@ -37,6 +37,10 @@ constexpr size_t MAX_NUM_SOLID_LAYER = 1;
 constexpr int MIN_OVERLAP = 2;
 constexpr float EPSILON_SCALE = 0.00001f;
 
+// IsSolidLayerEnable : effective in all scenarios
+// GetIsWhiteListForSolidColorLayerFlag : applicable to a single app
+// IsSolidLayerInMultiWindowEnable : effective in floating window and multi-window scenarios
+// GetSolidLayerHwcEnabled : Scheme Enable Switch
 bool GetSolidLayerEnabled()
 {
     return (HWCParam::IsSolidLayerEnable() || RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() ||
