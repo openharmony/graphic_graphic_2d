@@ -164,11 +164,20 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
     MarkFilterStatusChanged(false, true);
 }
 
+bool RSEffectRenderNode::IsForceClearFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable) const
+{
+    return filterDrawable && !filterDrawable->IsForceUseFilterCache() && filterDrawable->IsForceClearFilterCache();
+}
+
 void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
     lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
+        // expand dirty region with filterRegion when effect render node needs to force clear filter cache
+        if (IsForceClearFilterCache(filterDrawable)) {
+            ExpandDirtyRegionWithFilterRegion(dirtyManager);
+        }
         return;
     }
     // use for skip-frame when screen rotation
