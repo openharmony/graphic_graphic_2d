@@ -44,11 +44,13 @@ public:
     void SyncRefreshRateUpdateCallback(int32_t refreshRate);
     void SyncXComponentExpectedFrameRateCallback(pid_t pid, const std::string& xcomponentId, int32_t expectedFrameRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
-    void DestroyXComponent(pid_t pid, const std::string& xcomponentId);
+
 
 private:
     HgmConfigCallbackManager();
     ~HgmConfigCallbackManager() noexcept override;
+    void DestroyXComponent(pid_t pid, const std::string& xcomponentId);
+
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
@@ -58,7 +60,7 @@ private:
     // <dstPid, <listenerPid, cb>>
     std::unordered_map<pid_t, std::unordered_map<pid_t,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>>> xcomponentExpectedFrameRateCallbacks_;
-    // <dstPid, <xcomponentId, frameRate>
+    // <dstPid, <xcomponentId, frameRate>>
     std::unordered_map<pid_t, std::unordered_map<std::string, int32_t>> xcomponentExpectedFrameRate_;
 };
 } // namespace OHOS::Rosen
