@@ -554,7 +554,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         // When ScRGB or Adaptive P3 is enabled, some operations may cause the window color gamut to change.
         // In this case, the uifirst cache needs to be cleared.
         if ((isScRGBEnable || ColorGamutParam::IsAdaptiveColorGamutEnabled()) && changeColorSpace) {
-            RS_LOGI("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
+            HILOG_COMM_INFO("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
             RS_TRACE_NAME_FMT("UIFirstHDR SyncHDRDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%" PRIu64"]", id);
@@ -1916,7 +1916,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
                 return;
             }
             RS_TRACE_NAME_FMT("UIFirst_switch disable -> enable %" PRIu64, node.GetId());
-            RS_LOGI("uifirst disable -> enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
+            HILOG_COMM_INFO("uifirst disable -> enable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
@@ -1943,7 +1943,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             IncreaseUifirstWindowCount(node);
         } else { // switch: enable -> disable
             RS_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64, node.GetId());
-            RS_LOGI("uifirst enable -> disable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
+            HILOG_COMM_INFO("uifirst enable -> disable. %{public}s id:%{public}" PRIu64, node.GetName().c_str(), node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             NotifyUIStartingWindow(node.GetId(), false);
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
@@ -2078,7 +2078,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     notifyCv_.wait_for(lock, TIME_OUT, pred);
     auto ret = pred();
     if (!ret) {
-        RS_LOGE("uifirst nodeId %{public}" PRIu64
+        HILOG_COMM_ERROR("uifirst nodeId %{public}" PRIu64
             " wait uifirstrootNodeId %{public}" PRIu64 " until 500ms timeout", params.GetId(), rootId);
     }
     return ret;

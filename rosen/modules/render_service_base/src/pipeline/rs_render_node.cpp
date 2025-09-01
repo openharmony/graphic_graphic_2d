@@ -4451,7 +4451,7 @@ void RSRenderNode::OnSync()
 #ifdef RS_ENABLE_GPU
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
-        RS_LOGE("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
+        HILOG_COMM_ERROR("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
         if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
             return;
         }

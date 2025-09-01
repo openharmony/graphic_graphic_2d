@@ -234,7 +234,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
         return false;
     }
     if (ROSEN_EQ(surfaceDrawable->boundsWidth_, 0.f) || ROSEN_EQ(surfaceDrawable->boundsHeight_, 0.f)) {
-        RS_LOGE("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
+        HILOG_COMM_ERROR("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
         return false;
     }
 
@@ -385,7 +385,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 
 void RsSubThreadCache::ResetUifirst(bool isOnlyClearCache)
 {
-    RS_LOGI("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", nodeId_, isOnlyClearCache);
+    HILOG_COMM_INFO("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", nodeId_, isOnlyClearCache);
     if (isOnlyClearCache) {
         ClearCacheSurfaceOnly();
     } else {
@@ -1017,7 +1017,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         return false;
     }
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
+        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
             __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
             cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
@@ -1065,7 +1065,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", surfaceParams.GetName().c_str());
-        RS_LOGI("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, surfaceDrawable->name_.c_str(),
+        HILOG_COMM_INFO("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, surfaceDrawable->name_.c_str(),
             surfaceDrawable->nodeId_);
     }
     surfaceDrawable->DrawForeground(canvas, bounds);
