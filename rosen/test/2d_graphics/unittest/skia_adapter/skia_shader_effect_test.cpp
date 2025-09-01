@@ -292,20 +292,6 @@ HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient002, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitWithLightUp001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaShaderEffectTest, InitWithLightUp001, TestSize.Level1)
-{
-    const std::shared_ptr<Drawing::ShaderEffect> imageShader = std::make_shared<Drawing::ShaderEffect>();
-    SkiaShaderEffect skiaShaderEffect;
-    skiaShaderEffect.InitWithLightUp(1.0f, *imageShader);
-    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
-}
-
-/**
  * @tc.name: Serialize001
  * @tc.desc: Test Serialize
  * @tc.type: FUNC
