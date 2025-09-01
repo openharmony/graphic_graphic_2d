@@ -22,78 +22,77 @@
 using namespace OHOS::Rosen;
 
 namespace OHOS::Rosen::Text {
-    typedef OH_Drawing_ErrorCode (*TypographyStyleDoubleSetter)(OH_Drawing_TypographyStyle*, double);
+    typedef OH_Drawing_ErrorCode (*TypographyStyleDoubleSetter)(TypographyStyle*, double);
 
-    typedef OH_Drawing_ErrorCode (*TypographyStyleDoubleGetter)(const OH_Drawing_TypographyStyle*, double*);
+    typedef OH_Drawing_ErrorCode (*TypographyStyleDoubleGetter)(const TypographyStyle*, double*);
 
-    typedef OH_Drawing_ErrorCode (*TypographyStyleIntSetter)(OH_Drawing_TypographyStyle*, int);
+    typedef OH_Drawing_ErrorCode (*TypographyStyleIntSetter)(TypographyStyle*, int);
 
-    typedef OH_Drawing_ErrorCode (*TypographyStyleIntGetter)(const OH_Drawing_TypographyStyle*, int*);
+    typedef OH_Drawing_ErrorCode (*TypographyStyleIntGetter)(const TypographyStyle*, int*);
 
-    OH_Drawing_ErrorCode SetLineSpacing(OH_Drawing_TypographyStyle* style, double value)
+    OH_Drawing_ErrorCode SetLineSpacing(TypographyStyle* style, double value)
     {
-        reinterpret_cast<TypographyStyle*>(style)->lineSpacing = value;
+        style->lineSpacing = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetLineSpacing(const OH_Drawing_TypographyStyle* style, double* value)
+    OH_Drawing_ErrorCode GetLineSpacing(const TypographyStyle* style, double* value)
     {
-        *value = reinterpret_cast<const TypographyStyle*>(style)->lineSpacing;
+        *value = style->lineSpacing;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetLineHeightMaximum(OH_Drawing_TypographyStyle* style, double value)
+    OH_Drawing_ErrorCode SetLineHeightMaximum(TypographyStyle* style, double value)
     {
-        reinterpret_cast<TypographyStyle*>(style)->maxLineHeight = value;
+        style->maxLineHeight = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetLineHeightMaximum(const OH_Drawing_TypographyStyle* style, double* value)
+    OH_Drawing_ErrorCode GetLineHeightMaximum(const TypographyStyle* style, double* value)
     {
-        *value = reinterpret_cast<const TypographyStyle*>(style)->maxLineHeight;
+        *value = style->maxLineHeight;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetLineHeightMinimum(OH_Drawing_TypographyStyle* style, double value)
+    OH_Drawing_ErrorCode SetLineHeightMinimum(TypographyStyle* style, double value)
     {
-        reinterpret_cast<TypographyStyle*>(style)->minLineHeight = value;
+        style->minLineHeight = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetLineHeightMinimum(const OH_Drawing_TypographyStyle* style, double* value)
+    OH_Drawing_ErrorCode GetLineHeightMinimum(const TypographyStyle* style, double* value)
     {
-        *value = reinterpret_cast<const TypographyStyle*>(style)->minLineHeight;
+        *value = style->minLineHeight;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetLineHeightStyle(OH_Drawing_TypographyStyle* style, int value)
+    OH_Drawing_ErrorCode SetLineHeightStyle(TypographyStyle* style, int value)
     {
         if (value < 0 || value > static_cast<int>(OHOS::Rosen::LineHeightStyle::kFontHeight)) {
             return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         }
-        reinterpret_cast<TypographyStyle*>(style)->lineHeightStyle =
-            static_cast<OHOS::Rosen::LineHeightStyle>(value);
+        style->lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(value);
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetLineHeightStyle(const OH_Drawing_TypographyStyle* style, int* value)
+    OH_Drawing_ErrorCode GetLineHeightStyle(const TypographyStyle* style, int* value)
     {
-        *value = static_cast<int>(reinterpret_cast<const TypographyStyle*>(style)->lineHeightStyle);
+        *value = static_cast<int>(style->lineHeightStyle);
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetTypographyStyleFontWidth(OH_Drawing_TypographyStyle* style, int value)
+    OH_Drawing_ErrorCode SetTypographyStyleFontWidth(TypographyStyle* style, int value)
     {
         if (value < FONT_WIDTH_ULTRA_CONDENSED || value > FONT_WIDTH_ULTRA_EXPANDED) {
             return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         }
-        reinterpret_cast<TypographyStyle*>(style)->fontWidth = FontWidth(value);
+        style->fontWidth = FontWidth(value);
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetTypographyStyleFontWidth(const OH_Drawing_TypographyStyle* style, int* value)
+    OH_Drawing_ErrorCode GetTypographyStyleFontWidth(const TypographyStyle* style, int* value)
     {
-        *value = static_cast<int>(reinterpret_cast<const TypographyStyle*>(style)->fontWidth);
+        *value = static_cast<int>(style->fontWidth);
         return OH_DRAWING_SUCCESS;
     }
 
@@ -134,10 +133,10 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDouble(OH_Drawing_Typ
     if (it == Text::g_typographyStyleDoubleSetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<TypographyStyle*>(style), value);
 }
 
-OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDouble(const OH_Drawing_TypographyStyle* style,
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDouble(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, double* value)
 {
     if (style == nullptr || value == nullptr) {
@@ -147,7 +146,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDouble(const OH_Drawi
     if (it == Text::g_typographyStyleDoubleGetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<const TypographyStyle*>(style), value);
 }
 
 OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_TypographyStyle* style,
@@ -160,10 +159,10 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_Typogr
     if (it == Text::g_typographyStyleIntSetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<TypographyStyle*>(style), value);
 }
 
-OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeInt(const OH_Drawing_TypographyStyle* style,
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeInt(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, int* value)
 {
     if (style == nullptr || value == nullptr) {
@@ -173,5 +172,5 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeInt(const OH_Drawing_
     if (it == Text::g_typographyStyleIntGetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<const TypographyStyle*>(style), value);
 }

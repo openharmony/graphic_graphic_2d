@@ -14,6 +14,7 @@
  */
 
 #include <fstream>
+#include <limits>
 #include <string>
 
 #include "drawing_bitmap.h"
@@ -3009,7 +3010,7 @@ HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest001, TestSize.Level0)
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyLineSpacingTest
  * @tc.desc: Test for lineSpacing function with text behavior function in greedy layout
@@ -3051,7 +3052,7 @@ HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest002, TestSize.Level0)
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyLineSpacingTest
  * @tc.desc: Test for lineSpacing function with text behavior function in balance layout
@@ -3065,6 +3066,10 @@ HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest003, TestSize.Level0)
     // Test for line spacing 30
     OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, 30.0);
+    double lineSpacing = 0.0f;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, &lineSpacing);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
     OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, OH_Drawing_TextHeightBehavior::TEXT_HEIGHT_DISABLE_ALL);
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -3093,7 +3098,7 @@ HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest003, TestSize.Level0)
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
  * @tc.desc: Test for maxLineHeight and minLineHeight basic functions(trigger max limit)
@@ -3136,7 +3141,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest001, Tes
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
  * @tc.desc: Test for maxLineHeight and minLineHeight basic functions(trigger min limit)
@@ -3155,8 +3160,16 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest002, Tes
     OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 100.0);
     // Test for min line height 100
+    double maxLineHeight = 0.0f;
+    OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &maxLineHeight);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(maxLineHeight, 100.0));
     OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, 100.0);
+    double minLineHeight = 0.0f;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, &minLineHeight);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     ASSERT_NE(handler, nullptr);
@@ -3179,8 +3192,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest002, Tes
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
  * @tc.desc: Test for maxLineHeight less than minLineHeight
@@ -3223,7 +3235,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest003, Tes
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
  * @tc.desc: Test for maxLineHeight less than zero
@@ -3266,7 +3278,55 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest004, Tes
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
+/*
+ * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.desc: Test for set max double value to maxLineHeight
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest005, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTypographyTextFontSize(typoStyle, 40);
+    // Test for min line height 10
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
+        std::numeric_limits<double>::max());
+    double limitLineHeight = 0.0f;
+    OH_Drawing_ErrorCode maxHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &limitLineHeight);
+    EXPECT_EQ(maxHeightCode, OH_DRAWING_SUCCESS);
+    // Test for min line height 30
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM,
+        std::numeric_limits<double>::max());
+    OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 1);
+    int heightStyle = 0;
+    OH_Drawing_ErrorCode heightStyleCode = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &heightStyle);
+    EXPECT_EQ(heightStyleCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode minHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, &limitLineHeight);
+    EXPECT_EQ(minHeightCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, 0),
+        std::numeric_limits<double>::max()));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
 /*
  * @tc.name: OH_Drawing_TypographyLineHeightStyle
  * @tc.desc: Test for lineHeightStyle fontSize
@@ -3307,7 +3367,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest001, TestSiz
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyLineHeightStyle
  * @tc.desc: Test for lineHeightStyle fontHeight
@@ -3325,6 +3385,10 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest002, TestSiz
     OH_Drawing_SetTextStyleAttributeInt(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
         OH_Drawing_LineHeightStyle::TEXT_LINE_HEIGHT_BY_FONT_HEIGHT);
+    int lineHeightStyle = 0;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_GetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyle);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
     OH_Drawing_SetTextStyleFontHeight(txtStyle, 1);
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
@@ -3348,7 +3412,7 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest002, TestSiz
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyLineHeightStyle
  * @tc.desc: Test for lineHeightStyle invalid param
@@ -3364,11 +3428,22 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest003, TestSiz
     // Test for font size 40
     OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
     // Invalid param 3
-    int res = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
-        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 3);
-    EXPECT_EQ(res, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    int heightStyle = 3;
+    OH_Drawing_ErrorCode styleErrorCode = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, heightStyle);
+    EXPECT_EQ(styleErrorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_ErrorCode paragraphStyleErrorCode = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, heightStyle);
+    EXPECT_EQ(paragraphStyleErrorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    // Invalid param 3
+    int invalidHeightStyle = -1;
+    OH_Drawing_ErrorCode paragraphStyleErrorCodeTwo = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, invalidHeightStyle);
+    EXPECT_EQ(paragraphStyleErrorCodeTwo, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyAttributeInterfaceTest
  * @tc.desc: Test for attribute setter invalid param
@@ -3383,30 +3458,38 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyAttributeInterfaceTest001, Test
     ASSERT_NE(txtStyle, nullptr);
     // Test for font size 40
     OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
-    int intAttributeSetInterfaceNullptrRes = OH_Drawing_SetTextStyleAttributeInt(nullptr,
+    OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_SetTextStyleAttributeInt(nullptr,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
-    EXPECT_EQ(intAttributeSetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    int intAttributeSetInterfaceInvalidParamRes = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0);
-    EXPECT_EQ(intAttributeSetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
-    int doubleAttributeSetInterfaceInvalidParamRes = OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
-        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
-        0.0f);
-    EXPECT_EQ(doubleAttributeSetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
-    int intParagraphStyleAttributeSetInterfaceNullptrRes = OH_Drawing_SetTypographyStyleAttributeInt(nullptr,
-        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
-        0);
-    EXPECT_EQ(intParagraphStyleAttributeSetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    int intParagraphStyleAttributeSetInterfaceInvalidRes = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_SetTextStyleAttributeDouble(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0.0f);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0.0f);
+    EXPECT_EQ(errorCodeFour, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeFive = OH_Drawing_SetTypographyStyleAttributeInt(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
+    EXPECT_EQ(errorCodeFive, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeSix = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0);
+    EXPECT_EQ(errorCodeSix, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeSeven = OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
+    EXPECT_EQ(errorCodeSeven, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeEight = OH_Drawing_SetTextStyleAttributeDouble(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0.0f);
+    EXPECT_EQ(errorCodeEight, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeNine = OH_Drawing_SetTypographyStyleAttributeDouble(nullptr,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
-        0);
-    EXPECT_EQ(intParagraphStyleAttributeSetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
-    int doubleParagraphStyleAttributeSetInterfaceInvalidRes = OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
-        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
-        0);
-    EXPECT_EQ(doubleParagraphStyleAttributeSetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+        std::numeric_limits<double>::max());
+    EXPECT_EQ(errorCodeNine, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyAttributeInterfaceTest
  * @tc.desc: Test for attribute getter invalid param
@@ -3422,30 +3505,38 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyAttributeInterfaceTest002, Test
     // Test for font size 40
     OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
     int lineHeightStyleInt = 0;
-    int intAttributeGetInterfaceNullptrRes = OH_Drawing_GetTextStyleAttributeInt(nullptr,
+    OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_GetTextStyleAttributeInt(nullptr,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleInt);
-    EXPECT_EQ(intAttributeGetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    int lineHeightMaxInt = 0.0f;
-    int intAttributeGetInterfaceInvalidParamRes = OH_Drawing_GetTextStyleAttributeInt(txtStyle,
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    int lineHeightMaxInt = 0;
+    OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_GetTextStyleAttributeInt(txtStyle,
         OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &lineHeightMaxInt);
-    EXPECT_EQ(intAttributeGetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     double lineHeightStyleDouble = 0.0f;
-    int doubleAttributeGetInterfaceInvalidParamRes = OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
-        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
-        &lineHeightStyleDouble);
-    EXPECT_EQ(doubleAttributeGetInterfaceInvalidParamRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
-    int intParagraphStyleAttributeGetInterfaceNullptrRes = OH_Drawing_GetTypographyStyleAttributeInt(nullptr,
-        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
-        &lineHeightStyleInt);
-    EXPECT_EQ(intParagraphStyleAttributeGetInterfaceNullptrRes, OH_DRAWING_ERROR_INVALID_PARAMETER);
-    int intParagraphStyleAttributeGetInterfaceInvalidRes = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
-        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
-        &lineHeightMaxInt);
-    EXPECT_EQ(intParagraphStyleAttributeGetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
-    int doubleParagraphStyleAttributeGetInterfaceInvalidRes = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
-        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
-        &lineHeightStyleDouble);
-    EXPECT_EQ(doubleParagraphStyleAttributeGetInterfaceInvalidRes, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_GetTypographyStyleAttributeInt(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleInt);
+    EXPECT_EQ(errorCodeFour, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeFive = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &lineHeightMaxInt);
+    EXPECT_EQ(errorCodeFive, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeSix = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeSix, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeSeven = OH_Drawing_GetTypographyStyleAttributeDouble(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeSeven, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    double limitLineHeight = 0.0f;
+    OH_Drawing_ErrorCode maxHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &limitLineHeight);
+    EXPECT_EQ(maxHeightCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeEight = OH_Drawing_GetTextStyleAttributeDouble(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeEight, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
 
 /*

@@ -22,65 +22,65 @@
 using namespace OHOS::Rosen;
 
 namespace OHOS::Rosen::Text {
-    typedef OH_Drawing_ErrorCode (*TextStyleDoubleSetter)(OH_Drawing_TextStyle*, double);
+    typedef OH_Drawing_ErrorCode (*TextStyleDoubleSetter)(TextStyle*, double);
 
-    typedef OH_Drawing_ErrorCode (*TextStyleDoubleGetter)(const OH_Drawing_TextStyle*, double*);
+    typedef OH_Drawing_ErrorCode (*TextStyleDoubleGetter)(const TextStyle*, double*);
 
-    typedef OH_Drawing_ErrorCode (*TextStyleIntSetter)(OH_Drawing_TextStyle*, int);
+    typedef OH_Drawing_ErrorCode (*TextStyleIntSetter)(TextStyle*, int);
 
-    typedef OH_Drawing_ErrorCode (*TextStyleIntGetter)(const OH_Drawing_TextStyle*, int*);
+    typedef OH_Drawing_ErrorCode (*TextStyleIntGetter)(const TextStyle*, int*);
 
-    OH_Drawing_ErrorCode SetTextStyleLineHeightMaximum(OH_Drawing_TextStyle* style, double value)
+    OH_Drawing_ErrorCode SetTextStyleLineHeightMaximum(TextStyle* style, double value)
     {
-        reinterpret_cast<TextStyle*>(style)->maxLineHeight = value;
+        style->maxLineHeight = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetTextStyleLineHeightMaximum(const OH_Drawing_TextStyle* style, double* value)
+    OH_Drawing_ErrorCode GetTextStyleLineHeightMaximum(const TextStyle* style, double* value)
     {
-        *value = reinterpret_cast<const TextStyle*>(style)->maxLineHeight;
+        *value = style->maxLineHeight;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetTextStyleLineHeightMinimum(OH_Drawing_TextStyle* style, double value)
+    OH_Drawing_ErrorCode SetTextStyleLineHeightMinimum(TextStyle* style, double value)
     {
-        reinterpret_cast<TextStyle*>(style)->minLineHeight = value;
+        style->minLineHeight = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetTextStyleLineHeightMinimum(const OH_Drawing_TextStyle* style, double* value)
+    OH_Drawing_ErrorCode GetTextStyleLineHeightMinimum(const TextStyle* style, double* value)
     {
-        *value = reinterpret_cast<const TextStyle*>(style)->minLineHeight;
+        *value = style->minLineHeight;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetTextStyleFontWidth(OH_Drawing_TextStyle* style, int value)
+    OH_Drawing_ErrorCode SetTextStyleFontWidth(TextStyle* style, int value)
     {
         if (value < FONT_WIDTH_ULTRA_CONDENSED || value > FONT_WIDTH_ULTRA_EXPANDED) {
             return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         }
-        reinterpret_cast<TextStyle*>(style)->fontWidth = FontWidth(value);
+        style->fontWidth = FontWidth(value);
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetTextStyleFontWidth(const OH_Drawing_TextStyle* style, int* value)
+    OH_Drawing_ErrorCode GetTextStyleFontWidth(const TextStyle* style, int* value)
     {
-        *value = static_cast<int>(reinterpret_cast<const TextStyle*>(style)->fontWidth);
+        *value = static_cast<int>(style->fontWidth);
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetTextStyleLineHeightStyle(OH_Drawing_TextStyle* style, int value)
+    OH_Drawing_ErrorCode SetTextStyleLineHeightStyle(TextStyle* style, int value)
     {
         if (value < 0 || value > static_cast<int>(OHOS::Rosen::LineHeightStyle::kFontHeight)) {
             return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         }
-        reinterpret_cast<TextStyle*>(style)->lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(value);
+        style->lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(value);
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode GetTextStyleLineHeightStyle(const OH_Drawing_TextStyle* style, int* value)
+    OH_Drawing_ErrorCode GetTextStyleLineHeightStyle(const TextStyle* style, int* value)
     {
-        *value = static_cast<int>(reinterpret_cast<const TextStyle*>(style)->lineHeightStyle);
+        *value = static_cast<int>(style->lineHeightStyle);
         return OH_DRAWING_SUCCESS;
     }
 
@@ -115,10 +115,10 @@ OH_Drawing_ErrorCode OH_Drawing_SetTextStyleAttributeDouble(OH_Drawing_TextStyle
     if (it == Text::g_textStyleDoubleSetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<TextStyle*>(style), value);
 }
 
-OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeDouble(const OH_Drawing_TextStyle* style,
+OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeDouble(OH_Drawing_TextStyle* style,
     OH_Drawing_TextStyleAttributeId id, double* value)
 {
     if (style == nullptr || value == nullptr) {
@@ -128,7 +128,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeDouble(const OH_Drawing_Tex
     if (it == Text::g_textStyleDoubleGetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<const TextStyle*>(style), value);
 }
 
 OH_Drawing_ErrorCode OH_Drawing_SetTextStyleAttributeInt(OH_Drawing_TextStyle* style,
@@ -141,10 +141,10 @@ OH_Drawing_ErrorCode OH_Drawing_SetTextStyleAttributeInt(OH_Drawing_TextStyle* s
     if (it == Text::g_textStyleIntSetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<TextStyle*>(style), value);
 }
 
-OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeInt(const OH_Drawing_TextStyle* style,
+OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeInt(OH_Drawing_TextStyle* style,
     OH_Drawing_TextStyleAttributeId id, int* value)
 {
     if (style == nullptr || value == nullptr) {
@@ -154,5 +154,5 @@ OH_Drawing_ErrorCode OH_Drawing_GetTextStyleAttributeInt(const OH_Drawing_TextSt
     if (it == Text::g_textStyleIntGetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
-    return it->second(style, value);
+    return it->second(reinterpret_cast<const TextStyle*>(style), value);
 }
