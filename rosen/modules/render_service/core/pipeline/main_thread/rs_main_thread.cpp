@@ -2312,7 +2312,7 @@ void RSMainThread::EndGPUDraw()
 
 void RSMainThread::ClearUnmappedCache()
 {
-    std::set<uint32_t> bufferIds;
+    std::set<uint64_t> bufferIds;
     {
         std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
         bufferIds.swap(unmappedCacheSet_);

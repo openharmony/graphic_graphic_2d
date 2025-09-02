@@ -62,7 +62,7 @@ public:
             }
             if (bufferDeleteCb_) {
                 if (!RSSystemProperties::IsUseVulkan() || needBufferDeleteCb) {
-                    bufferDeleteCb_(buffer->GetSeqNum());
+                    bufferDeleteCb_(buffer->GetBufferId());
                 }
             }
             buffer = nullptr;
@@ -78,7 +78,7 @@ public:
         sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
         Rect damageRect = {0, 0, 0, 0};
         OnDeleteBufferFunc bufferDeleteCb_ = nullptr;
-        uint32_t seqNum = 0;
+        uint64_t seqNum = 0;
 #endif
         int64_t timestamp = 0;
     };
@@ -129,7 +129,7 @@ public:
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
         if (buffer != nullptr) {
-            buffer_.seqNum = buffer->GetSeqNum();
+            buffer_.seqNum = buffer->GetBufferId();
         }
         buffer_.acquireFence = acquireFence;
         buffer_.damageRect = damage;

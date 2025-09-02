@@ -761,9 +761,9 @@ public:
         srcRect_ = rect;
     }
 
-    void NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet);
+    void NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet);
 
-    void NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet);
+    void NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet);
 
     const RectI& GetSrcRect() const
     {
