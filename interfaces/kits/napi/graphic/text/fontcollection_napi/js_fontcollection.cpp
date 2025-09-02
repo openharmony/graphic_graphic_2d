@@ -304,7 +304,8 @@ std::shared_ptr<Global::Resource::ResourceManager> JsFontCollection::GetResource
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {
-        TEXT_LOGE("Failed to get module context");
+        TEXT_LOGE("Failed to get module context, bundle: %{public}s, module: %{public}s",
+            context->GetBundleName().c_str(), moduleName.c_str());
         return context->GetResourceManager();
     }
 }
@@ -317,14 +318,16 @@ bool JsFontCollection::LoadFontFromResource(const std::string familyName, Resour
 
     if (info.type == static_cast<int32_t>(ResourceType::STRING)) {
         std::string rPath;
-        TEXT_ERROR_CHECK(resourceManager->GetStringById(info.resId, rPath), return false, "Failed to get string by id");
+        TEXT_ERROR_CHECK(resourceManager->GetStringById(info.resId, rPath) == Global::Resource::RState::SUCCESS,
+            return false, "Failed to get string by id");
         return SplitAbsoluteFontPath(rPath) && LoadFontFromPath(rPath, familyName);
     } else if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
         size_t dataLen = 0;
         std::unique_ptr<uint8_t[]> rawData;
         TEXT_ERROR_CHECK(!info.params.empty(), return false, "Failed to get info params");
-        TEXT_ERROR_CHECK(resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData) == 0, return false,
-            "Failed to get raw file");
+        TEXT_ERROR_CHECK(
+            resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData) == Global::Resource::RState::SUCCESS,
+            return false, "Failed to get raw file");
         return fontcollection_->LoadFont(familyName.c_str(), rawData.get(), dataLen) != nullptr;
     }
     TEXT_LOGE("Invalid resource type %{public}d", info.type);
