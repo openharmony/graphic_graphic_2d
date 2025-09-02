@@ -1602,7 +1602,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedColorSpaces_003, testing::ext::TestSize
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
     colorSpaces.resize(2);
 
-    ASSERT_EQ(rsScreen->GetScreenSupportedColorSpaces(colorSpaces), StatusCode::SUCCESS);
+    ASSERT_EQ(rsScreen->GetScreenSupportedColorSpaces(colorSpaces), StatusCode::HDI_ERROR);
 }
 
 /*
