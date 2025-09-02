@@ -62,7 +62,9 @@ constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
+#ifdef RS_ENABLE_UNI_RENDER
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
+#endif
 constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
 class RSMainThreadTest : public testing::Test {
@@ -108,6 +110,7 @@ void RSMainThreadTest::SurfaceFlushBuffers(sptr<Surface> psurf1, const int32_t b
 
 void RSMainThreadTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSTestUtil::InitRenderNodeGC();
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -122,13 +125,16 @@ void RSMainThreadTest::SetUpTestCase()
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager->SetDefaultScreenId(id);
+#endif
 }
 
 void RSMainThreadTest::TearDownTestCase()
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
     screenManager->SetDefaultScreenId(INVALID_SCREEN_ID);
+#endif
 }
 
 void RSMainThreadTest::SetUp() {}
@@ -984,6 +990,7 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, ShowWatermark01, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     Media::InitializationOptions opts;
     opts.size.width = DEFAULT_SCREEN_WIDTH * 2.5;
@@ -993,6 +1000,7 @@ HWTEST_F(RSMainThreadTest, ShowWatermark01, TestSize.Level1)
     mainThread->watermarkFlag_ = false;
     mainThread->ShowWatermark(std::move(pixelMap), true);
     ASSERT_EQ(mainThread->GetWatermarkFlag(), false);
+#endif
 }
 
 /**
@@ -1715,6 +1723,7 @@ HWTEST_F(RSMainThreadTest, GetMultiDisplay001, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->CheckIfHardwareForcedDisabled();
@@ -1737,6 +1746,7 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
     mainThread->context_->globalRootRenderNode_->fullChildrenList_ = vec1Ptr;
 
     mainThread->CheckIfHardwareForcedDisabled();
+#endif
 }
 
 /**
@@ -1747,6 +1757,7 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     ASSERT_NE(mainThread->context_, nullptr);
@@ -1762,6 +1773,7 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled002, TestSize.Level1)
     mainThread->context_->globalRootRenderNode_ = node1;
     mainThread->CheckIfHardwareForcedDisabled();
     mainThread->context_->globalRootRenderNode_ = rootNode;
+#endif
 }
 
 /**
@@ -1931,6 +1943,7 @@ HWTEST_F(RSMainThreadTest, UniRender003, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->isUniRender_ = true;
@@ -1954,6 +1967,7 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
     mainThread->isHardwareEnabledBufferUpdated_ = false;
     mainThread->UniRender(rootNode);
     ASSERT_TRUE(mainThread->doDirectComposition_);
+#endif
 }
 
 /**
@@ -3974,6 +3988,7 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     auto rsRenderServiceConnection = new RSRenderServiceConnection(
@@ -3988,6 +4003,7 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
         blackList.push_back(nodeId);
     }
     EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
+#endif
 }
 
 /**
@@ -5752,6 +5768,7 @@ HWTEST_F(RSMainThreadTest, OnScreenDisconnectTest, TestSize.Level2)
  */
 HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     uint64_t unsignedVsyncPeriod = 0;
@@ -5784,6 +5801,7 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
         unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
     ASSERT_EQ(result, true);
     mainThread->timestamp_ = timestamp;
+#endif
 }
 
 /**
@@ -5794,6 +5812,7 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync001, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     uint64_t unsignedVsyncPeriod = 0;
@@ -5815,6 +5834,7 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
         unsignedNowTime, lastVsyncTime, vsyncTimeStamp);
     ASSERT_EQ(result, true);
     mainThread->timestamp_ = timestamp;
+#endif
 }
 
 /**
@@ -5998,6 +6018,7 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId002, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, HandleTunnelLayerId003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
@@ -6011,6 +6032,7 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId003, TestSize.Level1)
 
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
     EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+#endif
 }
 
 /**
@@ -6021,6 +6043,7 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId003, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
@@ -6035,6 +6058,7 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
     surfaceHandler->sourceType_ = 5;
     EXPECT_EQ(surfaceHandler->GetSourceType(), 5);
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
+#endif
 }
 
 /**
@@ -6045,6 +6069,7 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     NodeId rootId = 0;
@@ -6086,6 +6111,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
+#endif
 }
 
 /**
@@ -6141,6 +6167,7 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     // INIT SCREEN
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
@@ -6207,6 +6234,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
 
     // RESET
     mainThread->renderEngine_ = nullptr;
+#endif
 }
 
 /**

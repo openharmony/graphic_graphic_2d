@@ -806,6 +806,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSSurfaceRenderNodeConfig config;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     RSRenderThreadVisitor rsRenderThreadVisitor;
@@ -834,6 +835,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
     rsRenderThreadVisitor.childSurfaceNodeIds_.push_back(0);
     rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+#endif
 }
 
 /**
@@ -844,6 +846,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
  */
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSSurfaceRenderNodeConfig config;
     auto rsContext = std::make_shared<RSContext>();
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
@@ -856,6 +859,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1
     rsRenderThreadVisitor->ProcessRootRenderNode(*node);
     rsRenderThreadVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
+#endif
 }
 
 /**
@@ -866,6 +870,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1
  */
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_TRUE(rsSurfaceRenderNode != nullptr);
@@ -876,6 +881,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
+#endif
 }
 
 /**
@@ -1133,6 +1139,7 @@ HWTEST_F(RSRenderThreadVisitorTest, DrawDirtyRegion001, TestSize.Level1)
  */
 HWTEST_F(RSRenderThreadVisitorTest, UpdateDirtyAndSetEGLDamageRegion001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderThreadVisitor visitor;
     visitor.isEglSetDamageRegion_ = true;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame = std::make_unique<RSSurfaceFrameOhosGl>(1, 1);
@@ -1143,6 +1150,7 @@ HWTEST_F(RSRenderThreadVisitorTest, UpdateDirtyAndSetEGLDamageRegion001, TestSiz
     visitor.isEglSetDamageRegion_ = false;
     visitor.UpdateDirtyAndSetEGLDamageRegion(surfaceFrame);
     EXPECT_TRUE(surfaceFrame);
+#endif
 }
 
 /**

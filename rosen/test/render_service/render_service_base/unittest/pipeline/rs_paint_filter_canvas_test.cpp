@@ -1532,6 +1532,7 @@ HWTEST_F(RSPaintFilterCanvasTest, HDRBrightnessTest, TestSize.Level1)
  */
 HWTEST_F(RSPaintFilterCanvasTest, DrawSdfTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     Drawing::Canvas canvas;
     std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
     EXPECT_NE(paintFilterCanvasBase, nullptr);
@@ -1541,6 +1542,7 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawSdfTest001, TestSize.Level1)
     paintFilterCanvasBase->pCanvasList_.emplace_back(&canvasTest);
     paintFilterCanvasBase->alphaStack_.push(1.0f);
     paintFilterCanvasBase->DrawSdf(shape);
+#endif
 }
 
 /**

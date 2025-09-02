@@ -659,6 +659,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest013, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     Parcel parcel;
     parcel.WriteInt32(1);
     parcel.WriteUint32(1);
@@ -675,6 +676,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingNullTest013, TestSize.Level1)
     marshVal->AddField(field);
     RSMarshallingHelper::Marshalling(parcel2, marshVal);
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+#endif
 }
 
 /**
@@ -945,12 +947,14 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest020, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest021, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     Parcel parcel;
     Drawing::Brush maskBrush;
     std::shared_ptr<RSMask> val = RSMask::CreateGradientMask(maskBrush);
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(-1);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+#endif
 }
 
 /**
@@ -961,6 +965,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest021, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, MarshallingTest021, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     Parcel parcel;
     std::shared_ptr<RSFilter> val;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
@@ -972,6 +977,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest021, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
     val->type_ = RSFilter::LIGHT_UP_EFFECT;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
+#endif
 }
 
 /**
@@ -982,6 +988,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest021, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest022, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     Parcel parcel;
     std::shared_ptr<RSFilter> val;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
@@ -991,6 +998,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest022, TestSize.Level1)
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
     parcel.WriteInt32(RSFilter::LIGHT_UP_EFFECT);
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+#endif
 }
 
 /**
@@ -1001,11 +1009,13 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest022, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, MarshallingTest022, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     Parcel parcel;
     std::shared_ptr<RSImageBase> val;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
     val = std::make_shared<RSImageBase>();
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
+#endif
 }
 
 /**

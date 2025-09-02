@@ -206,6 +206,7 @@ static void TestCompatibleMarshallingObsolete(T value, bool isNewViersion)
  */
 HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest | Level2)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<Drawing::Data> data;
     TestNullptrObjectSerialization(data);
 
@@ -241,6 +242,7 @@ HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest
 
     std::shared_ptr<Media::PixelMap> pixelMap;
     TestNullptrObjectSerialization(pixelMap);
+#endif
 }
 
 /**
