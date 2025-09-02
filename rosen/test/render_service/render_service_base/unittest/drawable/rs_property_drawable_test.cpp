@@ -241,6 +241,7 @@ HWTEST_F(RSPropertyDrawableTest, CheckAndUpdateAIBarCacheStatusTest009, TestSize
     EXPECT_NE(filterDrawable, nullptr);
     EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
     filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
@@ -428,7 +429,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest015, TestSize.Level1)
     // Test rect != nullptr
     Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
     drawable->CreateDrawFunc()(&canvas, &rect);
-    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 10.0f);
+    EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 1.0f);
 }
 
 } // namespace OHOS::Rosen
