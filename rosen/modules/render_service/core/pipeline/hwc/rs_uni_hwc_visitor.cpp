@@ -425,7 +425,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
         }
         return false;
     };
-    bool isTargetAppBundle = IsTargetedSolidLayer(node);
+    bool isTargetAppBundle = IsTargetSolidLayer(node);
     bool isNodeOpaque = ROSEN_EQ(renderProperties.GetAlpha(), 1.0f, EPSILON_SCALE);
     bool isSolidLayerEnabled = 
         isTargetNodeType && isTargetColor && isNodeOpaque && !isSpecialNodeType && isTargetAppBundle;
