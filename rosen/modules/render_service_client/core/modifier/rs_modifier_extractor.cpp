@@ -283,18 +283,18 @@ float RSModifierExtractor::GetShadowAlpha() const
     // Using macro expansion as a temporary modification.
     // Need modifier the macro to invoke the corresponding method in the modifier instead od accessing the property
     float alpha = -1.f;
-    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)       
-                                        : RSNodeMap::Instance().GetNode<RSNode>(id_);                  
-    if (!node) {                                                                                   
-        return alpha;                                                                       
-    }                                                                                              
-    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                                                                 
-    for (auto& [_, modifier] : node->modifiersNG_) {                                               
-        if (modifier->GetType() == ModifierNG::RSModifierType::SHADOW) {                     
-            alpha = std::static_pointer_cast<ModifierNG::RSShadowModifier>(modifier)->GetShadowAlpha();                                                     
-        }                                                                                          
-    }                                                                                              
-    return alpha; 
+    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)
+                                        : RSNodeMap::Instance().GetNode<RSNode>(id_);
+    if (!node) {
+        return alpha;
+    }
+    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
+    for (auto& [_, modifier] : node->modifiersNG_) {
+        if (modifier->GetType() == ModifierNG::RSModifierType::SHADOW) {
+            alpha = std::static_pointer_cast<ModifierNG::RSShadowModifier>(modifier)->GetShadowAlpha();
+        }
+    }
+    return alpha;
 }
 
 float RSModifierExtractor::GetShadowElevation() const
