@@ -929,7 +929,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         RS_TRACE_NAME_FMT("Reclaim Memory, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         // Ensure user don't enable the parameter. When we have an interrupt mechanism, remove it.
-        if (isReclaim && system::GetParameter("persist.ace.testmode.enabled", "0") == "1") {
+        if (isReclaim && RSSystemProperties::GetAceTestMode()) {
 #ifdef OHOS_PLATFORM
             RSBackgroundThread::Instance().PostTask([]() {
                 RS_LOGI("RSUniRenderThread::PostReclaimMemoryTask Start Reclaim File");
@@ -950,6 +950,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
     };
 
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
+    SetIsPostedReclaimMemoryTask(true);
 }
 
 void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
@@ -966,8 +967,10 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
             DefaultClearMemoryCache();
         }
     }
-    if (isTimeToReclaim_.load()) {
+    bool ifStatusBarDirtyOnly = RSMainThread::Instance()->GetIfStatusBarDirtyOnly();
+    if (isTimeToReclaim_.load() && !ifStatusBarDirtyOnly) {
         RemoveTask(RECLAIM_MEMORY);
+        SetIsPostedReclaimMemoryTask(false);
         if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);

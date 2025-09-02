@@ -2402,6 +2402,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        if (RSUniRenderThread::Instance().IsPostedReclaimMemoryTask()) {
+            ifStatusBarDirtyOnly_ = IfStatusBarDirtyOnly();
+        }
         RSUniRenderThread::Instance().PostTask([] {
             RSUniRenderThread::Instance().ResetClearMemoryTask();
         });
@@ -2474,6 +2477,28 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         context_->SetUnirenderVisibleLeashWindowCount(context_->GetNodeMap().GetVisibleLeashWindowCount());
     }
 #endif
+}
+
+bool RSMainThread::IfStatusBarDirtyOnly()
+{
+    RS_TRACE_NAME_FMT("checkIfStatusBarDirtyOnly");
+    if (RSSystemProperties::GetAceTestMode()) {
+        return false;
+    }
+    if (renderThreadParams_->GetImplicitAnimationEnd()) {
+        return false;
+    }
+    auto& activeNodesInRoot = RSMainThread::Instance()->GetContext().activeNodesInRoot_;
+    for (const auto& rootPair : activeNodesInRoot) {
+        NodeId rootId = rootPair.first;
+        auto rootNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+            context_->GetNodeMap().GetRenderNode(rootId)
+        );
+        if (rootNode == nullptr || rootNode->GetName().find("SCBStatusBar") == std::string::npos) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)

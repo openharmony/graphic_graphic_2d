@@ -397,6 +397,11 @@ public:
         return curTime_;
     }
 
+    bool GetIfStatusBarDirtyOnly() const
+    {
+        return ifStatusBarDirtyOnly_.load();
+    }
+
     void StartGPUDraw();
 
     void EndGPUDraw();
@@ -594,6 +599,8 @@ private:
         void OnScreenDisconnect(ScreenId id) override;
     };
 
+    bool IfStatusBarDirtyOnly();
+    
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
@@ -607,6 +614,7 @@ private:
     // Used to refresh the whole display when curtain screen status is changed
     bool isCurtainScreenUsingStatusChanged_ = false;
 
+    std::atomic<bool> ifStatusBarDirtyOnly_ = false;
     const uint8_t opacity_ = 255;
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;

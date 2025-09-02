@@ -128,6 +128,14 @@ public:
         return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
+    bool IsPostedReclaimMemoryTask() const
+    {
+        return isPostedReclaimMemoryTask_.load();
+    }
+    void SetIsPostedReclaimMemoryTask(bool isPostedReclaimMemoryTask)
+    {
+        isPostedReclaimMemoryTask_.store(isPostedReclaimMemoryTask);
+    }
     void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
@@ -235,6 +243,7 @@ private:
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
     void CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks);
 
+    std::atomic_bool isPostedReclaimMemoryTask_ = false;
     bool screenNodeBufferReleased_ = false;
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;

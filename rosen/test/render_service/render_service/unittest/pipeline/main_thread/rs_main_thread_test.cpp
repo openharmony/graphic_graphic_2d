@@ -2003,6 +2003,125 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IfStatusBarDirtyOnly001
+ * @tc.desc: Test IfStatusBarDirtyOnly when activeNodesInRoot_ is empty
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& context = mainThread->GetContext();
+    context.activeNodesInRoot_.clear();
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    EXPECT_TRUE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
+
+/**
+ * @tc.name: IfStatusBarDirtyOnly002
+ * @tc.desc: Test IfStatusBarDirtyOnly when not all nodes have SCBStatusBar instance root
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& context = mainThread->GetContext();
+
+    context.activeNodesInRoot_.clear();
+    auto& nodeMap = context.GetMutableNodeMap();
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap1;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap2;
+
+    RSSurfaceRenderNodeConfig scbConfig;
+    scbConfig.id = 1;
+    scbConfig.name = "SCBStatusBar_Index";
+    auto scbStatusBarRootNode = std::make_shared<RSSurfaceRenderNode>(scbConfig);
+    ASSERT_NE(scbStatusBarRootNode, nullptr);
+    nodeMap.RegisterRenderNode(scbStatusBarRootNode);
+    context.activeNodesInRoot_.emplace(scbStatusBarRootNode->GetId(), subMap1);
+
+    RSSurfaceRenderNodeConfig testConfig;
+    testConfig.id = 2;
+    testConfig.name = "SCBDesktop_Index";
+    auto scbDesktopRootNode = std::make_shared<RSSurfaceRenderNode>(testConfig);
+    ASSERT_NE(scbDesktopRootNode, nullptr);
+    nodeMap.RegisterRenderNode(scbDesktopRootNode);
+    context.activeNodesInRoot_.emplace(scbDesktopRootNode->GetId(), subMap2);
+
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    EXPECT_FALSE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
+
+/**
+ * @tc.name: IfStatusBarDirtyOnly003
+ * @tc.desc: Test IfStatusBarDirtyOnly when not all nodes have SurfaceNode instance root
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& context = mainThread->GetContext();
+
+    context.activeNodesInRoot_.clear();
+    auto& nodeMap = context.GetMutableNodeMap();
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap1;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap2;
+
+    RSSurfaceRenderNodeConfig scbConfig;
+    scbConfig.id = 1;
+    scbConfig.name = "SCBStatusBar_Index";
+    auto scbStatusBarRootNode = std::make_shared<RSSurfaceRenderNode>(scbConfig);
+    ASSERT_NE(scbStatusBarRootNode, nullptr);
+    nodeMap.RegisterRenderNode(scbStatusBarRootNode);
+    context.activeNodesInRoot_.emplace(scbStatusBarRootNode->GetId(), subMap1);
+
+    auto screenNode = std::make_shared<RSScreenRenderNode>(2, 0, std::make_shared<RSContext>());
+    nodeMap.RegisterRenderNode(screenNode);
+    context.activeNodesInRoot_.emplace(screenNode->GetId(), subMap2);
+
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    EXPECT_FALSE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
+
+/**
+ * @tc.name: IfStatusBarDirtyOnly004
+ * @tc.desc: Test IfStatusBarDirtyOnly when all nodes have SCBStatusBar instance root
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& context = mainThread->GetContext();
+
+    context.activeNodesInRoot_.clear();
+    auto& nodeMap = context.GetMutableNodeMap();
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap1;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> subMap2;
+
+    RSSurfaceRenderNodeConfig scbConfig;
+    scbConfig.id = 1;
+    scbConfig.name = "SCBStatusBar_Index";
+    auto scbStatusBarRootNode = std::make_shared<RSSurfaceRenderNode>(scbConfig);
+    ASSERT_NE(scbStatusBarRootNode, nullptr);
+    nodeMap.RegisterRenderNode(scbStatusBarRootNode);
+    context.activeNodesInRoot_.emplace(scbStatusBarRootNode->GetId(), subMap1);
+
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    EXPECT_TRUE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
+
+/**
  * @tc.name: IsFirstFrameOfOverdrawSwitch
  * @tc.desc: test IsFirstFrameOfOverdrawSwitch
  * @tc.type: FUNC
@@ -4446,6 +4565,8 @@ HWTEST_F(RSMainThreadTest, CheckSystemSceneStatus002, TestSize.Level1)
     mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_TFS_WINDOW);
     mainThread->CheckSystemSceneStatus();
 }
+
+
 
 /**
  * @tc.name: DoDirectComposition

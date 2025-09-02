@@ -1156,6 +1156,13 @@ bool RSSystemProperties::GetSyncTransactionEnabled()
     return syncTransactionEnabled;
 }
 
+bool RSSystemProperties::GetAceTestMode()
+{
+    static bool aceTestMode =
+        std::atoi((system::GetParameter("persist.ace.testmode.enabled", "0")).c_str()) == 1;
+    return aceTestMode;
+}
+
 int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     static int syncTransactionWaitDelay =
