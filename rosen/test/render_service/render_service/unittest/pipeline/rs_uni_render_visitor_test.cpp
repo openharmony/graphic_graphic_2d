@@ -5392,7 +5392,6 @@ HWTEST_F(RSUniRenderVisitorTest, PostPrepare002, TestSize.Level2)
     ASSERT_FALSE(child->isHardwareForcedDisabled_);
 }
 
-
 /*
  * @tc.name: CheckIsGpuOverDrawBufferOptimizeNode001
  * @tc.desc: Verify function CheckIsGpuOverDrawBufferOptimizeNode while node has no child
