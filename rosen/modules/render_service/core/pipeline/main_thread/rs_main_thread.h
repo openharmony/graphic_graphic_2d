@@ -418,13 +418,13 @@ public:
         }
     };
 
-    void AddToUnmappedCacheSet(uint32_t bufferId)
+    void AddToUnmappedCacheSet(uint64_t bufferId)
     {
         std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
         unmappedCacheSet_.insert(bufferId);
     }
 
-    void AddToUnmappedCacheSet(const std::set<uint32_t>& seqNumSet)
+    void AddToUnmappedCacheSet(const std::set<uint64_t>& seqNumSet)
     {
         std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
         unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
@@ -735,7 +735,7 @@ private:
      * if an image is found in this set, it means that the image is no longer needed and can be safely
      * removed from the GPU cache.
      */
-    std::set<uint32_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
+    std::set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
     std::mutex unmappedCacheSetMutex_;
 
     /**

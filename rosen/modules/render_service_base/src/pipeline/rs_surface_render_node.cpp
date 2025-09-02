@@ -1492,7 +1492,7 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
 #endif
 }
 
-void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet)
+void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet)
 {
 #ifdef RS_ENABLE_GPU
     if (!surfaceHandler_) {
@@ -1500,17 +1500,17 @@ void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSe
     }
 
     if (auto buffer = surfaceHandler_->GetBuffer()) {
-        bufferCacheSet.insert(buffer->GetSeqNum());
+        bufferCacheSet.insert(buffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache bufferSeqNum:%d", buffer->GetSeqNum());
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
-        bufferCacheSet.insert(preBuffer->GetSeqNum());
+        bufferCacheSet.insert(preBuffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache preBufferSeqNum:%d", preBuffer->GetSeqNum());
     }
 #endif
 }
 
-void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
+void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet)
 {
 #ifdef RS_ENABLE_GPU
     if (!surfaceHandler_) {
@@ -1521,7 +1521,7 @@ void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
         return;
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
-        bufferCacheSet.insert(preBuffer->GetSeqNum());
+        bufferCacheSet.insert(preBuffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%d", preBuffer->GetSeqNum());
     }
     surfaceParams->SetPreBuffer(nullptr);

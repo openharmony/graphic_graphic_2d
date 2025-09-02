@@ -619,9 +619,9 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         return nullptr;
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}d, seqNum=%{public}u",
+        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}d, seqNum=%{public}" PRIu64 "",
         params.buffer->GetWidth(), params.buffer->GetHeight(),
-        params.buffer->GetFormat(), params.buffer->GetSeqNum());
+        params.buffer->GetFormat(), params.buffer->GetBufferId());
     videoInfo.drawingColorSpace_ = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     videoInfo.parameter_ = {};
@@ -871,7 +871,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
+        auto regUnMapVkImageFunc = [this, isForUniRedraw](uint64_t bufferId) {
             RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
         };
         if (consumer == nullptr ||
@@ -883,7 +883,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #endif // #ifdef RS_ENABLE_VK
 
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
+    auto regUnMapEglImageFunc = [this, isForUniRedraw](uint64_t bufferId) {
         RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
     };
     if (consumer == nullptr ||
@@ -897,7 +897,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        auto regUnMapVkImageFunc = [this](uint32_t bufferId) {
+        auto regUnMapVkImageFunc = [this](uint64_t bufferId) {
             RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
         };
         handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
@@ -906,7 +906,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 #endif // #ifdef RS_ENABLE_VK
 
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    auto regUnMapEglImageFunc = [this](uint32_t bufferId) {
+    auto regUnMapEglImageFunc = [this](uint64_t bufferId) {
         RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
     };
     handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
@@ -922,7 +922,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
+void RSBaseRenderEngine::ClearCacheSet(const std::set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
         for (auto id : unmappedCache) {

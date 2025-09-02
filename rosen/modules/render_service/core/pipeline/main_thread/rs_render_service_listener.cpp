@@ -154,7 +154,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache in mainthread node id:%{public}" PRIu64, node->GetId());
         surfaceHandler->ResetPreBuffer();
-        std::set<uint32_t> tmpSet;
+        std::set<uint64_t> tmpSet;
         node->NeedClearPreBuffer(tmpSet);
         RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
     });
@@ -208,7 +208,7 @@ void RSRenderServiceListener::OnGoBackground()
         }
         auto surfaceHandler = node->GetMutableRSSurfaceHandler();
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
-        std::set<uint32_t> tmpSet;
+        std::set<uint64_t> tmpSet;
         node->NeedClearBufferCache(tmpSet);
         RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
         surfaceHandler->ResetBufferAvailableCount();

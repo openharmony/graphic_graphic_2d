@@ -83,7 +83,7 @@ void RSSurfaceHandler::UpdateBuffer(
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
     if (buffer != nullptr) {
-        buffer_.seqNum = buffer->GetSeqNum();
+        buffer_.seqNum = buffer->GetBufferId();
     }
     buffer_.acquireFence = acquireFence;
     buffer_.damageRect = damage;

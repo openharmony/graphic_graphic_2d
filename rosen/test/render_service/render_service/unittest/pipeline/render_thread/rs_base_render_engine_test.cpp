@@ -388,7 +388,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer002, TestSize.Level1)
         return;
     }
     auto renderEngine = std::make_shared<RSRenderEngine>();
-    std::set<uint32_t> unmappedCache;
+    std::set<uint64_t> unmappedCache;
     renderEngine->ClearCacheSet(unmappedCache);
     renderEngine->Init();
     EXPECT_NE(renderEngine->imageManager_, nullptr);
