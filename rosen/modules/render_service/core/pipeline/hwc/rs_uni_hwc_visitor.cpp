@@ -44,7 +44,7 @@ constexpr float EPSILON_SCALE = 0.00001f;
 bool GetSolidLayerEnabled()
 {
     return (HWCParam::IsSolidLayerEnable() || RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() ||
-        HWCParam::IsSolidLayerInMultiWindowEnable()) && RSSystemParameters::GetSolidLayerHwcEnabled();
+            HWCParam::IsSolidLayerInMultiWindowEnable()) && RSSystemParameters::GetSolidLayerHwcEnabled();
 }
 }
 
