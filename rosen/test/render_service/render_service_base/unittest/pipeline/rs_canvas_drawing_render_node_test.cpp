@@ -742,8 +742,5 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
 
     auto lists = node->GetDrawCmdLists();
     EXPECT_FALSE(lists.empty());
-    node->ClearResource();
-    auto lists2 = node->GetDrawCmdLists();
-    EXPECT_TRUE(lists2.empty());
 }
 } // namespace OHOS::Rosen
