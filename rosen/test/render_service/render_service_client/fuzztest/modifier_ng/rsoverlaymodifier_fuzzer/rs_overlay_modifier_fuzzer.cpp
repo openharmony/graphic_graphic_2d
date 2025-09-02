@@ -71,6 +71,8 @@ bool RSOverlayStyleModifierFuzzTest(const uint8_t* data, size_t size)
     context.height = GetData<float>();
     modifier->Draw(context);
     modifier->GetInnerPropertyType();
+    auto type  = GetData<ContentTransitionType>();
+    modifier->SetContentTransitionParam(type);
 
     return true;
 }

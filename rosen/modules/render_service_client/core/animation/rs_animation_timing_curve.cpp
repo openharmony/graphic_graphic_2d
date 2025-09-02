@@ -27,6 +27,9 @@ namespace Rosen {
 const RSAnimationTimingCurve RSAnimationTimingCurve::LINEAR =
     RSAnimationTimingCurve(std::make_shared<LinearInterpolator>());
 
+const RSAnimationTimingCurve RSAnimationTimingCurve::SHARP =
+    RSAnimationTimingCurve::CreateCubicCurve(0.33f, 0.0f, 0.67f, 1.0f);
+
 const RSAnimationTimingCurve RSAnimationTimingCurve::EASE =
     RSAnimationTimingCurve::CreateCubicCurve(0.25f, 0.1f, 0.25f, 1.0f);
 

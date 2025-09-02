@@ -51,6 +51,7 @@ class RSC_EXPORT RSAnimationTimingCurve final {
 public:
     static const RSAnimationTimingCurve DEFAULT;
     static const RSAnimationTimingCurve LINEAR;
+    static const RSAnimationTimingCurve SHARP;
     static const RSAnimationTimingCurve EASE;
     static const RSAnimationTimingCurve EASE_IN;
     static const RSAnimationTimingCurve EASE_OUT;

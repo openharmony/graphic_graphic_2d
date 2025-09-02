@@ -73,14 +73,14 @@ void RSCustomModifier::UpdateDrawCmdList()
     auto propertyType = GetInnerPropertyType();
     auto it = properties_.find(propertyType);
     if (it != properties_.end()) {
-        auto property = std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(it->second);
+        auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
         property->stagingValue_ = drawCmdList;
         MarkNodeDirty();
         if (property->isCustom_) {
             property->MarkCustomModifierDirty();
         }
     } else {
-        auto property = std::make_shared<RSProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
+        auto property = std::make_shared<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(drawCmdList);
         property->SetPropertyTypeNG(propertyType);
         properties_[propertyType] = property;
         SetPropertyThresholdType(propertyType, property);
@@ -92,7 +92,58 @@ void RSCustomModifier::UpdateDrawCmdList()
 void RSCustomModifier::ClearDrawCmdList()
 {
     if (auto property = GetProperty(GetInnerPropertyType())) {
-        std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(property)->stagingValue_ = nullptr;
+        std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(property)->stagingValue_ = nullptr;
+    }
+}
+
+void RSCustomModifier::UpdateToRender()
+{
+    auto node = node_.lock();
+    if (node == nullptr) {
+        return;
+    }
+    RSDrawingContext ctx = RSCustomModifierHelper::CreateDrawingContext(node);
+    Draw(ctx);
+    auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
+    bool isEmpty = drawCmdList == nullptr;
+    if (lastDrawCmdListEmpty_ && isEmpty) {
+        return;
+    }
+    if (drawCmdList) {
+        drawCmdList->SetNoNeedUICaptured(noNeedUICaptured_);
+        drawCmdList->SetIsNeedUnmarshalOnDestruct(!node->IsRenderServiceNode());
+    }
+    lastDrawCmdListEmpty_ = isEmpty;
+    auto it = properties_.find(GetInnerPropertyType());
+    if (it == properties_.end()) {
+        return;
+    }
+    if (it->second == nullptr) {
+        return;
+    }
+
+    UpdateProperty(node, drawCmdList, it->second->GetId());
+}
+
+void RSCustomModifier::UpdateProperty(
+    std::shared_ptr<RSNode> node, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, PropertyId propertyId)
+{
+    if (contentTransitionType_ == ContentTransitionType::OPACITY &&
+        timingCurve_.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        auto propertyCallback = [this, &drawCmdList]() {
+            Setter<RSAnimatableProperty, std::shared_ptr<Drawing::DrawCmdList>>(GetInnerPropertyType(), drawCmdList);
+        };
+        RSNode::Animate(node->GetRSUIContext(), timingProtocol_, timingCurve_, propertyCallback);
+        return;
+    }
+
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, propertyId);
+    node->AddCommand(command, node->IsRenderServiceNode());
+    if (node->NeedForcedSendToRemote()) {
+        std::unique_ptr<RSCommand> commandForRemote =
+            std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, propertyId);
+        node->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
     }
 }
 } // namespace OHOS::Rosen::ModifierNG
