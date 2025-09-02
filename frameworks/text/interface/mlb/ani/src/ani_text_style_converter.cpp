@@ -24,10 +24,15 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-ani_status ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
+ani_status ParseDrawingColorToNative(ani_env* env, ani_object obj, bool readOptional, const std::string& str, Drawing::Color& colorSrc)
 {
     ani_ref colorRef = nullptr;
-    ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &colorRef);
+    ani_status result = ANI_ERROR;
+    if (readOptional) { // true: read optional field (eg: param?: string)
+        result = AniTextUtils::ReadOptionalField(env, obj, str.c_str(), colorRef);
+    } else {
+        result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &colorRef);
+    }
     if (result != ANI_OK || colorRef == nullptr) {
         TEXT_LOGD("Failed to find param color, ret %{public}d", result);
         return result;
@@ -56,7 +61,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     }
 
     ParseDecorationToNative(env, obj, textStyle);
-    ParseDrawingColorToNative(env, obj, "color", textStyle.color);
+    ParseDrawingColorToNative(env, obj, true, "color", textStyle.color);
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle.fontWeight);
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", textStyle.fontStyle);
@@ -105,7 +110,7 @@ void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj
         AniTextUtils::ReadOptionalDoubleField(env, reinterpret_cast<ani_object>(decorationRef),
             "decorationThicknessScale", textStyle.decorationThicknessScale);
         ParseDrawingColorToNative(
-            env, reinterpret_cast<ani_object>(decorationRef), "color", textStyle.decorationColor);
+            env, reinterpret_cast<ani_object>(decorationRef), true, "color", textStyle.decorationColor);
     }
 }
 
@@ -160,7 +165,7 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
             AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
 
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            ParseDrawingColorToNative(env, shadowObj, "color", colorSrc);
+            ParseDrawingColorToNative(env, shadowObj, true, "color", colorSrc);
 
             Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
@@ -271,7 +276,7 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
         return;
     }
     Drawing::Color color;
-    if (ParseDrawingColorToNative(env, obj, "color", color) == ANI_OK) {
+    if (ParseDrawingColorToNative(env, obj, false, "color", color) == ANI_OK) {
         rectStyle.color = color.CastToColorQuad();
     }
     env->Object_GetPropertyByName_Double(obj, "leftTopRadius", &rectStyle.leftTopRadius);
