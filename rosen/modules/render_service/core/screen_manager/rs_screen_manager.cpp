@@ -137,23 +137,24 @@ void RSScreenManager::InitFoldSensor()
 
 void RSScreenManager::RegisterSensorCallback()
 {
+    std::unique_lock<std::mutex> lock(registerSensorMutex_);
     if (hasRegisterSensorCallback_) {
         RS_LOGE("%{public}s hasRegisterSensorCallback_ is true", __func__);
         return;
     }
     hasRegisterSensorCallback_ = true;
-    user.callback = SensorPostureDataCallback;
+    user_.callback = SensorPostureDataCallback;
     int32_t subscribeRet;
     int32_t setBatchRet;
     int32_t activateRet;
     int tryCnt = 0;
     constexpr int tryLimit = 5; // 5 times failure limit
     do {
-        subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user);
+        subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user_);
         RS_LOGI("%{public}s: subscribeRet: %{public}d", __func__, subscribeRet);
-        setBatchRet = SetBatch(SENSOR_TYPE_ID_POSTURE, &user, POSTURE_INTERVAL, POSTURE_INTERVAL);
+        setBatchRet = SetBatch(SENSOR_TYPE_ID_POSTURE, &user_, POSTURE_INTERVAL, POSTURE_INTERVAL);
         RS_LOGI("%{public}s: setBatchRet: %{public}d", __func__, setBatchRet);
-        activateRet = ActivateSensor(SENSOR_TYPE_ID_POSTURE, &user);
+        activateRet = ActivateSensor(SENSOR_TYPE_ID_POSTURE, &user_);
         RS_LOGI("%{public}s: activateRet: %{public}d", __func__, activateRet);
         if (subscribeRet != SENSOR_SUCCESS || setBatchRet != SENSOR_SUCCESS || activateRet != SENSOR_SUCCESS) {
             RS_LOGE("%{public}s failed subscribeRet:%{public}d, setBatchRet:%{public}d, activateRet:%{public}d",
@@ -170,13 +171,14 @@ void RSScreenManager::RegisterSensorCallback()
 
 void RSScreenManager::UnRegisterSensorCallback()
 {
+    std::unique_lock<std::mutex> lock(registerSensorMutex_);
     if (!hasRegisterSensorCallback_) {
         RS_LOGE("%{public}s hasRegisterSensorCallback_ is false", __func__);
         return;
     }
     hasRegisterSensorCallback_ = false;
-    int32_t deactivateRet = DeactivateSensor(SENSOR_TYPE_ID_POSTURE, &user);
-    int32_t unsubscribeRet = UnsubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user);
+    int32_t deactivateRet = DeactivateSensor(SENSOR_TYPE_ID_POSTURE, &user_);
+    int32_t unsubscribeRet = UnsubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user_);
     if (deactivateRet == SENSOR_SUCCESS && unsubscribeRet == SENSOR_SUCCESS) {
         RS_LOGI("%{public}s success.", __func__);
     } else {
@@ -201,23 +203,9 @@ void RSScreenManager::OnBootComplete(const char* key, const char* value, void *c
 
 void RSScreenManager::OnBootCompleteEvent()
 {
-    RS_LOGI("%{public}s", __func__);
     if (isFoldScreenFlag_) {
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            auto mainThread = RSMainThread::Instance();
-            mainThread->PostTask([this]() {
-                RS_LOGI("OnBootCompleteEvent: mainThread UnRegisterSensorCallback");
-                UnRegisterSensorCallback();
-            });
-        } else {
-#ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().PostTask([this]() {
-                RS_LOGI("OnBootCompleteEvent: hardwareThread UnRegisterSensorCallback");
-                UnRegisterSensorCallback();
-            });
-#endif
-        }
+        RS_LOGI("%{public}s: UnRegisterSensorCallback", __func__);
+        UnRegisterSensorCallback();
     }
 }
 

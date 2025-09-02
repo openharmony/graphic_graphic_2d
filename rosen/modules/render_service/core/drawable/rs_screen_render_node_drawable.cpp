@@ -707,6 +707,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     uniParam->SetRSProcessor(processor);
+    RSUniRenderThread::Instance().SetEnableVisibleRect(false);
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
     auto mirroredRenderParams = mirroredDrawable ?
         static_cast<RSScreenRenderParams*>(mirroredDrawable->GetRenderParams().get()) : nullptr;

@@ -56,7 +56,6 @@ public:
     virtual ~RSScreenManager() noexcept = default;
 
     virtual bool Init() noexcept = 0;
-    virtual void InitFoldSensor() = 0;
     virtual void ProcessScreenHotPlugEvents() = 0;
     virtual bool TrySimpleProcessHotPlugEvents() = 0;
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -242,7 +241,6 @@ public:
     static sptr<OHOS::Rosen::RSScreenManager> GetInstance() noexcept;
 
     bool Init() noexcept override;
-    void InitFoldSensor() override;
     void ProcessScreenHotPlugEvents() override;
     bool TrySimpleProcessHotPlugEvents() override;
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -444,6 +442,7 @@ private:
     void RemoveScreenFromHgm(std::shared_ptr<HdiOutput>& output);
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    void InitFoldSensor();
     void RegisterSensorCallback();
     void UnRegisterSensorCallback();
     static void OnBootComplete(const char* key, const char* value, void *context);
@@ -524,7 +523,7 @@ private:
     std::atomic<bool> isScreenSwitching_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    SensorUser user;
+    SensorUser user_;
     bool isFoldScreenFlag_ = false;
     ScreenId innerScreenId_ = 0;
     ScreenId externalScreenId_ = INVALID_SCREEN_ID;
@@ -532,6 +531,7 @@ private:
     bool isPostureSensorDataHandled_ = false;
     std::condition_variable activeScreenIdAssignedCV_;
     mutable std::mutex activeScreenIdAssignedMutex_;
+    mutable std::mutex registerSensorMutex_;
     bool hasRegisterSensorCallback_ = false;
 #endif
     struct FoldScreenStatus {
