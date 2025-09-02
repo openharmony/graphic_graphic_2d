@@ -262,6 +262,8 @@ void RSGraphicTestProfiler::TearDown()
     if (useBufferDump_) {
         DumpBufferTearDown();
     }
+    RSGraphicTestDirector::Instance().ReleaseRootNode();
+    RSGraphicTestDirector::Instance().FlushMessage();
 }
 
 void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath, const std::string& savePath)
