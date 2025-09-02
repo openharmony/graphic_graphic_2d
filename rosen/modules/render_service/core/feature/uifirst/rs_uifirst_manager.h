@@ -170,7 +170,8 @@ public:
         collectedCardNodes_.erase(id);
     }
 
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetPendingPostNodes()
+    using PendingPostNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
+    PendingPostNodeMap GetPendingPostNodes()
     {
         return pendingPostNodes_;
     }
@@ -244,20 +245,24 @@ private:
     void ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
     bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool GetDrawableDirtyRect(const std::shared_ptr<RSSurfaceRenderNode>& node, RectI& rect);
+    void OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRenderNode>& node,
+        bool staticContent, DrawableV2::RsSubThreadCache& subThreadCache);
+    bool NeedPurgePendingPostNodesInner(
+        PendingPostNodeMap::iterator& it, std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
+        bool cachedStaticContent);
     bool IsBehindWindowOcclusion(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool NeedPurgeByBehindWindow(NodeId id, bool hasTexture,
     const std::shared_ptr<RSSurfaceRenderNode>& node);
     // filter out the nodes by behind window
-    void HandlePurgeBehindWindow(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>::iterator& it,
-        std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
+    bool HandlePurgeBehindWindow(PendingPostNodeMap::iterator& it);
     // filter out the nodes which need to draw in subthread
-    void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
+    void DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode);
     // use in behindwindow condition to calculate the node purge time interval
     uint64_t GetTimeDiffBehindWindow(uint64_t currentTime, NodeId id);
     uint64_t GetMainThreadVsyncTime();
     void PurgePendingPostNodes();
-    void SetNodePriorty(std::list<NodeId>& result,
-        std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
+    void SetNodePriorty(std::list<NodeId>& result, PendingPostNodeMap& pendingNode);
     void SortSubThreadNodesPriority();
     // check if ArkTsCard enable uifirst
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
@@ -350,9 +355,9 @@ private:
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;
 
     // pending post node: collect in main, use&clear in RT
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
+    PendingPostNodeMap pendingPostNodes_;
+    PendingPostNodeMap pendingPostCardNodes_;
+    PendingPostNodeMap pendingResetNodes_;
     // record the release time of each pendingnode to control the release frequency
     std::unordered_map<NodeId, NodeDataBehindWindow> pendingNodeBehindWindow_;
     std::list<NodeId> sortedSubThreadNodeIds_;
