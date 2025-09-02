@@ -83,7 +83,7 @@ void RSEffectRenderNodeDrawableTest::TearDown() {}
  * @tc.name: OnDrawTest
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #ICEF7K
  */
 HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 {
