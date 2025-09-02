@@ -2962,7 +2962,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     auto isOccluded = curSurfaceNode_ ?
         curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
     if (subTreeSkipped) {
-         if (!isOccluded || node.IsFirstLevelCrossNode()) {
+        if (!isOccluded || node.IsFirstLevelCrossNode()) {
             hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
             CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
             UpdateSubSurfaceNodeRectInSkippedSubTree(node);
@@ -2970,7 +2970,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
             for (auto& hwcNode : hwcNodes) {
                 auto hwcNodePtr = hwcNode.lock();
-                if(!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+                if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
                     continue;
                 }
                 hwcNodePtr->SetHardwareForcedDisabledState(true);
@@ -2982,7 +2982,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
     }
-    auto globalFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren() ?
+    auto globalFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChild ren() ?
         GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
     auto globalHwcFilterRect = node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren() ?
         hwcVisitor_->GetHwcVisibleEffectDirty(node, globalFilterRect) : globalFilterRect;
