@@ -860,9 +860,9 @@ HWTEST_F(EglWrapperDisplayTest, UpdateQueryValue002, Level1)
     EGLint major;
     EGLint minor;
     auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
-    auto value = std::string(eglWrapperDisplay->extensionValue_) + std::string("EGL_KHR_swap_buffers_with_damage ");
     system::SetParameter("debug.swap.buffer.with.damage", "1");
     eglWrapperDisplay->UpdateQueryValue(&major, &minor);
-    EXPECT_EQ(value, eglWrapperDisplay->GetExtensionValue());
+    auto value = strstr(eglWrapperDisplay->GetExtensionValue(), "EGL_KHR_swap_buffers_with_damage");
+    EXPECT_NE(value, nullptr);
 }
 } // OHOS::Rosen

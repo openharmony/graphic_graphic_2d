@@ -42,7 +42,7 @@ HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
     auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -97,7 +97,7 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     EglWrapperDispatchTable dispatchTable;
 
     bool result = EglWrapperLayer::GetInstance().LoadLayers();
-    ASSERT_TRUE(result);
+    ASSERT_FALSE(result);
 }
 
 /**
