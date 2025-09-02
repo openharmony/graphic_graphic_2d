@@ -70,6 +70,7 @@ static void DisplayCaseLayer(vector<string>& curlayerInfo, vector<string>& layer
         out.append("|--").append(curlayerInfo[loop]);
         cout << out << endl;
     }
+
 }
 
 static int DisplayAllCaseInfo(int argc, char **argv)
