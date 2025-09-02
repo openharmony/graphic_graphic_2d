@@ -33,6 +33,7 @@ constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
 constexpr const char* ANI_STRING = "Lstd/core/String;";
 constexpr const char* ANI_MAP = "Lescompat/Map;";
 constexpr const char* ANI_ARRAY = "Lescompat/Array;";
+constexpr const char* ANI_BUSINESS_ERROR = "L@ohos/base/BusinessError;";
 /**
  * define interface
  */
@@ -48,8 +49,11 @@ constexpr const char* ANI_INTERFACE_PLACEHOLDER_SPAN = "L@ohos/graphics/text/tex
 constexpr const char* ANI_INTERFACE_TYPOGRAPHIC_BOUNDS = "L@ohos/graphics/text/text/TypographicBounds;";
 constexpr const char* ANI_INTERFACE_POINT = "L@ohos/graphics/common2D/common2D/Point;";
 constexpr const char* ANI_INTERFACE_RECT = "L@ohos/graphics/common2D/common2D/Rect;";
+constexpr const char* ANI_INTERFACE_COLOR = "L@ohos/graphics/common2D/common2D/Color;";
 constexpr const char* ANI_INTERFACE_POSITION_WITH_AFFINITY = "L@ohos/graphics/text/text/PositionWithAffinity;";
 constexpr const char* ANI_INTERFACE_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptor;";
+constexpr const char* ANI_INTERFACE_DECORATION = "L@ohos/graphics/text/text/Decoration;";
+constexpr const char* ANI_INTERFACE_FONT_METRICS = "L@ohos/graphics/drawing/drawing/FontMetrics;";
 /**
  * define class
  */
@@ -70,16 +74,13 @@ constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShad
 constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyleInternal;";
 constexpr const char* ANI_CLASS_DECORATION = "L@ohos/graphics/text/text/DecorationInternal;";
 constexpr const char* ANI_CLASS_TEXT_BOX = "L@ohos/graphics/text/text/TextBoxInternal;";
-constexpr const char* ANI_CLASS_RECT = "L@ohos/graphics/text/text/RectInternal;";
 constexpr const char* ANI_CLASS_POSITION_WITH_AFFINITY = "L@ohos/graphics/text/text/PositionWithAffinityInternal;";
 constexpr const char* ANI_CLASS_RANGE = "L@ohos/graphics/text/text/RangeInternal;";
 constexpr const char* ANI_CLASS_TEXT_LINE = "L@ohos/graphics/text/text/TextLine;";
 constexpr const char* ANI_CLASS_LINE_TYPESET = "L@ohos/graphics/text/text/LineTypeset;";
 constexpr const char* ANI_CLASS_RUN = "L@ohos/graphics/text/text/Run;";
-constexpr const char* ANI_CLASS_POINT = "L@ohos/graphics/text/text/PointInternal;";
 constexpr const char* ANI_CLASS_TYPOGRAPHIC_BOUNDS = "L@ohos/graphics/text/text/TypographicBoundsInternal;";
 constexpr const char* ANI_CLASS_FONT_DESCRIPTOR = "L@ohos/graphics/text/text/FontDescriptorInternal;";
-constexpr const char* ANI_CLASS_COLOR = "L@ohos/graphics/text/text/ColorInternal;";
 /**
  * define enum
  */

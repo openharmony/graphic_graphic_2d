@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include "effect/color_filter.h"
+#include "utils/point.h"
 #include "utils/rect.h"
 
 #ifdef ROSEN_OHOS
@@ -144,7 +145,15 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
 
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 
+ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj);
+
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect);
+
+ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj);
+
+ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
+
+ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {

@@ -62,6 +62,24 @@ namespace common2D {
     blue: int;
   }
 
+  class ColorInternal implements common2D.Color {
+    alpha: int = 0;
+    red: int = 0;
+    green: int = 0;
+    blue: int = 0;
+    constructor(
+      alpha: int,
+      red: int,
+      green: int,
+      blue: int
+    ) {
+      this.alpha = alpha;
+      this.red = red;
+      this.green = green;
+      this.blue = blue;
+    }
+  }
+
   /**
    * Provides the definition of the rectangle.
    * @typedef Rect
@@ -99,6 +117,24 @@ namespace common2D {
     bottom: double;
   }
 
+  class RectInternal implements common2D.Rect {
+    left: double = 0;
+    top: double = 0;
+    right: double = 0;
+    bottom: double = 0;
+    constructor(
+      left: double,
+      top: double,
+      right: double,
+      bottom: double
+    ) {
+      this.left = left;
+      this.top = top;
+      this.right = right;
+      this.bottom = bottom;
+    }
+  }
+
   /**
    * Coordinates in the font layout.
    * @typedef Point
@@ -121,6 +157,18 @@ namespace common2D {
      * @since 12
      */
     y: double;
+  }
+
+  class PointInternal implements common2D.Point {
+    x: double = 0;
+    y: double = 0;
+    constructor(
+      x: double,
+      y: double
+    ) {
+      this.x = x;
+      this.y = y;
+    }
   }
 
   /**

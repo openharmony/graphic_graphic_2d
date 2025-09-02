@@ -111,8 +111,13 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
 
-    ani_class stringClass;
-    env->FindClass("Lstd/core/String;", &stringClass);
+    ani_class stringClass = nullptr;
+    ret = AniTextUtils::FindClassWithCache(env, "Lstd/core/String;", stringClass);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to found Lstd/core/String;, ret %{public}d", ret);
+        return;
+    }
+
     ani_boolean isString = false;
     env->Object_InstanceOf(path, stringClass, &isString);
 
@@ -121,8 +126,12 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
 
-    ani_class resourceClass;
-    env->FindClass("Lglobal/resource/Resource", &resourceClass);
+    ani_class resourceClass = nullptr;
+    ret = AniTextUtils::FindClassWithCache(env, "Lglobal/resource/Resource;", resourceClass);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to found Lglobal/resource/Resource;, ret %{public}d", ret);
+        return;
+    }
     ani_boolean isResource = false;
     env->Object_InstanceOf(path, resourceClass, &isResource);
     if (isResource) {
@@ -151,7 +160,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_FONT_COLLECTION, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_FONT_COLLECTION, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
         return ANI_NOT_FOUND;
@@ -162,7 +171,6 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 
     std::array methods = {
         ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance)},
         ani_native_function{"loadFontSync", loadFontSync.c_str(), reinterpret_cast<void*>(LoadFontSync)},
         ani_native_function{"clearCaches", ":V", reinterpret_cast<void*>(ClearCaches)},
         ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
@@ -170,11 +178,19 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{
             "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
-
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for FontCollection: %{public}s", ANI_CLASS_FONT_COLLECTION);
         return ANI_ERROR;
+    }
+
+    std::array staticMethods = {
+        ani_native_function{"getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance)},
+    };
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to bind static methods: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        return ANI_NOT_FOUND;
     }
     return ANI_OK;
 }

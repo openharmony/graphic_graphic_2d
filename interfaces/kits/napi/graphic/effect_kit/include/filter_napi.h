@@ -34,6 +34,8 @@ public:
     static napi_value Init(napi_env env, napi_value exports);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
     std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
+    static napi_value CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap);
+
 private:
     static thread_local napi_ref sConstructor_;
     static void Destructor(napi_env env, void* nativeObject, void* finalize_hint);
@@ -50,6 +52,8 @@ private:
     static napi_value SetColorMatrix(napi_env env, napi_callback_info info);
     void AddNextFilter(sk_sp<SkImageFilter> filter);
     DrawError Render(bool forceCPU);
+    static void Finalizer(napi_env env, void* data, void* hint);
+
     std::vector<sk_sp<SkImageFilter> > skFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
