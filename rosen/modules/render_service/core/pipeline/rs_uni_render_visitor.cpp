@@ -3254,8 +3254,7 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
                     continue;
                 }
                 hwcNodePtr->SetHardwareForcedDisabledState(true);
-                RS_OPTIONAL_TRACE_NAME_FMT(
-                    "hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
                     hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
             }
         }
