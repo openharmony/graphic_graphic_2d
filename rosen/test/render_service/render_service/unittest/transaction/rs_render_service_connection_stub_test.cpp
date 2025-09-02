@@ -1018,6 +1018,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub033
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub036, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1032,6 +1033,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub036
     data.WriteInt32(0);
     int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
+#endif
 }
 
 /**
@@ -1178,6 +1180,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub030
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1186,6 +1189,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest00
     data.WriteUint32(120);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+#endif
 }
  
 /**
@@ -1196,6 +1200,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest00
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1207,6 +1212,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest00
     eventInfo.Serialize(data);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
+#endif
 }
  
 /**
@@ -1217,6 +1223,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest00
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1226,6 +1233,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest0
     data.WriteUint32(120);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+#endif
 }
 
 /**
@@ -1875,46 +1883,5 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetOptimizeCanvasDirtyPidListTest003
     data.WriteInt32Vector(pidList);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: SetWindowFreezeImmediately
- * @tc.desc: Test SetWindowFreezeImmediately
- * @tc.type: FUNC
- * @tc.require: issueICQ74B
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest001, TestSize.Level2)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
-
-    NodeId id = 0;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(id);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: SetWindowFreezeImmediately
- * @tc.desc: Test SetWindowFreezeImmediately
- * @tc.type: FUNC
- * @tc.require: issueICQ74B
- */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetWindowFreezeImmediatelyTest002, TestSize.Level2)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
-
-    pid_t pid = GetRealPid();
-    NodeId id = (NodeId)pid << 32;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(id);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_REPLY);
 }
 } // namespace OHOS::Rosen

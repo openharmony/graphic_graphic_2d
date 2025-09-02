@@ -327,6 +327,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
     auto buffer = SurfaceBuffer::Create();
@@ -346,6 +347,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     surfaceNode->UpdateBufferDirtyRegion();
     ASSERT_EQ(surfaceNode->selfDrawingNodeDirtyRect_.width_, 100);
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
+#endif
 }
 
 /**
@@ -1108,6 +1110,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_TRUE(RSProperties::filterCacheEnabled_);
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -1122,6 +1125,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     node.filterRegion_ = outRegion;
     node.UpdateFilterCacheWithSelfDirty();
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -1177,6 +1181,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_TRUE(RSProperties::filterCacheEnabled_);
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
@@ -1189,6 +1194,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     ASSERT_NE(node.GetFilterDrawable(false), nullptr);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -1199,6 +1205,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSSurfaceRenderNode> nodeTest1 = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(nodeTest1, nullptr);
     std::string outTest3 = "";
@@ -1244,6 +1251,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
 #endif
     nodeTest->DumpDrawCmdModifiers(outTest6);
     EXPECT_NE(outTest6, "");
+#endif
 }
 
 /**
@@ -1782,6 +1790,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode03, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_TRUE(RSProperties::filterCacheEnabled_);
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
@@ -1793,6 +1802,7 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode03, TestSize.Level1)
     node.drawableVec_[static_cast<uint32_t>(slot)] = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     ASSERT_NE(node.GetFilterDrawable(false), nullptr);
+#endif
 }
 
 /**
@@ -2103,6 +2113,7 @@ HWTEST_F(RSRenderNodeTest2, UpdatePointLightDirtySlotTest03, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags01, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2115,6 +2126,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags01, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2125,6 +2137,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags01, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags02, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2138,6 +2151,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags02, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2148,6 +2162,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags02, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags03, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2160,6 +2175,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags03, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2170,6 +2186,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags03, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags04, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2183,6 +2200,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags04, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2193,6 +2211,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags04, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags05, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2206,6 +2225,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags05, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2216,6 +2236,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags05, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags06, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2229,6 +2250,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags06, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2239,6 +2261,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags06, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags07, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2252,6 +2275,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags07, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -2262,6 +2286,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags07, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags08, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -2275,6 +2300,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags08, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**

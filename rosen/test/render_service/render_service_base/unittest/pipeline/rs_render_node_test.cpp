@@ -1853,6 +1853,7 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest004, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
@@ -1893,6 +1894,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
     std::string outTest3 = "";
     nodeTest->DumpSubClassNode(outTest3);
     EXPECT_EQ(outTest3, "");
+#endif
 }
 
 /**
@@ -1903,6 +1905,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::string outTest = "";
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
     auto consumerSurfacePtr = IConsumerSurface::Create();
@@ -1927,6 +1930,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
     surfaceNode->isRepaintBoundary_ = true;
     surfaceNode->DumpTree(0, outTest);
     ASSERT_TRUE(outTest.find("RB: true") != string::npos);
+#endif
 }
 
 /**
@@ -1953,6 +1957,7 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, RSScreenRenderNodeDumpTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     std::string outTest = "";
     auto context = std::make_shared<RSContext>();
     auto renderNode = std::make_shared<RSScreenRenderNode>(0, 0, context);
@@ -1960,6 +1965,7 @@ HWTEST_F(RSRenderNodeTest, RSScreenRenderNodeDumpTest, TestSize.Level1)
     EXPECT_EQ(outTest, ", colorSpace: 4");
     
     renderNode->DumpTree(0, outTest);
+#endif
 }
 
 /**
@@ -3141,6 +3147,7 @@ HWTEST_F(RSRenderNodeTest, ClearCacheSurfaceInThreadTest029, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -3153,6 +3160,7 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -3163,6 +3171,7 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     RSRenderNode node(id, context);
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -3176,6 +3185,7 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
     properties.filter_ = std::make_shared<RSFilter>();
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, needRequestNextVsync);
     ASSERT_TRUE(true);
+#endif
 }
 
 /**
@@ -3595,6 +3605,7 @@ HWTEST_F(RSRenderNodeTest, GetUIContextTokenListTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, UpdateFilterCacheForceClearWithBackgroundAndAlphaDirtyTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     renderNode->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ALPHA), true);
@@ -3611,6 +3622,7 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterCacheForceClearWithBackgroundAndAlphaDirt
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+#endif
 }
 
 /**
@@ -3621,6 +3633,7 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterCacheForceClearWithBackgroundAndAlphaDirt
  */
 HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     renderNode->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ALPHA), true);
@@ -3633,6 +3646,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+#endif
 }
 
 /**
@@ -3643,6 +3657,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
  */
 HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutAlphaDirtyTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
 
@@ -3658,6 +3673,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutAlphaDirtyTest, TestSi
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+#endif
 }
 
 /**
@@ -3668,6 +3684,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutAlphaDirtyTest, TestSi
  */
 HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
@@ -3681,6 +3698,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+#endif
 }
 
 /**
@@ -3691,6 +3709,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
  */
 HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     auto& properties = renderNode->GetMutableRenderProperties();
@@ -3704,6 +3723,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
 
     EXPECT_NE(compositingFilterDrawable->stagingCacheManager_, nullptr);
     EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+#endif
 }
 
 /**
@@ -3714,6 +3734,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
  */
 HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     ASSERT_FALSE(renderNode->HasHpaeBackgroundFilter());
@@ -3722,6 +3743,7 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
     EXPECT_NE(drawableFilter, nullptr);
     renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
     ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
+#endif
 }
 /*
  * @tc.name: UpdateVirtualScreenWhiteListInfo

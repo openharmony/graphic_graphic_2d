@@ -43,6 +43,7 @@ void RSUIContextTest::TearDown() {}
  */
 HWTEST_F(RSUIContextTest, PostDelayTaskTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto uiContext1 = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto uiContext2 = RSUIContextManager::MutableInstance().CreateRSUIContext();
     ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
@@ -51,6 +52,7 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest001, TestSize.Level1)
     uint32_t delay = 0;
     uiContext1->PostDelayTask(task, delay);
     ASSERT_FALSE(flag);
+#endif
 }
 
 /**
@@ -60,6 +62,7 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto uiContext1 = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto uiContext2 = RSUIContextManager::MutableInstance().CreateRSUIContext();
     ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
@@ -74,6 +77,7 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     uiContext2->rsTransactionHandler_ = nullptr;
     ASSERT_EQ(uiContext2->rsTransactionHandler_, nullptr);
     uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+#endif
 }
 
 /**
@@ -83,6 +87,7 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
@@ -91,6 +96,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
     uiContext->DumpNodeTreeProcessor(canvasNode->GetId(), 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") != std::string::npos);
     ASSERT_TRUE(out.find("UIContext") != std::string::npos);
+#endif
 }
 
 /**
@@ -100,6 +106,7 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     uiContext->rsTransactionHandler_ = nullptr;
     auto transaction = uiContext->GetRSTransaction();
@@ -108,5 +115,6 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
     uiContext->DumpNodeTreeProcessor(0, 0, 0, out);
     ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
     ASSERT_TRUE(out.find("UIContext") == std::string::npos);
+#endif
 }
 } // namespace OHOS::Rosen

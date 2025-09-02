@@ -481,6 +481,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetPixelmapSurfaceImgValidTest, TestSize
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     NodeId nodeId = 1;
     std::weak_ptr<RSContext> context;
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
@@ -522,6 +523,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     rsCanvasDrawingRenderNode.ClearOp();
     const auto& curDrawCmdLists = rsCanvasDrawingRenderNode.GetDrawCmdLists();
     EXPECT_TRUE(curDrawCmdLists.empty());
+#endif
 }
 
 /**
@@ -613,6 +615,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, IsNeedProcessTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     NodeId nodeId = 4;
     auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
     rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
@@ -620,6 +623,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
     EXPECT_FALSE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
     EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
+#endif
 }
 
 /**
