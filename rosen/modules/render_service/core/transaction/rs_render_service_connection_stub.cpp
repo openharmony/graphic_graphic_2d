@@ -3057,7 +3057,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (mapSize > MAX_VOTER_SIZE) {
-                ret = ERR_INVALID_STATE;
+                ret = ERR_INVALID_DATA;
                 break;
             }
             bool shouldBreak = false;
@@ -3093,7 +3093,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (mapSize > MAX_VOTER_SIZE) {
-                ret = ERR_INVALID_STATE;
+                ret = ERR_INVALID_DATA;
                 break;
             }
             bool shouldBreak = false;
