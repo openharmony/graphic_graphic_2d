@@ -248,7 +248,7 @@ bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<float>& c
 }
 
 bool ParseRadialGradientMask(
-    napi_env env, napi_value *argv, std::shared_ptr<RadialGradientMaskPara> mask, const size_t realArgc)
+    napi_env env, napi_value* argv, std::shared_ptr<RadialGradientMaskPara> mask, const size_t realArgc)
 {
     if (!mask || realArgc != NUM_4) {
         return false;
