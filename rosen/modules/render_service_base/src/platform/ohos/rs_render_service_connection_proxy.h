@@ -442,6 +442,8 @@ private:
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
 
+    void RemoveToken() override {};
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif

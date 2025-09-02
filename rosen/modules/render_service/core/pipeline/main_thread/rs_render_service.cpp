@@ -269,8 +269,11 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         RS_LOGE("RemoveConnection: connections_ cannot find token");
         return false;
     }
-    auto tmp = iter->second;
-    connections_.erase(tokenObj);
+    auto rsConn = iter->second;
+    if (rsConn != nullptr) {
+        rsConn->RemoveToken();
+    }
+    connections_.erase(iter);
     lock.unlock();
     return true;
 }

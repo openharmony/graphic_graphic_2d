@@ -147,6 +147,7 @@ RSRenderServiceConnection::RSRenderServiceConnection(
 
 RSRenderServiceConnection::~RSRenderServiceConnection() noexcept
 {
+    RS_LOGI("~RSRenderServiceConnection remotePid:%{public}d", remotePid_);
     if (token_ && connDeathRecipient_) {
         token_->RemoveDeathRecipient(connDeathRecipient_);
     }
