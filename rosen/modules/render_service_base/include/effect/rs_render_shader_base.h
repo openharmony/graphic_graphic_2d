@@ -32,11 +32,9 @@ class RSB_EXPORT RSNGRenderShaderBase : public RSNGRenderEffectBase<RSNGRenderSh
 public:
     static std::shared_ptr<RSNGRenderShaderBase> Create(RSNGEffectType type);
 
-    virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {};
+    virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {}
 
-    virtual void OnSync()
-    {
-    }
+    virtual void OnSync() {}
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val);
     void Dump(std::string& out) const;
@@ -64,12 +62,10 @@ public:
             RSNGRenderEffectHelper::GetEffectTypeString(Type).c_str(),
             EffectTemplateBase::DumpProperties().c_str());
         auto geShader = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
-        std::apply(
-            [&geShader](const auto&... propTag) {
-                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
-                    geShader, propTag), ...);
-                },
-                EffectTemplateBase::properties_);
+        std::apply([&geShader](const auto&... propTag) {
+            (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(geShader, propTag), ...);
+            },
+            EffectTemplateBase::properties_);
         RSNGRenderEffectHelper::AppendToGEContainer(ge, geShader);
         if (EffectTemplateBase::nextEffect_) {
             EffectTemplateBase::nextEffect_->AppendToGEContainer(ge);
