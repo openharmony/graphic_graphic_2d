@@ -70,5 +70,7 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSRenderServiceBaseDirtyRegionTest" ]
+  if (graphic_2d_feature_rs_enable_uni_render) {
+    deps = [ ":RSRenderServiceBaseDirtyRegionTest" ]
+  }
 }
