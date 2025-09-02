@@ -60,8 +60,13 @@ public:
         const std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm);
     void SetHwcSolidColorLayerConfigFromHgm(
         const std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm);
-    std::unordered_map<std::string, std::string> GetSolidColorLayerConfigFromHgm() const;
-    std::unordered_map<std::string, std::string> GetHwcSolidColorLayerConfigFromHgm() const;
+    bool RsCommonHook::IsSolidColorLayerConfig(const std::string& bundleName) const {
+        return solidLayerConfigFromHgm_.find(bundleName) != solidLayerConfigFromHgm_.end();
+    }
+
+    bool RsCommonHook::IsHwcSolidColorLayerConfig(const std::string& bundleName) const {
+        return hwcSolidLayerConfigFromHgm_.find(bundleName) != hwcSolidLayerConfigFromHgm_.end();
+    }
 
     void SetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName, const std::string& val);
     std::string GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName);
