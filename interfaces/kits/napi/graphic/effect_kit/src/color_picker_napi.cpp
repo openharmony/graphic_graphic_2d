@@ -316,7 +316,7 @@ static bool GetRegionCoordinates(napi_env env, napi_value param, std::unique_ptr
     bool coordinatesValid = asyncContext->coordinatesBuffer[NUM_2] > asyncContext->coordinatesBuffer[NUM_0] &&
         asyncContext->coordinatesBuffer[NUM_3] > asyncContext->coordinatesBuffer[NUM_1];
     EFFECT_NAPI_CHECK_RET_D(coordinatesValid, false,
-        EFFECT_LOG_E("GetRegionCoordinates right must be greater than left, bottom must be greater than top"));
+        EFFECT_COMM_LOG_E("GetRegionCoordinates right must be greater than left, bottom must be greater than top"));
     return true;
 }
 
@@ -983,7 +983,7 @@ ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
         return ImageType::TYPE_PIXEL_MAP;
     }
 
-    EFFECT_LOG_E("InValued type!");
+    EFFECT_COMM_LOG_E("InValued type!");
     return ImageType::TYPE_UNKOWN;
 }
 

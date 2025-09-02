@@ -280,7 +280,7 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
     auto dstPixelMap = Media::PixelMap::Create(opts);
     if (dstPixelMap == nullptr) {
         image_ = nullptr;
-        EFFECT_LOG_E("EffectImageChain::InitWithoutCanvas: Failed to create the dstPixelMap.");
+        EFFECT_COMM_LOG_E("EffectImageChain::InitWithoutCanvas: Failed to create the dstPixelMap.");
         return DrawingError::ERR_IMAGE_NULL;
     }
     dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
@@ -318,7 +318,7 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 #endif
 
     if (gpuContext_ == nullptr) {
-        EFFECT_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
+        EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
     }
     return Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
