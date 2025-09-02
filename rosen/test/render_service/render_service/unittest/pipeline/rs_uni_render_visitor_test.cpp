@@ -5342,6 +5342,57 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
     ASSERT_TRUE(parent->ChildHasVisibleEffect());
 }
 
+/**
+ * @tc.name: PostPrepare002
+ * @tc.desc: Test RSUnitRenderVisitorTest.PostPrepare002
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, PostPrepare002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto child = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(child, nullptr);
+    auto child2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(child2, nullptr);
+
+    surfaceNode->InitRenderParams();
+    child->InitRenderParams();
+    child->isHardwareForcedDisabled_ = false;
+    child2->InitRenderParams();
+    child2->isHardwareForcedDisabled_ = true;
+    surfaceNode->AddChildHardwareEnabledNode(child);
+    surfaceNode->AddChildHardwareEnabledNode(child2);
+    surfaceNode->AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode>());
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
+
+    rsUniRenderVisitor->PostPrepare(*surfaceNode, false);
+    ASSERT_FALSE(child->isHardwareForcedDisabled_);
+
+    rsUniRenderVisitor->PostPrepare(*surfaceNode, true);
+    ASSERT_TRUE(child->isHardwareForcedDisabled_);
+
+    child->isHardwareForcedDisabled_ = false;
+    Occlusion::Region visibleRegion(DEFAULT_RECT);
+    surfaceNode->SetVisibleRegion(visibleRegion);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    rsUniRenderVisitor->PostPrepare(*surfaceNode, false);
+    ASSERT_FALSE(child->isHardwareForcedDisabled_);
+
+    rsUniRenderVisitor->PostPrepare(*surfaceNode, true);
+    ASSERT_FALSE(child->isHardwareForcedDisabled_);
+}
+
+
 /*
  * @tc.name: CheckIsGpuOverDrawBufferOptimizeNode001
  * @tc.desc: Verify function CheckIsGpuOverDrawBufferOptimizeNode while node has no child
