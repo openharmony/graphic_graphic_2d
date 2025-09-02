@@ -33,10 +33,6 @@ public:
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
-    ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
-    ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
-
     ErrCode GetUniRenderEnabled(bool& enable) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& configg, bool& success) override;
@@ -72,8 +68,6 @@ public:
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
 
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
-
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
     ErrCode SetVirtualScreenTypeBlackList(
@@ -94,6 +88,7 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -151,8 +146,6 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
-
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
@@ -177,15 +170,10 @@ public:
     void TakeUICaptureInRange(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
 
-    bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
-
-    bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
-
-    bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
-        
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
+    ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) override;
@@ -198,6 +186,9 @@ public:
 
     RSScreenData GetScreenData(ScreenId id) override;
 
+    ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
+    ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
+    ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
@@ -260,8 +251,6 @@ public:
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
-    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
-
     ErrCode SetScreenSkipFrameInterval(uint64_t id, uint32_t skipFrameInterval, int32_t& resCode) override;
 
     ErrCode SetVirtualScreenRefreshRate(
@@ -284,18 +273,13 @@ public:
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    ErrCode SetAppWindowNum(uint32_t num) override;
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
 
-    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
-
-    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
-
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
-
-    ErrCode SetAppWindowNum(uint32_t num) override;
 
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
@@ -337,11 +321,10 @@ public:
 
     ErrCode ReportEventJankFrame(DataBaseRs info) override;
 
+    ErrCode ReportGameStateData(GameStateData info) override;
     void ReportRsSceneJankStart(AppInfo info) override;
 
     void ReportRsSceneJankEnd(AppInfo info) override;
-
-    ErrCode ReportGameStateData(GameStateData info) override;
 
     ErrCode SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
         bool dynamicHardwareEnable) override;
@@ -354,6 +337,9 @@ public:
 
     void RunOnRemoteDiedCallback() override;
 
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+    ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
+    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
@@ -369,18 +355,15 @@ public:
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
 
+    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
+
+    void SetFreeMultiWindowStatus(bool enable) override;
+
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
 #ifdef TP_FEATURE_ENABLE
     ErrCode SetTpFeatureConfig(int32_t feature, const char* config,
         TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
-    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
-    ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
-    
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
-
-    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
-
-    void SetFreeMultiWindowStatus(bool enable) override;
 
     ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) override;
@@ -401,6 +384,9 @@ public:
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
+    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
+
+    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
     bool GetHighContrastTextState() override;
 
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
@@ -415,11 +401,17 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
 
-    void ClearUifirstCache(NodeId id) override;
-
     ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
+
+    void ClearUifirstCache(NodeId id) override;
+
+    bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
+
+    bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
+
+    bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
