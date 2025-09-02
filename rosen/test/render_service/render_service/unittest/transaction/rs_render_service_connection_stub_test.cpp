@@ -1030,7 +1030,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub036
     data.WriteInt32(0);
     data.WriteString("");
     data.WriteInt32(0);
-    int32_t res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    int32_t res = callback->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
 }
 
