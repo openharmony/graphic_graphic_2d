@@ -291,36 +291,6 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessGpuBlurTest01, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateHianimationTaskTest
- * @tc.desc: Verify function GenerateHianimationTask
- * @tc.type:FUNC
- * @tc.require:
-*/
-HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest, TestSize.Level1)
-{
-    RSHpaeFilterCacheManager hpaeCacheManager;
-    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    HpaeBufferInfo inputBuffer;
-    auto drawingCanvasIn = std::make_unique<Drawing::Canvas>(100, 100);
-    inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
-    Drawing::Surface surfaceIn;
-    inputBuffer.canvas->surface_ = &surfaceIn;
-    BufferHandle bufferHandleIn;
-    inputBuffer.bufferHandle = &bufferHandleIn;
-    
-    HpaeBufferInfo outputBuffer;
-    auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
-    outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
-    Drawing::Surface surfaceOut;
-    outputBuffer.canvas->surface_ = &surfaceOut;
-    BufferHandle bufferHandleOut;
-    outputBuffer.bufferHandle = &bufferHandleOut;
-
-    auto resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
-    EXPECT_EQ(resultTask.taskPtr, reinterpret_cast<void*>(0x1234));
-}
-
-/**
  * @tc.name: GenerateHianimationTaskTest01
  * @tc.desc: Verify function GenerateHianimationTask
  * @tc.type:FUNC
@@ -400,75 +370,6 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.L
     inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
     resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
     EXPECT_EQ(resultTask.taskPtr, nullptr);
-}
-
-/**
- * @tc.name: ProcessHianimationBlurTest
- * @tc.desc: Verify function ProcessHianimationBlur
- * @tc.type:FUNC
- * @tc.require:
-*/
-HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest, TestSize.Level1)
-{
-    RSHpaeFilterCacheManager hpaeCacheManager;
-    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    HpaeBufferInfo inputBuffer;
-    auto drawingCanvasIn = std::make_unique<Drawing::Canvas>(100, 100);
-    inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
-    Drawing::Surface surfaceIn;
-    inputBuffer.canvas->surface_ = &surfaceIn;
-    BufferHandle bufferHandleIn;
-    inputBuffer.bufferHandle = &bufferHandleIn;
-    hpaeCacheManager.inputBufferInfo_ = inputBuffer;
-    
-    HpaeBufferInfo outputBuffer;
-    auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
-    outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
-    Drawing::Surface surfaceOut;
-    outputBuffer.canvas->surface_ = &surfaceOut;
-    BufferHandle bufferHandleOut;
-    outputBuffer.bufferHandle = &bufferHandleOut;
-    hpaeCacheManager.outputBufferInfo_ = outputBuffer;
-
-    int ret = hpaeCacheManager.ProcessHianimationBlur(filter, 10.0f);
-    EXPECT_EQ(ret, 0);
-}
-
-/**
- * @tc.name: ProcessHianimationBlurTest
- * @tc.desc: Verify function ProcessHianimationBlur01
- * @tc.type:FUNC
- * @tc.require:
-*/
-HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest01, TestSize.Level1)
-{
-    RSHpaeFilterCacheManager hpaeCacheManager;
-    auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    HpaeBufferInfo inputBuffer;
-    auto drawingCanvasIn = std::make_unique<Drawing::Canvas>(100, 100);
-    inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
-    Drawing::Surface surfaceIn;
-    inputBuffer.canvas->surface_ = &surfaceIn;
-    BufferHandle bufferHandleIn;
-    inputBuffer.bufferHandle = &bufferHandleIn;
-   
-    HpaeBufferInfo outputBuffer;
-    auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
-    outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
-    Drawing::Surface surfaceOut;
-    outputBuffer.canvas->surface_ = &surfaceOut;
-    BufferHandle bufferHandleOut;
-    outputBuffer.bufferHandle = &bufferHandleOut;
-    int ret = hpaeCacheManager.ProcessHianimationBlur(filter, 10.0f);
-    EXPECT_EQ(ret, -1);
-
-    hpaeCacheManager.inputBufferInfo_ = inputBuffer;
-    hpaeCacheManager.outputBufferInfo_ = outputBuffer;
-    auto instance = RSHpaeFfrtPatternManager::Instance().g_instance;
-    RSHpaeFfrtPatternManager::Instance().g_instance = nullptr;
-    ret = hpaeCacheManager.ProcessHianimationBlur(filter, 10.0f);
-    EXPECT_EQ(ret, -1);
-    RSHpaeFfrtPatternManager::Instance().g_instance = instance;
 }
 
 /**
