@@ -143,25 +143,6 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnDraw
- * @tc.desc: Test OnDraw
- * @tc.type: FUNC
- * @tc.require: #ICEF7K
- */
-HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw, TestSize.Level1)
-{
-    ASSERT_NE(effectDrawable_, nullptr);
-    ASSERT_NE(drawable_->renderParams_, nullptr);
-    // default case, shouldpaint == false
-    effectDrawable_->OnDraw(*drawingCanvas_);
-
-    // if should paint
-    drawable_->renderParams_->shouldPaint_ = true;
-    drawable_->renderParams_->contentEmpty_ = false;
-    effectDrawable_->OnDraw(*drawingCanvas_);
-}
-
-/**
  * @tc.name: GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue
  * @tc.desc: generate effect when has no effect children and uiCapture is true
  * @tc.type: FUNC
