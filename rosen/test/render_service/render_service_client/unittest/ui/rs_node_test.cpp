@@ -3913,6 +3913,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter004, TestSize.Level1)
     EXPECT_NE(rsNode->propertyModifiers_.size(), 3);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetUIForegroundFilter
  * @tc.desc: test results of SetUIForegroundFilter
@@ -3941,6 +3942,7 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
         filterObj = nullptr;
     }
 }
+#endif
 
 /**
  * @tc.name: SetUIForegroundFilter002
@@ -8587,7 +8589,7 @@ HWTEST_F(RSNodeTest, SetMagnifierParams, TestSize.Level1)
     ASSERT_TRUE(property != nullptr);
     EXPECT_EQ(property->Get(), para);
 }
-#endif
+
 /**
  * @tc.name: SetIsCustomTextType
  * @tc.desc: test results of SetIsCustomTextType
@@ -8637,6 +8639,7 @@ HWTEST_F(RSNodeTest, SetSepia, TestSize.Level1)
     rsNode->SetHueRotate(1.0f);
     ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
 }
+#endif
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
