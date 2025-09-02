@@ -2685,6 +2685,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetShadowAlpha004, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    rsNode->SetAlpha(1.f);
     rsNode->SetShadowAlpha(floatData[4]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[4], 0.02f));
 }
