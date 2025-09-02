@@ -102,7 +102,6 @@ bool MemoryTrack::RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size)
 void MemoryTrack::RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id)
 {
     if (memNodeOfPidMap_.find(pid) == memNodeOfPidMap_.end()) {
-        RS_LOGW("MemoryTrack::RemoveNodeOfPidFromMap no this nodeId = %{public}" PRIu64, id);
         return;
     }
     MemoryNodeOfPid nodeInfoOfPid = {size, id};
