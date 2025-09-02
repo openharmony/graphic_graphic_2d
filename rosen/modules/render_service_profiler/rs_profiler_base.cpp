@@ -1699,6 +1699,17 @@ bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes)
     return false;
 }
 
+bool RSProfiler::IsFirstFrameParcel(const Parcel& parcel)
+{
+    if (!IsEnabled()) {
+        return false;
+    }
+    if (!IsBetaRecordEnabled()) {
+        return false;
+    }
+    return IsWriteEmulationMode() || IsReadEmulationMode();
+}
+
 void RSProfiler::SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize)
 {
     if (!IsEnabled()) {

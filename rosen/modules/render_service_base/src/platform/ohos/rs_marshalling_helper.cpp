@@ -535,6 +535,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         auto data = val->Serialize();
         return Marshalling(parcel, data);
     } else {
+        if (RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel)) {
+            return true;
+        }
         Drawing::Bitmap bitmap;
         if (!val->GetROPixels(bitmap)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling get bitmap failed");
@@ -648,6 +651,9 @@ bool RSMarshallingHelper::ReadColorSpaceFromParcel(Parcel& parcel, std::shared_p
 bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr)
 {
+    if (RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel)) {
+        return true;
+    }
     uint32_t pixmapSize{0};
     if (!parcel.ReadUint32(pixmapSize)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read pixmapSize failed");
