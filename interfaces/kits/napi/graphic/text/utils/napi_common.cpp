@@ -922,7 +922,6 @@ bool GetTextTabFromJS(napi_env env, napi_value argValue, TextTab& tab)
     }
     napi_value tempValue = nullptr;
     if (napi_get_named_property(env, argValue, "alignment", &tempValue) != napi_ok) {
-        TEXT_LOGE("Failed to get alignment");
         return false;
     }
     uint32_t align = 0;
