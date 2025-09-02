@@ -235,8 +235,12 @@ HWTEST_F(RSGpuDirtyCollectorTest, SetGpuDirtyEnabled002, TestSize.Level1)
     ASSERT_EQ(ret, GSERROR_OK);
  
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    auto param = system::GetParameter("rosen.graphic.gpudirtyaps.enabled", "");
+    system::SetParameter("rosen.graphic.gpudirtyaps.enabled", "1");
     RSGpuDirtyCollector::SetGpuDirtyEnabled(buffer, true);
-    ASSERT_EQ(src->gpuDirtyEnable, false);
+    ASSERT_EQ(src->gpuDirtyEnable, true);
+    system::SetParameter("rosen.graphic.gpudirtyaps.enabled", param);
 }
 
 /**
