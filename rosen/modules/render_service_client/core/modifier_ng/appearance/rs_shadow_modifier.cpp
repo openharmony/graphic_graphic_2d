@@ -61,7 +61,7 @@ void RSShadowModifier::SetShadowAlpha(float alpha)
 float RSShadowModifier::GetShadowAlpha() const
 {
     // If there is no appointed alpha value stored on the client side
-    if (shadowAlpha_ == -1.f) {
+    if (shadowAlpha_ < 0.f) {
         return GetShadowColor().GetAlphaF();
     }
     return shadowAlpha_;
