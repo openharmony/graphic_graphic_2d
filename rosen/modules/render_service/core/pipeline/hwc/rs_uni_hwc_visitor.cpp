@@ -427,10 +427,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
         }
         return false;
     };
-    bool isTargetedAppBundle = IsTargetedSolidLayer(node);
+    bool isTargetAppBundle = IsTargetedSolidLayer(node);
     bool isNodeOpaque = ROSEN_EQ(renderProperties.GetAlpha(), 1.0f, EPSILON_SCALE);
     bool isSolidLayerEnabled = 
-        isTargetNodeType && isTargetColor && isNodeOpaque && !isSpecialNodeType && isTargetedAppBundle;
+        isTargetNodeType && isTargetColor && isNodeOpaque && !isSpecialNodeType && isTargetAppBundle;
     bool isHdrOn = false;
     bool hasBrightness = false;
     if (isSolidLayerEnabled) {
@@ -443,9 +443,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
         }
     }
     RS_LOGD("solidLayer: SolidLayer enabling conditions, isTargetNodeType: %{public}d, isTargetColor: %{public}d, "
-        "Alpha: %{public}d, isTargetedAppBundle: %{public}d, !isSpecialNodeType: %{public}d, !isHdrOn: %{public}d, "
+        "Alpha: %{public}d, isTargetAppBundle: %{public}d, !isSpecialNodeType: %{public}d, !isHdrOn: %{public}d, "
         "!hasBrightness: %{public}d",
-        isTargetNodeType, isTargetColor, isNodeOpaque, !isSpecialNodeType, isTargetedAppBundle, !isHdrOn, !hasBrightness);
+        isTargetNodeType, isTargetColor, isNodeOpaque, !isSpecialNodeType, isTargetAppBundle, !isHdrOn, !hasBrightness);
     ProcessSolidLayerDisabled(node);
 }
 
