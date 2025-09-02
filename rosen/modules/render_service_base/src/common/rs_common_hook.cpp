@@ -136,11 +136,21 @@ void RsCommonHook::SetSolidColorLayerConfigFromHgm(
 {
     solidLayerConfigFromHgm_ = solidLayerConfigFromHgm;
 }
- 
+
+bool RsCommonHook::IsSolidColorLayerConfig(const std::string& bundleName)
+{
+    return solidLayerConfigFromHgm_.find(bundleName) != solidLayerConfigFromHgm_.end();
+}
+
 void RsCommonHook::SetHwcSolidColorLayerConfigFromHgm(
     const std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm)
 {
     hwcSolidLayerConfigFromHgm_ = hwcSolidLayerConfigFromHgm;
+}
+
+bool RsCommonHook::IsHwcSolidColorLayerConfig(const std::string& bundleName)
+{
+    return hwcSolidLayerConfigFromHgm_.find(bundleName) != hwcSolidLayerConfigFromHgm_.end();
 }
 
 void RsCommonHook::SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val)
