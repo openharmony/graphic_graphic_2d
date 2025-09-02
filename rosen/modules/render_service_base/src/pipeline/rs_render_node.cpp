@@ -4046,7 +4046,7 @@ const std::unordered_set<NodeId>& RSRenderNode::GetVisibleEffectChild() const
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if (childNode.GetRenderProperties().GetUseEffect()) {
+    if (childNode.GetRenderProperties().GetUseEffect() && !childNode.GetOldDirtyInSurface().IsEmpty()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();

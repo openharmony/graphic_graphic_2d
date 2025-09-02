@@ -3224,8 +3224,8 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         nodeParent->UpdateVisibleFilterChild(node);
     }
     if ((node.GetRenderProperties().GetUseEffect() || node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
-        nodeParent->SetChildHasVisibleEffect(true);
         nodeParent->UpdateVisibleEffectChild(node);
+        nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);
