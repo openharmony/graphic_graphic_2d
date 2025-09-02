@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
+#include "ani_drawing_utils.h"
 #include "ani_run.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
@@ -275,7 +275,7 @@ ani_object AniTextLine::GetImageBounds(ani_env* env, ani_object object)
 
     Drawing::Rect rect = textLineBase->GetImageBounds();
     ani_object rectObj = nullptr;
-    if (ANI_OK != AniDrawingConverter::ParseRectToAni(env, rect, rectObj)) {
+    if (ANI_OK != OHOS::Rosen::Drawing::CreateRectObj(env, rect, rectObj)) {
         TEXT_LOGE("Failed to create rect");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -303,7 +303,7 @@ ani_int AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object object, 
         return 0;
     }
     OHOS::Rosen::Drawing::Point drawingPoint;
-    AniDrawingConverter::ParseDrawingPointToNative(env, point, drawingPoint);
+    OHOS::Rosen::Drawing::GetPointFromPointObj(env, point, drawingPoint);
 
     SkPoint SkPoint = {drawingPoint.GetX(), drawingPoint.GetY()};
     return textLineBase->GetStringIndexForPosition(SkPoint);

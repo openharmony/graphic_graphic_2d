@@ -43,6 +43,8 @@ public:
 private:
     Font font_;
 };
+
+ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_ANI_FONT_H

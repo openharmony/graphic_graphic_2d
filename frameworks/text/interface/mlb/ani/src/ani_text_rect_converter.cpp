@@ -18,7 +18,7 @@
 #include <cstddef>
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
+#include "ani_drawing_utils.h"
 #include "ani_text_utils.h"
 
 namespace OHOS::Text::ANI {
@@ -84,7 +84,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
     ani_env* env, const OHOS::Rosen::TextRect& textRect, ani_object& aniObj)
 {
     ani_object rectObj = nullptr;
-    ani_status ret = AniDrawingConverter::ParseRectToAni(env, textRect.rect, rectObj);
+    ani_status ret = OHOS::Rosen::Drawing::CreateRectObj(env, textRect.rect, rectObj);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse rect to ani, ret %{public}d", ret);
         rectObj = AniTextUtils::CreateAniUndefined(env);
