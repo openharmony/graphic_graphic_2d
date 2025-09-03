@@ -97,7 +97,7 @@ void JsTextLine::Destructor(napi_env env, void *nativeObject, void *finalize)
     }
 }
 
-napi_value JsTextLine::CreateTextLine(napi_env env, napi_callback_info info)
+napi_value JsTextLine::CreateTextLine(napi_env env)
 {
     napi_value result = nullptr;
     napi_value constructor = nullptr;
@@ -119,9 +119,9 @@ JsTextLine::JsTextLine()
 {
 }
 
-void JsTextLine::SetTextLine(std::unique_ptr<TextLineBase> textLine)
+void JsTextLine::SetTextLine(std::shared_ptr<TextLineBase> textLine)
 {
-    textLine_ = std::move(textLine);
+    textLine_ = textLine;
 }
 
 napi_value JsTextLine::GetGlyphCount(napi_env env, napi_callback_info info)
@@ -222,7 +222,7 @@ napi_value JsTextLine::OnGetGlyphRuns(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_array(env, &array));
     uint32_t index = 0;
     for (std::unique_ptr<Run>& item : runs) {
-        napi_value itemObject = JsRun::CreateRun(env, info);
+        napi_value itemObject = JsRun::CreateRun(env);
         if (!itemObject) {
             TEXT_LOGE("Failed to create run");
             continue;
@@ -329,7 +329,7 @@ napi_value JsTextLine::OnCreateTruncatedLine(napi_env env, napi_callback_info in
         return NapiGetUndefined(env);
     }
 
-    napi_value itemObject = JsTextLine::CreateTextLine(env, info);
+    napi_value itemObject = JsTextLine::CreateTextLine(env);
     if (itemObject == nullptr) {
         TEXT_LOGE("Failed to create js textLine");
         return NapiGetUndefined(env);
@@ -592,9 +592,9 @@ napi_value JsTextLine::OnGetAlignmentOffset(napi_env env, napi_callback_info inf
     return CreateJsValue(env, offset);
 }
 
-std::unique_ptr<TextLineBase> JsTextLine::GetTextLineBase()
+std::shared_ptr<TextLineBase> JsTextLine::GetTextLineBase()
 {
-    return std::move(textLine_);
+    return textLine_;
 }
 
 void JsTextLine::SetParagraph(std::shared_ptr<Typography> paragraph)

@@ -187,7 +187,7 @@ napi_value JsLineTypeset::OnCreateLine(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Create line failed.");
     }
     std::shared_ptr<Typography> typography = lineTypography_->GetTempTypography();
-    napi_value itemObject = JsTextLine::CreateTextLine(env, info);
+    napi_value itemObject = JsTextLine::CreateTextLine(env);
     if (!itemObject) {
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create JsTextLine object.");
     }

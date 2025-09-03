@@ -30,12 +30,12 @@ ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCod
     ani_object aniError;
     ani_status status = AniTextUtils::CreateBusinessError(env, static_cast<int32_t>(errorCode), message, aniError);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to create business, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to create business, status %{public}d", static_cast<int32_t>(status));
         return status;
     }
     status = env->ThrowError(static_cast<ani_error>(aniError));
     if (status != ANI_OK) {
-        TEXT_LOGE("Fail to throw err, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Fail to throw err, status %{public}d", static_cast<int32_t>(status));
         return status;
     }
     return ANI_OK;
@@ -46,7 +46,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     ani_class aniClass = nullptr;
     ani_status status = AniTextUtils::FindClassWithCache(env, ANI_BUSINESS_ERROR, aniClass);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find class, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to find class, status %{public}d", static_cast<int32_t>(status));
         return status;
     }
 
@@ -57,19 +57,19 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     } else if ((status = env->Class_FindMethod(aniClass, "<ctor>", methodSign.c_str(), &aniCtor)) == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(methodKey, aniCtor);
     } else {
-        TEXT_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to find ctor, status %{public}d", static_cast<int32_t>(status));
         return status;
     }
 
     ani_string aniMsg = AniTextUtils::CreateAniStringObj(env, message);
     status = env->Object_New(aniClass, aniCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to new err, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to new err, status %{public}d", static_cast<int32_t>(status));
         return status;
     }
-    status = env->Object_SetPropertyByName_Double(err, "code", static_cast<ani_int>(error));
+    status = env->Object_SetPropertyByName_Int(err, "code", static_cast<ani_int>(error));
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to set code, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to set code, status %{public}d", static_cast<int32_t>(status));
         return status;
     }
     return ANI_OK;
@@ -87,7 +87,7 @@ bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
     ani_boolean isUndefined = 0;
     ani_status status = env->Reference_IsUndefined(ref, &isUndefined);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to check if undefined, status: %{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to check if undefined, status %{public}d", static_cast<int32_t>(status));
         return false;
     }
     return isUndefined != 0;
@@ -218,7 +218,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
         return status;
     }
     utf16Buffer[bytesWritten] = '\0';
-    utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize);
+    utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize - 1);
     return ANI_OK;
 }
 

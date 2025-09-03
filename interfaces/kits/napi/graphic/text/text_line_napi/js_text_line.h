@@ -28,8 +28,8 @@ class JsTextLine final {
 public:
     JsTextLine();
 
-    void SetTextLine(std::unique_ptr<TextLineBase> textLine);
-    static napi_value CreateTextLine(napi_env env, napi_callback_info info);
+    void SetTextLine(std::shared_ptr<TextLineBase> textLine);
+    static napi_value CreateTextLine(napi_env env);
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
@@ -37,7 +37,7 @@ public:
     static napi_value GetGlyphRuns(napi_env env, napi_callback_info info);
     static napi_value GetTextRange(napi_env env, napi_callback_info info);
     static napi_value Paint(napi_env env, napi_callback_info info);
-    std::unique_ptr<TextLineBase> GetTextLineBase();
+    std::shared_ptr<TextLineBase> GetTextLineBase();
     void SetParagraph(std::shared_ptr<Typography> paragraph);
 
     static napi_value CreateTruncatedLine(napi_env env, napi_callback_info info);
@@ -64,7 +64,7 @@ private:
     napi_value OnGetAlignmentOffset(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
-    std::unique_ptr<TextLineBase> textLine_ = nullptr;
+    std::shared_ptr<TextLineBase> textLine_ = nullptr;
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen

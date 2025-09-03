@@ -784,11 +784,15 @@ JsParagraph::~JsParagraph()
 
 std::shared_ptr<Typography> JsParagraph::GetParagraph()
 {
-    std::shared_ptr<Typography> typography = std::move(paragraph_);
-    return typography;
+    return paragraph_;
 }
 
 napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)
+{
+    return CreateJsTypography(env, typography.release());
+}
+
+napi_value JsParagraph::CreateJsTypography(napi_env env, Typography* typography)
 {
     if (!CreateConstructor(env)) {
         TEXT_LOGE("Failed to CreateConstructor");
@@ -800,7 +804,7 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
     if (status == napi_ok) {
         napi_value argv;
         napi_create_external(
-            env, typography.release(), [](napi_env env, void* finalizeData, void* finalizeHint) {}, nullptr, &argv);
+            env, typography, [](napi_env env, void* finalizeData, void* finalizeHint) {}, nullptr, &argv);
         status = napi_new_instance(env, constructor, ARGC_ONE, &argv, &result);
         if (status == napi_ok) {
             return result;
@@ -817,7 +821,7 @@ napi_value JsParagraph::GetTextLines(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnGetTextLines(env, info) : nullptr;
 }
 
-napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
+napi_value JsParagraph::OnGetTextLines(napi_env env, [[maybe_unused]] napi_callback_info info)
 {
     if (!paragraph_) {
         TEXT_LOGE("Null paragraph");
@@ -835,7 +839,7 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_array(env, &array));
     uint32_t index = 0;
     for (std::unique_ptr<TextLineBase>& item : textlineArr) {
-        napi_value itemObject = JsTextLine::CreateTextLine(env, info);
+        napi_value itemObject = JsTextLine::CreateTextLine(env);
         if (!itemObject) {
             TEXT_LOGE("Failed to create text line");
             continue;

@@ -32,6 +32,7 @@ config("text_config") {
     "$rosen_text_root/interface/export/rosen_text",
     "$rosen_text_root/service/texgine/src",
     "$graphic_2d_root/interfaces/kits/ani/drawing",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
 }
@@ -58,6 +59,7 @@ ohos_shared_library("text_engine_ani") {
     "./src/ani_text_rect_converter.cpp",
     "./src/ani_text_style_converter.cpp",
     "./src/ani_text_utils.cpp",
+    "./src/ani_transfer_util.cpp",
     "./src/ani_typographic_bounds_converter.cpp",
   ]
 
@@ -71,6 +73,7 @@ ohos_shared_library("text_engine_ani") {
 
   deps = [
     "$graphic_2d_root/interfaces/kits/ani/drawing:drawing_ani",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/text:text_napi_impl",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$rosen_text_root:rosen_text",
   ]
@@ -81,6 +84,7 @@ ohos_shared_library("text_engine_ani") {
     "hilog:libhilog",
     "resource_management:global_resmgr",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
     "runtime_core:libarkruntime",
   ]
 

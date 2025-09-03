@@ -13,25 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_TEXT_ANI_LINE_TYPESET_H
-#define OHOS_TEXT_ANI_LINE_TYPESET_H
-
+#ifndef OHOS_ANI_TRANSFER_UTILS_H
+#define OHOS_ANI_TRANSFER_UTILS_H
 #include <ani.h>
-#include <memory>
+#include <functional>
 
-#include "line_typography.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
 
 namespace OHOS::Text::ANI {
-class AniLineTypeset final {
+class AniTransferUtils final {
 public:
-    explicit AniLineTypeset(std::shared_ptr<Rosen::LineTypography> lineTypography);
-    static ani_status AniInit(ani_vm* vm, uint32_t* result);
-
-private:
-    static ani_int GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width);
-    static ani_object CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count);
-
-    std::shared_ptr<Rosen::LineTypography> lineTypography_{nullptr};
+    static ani_object TransferStatic(
+        ani_env* env, ani_object input, std::function<ani_object(ani_env*, void*)> convert);
+    static ani_object TransferDynamic(
+        ani_env* aniEnv, ani_long nativeObj, std::function<napi_value(napi_env, ani_long, napi_value)> convert);
 };
+
 } // namespace OHOS::Text::ANI
-#endif // OHOS_TEXT_ANI_LINE_TYPESET_H
+#endif // OHOS_ANI_TRANSFER_UTILS_H

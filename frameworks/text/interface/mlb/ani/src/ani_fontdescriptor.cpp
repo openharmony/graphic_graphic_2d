@@ -160,7 +160,7 @@ ani_object AniFontDescriptor::GetSystemFontFullNamesByType(ani_env* env, ani_enu
     ani_int typeIndex;
     ani_status ret = env->EnumItem_GetValue_Int(fontType, &typeIndex);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to parse fontType,ret:%{public}d", ret);
+        TEXT_LOGE("Failed to parse fontType,ret %{public}d", ret);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Parameter fontType is invalid");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -195,14 +195,14 @@ ani_object AniFontDescriptor::GetFontDescriptorByFullName(ani_env* env, ani_stri
     std::string fullNameStr;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, fullName, fullNameStr);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to parse fullName,ret:%{public}d", ret);
+        TEXT_LOGE("Failed to parse fullName,ret %{public}d", ret);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Parameter fullName is invalid");
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_int typeIndex;
     ret = env->EnumItem_GetValue_Int(fontType, &typeIndex);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to parse fontType,ret:%{public}d", ret);
+        TEXT_LOGE("Failed to parse fontType,ret %{public}d", ret);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Parameter fontType is invalid");
         return AniTextUtils::CreateAniUndefined(env);
     }
@@ -215,7 +215,7 @@ ani_object AniFontDescriptor::GetFontDescriptorByFullName(ani_env* env, ani_stri
     ani_object descAniObj = nullptr;
     ret = ParseFontDescriptorToAni(env, resultDesc, descAniObj);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to parse FontDescSharedPtr,ret:%{public}d", ret);
+        TEXT_LOGE("Failed to parse FontDescSharedPtr,ret %{public}d", ret);
         return AniTextUtils::CreateAniUndefined(env);
     }
     return descAniObj;
