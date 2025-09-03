@@ -74,23 +74,9 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
     return paragraphObj;
 }
 
-ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
+std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
 {
-    ani_env* env = nullptr;
-    ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
-    if (ret != ANI_OK || env == nullptr) {
-        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
-    }
-
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_PARAGRAPH, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
-    }
-
-    std::array methods = {
+    std::vector<ani_native_function> methods = {
         ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath)},
@@ -124,7 +110,25 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{
             "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
+    return methods;
+}
 
+ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
+{
+    ani_env* env = nullptr;
+    ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
+    if (ret != ANI_OK || env == nullptr) {
+        TEXT_LOGE("Failed to get env, ret %{public}d", ret);
+        return ANI_NOT_FOUND;
+    }
+
+    ani_class cls = nullptr;
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_PARAGRAPH, cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
+        return ANI_NOT_FOUND;
+    }
+    std::vector<ani_native_function> methods = InitMethods(env);
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Paragraph, ret %{public}d", ret);
@@ -152,7 +156,7 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
@@ -170,7 +174,7 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
@@ -297,8 +301,8 @@ ani_object AniParagraph::GetRectsForRange(
         TEXT_LOGE("Failed to parse height style");
         return ThrowErrorAndReturnUndefined(env);
     }
-    std::vector<TextRect> rectsForRange =
-        aniParagraph->typography_->GetTextRectsByBoundary(rectRange.start, rectRange.end, heightStyleInner, widthStyleInner);
+    std::vector<TextRect> rectsForRange = aniParagraph->typography_->GetTextRectsByBoundary(
+        rectRange.start, rectRange.end, heightStyleInner, widthStyleInner);
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, rectsForRange.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
@@ -448,7 +452,8 @@ ani_object AniParagraph::GetActualTextRange(
         TEXT_LOGE("Paragraph is null");
         return ThrowErrorAndReturnUndefined(env);
     }
-    Boundary Boundary = aniParagraph->typography_->GetActualTextRange(static_cast<int>(lineNumber), static_cast<bool>(includeSpaces));
+    Boundary Boundary =
+        aniParagraph->typography_->GetActualTextRange(static_cast<int>(lineNumber), static_cast<bool>(includeSpaces));
     ani_object boundaryObj = nullptr;
     ani_status ret = AniTextRectConverter::ParseBoundaryToAni(env, Boundary, boundaryObj);
     if (ret != ANI_OK) {
@@ -560,7 +565,8 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
         }
         AniParagraph* aniParagraph = new AniParagraph();
         aniParagraph->typography_ = typographyPtr;
-        ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniParagraph));
+        ani_status ret =
+            env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniParagraph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typography obj, ret %{public}d", ret);
             delete aniParagraph;
@@ -573,14 +579,15 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
 
 ani_object AniParagraph::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
-     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-        napi_value dynamicObj = nullptr;
-        AniParagraph* aniParagraph = reinterpret_cast<AniParagraph*>(nativeObj);
-        if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
-            TEXT_LOGE("Null aniParagraph");
-            return dynamicObj;
-        }
-        return JsParagraph::CreateJsTypography(napiEnv, aniParagraph->typography_.get());
-    });
+    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+            napi_value dynamicObj = nullptr;
+            AniParagraph* aniParagraph = reinterpret_cast<AniParagraph*>(nativeObj);
+            if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
+                TEXT_LOGE("Null aniParagraph");
+                return dynamicObj;
+            }
+            return JsParagraph::CreateJsTypography(napiEnv, aniParagraph->typography_.get());
+        });
 }
 } // namespace OHOS::Text::ANI

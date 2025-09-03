@@ -31,7 +31,8 @@ public:
     void SetTypographyCreate(std::unique_ptr<TypographyCreate> typographyCreate);
     std::shared_ptr<TypographyCreate> GetTypographyCreate();
     static napi_status CreateTypographyCreate(napi_env env, napi_value exportObj, napi_value* obj);
-    static napi_status SetTypographyCreate(napi_env env, napi_value obj, std::shared_ptr<TypographyCreate> typographyCreate);
+    static napi_status SetTypographyCreate(
+        napi_env env, napi_value obj, std::shared_ptr<TypographyCreate> typographyCreate);
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value CreateTransferObj(napi_env env, napi_value exportObj);

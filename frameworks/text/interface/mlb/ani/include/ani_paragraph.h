@@ -18,6 +18,7 @@
 
 #include <ani.h>
 #include <memory>
+#include <vector>
 
 #include "typography.h"
 
@@ -25,6 +26,7 @@ namespace OHOS::Text::ANI {
 class AniParagraph final {
 public:
     static ani_object SetTypography(ani_env* env, OHOS::Rosen::Typography* typography);
+    static std::vector<ani_native_function> InitMethods(ani_env* env);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 
 private:

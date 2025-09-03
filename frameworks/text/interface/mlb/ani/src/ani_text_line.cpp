@@ -28,9 +28,9 @@
 #include "canvas_ani/ani_canvas.h"
 #include "SkPoint.h"
 #include "text_line_base.h"
+#include "text_line_napi/js_text_line.h"
 #include "typography.h"
 #include "typography_types.h"
-#include "text_line_napi/js_text_line.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -236,7 +236,8 @@ ani_object AniTextLine::CreateTruncatedLine(
         ellipsisModal = static_cast<EllipsisModal>(index);
     }
 
-    std::unique_ptr<TextLineBase> textLine = aniTextline->textLine_->CreateTruncatedLine(width, ellipsisModal, ellipsisStr);
+    std::unique_ptr<TextLineBase> textLine =
+        aniTextline->textLine_->CreateTruncatedLine(width, ellipsisModal, ellipsisStr);
     if (textLine == nullptr) {
         TEXT_LOGE("Failed to create truncated textLine");
         return AniTextUtils::CreateAniUndefined(env);
@@ -415,7 +416,8 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
         }
         AniTextLine* aniTextLine = new AniTextLine();
         aniTextLine->textLine_ = textLineBase;
-        ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTextLine));
+        ani_status ret =
+            env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTextLine));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani textLineBase obj, ret %{public}d", ret);
             delete aniTextLine;
@@ -428,25 +430,26 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
 
 ani_object AniTextLine::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
-     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-        napi_value dynamicObj = JsTextLine::CreateTextLine(napiEnv);
-        if (!dynamicObj) {
-            TEXT_LOGE("Failed to create run");
-            return dynamicObj = nullptr;
-        }
-        AniTextLine* aniTextLine = reinterpret_cast<AniTextLine*>(nativeObj);
-        if (aniTextLine == nullptr || aniTextLine->textLine_ == nullptr) {
-            TEXT_LOGE("Null textLineBase");
-            return dynamicObj = nullptr;
-        }
-        JsTextLine* jsTextLine = nullptr;
-        napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsTextLine));
-        if (!jsTextLine) {
-            TEXT_LOGE("Failed to unwrap textLine");
-            return dynamicObj = nullptr;
-        }
-        jsTextLine->SetTextLine(aniTextLine->textLine_);
-        return dynamicObj;
-    });
+    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+            napi_value dynamicObj = JsTextLine::CreateTextLine(napiEnv);
+            if (!dynamicObj) {
+                TEXT_LOGE("Failed to create run");
+                return dynamicObj = nullptr;
+            }
+            AniTextLine* aniTextLine = reinterpret_cast<AniTextLine*>(nativeObj);
+            if (aniTextLine == nullptr || aniTextLine->textLine_ == nullptr) {
+                TEXT_LOGE("Null textLineBase");
+                return dynamicObj = nullptr;
+            }
+            JsTextLine* jsTextLine = nullptr;
+            napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsTextLine));
+            if (!jsTextLine) {
+                TEXT_LOGE("Failed to unwrap textLine");
+                return dynamicObj = nullptr;
+            }
+            jsTextLine->SetTextLine(aniTextLine->textLine_);
+            return dynamicObj;
+        });
 }
 } // namespace OHOS::Text::ANI
