@@ -20,9 +20,9 @@
 #include "hdi_log.h"
 #include "hdi_output.h"
 #include "string_utils.h"
-#include "metadata_helper.h"
 #include "vsync_generator.h"
 #include "vsync_sampler.h"
+#include "metadata_helper.h"
 // DISPLAYENGINE
 #include "syspara/parameters.h"
 
@@ -41,7 +41,6 @@ namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
-static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 1);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -148,7 +147,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             }
             auto iter = solidSurfaceIdMap_.find(solidLayerCount);
             if (iter != solidSurfaceIdMap_.end()) {
-                const LayerPtr &layer = iter->second;
+                const LayerPtr& layer = iter->second;
                 layer->UpdateLayerInfo(layerInfo);
                 solidLayerCount++;
                 continue;
@@ -798,13 +797,8 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
         }
 
         const LayerPtr &layer = iter->second;
-        if (g_enableMergeFence == 0) {
-            layer->SetReleaseFence(fences_[i]);
-            res[layer->GetLayerInfo()] = fences_[i];
-        } else {
-            layer->MergeWithLayerFence(fences_[i]);
-            res[layer->GetLayerInfo()] = layer->GetReleaseFence();
-        }
+        layer->MergeWithLayerFence(fences_[i]);
+        res[layer->GetLayerInfo()] = layer->GetReleaseFence();
     }
     return res;
 }
@@ -986,6 +980,7 @@ void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo> &dumpLayerInfo
             .surfaceId = surfaceId,
             .layer = layer,
         };
+
         dumpLayerInfos.emplace_back(layerInfo);
     }
 

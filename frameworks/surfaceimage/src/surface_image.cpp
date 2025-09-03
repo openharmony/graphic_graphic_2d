@@ -491,10 +491,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     }
 
     *fenceFd = acquireFence->Dup();
-    OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();
-    if (nwBuffer == nullptr) {
-        return SURFACE_ERROR_NOMEM;
-    }
+    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
     nwBuffer->sfbuffer = buffer;
     NativeObjectReference(nwBuffer);
     *nativeWindowBuffer = nwBuffer;

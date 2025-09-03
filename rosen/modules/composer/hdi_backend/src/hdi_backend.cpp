@@ -92,25 +92,6 @@ RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data
     return ROSEN_ERROR_OK;
 }
 
-void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void *data)
-{
-    HdiBackend *hdiBackend = nullptr;
-    if (data != nullptr) {
-        hdiBackend = static_cast<HdiBackend *>(data);
-    } else {
-        hdiBackend = HdiBackend::GetInstance();
-    }
-
-    hdiBackend->OnScreenRefresh(deviceId);
-}
-
-void HdiBackend::OnScreenRefresh(uint32_t deviceId)
-{
-    if (onScreenRefreshCb_ != nullptr) {
-        onScreenRefreshCb_(deviceId, onRefreshCbData_);
-    }
-}
-
 RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
 {
     if (func == nullptr) {
@@ -323,6 +304,25 @@ void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, voi
     hdiBackend->OnHdiBackendConnected(screenId, connected);
 }
 
+void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void *data)
+{
+    HdiBackend *hdiBackend = nullptr;
+    if (data != nullptr) {
+        hdiBackend = static_cast<HdiBackend *>(data);
+    } else {
+        hdiBackend = HdiBackend::GetInstance();
+    }
+
+    hdiBackend->OnScreenRefresh(deviceId);
+}
+
+void HdiBackend::OnScreenRefresh(uint32_t deviceId)
+{
+    if (onScreenRefreshCb_ != nullptr) {
+        onScreenRefreshCb_(deviceId, onRefreshCbData_);
+    }
+}
+
 void HdiBackend::OnHdiBackendConnected(uint32_t screenId, bool connected)
 {
     if (connected) {
@@ -386,7 +386,6 @@ RosenError HdiBackend::SetHdiBackendDevice(HdiDevice* device)
     device_ = device;
     return ROSEN_ERROR_OK;
 }
-
 
 RosenError HdiBackend::RegHwcEventCallback(RSHwcEventCallback func, void* data)
 {

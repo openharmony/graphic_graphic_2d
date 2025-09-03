@@ -227,7 +227,7 @@ private:
     void CheckNeedDisableDvsync(int64_t now, int64_t period);
     void OnVSyncTrigger(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-    void UpdateTriggerFlagForRNV(const sptr<VSyncConnection> &connection, const int64_t& requestVsyncTime);
+
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
     sptr<VSyncController> controller_;
