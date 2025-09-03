@@ -398,7 +398,7 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
 #ifdef RS_ENABLE_VK
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
+        DDGRStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
