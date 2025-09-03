@@ -189,7 +189,7 @@ void RSOpincDrawCache::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
     }
     auto size = params.GetCacheSize();
     if (size.x_ > GetOpincCacheMaxWidth() || size.y_ > GetOpincCacheMaxHeight()) {
-        RS_TRACE_NAME_FMT("opinc oversize: width:%d, height:%d", size.x_, size.y_);
+        RS_TRACE_NAME_FMT("opinc oversize: width:%f, height:%f", size.x_, size.y_);
         return;
     }
     auto isOffscreen = (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN);
@@ -297,7 +297,7 @@ bool RSOpincDrawCache::DrawAutoCache(RSPaintFilterCanvas& canvas, Drawing::Image
         srcRect.Offset(-unionRect.GetLeft(), -unionRect.GetTop());
         canvas.DrawImageRect(image, srcRect, rect, samplingOption, constraint);
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("opinc_size:%d", drawRects.size());
+    RS_OPTIONAL_TRACE_NAME_FMT("opinc_size:%zu", drawRects.size());
     return true;
 }
 
