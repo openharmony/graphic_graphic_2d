@@ -20,6 +20,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -116,6 +117,29 @@ HWTEST_F(RSSurfaceNodeTest, SetBufferAvailableCallback001, TestSize.Level1)
         std::cout << "SetBufferAvailableCallback" << std::endl;
     });
     ASSERT_TRUE(isSuccess);
+}
+
+/**
+ * @tc.name: CreateShadowSurfaceNode
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_TRUE(surfaceNode != nullptr);
+    {
+        RSSurfaceNode::SharedPtr shadowNode = surfaceNode->CreateShadowSurfaceNode();
+        EXPECT_TRUE(shadowNode->isShadowNode_);
+    }
+    {
+        RSSurfaceNode::SharedPtr shadowNode2 = surfaceNode->CreateShadowSurfaceNode();
+        auto rsUIContext = shadowNode2->GetRSUIContext();
+        ASSERT_NE(rsUIContext, nullptr);
+        ASSERT_TRUE(shadowNode2->isShadowNode_);
+        RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
+    }
 }
 
 /**
