@@ -205,6 +205,26 @@ void ColorPickerNapi::Destructor(napi_env env, void* nativeObject, void* finaliz
     pColorPickerNapi = nullptr;
 }
 
+napi_value ColorPickerNapi::CreateColorPickerFromPtr(napi_env env, std::shared_ptr<ColorPicker> picker)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    ColorPickerNapi* pColorPickerNapi = new (std::nothrow) ColorPickerNapi();
+    pColorPickerNapi->env_ = env;
+    pColorPickerNapi->nativeColorPicker_ = picker;
+    auto status = napi_wrap(env, objValue, pColorPickerNapi, ColorPickerNapi::Destructor, nullptr, nullptr);
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, pColorPickerNapi,
+        EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPtr wrap fail"));
+
+    return objValue;
+}
+
+void ColorPickerNapi::Finalizer(napi_env env, void* data, void* hint)
+{
+    std::unique_ptr<ColorPickerNapi>(static_cast<ColorPickerNapi*>(data));
+}
+
 static void CreateColorPickerFromPixelMapExecute(napi_env env, void* data)
 {
     auto context = static_cast<ColorPickerAsyncContext*>(data);

@@ -22,9 +22,13 @@ import { BusinessError } from '@ohos.base';
 import type drawing from '@ohos.graphics.drawing';
 import type common2D from '@ohos.graphics.common2D';
 import { Resource } from 'global.resource';
+import hilog from '@ohos.hilog';
+const TEXT_LOG_DOMAIN = 0xD001408;
+const TEXT_LOG_TAG = "Text";
 
 namespace text {
   loadLibrary('text_engine_ani.z');
+  const ERROR_INVALID_PARAM = 401;
 
   class Cleaner {
     static { loadLibrary('text_engine_ani.z') }
@@ -73,6 +77,29 @@ namespace text {
       });
     }
     native clearCaches(): void;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      let result = FontCollection.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer fontCollection"));
+      }
+      return result;
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (!(input instanceof FontCollection)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid font collection`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer fontCollection"));
+      }
+      let esValue: ESValue = FontCollection.nativeTransferDynamic((input as FontCollection).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer FontCollection to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer fontCollection"));
+      }
+      return esValue.unwrap();
+    }
   }
 
   export class ParagraphBuilder {
@@ -95,6 +122,29 @@ namespace text {
     native build(): Paragraph;
     native buildLineTypeset(): LineTypeset;
     native addSymbol(symbolId: int): void;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      let result = ParagraphBuilder.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph builder"));
+      }
+      return result;
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (!(input instanceof ParagraphBuilder)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid paragraph builder`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph builder"));
+      }
+      let esValue: ESValue = ParagraphBuilder.nativeTransferDynamic((input as ParagraphBuilder).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph builder to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph builder"));
+      }
+      return esValue.unwrap();
+    }
   }
 
   export class Paragraph {
@@ -148,6 +198,29 @@ namespace text {
     };
 
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      let result = Paragraph.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph"));
+      }
+      return result;
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (!(input instanceof Paragraph)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid paragraph`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph"));
+      }
+      let esValue: ESValue = Paragraph.nativeTransferDynamic((input as Paragraph).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph"));
+      }
+      return esValue.unwrap();
+    }
   }
 
   enum FontWidth {
@@ -237,6 +310,15 @@ namespace text {
     color?: common2D.Color;
     point?: common2D.Point;
     blurRadius?: double;
+    constructor(
+      color: common2D.Color,
+      point: common2D.Point,
+      blurRadius: double
+    ) {
+      this.color = color;
+      this.point = point;
+      this.blurRadius = blurRadius;
+    }
   }
 
   export interface TextStyle {
@@ -283,6 +365,47 @@ namespace text {
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
+    constructor(
+      decoration: Decoration,
+      color: common2D.Color,
+      fontWeight: FontWeight,
+      fontStyle: FontStyle,
+      baseline: TextBaseline,
+      fontFamilies: Array<string>,
+      fontSize: double,
+      letterSpacing: double,
+      wordSpacing: double,
+      heightScale: double,
+      halfLeading: boolean,
+      heightOnly: boolean,
+      ellipsis: string,
+      ellipsisMode: EllipsisMode,
+      locale: string,
+      baselineShift: double,
+      fontFeatures: Array<FontFeature>,
+      textShadows: Array<TextShadow>,
+      backgroundRect: RectStyle
+    ) {
+      this.decoration = decoration;
+      this.color = color;
+      this.fontWeight = fontWeight;
+      this.fontStyle = fontStyle;
+      this.baseline = baseline;
+      this.fontFamilies = fontFamilies;
+      this.fontSize = fontSize;
+      this.letterSpacing = letterSpacing;
+      this.wordSpacing = wordSpacing;
+      this.heightScale = heightScale;
+      this.halfLeading = halfLeading;
+      this.heightOnly = heightOnly;
+      this.ellipsis = ellipsis;
+      this.ellipsisMode = ellipsisMode;
+      this.locale = locale;
+      this.baselineShift = baselineShift;
+      this.fontFeatures = fontFeatures;
+      this.textShadows = textShadows;
+      this.backgroundRect = backgroundRect;
+    }
   }
 
   interface LineMetrics {
@@ -311,6 +434,31 @@ namespace text {
     lineNumber: int;
     topHeight: double;
     runMetrics: Map<int, RunMetrics>;
+    constructor(
+      startIndex: int,
+      endIndex: int,
+      ascent: double,
+      descent: double,
+      height: double,
+      width: double,
+      left: double,
+      baseline: double,
+      lineNumber: int,
+      topHeight: double,
+      runMetrics: Map<int, RunMetrics>
+    ) {
+      this.startIndex = startIndex;
+      this.endIndex = endIndex;
+      this.ascent = ascent;
+      this.descent = descent;
+      this.height = height;
+      this.width = width;
+      this.left = left;
+      this.baseline = baseline;
+      this.lineNumber = lineNumber;
+      this.topHeight = topHeight;
+      this.runMetrics = runMetrics;
+    }
   }
 
   export enum FontWeight {
@@ -354,6 +502,17 @@ namespace text {
     color?: common2D.Color;
     decorationStyle?: TextDecorationStyle;
     decorationThicknessScale?: double;
+    constructor(
+      textDecoration: TextDecorationType,
+      color: common2D.Color,
+      decorationStyle: TextDecorationStyle,
+      decorationThicknessScale: double
+    ) {
+      this.textDecoration = textDecoration;
+      this.color = color;
+      this.decorationStyle = decorationStyle;
+      this.decorationThicknessScale = decorationThicknessScale;
+    }
   }
 
   export interface FontFeature {
@@ -364,6 +523,13 @@ namespace text {
   class FontFeatureInternal implements FontFeature {
     name: string;
     value: int;
+    constructor(
+      name: string,
+      value: int
+    ) {
+      this.name = name;
+      this.value = value;
+    }
   }
 
   export enum TextDecorationType {
@@ -389,6 +555,13 @@ namespace text {
   class RunMetricsInternal implements RunMetrics {
     textStyle: TextStyle;
     fontMetrics: drawing.FontMetrics;
+    constructor(
+      textStyle: TextStyle,
+      fontMetrics: drawing.FontMetrics
+    ) {
+      this.textStyle = textStyle;
+      this.fontMetrics = fontMetrics;
+    }
   }
 
   export interface RectStyle {
@@ -405,6 +578,19 @@ namespace text {
     rightTopRadius: double;
     rightBottomRadius: double;
     leftBottomRadius: double;
+    constructor(
+      color: common2D.Color,
+      leftTopRadius: double,
+      rightTopRadius: double,
+      rightBottomRadius: double,
+      leftBottomRadius: double,
+    ) {
+      this.color = color;
+      this.leftTopRadius = leftTopRadius;
+      this.rightTopRadius = rightTopRadius;
+      this.rightBottomRadius = rightBottomRadius;
+      this.leftBottomRadius = leftBottomRadius;
+    }
   }
 
   export interface FontVariation {
@@ -425,20 +611,13 @@ namespace text {
   class TextBoxInternal implements TextBox {
     rect: common2D.Rect;
     direction: TextDirection;
-  }
-
-  class RectInternal implements common2D.Rect {
-    left: double;
-    top: double;
-    right: double;
-    bottom: double;
-  }
-
-  class ColorInternal implements common2D.Color {
-    alpha: int;
-    red: int;
-    green: int;
-    blue: int;
+    constructor(
+      rect: common2D.Rect,
+      direction: TextDirection
+    ) {
+      this.rect = rect;
+      this.direction = direction;
+    }
   }
 
   export interface Range {
@@ -449,6 +628,13 @@ namespace text {
   class RangeInternal implements Range {
     start: int;
     end: int;
+    constructor(
+      start: int,
+      end: int
+    ) {
+      this.start = start;
+      this.end = end;
+    }
   }
 
   export enum RectWidthStyle {
@@ -473,6 +659,13 @@ namespace text {
   class PositionWithAffinityInternal implements PositionWithAffinity {
     position: int;
     affinity: Affinity;
+    constructor(
+      position: int,
+      affinity: Affinity
+    ) {
+      this.position = position;
+      this.affinity = affinity;
+    }
   }
 
   export enum Affinity {
@@ -506,6 +699,29 @@ namespace text {
     native getOffsetForStringIndex(index: int): double;
     native enumerateCaretOffsets(callback: CaretOffsetsCallback): void;
     native getAlignmentOffset(alignmentFactor: double, alignmentWidth: double): double;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      let result = TextLine.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer text line"));
+      }
+      return result;
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (!(input instanceof TextLine)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid text line`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer text line"));
+      }
+      let esValue: ESValue = TextLine.nativeTransferDynamic((input as TextLine).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer text line to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer text line"));
+      }
+      return esValue.unwrap();
+    }
   }
 
   export class Run {
@@ -538,6 +754,29 @@ namespace text {
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
+
+    private static native nativeTransferStatic(input: ESValue): Object;
+    static transferStatic(input: Any): Object {
+      let result = Run.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer run"));
+      }
+      return result;
+    }
+
+    private static native nativeTransferDynamic(nativeObj: long): ESValue;
+    static transferDynamic(input: Object): Any {
+      if (!(input instanceof Run)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid run`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer run"));
+      }
+      let esValue: ESValue = Run.nativeTransferDynamic((input as Run).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer run to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer run"));
+      }
+      return esValue.unwrap();
+    }
   }
 
   export interface PlaceholderSpan {
@@ -585,11 +824,17 @@ namespace text {
     descent: double;
     leading: double;
     width: double;
-  }
-
-  class PointInternal implements common2D.Point {
-    x: double;
-    y: double;
+    constructor(
+      ascent: double,
+      descent: double,
+      leading: double,
+      width: double,
+    ) {
+      this.ascent = ascent;
+      this.descent = descent;
+      this.leading = leading;
+      this.width = width;
+    }
   }
 
   native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
@@ -672,5 +917,28 @@ namespace text {
     italic?: int;
     monoSpace?: boolean;
     symbolic?: boolean;
+    constructor(
+      path: string,
+      postScriptName: string,
+      fullName: string,
+      fontFamily: string,
+      fontSubfamily: string,
+      weight: FontWeight,
+      width: int,
+      italic: int,
+      monoSpace: boolean,
+      symbolic: boolean,
+    ) {
+      this.path = path;
+      this.postScriptName = postScriptName;
+      this.fullName = fullName;
+      this.fontFamily = fontFamily;
+      this.fontSubfamily = fontSubfamily;
+      this.weight = weight;
+      this.width = width;
+      this.italic = italic;
+      this.monoSpace = monoSpace;
+      this.symbolic = symbolic;
+    }
   }
 }

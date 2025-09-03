@@ -55,6 +55,7 @@ public:
     static napi_value GetLineFontMetrics(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography);
+    static napi_value CreateJsTypography(napi_env env, Typography* typography);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> GetParagraph();
     static napi_value LayoutAsync(napi_env env, napi_callback_info info);
@@ -82,7 +83,7 @@ private:
     napi_value OnGetLineHeight(napi_env env, napi_callback_info info);
     napi_value OnGetLineWidth(napi_env env, napi_callback_info info);
     napi_value OnDidExceedMaxLines(napi_env env, napi_callback_info info);
-    napi_value OnGetTextLines(napi_env env, napi_callback_info info);
+    napi_value OnGetTextLines(napi_env env, [[maybe_unused]] napi_callback_info info);
     napi_value OnGetActualTextRange(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetrics(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetricsAt(napi_env env, napi_callback_info info);

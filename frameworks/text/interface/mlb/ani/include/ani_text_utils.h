@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "ani_cache_manager.h"
 #include "ani_common.h"
 #include "utils/text_log.h"
 
@@ -34,7 +35,7 @@ public:
     static ani_object CreateAniUndefined(ani_env* env);
     static bool IsUndefined(ani_env* env, ani_ref ref);
     template <typename... Args>
-    static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params);
+    static ani_object CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params);
     static ani_object CreateAniArray(ani_env* env, size_t size);
     template <typename T, typename Converter>
     static ani_object CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size, Converter convert);
@@ -65,21 +66,28 @@ public:
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
+    static ani_status FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls);
 };
 
 template <typename... Args>
-ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params)
+ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params)
 {
     ani_class cls = nullptr;
-    if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
+    if (FindClassWithCache(env, name.c_str(), cls) != ANI_OK) {
         TEXT_LOGE("Failed to found %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
-    ani_method ctor;
-    if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) != ANI_OK) {
+
+    ani_method ctor = nullptr;
+    std::string methodKey = name + (signature == nullptr ? "" : std::string(signature));
+    if (AniCacheManager::Instance().FindMethod(methodKey, ctor)) {
+    } else if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) == ANI_OK) {
+        AniCacheManager::Instance().InsertMethod(methodKey, ctor);
+    } else {
         TEXT_LOGE("Failed to get ctor %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
+
     ani_object obj = {};
     if (env->Object_New(cls, ctor, &obj, params...) != ANI_OK) {
         TEXT_LOGE("Failed to create object %{public}s", name.c_str());

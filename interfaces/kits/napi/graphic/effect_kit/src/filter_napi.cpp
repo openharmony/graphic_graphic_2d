@@ -280,6 +280,25 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     return _this;
 }
 
+napi_value FilterNapi::CreateEffectFromPtr(napi_env env, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    FilterNapi* filterNapi = new(std::nothrow) FilterNapi();
+    filterNapi->srcPixelMap_  = pixelMap;
+    auto status = napi_wrap(env, objValue, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
+        EFFECT_LOG_E("FilterNapi CreateEffectFromPtr wrap fail"));
+
+    return objValue;
+}
+
+void FilterNapi::Finalizer(napi_env env, void* data, void* hint)
+{
+    std::unique_ptr<FilterNapi>(static_cast<FilterNapi*>(data));
+}
+
 DrawError FilterNapi::Render(bool forceCPU)
 {
     Rosen::SKImageChain skImage(srcPixelMap_);

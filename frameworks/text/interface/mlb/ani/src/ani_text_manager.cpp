@@ -90,9 +90,9 @@ static void Clean(ani_env* env, ani_object object)
     }
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
-        {"ParagraphBuilder", SafeDelete<Rosen::TypographyCreate>}, {"Typography", SafeDelete<Rosen::Typography>},
-        {"FontCollection", SafeDelete<AniFontCollection>}, {"LineTypeset", SafeDelete<Rosen::LineTypography>},
-        {"TextLine", SafeDelete<Rosen::TextLineBase>}, {"Run", SafeDelete<Rosen::Run>}};
+        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Typography", SafeDelete<AniParagraph>},
+        {"FontCollection", SafeDelete<AniFontCollection>}, {"LineTypeset", SafeDelete<AniLineTypeset>},
+        {"TextLine", SafeDelete<AniTextLine>}, {"Run", SafeDelete<AniRun>}};
 
     if (deleteMap.count(className)) {
         deleteMap.at(className)(ptrAddr);
@@ -109,7 +109,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_CLEANER, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_CLEANER, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;

@@ -46,6 +46,7 @@ ohos_shared_library("effectKit_ani") {
 
   include_dirs = [
     "./include",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/include",
     "$graphic_2d_root/rosen/modules/effect/effectChain/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
@@ -62,9 +63,12 @@ ohos_shared_library("effectKit_ani") {
     "./src/ani_filter.cpp",
     "./src/ani_color_picker.cpp",
     "./src/ani_effect_kit_utils.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/color_picker_napi.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/filter_napi.cpp",
   ]
 
   deps = [
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit:effectkit",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
@@ -75,7 +79,9 @@ ohos_shared_library("effectKit_ani") {
     "hilog:libhilog",
     "image_framework:image",
     "image_framework:image_taihe",
+    "napi:ace_napi",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
     "runtime_core:libarkruntime",
   ]
 

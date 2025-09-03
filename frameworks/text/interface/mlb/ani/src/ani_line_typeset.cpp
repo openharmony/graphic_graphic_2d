@@ -22,12 +22,15 @@
 #include "ani_common.h"
 #include "ani_text_line.h"
 #include "ani_text_utils.h"
-#include "line_typography.h"
 #include "typography.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+
+AniLineTypeset::AniLineTypeset(std::shared_ptr<LineTypography> lineTypography) : lineTypography_(lineTypography)
+{
+}
 
 ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -39,7 +42,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_LINE_TYPESET, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_LINE_TYPESET, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
@@ -60,26 +63,26 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 
 ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width)
 {
-    LineTypography* lineTypography = AniTextUtils::GetNativeFromObj<LineTypography>(env, object);
-    if (lineTypography == nullptr) {
+    AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(env, object);
+    if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
 
-    return static_cast<ani_int>(lineTypography->GetLineBreak(static_cast<size_t>(startIndex), width));
+    return static_cast<ani_int>(aniLineTypeSet->lineTypography_->GetLineBreak(static_cast<size_t>(startIndex), width));
 }
 
 ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
 {
-    LineTypography* lineTypography = AniTextUtils::GetNativeFromObj<LineTypography>(env, object);
-    if (lineTypography == nullptr) {
+    AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(env, object);
+    if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    size_t limitSize = lineTypography->GetUnicodeSize();
+    size_t limitSize = aniLineTypeSet->lineTypography_->GetUnicodeSize();
     if (startIndex < 0 || (limitSize <= static_cast<size_t>(startIndex)) || count < 0
         || (limitSize < static_cast<size_t>(count + startIndex))) {
         TEXT_LOGE("Params exceeds reasonable range. %{public}d %{public}d %{public}zu", startIndex, count, limitSize);
@@ -88,7 +91,7 @@ ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int s
     }
 
     std::unique_ptr<TextLineBase> textLineBase =
-        lineTypography->CreateLine(static_cast<size_t>(startIndex), static_cast<size_t>(count));
+        aniLineTypeSet->lineTypography_->CreateLine(static_cast<size_t>(startIndex), static_cast<size_t>(count));
     if (textLineBase == nullptr) {
         TEXT_LOGE("Failed to create line. %{public}d %{public}d %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Create line failed.");

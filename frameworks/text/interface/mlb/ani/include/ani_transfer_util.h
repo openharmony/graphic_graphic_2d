@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-#include "ani_typographic_bounds_converter.h"
+#ifndef OHOS_ANI_TRANSFER_UTILS_H
+#define OHOS_ANI_TRANSFER_UTILS_H
+#include <ani.h>
+#include <functional>
 
-#include "ani_common.h"
-#include "ani_text_utils.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
 
 namespace OHOS::Text::ANI {
-using namespace OHOS::Rosen;
+class AniTransferUtils final {
+public:
+    static ani_object TransferStatic(
+        ani_env* env, ani_object input, std::function<ani_object(ani_env*, void*)> convert);
+    static ani_object TransferDynamic(
+        ani_env* aniEnv, ani_long nativeObj, std::function<napi_value(napi_env, ani_long, napi_value)> convert);
+};
 
-ani_status AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
-    ani_env* env, ani_object& obj, double ascent, double descent, double leading, double width)
-{
-    obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS, "DDDD:V",
-        ani_double(ascent),
-        ani_double(descent),
-        ani_double(leading),
-        ani_double(width));
-    return ANI_OK;
-}
 } // namespace OHOS::Text::ANI
+#endif // OHOS_ANI_TRANSFER_UTILS_H

@@ -18,9 +18,14 @@
 #include "ani_effect_kit_utils.h"
 #include "color.h"
 #include "color_picker.h"
+#include "color_picker_napi.h"
 #include "effect_errors.h"
 #include "effect_utils.h"
 #include "hilog/log.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
 #include "pixel_map_taihe_ani.h"
 
 namespace OHOS {
@@ -141,20 +146,15 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
     unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0, PROPORTION_COLORS_NUM_LIMIT));
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
-    ani_class cls;
-    if (env->FindClass(ANI_CLASS_COLOR.c_str(), &cls) != ANI_OK) {
-        EFFECT_LOG_E("[GetTopProportionColors] Error3, failed to find Color class");
-        return AniEffectKitUtils::CreateAniUndefined(env);
-    }
 
     uint32_t arrLen = std::max(1u, static_cast<uint32_t>(colors.size()));
-    ani_array_ref arrayValue = nullptr;
+    ani_array arrayValue = nullptr;
     ani_ref nullRef = nullptr;
     if (env->GetUndefined(&nullRef) != ANI_OK) {
         EFFECT_LOG_E("GetUndefined failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    if (env->Array_New_Ref(cls, arrLen, nullRef, &arrayValue) != ANI_OK) {
+    if (env->Array_New(arrLen, nullRef, &arrayValue) != ANI_OK) {
         EFFECT_LOG_E("[GetTopProportionColors] Error4, failed to create array");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
@@ -166,7 +166,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
             colorValue = AniEffectKitUtils::CreateAniUndefined(env);
         }
         ani_ref colorRef = static_cast<ani_ref>(colorValue);
-        if (env->Array_Set_Ref(arrayValue, i, colorRef) != ANI_OK) {
+        if (env->Array_Set(arrayValue, i, colorRef) != ANI_OK) {
             EFFECT_LOG_E("[GetTopProportionColors] Error5, failed to set array element");
             return AniEffectKitUtils::CreateAniUndefined(env);
         }
@@ -313,6 +313,84 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
         reinterpret_cast<ani_long>(colorPicker.release()));
 }
 
+ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (!pixelMap) {
+        EFFECT_LOG_E("AniColorPicker::CreateColorPickerFromPtr pixelMap is null");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    auto aniColorPicker = std::make_unique<AniColorPicker>();
+    aniColorPicker->srcPixelMap_ = pixelMap;
+    uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+    aniColorPicker->nativeColorPicker_ = ColorPicker::CreateColorPicker(pixelMap, errorCode);
+    if (aniColorPicker->nativeColorPicker_ == nullptr || errorCode != SUCCESS) {
+        EFFECT_LOG_E("AniColorPicker::CreateColorPickerFromPtr failed to create ColorPicker, errorCode: %u", errorCode);
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
+    // ets constructor function, parameter type and return value type
+    const char* methodSig = "J:V";
+    return AniEffectKitUtils::CreateAniObject(
+        env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
+}
+
+ani_object AniColorPicker::KitTransferStaticColorPicker(ani_env* env, ani_class cls, ani_object obj)
+{
+    void *unwrapResult = nullptr;
+    if (!arkts_esvalue_unwrap(env, obj, &unwrapResult)) {
+        EFFECT_LOG_E("AniColorPicker::KitTransferStaticColorPicker fail to unwrap input");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (unwrapResult == nullptr) {
+        EFFECT_LOG_E("AniColorPicker::KitTransferStaticColorPicker unwrapResult is nullptr");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    ColorPickerNapi* napiColorPicker = static_cast<ColorPickerNapi*>(unwrapResult);
+    if (auto colorPicker = napiColorPicker->GetColorPicker()) {
+        std::shared_ptr<Media::PixelMap> pixelMap = colorPicker->GetScaledPixelMap();
+        return static_cast<ani_object>(CreateColorPickerFromPtr(env, pixelMap));
+    }
+    return nullptr;
+}
+
+ani_object AniColorPicker::kitTransferDynamicColorPicker(ani_env* env, ani_class cls, ani_long obj)
+{
+    AniColorPicker* aniColorPicker = reinterpret_cast<AniColorPicker*>(obj);
+    if (aniColorPicker == nullptr) {
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker aniColorPicker is nullptr");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(env, &napiEnv)) {
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker napi scope open failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    napi_value napiColorPicker = ColorPickerNapi::CreateColorPickerFromPtr(napiEnv, aniColorPicker->nativeColorPicker_);
+    hybridgref ref {};
+    if (!hybridgref_create_from_napi(napiEnv, napiColorPicker, &ref)) {
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker create hybridgref failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    ani_object result {};
+    if (!hybridgref_get_esvalue(env, ref, &result)) {
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker get esvalue failed");
+        hybridgref_delete_from_napi(napiEnv, ref);
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (!hybridgref_delete_from_napi(napiEnv, ref)) {
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker delete hybridgref fail");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (!arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr)) {
+        EFFECT_LOG_E("AniColorPicker::kitTransferDynamicColorPicker napi close scope fail");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    return result;
+}
+
 ani_status AniColorPicker::Init(ani_env *env)
 {
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
@@ -338,7 +416,18 @@ ani_status AniColorPicker::Init(ani_env *env)
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        EFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
+        EFFECT_LOG_E("AniColorPicker Class_BindNativeMethods ret : %{public}d", ret);
+        return ANI_ERROR;
+    }
+    std::array static_methods = {
+        ani_native_function { "kitTransferStaticNative", "Lstd/interop/ESValue;:Lstd/core/Object;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::KitTransferStaticColorPicker) },
+        ani_native_function { "kitTransferDynamicNative", "J:Lstd/interop/ESValue;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::kitTransferDynamicColorPicker) }
+    };
+    ret = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());
+    if (ret != ANI_OK) {
+        EFFECT_LOG_E("AniColorPicker Class_BindStaticNativeMethods ret : %{public}d", ret);
         return ANI_ERROR;
     }
     return ANI_OK;

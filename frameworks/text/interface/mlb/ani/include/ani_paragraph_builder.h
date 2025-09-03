@@ -35,6 +35,10 @@ private:
     static ani_object Build(ani_env* env, ani_object object);
     static ani_object BuildLineTypeset(ani_env* env, ani_object object);
     static void AddSymbol(ani_env* env, ani_object object, ani_int symbolId);
+    static ani_object NativeTransferStatic(ani_env* env, ani_class cls, ani_object input);
+    static ani_object NativeTransferDynamic(ani_env* env, ani_class cls, ani_long nativeObj);
+
+    std::shared_ptr<OHOS::Rosen::TypographyCreate> typographyCreate_{nullptr};
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H

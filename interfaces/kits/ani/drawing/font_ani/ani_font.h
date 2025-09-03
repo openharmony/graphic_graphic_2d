@@ -46,6 +46,8 @@ private:
     std::shared_ptr<Font>* GetFontPtrAddr();
     std::shared_ptr<Font> font_ = nullptr;
 };
+
+ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_ANI_FONT_H

@@ -26,28 +26,14 @@ namespace OHOS::Rosen {
 namespace Drawing {
 const char* ANI_CLASS_FONT_NAME = "L@ohos/graphics/drawing/drawing/Font;";
 
-static ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
+ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
 {
-    ani_class aniClass;
-    if (env->FindClass("L@ohos/graphics/drawing/drawing/FontMetricsInner;", &aniClass) != ANI_OK) {
-        return {};
-    }
-
-    ani_method aniConstructor;
-    if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
-        return {};
-    }
-
-    ani_object aniFontMetrics;
-    if (env->Object_New(aniClass, aniConstructor, &aniFontMetrics) != ANI_OK) {
-        return {};
-    }
-
-    env->Object_SetPropertyByName_Double(aniFontMetrics, "top", fontMetrics.fTop);
-    env->Object_SetPropertyByName_Double(aniFontMetrics, "ascent", fontMetrics.fAscent);
-    env->Object_SetPropertyByName_Double(aniFontMetrics, "descent", fontMetrics.fDescent);
-    env->Object_SetPropertyByName_Double(aniFontMetrics, "bottom", fontMetrics.fBottom);
-    env->Object_SetPropertyByName_Double(aniFontMetrics, "leading", fontMetrics.fLeading);
+    ani_object aniFontMetrics = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/FontMetricsInner;", "DDDDD:V",
+        ani_double(fontMetrics.fTop),
+        ani_double(fontMetrics.fAscent),
+        ani_double(fontMetrics.fDescent),
+        ani_double(fontMetrics.fBottom),
+        ani_double(fontMetrics.fLeading));
     return aniFontMetrics;
 }
 

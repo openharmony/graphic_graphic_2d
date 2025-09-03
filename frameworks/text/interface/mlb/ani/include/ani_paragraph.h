@@ -18,6 +18,7 @@
 
 #include <ani.h>
 #include <memory>
+#include <vector>
 
 #include "typography.h"
 
@@ -25,6 +26,7 @@ namespace OHOS::Text::ANI {
 class AniParagraph final {
 public:
     static ani_object SetTypography(ani_env* env, OHOS::Rosen::Typography* typography);
+    static std::vector<ani_native_function> InitMethods(ani_env* env);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 
 private:
@@ -54,6 +56,10 @@ private:
         ani_env* env, ani_object object, ani_int lineNumber, ani_boolean includeSpaces);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_int lineNumber);
+    static ani_object NativeTransferStatic(ani_env* env, ani_class cls, ani_object input);
+    static ani_object NativeTransferDynamic(ani_env* env, ani_class cls, ani_long nativeObj);
+
+    std::shared_ptr<OHOS::Rosen::Typography> typography_{nullptr};
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_H

@@ -19,14 +19,19 @@
 #include <ani.h>
 #include <memory>
 
+#include "line_typography.h"
+
 namespace OHOS::Text::ANI {
 class AniLineTypeset final {
 public:
+    explicit AniLineTypeset(std::shared_ptr<Rosen::LineTypography> lineTypography);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 
 private:
     static ani_int GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width);
     static ani_object CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count);
+
+    std::shared_ptr<Rosen::LineTypography> lineTypography_{nullptr};
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_LINE_TYPESET_H
