@@ -25,7 +25,6 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "feature/ui_capture/rs_divided_ui_capture.h"
-#include "pipeline/rs_render_thread.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
@@ -635,7 +634,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         callback->OnSurfaceCapture(pixelmap);
     };
-    RSRenderThread::Instance().PostTask(offscreenRenderTask);
+    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
     return true;
 }
 

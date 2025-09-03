@@ -29,7 +29,6 @@
 namespace OHOS {
 namespace Rosen {
 
-bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::shared_ptr<Media::PixelMap>& pixelmap);
 class RSC_EXPORT RSDividedUICapture {
 public:
     RSDividedUICapture(NodeId nodeId, float scaleX, float scaleY)
