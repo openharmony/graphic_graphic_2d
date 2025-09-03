@@ -382,7 +382,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    frameVoter_.SetDragScene(finalRange.type_ & DRAG_SCENE_FRAME_RATE_TYPES);
+    frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         HGM_LOGD("ltpo type: %{public}s", finalRange.GetAllTypeDescription().c_str());
