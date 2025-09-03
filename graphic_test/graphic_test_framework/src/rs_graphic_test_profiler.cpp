@@ -235,7 +235,7 @@ void RSGraphicTestProfiler::NodeTreeTestSetUp()
     system("setenforce 0");
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config, false);
+    auto testSurface = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE);
 
     testSurface->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     testSurface->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
