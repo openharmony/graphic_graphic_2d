@@ -402,25 +402,12 @@ public:
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
 
-    virtual ErrCode SetAncoForceDoDirect(bool direct, bool& res) = 0;
-
     virtual ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
     virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;
 
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-    virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
-#endif
-
-    virtual ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) = 0;
-
-    virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
-
-    virtual ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) = 0;
-
-    virtual void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual ErrCode SetTpFeatureConfig(
         int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
@@ -464,13 +451,26 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
 
-    virtual void ClearUifirstCache(NodeId id) = 0;
-
     virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) = 0;
 
     virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
 
+    virtual void ClearUifirstCache(NodeId id) = 0;
+
+    virtual ErrCode SetAncoForceDoDirect(bool direct, bool& res) = 0;
+
+    virtual ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) = 0;
+
+    virtual ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
+
+    virtual ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) = 0;
+
+    virtual void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) = 0;
+
     virtual void RemoveToken() = 0;
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS
