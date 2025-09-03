@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
-#include "common/rs_common_def.h"
 #include "display_engine/rs_luminance_control.h"
+
 #include <dlfcn.h>
-#include "platform/common/rs_log.h"
 #include <string_view>
+
+#include "common/rs_common_def.h"
+#include "platform/common/rs_log.h"
 
 namespace {
 constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
@@ -91,6 +93,13 @@ bool RSLuminanceControl::LoadLibrary()
     return true;
 }
 
+void RSLuminanceControl::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->UpdateScreenStatus(screenId, powerStatus);
+    }
+}
+
 bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrStatus)
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
@@ -161,11 +170,11 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, uint32_t mod
 }
 
 float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
-    const std::vector<uint8_t>& dynamicMetadata, const float& ratio)
+    const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus)
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->CalScaler(maxContentLightLevel,
-            dynamicMetadata, ratio) : HDR_DEFAULT_SCALER * ratio;
+            dynamicMetadata, ratio, hdrStatus) : HDR_DEFAULT_SCALER * ratio;
 }
 
 bool RSLuminanceControl::IsHdrPictureOn()
@@ -203,6 +212,12 @@ bool RSLuminanceControl::IsEnableImageDetailEnhance()
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->IsEnableImageDetailEnhance() : false;
+}
+
+double RSLuminanceControl::GetMaxScaler(ScreenId screenId) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetMaxScaler(screenId) : HDR_DEFAULT_SCALER;
 }
 } // namespace Rosen
 } // namespace OHOS

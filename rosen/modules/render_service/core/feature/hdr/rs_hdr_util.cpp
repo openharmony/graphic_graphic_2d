@@ -44,11 +44,19 @@ const std::vector<uint8_t> HDR_VIVID_METADATA = {
 };
 }
 static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect_;
-std::unordered_set<uint8_t> aihdrMetadataTypeSet = {
-    HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR,
-    HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT,
-    HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE
-};
+inline HdrStatus CheckAIHDRType(uint8_t metadataType)
+{
+    switch (metadataType) {
+        case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR:
+            return HdrStatus::AI_HDR_VIDEO_GTM;
+        case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT:
+            return HdrStatus::AI_HDR_VIDEO_GAINMAP;
+        case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE:
+            return HdrStatus::AI_HDR_VIDEO_GAINMAP;
+        default:
+            return HdrStatus::NO_HDR;
+    }
+}
 
 HdrStatus RSHdrUtil::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
 {
@@ -72,10 +80,11 @@ HdrStatus RSHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBu
     }
     #ifdef USE_VIDEO_PROCESSING_ENGINE
     std::vector<uint8_t> metadataType{};
-    if ((surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType)
-        == GSERROR_OK) && (metadataType.size() > 0) &&
-        (aihdrMetadataTypeSet.find(metadataType[0]) != aihdrMetadataTypeSet.end())) {
-        return HdrStatus::AI_HDR_VIDEO;
+    if (surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK && !metadataType.empty()) {
+        auto AIHDRStatus = CheckAIHDRType(metadataType[0]);
+        if (AIHDRStatus != HdrStatus::NO_HDR) {
+            return AIHDRStatus;
+        }
     }
     #endif
     if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
@@ -187,11 +196,16 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     }
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
-        scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
+        auto hdrStatus = CheckIsHdrSurfaceBuffer(surfaceBuffer);
+        if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP || hdrStatus == HdrStatus::AI_HDR_VIDEO_GTM) {
+            scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{}, 1.0f, hdrStatus);
+        } else {
+            scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
+        }
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
-        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ?
-            hdrDynamicMetadataVec : std::vector<uint8_t>{}, surfaceNode.GetHDRBrightness() * brightnessFactor);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ? hdrDynamicMetadataVec :
+            std::vector<uint8_t>{}, surfaceNode.GetHDRBrightness() * brightnessFactor, HdrStatus::HDR_VIDEO);
     }
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);

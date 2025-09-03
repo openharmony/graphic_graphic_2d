@@ -559,7 +559,7 @@ bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
         return false;
     }
     static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
-        HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
+        HdrStatus::AI_HDR_VIDEO_GTM, HdrStatus::HDR_EFFECT };
 
     // get data
     ScreenId screenId = GetData<ScreenId>();

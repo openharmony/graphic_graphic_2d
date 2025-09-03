@@ -33,6 +33,11 @@ RSLuminanceControl::~RSLuminanceControl()
     // destructor
 }
 
+void RSLuminanceControl::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus)
+{
+    // Update screen status.
+}
+
 bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrStatus)
 {
     // Update HDR status in order to determine brightness.
@@ -90,7 +95,7 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, uint32_t mod
 }
 
 float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
-    const std::vector<uint8_t>& dynamicMetadata, const float& ratio)
+    const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus)
 {
     return HDR_DEFAULT_SCALER;
 }
@@ -100,9 +105,19 @@ bool RSLuminanceControl::IsHdrPictureOn()
     return false;
 }
 
-bool IsCloseHardwareHdr()
+bool RSLuminanceControl::IsCloseHardwareHdr()
 {
     return false;
+}
+
+bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId) const
+{
+    return false;
+}
+
+double RSLuminanceControl::GetMaxScaler(ScreenId screenId) const
+{
+    return HDR_DEFAULT_SCALER;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -132,19 +132,19 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GTM);
  
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT;
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
  
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE;
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
 #endif
 }
 
