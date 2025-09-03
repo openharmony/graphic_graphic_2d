@@ -96,11 +96,12 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level0)
 {
+    int32_t load = 0;
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
-    int32_t load = parser->LoadConfiguration(config);
-    EXPECT_GE(load, EXEC_SUCCESS);
     parser->xmlDocument_ = xmlReadFile(config, nullptr, 0);
     if (parser->xmlDocument_) {
+        load = parser->LoadConfiguration(config);
+        EXPECT_EQ(load, EXEC_SUCCESS);
         auto parserData = std::move(parser->mParsedData_);
         EXPECT_EQ(parser->mParsedData_, nullptr);
         EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
@@ -108,6 +109,8 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level0)
         EXPECT_NE(parser->mParsedData_, nullptr);
         EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
     } else {
+        load = parser->LoadConfiguration(config);
+        EXPECT_EQ(load, XML_FILE_LOAD_FAIL);
         parser->Parse();
     }
     parser->GetParsedData();
