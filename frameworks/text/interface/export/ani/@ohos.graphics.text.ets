@@ -618,7 +618,7 @@ namespace text {
     native getTextRange(): Range;
     native getGlyphRuns(): Array<Run>;
     native paint(canvas: drawing.Canvas, x: double, y: double): void;
-    native createTruncatedLine(width: double, ellipsisMode: EllipsisMode, ellipsis: string): TextLine;
+    native createTruncatedLine(width: double, ellipsisMode: EllipsisMode, ellipsis: string): TextLine | undefined;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
     native getTrailingSpaceWidth(): double;
@@ -642,19 +642,19 @@ namespace text {
     }
     native getGlyphCount(): int;
     native getGlyphs(): Array<int>;
-    getGlyphs(range: Range): Array<int> {
+    getGlyphs(range: Range): Array<int> | undefined {
       return this.nativeGetGlyphs(range);
     }
     private native nativeGetGlyphs(range: Range): Array<int>;
     native getPositions(): Array<common2D.Point>;
-    getPositions(range: Range): Array<common2D.Point> {
+    getPositions(range: Range): Array<common2D.Point> | undefined {
       return this.nativeGetPositions(range);
     }
     private native nativeGetPositions(range: Range): Array<common2D.Point>;
     native getOffsets(): Array<common2D.Point>;
     native getFont(): drawing.Font;
     native paint(canvas: drawing.Canvas, x: double, y: double): void;
-    native getStringIndices(range?: Range): Array<int>;
+    native getStringIndices(range?: Range): Array<int> | undefined;
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
