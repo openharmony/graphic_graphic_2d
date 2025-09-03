@@ -2143,12 +2143,12 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     // add rcd layer
     RequestLayerInfo rcdLayer;
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        auto rcdSurface = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curScreenNode_->GetRcdSurfaceNodeTop());
+        auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(curScreenNode_->GetId());
         if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
             rcdSurface, curScreenNode_->GetScreenInfo(), curFps, rcdLayer)) {
             prevalidLayers.emplace_back(rcdLayer);
         }
-        rcdSurface = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curScreenNode_->GetRcdSurfaceNodeBottom());
+        rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(curScreenNode_->GetId());
         if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
             rcdSurface, curScreenNode_->GetScreenInfo(), curFps, rcdLayer)) {
             prevalidLayers.emplace_back(rcdLayer);
@@ -3501,12 +3501,11 @@ void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
         RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay get screen type failed.");
         return;
     }
-    if (screenType != EXTERNAL_TYPE_SCREEN) {
-        RectI dirtyRectTop;
-        RectI dirtyRectBottom;
+    if (screenType == EXTERNAL_TYPE_SCREEN) {
+        RectI dirtyRectTop, dirtyRectBottom;
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curScreenNode_->GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay global merge topRcdNode dirty "
+            RS_LOGD("CheckMergeScreenDirtyByRoundCornerDisplay global merge topRcdNode dirty "
                     "%{public}s, global dirty %{public}s, add rect %{public}s",
                 std::to_string(curScreenNode_->GetScreenId()).c_str(),
                 curScreenDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
@@ -3515,7 +3514,7 @@ void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
         }
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curScreenNode_->GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
+            RS_LOGD("CheckMergeScreenDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
                     "%{public}s, global dirty %{public}s, add rect %{public}s",
                 std::to_string(curScreenNode_->GetScreenId()).c_str(),
                 curScreenDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),

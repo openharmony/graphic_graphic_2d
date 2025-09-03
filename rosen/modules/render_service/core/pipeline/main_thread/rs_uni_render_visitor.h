@@ -26,6 +26,7 @@
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"

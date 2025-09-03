@@ -69,6 +69,7 @@ private:
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+    void RegisterRcdMsg();
 
     // RS dump init
     void RSGfxDumpInit();
@@ -96,6 +97,7 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_;
     sptr<VSyncDistributor> appVSyncDistributor_;
 
+    bool isRcdServiceRegister_ = false;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

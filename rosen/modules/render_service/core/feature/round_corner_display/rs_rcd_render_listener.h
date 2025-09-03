@@ -17,20 +17,19 @@
 #define RENDER_SERVICE_CORE_RS_RCD_RENDER_LISTENER_H
 
 #include <ibuffer_consumer_listener.h>
-#include "pipeline/rs_surface_handler.h"
+#include "rs_rcd_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
-// remove this when rcd is handled by RS tree in OH 6.0 rcd refactoring
 class RSRcdRenderListener : public IBufferConsumerListener {
 public:
-    explicit RSRcdRenderListener(std::weak_ptr<RSSurfaceHandler> surfaceRenderNode);
+    explicit RSRcdRenderListener(std::weak_ptr<RSRcdSurfaceRenderNode> surfaceRenderNode);
     ~RSRcdRenderListener() override;
     void OnBufferAvailable() override;
     void OnGoBackground() override;
 
 private:
-    std::weak_ptr<RSSurfaceHandler> surfaceHandler_;
+    std::weak_ptr<RSRcdSurfaceRenderNode> surfaceRenderNode_;
 };
 } // namespace Rosen
 } // namespace OHOS

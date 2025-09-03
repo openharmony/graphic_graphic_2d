@@ -24,7 +24,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
