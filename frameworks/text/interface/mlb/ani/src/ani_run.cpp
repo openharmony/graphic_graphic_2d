@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "ani_common.h"
-#include "ani_drawing_converter.h"
+#include "ani_drawing_utils.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "ani_typographic_bounds_converter.h"
@@ -40,7 +40,7 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_class cls = nullptr;
-    ret = env->FindClass(ANI_CLASS_RUN, &cls);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_RUN, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
@@ -196,7 +196,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& point : points) {
         ani_object aniObj = nullptr;
-        ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
+        ani_status status = OHOS::Rosen::Drawing::CreatePointObj(env, point, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -239,7 +239,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
     ani_size index = 0;
     for (const auto& point : points) {
         ani_object aniObj = nullptr;
-        ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
+        ani_status status = OHOS::Rosen::Drawing::CreatePointObj(env, point, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -275,7 +275,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& point : points) {
         ani_object aniObj = nullptr;
-        ani_status status = AniDrawingConverter::ParsePointToAni(env, point, aniObj);
+        ani_status status = OHOS::Rosen::Drawing::CreatePointObj(env, point, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -417,7 +417,7 @@ ani_object AniRun::GetImageBounds(ani_env* env, ani_object object)
     }
     Drawing::Rect rect = run->GetImageBounds();
     ani_object rectObj = nullptr;
-    if (ANI_OK != AniDrawingConverter::ParseRectToAni(env, rect, rectObj)) {
+    if (ANI_OK != OHOS::Rosen::Drawing::CreateRectObj(env, rect, rectObj)) {
         TEXT_LOGE("Failed to create rect");
         return AniTextUtils::CreateAniUndefined(env);
     }

@@ -24,20 +24,11 @@ using namespace OHOS::Rosen;
 ani_status AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
     ani_env* env, ani_object& obj, double ascent, double descent, double leading, double width)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS, ":V");
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(ascent))) {
-        return ANI_INVALID_ARGS;
-    }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(descent))) {
-        return ANI_INVALID_ARGS;
-    }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "leading", ani_double(leading))) {
-        return ANI_INVALID_ARGS;
-    }
-    if (ANI_OK != env->Object_SetPropertyByName_Double(aniObj, "width", ani_double(width))) {
-        return ANI_INVALID_ARGS;
-    }
-    obj = aniObj;
+    obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS, "DDDD:V",
+        ani_double(ascent),
+        ani_double(descent),
+        ani_double(leading),
+        ani_double(width));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

@@ -146,6 +146,17 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
     return GetColorQuadFromColorObj(env, obj, color);
 }
 
+ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/ColorInternal;", "IIII:V",
+        ani_int(color.GetAlpha()),
+        ani_int(color.GetRed()),
+        ani_int(color.GetGreen()),
+        ani_int(color.GetBlue())
+    );
+    return ANI_OK;
+}
+
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 {
     ani_class rectClass;
@@ -175,6 +186,46 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     rect.SetRight(right);
     rect.SetBottom(bottom);
     return true;
+}
+
+ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/RectInternal;", "DDDD:V",
+        ani_double(rect.left_),
+        ani_double(rect.top_),
+        ani_double(rect.right_),
+        ani_double(rect.bottom_)
+    );
+    return ANI_OK;
+}
+
+ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
+{
+    ani_double x = 0;
+    ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param x is invalid, ret %{public}d", ret);
+        return ret;
+    }
+
+    ani_double y = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "y", &y);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param y is invalid, ret %{public}d", ret);
+        return ret;
+    }
+    point.SetX(x);
+    point.SetY(y);
+    return ret;
+}
+
+ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/PointInternal;", "DD:V",
+        ani_double(point.GetX()),
+        ani_double(point.GetY())
+    );
+    return ANI_OK;
 }
 
 ani_object CreateAniUndefined(ani_env* env)
