@@ -283,6 +283,7 @@ private:
     void *context_ = nullptr;
     CustomFreePixelMap custFreePixelMap_ = nullptr;
     AllocatorType allocatorType_ = AllocatorType::HEAP_ALLOC;
+    PixelFormat pixelFormat_ = PixelFormat::UNKNOWN;
     uint32_t pixelsSize_ = 0;
     bool editable_ = false;
     bool useSourceAsResponse_ = false;
