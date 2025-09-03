@@ -24,7 +24,7 @@
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
-#include "pipeline/rs_render_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
 

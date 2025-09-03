@@ -19,7 +19,7 @@
 #include "hgm_test_base.h"
 #include "hgm_vsync_generator_controller.h"
 #include "common/rs_common_def.h"
-#include "pipeline/rs_render_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "vsync_controller.h"
 #include "vsync_generator.h"
 

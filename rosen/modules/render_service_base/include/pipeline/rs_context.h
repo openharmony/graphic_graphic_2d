@@ -26,7 +26,7 @@
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "feature/capture/rs_ui_capture_helper.h"
 #include "pipeline/rs_render_node_map.h"
-#include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 
 namespace OHOS {
 namespace Rosen {
