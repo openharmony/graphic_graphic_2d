@@ -101,7 +101,7 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level0)
     int32_t load = parser->LoadConfiguration(config);
     EXPECT_GE(load, EXEC_SUCCESS);
     parser->xmlDocument_ = xmlReadFile(config, nullptr, 0);
-    if (!parser->xmlDocument_) {
+    if (parser->xmlDocument_) {
         auto parserData = std::move(parser->mParsedData_);
         EXPECT_EQ(parser->mParsedData_, nullptr);
         EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
