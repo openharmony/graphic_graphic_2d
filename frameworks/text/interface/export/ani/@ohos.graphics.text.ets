@@ -23,11 +23,12 @@ import type drawing from '@ohos.graphics.drawing';
 import type common2D from '@ohos.graphics.common2D';
 import { Resource } from 'global.resource';
 import hilog from '@ohos.hilog';
-const TEXT_LOG_DOMAIN = 0xD001408
-const TEXT_LOG_TAG = "Text"
+const TEXT_LOG_DOMAIN = 0xD001408;
+const TEXT_LOG_TAG = "Text";
 
 namespace text {
   loadLibrary('text_engine_ani.z');
+  const ERROR_INVALID_PARAM = 401;
 
   class Cleaner {
     static { loadLibrary('text_engine_ani.z') }
@@ -79,28 +80,25 @@ namespace text {
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      if (input == null || input == undefined) {
-        const error = new Error("Param is null or undefined");
-        throw new BusinessError(401, error);
+      let result = FontCollection.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer fontCollection"));
       }
-      return FontCollection.nativeTransferStatic(ESValue.wrap(input));
+      return result;
     }
 
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
-      if (input instanceof FontCollection) {
-        let esValue: ESValue = FontCollection.nativeTransferDynamic((input as FontCollection).nativeObj);
-        if (esValue) {
-          return esValue.unwrap();
-        } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer FontCollection to dynamic, input: ${JSON.stringify(input)}`);
-        }
-      } else {
+      if (!(input instanceof FontCollection)) {
         hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid font collection`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer fontCollection"));
       }
-      const error = new Error("Failed to transfer fontCollection");
-      throw new BusinessError(401, error);
-      return undefined;
+      let esValue: ESValue = FontCollection.nativeTransferDynamic((input as FontCollection).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer FontCollection to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer fontCollection"));
+      }
+      return esValue.unwrap();
     }
   }
 
@@ -127,28 +125,25 @@ namespace text {
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      if (input == null || input == undefined) {
-        const error = new Error("Param is null or undefined");
-        throw new BusinessError(401, error);
+      let result = ParagraphBuilder.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph builder"));
       }
-      return ParagraphBuilder.nativeTransferStatic(ESValue.wrap(input));
+      return result;
     }
 
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
-      if (input instanceof ParagraphBuilder) {
-        let esValue: ESValue = ParagraphBuilder.nativeTransferDynamic((input as ParagraphBuilder).nativeObj);
-        if (esValue) {
-          return esValue.unwrap();
-        } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph builder to dynamic, input: ${JSON.stringify(input)}`);
-        }
-      } else {
-        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not ParagraphBuilder`);
+      if (!(input instanceof ParagraphBuilder)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid paragraph builder`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph builder"));
       }
-      const error = new Error("Failed to transfer paragraph builder");
-      throw new BusinessError(401, error);
-      return undefined;
+      let esValue: ESValue = ParagraphBuilder.nativeTransferDynamic((input as ParagraphBuilder).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph builder to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph builder"));
+      }
+      return esValue.unwrap();
     }
   }
 
@@ -206,28 +201,25 @@ namespace text {
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      if (input == null || input == undefined) {
-        const error = new Error("Param is null or undefined");
-        throw new BusinessError(401, error);
+      let result = Paragraph.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph"));
       }
-      return Paragraph.nativeTransferStatic(ESValue.wrap(input));
+      return result;
     }
 
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
-      if (input instanceof Paragraph) {
-        let esValue: ESValue = Paragraph.nativeTransferDynamic((input as Paragraph).nativeObj);
-        if (esValue) {
-          return esValue.unwrap();
-        } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph to dynamic, input: ${JSON.stringify(input)}`);
-        }
-      } else {
-        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not Paragraph`);
+      if (!(input instanceof Paragraph)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid paragraph`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph"));
       }
-      const error = new Error("Failed to transfer paragraph");
-      throw new BusinessError(401, error);
-      return undefined;
+      let esValue: ESValue = Paragraph.nativeTransferDynamic((input as Paragraph).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer paragraph to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer paragraph"));
+      }
+      return esValue.unwrap();
     }
   }
 
@@ -710,28 +702,25 @@ namespace text {
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      if (input == null || input == undefined) {
-        const error = new Error("Param is null or undefined");
-        throw new BusinessError(401, error);
+      let result = TextLine.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer text line"));
       }
-      return TextLine.nativeTransferStatic(ESValue.wrap(input));
+      return result;
     }
 
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
-      if (input instanceof TextLine) {
-        let esValue: ESValue = TextLine.nativeTransferDynamic((input as TextLine).nativeObj);
-        if (esValue) {
-          return esValue.unwrap();
-        } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer text line to dynamic, input: ${JSON.stringify(input)}`);
-        }
-      } else {
-        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not TextLine`);
+      if (!(input instanceof TextLine)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid text line`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer text line"));
       }
-      const error = new Error("Failed to transfer text line");
-      throw new BusinessError(401, error);
-      return undefined;
+      let esValue: ESValue = TextLine.nativeTransferDynamic((input as TextLine).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer text line to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer text line"));
+      }
+      return esValue.unwrap();
     }
   }
 
@@ -768,28 +757,25 @@ namespace text {
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
-      if (input == null || input == undefined) {
-        const error = new Error("Param is null or undefined");
-        throw new BusinessError(401, error);
+      let result = Run.nativeTransferStatic(ESValue.wrap(input));
+      if (!result) {
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer run"));
       }
-      return Run.nativeTransferStatic(ESValue.wrap(input));
+      return result;
     }
 
     private static native nativeTransferDynamic(nativeObj: long): ESValue;
     static transferDynamic(input: Object): Any {
-      if (input instanceof Run) {
-        let esValue: ESValue = Run.nativeTransferDynamic((input as Run).nativeObj);
-        if (esValue) {
-          return esValue.unwrap();
-        } else {
-          hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer Run to dynamic, input: ${JSON.stringify(input)}`);
-        }
-      } else {
-        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Param is not Run`);
+      if (!(input instanceof Run)) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Invalid run`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer run"));
       }
-      const error = new Error("Failed to transfer run");
-      throw new BusinessError(401, error);
-      return undefined;
+      let esValue: ESValue = Run.nativeTransferDynamic((input as Run).nativeObj);
+      if (!esValue) {
+        hilog.error(TEXT_LOG_DOMAIN, TEXT_LOG_TAG, `Failed to transfer run to dynamic, input: ${JSON.stringify(input)}`);
+        throw new BusinessError(ERROR_INVALID_PARAM, new Error("Failed to transfer run"));
+      }
+      return esValue.unwrap();
     }
   }
 
