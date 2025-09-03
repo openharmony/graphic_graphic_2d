@@ -710,19 +710,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     
-    // Regional screen recording does not enable uifirst.
-    bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
-    if (!enableVisibleRect) {
-        if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
-            if (GetDrawSkipType() == DrawSkipType::NONE) {
-                SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
-            }
-            return;
+    // enable uifirst for all scenarios.
+    if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
+        if (GetDrawSkipType() == DrawSkipType::NONE) {
+            SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
         }
-        if (DrawHDRCacheWithDmaFFRT(*rscanvas, *surfaceParams)) {
-            SetDrawSkipType(DrawSkipType::HARDWARE_HDR_CACHE_SKIP);
-            return;
-        }
+        return;
+    }
+    if (DrawHDRCacheWithDmaFFRT(*rscanvas, *surfaceParams)) {
+        SetDrawSkipType(DrawSkipType::HARDWARE_HDR_CACHE_SKIP);
+        return;
     }
 
     // can't use NodeMatchOptimize if leash window is on draw
