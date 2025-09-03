@@ -655,9 +655,6 @@ private:
     // record multidisplay status change
     bool isMultiDisplayPre_ = false;
     bool isMultiDisplayChange_ = false;
-#ifdef RS_ENABLE_VK
-    bool needCreateVkPipeline_ = true;
-#endif
     std::atomic<bool> isDirty_ = false;
     bool prevHdrSwitchStatus_ = true;
     std::atomic<bool> screenPowerOnChanged_ = false;
