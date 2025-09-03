@@ -5369,6 +5369,8 @@ HWTEST_F(RSUniRenderVisitorTest, PostPrepare002, TestSize.Level2)
     surfaceNode->AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode>());
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    system::SetParameter("const.product.devicetype", "tablet");
+    RSMainThread::Instance()->SetDeviceType();
 
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
