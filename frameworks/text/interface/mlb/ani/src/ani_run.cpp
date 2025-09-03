@@ -31,6 +31,17 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+    const std::string PAINT_SIGNATURE = std::string(ANI_CLASS_CANVAS) + "DD:V";
+    const std::string NATIVE_GET_GLYPHS_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
+    const std::string NATIVE_GET_POSITIONS_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
+    const std::string GET_OFFSETS_SIGNATURE = ":" + std::string(ANI_ARRAY);
+    const std::string GET_FONT_SIGNATURE = ":" + std::string(ANI_CLASS_FONT);
+    const std::string GET_STRING_INDICES_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
+    const std::string GET_STRING_RANGE_SIGNATURE = ":" + std::string(ANI_INTERFACE_RANGE);
+    const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
+    const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":" + std::string(ANI_INTERFACE_RECT);
+} // namespace
 
 ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -47,33 +58,26 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
-    std::string paintSignature = std::string(ANI_CLASS_CANVAS) + "DD:V";
-    std::string nativeGetGlyphsSignature = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    std::string nativeGetPositionsSignature = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    std::string getOffsetsSignature = ":" + std::string(ANI_ARRAY);
-    std::string getFontSignature = ":" + std::string(ANI_CLASS_FONT);
-    std::string getStringIndicesSignature = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    std::string getStringRangeSignature = ":" + std::string(ANI_INTERFACE_RANGE);
-    std::string getTypographicBoundsSignature = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
-    std::string getImageBoundsSignature = ":" + std::string(ANI_INTERFACE_RECT);
     std::array methods = {
         ani_native_function{"getGlyphCount", ":I", reinterpret_cast<void*>(GetGlyphCount)},
         ani_native_function{"getGlyphs", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetGlyphs)},
         ani_native_function{
-            "nativeGetGlyphs", nativeGetGlyphsSignature.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
+            "nativeGetGlyphs", NATIVE_GET_GLYPHS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
         ani_native_function{
             "getPositions", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetPositions)},
         ani_native_function{
-            "nativeGetPositions", nativeGetPositionsSignature.c_str(), reinterpret_cast<void*>(GetPositionsByRange)},
-        ani_native_function{"getOffsets", getOffsetsSignature.c_str(), reinterpret_cast<void*>(GetOffsets)},
-        ani_native_function{"getFont", getFontSignature.c_str(), reinterpret_cast<void*>(GetFont)},
-        ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
+            "nativeGetPositions", NATIVE_GET_POSITIONS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetPositionsByRange)},
+        ani_native_function{"getOffsets", GET_OFFSETS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetOffsets)},
+        ani_native_function{"getFont", GET_FONT_SIGNATURE.c_str(), reinterpret_cast<void*>(GetFont)},
+        ani_native_function{"paint", PAINT_SIGNATURE.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{
-            "getStringIndices", getStringIndicesSignature.c_str(), reinterpret_cast<void*>(GetStringIndices)},
-        ani_native_function{"getStringRange", getStringRangeSignature.c_str(), reinterpret_cast<void*>(GetStringRange)},
-        ani_native_function{"getTypographicBounds", getTypographicBoundsSignature.c_str(),
+            "getStringIndices", GET_STRING_INDICES_SIGNATURE.c_str(), reinterpret_cast<void*>(GetStringIndices)},
+        ani_native_function{
+            "getStringRange", GET_STRING_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetStringRange)},
+        ani_native_function{"getTypographicBounds", GET_TYPOGRAPHIC_BOUNDS_SIGNATURE.c_str(),
             reinterpret_cast<void*>(GetTypographicBounds)},
-        ani_native_function{"getImageBounds", getImageBoundsSignature.c_str(), reinterpret_cast<void*>(GetImageBounds)},
+        ani_native_function{
+            "getImageBounds", GET_IMAGE_BOUNDS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetImageBounds)},
         ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
@@ -328,7 +332,7 @@ void AniRun::Paint(ani_env* env, ani_object object, ani_object canvas, ani_doubl
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas =  AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Failed to get canvas");
         return;
@@ -463,25 +467,26 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
 
 ani_object AniRun::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
-     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-        napi_value dynamicObj = JsRun::CreateRun(napiEnv);
-        if (!dynamicObj) {
-            TEXT_LOGE("Failed to create run");
-            return dynamicObj = nullptr;
-        }
-        AniRun* aniRun = reinterpret_cast<AniRun*>(nativeObj);
-        if (aniRun == nullptr || aniRun->run_ == nullptr) {
-            TEXT_LOGE("Null aniRun");
-            return dynamicObj = nullptr;
-        }
-        JsRun* jsRun = nullptr;
-        napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsRun));
-        if (!jsRun) {
-            TEXT_LOGE("Failed to unwrap run");
-            return dynamicObj = nullptr;
-        }
-        jsRun->SetRun(aniRun->run_);
-        return dynamicObj;
-    });
+    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+            napi_value dynamicObj = JsRun::CreateRun(napiEnv);
+            if (!dynamicObj) {
+                TEXT_LOGE("Failed to create run");
+                return dynamicObj = nullptr;
+            }
+            AniRun* aniRun = reinterpret_cast<AniRun*>(nativeObj);
+            if (aniRun == nullptr || aniRun->run_ == nullptr) {
+                TEXT_LOGE("Null aniRun");
+                return dynamicObj = nullptr;
+            }
+            JsRun* jsRun = nullptr;
+            napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsRun));
+            if (!jsRun) {
+                TEXT_LOGE("Failed to unwrap run");
+                return dynamicObj = nullptr;
+            }
+            jsRun->SetRun(aniRun->run_);
+            return dynamicObj;
+        });
 }
 } // namespace OHOS::Text::ANI

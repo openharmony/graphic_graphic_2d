@@ -39,7 +39,7 @@ ani_object AniTransferUtils::TransferStatic(
         TEXT_LOGE("Null unwrapResult");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    return convert(env,unwrapResult);
+    return convert(env, unwrapResult);
 }
 
 static ani_object CloseNapiEnvReturnUndefined(ani_env* aniEnv, napi_env napiEnv)
@@ -56,27 +56,22 @@ ani_object AniTransferUtils::TransferDynamic(
         TEXT_LOGE("Failed to open napi scope");
         return AniTextUtils::CreateAniUndefined(aniEnv);
     }
-
     napi_value objValue = nullptr;
     napi_status status = napi_create_object(napiEnv, &objValue);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to create napi object, ret %{public}d", status);
         return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
-
     napi_value napiObj = convert(napiEnv, nativeObj, objValue);
-
     if (napiObj == nullptr) {
         TEXT_LOGE("Failed to convert static object to dynamic object");
         return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
-
     hybridgref ref = nullptr;
     if (!hybridgref_create_from_napi(napiEnv, napiObj, &ref)) {
         TEXT_LOGE("Failed to create hybrid reference");
         return CloseNapiEnvReturnUndefined(aniEnv, napiEnv);
     }
-
     ani_object result = nullptr;
     if (!hybridgref_get_esvalue(aniEnv, ref, &result)) {
         hybridgref_delete_from_napi(napiEnv, ref);

@@ -24,7 +24,8 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-ani_status ParseDrawingColorToNative(ani_env* env, ani_object obj, bool readOptional, const std::string& str, Drawing::Color& colorSrc)
+ani_status ParseDrawingColorToNative(
+    ani_env* env, ani_object obj, bool readOptional, const std::string& str, Drawing::Color& colorSrc)
 {
     ani_ref colorRef = nullptr;
     ani_status result = ANI_ERROR;
@@ -43,7 +44,7 @@ ani_status ParseDrawingColorToNative(ani_env* env, ani_object obj, bool readOpti
     }
     return ANI_OK;
 }
-}
+} // namespace
 
 ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {

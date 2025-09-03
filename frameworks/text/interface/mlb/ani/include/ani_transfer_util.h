@@ -24,8 +24,10 @@
 namespace OHOS::Text::ANI {
 class AniTransferUtils final {
 public:
-    static ani_object TransferStatic(ani_env* env, ani_object input, std::function<ani_object(ani_env*, void*)> convert);
-    static ani_object TransferDynamic(ani_env* aniEnv, ani_long nativeObj, std::function<napi_value(napi_env, ani_long, napi_value)> convert);
+    static ani_object TransferStatic(
+        ani_env* env, ani_object input, std::function<ani_object(ani_env*, void*)> convert);
+    static ani_object TransferDynamic(
+        ani_env* aniEnv, ani_long nativeObj, std::function<napi_value(napi_env, ani_long, napi_value)> convert);
 };
 
 } // namespace OHOS::Text::ANI

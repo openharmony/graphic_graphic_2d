@@ -566,20 +566,7 @@ napi_value GetTypographicBoundsAndConvertToJsValue(napi_env env, float ascent,
 
 bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &end);
 
-inline napi_status NewInstanceFromConstructor(napi_env env, napi_value constructor, const char* clsName, napi_value* obj)
-{
-    napi_value instance = nullptr;
-    napi_status status = napi_get_named_property(env, constructor, clsName, &instance);
-    if (status != napi_ok || instance == nullptr) {
-        TEXT_LOGE("Failed to get prototype, status: %{public}d", status);
-        return status;
-    }
-    status = napi_new_instance(env, instance, 0, nullptr, obj);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to create instance, status: %{public}d", status);
-        return status;
-    }
-    return napi_ok;
-}
+napi_status NewInstanceFromConstructor(
+    napi_env env, napi_value constructor, const char* clsName, napi_value* obj);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

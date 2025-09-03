@@ -277,25 +277,27 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
 
 ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
-     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-        objValue = JsParagraphBuilder::CreateTransferObj(napiEnv, objValue);
-        napi_value dynamicObj = nullptr;
-        napi_status status = JsParagraphBuilder::CreateTypographyCreate(napiEnv, objValue, &dynamicObj);
-        if (status != napi_ok || dynamicObj == nullptr) {
-            TEXT_LOGE("Failed to create paragraph builder, status %{public}d", status);
-            return dynamicObj = nullptr;
-        }
-        AniParagraphBuilder* aniParagraphBuilder = reinterpret_cast<AniParagraphBuilder*>(nativeObj);
-        if (aniParagraphBuilder == nullptr || aniParagraphBuilder->typographyCreate_ == nullptr) {
-            TEXT_LOGE("Null aniParagraphBuilder");
-            return dynamicObj = nullptr;
-        }
-        status = JsParagraphBuilder::SetTypographyCreate(napiEnv, dynamicObj, aniParagraphBuilder->typographyCreate_);
-        if (status != napi_ok) {
-            TEXT_LOGE("Failed to set inner paragraph builder, status %{public}d", status);
-            return dynamicObj = nullptr;
-        }
-        return dynamicObj;
-    });
+    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+            objValue = JsParagraphBuilder::CreateTransferObj(napiEnv, objValue);
+            napi_value dynamicObj = nullptr;
+            napi_status status = JsParagraphBuilder::CreateTypographyCreate(napiEnv, objValue, &dynamicObj);
+            if (status != napi_ok || dynamicObj == nullptr) {
+                TEXT_LOGE("Failed to create paragraph builder, status %{public}d", status);
+                return dynamicObj = nullptr;
+            }
+            AniParagraphBuilder* aniParagraphBuilder = reinterpret_cast<AniParagraphBuilder*>(nativeObj);
+            if (aniParagraphBuilder == nullptr || aniParagraphBuilder->typographyCreate_ == nullptr) {
+                TEXT_LOGE("Null aniParagraphBuilder");
+                return dynamicObj = nullptr;
+            }
+            status =
+                JsParagraphBuilder::SetTypographyCreate(napiEnv, dynamicObj, aniParagraphBuilder->typographyCreate_);
+            if (status != napi_ok) {
+                TEXT_LOGE("Failed to set inner paragraph builder, status %{public}d", status);
+                return dynamicObj = nullptr;
+            }
+            return dynamicObj;
+        });
 }
 } // namespace OHOS::Text::ANI
