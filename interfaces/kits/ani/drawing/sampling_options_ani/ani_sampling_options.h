@@ -35,6 +35,10 @@ public:
     std::shared_ptr<SamplingOptions> GetSamplingOptions();
 
 private:
+    static ani_object SamplingOptionsTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetSamplingOptionsAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<SamplingOptions>* GetSamplingOptionsPtrAddr();
     std::shared_ptr<SamplingOptions> m_samplingOptions = nullptr;
 };
 } // namespace Drawing

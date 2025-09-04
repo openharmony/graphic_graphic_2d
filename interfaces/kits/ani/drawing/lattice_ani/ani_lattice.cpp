@@ -14,6 +14,11 @@
  */
 
 #include "ani_lattice.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/lattice_napi/js_lattice.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -148,6 +153,9 @@ ani_status AniLattice::AniInit(ani_env *env)
     std::array methods = {
         ani_native_function { "createImageLattice", nullptr,
             reinterpret_cast<void*>(CreateImageLattice) },
+        ani_native_function { "latticeTransferStaticNative", nullptr,
+            reinterpret_cast<void*>(LatticeTransferStatic) },
+        ani_native_function { "getLatticeAddr", nullptr, reinterpret_cast<void*>(GetLatticeAddr) },
     };
 
     ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
@@ -161,7 +169,7 @@ ani_status AniLattice::AniInit(ani_env *env)
 
 AniLattice::~AniLattice()
 {
-    m_lattice = nullptr;
+    lattice_ = nullptr;
 }
 
 ani_object AniLattice::CreateImageLattice(ani_env* env,
@@ -223,9 +231,53 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     return aniObj;
 }
 
+ani_object AniLattice::LatticeTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniLattice::LatticeTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniLattice::LatticeTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsLattice = reinterpret_cast<JsLattice*>(unwrapResult);
+    if (jsLattice->GetLatticePtr() == nullptr) {
+        ROSEN_LOGE("AniLattice::LatticeTransferStatic jsLattice is null");
+        return nullptr;
+    }
+
+    auto aniLattice = new AniLattice(jsLattice->GetLatticePtr());
+
+    ani_object aniLatticeObj = CreateAniObject(env, ANI_CLASS_ANI_LATTICE_NAME, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniLatticeObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniLattice))) {
+        ROSEN_LOGE("AniLattice::LatticeTransferStatic failed create aniLattice");
+        delete aniLattice;
+        return nullptr;
+    }
+    return aniLatticeObj;
+}
+
+ani_long AniLattice::GetLatticeAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniLattice = GetNativeFromObj<AniLattice>(env, input);
+    if (aniLattice == nullptr || aniLattice->GetLattice() == nullptr) {
+        ROSEN_LOGE("AniLattice::GetLatticeAddr aniLattice is null");
+        return 0;
+    }
+    return reinterpret_cast<ani_long>(aniLattice->GetLatticePtrAddr());
+}
+
+std::shared_ptr<Lattice>* AniLattice::GetLatticePtrAddr()
+{
+    return &lattice_;
+}
+
 std::shared_ptr<Lattice> AniLattice::GetLattice()
 {
-    return m_lattice;
+    return lattice_;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

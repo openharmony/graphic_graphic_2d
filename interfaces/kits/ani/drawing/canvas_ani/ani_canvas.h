@@ -66,6 +66,14 @@ private:
     void DrawImageRectInner(std::shared_ptr<Media::PixelMap> pixelmap,
         Drawing::Rect& rect, AniSamplingOptions* samplingOptions);
 #endif
+    static ani_object CanvasTransferStatic(ani_env*  env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_long GetCanvasAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_long GetPixelMapAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_boolean GetCanvasOwned(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+ #ifdef ROSEN_OHOS
+    std::shared_ptr<Media::PixelMap>* GetPixelMapPtrAddr();
+ #endif
+
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
 #ifdef ROSEN_OHOS

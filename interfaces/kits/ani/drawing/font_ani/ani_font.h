@@ -24,9 +24,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniFont final {
 public:
-    AniFont() = default;
-    explicit AniFont(const Font& font) : font_(font) {}
-    ~AniFont() = default;
+    explicit AniFont(std::shared_ptr<Font> font = nullptr) : font_(font) {}
+    ~AniFont();
 
     static ani_status AniInit(ani_env *env);
 
@@ -38,10 +37,14 @@ public:
     static void SetSize(ani_env* env, ani_object obj, ani_double alpha);
     static void SetTypeface(ani_env* env, ani_object obj, ani_object typeface);
 
-    Font& GetFont();
+    std::shared_ptr<Font> GetFont();
 
 private:
-    Font font_;
+    static ani_object FontTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetFontAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Font>* GetFontPtrAddr();
+    std::shared_ptr<Font> font_ = nullptr;
 };
 
 ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics);
