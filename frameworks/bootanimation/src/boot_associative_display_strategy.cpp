@@ -68,7 +68,7 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
 
         if (IsOtaUpdate()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(config);
+            bootCompileProgress_->Init(configPath_, config);
         }
 
         while (!CheckExitAnimation()) {

@@ -48,7 +48,7 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
 
     if (IsOtaUpdate()) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-        bootCompileProgress_->Init(screenConfig);
+        bootCompileProgress_->Init(configPath_, screenConfig);
     }
 
     while (!CheckExitAnimation()) {

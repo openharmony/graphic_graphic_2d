@@ -53,20 +53,7 @@ bool IsFileExisted(const std::string& filePath)
 bool ParseBootConfig(const std::string& path, int32_t& duration, bool& isCompatible, bool& isMultiDisplay,
     std::vector<BootAnimationConfig>& configs)
 {
-    char newpath[PATH_MAX + 1] = { 0x00 };
-    if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == nullptr) {
-        LOGE("check config path fail! %{public}s %{public}d %{public}s", path.c_str(), errno, ::strerror(errno));
-        return false;
-    }
-
-    std::ifstream configFile;
-    configFile.open(newpath);
-    std::stringstream JFilterParamsStream;
-    JFilterParamsStream << configFile.rdbuf();
-    configFile.close();
-    std::string JParamsString = JFilterParamsStream.str();
-
-    cJSON* overallData = cJSON_Parse(JParamsString.c_str());
+    cJSON* overallData = ParseFileConfig(path);
     if (overallData == nullptr) {
         LOGE("can not parse config to json");
         return false;
@@ -166,6 +153,84 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
             item = item->next;
         }
     }
+}
+
+void ParseProgressData(cJSON* data, std::map<int32_t, BootAnimationProgressConfig>& configs)
+{
+    LOGI("ParseProgressData");
+    cJSON* progressConfigs = cJSON_GetObjectItem(data, "progress_config");
+    if (progressConfigs != nullptr) {
+        BootAnimationProgressConfig config;
+        cJSON* item = progressConfigs->child;
+        while (item != nullptr) {
+            cJSON* progressScreenIdJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_screen_id");
+            if (progressScreenIdJson != nullptr && cJSON_IsString(progressScreenIdJson)) {
+                config.progressScreenId = std::atoi(progressScreenIdJson->valuestring);
+            }
+            cJSON* progressHeightJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_height");
+            if (progressHeightJson != nullptr && cJSON_IsString(progressHeightJson)) {
+                config.progressHeight = std::atoi(progressHeightJson->valuestring);
+            }
+            cJSON* progressFrameHeightJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_frame_height");
+            if (progressFrameHeightJson != nullptr && cJSON_IsString(progressFrameHeightJson)) {
+                config.progressFrameHeight = std::atoi(progressFrameHeightJson->valuestring);
+            }
+            cJSON* progressOffsetJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_x_offset");
+            if (progressOffsetJson != nullptr && cJSON_IsString(progressOffsetJson)) {
+                config.progressOffset = std::atoi(progressOffsetJson->valuestring);
+            }
+            cJSON* progressFontSizeJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_font_size");
+            if (progressFontSizeJson != nullptr && cJSON_IsString(progressFontSizeJson)) {
+                config.progressFontSize = std::atoi(progressFontSizeJson->valuestring);
+            }
+            cJSON* progressRadiusSizeJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_radius_size");
+            if (progressRadiusSizeJson != nullptr && cJSON_IsString(progressRadiusSizeJson)) {
+                config.progressRadiusSize = std::atoi(progressRadiusSizeJson->valuestring);
+            }
+            cJSON* progressDegreeJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_degree");
+            if (progressDegreeJson != nullptr && cJSON_IsString(progressDegreeJson)) {
+                config.progressDegree = std::atoi(progressDegreeJson->valuestring);
+            }
+            configs.emplace(config.progressScreenId, config);
+            item = item->next;
+        }
+    }
+}
+
+void ParseProgressConfig(const std::string& path, std::map<int32_t, BootAnimationProgressConfig>& configs)
+{
+    LOGI("ParseProgressConfig");
+    cJSON* overallData = ParseFileConfig(path);
+    if (overallData == nullptr) {
+        LOGE("can not parse config to json");
+        return;
+    }
+    cJSON_bool hasProgressConfig = cJSON_HasObjectItem(overallData, "progress_config");
+    if (!hasProgressConfig) {
+        LOGE("has no progress config");
+        cJSON_Delete(overallData);
+        return;
+    }
+    ParseProgressData(overallData, configs);
+    cJSON_Delete(overallData);
+}
+
+cJSON* ParseFileConfig(const std::string& path)
+{
+    char newpath[PATH_MAX + 1] = { 0x00 };
+    if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), newpath) == nullptr) {
+        LOGE("check config path fail! %{public}s %{public}d %{public}s", path.c_str(), errno, ::strerror(errno));
+        return nullptr;
+    }
+
+    std::ifstream configFile;
+    configFile.open(newpath);
+    std::stringstream JFilterParamsStream;
+    JFilterParamsStream << configFile.rdbuf();
+    configFile.close();
+    std::string JParamsString = JFilterParamsStream.str();
+
+    return cJSON_Parse(JParamsString.c_str());
 }
 
 void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config)

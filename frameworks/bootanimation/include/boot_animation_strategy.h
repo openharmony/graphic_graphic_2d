@@ -36,6 +36,7 @@ public:
 
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;
+    std::string configPath_;
 
 private:
     bool isAnimationEnd_ = false;
