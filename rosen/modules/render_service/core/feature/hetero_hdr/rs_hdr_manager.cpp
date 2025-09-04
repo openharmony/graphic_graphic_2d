@@ -45,11 +45,12 @@ RSHdrManager::RSHdrManager()
     if (!RSHDRPatternManager::Instance().MHCGraphPatternInit(GRAPH_NUM)) {
         RS_LOGE("MHCGraphPatternInit() failed!");
         isHeterogComputingHdrOn_ = false;
+        return;
     }
     if (!RSHDRPatternManager::Instance().MHCDlOpen()) {
-    RS_LOGE("MHCDlOpen() failed!");
-    isHeterogComputingHdrOn_ = false;
-    return;
+        RS_LOGE("MHCDlOpen() failed!");
+        isHeterogComputingHdrOn_ = false;
+        return;
     }
 }
 
