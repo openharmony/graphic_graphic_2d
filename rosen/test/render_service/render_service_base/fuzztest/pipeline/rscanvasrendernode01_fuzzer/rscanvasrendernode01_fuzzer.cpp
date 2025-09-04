@@ -39,7 +39,6 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-constexpr size_t STR_LEN = 10;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -91,6 +90,7 @@ struct DrawBuffer {
     int32_t h;
 };
 
+#ifndef MODIFIER_NG
 bool RSCanvasRenderNode01FuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -154,7 +154,7 @@ bool RSCanvasRenderNode01FuzzTest(const uint8_t* data, size_t size)
     node.Prepare(visitorProcess);
     return true;
 }
-
+#endif // MODIFIER_NG
 } // namespace Rosen
 } // namespace OHOS
 
@@ -162,6 +162,8 @@ bool RSCanvasRenderNode01FuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
+#ifndef MODIFIER_NG
     OHOS::Rosen::RSCanvasRenderNode01FuzzTest(data, size);
+#endif
     return 0;
 }

@@ -30,7 +30,6 @@
 #include "common/rs_vector4.h"
 #include "effect/shader_effect_lazy.h"
 #include "memory/rs_memory_track.h"
-#include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_record_cmd_utils.h"
 #include "platform/common/rs_log.h"
@@ -1304,7 +1303,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest031, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, MarshallingTest031, TestSize.Level1)
 {
     Parcel parcel;
-    std::shared_ptr<RSRenderModifier> val;
+    std::shared_ptr<ModifierNG::RSRenderModifier> val;
     EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, val));
 }
 
@@ -1317,7 +1316,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest031, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest032, TestSize.Level1)
 {
     Parcel parcel;
-    std::shared_ptr<RSRenderModifier> val;
+    std::shared_ptr<ModifierNG::RSRenderModifier> val;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
 

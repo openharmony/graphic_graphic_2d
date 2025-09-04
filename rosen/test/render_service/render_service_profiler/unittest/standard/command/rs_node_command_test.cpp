@@ -64,7 +64,7 @@ HWTEST_F(RSNodeCommandTypeTest, FixNodeCommandTest001, Level1 | Standard)
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_VECTOR4_COLOR), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_VECTOR4F), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_RRECT), value++);
-    EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_DRAW_CMD_LIST), value++);
+    value++;
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_DRAWING_MATRIX), value++);
 }
 

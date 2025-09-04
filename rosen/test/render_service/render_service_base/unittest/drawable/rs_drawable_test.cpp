@@ -52,19 +52,14 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
-    ModifierDirtyTypes dirtyTypes;
     RSDrawable::Vec drawableVec;
-    dirtyTypes.set();
     std::optional<Vector4f> aiInvert = { Vector4f() };
     node.GetMutableRenderProperties().SetAiInvert(aiInvert);
     ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
-    ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 34);
-#if defined(MODIFIER_NG)
     ModifierNG::ModifierDirtyTypes dirtyTypesNG;
     dirtyTypesNG.set(static_cast<int>(ModifierNG::RSModifierType::SHADOW), true);
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG, drawableVec);
     ASSERT_TRUE(dirtySlots.find(RSDrawableSlot::CHILDREN) != dirtySlots.end());
-#endif
 }
 
 /**
@@ -78,11 +73,11 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     RSDrawable::Vec drawableVec;
-    ModifierDirtyTypes dirtyTypes;
+    ModifierNG::ModifierDirtyTypes dirtyTypes;
     dirtyTypes.set();
     std::optional<Vector4f> aiInvert = { Vector4f() };
     node.GetMutableRenderProperties().SetAiInvert(aiInvert);
-    std::unordered_set<RSDrawableSlot> dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec);
+    std::unordered_set<RSDrawableSlot> dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
     node.GetMutableRenderProperties().SetBackgroundShader(shader);
     for (auto& drawable : drawableVec) {
@@ -96,9 +91,9 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     NodeId idTwo = 2;
     RSRenderNode nodeTwo(idTwo);
     RSDrawable::Vec drawableVecTwo;
-    ModifierDirtyTypes dirtyTypesTwo;
+    ModifierNG::ModifierDirtyTypes dirtyTypesTwo;
     dirtyTypesTwo.set();
-    std::unordered_set<RSDrawableSlot> dirtySlotsTwo = RSDrawable::CalculateDirtySlots(dirtyTypesTwo, drawableVecTwo);
+    std::unordered_set<RSDrawableSlot> dirtySlotsTwo = RSDrawable::CalculateDirtySlotsNG(dirtyTypesTwo, drawableVecTwo);
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); i++) {
         drawableVecTwo[i] = nullptr;
     }

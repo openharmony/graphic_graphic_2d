@@ -40,22 +40,13 @@ bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(
     std::shared_ptr<RSCanvasRenderNode> node, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
 {
     if (node->GetNodeIsSingleFrameComposer()) {
-#if defined(MODIFIER_NG)
         node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType),
             RSSingleFrameComposer::IsShouldSingleFrameComposer());
-#else
-        node->UpdateRecording(
-            drawCmds, static_cast<RSModifierType>(modifierType), RSSingleFrameComposer::IsShouldSingleFrameComposer());
-#endif
     } else {
         if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
             return true;
         }
-#if defined(MODIFIER_NG)
         node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
-#else
-        node->UpdateRecording(drawCmds, static_cast<RSModifierType>(modifierType));
-#endif
     }
     return false;
 }
@@ -72,11 +63,7 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
             return;
         }
     } else {
-#if defined(MODIFIER_NG)
         node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
-#else
-        node->UpdateRecording(drawCmds, static_cast<RSModifierType>(modifierType));
-#endif
     }
     if (!drawCmds) {
         return;

@@ -28,167 +28,6 @@ namespace OHOS::Rosen {
 namespace {
 using namespace DrawableV2;
 
-static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDrawableLut = {
-    { RSModifierType::INVALID,                                   RSDrawableSlot::INVALID },
-    { RSModifierType::BOUNDS,                                    RSDrawableSlot::CLIP_TO_BOUNDS },
-    { RSModifierType::FRAME,                                     RSDrawableSlot::FRAME_OFFSET },
-    { RSModifierType::POSITION_Z,                                RSDrawableSlot::INVALID },
-    { RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D,            RSDrawableSlot::INVALID },
-    { RSModifierType::PIVOT,                                     RSDrawableSlot::INVALID },
-    { RSModifierType::PIVOT_Z,                                   RSDrawableSlot::INVALID },
-    { RSModifierType::QUATERNION,                                RSDrawableSlot::INVALID },
-    { RSModifierType::ROTATION,                                  RSDrawableSlot::INVALID },
-    { RSModifierType::ROTATION_X,                                RSDrawableSlot::INVALID },
-    { RSModifierType::ROTATION_Y,                                RSDrawableSlot::INVALID },
-    { RSModifierType::CAMERA_DISTANCE,                           RSDrawableSlot::INVALID },
-    { RSModifierType::SCALE,                                     RSDrawableSlot::INVALID },
-    { RSModifierType::SCALE_Z,                                   RSDrawableSlot::INVALID },
-    { RSModifierType::SKEW,                                      RSDrawableSlot::INVALID },
-    { RSModifierType::PERSP,                                     RSDrawableSlot::INVALID },
-    { RSModifierType::TRANSLATE,                                 RSDrawableSlot::INVALID },
-    { RSModifierType::TRANSLATE_Z,                               RSDrawableSlot::INVALID },
-    { RSModifierType::SUBLAYER_TRANSFORM,                        RSDrawableSlot::INVALID },
-    { RSModifierType::CORNER_RADIUS,                             RSDrawableSlot::CLIP_TO_BOUNDS },
-    { RSModifierType::ALPHA,                                     RSDrawableSlot::INVALID },
-    { RSModifierType::ALPHA_OFFSCREEN,                           RSDrawableSlot::INVALID },
-    { RSModifierType::FOREGROUND_COLOR,                          RSDrawableSlot::FOREGROUND_COLOR },
-    { RSModifierType::BACKGROUND_COLOR,                          RSDrawableSlot::BACKGROUND_COLOR },
-    { RSModifierType::BACKGROUND_SHADER,                         RSDrawableSlot::BACKGROUND_SHADER },
-    { RSModifierType::BACKGROUND_SHADER_PROGRESS,                RSDrawableSlot::BACKGROUND_SHADER },
-    { RSModifierType::BG_IMAGE,                                  RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::BG_IMAGE_INNER_RECT,                       RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::BG_IMAGE_WIDTH,                            RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::BG_IMAGE_HEIGHT,                           RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::BG_IMAGE_POSITION_X,                       RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::BG_IMAGE_POSITION_Y,                       RSDrawableSlot::BACKGROUND_IMAGE },
-    { RSModifierType::BORDER_COLOR,                              RSDrawableSlot::BORDER },
-    { RSModifierType::BORDER_WIDTH,                              RSDrawableSlot::BORDER },
-    { RSModifierType::BORDER_STYLE,                              RSDrawableSlot::BORDER },
-    { RSModifierType::BORDER_DASH_WIDTH,                         RSDrawableSlot::BORDER },
-    { RSModifierType::BORDER_DASH_GAP,                           RSDrawableSlot::BORDER },
-    { RSModifierType::FILTER,                                    RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::BACKGROUND_FILTER,                         RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA,                 RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::DYNAMIC_LIGHT_UP_RATE,                     RSDrawableSlot::DYNAMIC_LIGHT_UP },
-    { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE,                   RSDrawableSlot::DYNAMIC_LIGHT_UP },
-    { RSModifierType::FG_BRIGHTNESS_RATES,                       RSDrawableSlot::BLENDER },
-    { RSModifierType::FG_BRIGHTNESS_SATURATION,                  RSDrawableSlot::BLENDER },
-    { RSModifierType::FG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BLENDER },
-    { RSModifierType::FG_BRIGHTNESS_NEGCOEFF,                    RSDrawableSlot::BLENDER },
-    { RSModifierType::FG_BRIGHTNESS_FRACTION,                    RSDrawableSlot::BLENDER },
-    { RSModifierType::FG_BRIGHTNESS_HDR,                         RSDrawableSlot::BLENDER },
-    { RSModifierType::BG_BRIGHTNESS_RATES,                       RSDrawableSlot::BACKGROUND_COLOR },
-    { RSModifierType::BG_BRIGHTNESS_SATURATION,                  RSDrawableSlot::BACKGROUND_COLOR },
-    { RSModifierType::BG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BACKGROUND_COLOR },
-    { RSModifierType::BG_BRIGHTNESS_NEGCOEFF,                    RSDrawableSlot::BACKGROUND_COLOR },
-    { RSModifierType::BG_BRIGHTNESS_FRACTION,                    RSDrawableSlot::BACKGROUND_COLOR },
-    { RSModifierType::FRAME_GRAVITY,                             RSDrawableSlot::FRAME_OFFSET },
-    { RSModifierType::CLIP_RRECT,                                RSDrawableSlot::CLIP_TO_BOUNDS },
-    { RSModifierType::CLIP_BOUNDS,                               RSDrawableSlot::CLIP_TO_BOUNDS },
-    { RSModifierType::CLIP_TO_BOUNDS,                            RSDrawableSlot::CLIP_TO_BOUNDS },
-    { RSModifierType::CLIP_TO_FRAME,                             RSDrawableSlot::CLIP_TO_FRAME },
-    { RSModifierType::VISIBLE,                                   RSDrawableSlot::INVALID },
-    { RSModifierType::SHADOW_COLOR,                              RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_OFFSET_X,                           RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_OFFSET_Y,                           RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_ALPHA,                              RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_ELEVATION,                          RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_RADIUS,                             RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_PATH,                               RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_MASK,                               RSDrawableSlot::SHADOW },
-    { RSModifierType::SHADOW_COLOR_STRATEGY,                     RSDrawableSlot::SHADOW },
-    { RSModifierType::MASK,                                      RSDrawableSlot::MASK },
-    { RSModifierType::SPHERIZE,                                  RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::LIGHT_UP_EFFECT,                           RSDrawableSlot::LIGHT_UP_EFFECT },
-    { RSModifierType::PIXEL_STRETCH,                             RSDrawableSlot::PIXEL_STRETCH },
-    { RSModifierType::PIXEL_STRETCH_PERCENT,                     RSDrawableSlot::PIXEL_STRETCH },
-    { RSModifierType::PIXEL_STRETCH_TILE_MODE,                   RSDrawableSlot::PIXEL_STRETCH },
-    { RSModifierType::USE_EFFECT,                                RSDrawableSlot::USE_EFFECT },
-    { RSModifierType::USE_EFFECT_TYPE,                           RSDrawableSlot::USE_EFFECT },
-    { RSModifierType::COLOR_BLEND_MODE,                          RSDrawableSlot::BLENDER },
-    { RSModifierType::COLOR_BLEND_APPLY_TYPE,                    RSDrawableSlot::BLENDER },
-    { RSModifierType::SANDBOX,                                   RSDrawableSlot::INVALID },
-    { RSModifierType::GRAY_SCALE,                                RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::BRIGHTNESS,                                RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::CONTRAST,                                  RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::SATURATE,                                  RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::SEPIA,                                     RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::INVERT,                                    RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::AIINVERT,                                  RSDrawableSlot::BINARIZATION },
-    { RSModifierType::SYSTEMBAREFFECT,                           RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::WATER_RIPPLE_PROGRESS,                     RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::WATER_RIPPLE_PARAMS,                       RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::HUE_ROTATE,                                RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::COLOR_BLEND,                               RSDrawableSlot::COLOR_FILTER },
-    { RSModifierType::PARTICLE,                                  RSDrawableSlot::PARTICLE_EFFECT },
-    { RSModifierType::SHADOW_IS_FILLED,                          RSDrawableSlot::SHADOW },
-    { RSModifierType::OUTLINE_COLOR,                             RSDrawableSlot::OUTLINE },
-    { RSModifierType::OUTLINE_WIDTH,                             RSDrawableSlot::OUTLINE },
-    { RSModifierType::OUTLINE_STYLE,                             RSDrawableSlot::OUTLINE },
-    { RSModifierType::OUTLINE_DASH_WIDTH,                        RSDrawableSlot::OUTLINE },
-    { RSModifierType::OUTLINE_DASH_GAP,                          RSDrawableSlot::OUTLINE },
-    { RSModifierType::OUTLINE_RADIUS,                            RSDrawableSlot::OUTLINE },
-    { RSModifierType::GREY_COEF,                                 RSDrawableSlot::INVALID },
-    { RSModifierType::LIGHT_INTENSITY,                           RSDrawableSlot::POINT_LIGHT },
-    { RSModifierType::LIGHT_COLOR,                               RSDrawableSlot::POINT_LIGHT },
-    { RSModifierType::LIGHT_POSITION,                            RSDrawableSlot::POINT_LIGHT },
-    { RSModifierType::ILLUMINATED_BORDER_WIDTH,                  RSDrawableSlot::POINT_LIGHT },
-    { RSModifierType::ILLUMINATED_TYPE,                          RSDrawableSlot::POINT_LIGHT },
-    { RSModifierType::BLOOM,                                     RSDrawableSlot::POINT_LIGHT },
-    { RSModifierType::FOREGROUND_EFFECT_RADIUS,                  RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::USE_SHADOW_BATCHING,                       RSDrawableSlot::CHILDREN },
-    { RSModifierType::MOTION_BLUR_PARA,                          RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::PARTICLE_EMITTER_UPDATER,                  RSDrawableSlot::PARTICLE_EFFECT },
-    { RSModifierType::PARTICLE_NOISE_FIELD,                      RSDrawableSlot::PARTICLE_EFFECT },
-    { RSModifierType::FLY_OUT_DEGREE,                            RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::FLY_OUT_PARAMS,                            RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::DISTORTION_K,                              RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::DYNAMIC_DIM_DEGREE,                        RSDrawableSlot::DYNAMIC_DIM },
-    { RSModifierType::MAGNIFIER_PARA,                            RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_RADIUS,                    RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_SATURATION,                RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_BRIGHTNESS,                RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_MASK_COLOR,                RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_COLOR_MODE,                RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_RADIUS_X,                  RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BACKGROUND_BLUR_RADIUS_Y,                  RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION,         RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_RADIUS,                    RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_SATURATION,                RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_BRIGHTNESS,                RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_MASK_COLOR,                RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_COLOR_MODE,                RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_RADIUS_X,                  RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FOREGROUND_BLUR_RADIUS_Y,                  RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION,         RSDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::ATTRACTION_FRACTION,                       RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::ATTRACTION_DSTPOINT,                       RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::ALWAYS_SNAPSHOT,                           RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::COMPLEX_SHADER_PARAM,                      RSDrawableSlot::BACKGROUND_SHADER },
-    { RSModifierType::HDR_UI_BRIGHTNESS,                         RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::HDR_BRIGHTNESS_FACTOR,                     RSDrawableSlot::INVALID },
-    { RSModifierType::FOREGROUND_NG_FILTER,                      RSDrawableSlot::FOREGROUND_FILTER },
-    { RSModifierType::BACKGROUND_NG_FILTER,                      RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::CUSTOM,                                    RSDrawableSlot::INVALID },
-    { RSModifierType::EXTENDED,                                  RSDrawableSlot::INVALID },
-    { RSModifierType::TRANSITION,                                RSDrawableSlot::TRANSITION },
-    { RSModifierType::BACKGROUND_STYLE,                          RSDrawableSlot::BACKGROUND_STYLE },
-    { RSModifierType::CONTENT_STYLE,                             RSDrawableSlot::CONTENT_STYLE },
-    { RSModifierType::FOREGROUND_STYLE,                          RSDrawableSlot::FOREGROUND_STYLE },
-    { RSModifierType::OVERLAY_STYLE,                             RSDrawableSlot::OVERLAY },
-    { RSModifierType::NODE_MODIFIER,                             RSDrawableSlot::INVALID },
-    { RSModifierType::ENV_FOREGROUND_COLOR,                      RSDrawableSlot::ENV_FOREGROUND_COLOR },
-    { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY,             RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
-    { RSModifierType::GEOMETRYTRANS,                             RSDrawableSlot::INVALID },
-    { RSModifierType::CUSTOM_CLIP_TO_FRAME,                      RSDrawableSlot::CUSTOM_CLIP_TO_FRAME },
-    { RSModifierType::HDR_BRIGHTNESS,                            RSDrawableSlot::INVALID },
-    { RSModifierType::BEHIND_WINDOW_FILTER_RADIUS,               RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BEHIND_WINDOW_FILTER_SATURATION,           RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS,           RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR,           RSDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::CHILDREN,                                  RSDrawableSlot::CHILDREN },
-};
-
 static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_propertyToDrawableLutNG = {
     { ModifierNG::RSModifierType::INVALID,                      RSDrawableSlot::INVALID },
     { ModifierNG::RSModifierType::BOUNDS,                       RSDrawableSlot::CLIP_TO_BOUNDS },
@@ -229,7 +68,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
-template<RSModifierType type>
+template<ModifierNG::RSModifierType type>
 static inline RSDrawable::Ptr ModifierGenerator(const RSRenderNode& node)
 {
     return RSCustomModifierDrawable::OnGenerate(node, type);
@@ -242,61 +81,61 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr, // SAVE_ALL
 
     // Bounds Geometry
-    RSMaskDrawable::OnGenerate,                    // MASK,
-    ModifierGenerator<RSModifierType::TRANSITION>, // TRANSITION,
-    RSEnvFGColorDrawable::OnGenerate,              // ENV_FOREGROUND_COLOR,
-    RSShadowDrawable::OnGenerate,                  // SHADOW,
-    RSForegroundFilterDrawable::OnGenerate,        // FOREGROUND_FILTER
-    RSOutlineDrawable::OnGenerate,                 // OUTLINE,
+    RSMaskDrawable::OnGenerate,                                      // MASK,
+    ModifierGenerator<ModifierNG::RSModifierType::TRANSITION_STYLE>, // TRANSITION_STYLE,
+    RSEnvFGColorDrawable::OnGenerate,                                // ENV_FOREGROUND_COLOR,
+    RSShadowDrawable::OnGenerate,                                    // SHADOW,
+    RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
+    RSOutlineDrawable::OnGenerate,                                   // OUTLINE,
 
     // BG properties in Bounds Clip
-    nullptr,                                             // BG_SAVE_BOUNDS,
-    nullptr,                                             // CLIP_TO_BOUNDS,
-    RSBeginBlenderDrawable::OnGenerate,                  // BLENDER,
-    RSBackgroundColorDrawable::OnGenerate,               // BACKGROUND_COLOR,
-    RSBackgroundShaderDrawable::OnGenerate,              // BACKGROUND_SHADER,
-    RSBackgroundNGShaderDrawable::OnGenerate,            // BACKGROUND_NG_SHADER,
-    RSBackgroundImageDrawable::OnGenerate,               // BACKGROUND_IMAGE,
-    RSBackgroundFilterDrawable::OnGenerate,              // BACKGROUND_FILTER,
-    RSUseEffectDrawable::OnGenerate,                     // USE_EFFECT,
-    ModifierGenerator<RSModifierType::BACKGROUND_STYLE>, // BACKGROUND_STYLE,
-    RSDynamicLightUpDrawable::OnGenerate,                // DYNAMIC_LIGHT_UP,
-    RSEnvFGColorStrategyDrawable::OnGenerate,            // ENV_FOREGROUND_COLOR_STRATEGY,
-    nullptr,                                             // BG_RESTORE_BOUNDS,
+    nullptr,                                                         // BG_SAVE_BOUNDS,
+    nullptr,                                                         // CLIP_TO_BOUNDS,
+    RSBeginBlenderDrawable::OnGenerate,                              // BLENDER,
+    RSBackgroundColorDrawable::OnGenerate,                           // BACKGROUND_COLOR,
+    RSBackgroundShaderDrawable::OnGenerate,                          // BACKGROUND_SHADER,
+    RSBackgroundNGShaderDrawable::OnGenerate,                        // BACKGROUND_NG_SHADER,
+    RSBackgroundImageDrawable::OnGenerate,                           // BACKGROUND_IMAGE,
+    RSBackgroundFilterDrawable::OnGenerate,                          // BACKGROUND_FILTER,
+    RSUseEffectDrawable::OnGenerate,                                 // USE_EFFECT,
+    ModifierGenerator<ModifierNG::RSModifierType::BACKGROUND_STYLE>, // BACKGROUND_STYLE,
+    RSDynamicLightUpDrawable::OnGenerate,                            // DYNAMIC_LIGHT_UP,
+    RSEnvFGColorStrategyDrawable::OnGenerate,                        // ENV_FOREGROUND_COLOR_STRATEGY,
+    nullptr,                                                         // BG_RESTORE_BOUNDS,
 
     // Frame Geometry
-    nullptr,                                             // SAVE_FRAME,
-    RSFrameOffsetDrawable::OnGenerate,                   // FRAME_OFFSET,
-    RSClipToFrameDrawable::OnGenerate,                   // CLIP_TO_FRAME,
-    RSCustomClipToFrameDrawable::OnGenerate,             // CUSTOM_CLIP_TO_FRAME,
-    ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
-    RSChildrenDrawable::OnGenerate,                      // CHILDREN,
-    ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
-    nullptr,                                             // RESTORE_FRAME,
+    nullptr,                                                         // SAVE_FRAME,
+    RSFrameOffsetDrawable::OnGenerate,                               // FRAME_OFFSET,
+    RSClipToFrameDrawable::OnGenerate,                               // CLIP_TO_FRAME,
+    RSCustomClipToFrameDrawable::OnGenerate,                         // CUSTOM_CLIP_TO_FRAME,
+    ModifierGenerator<ModifierNG::RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
+    RSChildrenDrawable::OnGenerate,                                  // CHILDREN,
+    ModifierGenerator<ModifierNG::RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
+    nullptr,                                                         // RESTORE_FRAME,
 
     // FG properties in Bounds clip
-    nullptr,                                 // FG_SAVE_BOUNDS,
-    nullptr,                                 // FG_CLIP_TO_BOUNDS,
-    RSBinarizationDrawable::OnGenerate,      // BINARIZATION,
-    RSColorFilterDrawable::OnGenerate,       // COLOR_FILTER,
-    RSLightUpEffectDrawable::OnGenerate,     // LIGHT_UP_EFFECT,
-    RSDynamicDimDrawable::OnGenerate,        // DYNAMIC_DIM,
-    RSCompositingFilterDrawable::OnGenerate, // COMPOSITING_FILTER,
-    RSForegroundColorDrawable::OnGenerate,   // FOREGROUND_COLOR,
-    RSForegroundShaderDrawable::OnGenerate,  // FOREGROUND_SHADER,
-    nullptr,                                 // FG_RESTORE_BOUNDS,
+    nullptr,                                                         // FG_SAVE_BOUNDS,
+    nullptr,                                                         // FG_CLIP_TO_BOUNDS,
+    RSBinarizationDrawable::OnGenerate,                              // BINARIZATION,
+    RSColorFilterDrawable::OnGenerate,                               // COLOR_FILTER,
+    RSLightUpEffectDrawable::OnGenerate,                             // LIGHT_UP_EFFECT,
+    RSDynamicDimDrawable::OnGenerate,                                // DYNAMIC_DIM,
+    RSCompositingFilterDrawable::OnGenerate,                         // COMPOSITING_FILTER,
+    RSForegroundColorDrawable::OnGenerate,                           // FOREGROUND_COLOR,
+    RSForegroundShaderDrawable::OnGenerate,                          // FOREGROUND_SHADER,
+    nullptr,                                                         // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
-    RSPointLightDrawable::OnGenerate,                 // POINT_LIGHT,
-    RSBorderDrawable::OnGenerate,                     // BORDER,
-    ModifierGenerator<RSModifierType::OVERLAY_STYLE>, // OVERLAY,
-    RSParticleDrawable::OnGenerate,                   // PARTICLE_EFFECT,
-    RSPixelStretchDrawable::OnGenerate,               // PIXEL_STRETCH,
+    RSPointLightDrawable::OnGenerate,                                // POINT_LIGHT,
+    RSBorderDrawable::OnGenerate,                                    // BORDER,
+    ModifierGenerator<ModifierNG::RSModifierType::OVERLAY_STYLE>,    // OVERLAY,
+    RSParticleDrawable::OnGenerate,                                  // PARTICLE_EFFECT,
+    RSPixelStretchDrawable::OnGenerate,                              // PIXEL_STRETCH,
 
     // Restore state
-    RSEndBlenderDrawable::OnGenerate,               // RESTORE_BLENDER,
-    RSForegroundFilterRestoreDrawable::OnGenerate,  // RESTORE_FOREGROUND_FILTER
-    nullptr,                                        // RESTORE_ALL,
+    RSEndBlenderDrawable::OnGenerate,                                // RESTORE_BLENDER,
+    RSForegroundFilterRestoreDrawable::OnGenerate,                   // RESTORE_FOREGROUND_FILTER
+    nullptr,                                                         // RESTORE_ALL,
 };
 
 enum DrawableVecStatus : uint8_t {
@@ -550,62 +389,6 @@ inline void MarkAffectedSlots(const std::array<RSDrawableSlot, SIZE>& affectedSl
     }
 }
 } // namespace
-
-std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
-    const ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec)
-{
-    // Step 1.1: calculate dirty slots by looking up g_propertyToDrawableLut
-    std::unordered_set<RSDrawableSlot> dirtySlots;
-    for (const auto& [modifierType, drawableSlot] : g_propertyToDrawableLut) {
-        if (dirtyTypes.test(static_cast<size_t>(modifierType)) && drawableSlot != RSDrawableSlot::INVALID) {
-            dirtySlots.emplace(drawableSlot);
-        }
-    }
-
-    // Step 1.2: expand dirty slots by rules
-    // if bounds or cornerRadius changed, mark affected drawables as dirty
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::BOUNDS)) ||
-        dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS)) ||
-        dirtyTypes.test(static_cast<size_t>(RSModifierType::CLIP_BOUNDS))) {
-        MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
-    }
-
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::SHADOW_MASK)) || dirtySlots.count(RSDrawableSlot::SHADOW)) {
-        dirtySlots.emplace(RSDrawableSlot::SHADOW);
-        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_FILTER);
-    }
-
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::FRAME_GRAVITY))) {
-        dirtySlots.emplace(RSDrawableSlot::CONTENT_STYLE);
-        dirtySlots.emplace(RSDrawableSlot::FOREGROUND_STYLE);
-    }
-
-    // if frame changed, mark affected drawables as dirty
-    if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
-        MarkAffectedSlots(frameDirtyTypes, drawableVec, dirtySlots);
-    }
-
-    // if border changed, mark affected drawables as dirty
-    if (dirtySlots.count(RSDrawableSlot::BORDER)) {
-        MarkAffectedSlots(borderDirtyTypes, drawableVec, dirtySlots);
-    }
-
-    // PLANNING: merge these restore operations with RESTORE_ALL drawable
-    if (dirtySlots.count(RSDrawableSlot::FOREGROUND_FILTER)) {
-        dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
-    }
-
-    // if pixel-stretch changed, mark affected drawables as dirty
-    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
-        MarkAffectedSlots(stretchDirtyTypes, drawableVec, dirtySlots);
-    }
-    // if background filter changed, mark affected drawables as dirty
-    if (dirtySlots.count(RSDrawableSlot::BACKGROUND_FILTER)) {
-        MarkAffectedSlots(bgfilterDirtyTypes, drawableVec, dirtySlots);
-    }
-
-    return dirtySlots;
-}
 
 std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     const ModifierNG::ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec)

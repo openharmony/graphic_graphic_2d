@@ -145,12 +145,6 @@ void RSAnimationTraceUtils::AddAnimationFinishTrace(
     }
 }
 
-std::string RSAnimationTraceUtils::GetModifierTypeString(RSModifierType type) const
-{
-    auto modifierTypeString = std::make_shared<RSModifierTypeString>();
-    return modifierTypeString->GetModifierTypeString(type);
-}
-
 std::string RSAnimationTraceUtils::GetAnimationTypeString(ImplicitAnimationParamType type) const
 {
     switch (type) {
@@ -202,21 +196,6 @@ std::string RSAnimationTraceUtils::GetNodeTypeString(RSUINodeType type) const
 }
 
 void RSAnimationTraceUtils::AddAnimationCallFinishTrace(
-    const uint64_t nodeId, const uint64_t animationId, RSModifierType type, bool isAddLogInfo) const
-{
-    if (!isDebugEnabled_) {
-        return;
-    }
-    RS_TRACE_NAME_FMT("Animation Call FinishCallback node[%llu] animate[%llu] propertyType[%s]", nodeId, animationId,
-        GetModifierTypeString(type).c_str());
-    if (isAddLogInfo) {
-        ROSEN_LOGI("Animation Call FinishCallback node[%{public}" PRIu64 "] animate[%{public}" PRIu64 "]"
-                   "propertyType[%{public}s]",
-            nodeId, animationId, GetModifierTypeString(type).c_str());
-    }
-}
-
-void RSAnimationTraceUtils::AddAnimationCallFinishTrace(
     const uint64_t nodeId, const uint64_t animationId, ModifierNG::RSPropertyType propertyType, bool isAddLogInfo) const
 {
     if (!isDebugEnabled_) {
@@ -230,52 +209,6 @@ void RSAnimationTraceUtils::AddAnimationCallFinishTrace(
                    "propertyType[%{public}s]",
             nodeId, animationId, propertyTypeStr.c_str());
     }
-}
-
-void RSAnimationTraceUtils::AddAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName,
-    const uint64_t propertyId, const uint64_t animationId, const ImplicitAnimationParamType animationType,
-    const RSModifierType propertyType, const std::shared_ptr<RSRenderPropertyBase>& startValue,
-    const std::shared_ptr<RSRenderPropertyBase>& endValue, const int animationDelay, const int animationDur,
-    const int repeat, const std::string& interfaceName, const int32_t frameNodeId, const std::string& frameNodeTag,
-    RSUINodeType nodeType) const
-{
-    if (!isDebugEnabled_) {
-        return;
-    }
-
-    std::ostringstream oss;
-    oss << "CreateImplicitAnimation node[" << nodeId << "]";
-
-    if (!nodeName.empty()) {
-        oss << " name[" << nodeName << "]";
-    }
-
-    oss << " animate[" << animationId << "] animateType[" << GetAnimationTypeString(animationType) << "] dur["
-        << animationDur << "]";
-
-    if (animationDelay != 0) {
-        oss << " delay[" << animationDelay << "]";
-    }
-
-    if (repeat != 1) {
-        oss << " repeat[" << repeat << "]";
-    }
-
-    if (!interfaceName.empty()) {
-        oss << " interfaceName[" << interfaceName << "]";
-    }
-
-    oss << " frameNodeId[" << frameNodeId << "] frameNodeTag[" << frameNodeTag << "] nodeType["
-        << GetNodeTypeString(nodeType) << "]";
-
-    RS_TRACE_NAME_FMT("%s", oss.str().c_str());
-
-    std::ostringstream propertyOss;
-    propertyOss << "CreateImplicitAnimation pro[" << propertyId << "] propertyType["
-                << GetModifierTypeString(propertyType) << "] startValue[" << ParseRenderPropertyValue(startValue)
-                << "] endValue[" << ParseRenderPropertyValue(endValue) << "]";
-
-    RS_TRACE_NAME_FMT("%s", propertyOss.str().c_str());
 }
 
 void RSAnimationTraceUtils::AddAnimationCreateTrace(const uint64_t nodeId, const std::string& nodeName,

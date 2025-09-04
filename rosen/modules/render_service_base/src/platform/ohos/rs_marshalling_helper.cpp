@@ -48,7 +48,6 @@
 #include "effect/rs_render_shader_base.h"
 #include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
-#include "modifier/rs_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -2896,17 +2895,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderKeyframeAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderSpringAnimation)
 MARSHALLING_AND_UNMARSHALLING(RSRenderPathAnimation)
 #undef MARSHALLING_AND_UNMARSHALLING
-
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderModifier>& val)
-{
-    return val != nullptr && val->Marshalling(parcel);
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderModifier>& val)
-{
-    val.reset(RSRenderModifier::Unmarshalling(parcel));
-    return val != nullptr;
-}
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ModifierNG::RSRenderModifier>& val)
 {

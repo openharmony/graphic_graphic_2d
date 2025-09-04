@@ -3696,6 +3696,7 @@ HWTEST_F(RSNodeTest, SetandGetRotationVector001, TestSize.Level1)
     rsNode->SetRotation(quaternion);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetBackgroundNGFilter
  * @tc.desc: test results of SetBackgroundNGFilter
@@ -3714,6 +3715,7 @@ HWTEST_F(RSNodeTest, SetBackgroundNGFilter, TestSize.Level1)
     rsNode->SetBackgroundNGFilter(nullptr);
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
+#endif
 
 /**
  * @tc.name: SetUIBackgroundFilter
@@ -3733,12 +3735,6 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
 
-    auto para2 = std::make_shared<DisplacementDistortPara>();
-    filterObj->AddPara(para2);
-    auto para3 = std::make_shared<EdgeLightPara>();
-    filterObj->AddPara(para3);
-    rsNode->SetUIBackgroundFilter(filterObj);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     if (filterObj != nullptr) {
         delete filterObj;
         filterObj = nullptr;
@@ -3872,7 +3868,6 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
     EXPECT_EQ(linearGradientBlurPara->fractionStops_, fractionStops);
     EXPECT_EQ(linearGradientBlurPara->direction_, direction);
 }
-#endif // !MODIFIER_NG
 
 /**
  * @tc.name: SetUICompositingFilter004
@@ -3912,6 +3907,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter004, TestSize.Level1)
 
     EXPECT_NE(rsNode->propertyModifiers_.size(), 3);
 }
+#endif
 
 #ifndef MODIFIER_NG
 /**
@@ -3931,12 +3927,6 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
     rsNode->SetUIForegroundFilter(filterObj);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == floatData[1]);
 
-    auto para2 = std::make_shared<DisplacementDistortPara>();
-    filterObj->AddPara(para2);
-    auto para3 = std::make_shared<EdgeLightPara>();
-    filterObj->AddPara(para3);
-    rsNode->SetUIForegroundFilter(filterObj);
-    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     if (filterObj != nullptr) {
         delete filterObj;
         filterObj = nullptr;
@@ -4032,6 +4022,7 @@ HWTEST_F(RSNodeTest, CreateBlurFilter001, TestSize.Level1)
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetForegroundNGFilter001
  * @tc.desc: test results of SetForegroundUIFilter
@@ -4050,6 +4041,7 @@ HWTEST_F(RSNodeTest, SetForegroundNGFilter001, TestSize.Level1)
     rsNode->SetForegroundNGFilter(nullptr);
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
 }
+#endif
 
 /**
  * @tc.name: CreateBlurFilter002
@@ -7610,6 +7602,7 @@ HWTEST_F(RSNodeTest, SyncDrawNodeType, TestSize.Level1)
     ASSERT_EQ(rsNode->drawNodeType_, DrawNodeType::PureContainerType);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: CheckModifierType
  * @tc.desc: test results of CheckModifierType
@@ -7634,6 +7627,7 @@ HWTEST_F(RSNodeTest, CheckModifierType, TestSize.Level1)
     rsNode->CheckModifierType(RSModifierType::QUATERNION);
     ASSERT_EQ(rsNode->drawNodeType_, DrawNodeType::GeometryPropertyType);
 }
+#endif
 
 /**
  * @tc.name: SetPropertyNodeChangeCallback
@@ -8566,6 +8560,7 @@ HWTEST_F(RSNodeTest, SetMagnifierParams, TestSize.Level1)
     ASSERT_TRUE(property != nullptr);
     EXPECT_EQ(property->Get(), para);
 }
+#endif
 
 /**
  * @tc.name: SetIsCustomTextType
@@ -8581,10 +8576,9 @@ HWTEST_F(RSNodeTest, SetIsCustomTextType, TestSize.Level1)
     rsNode->MarkNodeGroup(true, true, true);
     rsNode->MarkNodeGroup(true, true, true);
     ASSERT_TRUE(rsNode->isNodeGroup_);
-    rsNode->SetGrayScale(1.0f);
-    rsNode->SetLightColor(1.0f);
-    ASSERT_NE(rsNode->propertyModifiers_.size(), 0);
 }
+
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SetBloom Test
  * @tc.desc: SetBloom and SetBrightness and SetContrast and SetSaturate

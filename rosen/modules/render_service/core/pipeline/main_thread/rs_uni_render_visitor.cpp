@@ -3382,7 +3382,6 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
         if (parent == nullptr) {
             return;
         }
-        parent->AddDirtyType(RSModifierType::CHILDREN);
         parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
         parent->ApplyModifiers();
         // avoid changing the paired status or unpairedShareTransitions_

@@ -43,8 +43,10 @@
 #include "draw/core_canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
-#include "modifier/rs_modifier_type.h"
-#include "modifier/rs_render_modifier.h"
+#include "modifier_ng/background/rs_background_color_render_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_render_modifier.h"
+#include "modifier_ng/geometry/rs_frame_render_modifier.h"
+#include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -123,9 +125,10 @@ void TestTreeBuilder::CreateNode00(RSContext& context, std::vector<std::shared_p
     }
 
     auto positionZProperty = std::make_shared<RSRenderAnimatableProperty<float>>(visibleZPosition);
-    auto positionZModifier = std::make_shared<RSPositionZRenderModifier>(positionZProperty);
+    auto positionZModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
+    positionZModifier->AttachProperty(ModifierNG::RSPropertyType::POSITION_Z, positionZProperty);
 
-    RSNodeCommandHelper::AddModifier(context, currentId, positionZModifier);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, positionZModifier);
     const auto& node = RSProfiler::GetRenderNode(currentId);
     if (!node) {
         return;
@@ -142,21 +145,25 @@ void TestTreeBuilder::CreateNode01(RSContext& context, std::vector<std::shared_p
 
     auto boundsProperty =
         std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(startX, startY, width, height), zero);
-    auto boundsModifier = std::make_shared<RSBoundsRenderModifier>(boundsProperty);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifier);
+    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifier->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsProperty);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifier);
 
     auto frameProperty =
         std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(startX, startY, width, height), one);
-    auto frameModifier = std::make_shared<RSFrameRenderModifier>(frameProperty);
-    RSNodeCommandHelper::AddModifier(context, currentId, frameModifier);
+    auto frameModifier = std::make_shared<ModifierNG::RSFrameRenderModifier>();
+    frameModifier->AttachProperty(ModifierNG::RSPropertyType::FRAME, frameProperty);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, frameModifier);
 
     auto positionZProperty = std::make_shared<RSRenderAnimatableProperty<float>>(visibleZPosition, two);
-    auto positionZModifier = std::make_shared<RSPositionZRenderModifier>(positionZProperty);
-    RSNodeCommandHelper::AddModifier(context, currentId, positionZModifier);
+    auto positionZModifier = std::make_shared<ModifierNG::RSTransformRenderModifier>();
+    positionZModifier->AttachProperty(ModifierNG::RSPropertyType::POSITION_Z, positionZProperty);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, positionZModifier);
 
     auto backgroundColorProperty = std::make_shared<RSRenderAnimatableProperty<Color>>(almostWhite_, three);
-    auto backgroundColorModifier = std::make_shared<RSBackgroundColorRenderModifier>(backgroundColorProperty);
-    RSNodeCommandHelper::AddModifier(context, currentId, backgroundColorModifier);
+    auto backgroundColorModifier = std::make_shared<ModifierNG::RSBackgroundColorRenderModifier>();
+    backgroundColorModifier->AttachProperty(ModifierNG::RSPropertyType::BACKGROUND_COLOR, backgroundColorProperty);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, backgroundColorModifier);
 
     BaseNodeCommandHelper::AddChild(context, currentId - one, currentId, zero);
 
@@ -176,8 +183,9 @@ void TestTreeBuilder::CreateNode02(RSContext& context, std::vector<std::shared_p
     RSCanvasDrawingNodeCommandHelper::Create(context, currentId);
 
     auto boundsPropertyV11 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0, 0, width13, height));
-    auto boundsModifierV11 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV11);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV11);
+    auto boundsModifierV11 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV11->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV11);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV11);
 
     BaseNodeCommandHelper::AddChild(context, currentId - one, currentId, zero);
 
@@ -198,8 +206,9 @@ void TestTreeBuilder::CreateNode03(RSContext& context, std::vector<std::shared_p
 
     auto boundsPropertyV20 =
         std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, 0, width23, height));
-    auto boundsModifierV20 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV20);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV20);
+    auto boundsModifierV20 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV20->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV20);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV20);
 
     BaseNodeCommandHelper::AddChild(context, currentId - two, currentId, zero);
 
@@ -219,8 +228,9 @@ void TestTreeBuilder::CreateNode04(RSContext& context, std::vector<std::shared_p
     EffectNodeCommandHelper::Create(context, currentId);
 
     auto boundsPropertyV12 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0, 0, width13, height));
-    auto boundsModifierV12 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV12);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV12);
+    auto boundsModifierV12 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV12->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV12);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV12);
 
     BaseNodeCommandHelper::AddChild(context, currentId - one, currentId, zero);
 
@@ -249,20 +259,17 @@ void TestTreeBuilder::CreateNode05(RSContext& context, std::vector<std::shared_p
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmds->AddDrawOp(drawRoundRect);
-#if defined(MODIFIER_NG)
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
-#else
-    RSCanvasNodeCommandHelper::UpdateRecording(
-        context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
-#endif
 
     auto boundsPropertyV120 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0, 0, width13, height));
-    auto boundsModifierV120 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV120);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV120);
+    auto boundsModifierV120 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV120->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV120);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV120);
 
-    auto frameModifierV120 = std::make_shared<RSFrameRenderModifier>(boundsPropertyV120);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV120);
+    auto frameModifierV120 = std::make_shared<ModifierNG::RSFrameRenderModifier>();
+    frameModifierV120->AttachProperty(ModifierNG::RSPropertyType::FRAME, boundsPropertyV120);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV120);
 
     BaseNodeCommandHelper::AddChild(context, currentId - one, currentId, zero);
 
@@ -283,18 +290,14 @@ void TestTreeBuilder::CreateNode06(RSContext& context, std::vector<std::shared_p
 
     auto boundsPropertyV21 =
         std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, 0, width13, height13));
-    auto boundsModifierV21 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV21);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV21);
+    auto boundsModifierV21 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV21->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV21);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV21);
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-#if defined(MODIFIER_NG)
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
-#else
-    RSCanvasNodeCommandHelper::UpdateRecording(
-        context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
-#endif
 
     BaseNodeCommandHelper::AddChild(context, currentId - three, currentId, zero);
 
@@ -315,18 +318,14 @@ void TestTreeBuilder::CreateNode07(RSContext& context, std::vector<std::shared_p
 
     auto boundsPropertyV22 =
         std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, height13, width13, height13));
-    auto boundsModifierV22 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV22);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV22);
+    auto boundsModifierV22 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV22->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV22);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV22);
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-#if defined(MODIFIER_NG)
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::BACKGROUND_STYLE));
-#else
-    RSCanvasNodeCommandHelper::UpdateRecording(
-        context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::BACKGROUND_STYLE));
-#endif
     BaseNodeCommandHelper::AddChild(context, currentId - four, currentId, zero);
 
     auto node = RSProfiler::GetRenderNode(currentId);
@@ -345,14 +344,16 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
     RSCanvasNodeCommandHelper::Create(context, currentId);
 
     auto boundsPropertyV23 =
-        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, height23, width13, height13));
-    auto boundsModifierV23 = std::make_shared<RSBoundsRenderModifier>(boundsPropertyV23);
-    RSNodeCommandHelper::AddModifier(context, currentId, boundsModifierV23);
+        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, height23, width13, height23));
+    auto boundsModifierV23 = std::make_shared<ModifierNG::RSBoundsRenderModifier>();
+    boundsModifierV23->AttachProperty(ModifierNG::RSPropertyType::BOUNDS, boundsPropertyV23);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, boundsModifierV23);
 
     auto framePropertyV23 =
-        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, height23, width13, height13));
-    auto frameModifierV23 = std::make_shared<RSBoundsRenderModifier>(framePropertyV23);
-    RSNodeCommandHelper::AddModifier(context, currentId, frameModifierV23);
+        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(width13, height23, width13, height23));
+    auto frameModifierV23 = std::make_shared<ModifierNG::RSFrameRenderModifier>();
+    frameModifierV23->AttachProperty(ModifierNG::RSPropertyType::FRAME, framePropertyV23);
+    RSNodeCommandHelper::AddModifierNG(context, currentId, frameModifierV23);
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
@@ -367,21 +368,12 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
     auto clipAdaptiveRoundRectOpItemPtr =
         std::make_shared<Drawing::ClipAdaptiveRoundRectOpItem>(clipAdaptiveRoundRectOpItem);
     drawCmds->AddDrawOp(clipAdaptiveRoundRectOpItemPtr);
-#if defined(MODIFIER_NG)
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
 
     RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
         static_cast<uint16_t>(ModifierNG::RSModifierType::OVERLAY_STYLE));
-#else
-    RSCanvasNodeCommandHelper::UpdateRecording(
-        context, currentId, drawCmds, static_cast<uint16_t>(RSModifierType::CONTENT_STYLE));
-
-    RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
-        std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
-        static_cast<uint16_t>(RSModifierType::OVERLAY_STYLE));
-#endif
 
     BaseNodeCommandHelper::AddChild(context, currentId - five, currentId, zero);
 

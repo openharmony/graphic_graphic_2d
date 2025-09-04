@@ -16,7 +16,6 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_EFFECT_RENDER_NODE_H
 
 #include "common/rs_macros.h"
-#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_node.h"
 #include "screen_manager/screen_types.h"
 

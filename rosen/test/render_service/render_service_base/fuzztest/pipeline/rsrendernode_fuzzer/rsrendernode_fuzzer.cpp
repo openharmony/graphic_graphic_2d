@@ -169,7 +169,7 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
     // getdata
     NodeId id = GetData<NodeId>();
     DrawBuffer drawBuffer = GetData<DrawBuffer>();
-    RSModifierType type = GetData<RSModifierType>();
+    ModifierNG::RSModifierType type = GetData<ModifierNG::RSModifierType>();
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = Drawing::DrawCmdList::CreateFromData(
         { &drawBuffer, sizeof(DrawBuffer) }, true);
     Drawing::Canvas tmpCanvas;
@@ -178,7 +178,7 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
     RSCanvasRenderNode node(id);
 
     // test
-    node.UpdateRecording(drawCmds, type);
+    node.UpdateRecordingNG(drawCmds, type);
     node.ProcessRenderBeforeChildren(canvas);
     node.ProcessRenderContents(canvas);
     node.ProcessRenderAfterChildren(canvas);

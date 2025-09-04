@@ -24,7 +24,6 @@
 
 #include "recording/recording_canvas.h"
 
-#include "modifier/rs_modifier_type.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 
 namespace OHOS::Rosen {
@@ -154,8 +153,6 @@ public:
 
     // static generate & update helper methods
     // Step 1, calculate dirtySlots based on dirty modifiers
-    static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(
-        const ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlotsNG(
         const ModifierNG::ModifierDirtyTypes& dirtyTypes, const Vec& drawableVec);
     // Step 2, for every dirtySlot, update or generate RSDrawable

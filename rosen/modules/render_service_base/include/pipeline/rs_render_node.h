@@ -44,7 +44,6 @@
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_snapshot.h"
-#include "modifier/rs_render_modifier.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -86,6 +85,7 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     using ModifierNGContainer = std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>;
+    using ModifiersNGContainer = std::array<ModifierNGContainer, ModifierNG::MODIFIER_TYPE_COUNT>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
     std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
@@ -425,11 +425,6 @@ public:
         GetMutableRenderProperties().ResetDirty();
     }
 
-    virtual void AddDirtyType(RSModifierType type)
-    {
-        dirtyTypes_.set(static_cast<int>(type), true);
-    }
-
     virtual void AddDirtyType(ModifierNG::RSModifierType type)
     {
         dirtyTypesNG_.set(static_cast<int>(type), true);
@@ -531,10 +526,7 @@ public:
     void UnregisterProperty(const std::shared_ptr<RSRenderPropertyBase>& property);
     void UnregisterProperty(PropertyId id);
 
-    void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
-    void RemoveAllModifiers();
-    std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
     void AddModifier(const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(ModifierNG::RSModifierType type, ModifierId id);
@@ -543,6 +535,7 @@ public:
     std::shared_ptr<ModifierNG::RSRenderModifier> GetModifierNG(
         ModifierNG::RSModifierType type, ModifierId id = 0) const;
     const ModifierNGContainer& GetModifiersNG(ModifierNG::RSModifierType type) const;
+    const ModifiersNGContainer& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
     bool HasContentStyleModifierOnly() const;
 
@@ -577,12 +570,6 @@ public:
     bool IsPureBackgroundColor() const;
     void SetDrawNodeType(DrawNodeType nodeType);
     DrawNodeType GetDrawNodeType() const;
-
-    using DrawCmdContainer = std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>>;
-    inline const DrawCmdContainer& GetDrawCmdModifiers() const
-    {
-        return drawCmdModifiers_;
-    }
 
     using ClearCacheSurfaceFunc =
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
@@ -758,7 +745,6 @@ public:
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 
-    void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
@@ -821,7 +807,6 @@ public:
 
     void MarkNonGeometryChanged();
 
-    void ApplyModifier(RSModifierContext& context, std::shared_ptr<RSRenderModifier> modifier);
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
@@ -1115,7 +1100,6 @@ protected:
     void AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent);
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
-    void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
 
     virtual void InitRenderParams();
     virtual void OnSync();
@@ -1176,8 +1160,6 @@ protected:
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     RectI filterRegion_;
-    ModifierDirtyTypes dirtyTypes_;
-    ModifierDirtyTypes curDirtyTypes_;
 
     ModifierNG::ModifierDirtyTypes dirtyTypesNG_;
     ModifierNG::ModifierDirtyTypes curDirtyTypesNG_;
@@ -1294,9 +1276,6 @@ private:
     NodeId logicalDisplayNodeId_ = INVALID_NODEID;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
     // bounds and frame modifiers must be unique
-    std::shared_ptr<RSRenderModifier> boundsModifier_;
-    std::shared_ptr<RSRenderModifier> frameModifier_;
-
     std::shared_ptr<ModifierNG::RSRenderModifier> boundsModifierNG_;
     std::shared_ptr<ModifierNG::RSRenderModifier> frameModifierNG_;
 
@@ -1350,10 +1329,8 @@ private:
     RectI lastFilterRegion_;
     std::vector<SharedPtr> cloneCrossNodeVec_;
     bool hasVisitedCrossNode_ = false;
-    std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
 
-    std::array<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>, ModifierNG::MODIFIER_TYPE_COUNT>
-        modifiersNG_;
+    std::array<ModifierNGContainer, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNG_;
     std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
@@ -1394,7 +1371,6 @@ private:
     std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
 
     RSProperties renderProperties_;
-    DrawCmdContainer drawCmdModifiers_;
 
     // for blur effct count
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
@@ -1431,7 +1407,6 @@ private:
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
     bool UpdateSelfDrawRect();
-    bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);

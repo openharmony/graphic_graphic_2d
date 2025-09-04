@@ -44,7 +44,6 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_animatable_arithmetic.h"
-#include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -236,7 +235,6 @@ protected:
     float GetThresholdByThresholdType(ThresholdType thresholdType) const;
 
     PropertyId id_;
-    ModifierNG::RSPropertyType type_ { ModifierNG::RSPropertyType::INVALID };
     std::weak_ptr<RSNode> target_;
     std::weak_ptr<ModifierNG::RSModifier> modifierNG_;
 

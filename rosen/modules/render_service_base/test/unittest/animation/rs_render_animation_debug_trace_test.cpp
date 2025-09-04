@@ -17,7 +17,6 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "common/rs_color.h"
-#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_root_render_node.h"
 
 using namespace testing;
@@ -35,7 +34,6 @@ public:
     static constexpr uint64_t NODE_ID = 123456;
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
-    static constexpr RSModifierType MODIFIER_TYPE = RSModifierType::BOUNDS;
     static constexpr ModifierNG::RSPropertyType MODIFIER_NG_TYPE = ModifierNG::RSPropertyType::INVALID;
     static constexpr ImplicitAnimationParamType ANIMATION_TYPE = ImplicitAnimationParamType::CURVE;
     const std::string NODE_NAME = "test";
@@ -214,27 +212,6 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, ParseRenderPropertyValue001, TestSize.
 }
 
 /**
- * @tc.name: AddAnimationCallFinishTrace
- * @tc.desc: Verify the AddAnimationCallFinishTrace
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCallFinishTrace, TestSize.Level1)
-{
-    RSAnimationTraceUtils::isDebugEnabled_ = true;
-    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_TYPE, false);
-    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_TYPE, true);
-
-    RSAnimationTraceUtils::isDebugEnabled_ = false;
-    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_TYPE, false);
-    RSRenderNode renderNode(NODE_ID);
-    EXPECT_TRUE(renderNode.GetNodeName().empty());
-
-    RSAnimationTraceUtils::isDebugEnabled_ = false;
-    RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_TYPE, false);
-    EXPECT_TRUE(renderNode.GetNodeName().empty());
-}
-
-/**
  * @tc.name: AddAnimationCallFinishTrace01
  * @tc.desc: Verify the AddAnimationCallFinishTrace01
  * @tc.type:FUNC
@@ -252,46 +229,6 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCallFinishTrace01, TestSiz
 
     RSAnimationTraceUtils::isDebugEnabled_ = false;
     RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(NODE_ID, ANIMATION_ID, MODIFIER_NG_TYPE, false);
-    EXPECT_TRUE(renderNode.GetNodeName().empty());
-}
-
-/**
- * @tc.name: AddAnimationCreateTrace
- * @tc.desc: Verify the AddAnimationCreateTrace
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationCreateTrace, TestSize.Level1)
-{
-    RSAnimationTraceUtils::GetInstance().isDebugEnabled_ = true;
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
-    int repeatCount = 1;
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID,
-        ANIMATION_TYPE, MODIFIER_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
-        NODE_TYPE);
-
-    // nodeName empty
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
-        MODIFIER_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME, NODE_TYPE);
-    // animationDelay != 0
-    int animationDelay = 1; // test animationDelay = 1
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
-        MODIFIER_TYPE, startValue, endValue, animationDelay, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
-        NODE_TYPE);
-    repeatCount = -1; // test repeatCount = -1
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
-        MODIFIER_TYPE, startValue, endValue, animationDelay, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
-        NODE_TYPE);
-    // interfaceName empty
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, "", PROPERTY_ID, ANIMATION_ID, ANIMATION_TYPE,
-        MODIFIER_TYPE, startValue, endValue, animationDelay, 0, repeatCount, "", NODE_ID, INTERFACE_NAME, NODE_TYPE);
-
-    RSAnimationTraceUtils::GetInstance().isDebugEnabled_ = false;
-    RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID,
-        ANIMATION_TYPE, MODIFIER_TYPE, startValue, endValue, 0, 0, repeatCount, INTERFACE_NAME, NODE_ID, INTERFACE_NAME,
-        NODE_TYPE);
-    RSRenderNode renderNode(NODE_ID);
-    RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
     EXPECT_TRUE(renderNode.GetNodeName().empty());
 }
 
@@ -396,6 +333,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, OnAnimationTraceEnabledChangedCallback
     EXPECT_FALSE(RSAnimationTraceUtils::isDebugEnabled_);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetModifierTypeString
  * @tc.desc: Verify the GetModifierTypeString
@@ -407,6 +345,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, GetModifierTypeString, TestSize.Level1
 
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().GetModifierTypeString(RSModifierType::QUATERNION), "Quaternion");
 }
+#endif // !MODIFIER_NG
 
 /**
  * @tc.name: GetAnimationTypeString

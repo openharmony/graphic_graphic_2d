@@ -29,7 +29,6 @@
 #include "customized/random_rs_image.h"
 #include "customized/random_rs_mask.h"
 #include "customized/random_rs_path.h"
-#include "customized/random_rs_render_modifier.h"
 #include "customized/random_rs_render_particle.h"
 #include "customized/random_rs_render_property_base.h"
 #include "customized/random_rs_shader.h"
@@ -246,11 +245,6 @@ Vector4<Color> RandomDataCustomizedType::GetRandomColorVector4()
     Color w = GetRandomColor();
     Vector4<Color> vector(x, y, z, w);
     return vector;
-}
-
-std::shared_ptr<RSRenderModifier> RandomDataCustomizedType::GetRandomRSRenderModifierSharedPtr()
-{
-    return RandomRSRenderModifier::GetRandomRSRenderModifier();
 }
 
 std::shared_ptr<RSFilter> RandomDataCustomizedType::GetRandomRSFilterSharedPtr()

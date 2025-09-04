@@ -61,7 +61,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     g_data = data;
     g_size = size;
     g_pos = 0;
-
+#ifndef MODIFIER_NG
     int16_t value = GetData<int16_t>();
     int ipcThreadId = GetData<int>();
     int pid = GetData<int>();
@@ -87,6 +87,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rSSingleFrameComposer.FindSingleFrameModifier(modifierList);
     rSSingleFrameComposer.EraseSingleFrameModifier(modifierList);
     rSSingleFrameComposer.SingleFrameModifierAdd(modifierList, modifierList);
+#endif
     return true;
 }
 } // namespace Rosen
