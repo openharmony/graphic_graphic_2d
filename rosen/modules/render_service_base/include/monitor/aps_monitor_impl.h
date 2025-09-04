@@ -16,9 +16,9 @@
 #ifndef RENDER_SERVICE_BASE_APS_MONITOR_IMPL_H
 #define RENDER_SERVICE_BASE_APS_MONITOR_IMPL_H
 
-#include <map>
-#include <string>
 #include <set>
+#include <string>
+#include <unordered_map>
 
 namespace OHOS {
 namespace Rosen {
@@ -29,19 +29,16 @@ public:
     void SetApsSurfaceDestroyedInfo(std::string id);
     void SetApsSurfaceNodeTreeChange(bool onTree, std::string name);
     static ApsMonitorImpl& GetInstance();
-    using SendApsEventFunc = void (*)(int32_t, std::map<std::string, std::string>);
-    using SetBoundChangeFunc = void (*)(std::string height, std::string width, std::string id);
-    using SetSurfaceDestroyedFunc = void (*)(std::string id);
 
 private:
     ApsMonitorImpl() = default;
     ~ApsMonitorImpl();
-    bool IsCloseAps();
     void LoadApsFuncsOnce();
+
+    using SendApsEventFunc = void (*)(std::string, std::unordered_map<std::string, std::string>);
+
     void* loadFileHandle_ = nullptr;
     SendApsEventFunc sendApsEventFunc_ = nullptr;
-    SetBoundChangeFunc setBoundChangeFunc_ = nullptr;
-    SetSurfaceDestroyedFunc setSurfaceDestroyedFunc_ = nullptr;
     bool isApsFuncsAvailable_ = true;
     bool isApsFuncsLoad_ = false;
 };
