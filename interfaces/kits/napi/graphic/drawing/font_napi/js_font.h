@@ -70,8 +70,12 @@ public:
     static napi_value CreatePathForText(napi_env env, napi_callback_info info);
     static napi_value SetThemeFontFollowed(napi_env env, napi_callback_info info);
     static napi_value IsThemeFontFollowed(napi_env env, napi_callback_info info);
+    static napi_value FontTransferDynamic(napi_env env, napi_callback_info info);
 
-    std::shared_ptr<Font> GetFont();
+    std::shared_ptr<Font> GetFont()
+    {
+        return m_font;
+    }
     void SetFont(std::shared_ptr<Font> font);
 
 private:

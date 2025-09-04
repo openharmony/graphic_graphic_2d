@@ -14,6 +14,11 @@
  */
 #include "ani_pen.h"
 #include "color_filter_ani/ani_color_filter.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/pen_napi/js_pen.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -47,12 +52,24 @@ ani_status AniPen::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
+    std::array staticMethods = {
+        ani_native_function { "penTransferStaticNative", nullptr, reinterpret_cast<void*>(PenTransferStatic) },
+        ani_native_function { "getPenAddr", nullptr, reinterpret_cast<void*>(GetPenAddr) },
+    };
+
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_PEN_NAME);
+        return ANI_NOT_FOUND;
+    }
+
     return ANI_OK;
 }
 
 void AniPen::Constructor(ani_env* env, ani_object obj)
 {
-    AniPen* aniPen = new AniPen();
+    std::shared_ptr<Pen> pen = std::make_shared<Pen>();
+    AniPen* aniPen = new AniPen(pen);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
         delete aniPen;
@@ -67,8 +84,9 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
-
-    AniPen* newAniPen = new AniPen(aniPen->GetPen());
+    std::shared_ptr<Pen> other = aniPen->GetPen();
+    std::shared_ptr<Pen> pen = other == nullptr ? std::make_shared<Pen>() : std::make_shared<Pen>(*other);
+    AniPen* newAniPen = new AniPen(pen);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
         delete newAniPen;
@@ -79,29 +97,29 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
 ani_int AniPen::GetAlpha(ani_env* env, ani_object obj)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
-    if (aniPen == nullptr) {
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return -1;
     }
 
-    return aniPen->GetPen().GetAlpha();
+    return aniPen->GetPen()->GetAlpha();
 }
 
 void AniPen::Reset(ani_env* env, ani_object obj)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
-    if (aniPen == nullptr) {
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
-    aniPen->GetPen().Reset();
+    aniPen->GetPen()->Reset();
 }
 
 void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
-    if (aniPen == nullptr) {
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -111,13 +129,13 @@ void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
         return;
     }
 
-    aniPen->GetPen().SetAlpha(alpha);
+    aniPen->GetPen()->SetAlpha(alpha);
 }
 
 void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
-    if (aniPen == nullptr) {
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -128,14 +146,14 @@ void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMo
         return;
     }
 
-    aniPen->GetPen().SetBlendMode(static_cast<BlendMode>(blendMode));
+    aniPen->GetPen()->SetBlendMode(static_cast<BlendMode>(blendMode));
 }
 
 
 void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, obj);
-    if (aniPen == nullptr) {
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -147,12 +165,59 @@ void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFil
         return;
     }
 
-    Filter filter = aniPen->GetPen().GetFilter();
+    Filter filter = aniPen->GetPen()->GetFilter();
     filter.SetColorFilter(aniColorFilter->GetColorFilter());
-    aniPen->GetPen().SetFilter(filter);
+    aniPen->GetPen()->SetFilter(filter);
 }
 
-Pen& AniPen::GetPen()
+ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniPen::PenTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniPen::PenTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsPen = reinterpret_cast<JsPen*>(unwrapResult);
+    if (jsPen->GetPen() == nullptr) {
+        ROSEN_LOGE("AniPen::PenTransferStatic jsPen is null");
+        return nullptr;
+    }
+
+    auto aniPen = new AniPen(jsPen->GetPen());
+    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
+        ROSEN_LOGE("AniPen::PenTransferStatic failed create aniPen");
+        delete aniPen;
+        return nullptr;
+    }
+    return output;
+}
+
+ani_long AniPen::GetPenAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniPen = GetNativeFromObj<AniPen>(env, input);
+    if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
+        ROSEN_LOGE("AniPen::GetPenAddr aniPen is null");
+        return 0;
+    }
+    return reinterpret_cast<ani_long>(aniPen->GetPenPtrAddr());
+}
+
+std::shared_ptr<Pen>* AniPen::GetPenPtrAddr()
+{
+    return &pen_;
+}
+
+AniPen::~AniPen()
+{
+    pen_ = nullptr;
+}
+
+std::shared_ptr<Pen> AniPen::GetPen()
 {
     return pen_;
 }

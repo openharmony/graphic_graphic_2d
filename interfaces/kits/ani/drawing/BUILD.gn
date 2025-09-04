@@ -26,6 +26,8 @@ group("ani_drawing") {
 config("drawing_ani_config") {
   include_dirs = [
     "$graphic_2d_root/interfaces/kits/ani/drawing",
+    "$graphic_2d_root/interfaces/kits/napi/graphic",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing",
   ]
   defines = [
     "ROSEN_OHOS"
@@ -90,6 +92,8 @@ ohos_shared_library("drawing_ani_core") {
     "image_framework:image_taihe",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
+    "napi:ace_napi",
+    "runtime_core:ani_helpers",
   ]
 
   public_external_deps = [
@@ -176,6 +180,8 @@ ohos_shared_library("drawing_ani") {
     "image_framework:image_taihe",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
+    "napi:ace_napi",
+    "runtime_core:ani_helpers",
   ]
 
   public_external_deps = [

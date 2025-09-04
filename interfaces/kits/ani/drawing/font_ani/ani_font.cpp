@@ -16,6 +16,11 @@
 #include "ani_font.h"
 
 #include "typeface_ani/ani_typeface.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/font_napi/js_font.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -62,12 +67,23 @@ ani_status AniFont::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
+    std::array staticMethods = {
+        ani_native_function { "fontTransferStaticNative", nullptr, reinterpret_cast<void*>(FontTransferStatic) },
+        ani_native_function { "getFontAddr", nullptr, reinterpret_cast<void*>(GetFontAddr) },
+    };
+
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_FONT_NAME);
+        return ANI_NOT_FOUND;
+    }
     return ANI_OK;
 }
 
 void AniFont::Constructor(ani_env* env, ani_object obj)
 {
-    AniFont* aniFont = new AniFont();
+    std::shared_ptr<Font> font = std::make_shared<Font>();
+    AniFont* aniFont = new AniFont(font);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont))) {
         ROSEN_LOGE("AniFont::Constructor failed create aniFont");
         delete aniFont;
@@ -78,36 +94,36 @@ void AniFont::Constructor(ani_env* env, ani_object obj)
 ani_object AniFont::GetMetrics(ani_env* env, ani_object obj)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
-    if (aniFont == nullptr) {
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return ani_object{};
     }
 
     FontMetrics metrics;
-    aniFont->GetFont().GetMetrics(&metrics);
+    aniFont->GetFont()->GetMetrics(&metrics);
     return CreateAniFontMetrics(env, metrics);
 }
 
 ani_double AniFont::GetSize(ani_env* env, ani_object obj)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
-    if (aniFont == nullptr) {
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return -1;
     }
 
-    return aniFont->GetFont().GetSize();
+    return aniFont->GetFont()->GetSize();
 }
 
 ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
-    if (aniFont == nullptr) {
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return ani_object{};
     }
 
-    std::shared_ptr<Typeface> typeface = aniFont->GetFont().GetTypeface();
+    std::shared_ptr<Typeface> typeface = aniFont->GetFont()->GetTypeface();
     AniTypeface* aniTypeface = new AniTypeface(typeface);
     ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
@@ -122,18 +138,18 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 void AniFont::SetSize(ani_env* env, ani_object obj, ani_double size)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
-    if (aniFont == nullptr) {
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
-    aniFont->GetFont().SetSize(size);
+    aniFont->GetFont()->SetSize(size);
 }
 
 void AniFont::SetTypeface(ani_env* env, ani_object obj, ani_object typeface)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
-    if (aniFont == nullptr) {
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
@@ -144,12 +160,61 @@ void AniFont::SetTypeface(ani_env* env, ani_object obj, ani_object typeface)
         return;
     }
 
-    aniFont->GetFont().SetTypeface(aniTypeface->GetTypeface());
+    aniFont->GetFont()->SetTypeface(aniTypeface->GetTypeface());
 }
 
-Font& AniFont::GetFont()
+ani_object AniFont::FontTransferStatic(
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniFont::FontTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniFont::FontTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsFont = reinterpret_cast<JsFont*>(unwrapResult);
+    if (jsFont->GetFont() == nullptr) {
+        ROSEN_LOGE("AniFont::FontTransferStatic jsFont is null");
+        return nullptr;
+    }
+
+    auto aniFont = new AniFont(jsFont->GetFont());
+    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont))) {
+        ROSEN_LOGE("AniFont::FontTransferStatic failed create aniFont");
+        delete aniFont;
+        return nullptr;
+    }
+    return output;
+}
+
+ani_long AniFont::GetFontAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniFont = GetNativeFromObj<AniFont>(env, input);
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
+        ROSEN_LOGE("AniFont::GetFontAddr aniFont is null");
+        return 0;
+    }
+
+    return reinterpret_cast<ani_long>(aniFont->GetFontPtrAddr());
+}
+
+std::shared_ptr<Font> AniFont::GetFont()
 {
     return font_;
+}
+
+std::shared_ptr<Font>* AniFont::GetFontPtrAddr()
+{
+    return &font_;
+}
+
+AniFont::~AniFont()
+{
+    font_ = nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen
