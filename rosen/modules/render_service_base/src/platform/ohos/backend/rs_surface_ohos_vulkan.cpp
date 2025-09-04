@@ -18,6 +18,8 @@
 #include <atomic>
 #include <memory>
 #include "common/rs_exception_check.h"
+#include "hetero_hdr/rs_hdr_pattern_manager.h"
+#include "hetero_hdr/rs_hdr_vulkan_task.h"
 
 #if defined(ROSEN_OHOS)
 #include "cpp/ffrt_dynamic_graph.h"
@@ -491,8 +493,12 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     RSTagTracker tagTracker(mSkContext, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
-
-    std::vector<GrBackendSemaphore> semphoreVec = {backendSemaphore};
+ 
+    std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
+ 
+    std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
+    RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface.drawingSurface, frameIdVec);
+ 
 #if defined(ROSEN_OHOS)
     RSHpaeScheduler::GetInstance().WaitBuildTask();
     uint64_t preFrameId = RSHpaeScheduler::GetInstance().GetHpaeFrameId();
@@ -501,14 +507,14 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     HPAE_LOGD("FlushFrame. submitWithFFTS=%d, preFrameId=%lu, curFrameId=%lu",
         submitWithFFTS, preFrameId, curFrameId);
     if (submitWithFFTS) {
-        SetGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, semphoreVec, surface);
+        SetGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, semaphoreVec, surface);
     }
 #endif
 
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;
-    drawingFlushInfo.numSemaphores = semphoreVec.size();
-    drawingFlushInfo.backendSemaphore = static_cast<void*>(semphoreVec.data());
+    drawingFlushInfo.numSemaphores = semaphoreVec.size();
+    drawingFlushInfo.backendSemaphore = static_cast<void*>(semaphoreVec.data());
     drawingFlushInfo.finishedProc = [](void *context) {
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFrom2DEngine(context);
     };
@@ -530,6 +536,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         RSTimer timer("Submit", 50); // 50ms
         mSkContext->Submit();
         mSkContext->EndFrame();
+    }
+    for (auto frameId : frameIdVec) {
+        RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
     }
 
     int fenceFd = -1;

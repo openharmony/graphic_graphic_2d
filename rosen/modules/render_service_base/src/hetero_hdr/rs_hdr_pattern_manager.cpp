@@ -18,67 +18,41 @@
 #ifdef ROSEN_OHOS
 #include <dlfcn.h>
 #endif
-
-using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
-using GPInstanceInitFunc = bool(*)(void*, size_t);
-using GPInstanceDestroyFunc = void(*)(void*);
-using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
-using GPQueryTaskError = int32_t(*)(void*, uint64_t, MHC_PatternTaskName);
-using GPReleaseEGraphFunc = bool(*)(void*, uint64_t);
-using GPReleaseAllFunc = bool(*)(void*);
-using GPAAETaskSubmitFunc = void(*)(void*, uint64_t, MHC_PatternTaskName, void*, void**, void*);
-using GPWaitFunc = void(*)(void*, uint64_t, MHC_PatternTaskName);
-using GPGPUTaskSubmitFunc = void(*)(void*, uint64_t, MHC_PatternTaskName, void*, void*);
-using GPGetGPUWaitEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
-using GPGetGPUNotifyEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
-
-namespace {
-static GPInstanceGetFunc g_getGraphPatternInstance = nullptr;
-static GPInstanceInitFunc g_graphPatternInit = nullptr;
-static GPInstanceDestroyFunc g_graphPatternDestroy = nullptr;
-static GPRequstEGraphFunc g_graphPatternRequestEGraph = nullptr;
-static GPReleaseEGraphFunc g_graphPatternReleaseEGraph = nullptr;
-static GPReleaseAllFunc g_graphPatternReleaseAll = nullptr;
-static GPAAETaskSubmitFunc g_graphPatternAnimationTaskSubmit = nullptr;
-static GPGPUTaskSubmitFunc g_graphPatternVulkanTaskSubmit = nullptr;
-static GPWaitFunc g_graphPatternWait = nullptr;
-static GPGetGPUWaitEventFunc g_graphPatternGetVulkanWaitEvent = nullptr;
-static GPGetGPUNotifyEventFunc g_graphPatternGetVulkanNotifyEvent = nullptr;
-
-#ifdef ROSEN_OHOS
-static void* g_mhcLibframeworkHandle = nullptr;
-#endif
-}
-
 namespace OHOS {
 namespace Rosen {
 
+struct FunctionHeader {
+    void (*execute)(void*);  // Execute function pointer
+    void (*destroy)(void*);  // Destroy function pointer
+    void* data;              // User data (storing lambda)
+};
+
 template <typename F>
-std::shared_ptr<FunctionHeader> create_function_wrapper(F &&func)
+FunctionHeader* CreateFunctionWrapper(F&& func)
 {
     if (func == nullptr) {
         return nullptr;
     }
     // 1. Allocate callable on heap with perfect forwarding
-    auto *func_copy = new std::decay_t<F>(std::forward<F>(func));
+    auto* funcCopy = new std::decay_t<F>(std::forward<F>(func));
 
     // 2. Create function header structure
-    auto header = std::make_shared<FunctionHeader>();
+    auto* header = new FunctionHeader;
 
     // 3. Set up execution function that invokes the callable
-    header->execute = [](void *data) {
-        auto *f = static_cast<std::decay_t<F> *>(data);
+    header->execute = [](void* data) {
+        auto* f = static_cast<std::decay_t<F>*>(data);
         (*f)();  // operator()
     };
 
     // 4. Set up cleanup function to release resources
-    header->destroy = [](void *data) {
-        auto *f = static_cast<std::decay_t<F> *>(data);
+    header->destroy = [](void* data) {
+        auto* f = static_cast<std::decay_t<F>*>(data);
         delete f;
     };
 
     // 5. Store callable pointer in header
-    header->data = func_copy;
+    header->data = funcCopy;
     return header;
 }
 
@@ -94,23 +68,29 @@ RSHDRPatternManager::RSHDRPatternManager()
 
 RSHDRPatternManager::~RSHDRPatternManager()
 {
-    if (g_instance) {
-        g_graphPatternDestroy(g_instance);
-        g_instance = nullptr;
+    if (graphPatternInstance_) {
+        MHCDevice_->graphPatternDestroy(graphPatternInstance_);
+        graphPatternInstance_ = nullptr;
     }
+    MHCDlClose();
+}
+
+void RSHDRPatternManager::MHCDlClose()
+{
 #ifdef ROSEN_OHOS
-    if (g_mhcLibframeworkHandle) {
-        dlclose(g_mhcLibframeworkHandle);
-        g_getGraphPatternInstance = nullptr;
-        g_graphPatternInit = nullptr;
-        g_graphPatternDestroy = nullptr;
-        g_graphPatternRequestEGraph = nullptr;
-        g_graphPatternReleaseEGraph = nullptr;
-        g_graphPatternAnimationTaskSubmit = nullptr;
-        g_graphPatternVulkanTaskSubmit = nullptr;
-        g_graphPatternWait = nullptr;
-        g_graphPatternGetVulkanWaitEvent = nullptr;
-        g_graphPatternGetVulkanNotifyEvent = nullptr;
+    if (MHCLibFrameworkHandle_) {
+        dlclose(MHCLibFrameworkHandle_);
+        MHCDevice_->getGraphPatternInstance = nullptr;
+        MHCDevice_->graphPatternInit = nullptr;
+        MHCDevice_->graphPatternDestroy = nullptr;
+        MHCDevice_->graphPatternRequestEGraph = nullptr;
+        MHCDevice_->graphPatternReleaseEGraph = nullptr;
+        MHCDevice_->graphPatternAnimationTaskSubmit = nullptr;
+        MHCDevice_->graphPatternVulkanTaskSubmit = nullptr;
+        MHCDevice_->graphPatternWait = nullptr;
+        MHCDevice_->graphPatternGetVulkanWaitEvent = nullptr;
+        MHCDevice_->graphPatternGetVulkanNotifyEvent = nullptr;
+        MHCLibFrameworkHandle_ = nullptr;
     }
 #endif
 }
@@ -118,167 +98,173 @@ RSHDRPatternManager::~RSHDRPatternManager()
 bool RSHDRPatternManager::MHCDlOpen()
 {
 #ifdef ROSEN_OHOS
-    RS_LOGW("mhc_so MHCDlOpen start\n");
+    RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCDlOpen start");
     if (isFinishDLOpen_) {
-        RS_LOGE("mhc_so MHCDlOpen isFinishDLOpen_ true\n");
+        RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCDlOpen the MHC is already opened");
         return true;
     }
-    if (g_mhcLibframeworkHandle == nullptr) {
-        g_mhcLibframeworkHandle = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
-        if (!g_mhcLibframeworkHandle) {
-            RS_LOGW("mhc_so dlopen libmhc_framework.so error\n");
+    if (MHCLibFrameworkHandle_ == nullptr) {
+        MHCLibFrameworkHandle_ = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
+        if (!MHCLibFrameworkHandle_) {
+            RS_LOGW("[hdrHetero]:RSHDRPatternManager MHCDlOpen dlopen MHC failed");
             return false;
         }
     }
 
-    g_getGraphPatternInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->getGraphPatternInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_graph_pattern_get"));
-    g_graphPatternInit = reinterpret_cast<GPInstanceInitFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternInit = reinterpret_cast<GPInstanceInitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_graph_pattern_init"));
-    g_graphPatternDestroy = reinterpret_cast<GPInstanceDestroyFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternDestroy = reinterpret_cast<GPInstanceDestroyFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_graph_pattern_destroy"));
-    g_graphPatternRequestEGraph = reinterpret_cast<GPRequstEGraphFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternRequestEGraph = reinterpret_cast<GPRequestEGraphFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_graph_pattern_request_eg"));
-    g_graphPatternReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_graph_pattern_release_eg"));
-    g_graphPatternReleaseAll = reinterpret_cast<GPReleaseAllFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternReleaseAll = reinterpret_cast<GPReleaseAllFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_graph_pattern_release_all"));
-    g_graphPatternAnimationTaskSubmit = reinterpret_cast<GPAAETaskSubmitFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternAnimationTaskSubmit = reinterpret_cast<GPHpaeTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_animation_task_submit"));
-    g_graphPatternVulkanTaskSubmit = reinterpret_cast<GPGPUTaskSubmitFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternVulkanTaskSubmit = reinterpret_cast<GPGPUTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_vulkan_task_submit"));
-    g_graphPatternWait = reinterpret_cast<GPWaitFunc>(dlsym(g_mhcLibframeworkHandle, "mhc_gp_task_wait"));
-    g_graphPatternGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(dlsym(g_mhcLibframeworkHandle,
+    MHCDevice_->graphPatternWait = reinterpret_cast<GPWaitFunc>(dlsym(MHCLibFrameworkHandle_, "mhc_gp_task_wait"));
+    MHCDevice_->graphPatternGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_vulkan_task_get_wait_event"));
-    g_graphPatternGetVulkanNotifyEvent = reinterpret_cast<GPGetGPUNotifyEventFunc>(dlsym(g_mhcLibframeworkHandle,
-        "mhc_gp_vulkan_task_get_notify_event"));
+    MHCDevice_->graphPatternGetVulkanNotifyEvent = reinterpret_cast<GPGetGPUNotifyEventFunc>(
+        dlsym(MHCLibFrameworkHandle_, "mhc_gp_vulkan_task_get_notify_event"));
 
-    if (!g_getGraphPatternInstance || !g_graphPatternInit || !g_graphPatternDestroy || !g_graphPatternRequestEGraph\
-        || !g_graphPatternReleaseEGraph || !g_graphPatternAnimationTaskSubmit || !g_graphPatternVulkanTaskSubmit\
-        || !g_graphPatternWait || !g_graphPatternGetVulkanWaitEvent || !g_graphPatternGetVulkanNotifyEvent\
-        || !g_graphPatternReleaseAll) {
-        RS_LOGE("mhc_so dlsym error\n");
-        dlclose(g_mhcLibframeworkHandle);
+    if (MHCDlsymInvalid()) {
+        RS_LOGE("[hdrHetero]:RSHDRPatternManager MHCDlOpen dlsym error");
+        dlclose(MHCLibFrameworkHandle_);
+        MHCLibFrameworkHandle_ = nullptr;
         return false;
     }
     isFinishDLOpen_ = true;
-    RS_LOGW("mhc_so LoadLibMHC success\n");
+    RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCDlOpen success");
     return true;
 #else
     return false;
 #endif
 }
 
-bool RSHDRPatternManager::MHCCheck(const std::string logTag, uint64_t frameId)
+bool RSHDRPatternManager::MHCDlsymInvalid()
 {
-    if (!g_instance) {
-        RS_LOGE("mhc_so MHCCheck %{public}s g_instance == nullptr", logTag.c_str());
+    return !MHCDevice_->getGraphPatternInstance || !MHCDevice_->graphPatternInit || !MHCDevice_->graphPatternDestroy ||
+           !MHCDevice_->graphPatternRequestEGraph || !MHCDevice_->graphPatternReleaseEGraph ||
+           !MHCDevice_->graphPatternAnimationTaskSubmit || !MHCDevice_->graphPatternVulkanTaskSubmit ||
+           !MHCDevice_->graphPatternWait || !MHCDevice_->graphPatternGetVulkanWaitEvent ||
+           !MHCDevice_->graphPatternGetVulkanNotifyEvent || !MHCDevice_->graphPatternReleaseAll;
+}
+
+bool RSHDRPatternManager::MHCCheck(const std::string logTag)
+{
+    if (!graphPatternInstance_) {
+        RS_LOGE("[hdrHetero]:RSHDRPatternManager MHCCheck %{public}s graphPatternInstance_ == nullptr", logTag.c_str());
         return false;
     }
-    RS_LOGW("mhc_so %{public}s MHCCheck frameId:%{public}" PRIu64 " ", logTag.c_str(), frameId);
     return true;
 }
 
 bool RSHDRPatternManager::MHCGraphPatternInit(size_t size)
 {
-    RS_LOGW("mhc_so MHCGraphPatternInit");
-    if (g_instance) {
+    if (graphPatternInstance_) {
         return true;
     }
     if (!isFinishDLOpen_) {
-        RS_LOGE("mhc_so dlsym error");
+        RS_LOGE("[hdrHetero]:RSHDRPatternManager MHCGraphPatternInit MHC dlsym error");
         return false;
     }
-    g_instance = g_getGraphPatternInstance(PATTERN_HDR, "test_graph");
-    return g_graphPatternInit(g_instance, size);
+    graphPatternInstance_ = MHCDevice_->getGraphPatternInstance(PATTERN_HDR, "hdr_graph");
+    return MHCDevice_->graphPatternInit(graphPatternInstance_, size);
 }
 
 bool RSHDRPatternManager::MHCRequestEGraph(uint64_t frameId)
 {
-    if (!MHCCheck("MHCRequestEGraph", frameId)) {
+    if (!MHCCheck("MHCRequestEGraph")) {
         return false;
     }
-    return g_graphPatternRequestEGraph(g_instance, frameId);
+    return MHCDevice_->graphPatternRequestEGraph(graphPatternInstance_, frameId);
 }
 
-bool RSHDRPatternManager::MHCSubmitHDRTask(uint64_t frameId, MHC_PatternTaskName taskName, \
+bool RSHDRPatternManager::MHCSubmitHDRTask(uint64_t frameId, MHCPatternTaskName taskName,
     std::function<void()>&& preFunc, void** taskHandle, std::function<void()>&& afterFunc)
 {
-    if (!MHCCheck("MHCSubmitHDRTask", frameId)) {
+    if (!MHCCheck("MHCSubmitHDRTask")) {
         return false;
     }
-    std::shared_ptr<FunctionHeader> preFuncHeader = create_function_wrapper(std::move(preFunc));
-    void* c_preFunc = static_cast<void*>(preFuncHeader.get());
-    std::shared_ptr<FunctionHeader> afterFuncHeader = create_function_wrapper(std::move(afterFunc));
-    void* c_afterFunc = static_cast<void*>(afterFuncHeader.get());
+    FunctionHeader* preFuncHeader = CreateFunctionWrapper(std::move(preFunc));
+    void* c_preFunc = static_cast<void*>(preFuncHeader);
+    FunctionHeader* afterFuncHeader = CreateFunctionWrapper(std::move(afterFunc));
+    void* c_afterFunc = static_cast<void*>(afterFuncHeader);
 
-    g_graphPatternAnimationTaskSubmit(g_instance, frameId, taskName, c_preFunc, taskHandle, c_afterFunc);
+    MHCDevice_->graphPatternAnimationTaskSubmit(graphPatternInstance_, frameId, taskName,
+        c_preFunc, taskHandle, c_afterFunc);
     return true;
 }
 
-bool RSHDRPatternManager::MHCSubmitVulkanTask(uint64_t frameId, MHC_PatternTaskName taskName, \
+bool RSHDRPatternManager::MHCSubmitVulkanTask(uint64_t frameId, MHCPatternTaskName taskName,
     std::function<void()>&& preFunc, std::function<void()>&& afterFunc)
 {
-    if (!MHCCheck("MHCSubmitVulkanTask", frameId)) {
+    if (!MHCCheck("MHCSubmitVulkanTask")) {
         return false;
     }
-    std::shared_ptr<FunctionHeader> preFuncHeader = create_function_wrapper(std::move(preFunc));
-    void* c_preFunc = static_cast<void*>(preFuncHeader.get());
-    std::shared_ptr<FunctionHeader> afterFuncHeader = create_function_wrapper(std::move(afterFunc));
-    void* c_afterFunc = static_cast<void*>(afterFuncHeader.get());
+    FunctionHeader* preFuncHeader = CreateFunctionWrapper(std::move(preFunc));
+    void* c_preFunc = static_cast<void*>(preFuncHeader);
+    FunctionHeader* afterFuncHeader = CreateFunctionWrapper(std::move(afterFunc));
+    void* c_afterFunc = static_cast<void*>(afterFuncHeader);
 
-    g_graphPatternVulkanTaskSubmit(g_instance, frameId, taskName, c_preFunc, c_afterFunc);
+    MHCDevice_->graphPatternVulkanTaskSubmit(graphPatternInstance_, frameId, taskName, c_preFunc, c_afterFunc);
     return true;
 }
 
-bool RSHDRPatternManager::MHCWait(uint64_t frameId, MHC_PatternTaskName taskName)
+bool RSHDRPatternManager::MHCWait(uint64_t frameId, MHCPatternTaskName taskName)
 {
-    if (!MHCCheck("MHCWait", frameId)) {
+    if (!MHCCheck("MHCWait")) {
         return false;
     }
 
-    g_graphPatternWait(g_instance, frameId, taskName);
+    MHCDevice_->graphPatternWait(graphPatternInstance_, frameId, taskName);
     return true;
 }
 
-uint16_t RSHDRPatternManager::MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHC_PatternTaskName taskName)
+uint16_t RSHDRPatternManager::MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHCPatternTaskName taskName)
 {
-    if (!MHCCheck("MHCGetVulkanTaskWaitEvent", frameId)) {
+    if (!MHCCheck("MHCGetVulkanTaskWaitEvent")) {
         return false;
     }
-    auto eventId = g_graphPatternGetVulkanWaitEvent(g_instance, frameId, taskName);
-    RS_LOGW("mhc_so RSHDRPatternManager::MHCGetVulkanTaskWaitEvent event = %{public}d\n", eventId);
+    auto eventId = MHCDevice_->graphPatternGetVulkanWaitEvent(graphPatternInstance_, frameId, taskName);
+    RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCGetVulkanTaskWaitEvent event = %{public}d", eventId);
     return eventId;
 }
 
-uint16_t RSHDRPatternManager::MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHC_PatternTaskName taskName)
+uint16_t RSHDRPatternManager::MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHCPatternTaskName taskName)
 {
-    if (!MHCCheck("MHCGetVulkanTaskNotifyEvent", frameId)) {
+    if (!MHCCheck("MHCGetVulkanTaskNotifyEvent")) {
         return false;
     }
-    auto eventId = g_graphPatternGetVulkanNotifyEvent(g_instance, frameId, taskName);
-    RS_LOGW("mhc_so RSHDRPatternManager::MHCGetVulkanTaskNotifyEvent event = %{public}d\n", eventId);
+    auto eventId = MHCDevice_->graphPatternGetVulkanNotifyEvent(graphPatternInstance_, frameId, taskName);
+    RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCGetVulkanTaskNotifyEvent event = %{public}d", eventId);
     return eventId;
 }
 
 bool RSHDRPatternManager::MHCReleaseEGraph(uint64_t frameId)
 {
-    if (!MHCCheck("MHCReleaseEGraph", frameId)) {
+    if (!MHCCheck("MHCReleaseEGraph")) {
         return false;
     }
-    return g_graphPatternReleaseEGraph(g_instance, frameId);
+    return MHCDevice_->graphPatternReleaseEGraph(graphPatternInstance_, frameId);
 }
 
 bool RSHDRPatternManager::MHCReleaseAll()
 {
-    if (!g_instance) {
+    if (!graphPatternInstance_) {
         return false;
     }
-    g_graphPatternReleaseAll(g_instance);
+    MHCDevice_->graphPatternReleaseAll(graphPatternInstance_);
     return true;
 }
 
-std::vector<uint64_t> RSHDRPatternManager::MHCGetFrameIdForGpuTask()
+std::vector<uint64_t> RSHDRPatternManager::MHCGetFrameIdForGPUTask()
 {
     std::vector<uint64_t> frameIdVec{};
 #ifdef ROSEN_OHOS
@@ -300,6 +286,5 @@ std::vector<uint64_t> RSHDRPatternManager::MHCGetFrameIdForGpuTask()
 #endif
     return frameIdVec;
 }
-
 } // namespace Rosen
 } // namespace OHOS
