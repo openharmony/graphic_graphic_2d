@@ -51,13 +51,13 @@ RSHeteroHDRManager::RSHeteroHDRManager()
     if (!isHeteroComputingHdrOn_) {
         return;
     }
-    if (!RSHeteroHDRHpae::GetInstance().IsHpaeAvailable()) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager Hpae device is unavailable");
+    if (!RSHDRPatternManager::Instance().MHCDlOpen()) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager MHCDlOpen failed");
         isHeteroComputingHdrOn_ = false;
         return;
     }
-    if (!RSHDRPatternManager::Instance().MHCDlOpen()) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager MHCDlOpen failed");
+    if (!RSHeteroHDRHpae::GetInstance().IsHpaeAvailable()) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager Hpae device is unavailable");
         isHeteroComputingHdrOn_ = false;
         return;
     }
