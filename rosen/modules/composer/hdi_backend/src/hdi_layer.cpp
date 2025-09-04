@@ -21,17 +21,19 @@
 #include <securec.h>
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr float SIXTY_SIX_INTERVAL_IN_MS = 66.f;
 constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 constexpr size_t MATRIX_SIZE = 9;
-static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
+}
 
 template<typename T>
 bool Compare(const T& lhs, const T& rhs)
@@ -905,7 +907,8 @@ int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
     }
 
     std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
-    if (memcpy_s(valueBlob.data(), valueBlob.size(), layerInfo_->GetLayerLinearMatrix().data(),
+    if (layerInfo_->GetLayerLinearMatrix().size() != MATRIX_SIZE ||
+        memcpy_s(valueBlob.data(), valueBlob.size(), layerInfo_->GetLayerLinearMatrix().data(),
         MATRIX_SIZE * sizeof(float)) != EOK) {
         return GRAPHIC_DISPLAY_PARAM_ERR;
     }

@@ -308,6 +308,33 @@ HWTEST_F(HdiLayerTest, ClearBufferCache001, Function | MediumTest| Level1)
 }
 
 /*
+ * Function: SetPerFrameLayerLinearMatrix001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPerFrameLayerLinearMatrix()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameLayerLinearMatrix001, Function | MediumTest| Level1)
+{
+    HdiLayerTest::hdiLayer_->prevLayerInfo_ = nullptr;
+    std::vector<float> testMatrix1;
+    HdiLayerTest::hdiLayer_->layerInfo_->layerLinearMatrix_ = testMatrix1;
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->layerInfo_->GetLayerLinearMatrix(), std::vector<float>());
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetPerFrameLayerLinearMatrix(), GRAPHIC_DISPLAY_SUCCESS);
+
+    std::vector<float> testMatrix2 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    HdiLayerTest::hdiLayer_->layerInfo_->layerLinearMatrix_ = testMatrix2;
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->layerInfo_->GetLayerLinearMatrix(), testMatrix2);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetPerFrameLayerLinearMatrix(), GRAPHIC_DISPLAY_SUCCESS);
+
+    std::vector<float> testMatrix3 = { 0.9f, 0.0f, 0.0f, 0.0f, 0.9f, 0.0f, 0.0f, 0.0f, 0.9f };
+    HdiLayerTest::hdiLayer_->layerInfo_->SetLayerLinearMatrix(testMatrix3);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->layerInfo_->GetLayerLinearMatrix(), testMatrix3);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetPerFrameLayerLinearMatrix(), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
  * Function: SetPerFrameParameters001
  * Type: Function
  * Rank: Important(1)
