@@ -410,8 +410,7 @@ namespace effectKit {
     try {
       const result = createColorPickerNormal(source);
       if (result) {
-        const error: BusinessError = { code: 0, name: '', message: '' };
-        callback(error, result);
+        callback(null, result);
       } else {
         const error: BusinessError = {
           code: -1,
@@ -435,8 +434,7 @@ namespace effectKit {
     try {
       const result = createColorPickerWithRegion(source, region);
       if (result) {
-        const error: BusinessError = { code: 0, name: '', message: '' };
-        callback(error, result);
+        callback(null, result);
       } else {
         const error: BusinessError = {
           code: -1,
