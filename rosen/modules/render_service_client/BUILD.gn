@@ -176,6 +176,7 @@ template("render_service_client_source_set") {
       "core/feature/hyper_graphic_manager/rs_frame_rate_linker.cpp",
       "core/feature/hyper_graphic_manager/rs_frame_rate_policy.cpp",
       "core/feature/hyper_graphic_manager/rs_ui_display_soloist.cpp",
+      "core/ui/rs_callback_register.cpp",
       "core/ui/rs_canvas_drawing_node.cpp",
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",

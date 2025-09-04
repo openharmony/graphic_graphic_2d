@@ -43,6 +43,11 @@ std::vector<std::shared_ptr<Typeface>> Typeface::GetSystemFonts()
     return StaticFactory::GetSystemFonts();
 }
 
+void Typeface::RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb)
+{
+    return StaticFactory::RegisterOnTypefaceDestroyed(cb);
+}
+
 std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return StaticFactory::MakeFromStream(std::move(memoryStream), index);
@@ -172,15 +177,15 @@ std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceRegisterCal
     return registerTypefaceCallBack_;
 }
 
-std::function<bool(std::shared_ptr<Typeface>)> Typeface::unregisterTypefaceCallBack_ = nullptr;
-void Typeface::UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func)
+std::function<std::shared_ptr<Typeface>(uint64_t)> Typeface::uniqueIdCallBack_ = nullptr;
+void Typeface::RegisterUniqueIdCallBack(std::function<std::shared_ptr<Typeface>(uint64_t)> cb)
 {
-    unregisterTypefaceCallBack_ = func;
+    uniqueIdCallBack_ = cb;
 }
 
-std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceUnRegisterCallBack()
+std::function<std::shared_ptr<Typeface>(uint64_t)> Typeface::GetUniqueIdCallBack()
 {
-    return unregisterTypefaceCallBack_;
+    return uniqueIdCallBack_;
 }
 
 uint32_t Typeface::GetHash() const

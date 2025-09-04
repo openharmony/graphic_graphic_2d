@@ -34,7 +34,7 @@ config("rosen_text_public_config") {
 ohos_source_set("rosen_text_skia") {
   public_configs = [ ":rosen_text_public_config" ]
   include_dirs = [
-    ".",
+    "$rosen_text_root/service",
     "$rosen_text_root/adapter/skia",
     "$rosen_text_root/adapter/skia/txt/src",
   ]
@@ -66,6 +66,7 @@ ohos_source_set("rosen_text_skia") {
     "skia_txt/typography_create.cpp",
     "text_effect/text_effect_factory_creator.cpp",
     "text_effect/text_flip_effect.cpp",
+    "utils/typeface_map.cpp",
   ]
 
   external_deps = [
@@ -86,6 +87,8 @@ ohos_source_set("rosen_text_skia") {
       "init:libbegetutil",
     ]
     defines = [ "ENABLE_OHOS_ENHANCE" ]
+  } else {
+    defines = [ "MODULE_TEXTING" ]
   }
 
   part_name = "graphic_2d"

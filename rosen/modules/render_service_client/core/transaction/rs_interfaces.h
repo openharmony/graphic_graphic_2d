@@ -402,7 +402,7 @@ public:
      * @param typeface font's typeface.
      * @return return true if unRegister success, else return false.
      */
-    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(uint32_t uniqueId);
 #ifndef ROSEN_ARKUI_X
     /**
      * @brief Set active mode of the screen(The combination of resolution and refresh rate is a mode.

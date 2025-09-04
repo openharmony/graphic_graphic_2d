@@ -17,10 +17,11 @@
 #define ROSEN_MODULES_SPTEXT_FONT_COLLECTION_H
 
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
+#include <shared_mutex>
 #include <unordered_map>
-#include <mutex>
 
 #include "modules/skparagraph/include/FontCollection.h"
 #include "txt/asset_font_manager.h"
@@ -50,6 +51,8 @@ public:
 
     void UpdateDefaultFamilies();
 
+    void RemoveCacheByUniqueId(uint32_t uniqueId);
+
 private:
     std::shared_ptr<RSFontMgr> defaultFontManager_;
     std::shared_ptr<RSFontMgr> assetFontManager_;
@@ -58,9 +61,10 @@ private:
     bool enableFontFallback_;
 
     sk_sp<skia::textlayout::FontCollection> sktFontCollection_;
-    mutable std::mutex collectionMutex_;
+    mutable std::shared_mutex collectionMutex_;
 
     std::vector<std::shared_ptr<RSFontMgr>> GetFontManagerOrder() const;
+    void UpdateDefaultFamiliesInner();
 
     DISALLOW_COPY_AND_ASSIGN(FontCollection);
 };

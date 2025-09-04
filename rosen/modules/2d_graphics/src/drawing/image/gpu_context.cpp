@@ -140,6 +140,11 @@ void GPUContext::FreeGpuResources()
     impl_->FreeGpuResources();
 }
 
+void GPUContext::FreeCpuCache(uint32_t uniqueId)
+{
+    impl_->FreeCpuCache(uniqueId);
+}
+
 void GPUContext::ReclaimResources()
 {
     impl_->ReclaimResources();
