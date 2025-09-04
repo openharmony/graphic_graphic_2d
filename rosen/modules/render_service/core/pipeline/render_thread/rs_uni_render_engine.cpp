@@ -55,7 +55,7 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
             std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
             RegisterDeleteBufferListener(hdrSurfaceHandler->GetConsumer());
             DrawImage(canvas, params);
-            RSBaseRenderUtil::ReleaseBuffer(*hdrSurfaceHandler);
+            RSHeteroHDRManager::Instance().ReleaseBuffer();
         } else {
             RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
             DrawImage(canvas, params);

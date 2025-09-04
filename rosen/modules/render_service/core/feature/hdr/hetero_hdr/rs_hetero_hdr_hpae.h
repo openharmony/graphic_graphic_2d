@@ -20,7 +20,7 @@ namespace Rosen {
 namespace {
 constexpr int DVFS_LEVEL_MIDDLE = 3;
 constexpr int DVFS_LEVEL_HIGH = 4;
-constexpr float MAX_SCALE_ARSR = 0.1;
+constexpr float MAX_SCALE_ARSR = 2.0;
 // for scene id capability bit0 ~ bit55
 constexpr uint64_t MDC_CAP_HEBCE = 1;
 constexpr uint64_t MDC_CAP_UVUP = 1 << 1;

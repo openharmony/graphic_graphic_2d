@@ -227,10 +227,10 @@ public:
     }
 #endif
 
-    void ResetPreBuffer()
+    void ResetPreBuffer(bool needBufferDeleteCb = true)
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        preBuffer_.Reset();
+        preBuffer_.Reset(needBufferDeleteCb);
     }
 
     int32_t GetAvailableBufferCount() const
