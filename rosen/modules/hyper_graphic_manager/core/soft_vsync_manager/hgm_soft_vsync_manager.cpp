@@ -68,9 +68,9 @@ void HgmSoftVSyncManager::DeliverSoftVote(FrameRateLinkerId linkerId, const Vote
             bool isForceUseAppVSync = eventStatus ? hgmVoter->CheckForceUseAppVSync() : false;
             if (auto appVoteDataIter = appVoteData_.find(linkerId);
                 appVoteDataIter == appVoteData_.end() || appVoteDataIter->second.first != resultVoteInfo->max ||
-                static_cast<bool>(appVoteDataIter->second.second) != isForceUseAppVSync) {
+                appVoteDataIter->second.second != isForceUseAppVSync) {
                 appVoteData_.insert_or_assign(linkerId,
-                    std::pair<uint32_t, uint32_t>(resultVoteInfo->max, static_cast<uint32_t>(isForceUseAppVSync)));
+                    std::pair<int32_t, bool>(resultVoteInfo->max, isForceUseAppVSync));
                 UpdateSoftVSync(false);
             }
         } else {
@@ -198,12 +198,12 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
     bool isForceUseAppVSync = false;
     if (!isChanged) {
         if (auto appVoteDataIter = appVoteData_.find(linker.first); appVoteDataIter != appVoteData_.end()) {
-            expectedRange.preferred_ = static_cast<int32_t>(appVoteDataIter->second.first);
+            expectedRange.preferred_ = appVoteDataIter->second.first;
             expectedRange.max_ =
                 expectedRange.max_ > expectedRange.preferred_ ? expectedRange.max_ : expectedRange.preferred_;
             expectedRange.min_ =
                 expectedRange.min_ < expectedRange.preferred_ ? expectedRange.min_ : expectedRange.preferred_;
-            isForceUseAppVSync = static_cast<bool>(appVoteDataIter->second.second);
+            isForceUseAppVSync = appVoteDataIter->second.second;
         }
     }
     auto appFrameRate =
