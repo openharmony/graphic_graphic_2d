@@ -16,10 +16,14 @@
 #ifndef ROSEN_ENGINE_CORE_ANIMATION_RS_SPRING_MODEL_H
 #define ROSEN_ENGINE_CORE_ANIMATION_RS_SPRING_MODEL_H
 
+#include <vector>
+
+#include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "common/rs_matrix3.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -34,27 +38,7 @@ constexpr float SPRING_MIN_AMPLITUDE_RATIO = 1e-3f;
 constexpr float SPRING_MIN_AMPLITUDE = 1e-5f;
 constexpr float FLOAT_PI = 3.14159265f;
 
-// helper function to simplify estimation of spring duration
-template<typename RSAnimatableType>
-float toFloat(RSAnimatableType value)
-{
-    return 1.f;
-}
-template<>
-float toFloat(Vector4f value)
-{
-    return value.GetLength();
-}
-template<>
-float toFloat(Quaternion value)
-{
-    return value.GetLength();
-}
-template<>
-float toFloat(Vector2f value)
-{
-    return value.GetLength();
-}
+
 } // namespace
 
 inline std::vector<float> Add(const std::vector<float> &first, const std::vector<float> &second)
@@ -259,6 +243,11 @@ private:
     {
         return 0.0f;
     }
+
+    static inline float toFloat(RSAnimatableType value)
+    {
+        return 1.0f;
+    }
     // calculated intermediate coefficient
     float coeffDecay_ { 0.0f };
     RSAnimatableType coeffScale_ {};
@@ -270,29 +259,42 @@ private:
     friend class RSSpringValueEstimator;
 };
 
-template class RSSpringModel<Vector2f>;
-template class RSSpringModel<Vector4f>;
-template class RSSpringModel<Quaternion>;
-
 // only used for property of which type is float
 template<>
-RSB_EXPORT float RSSpringModel<float>::EstimateDuration() const;
+float RSSpringModel<float>::EstimateDuration() const;
 template<>
 float RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::EstimateDuration() const;
 template<>
-RSB_EXPORT float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const;
+float RSSpringModel<float>::BinarySearchTime(float left, float right, float target) const;
 template<>
-RSB_EXPORT float RSSpringModel<float>::EstimateDurationForUnderDampedModel() const;
+float RSSpringModel<float>::EstimateDurationForUnderDampedModel() const;
 template<>
-RSB_EXPORT float RSSpringModel<float>::EstimateDurationForCriticalDampedModel() const;
+float RSSpringModel<float>::EstimateDurationForCriticalDampedModel() const;
 template<>
-RSB_EXPORT float RSSpringModel<float>::EstimateDurationForOverDampedModel() const;
+float RSSpringModel<float>::EstimateDurationForOverDampedModel() const;
 
 template<>
 void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParameters();
 template<>
 std::shared_ptr<RSRenderPropertyBase> RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateDisplacement(
     double time) const;
+
+template<>
+float RSSpringModel<float>::toFloat(float value);
+template<>
+float RSSpringModel<Vector4f>::toFloat(Vector4f value);
+template<>
+float RSSpringModel<Quaternion>::toFloat(Quaternion value);
+template<>
+float RSSpringModel<Vector2f>::toFloat(Vector2f value);
+
+#define DECLARE_PROPERTY(T, TYPE_ENUM)
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) extern template class RSB_EXPORT RSSpringModel<T>
+
+#include "modifier/rs_property_def.in"
+
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
 } // namespace Rosen
 } // namespace OHOS
 

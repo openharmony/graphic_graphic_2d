@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "animation/rs_animation.h"
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"

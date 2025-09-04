@@ -17,6 +17,8 @@
 #include "rs_graphic_test_img.h"
 
 #include "effect/shader_effect.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/brightness_blender.h"
 
 using namespace testing;
 using namespace testing::ext;

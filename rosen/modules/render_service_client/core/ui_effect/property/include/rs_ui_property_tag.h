@@ -82,5 +82,4 @@ class RSNGMaskBase;
 
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_PROPERTY_TAG_H
