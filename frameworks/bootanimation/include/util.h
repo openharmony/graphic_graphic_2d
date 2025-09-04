@@ -179,6 +179,12 @@ std::string GetHingeStatus();
 int64_t GetSystemCurrentTime();
 
 std::string GetDeviceType();
+
+void ParseProgressConfig(const std::string& path, std::map<int32_t, BootAnimationProgressConfig>& configs);
+
+void ParseProgressData(cJSON* data, std::map<int32_t, BootAnimationProgressConfig>& configs);
+
+cJSON* ParseFileConfig(const std::string& path);
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

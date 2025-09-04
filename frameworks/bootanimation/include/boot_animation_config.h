@@ -33,6 +33,16 @@ struct BootAnimationConfig {
     Rosen::ScreenId screenId = Rosen::INVALID_SCREEN_ID;
     std::map<std::string, std::string> videoExtPath;
 };
+
+struct BootAnimationProgressConfig {
+    int32_t progressScreenId = -1;
+    int32_t progressHeight = -1;
+    int32_t progressFrameHeight = -1;
+    int32_t progressOffset = -1;
+    int32_t progressFontSize = -1;
+    int32_t progressRadiusSize = -1;
+    int32_t progressDegree = -1;
+};
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_CONFIG_H
