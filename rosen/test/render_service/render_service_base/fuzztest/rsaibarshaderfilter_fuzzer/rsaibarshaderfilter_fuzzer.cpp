@@ -14,7 +14,7 @@
  */
 
 #include "rsaibarshaderfilter_fuzzer.h"
- 
+
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -56,24 +56,34 @@ T GetData()
     return object;
 }
 
-bool DoGenerateGEVisualEffect(const uint8_t* data, size_t size)
+/*
+* get a string from DATA
+*/
+std::string GetStringFromData(int strlen)
 {
-    if (data == nullptr) {
-        return false;
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        cstr[i] = GetData<char>();
     }
+    std::string str(cstr);
+    return str;
+}
 
+bool DoGenerateGEVisualEffect()
+{
     auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    std::string name = GetStringFromData(5); // Get a string of length 5
+    Drawing::DrawingPaintType type = GetData<Drawing::DrawingPaintType>();
+    auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(name, type);
+    geContainer->AddToChainedFilter(visualEffect);
     auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
     rsAIBarShaderFilter->GenerateGEVisualEffect(geContainer);
     return true;
 }
 
-bool DoIsAiInvertCoefValid(const uint8_t* data, size_t size)
+bool DoIsAiInvertCoefValid()
 {
-    if (data == nullptr) {
-        return false;
-    }
-   
     std::vector<float> aiInvertCoef;
     aiInvertCoef.reserve(g_number);
     for (int i = 0; i < g_number; i++) {
@@ -84,32 +94,22 @@ bool DoIsAiInvertCoefValid(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetAiInvertCoef(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-    
-    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
-    rsAIBarShaderFilter->GetAiInvertCoef();
-    return true;
-}
-
-
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (data == nullptr) {
+        return 0;
+    }
     // initialize
     OHOS::Rosen::DATA = data;
     OHOS::Rosen::g_size = size;
     OHOS::Rosen::g_pos = 0;
     
     /* Run your code on data */
-    OHOS::Rosen::DoGenerateGEVisualEffect(data, size);
-    OHOS::Rosen::DoIsAiInvertCoefValid(data, size);
-    OHOS::Rosen::DoGetAiInvertCoef(data, size);
+    OHOS::Rosen::DoGenerateGEVisualEffect();
+    OHOS::Rosen::DoIsAiInvertCoefValid();
     return 0;
 }
