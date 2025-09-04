@@ -79,6 +79,9 @@ public:
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
 
+    void SetSecurityDisplay(bool isSecurityDisplay);
+    bool IsSecurityDisplay() const;
+
     bool IsPartialRenderEnabled() const
     {
         return isPartialRenderEnabled_;
@@ -585,6 +588,8 @@ private:
     bool discardJankFrames_ = false;
 
     bool isSecurityExemption_ = false;
+    // use to mark security display
+    bool isSecurityDisplay_ = false;
     ScreenInfo screenInfo_ = {};
     std::shared_ptr<RSProcessor> processor_ = nullptr;
 

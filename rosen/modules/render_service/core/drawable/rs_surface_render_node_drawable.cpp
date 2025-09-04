@@ -619,6 +619,13 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
+
+    // process white list
+    if (uniParam->IsSecurityDisplay()) {
+        auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
+        SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
+    }
+
     if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams)) {
         // Whitelist not checked
         SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
@@ -680,6 +687,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 name_.c_str(), absDrawRect.left_, absDrawRect.top_,
                 absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
                 currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
+            ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
             return;
         }
     }
@@ -711,8 +719,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     
-    // enable uifirst for all scenarios.
-    if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
+    bool specialLayerInSecDisplay = uniParam->IsSecurityDisplay() && (specialLayerManager.Find(HAS_GENERAL_SPECIAL) ||
+        specialLayerManager.FindWithScreen(curDisplayScreenId_, SpecialLayerType::HAS_BLACK_LIST));
+    // Attention : Don't change the order of conditions. If securitydisplay has special layers, don't enable uifirst.
+    if (!specialLayerInSecDisplay &&
+        subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
         }
@@ -777,6 +788,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     PreprocessUnobscuredUEC(*curCanvas_);
     surfaceParams->ApplyAlphaAndMatrixToCanvas(*curCanvas_, !needOffscreen);
+
+    if (uniParam->IsSecurityDisplay() && DrawSpecialLayer(*rscanvas, *surfaceParams)) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw skip draw because has special layer [%s] Id:%" PRIu64 "",
+            name_.c_str(), surfaceParams->GetId());
+        return;
+    }
 
     bool isSelfDrawingSurface = surfaceParams->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
         !surfaceParams->IsSpherizeValid() && !surfaceParams->IsAttractionValid();
@@ -857,6 +874,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetCulledNodes(std::unordered_set<NodeId>());
         curCanvas_->SetCulledEntireSubtree(std::unordered_set<NodeId>());
     }
+    ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
 }
 
 void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
@@ -1020,8 +1038,8 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(const R
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     const auto& captureParam = RSUniRenderThread::GetCaptureParam();
     bool isScreenshot = captureParam.isSnapshot_ && !captureParam.isSingleSurface_;
-    // no need to check if not in mirror or screenshot
-    if (uniParam && !uniParam->IsMirrorScreen() && !isScreenshot) {
+    // no need to check if not in mirror or screenshot or security display
+    if (uniParam && !uniParam->IsMirrorScreen() && !uniParam->IsSecurityDisplay() && !isScreenshot) {
         return false;
     }
     // Check black list.
@@ -1106,13 +1124,14 @@ bool RSSurfaceRenderNodeDrawable::IsVisibleRegionEqualOnPhysicalAndVirtual(RSSur
     return visibleRegion.Xor(virtualVisibleRegion).IsEmpty();
 }
 
-void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+bool RSSurfaceRenderNodeDrawable::DrawSpecialLayer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!uniParams)) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
-        return;
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSpecialLayer uniParams is nullptr");
+        return false;
     }
+
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
     bool isSecLayersNotExempted = specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption();
     bool needSkipDrawWhite =
@@ -1120,14 +1139,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     // Draw White
     if (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         (UNLIKELY(isSecLayersNotExempted && !needSkipDrawWhite) || specialLayerManager.Find(SpecialLayerType::SKIP))) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
+        RS_LOGD("RSSurfaceRenderNodeDrawable::DrawSpecialLayer: "
                 "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
                 "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s], "
                 "isSelfCapture:[%{public}s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
             RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
         RS_TRACE_NAME_FMT(
-            "CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
+            "DrawSpecialLayer: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "draw white with security or skip layer for SingleSurface, isNeedBlur: [%s], isSelfCapture:[%s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false",
             RSUniRenderThread::GetCaptureParam().isSelfCapture_ ? "true" : "false");
@@ -1138,19 +1157,20 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         canvas.DrawRect(Drawing::Rect(
             0, 0, surfaceParams.GetBounds().GetWidth(), surfaceParams.GetBounds().GetHeight()));
         canvas.DetachBrush();
-        return;
+        return true;
     }
 
     // Draw Black
     bool isScreenshot = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
         !RSUniRenderThread::GetCaptureParam().isSingleSurface_;
     bool isMirrorSecLayer = RSUniRenderThread::GetCaptureParam().isMirror_ && isSecLayersNotExempted;
+    bool isSecLayerInSecDisplay = uniParams->IsSecurityDisplay() && isSecLayersNotExempted;
     if (specialLayerManager.Find(SpecialLayerType::PROTECTED) || UNLIKELY(isSecLayersNotExempted && isScreenshot) ||
-        isMirrorSecLayer) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
+        isMirrorSecLayer || isSecLayerInSecDisplay) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::DrawSpecialLayer: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "draw black with protected layer or screenshot security layer", surfaceParams.GetId(), name_.c_str());
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
+        RS_TRACE_NAME_FMT("DrawSpecialLayer: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "draw black with protected layer or screenshot security layer or virtual screen security layer",
             surfaceParams.GetId(), name_.c_str());
 
@@ -1161,7 +1181,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
             surfaceParams.GetBounds().GetHeight()));
         canvas.DetachBrush();
-        return;
+        return true;
     }
 
     // Skip Drawing
@@ -1169,16 +1189,31 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && specialLayerManager.Find(SpecialLayerType::SNAPSHOT_SKIP);
     if (((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
         isSnapshotSkipLayer) && !RSUniRenderThread::GetCaptureParam().ignoreSpecialLayer_) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
+        RS_LOGD("RSSurfaceRenderNodeDrawable::DrawSpecialLayer: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());
-        RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
+        RS_TRACE_NAME_FMT("DrawSpecialLayer: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());
+        return true;
+    }
+    return false;
+}
+
+void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+{
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (UNLIKELY(!uniParams)) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
+        return;
+    }
+
+    if (DrawSpecialLayer(canvas, surfaceParams)) {
         return;
     }
 
     RS_LOGD("HDRService hasHdrPresent_: %{public}d, GetId: %{public}" PRIu64 "",
         surfaceParams.GetHDRPresent(), surfaceParams.GetId());
+    const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;

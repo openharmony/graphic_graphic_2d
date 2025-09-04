@@ -480,6 +480,8 @@ private:
     NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
 
     int32_t rsScreenNodeChildNum_ = 0;
+
+    ScreenState screenState_ = ScreenState::UNKNOWN;
     
     bool isSkipDrawInVirtualScreen_ = false;
 };
