@@ -40,6 +40,44 @@ void ApsMonitorImplTest::TearDown() {}
 ApsMonitorImpl* ApsMonitorImplTest::monitor_ = nullptr;
 
 /*
+ * @tc.name: SetApsSurfaceBoundChange
+ * @tc.desc: Test SetApsSurfaceBoundChange
+ * @tc.type: FUNC
+ */
+HWTEST_F(ApsMonitorImplTest, SetApsSurfaceBoundChangeTest, TestSize.Level1)
+{
+    monitor_->isApsFuncsAvailable_ = true;
+    monitor_->isApsFuncsLoad_ = false;
+    monitor_->SetApsSurfaceBoundChange("1", "2", "3");
+    ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
+ 
+    monitor_->isApsFuncsAvailable_ = false;
+    monitor_->isApsFuncsLoad_ = true;
+    monitor_->sendApsEventFunc_ = nullptr;
+    monitor_->SetApsSurfaceBoundChange("1", "2", "3");
+    ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
+}
+
+/*
+ * @tc.name: SetApsSurfaceDestroyedInfo
+ * @tc.desc: Test SetApsSurfaceDestroyedInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(ApsMonitorImplTest, SetApsSurfaceDestroyedInfoTest, TestSize.Level1)
+{
+    monitor_->isApsFuncsAvailable_ = true;
+    monitor_->isApsFuncsLoad_ = false;
+    monitor_->SetApsSurfaceDestroyedInfo("test1");
+    ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
+ 
+    monitor_->isApsFuncsAvailable_ = false;
+    monitor_->isApsFuncsLoad_ = true;
+    monitor_->sendApsEventFunc_ = nullptr;
+    monitor_->SetApsSurfaceDestroyedInfo("test2");
+    ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
+}
+
+/*
  * @tc.name: SetApsSurfaceNodeTreeChangeTest
  * @tc.desc: Test SetApsSurfaceNodeTreeChange
  * @tc.type: FUNC
