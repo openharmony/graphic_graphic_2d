@@ -3998,7 +3998,8 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
     size_t totalNodeSize = 0;
     for (auto& [pid, info]: node_info) {
         size_t renderNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_NODE);
-        size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
+        size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid,
+            MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
         size_t modifierNodeSize = RenderNodeModifierDump(pid);
         log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
         Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
