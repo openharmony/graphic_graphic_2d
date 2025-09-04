@@ -116,7 +116,7 @@ HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrShader, TestSize.Level1)
     EXPECT_FALSE(manager.GetEnableHdrEffect(std::shared_ptr<RSNGRenderShaderBase>(nullptr)));
 
     auto cdflShader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    EXPECT_FALSE(manager.GetEnableHdrEffect(cdflShader));
+    EXPECT_TRUE(manager.GetEnableHdrEffect(cdflShader));
 }
 
 /**
