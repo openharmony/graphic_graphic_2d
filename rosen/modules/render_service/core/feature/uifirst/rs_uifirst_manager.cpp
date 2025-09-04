@@ -24,6 +24,9 @@
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+#include "feature/overlay_display/rs_overlay_display_manager.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
@@ -1655,6 +1658,12 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     if (!node.IsLeashWindow()) {
         return false;
     }
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    if (RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync()) {
+        // only for tv, when overlay display is enabled, force clip hole will be setted which conflict with ui first.
+        return false;
+    }
+#endif
     // check transparent and childHasVisibleFilter
     if (RSUifirstManager::Instance().CheckHasTransAndFilter(node)) {
         return false;
