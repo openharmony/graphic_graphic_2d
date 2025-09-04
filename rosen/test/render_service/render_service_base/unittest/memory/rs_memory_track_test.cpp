@@ -220,7 +220,7 @@ HWTEST_F(RSMemoryTrackTest, FindNodeByIdTest002, testing::ext::TestSize.Level1)
     MemoryNodeOfPid node1 = { 1024, 1 };
     MemoryNodeOfPid node2 = { 2048, 2 };
     std::vector<MemoryNodeOfPid> nodesVec = { node1, node2 };
-    MemoryNodeOfPid* result = MemoryTrack::Instance().FindNodeById(nodesVec. testId);
+    MemoryNodeOfPid* result = MemoryTrack::Instance().FindNodeById(nodesVec, nonExistId);
     EXPECT_EQ(result, nullptr);
 }
 
