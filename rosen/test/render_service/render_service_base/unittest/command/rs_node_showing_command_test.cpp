@@ -120,6 +120,7 @@ HWTEST_F(RSNodeGetShowingPropertyAndCancelAnimationTest, ReadFromParcel001, Test
     EXPECT_TRUE(animation.ReadFromParcel(parcel) == false);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: Process001
  * @tc.desc: test results of Process
@@ -146,6 +147,7 @@ HWTEST_F(RSNodeGetShowingPropertyAndCancelAnimationTest, Process001, TestSize.Le
     animation.Process(context);
     EXPECT_TRUE(property != nullptr);
 }
+#endif
 
 /**
  * @tc.name: Marshalling001
@@ -224,6 +226,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process001, TestSize.
     animation.Process(context);
     EXPECT_TRUE(renderProperty != nullptr);
 
+#ifndef MODIFIER_NG
     NodeId targetId = 0;
     PropertyId id = 0;
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
@@ -232,6 +235,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process001, TestSize.
     node->modifiers_[id] = modifier;
     animation.Process(context);
     EXPECT_TRUE(renderProperty != nullptr);
+#endif
 
     nodeId = 1;
     propertyId = 1;
@@ -242,6 +246,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process001, TestSize.
     EXPECT_TRUE(renderProperty != nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: Process002
  * @tc.desc: test results of Process
@@ -297,6 +302,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process002, TestSize.
     animation.propertiesMap_.emplace(std::make_pair(3, 3), std::make_pair(renderPropertyTest1, animationIdsTest1));
     animation.Process(context);
 }
+#endif
 
 /**
  * @tc.name: Process003

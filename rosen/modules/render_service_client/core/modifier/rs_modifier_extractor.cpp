@@ -17,7 +17,6 @@
 
 #include <securec.h>
 
-#include "modifier/rs_modifier_type.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"

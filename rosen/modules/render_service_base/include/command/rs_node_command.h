@@ -52,7 +52,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_COLOR = 0x0113,
     UPDATE_MODIFIER_VECTOR4F = 0x0114,
     UPDATE_MODIFIER_RRECT = 0x0115,
-    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0116,
+    // 0x0116 deleted, do not use this value never.
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
     UPDATE_MODIFIER_COMPLEX_SHADER_PARAM = 0X0118,
     UPDATE_MODIFIER_UI_FILTER_PTR = 0X0119,
@@ -106,10 +106,6 @@ enum RSNodeCommandType : uint16_t {
 
 class RSB_EXPORT RSNodeCommandHelper {
 public:
-    static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
-    static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
-    static void RemoveAllModifiers(RSContext& context, NodeId nodeId);
-
     template<typename T>
     static void UpdateProperty(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
     {
@@ -123,30 +119,6 @@ public:
         }
         if (auto property = node->GetProperty(id)) {
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
-        } else if (auto modifier = node->GetModifier(id)) {
-            std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<T>>(value, id);
-            bool isDelta = (type == UPDATE_TYPE_INCREMENTAL);
-            modifier->Update(prop, isDelta);
-        }
-    }
-
-    static void UpdateModifierDrawCmdList(
-        RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId id, bool isDelta)
-    {
-        std::shared_ptr<RSRenderPropertyBase> prop =
-            std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(value, id);
-        auto& nodeMap = context.GetNodeMap();
-        auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-        if (!node) {
-            return;
-        }
-        auto modifier = node->GetModifier(id);
-        if (!modifier) {
-            return;
-        }
-        modifier->Update(prop, isDelta);
-        if (value) {
-            value->UpdateNodeIdToPicture(nodeId);
         }
     }
 
@@ -195,13 +167,6 @@ public:
         ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType type);
     static void RemoveAllModifiersNG(RSContext& context, NodeId nodeId);
 };
-
-ADD_COMMAND(RSAddModifier,
-    ARG(PERMISSION_APP, RS_NODE, ADD_MODIFIER,
-        RSNodeCommandHelper::AddModifier, NodeId, std::shared_ptr<RSRenderModifier>))
-ADD_COMMAND(RSRemoveModifier,
-    ARG(PERMISSION_APP, RS_NODE, REMOVE_MODIFIER,
-        RSNodeCommandHelper::RemoveModifier, NodeId, PropertyId))
 
 ADD_COMMAND(RSUpdatePropertyBool,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_BOOL,
@@ -302,10 +267,6 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RRECT,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
-        RSNodeCommandHelper::UpdateModifierDrawCmdList,
-        NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
         RSNodeCommandHelper::UpdateProperty<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
@@ -369,9 +330,6 @@ ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, UNREGISTER_GEOMETRY_TRANSITION,
         RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
-ADD_COMMAND(RSRemoveAllModifiers,
-    ARG(PERMISSION_APP, RS_NODE, REMOVE_ALL_MODIFIERS,
-        RSNodeCommandHelper::RemoveAllModifiers, NodeId))
 
 ADD_COMMAND(RSDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, DUMP_CLIENT_NODE_TREE,

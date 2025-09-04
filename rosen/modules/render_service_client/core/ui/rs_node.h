@@ -1972,7 +1972,6 @@ private:
     void SetShadowBlenderParams(const RSShadowBlenderPara& params);
 
     void NotifyPageNodeChanged();
-    void CheckModifierType(RSModifierType modifierType);
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -2047,7 +2046,6 @@ private:
     std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
     std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
-    std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
 
     std::shared_ptr<RectF> drawRegion_;

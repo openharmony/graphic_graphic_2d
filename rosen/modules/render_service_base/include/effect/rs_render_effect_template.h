@@ -154,7 +154,6 @@ public:
     virtual bool Marshalling(Parcel& parcel) const = 0;
     virtual void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Detach() = 0;
-    virtual void SetModifierType(RSModifierType inType) = 0;
     virtual void Dump(std::string& out) const = 0;
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
@@ -309,15 +308,6 @@ public:
         std::apply([](const auto&... props) { (props.value_->Detach(), ...); }, properties_);
         if (Base::nextEffect_) {
             Base::nextEffect_->Detach();
-        }
-    }
-
-    void SetModifierType(RSModifierType inType) override
-    {
-        std::apply(
-            [&inType](const auto&... props) { (props.value_->SetModifierType(inType), ...); }, properties_);
-        if (Base::nextEffect_) {
-            Base::nextEffect_->SetModifierType(inType);
         }
     }
 

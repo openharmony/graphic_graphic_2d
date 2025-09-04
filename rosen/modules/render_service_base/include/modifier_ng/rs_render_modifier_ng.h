@@ -24,6 +24,13 @@
 namespace OHOS::Rosen {
 class RSRenderNode;
 namespace ModifierNG {
+class RSModifierContext {
+public:
+    RSModifierContext(RSProperties& property) : properties_(property), canvas_(nullptr) {}
+    RSModifierContext(RSProperties& property, RSPaintFilterCanvas* canvas) : properties_(property), canvas_(canvas) {}
+    RSProperties& properties_;
+    RSPaintFilterCanvas* canvas_;
+};
 // =============================================
 // life cycle of RSRenderModifier
 // 1. Create & animate

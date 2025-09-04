@@ -16,7 +16,6 @@
 #include <memory>
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
-#include "include/modifier/rs_render_modifier.h"
 #include "message_parcel.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_render_node.h"
@@ -215,6 +214,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
     }
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: OnChange
  * @tc.desc: Test OnChange and Marshalling
@@ -240,6 +240,7 @@ HWTEST_F(RSRenderPropertyTest, OnChange, TestSize.Level1)
     base->UpdatePropertyUnit(RSModifierType::CLIP_BOUNDS);
     ASSERT_EQ(base->node_.lock(), nullptr);
 }
+#endif
 
 /**
  * @tc.name: IsNearEqual

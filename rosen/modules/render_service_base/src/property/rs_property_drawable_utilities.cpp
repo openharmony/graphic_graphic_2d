@@ -73,7 +73,6 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
         ROSEN_LOGE("RSModifierDrawable::Draw nodePtr is nullptr");
         return;
     }
-#if defined(MODIFIER_NG)
     auto modifiers = nodePtr->modifiersNG_[static_cast<uint16_t>(modifierTypeNG_)];
     if (modifiers.empty()) {
         return;
@@ -95,34 +94,6 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
             modifier->Apply(&canvas, const_cast<RSRenderContent&>(content).renderProperties_);
         }
     }
-#else
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(content.drawCmdModifiers_);
-    auto itr = drawCmdModifiers.find(modifierType_);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return;
-    }
-    // temporary fix, will refactor RSRenderModifier::Apply to workaround this issue
-    RSModifierContext context = { const_cast<RSRenderContent&>(content).renderProperties_, &canvas };
-    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
-        bool needSkip = false;
-        if (nodePtr->GetNodeIsSingleFrameComposer() && nodePtr->singleFrameComposer_ != nullptr) {
-            needSkip = nodePtr->singleFrameComposer_->SingleFrameModifierAddToList(modifierType_, itr->second);
-        }
-        for (const auto& modifier : itr->second) {
-            if (nodePtr->singleFrameComposer_ != nullptr &&
-                nodePtr->singleFrameComposer_->SingleFrameIsNeedSkip(needSkip, modifier)) {
-                continue;
-            }
-            modifier->Apply(context);
-        }
-    } else {
-        for (const auto& modifier : itr->second) {
-            if (modifier) {
-                modifier->Apply(context);
-            }
-        }
-    }
-#endif
 }
 
 // ============================================================================

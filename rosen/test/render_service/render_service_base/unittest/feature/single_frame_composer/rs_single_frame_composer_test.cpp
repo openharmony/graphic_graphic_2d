@@ -31,6 +31,7 @@ public:
     void TearDown() override;
 
 private:
+#ifndef MODIFIER_NG
     void ModifierAddToList(
         std::list<std::shared_ptr<RSRenderModifier>>& modifierList, bool isSingleFrame, RSModifierType type)
     {
@@ -41,8 +42,7 @@ private:
         modifierList.emplace_back(modifier);
         rSSingleFrameComposer_.singleFrameDrawCmdModifiers_[type].emplace_back(modifier);
     }
-
-private:
+#endif
     RSSingleFrameComposer rSSingleFrameComposer_;
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
 };
@@ -52,6 +52,7 @@ void RSSingleFrameComposerTest::TearDown()
     RSSingleFrameComposer::ipcThreadIdMap_.clear();
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: SingleFrameModifierAddToList001
  * @tc.desc: test single frame modifier add to list
@@ -91,6 +92,7 @@ HWTEST_F(RSSingleFrameComposerTest, SingleFrameAddModifier001, TestSize.Level1)
     rSSingleFrameComposer_.SingleFrameAddModifier(modifier);
     EXPECT_TRUE(!rSSingleFrameComposer_.singleFrameDrawCmdModifiers_.empty());
 }
+#endif
 
 /**
  * @tc.name: SetSingleFrameFlag001

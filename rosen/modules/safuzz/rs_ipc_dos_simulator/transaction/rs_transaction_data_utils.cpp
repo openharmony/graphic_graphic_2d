@@ -55,8 +55,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSBaseNodeCommand, RSBaseNodeClearChild),
 
     /********** RSNodeCommand **********/
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSAddModifier),
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSRemoveModifier),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyBool),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyFloat),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyInt),
@@ -82,7 +80,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVector4Color),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVector4f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyRRect),
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyDrawCmdList),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyDrawingMatrix),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetFreeze),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetNodeName),
@@ -97,7 +94,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetNeedUseCmdlistDrawRegion),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSRegisterGeometryTransitionNodePair),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUnregisterGeometryTransitionNodePair),
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSRemoveAllModifiers),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSDumpClientNodeTree),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSCommitDumpClientNodeTree),
 
@@ -187,7 +183,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCancel),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCallback),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCreateCurve),
-    DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCreateParticle),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCreateKeyframe),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCreatePath),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCreateTransition),

@@ -101,6 +101,50 @@ private:
 
 class RSModifierTypeString {
 public:
+    static std::string GetModifierTypeString(RSModifierType type)
+    {
+        switch (type) {
+            case RSModifierType::INVALID: return "Invalid";
+            case RSModifierType::BOUNDS: return "Bounds";
+            case RSModifierType::FRAME: return "Frame";
+            case RSModifierType::TRANSFORM: return "Transform";
+            case RSModifierType::ALPHA: return "Alpha";
+            case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
+            case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
+            case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSModifierType::BACKGROUND_IMAGE: return "BackgroundImage";
+            case RSModifierType::BORDER: return "Border";
+            case RSModifierType::OUTLINE: return "Outline";
+            case RSModifierType::CLIP_TO_BOUNDS: return "ClipToBounds";
+            case RSModifierType::CLIP_TO_FRAME: return "ClipToFrame";
+            case RSModifierType::VISIBILITY: return "Visibility";
+            case RSModifierType::DYNAMIC_LIGHT_UP: return "DynamicLightUp";
+            case RSModifierType::SHADOW: return "Shadow";
+            case RSModifierType::MASK: return "Mask";
+            case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
+            case RSModifierType::USE_EFFECT: return "UseEffect";
+            case RSModifierType::BLENDER: return "Blender";
+            case RSModifierType::POINT_LIGHT: return "PointLight";
+            case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
+            case RSModifierType::COMPOSITING_FILTER: return "CompositingFilter";
+            case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
+            case RSModifierType::FOREGROUND_FILTER: return "ForegroundFilter";
+            case RSModifierType::TRANSITION_STYLE: return "TransitionStyle";
+            case RSModifierType::BACKGROUND_STYLE: return "BackgroundStyle";
+            case RSModifierType::CONTENT_STYLE: return "ContentStyle";
+            case RSModifierType::FOREGROUND_STYLE: return "ForegroundStyle";
+            case RSModifierType::OVERLAY_STYLE: return "OverlayStyle";
+            case RSModifierType::NODE_MODIFIER: return "NodeModifier";
+            case RSModifierType::ENV_FOREGROUND_COLOR: return "EnvForegroundColor";
+            case RSModifierType::HDR_BRIGHTNESS: return "HdrBrightness";
+            case RSModifierType::BEHIND_WINDOW_FILTER: return "BehindWindowFilter";
+            case RSModifierType::BACKGROUND_NG_SHADER: return "BackgroundNgShader";
+            case RSModifierType::FOREGROUND_SHADER: return "ForegroundShader";
+            case RSModifierType::CHILDREN: return "Children";
+            default: return "Invalid";
+        }
+    }
+
     static std::string GetPropertyTypeString(RSPropertyType type)
     {
         switch (type) {

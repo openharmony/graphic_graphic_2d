@@ -23,7 +23,6 @@ ohos_unittest("RSRenderServiceBaseModifierTest") {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
   sources = [
-    "rs_render_modifier_test.cpp",
     "rs_render_property_test.cpp",
   ]
 

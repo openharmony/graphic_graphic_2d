@@ -259,7 +259,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     animation->OnFinish();
     animation->Reverse();
     animation->OnReverse();
-    EXPECT_EQ(animation->GetModifierType(), RSModifierType::INVALID);
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 end";
 }
@@ -1111,6 +1110,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AnimationSupplementTest022
  * @tc.desc: Verify the setcallback of Animation
@@ -1161,6 +1161,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     node->SetSandBox(vec);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end";
 }
+#endif
 
 /**
  * @tc.name: AnimationSupplementTest023

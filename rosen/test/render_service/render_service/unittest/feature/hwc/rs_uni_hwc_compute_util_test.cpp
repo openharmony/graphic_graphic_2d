@@ -35,9 +35,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
-#if defined(MODIFIER_NG)
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
-#endif
  
 using namespace testing;
 using namespace testing::ext;
@@ -1407,16 +1405,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function |
     RSRenderNode node(id);
     auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
     property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
-#if defined(MODIFIER_NG)
     std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
         std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
     node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR)].emplace_back(modifier);
-#else
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSEnvForegroundColorStrategyRenderModifier>(
-        property) };
-    node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
-#endif
     auto result = RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node);
     EXPECT_TRUE(result);
 }

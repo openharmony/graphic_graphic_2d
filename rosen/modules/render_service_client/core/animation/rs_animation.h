@@ -22,7 +22,6 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_common_def.h"
-#include "modifier/rs_modifier_type.h"
 #include "modifier/rs_property.h"
 
 #ifdef _WIN32
@@ -90,11 +89,6 @@ public:
     void InteractiveSetFraction(float fraction);
 
     virtual bool IsSupportInteractiveAnimator() { return true; }
-
-    virtual RSModifierType GetModifierType() const
-    {
-        return RSModifierType::INVALID;
-    }
 
     virtual ModifierNG::RSPropertyType GetPropertyType() const
     {

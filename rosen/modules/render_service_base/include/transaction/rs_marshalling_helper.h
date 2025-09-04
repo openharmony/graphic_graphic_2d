@@ -81,7 +81,6 @@ class RSRenderPathAnimation;
 class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
-class RSRenderModifier;
 class RSRenderPropertyBase;
 template<typename T>
 class RSRenderProperty;
@@ -273,7 +272,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
 

@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_common_def.h"
-#include "modifier/rs_modifier_type.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"

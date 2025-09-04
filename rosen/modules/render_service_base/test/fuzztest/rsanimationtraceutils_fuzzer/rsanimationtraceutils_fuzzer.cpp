@@ -93,16 +93,16 @@ namespace OHOS {
         const std::string frameNodeTag = GetStringFromData(STR_LEN);
         const int32_t frameNodeId = GetData<int32_t>();
         const RSUINodeType nodeType = static_cast<RSUINodeType>(GetData<uint32_t>());
-        RSModifierType modifierType = static_cast<RSModifierType>(GetData<int16_t>());
+        auto propertyType = static_cast<ModifierNG::RSPropertyType>(GetData<uint16_t>());
         auto node = std::make_shared<RSRenderNode>(nodeId);
 
         // test
         RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace(nodeName);
         RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(info, nodeId, animationId, isAddLogInfo);
         RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(
-            nodeId, animationId, modifierType, isAddLogInfo);
+            nodeId, animationId, propertyType, isAddLogInfo);
         RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(nodeId, nodeName, propertyId, animationId,
-            animationType, modifierType, startValue, endValue, animationDelay, animationDur, repeat, interfaceName,
+            animationType, propertyType, startValue, endValue, animationDelay, animationDur, repeat, interfaceName,
             frameNodeId, frameNodeTag, nodeType);
         RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
             node.get(), nodeId, nodeName, animationId, propertyId, fraction, value, time, animationDur, repeat);
@@ -125,7 +125,6 @@ namespace OHOS {
         // get data
         const ImplicitAnimationParamType animationType = static_cast<ImplicitAnimationParamType>(GetData<int>());
         const RSUINodeType nodeType = static_cast<RSUINodeType>(GetData<uint32_t>());
-        RSModifierType modifierType = static_cast<RSModifierType>(GetData<int16_t>());
         int16_t red = GetData<int16_t>();
         int16_t green = GetData<int16_t>();
         int16_t blue = GetData<int16_t>();
@@ -137,7 +136,6 @@ namespace OHOS {
         const std::string key = GetStringFromData(STR_LEN);
         const std::string value1 = GetStringFromData(STR_LEN);
         RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(key.c_str(), value1.c_str(), nullptr);
-        RSAnimationTraceUtils::GetInstance().GetModifierTypeString(modifierType);
         RSAnimationTraceUtils::GetInstance().GetAnimationTypeString(animationType);
         RSAnimationTraceUtils::GetInstance().GetNodeTypeString(nodeType);
     }
@@ -175,8 +173,10 @@ namespace OHOS {
         data_ = data;
         size_ = size;
         pos = 0;
+#ifndef MODIFIER_NG
         RSAnimationTraceUtilsFuzzerTest();
         RSAnimationTraceUtilsFuzzerTest2();
+#endif
         ParseRenderPropertyValueTest();
         return true;
     }

@@ -154,6 +154,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate002, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate002 end";
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: Animate003
  * @tc.desc: Verify the Animate
@@ -200,6 +201,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate003, TestSize.Level1)
     EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 end";
 }
+#endif // !MODIFIER_NG
 
 /**
  * @tc.name: UpdateEmitter001

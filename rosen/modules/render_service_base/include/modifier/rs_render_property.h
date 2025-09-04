@@ -24,7 +24,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "modifier/rs_animatable_arithmetic.h"
-#include "modifier/rs_modifier_type.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "property/rs_properties_def.h"
 #include "transaction/rs_marshalling_helper.h"
 #ifdef USE_M133_SKIA
@@ -144,20 +144,6 @@ public:
     void Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier = {});
     void Detach();
 
-    // deprecated
-    RSModifierType GetModifierType() const
-    {
-        return modifierType_;
-    }
-
-    // deprecated
-    void SetModifierType(RSModifierType type)
-    {
-        modifierType_ = type;
-        UpdatePropertyUnit(type);
-        OnSetModifierType();
-    }
-
     std::weak_ptr<ModifierNG::RSRenderModifier> GetModifierNG() const
     {
         return modifier_;
@@ -174,9 +160,6 @@ protected:
 
     virtual void OnAttach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier) {}
     virtual void OnDetach() {}
-    virtual void OnSetModifierType() {}
-
-    void UpdatePropertyUnit(RSModifierType type);
 
     void UpdatePropertyUnitNG(ModifierNG::RSPropertyType propertyType);
 
@@ -220,8 +203,6 @@ protected:
     // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set
     // refactor this to remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
-    // deprecated
-    RSModifierType modifierType_ { RSModifierType::INVALID };
 
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier_;
 
@@ -343,7 +324,6 @@ protected:
 
     void OnAttach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier) override {}
     void OnDetach() override {}
-    void OnSetModifierType() override {}
 
     RSPropertyType GetPropertyType() const override
     {
@@ -533,15 +513,11 @@ RSB_EXPORT void RSRenderProperty<int>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<float>::Dump(std::string& out) const;
 template<>
-RSB_EXPORT void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const;
-template<>
 RSB_EXPORT void RSRenderProperty<Quaternion>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector2f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector3f>::Dump(std::string& out) const;
-template<>
-RSB_EXPORT void RSRenderProperty<Vector4f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Color>::Dump(std::string& out) const;
 template<>
@@ -623,8 +599,6 @@ template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set(
     const std::shared_ptr<RSNGRenderFilterBase>& value, PropertyUpdateType type);
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnSetModifierType();
-template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
 template<>
@@ -633,8 +607,6 @@ template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::Set(
     const std::shared_ptr<RSNGRenderShaderBase>& value, PropertyUpdateType type);
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderShaderBase>>::OnSetModifierType();
-template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
 template<>
@@ -642,8 +614,6 @@ RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach(
 template<>
 RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
     const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type);
-template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnSetModifierType();
 
 #if defined(_WIN32)
 #define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>

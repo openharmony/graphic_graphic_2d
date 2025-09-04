@@ -81,7 +81,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     std::vector<std::shared_ptr<ParticleRenderParams>> particleRenderParams;
     std::shared_ptr<RSPath> path;
     std::shared_ptr<RSFilter> filter;
-    std::shared_ptr<RSRenderModifier> modifier;
     std::shared_ptr<RSRenderPropertyBase> property;
     std::shared_ptr<RSImageBase> base = std::make_shared<RSImageBase>();
     std::shared_ptr<RSImage> image = std::make_shared<RSImage>();
@@ -129,7 +128,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     RSMarshallingHelper::Unmarshalling(parcel, map);
     RSMarshallingHelper::Unmarshalling(parcel, rectt);
     RSMarshallingHelper::Unmarshalling(parcel, rrect);
-    RSMarshallingHelper::Unmarshalling(parcel, modifier);
     RSMarshallingHelper::Unmarshalling(parcel, property);
     RSMarshallingHelper::ReadFromParcel(parcel, 1, isMalloc);
     RSMarshallingHelper::ReadFromAshmem(parcel, 1, isMalloc);

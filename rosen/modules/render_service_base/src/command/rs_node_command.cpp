@@ -26,34 +26,6 @@ RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
 }
 
-void RSNodeCommandHelper::AddModifier(RSContext& context, NodeId nodeId,
-    const std::shared_ptr<RSRenderModifier>& modifier)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->AddModifier(modifier);
-    }
-}
-
-void RSNodeCommandHelper::RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->RemoveModifier(propertyId);
-    }
-}
-
-void RSNodeCommandHelper::RemoveAllModifiers(RSContext& context, NodeId nodeId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->RemoveAllModifiers();
-    }
-}
-
 void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
 {
     auto& nodeMap = context.GetNodeMap();

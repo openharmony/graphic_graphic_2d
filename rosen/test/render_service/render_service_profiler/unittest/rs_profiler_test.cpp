@@ -72,6 +72,7 @@ void GenerateFullChildrenListForAll(const RSContext& context)
         [](const std::shared_ptr<RSRenderNode>& node) { node->GenerateFullChildrenList(); });
 }
 
+#ifndef MODIFIER_NG
 std::vector<RSRenderNode::DrawCmdContainer> GetBufferOfDrawCmdModifiersFromTree(
     const std::vector<std::shared_ptr<RSRenderNode>>& tree)
 {
@@ -172,6 +173,7 @@ bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std:
 
     return isDrawCmdModifiersEqual;
 }
+#endif
 
 /*
  * @tc.name: Interface Test
@@ -244,6 +246,7 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
     });
 }
 
+#ifndef MODIFIER_NG
 /*
  * @tc.name: RSDoubleTransformationTest
  * @tc.desc: Test double use of FirstFrameMarshalling & FirstFrameUnmarshalling with test tree
@@ -300,6 +303,7 @@ HWTEST_F(RSProfilerTest, RSDoubleTransformationTest, Function | Reliability | La
         EXPECT_TRUE(isDrawCmdModifiersEqual);
     });
 }
+#endif
 
 /*
  * @tc.name: IfNeedToSkipDuringReplay

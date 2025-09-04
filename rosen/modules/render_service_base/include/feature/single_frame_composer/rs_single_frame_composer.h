@@ -22,8 +22,6 @@
 #include <thread>
 
 #include "common/rs_macros.h"
-#include "modifier/rs_modifier_type.h"
-#include "modifier/rs_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 
 namespace OHOS {
@@ -32,10 +30,6 @@ class RSB_EXPORT RSSingleFrameComposer {
 public:
     RSSingleFrameComposer() = default;
     ~RSSingleFrameComposer() = default;
-
-    bool SingleFrameModifierAddToList(RSModifierType type, std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
-    bool SingleFrameIsNeedSkip(bool needSkip, const std::shared_ptr<RSRenderModifier>& modifier);
-    void SingleFrameAddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
 
     bool SingleFrameModifierAddToListNG(
         ModifierNG::RSModifierType type, std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
@@ -48,17 +42,11 @@ public:
     static bool IsShouldProcessByIpcThread(pid_t pid);
 
 private:
-    bool FindSingleFrameModifier(const std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
-    void EraseSingleFrameModifier(std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
-    void SingleFrameModifierAdd(std::list<std::shared_ptr<RSRenderModifier>>& singleFrameModifierList,
-        std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
-
     bool FindSingleFrameModifierNG(const std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
     void EraseSingleFrameModifierNG(std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
     void SingleFrameModifierAddNG(std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& singleFrameModifierList,
         std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
 
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> singleFrameDrawCmdModifiers_;
     std::map<ModifierNG::RSModifierType, std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>>
         singleFrameDrawCmdModifiersNG_;
     mutable std::mutex singleFrameDrawMutex_;

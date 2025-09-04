@@ -17,10 +17,7 @@
 
 #include "common/rs_obj_geometry.h"
 #include "draw/canvas.h"
-#include "modifier/rs_modifier_type.h"
-#if defined(MODIFIER_NG)
 #include "modifier_ng/rs_render_modifier_ng.h"
-#endif
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -64,6 +61,7 @@ void RSCanvasDrawingRenderNodeTest::TearDownTestCase()
 void RSCanvasDrawingRenderNodeTest::SetUp() {}
 void RSCanvasDrawingRenderNodeTest::TearDown() {}
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: ProcessRenderContentsTest
  * @tc.desc: test results of ProcessRenderContents
@@ -92,6 +90,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsTest, TestSize.Leve
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
     ASSERT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
 }
+#endif
 
 /**
  * @tc.name: ProcessRenderContentsOtherTest
@@ -109,17 +108,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     drawCmdList->SetHeight(1090);
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
-#if defined(MODIFIER_NG)
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
     rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
         vecModifier;
-#else
-    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
-        property) };
-    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
-#endif
     std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
         printf("ProcessRenderContentsTest callbackFunc\n");
     };
@@ -211,20 +204,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>(1024, 1090);
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
-#if defined(MODIFIER_NG)
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
     rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
         vecModifier;
-#else
-    std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
-        property) };
-    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
-#endif
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetSizeFromDrawCmdModifiersTest002
  * @tc.desc: test results of GetSizeFromDrawCmdModifiers
@@ -277,6 +265,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest003, Test
     rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
+#endif
+
 /**
  * @tc.name: IsNeedResetSurfaceTest
  * @tc.desc: test results of IsNeedResetSurface
@@ -346,6 +336,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Lev
     EXPECT_FALSE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: ApplyDrawCmdModifier
  * @tc.desc: test results of ApplyDrawCmdModifier
@@ -374,6 +365,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyDrawCmdModifier, TestSize.Level1)
     contextArgs.canvas_ = &paintCanvas;
     rsCanvasDrawingRenderNode.ApplyDrawCmdModifier(contextArgs, type);
 }
+#endif
 
 /**
  * @tc.name: GetBitmap
@@ -473,6 +465,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetPixelmapSurfaceImgValidTest, TestSize
 #endif
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: AddDirtyType
  * @tc.desc: test results of AddDirtyType
@@ -525,6 +518,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     EXPECT_TRUE(curDrawCmdLists.empty());
 #endif
 }
+#endif
 
 /**
  * @tc.name: ResetSurface
@@ -661,6 +655,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetImageTest, TestSize.Level1)
     EXPECT_TRUE(rsCanvasDrawingRenderNode->GetImage(tid) == nullptr);
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: ClearResourceTest
  * @tc.desc: Test ClearResource
@@ -675,6 +670,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
     auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
     EXPECT_TRUE(lists.empty());
 }
+#endif
 
 /**
  * @tc.name: CheckCanvasDrawingPostPlaybacked
@@ -722,6 +718,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Lev
     node->ContentStyleSlotUpdate();
 }
 
+#ifndef MODIFIER_NG
 /**
  * @tc.name: GetDrawCmdListsTest
  * @tc.desc: Test GetDrawCmdLists
@@ -743,4 +740,5 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
     auto lists = node->GetDrawCmdLists();
     EXPECT_FALSE(lists.empty());
 }
+#endif
 } // namespace OHOS::Rosen
