@@ -264,6 +264,7 @@ HWTEST_F(RSMemoryTrackTest, SetDrawableNodeInfoTest002, testing::ext::TestSize.L
 {
     NodeId testId = -2;
     MemoryInfo testInfo = { 1024, -2 };
+    MemoryNodeOfPid testNode = { 0, testId };
     MemoryTrack::Instance().SetDrawableNodeInfo(testId, testInfo);
     EXPECT_NE(testNode.GetDrawableMemSize(), 1024);
 }
