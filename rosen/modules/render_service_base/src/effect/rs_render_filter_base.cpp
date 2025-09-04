@@ -27,16 +27,6 @@
 
 namespace OHOS {
 namespace Rosen {
-// explicit instantiation
-#define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
-#define DECLARE_FILTER(FilterName, FilterType, ...) \
-    template class RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
-
-#include "effect/rs_render_filter_def.in"
-
-#undef ADD_PROPERTY_TAG
-#undef DECLARE_FILTER
-
 using FilterCreator = std::function<std::shared_ptr<RSNGRenderFilterBase>()>;
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::BLUR, [] {
@@ -128,21 +118,21 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
 void RSNGRenderFilterBase::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                            std::shared_ptr<Drawing::GEVisualEffect> dest)
 {
-    RSUIFilterHelper::UpdateCacheData(src, dest);
+    RSNGRenderFilterHelper::UpdateCacheData(src, dest);
 }
 
-void RSUIFilterHelper::GenerateGEVisualEffect(std::shared_ptr<RSNGRenderFilterBase>& filter)
+void RSNGRenderFilterHelper::GenerateGEVisualEffect(std::shared_ptr<RSNGRenderFilterBase>& filter)
 {
     if (filter) {
         filter->GenerateGEVisualEffect();
     }
 }
 
-void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
+void RSNGRenderFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
     std::shared_ptr<Drawing::GEVisualEffectContainer>& container)
 {
     if (!container) {
-        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: container nullptr");
+        RS_LOGE("RSNGRenderFilterHelper::UpdateToGEContainer: container nullptr");
         return;
     }
 
@@ -153,7 +143,7 @@ void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>
     }
 }
 
-bool RSUIFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter)
+bool RSNGRenderFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter)
 {
     auto current = filter;
     while (current) {
@@ -165,21 +155,21 @@ bool RSUIFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filt
     return false;
 }
 
-void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
+void RSNGRenderFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
                                        std::shared_ptr<Drawing::GEVisualEffect> dest)
 {
     if (src == nullptr) {
-        RS_LOGE("RSUIFilterHelper::UpdateCacheData: src is nullptr");
+        RS_LOGE("RSNGRenderFilterHelper::UpdateCacheData: src is nullptr");
         return;
     }
     if (dest == nullptr) {
-        RS_LOGE("RSUIFilterHelper::UpdateCacheData: dest is nullptr");
+        RS_LOGE("RSNGRenderFilterHelper::UpdateCacheData: dest is nullptr");
         return;
     }
     auto srcImpl = src->GetImpl();
     auto destImpl = dest->GetImpl();
     if (srcImpl == nullptr || destImpl == nullptr || srcImpl->GetFilterType() != destImpl->GetFilterType()) {
-        RS_LOGE("RSUIFilterHelper::UpdateCacheData: effect impl type mismatch");
+        RS_LOGE("RSNGRenderFilterHelper::UpdateCacheData: effect impl type mismatch");
         return;
     }
 
@@ -189,7 +179,7 @@ void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> 
     }
 }
 
-void RSUIFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+void RSNGRenderFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
     const Vector3f& rotationAngle)
 {
     auto current = filter;

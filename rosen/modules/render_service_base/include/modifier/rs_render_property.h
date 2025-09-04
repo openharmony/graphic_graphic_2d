@@ -129,9 +129,9 @@ struct RSRenderPropertyTypeTraits {
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM)                                    \
     template<>                                                            \
-    struct RSRenderPropertyTypeTraits<T> {                                          \
+    struct RSRenderPropertyTypeTraits<T> {                                \
         static constexpr RSPropertyType type = RSPropertyType::TYPE_ENUM; \
-    };
+    }
 #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)
 
 #define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>
@@ -294,7 +294,6 @@ private:
     friend class RSAnimationTraceUtils;
     friend class ModifierNG::RSRenderModifier;
 };
-
 
 template<typename T>
 class RSB_EXPORT_TMP RSRenderProperty : public RSRenderPropertyBase {
@@ -606,12 +605,8 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
 
-    class RSRenderParticleVector;
+class RSRenderParticleVector;
 extern template class RSRenderProperty<RSRenderParticleVector>;
-
-// template<typename T>
-// const RSPropertyType RSRenderProperty<T>::type_ = RSPropertyType::INVALID;
-
 } // namespace Rosen
 } // namespace OHOS
 

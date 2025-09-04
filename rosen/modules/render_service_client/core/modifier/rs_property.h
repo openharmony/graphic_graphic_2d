@@ -338,7 +338,7 @@ struct RSPropertyTypeTraits {
     template<>                                                            \
     struct RSPropertyTypeTraits<T> {                                      \
         static constexpr RSPropertyType type = RSPropertyType::TYPE_ENUM; \
-    };
+    }
 #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)
 
 #define FILTER_PTR std::shared_ptr<RSNGFilterBase>
@@ -952,7 +952,7 @@ RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) \
     template<>                         \
-    RSC_EXPORT void RSProperty<T>::UpdateToRender(const T& value, PropertyUpdateType type) const;
+    RSC_EXPORT void RSProperty<T>::UpdateToRender(const T& value, PropertyUpdateType type) const
 #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)
 
 #define FILTER_PTR std::shared_ptr<RSNGFilterBase>

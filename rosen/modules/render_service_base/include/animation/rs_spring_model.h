@@ -289,7 +289,7 @@ template<>
 float RSSpringModel<Vector2f>::toFloat(Vector2f value);
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM)
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) extern template class RSB_EXPORT RSSpringModel<T>;
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) extern template class RSB_EXPORT RSSpringModel<T>
 
 #include "modifier/rs_property_def.in"
 

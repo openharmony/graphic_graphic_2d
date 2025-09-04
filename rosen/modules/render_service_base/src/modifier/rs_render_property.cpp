@@ -827,7 +827,7 @@ RSRenderPropertyBase::RSPropertyUnmarshallingFuncRegister RSRenderAnimatableProp
     {                                                                                                         \
         return std::make_shared<RSSpringValueEstimator<T>>();                                                 \
     }                                                                                                         \
-    template class RSRenderAnimatableProperty<T>;
+    template class RSRenderAnimatableProperty<T>
 
 #define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGRenderShaderBase>

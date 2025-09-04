@@ -17,12 +17,12 @@
 
 #include <atomic>
 #include <condition_variable>
-#include <event_handler.h>
 #include <functional>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <event_handler.h>
 
 #include "render_thread/rs_render_thread_visitor.h"
 

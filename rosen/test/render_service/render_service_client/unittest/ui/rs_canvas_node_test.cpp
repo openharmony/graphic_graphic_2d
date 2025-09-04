@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "core/transaction/rs_interfaces.h"
 #include "gtest/gtest.h"
 
 #include "animation/rs_animation.h"
-#include "draw/paint.h"
+#include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_director.h"
+#include "draw/paint.h"
 
 using namespace testing;
 using namespace testing::ext;

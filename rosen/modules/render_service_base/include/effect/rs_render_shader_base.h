@@ -30,16 +30,13 @@ namespace Drawing {
 
 class RSB_EXPORT RSNGRenderShaderBase : public RSNGRenderEffectBase<RSNGRenderShaderBase> {
 public:
+    ~RSNGRenderShaderBase() override = default;
+
     static std::shared_ptr<RSNGRenderShaderBase> Create(RSNGEffectType type);
 
     virtual void AppendToGEContainer(std::shared_ptr<Drawing::GEVisualEffectContainer>& ge) {};
 
-    virtual void OnSync()
-    {
-    }
-
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShaderBase>& val);
-    void Dump(std::string& out) const;
 
 private:
     friend class RSNGRenderShaderHelper;
@@ -93,8 +90,7 @@ public:
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_SHADER(ShaderName, ShaderType, ...) \
-    using RSNGRender##ShaderName = RSNGRenderShaderTemplate<RSNGEffectType::ShaderType, __VA_ARGS__>; \
-    extern template class PROPERTY_EXPORT RSNGRenderShaderTemplate<RSNGEffectType::ShaderType, __VA_ARGS__>
+    using RSNGRender##ShaderName = RSNGRenderShaderTemplate<RSNGEffectType::ShaderType, __VA_ARGS__>
 
 #include "effect/rs_render_shader_def.in"
 

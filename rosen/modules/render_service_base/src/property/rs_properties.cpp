@@ -3211,7 +3211,7 @@ void RSProperties::ComposeNGRenderFilter(
         originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         if (filter->ContainsType(RSNGEffectType::CONTENT_LIGHT)) {
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
-            RSUIFilterHelper::SetRotationAngle(filter, rotationAngle);
+            RSNGRenderFilterHelper::SetRotationAngle(filter, rotationAngle);
         }
     }
     originFilter = originDrawingFilter;

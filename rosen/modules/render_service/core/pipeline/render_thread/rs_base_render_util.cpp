@@ -1520,8 +1520,8 @@ bool RSBaseRenderUtil::CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::B
     return true;
 }
 
-Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(
-    const sptr<OHOS::SurfaceBuffer>& buffer, const Drawing::AlphaType alphaType)
+Drawing::BitmapFormat RSBaseRenderUtil::GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,\
+    const Drawing::AlphaType alphaType)
 {
     Drawing::BitmapFormat format;
     if (buffer == nullptr) {

@@ -28,6 +28,9 @@
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
+namespace Media {
+class PixelMap;
+}
 namespace Rosen {
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
@@ -46,9 +49,6 @@ namespace Drawing {
 class DrawCmdList;
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
 class DrawOpItem;
-}
-namespace Media {
-class PixelMap;
 }
 class RSModifiersDraw {
 public:

@@ -25,15 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
-#define DECLARE_SHADER(ShaderName, ShaderType, ...) \
-    template class RSNGRenderShaderTemplate<RSNGEffectType::ShaderType, __VA_ARGS__>
-
-#include "effect/rs_render_shader_def.in"
-
-#undef ADD_PROPERTY_TAG
-#undef DECLARE_SHADER
-
 using ShaderCreator = std::function<std::shared_ptr<RSNGRenderShaderBase>()>;
 
 static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
@@ -105,20 +96,6 @@ std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectTyp
     ROSEN_LOGE("RSNGRenderShaderBase: Unmarshalling shader count arrive limit(%{public}zu)",
         EFFECT_COUNT_LIMIT);
     return false;
-}
-
-void RSNGRenderShaderBase::Dump(std::string& out) const
-{
-    std::string descStr = ": ";
-    std::string splitStr = ", ";
-
-    out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
-    out += descStr;
-    DumpProperties(out);
-    if (nextEffect_) {
-        out += splitStr;
-        nextEffect_->Dump(out);
-    }
 }
 
 bool RSNGRenderShaderHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase> shader)

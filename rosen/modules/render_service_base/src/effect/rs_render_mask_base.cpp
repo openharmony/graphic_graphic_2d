@@ -25,15 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
-#define DECLARE_MASK(MaskName, MaskType, ...) \
-    template class RSNGRenderMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>
-
-#include "effect/rs_render_mask_def.in"
-
-#undef ADD_PROPERTY_TAG
-#undef DECLARE_MASK
-
 using MaskCreator = std::function<std::shared_ptr<RSNGRenderMaskBase>()>;
 
 static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {

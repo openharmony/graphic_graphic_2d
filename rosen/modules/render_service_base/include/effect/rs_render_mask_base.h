@@ -68,8 +68,7 @@ protected:
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_MASK(MaskName, MaskType, ...) \
-    using RSNGRender##MaskName = RSNGRenderMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>; \
-    extern template class PROPERTY_EXPORT RSNGRenderMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>
+    using RSNGRender##MaskName = RSNGRenderMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>
 
 #include "effect/rs_render_mask_def.in"
 

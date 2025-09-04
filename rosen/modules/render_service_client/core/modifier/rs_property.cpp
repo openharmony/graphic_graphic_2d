@@ -54,7 +54,7 @@ PropertyId GeneratePropertyId()
 
 // explicit instantiation
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSAnimatableProperty<T>;
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSAnimatableProperty<T>
 
 #define FILTER_PTR std::shared_ptr<RSNGFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGShaderBase>
@@ -408,7 +408,8 @@ void RSProperty<std::vector<float>>::UpdateToRender(const std::vector<float>& va
     UPDATE_TO_RENDER(RSUpdatePropertyVectorFloat, value, type);
 }
 template<>
-void RSProperty<std::vector<Vector2f>>::UpdateToRender(const std::vector<Vector2f>& value, PropertyUpdateType type) const
+void RSProperty<std::vector<Vector2f>>::UpdateToRender(
+    const std::vector<Vector2f>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyVectorVector2f, value, type);
 }
@@ -606,22 +607,5 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
 {
     return !value.IsInfinite();
 }
-
-// // explicit instantiation
-// #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
-// #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSAnimatableProperty<T>
-
-// #define FILTER_PTR std::shared_ptr<RSNGFilterBase>
-// #define SHADER_PTR std::shared_ptr<RSNGShaderBase>
-// #define MASK_PTR std::shared_ptr<RSNGMaskBase>
-
-// #include "modifier/rs_property_def.in"
-
-// #undef FILTER_PTR
-// #undef SHADER_PTR
-// #undef MASK_PTR
-
-// #undef DECLARE_PROPERTY
-// #undef DECLARE_ANIMATABLE_PROPERTY
 } // namespace Rosen
 } // namespace OHOS

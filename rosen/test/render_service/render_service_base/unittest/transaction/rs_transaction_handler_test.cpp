@@ -1183,7 +1183,8 @@ HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdTest004, TestSize.Le
     auto curTransaction = std::make_shared<RSTransactionHandler>();
     ASSERT_TRUE(preTransaction->implicitRemoteTransactionDataStack_.empty());
     NodeId nodeId = 1;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(
+        nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
     preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
     curTransaction->Begin();
     ASSERT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.empty());
@@ -1213,7 +1214,8 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionFromRT004, TestSize.L
     transaction->StartSyncTransaction();
     transaction->Begin();
     transaction->SetSyncTransactionNum(0);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(
+        1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommonCommand(command);
     transaction->AddRemoteCommand(command, 1, FollowType::NONE);
     while (!transaction->implicitCommonTransactionDataStack_.empty() ||

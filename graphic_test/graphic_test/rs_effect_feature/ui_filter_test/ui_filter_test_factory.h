@@ -16,10 +16,10 @@
 #ifndef UI_FILTER_TEST_FACTORY_H
 #define UI_FILTER_TEST_FACTORY_H
 
-#include <array>
 #include <memory>
 #include <variant>
 #include <vector>
+#include <array>
 
 #include "effect/shader_effect.h"
 #include "render/rs_gradient_blur_para.h"
@@ -28,9 +28,9 @@
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
-#include "ui_effect/filter/include/filter_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_hdr_para.h"

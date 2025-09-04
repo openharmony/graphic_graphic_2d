@@ -32,11 +32,13 @@ namespace Rosen {
  */
 class RSB_EXPORT RSNGRenderFilterBase : public RSNGRenderEffectBase<RSNGRenderFilterBase> {
 public:
+    ~RSNGRenderFilterBase() override = default;
+
     static std::shared_ptr<RSNGRenderFilterBase> Create(RSNGEffectType type);
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderFilterBase>& val);
 
-    virtual void GenerateGEVisualEffect() {};
+    virtual void GenerateGEVisualEffect() {}
 
     virtual void OnSync() {}
 
@@ -48,11 +50,12 @@ protected:
 
 private:
     friend class RSNGFilterBase;
-    friend class RSUIFilterHelper;
+    friend class RSNGRenderFilterHelper;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-class RSNGRenderFilterTemplate : public RSNGRenderEffectTemplate<RSNGRenderFilterBase, Type, PropertyTags...> {
+class RSNGRenderFilterTemplate :
+    public RSNGRenderEffectTemplate<RSNGRenderFilterBase, Type, PropertyTags...> {
 public:
     using EffectTemplateBase = RSNGRenderEffectTemplate<RSNGRenderFilterBase, Type, PropertyTags...>;
 
@@ -84,7 +87,7 @@ protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
 };
 
-class RSUIFilterHelper {
+class RSNGRenderFilterHelper {
 public:
     template<RSNGEffectType Type, typename... PropertyTags>
     static std::shared_ptr<RSNGRenderFilterTemplate<Type, PropertyTags...>> CreateRenderFilterByTuple(
@@ -108,9 +111,8 @@ public:
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
-#define DECLARE_FILTER(FilterName, FilterType, ...)                                                           \
-    using RSNGRender##FilterName##Filter = RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>; \
-    extern template class PROPERTY_EXPORT RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
+#define DECLARE_FILTER(FilterName, FilterType, ...) \
+    using RSNGRender##FilterName##Filter = RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
 
 #include "effect/rs_render_filter_def.in"
 

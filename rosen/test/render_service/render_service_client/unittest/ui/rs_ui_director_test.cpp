@@ -793,7 +793,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
     auto uiContext = director->GetRSUIContext();
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     auto token = 12345;
-    auto command = std::make_unique<RSAnimationCallback>(0, 0, token, FINISHED);
+    auto command = std::make_unique<RSAnimationCallback>(0, 0, token, AnimationCallbackEvent::FINISHED);
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
     std::vector<std::unique_ptr<RSCommand>> commands;
     commands.push_back(std::move(command));
