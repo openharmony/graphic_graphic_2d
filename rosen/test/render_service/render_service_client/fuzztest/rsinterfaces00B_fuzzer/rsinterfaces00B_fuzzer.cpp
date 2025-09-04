@@ -28,7 +28,9 @@ const uint8_t DO_REPORT_EVENT_JANK_FRAME = 2;
 const uint8_t DO_REPORT_RS_SCENE_JANK_START = 3;
 const uint8_t DO_REPORT_RS_SCENE_JANK_END = 4;
 const uint8_t DO_REPORT_EVENT_GAMESTATE = 5;
-const uint8_t TARGET_SIZE = 6;
+const uint8_t DO_AVCODEC_VIDEO_START = 6;
+const uint8_t DO_AVCODEC_VIDEO_STOP = 7;
+const uint8_t TARGET_SIZE = 8;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -194,6 +196,37 @@ void DoReportGameStateData()
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.ReportGameStateData(info);
 }
+
+void DoAvcodecVideoStart()
+{
+    std::vector<uint64_t> uniqueIdList;
+    std::vector<std::string> surfaceNameList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; i++) {
+        uniqueIdList.push_back(GetData<uint64_t>());
+        surfaceNameList.push_back(GetStringFromData(STR_LEN));
+    }
+    uint32_t fps = GetData<uint32_t>();
+    uint64_t reportTime = GetData<uint64_t>();
+
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+}
+
+void DoAvcodecVideoStop()
+{
+    std::vector<uint64_t> uniqueIdList;
+    std::vector<std::string> surfaceNameList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; i++) {
+        uniqueIdList.push_back(GetData<uint64_t>());
+        surfaceNameList.push_back(GetStringFromData(STR_LEN));
+    }
+    uint32_t fps = GetData<uint32_t>();
+
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -223,6 +256,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REPORT_EVENT_GAMESTATE:
             OHOS::Rosen::DoReportGameStateData();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_START:
+            OHOS::Rosen::DoAvcodecVideoStart();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
+            OHOS::Rosen::DoAvcodecVideoStop();
             break;
         default:
             return -1;

@@ -1721,7 +1721,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             RSHdrManager::Instance().UpdateHdrNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
         };
     }
-    RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();

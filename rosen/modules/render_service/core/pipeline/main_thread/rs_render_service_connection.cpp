@@ -3567,16 +3567,17 @@ bool RSRenderServiceConnection::GetHighContrastTextState()
     return RSBaseRenderEngine::IsHighContrastEnabled();
 }
 
-ErrCode RSRenderServiceConnection::AvcodecVideoStart(
-    uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime)
+ErrCode RSRenderServiceConnection::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {
-    RSJankStats::GetInstance().AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+    RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnection::AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps)
+ErrCode RSRenderServiceConnection::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
-    RSJankStats::GetInstance().AvcodecVideoStop(uniqueId, surfaceName, fps);
+    RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     return ERR_OK;
 }
 
