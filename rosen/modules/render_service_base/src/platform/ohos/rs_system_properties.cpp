@@ -1063,7 +1063,7 @@ bool RSSystemProperties::IsFoldScreenFlag()
 bool RSSystemProperties::IsSmallFoldDevice()
 {
     static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-    return foldType == "2,0,0,0" || foldType == "4,2,0,0";
+    return foldType == "2,0,0,0" || foldType == "4,2,0,0" || foldType == "2,2,0,0";
 }
 
 bool RSSystemProperties::GetCacheCmdEnabled()
