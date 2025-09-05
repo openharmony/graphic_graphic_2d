@@ -15,7 +15,7 @@
 
 #ifndef RS_FRAME_RATE_VOTE_H
 #define RS_FRAME_RATE_VOTE_H
-//
+
 #include <iconsumer_surface.h>
 
 #include "rs_video_frame_rate_vote.h"
