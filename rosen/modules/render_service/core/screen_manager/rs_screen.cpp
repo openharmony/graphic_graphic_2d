@@ -1445,6 +1445,9 @@ bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
 {
     if (IsVirtual()) {
         screenStatus_ = screenStatus;
+        if (screenStatus == VirtualScreenStatus::VIRTUAL_SCREEN_PLAY) {
+            SetVirtualScreenPlaying(true);
+        }
         return true;
     }
     return false;
@@ -1531,6 +1534,18 @@ bool RSScreen::GetAndResetPSurfaceChange()
 void RSScreen::SetPSurfaceChange(bool pSurfaceChange)
 {
     pSurfaceChange_ = pSurfaceChange;
+}
+
+bool RSScreen::GetAndResetVirtualScreenPlaying()
+{
+    bool expected = true;
+    return virtualScreenPlaying_.compare_exchange_strong(expected, false);
+}
+
+// only used in virtual screen
+void RSScreen::SeVirtualScreenPlaying(bool virtualScreenPlaying)
+{
+    virtualScreenPlaying_ = virtualScreenPlaying;
 }
 } // namespace impl
 } // namespace Rosen

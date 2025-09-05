@@ -218,7 +218,7 @@ public:
     
     virtual void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) = 0;
 
-    virtual bool CheckPSurfaceChanged(ScreenId id) = 0;
+    virtual bool CheckVirtualScreenStatusChanged(ScreenId id) = 0;
 
     virtual void RegisterHwcEvent(std::function<void()> func) = 0;
 };
@@ -401,7 +401,7 @@ public:
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
-    bool CheckPSurfaceChanged(ScreenId id) override;
+    bool CheckVirtualScreenStatusChanged(ScreenId id) override;
     void RegisterHwcEvent(std::function<void()> func) override;
 
 private:
