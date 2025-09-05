@@ -25,10 +25,9 @@ RSImplicitAnimatorMap& RSImplicitAnimatorMap::Instance()
     return animatorMap;
 }
 
-const std::shared_ptr<RSImplicitAnimator>& RSImplicitAnimatorMap::GetAnimator(const int32_t id)
+const std::shared_ptr<RSImplicitAnimator>& RSImplicitAnimatorMap::GetAnimator()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto& animator = animatorMap_[id];
+    thread_local std::shared_ptr<RSImplicitAnimator> animator = nullptr;
     if (animator == nullptr) {
         animator = std::make_shared<RSImplicitAnimator>();
     }

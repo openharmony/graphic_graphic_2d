@@ -535,7 +535,7 @@ void RSAnimation::StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>&
     }
     auto rsUIContext = target->GetRSUIContext();
     auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                       : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                       : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager == nullptr || animation == nullptr) {
         ROSEN_LOGE("Failed to start custom animation, modifier manager is null  animationId: %{public}" PRIu64 "!",
             GetId());
