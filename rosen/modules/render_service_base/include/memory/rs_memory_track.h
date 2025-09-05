@@ -32,7 +32,8 @@ constexpr int BYTE_CONVERT = 1024;
 enum MEMORY_TYPE {
     MEM_PIXELMAP,
     MEM_SKIMAGE,
-    MEM_RENDER_NODE
+    MEM_RENDER_NODE,
+    MEM_RENDER_DRAWABLE_NODE
 };
 
 #ifdef RS_MEMORY_INFO_MANAGER
@@ -63,13 +64,21 @@ class MemoryNodeOfPid {
 public:
     MemoryNodeOfPid() = default;
     ~MemoryNodeOfPid() = default;
-    MemoryNodeOfPid(size_t size, NodeId id);
+    MemoryNodeOfPid(size_t size, NodeId id, size_t drawableNodeSize = 0);
     size_t GetMemSize();
     void SetMemSize(size_t size);
     bool operator==(const MemoryNodeOfPid& other);
+    size_t GetDrawableMemSize() const;
+    void SetDrawableMemSize(size_t size);
+    NodeId GetNodeId() const
+    {
+        return nodeId_;
+    }
+
 private:
     size_t nodeSize_ = 0;
     NodeId nodeId_ = 0;
+    size_t drawableNodeSize_ = 0;
 };
 
 class RSB_EXPORT MemoryTrack {
@@ -93,6 +102,9 @@ public:
     NODE_ON_TREE_STATUS GetNodeOnTreeStatus(const void* addr);
     void SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFlag, bool isOnTree);
 #endif
+    size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
+    MemoryNodeOfPid* FindNodeById(std::vector<MemoryNodeOfPid>& nodeVec, NodeId id) const;
+    void SetDrawableNodeInfo(const NodeId id, const MemoryInfo& info);
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;
