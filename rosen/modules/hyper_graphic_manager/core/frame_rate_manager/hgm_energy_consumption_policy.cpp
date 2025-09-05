@@ -384,12 +384,10 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     auto& videoFrameRateList = configData->videoFrameRateList_;
     for (const auto& pkg: pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
-        auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
         auto videoCallLayerName = videoCallLayerConfig.find(pkgName);
         if (videoCallLayerName != videoCallLayerConfig.end() && videoCallLayerName_ != "") {
             std::lock_guard<std::mutex> lock(videoCallLock_);
             videoCallLayerName_ = videoCallLayerName->second;
-            return;
         }
         bool isVideoApp = videoFrameRateList.find(pkgName) != videoFrameRateList.end();
         hasVideoApp = hasVideoApp || isVideoApp;
