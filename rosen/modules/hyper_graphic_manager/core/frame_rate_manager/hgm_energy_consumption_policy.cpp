@@ -14,13 +14,14 @@
  */
 
 #include "hgm_energy_consumption_policy.h"
-//
+
 #include <functional>
 
 #include "hgm_core.h"
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 #include "rs_trace.h"
+#include "rs_frame_rate_vote.h"
 #include "xml_parser.h"
 
 #include "common/rs_common_hook.h"
@@ -375,20 +376,25 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     if (configData == nullptr) {
         std::lock_guard<std::mutex> lock(videoCallLock_);
         videoCallLayerName_ = "";
+        RSFrameRateVote::isVideoApp_.store(false);
         return;
     }
+    bool hasVideoApp = false;
+    auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
+    auto& videoFrameRateList = configData->videoFrameRateList_;
     for (const auto& pkg: pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
         auto& videoCallLayerConfig = configData->videoCallLayerConfig_;
         auto videoCallLayerName = videoCallLayerConfig.find(pkgName);
-        if (videoCallLayerName != videoCallLayerConfig.end()) {
+        if (videoCallLayerName != videoCallLayerConfig.end() && videoCallLayerName_ != "") {
             std::lock_guard<std::mutex> lock(videoCallLock_);
             videoCallLayerName_ = videoCallLayerName->second;
             return;
         }
+        bool isVideoApp = videoFrameRateList.find(pkgName) != videoFrameRateList.end();
+        hasVideoApp = hasVideoApp || isVideoApp;
     }
-    std::lock_guard<std::mutex> lock(videoCallLock_);
-    videoCallLayerName_ = "";
+    RSFrameRateVote::isVideoApp_.store(hasVideoApp);
 }
 
 int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const std::string& componentName)
