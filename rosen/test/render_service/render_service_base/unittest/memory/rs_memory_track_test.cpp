@@ -330,7 +330,7 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPidTest002, testing::ext::TestSize.Le
  */
 HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPidTest003, testing::ext::TestSize.Level1)
 {
-    pid_t testPid = 0;
+    pid_t testPid = -2;
     MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE;
     size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, type);
     EXPECT_EQ(result, 0);
