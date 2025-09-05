@@ -446,8 +446,10 @@ void RSUifirstManager::ProcessDoneNode()
             it = subthreadProcessingNode_.erase(it);
             continue;
         }
-        RS_LOGI("erase processingNode %{public}" PRIu64, id);
-        RS_TRACE_NAME_FMT("erase processingNode %s %" PRIu64, drawable->GetName().c_str(), id);
+        RS_LOGI("erase processingNode. name:%{public}s, id:%{public}" PRIu64 ", state:%{public}d",
+            drawable->GetName().c_str(), id, static_cast<int>(cacheStatus));
+        RS_TRACE_NAME_FMT("erase processingNode. name:%s, id:%" PRIu64 ", state:%d",
+            drawable->GetName().c_str(), id, static_cast<int>(cacheStatus));
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
         pendingPostCardNodes_.erase(it->first);
         // skipped by doing, need update cache because the doing cache is too old
@@ -1738,9 +1740,9 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         RS_TRACE_NAME_FMT("IsLeashWindowCache: needFilterSCB [%d]", needFilterSCB);
         return false;
     }
-    RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] IsScale[%d]"
-        " filter:[%d] rotate[%d] captured[%d] snapshotRotation[%d]",
-        isNeedAssignToSubThread, node.IsScale(),
+    RS_TRACE_NAME_FMT("IsLeashWindowCache: toSubThread[%d] recent[%d] IsScale[%d]"
+        " filter[%d] rotate[%d] captured[%d] snapshotRotation[%d]",
+        isNeedAssignToSubThread, isRecentScene, node.IsScale(),
         node.HasFilter(), RSUifirstManager::Instance().rotationChanged_, node.IsNodeToBeCaptured(),
         RSUifirstManager::Instance().IsSnapshotRotationScene());
     RS_LOGD("IsLeashWindowCache: toSubThread[%{public}d] recent[%{public}d] scale[%{public}d] filter[%{public}d] "
@@ -1876,13 +1878,15 @@ bool RSUifirstManager::QuerySubAssignable(RSSurfaceRenderNode& node, bool isRota
     std::string dfxMsg;
     auto hasTransparentSurface = GetSubNodeIsTransparent(node, dfxMsg);
 
-    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, hasFilter: %d,"
-        "isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d %s", node.GetId(), hasTransparentSurface,
-        childHasVisibleFilter, hasFilter, isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(), globalAlpha,
-        hasProtectedLayer, dfxMsg.c_str());
     bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ?
         !(isRotation && ROSEN_EQ(globalAlpha, 0.0f)) : !isRotation;
-    return !(hasTransparentSurface && childHasVisibleFilter) && !hasFilter && rotateOptimize && !hasProtectedLayer;
+    bool assignable = !(hasTransparentSurface && childHasVisibleFilter) &&
+        !hasFilter && rotateOptimize && !hasProtectedLayer;
+    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] assignable[%d] hasTransparent[%d] childHasVisibleFilter[%d]"
+        " hasFilter[%d] isRotation:[%d & %d] globalAlpha[%f], hasProtectedLayer[%d] %s",
+        node.GetId(), assignable, hasTransparentSurface, childHasVisibleFilter, hasFilter, isRotation,
+        RSSystemProperties::GetCacheOptimizeRotateEnable(), globalAlpha, hasProtectedLayer, dfxMsg.c_str());
+    return assignable;
 }
 
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
