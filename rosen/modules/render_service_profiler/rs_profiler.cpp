@@ -971,7 +971,9 @@ void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVer
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
         std::stringstream fontStream;
-        RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+        if (!IsBetaRecordEnabled()) {
+            RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+        }
         size_t fontStreamSize = fontStream.str().size();
         stream.write(reinterpret_cast<const char*>(&fontStreamSize), sizeof(fontStreamSize));
         stream.write(reinterpret_cast<const char*>(fontStream.str().c_str()), fontStreamSize);
@@ -987,6 +989,9 @@ std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_
         constexpr size_t fontStreamSizeMax = 100'000'000;
         
         stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
+        if (!fontStreamSize) {
+            return "";
+        }
         if (fontStreamSize > fontStreamSizeMax) {
             return "Typeface track is damaged";
         }
