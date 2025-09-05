@@ -15,6 +15,8 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_MATERIAL_FILTER_H
 
+#include <optional>
+
 #include "include/effects/SkRuntimeEffect.h"
 #include "common/rs_color.h"
 #include "render/rs_hps_blur.h"

@@ -2332,24 +2332,6 @@ void RSProperties::CreateAttractionEffectFilter()
     foregroundFilter_ = attractionEffectFilter;
 }
 
-void RSProperties::CreateColorfulShadowFilter()
-{
-    float elevation = GetShadowElevation();
-    Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f); // 0.25f 128.0f
-    Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(GetShadowPath(), GetClipBounds(), GetRRect());
-    auto colorfulShadowFilter = std::make_shared<RSColorfulShadowFilter>(
-        blurRadius, GetShadowOffsetX(), GetShadowOffsetY(), path, GetShadowIsFilled());
-    if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
-        colorfulShadowFilter->SetShadowColorMask(GetShadowColor());
-    }
-    if (IS_UNI_RENDER) {
-        foregroundFilterCache_ = colorfulShadowFilter;
-    } else {
-        foregroundFilter_ = colorfulShadowFilter;
-    }
-}
-
 float RSProperties::GetAttractionFraction() const
 {
     return attractFraction_;
@@ -4524,7 +4506,19 @@ void RSProperties::UpdateForegroundFilter()
     } else if (IsAttractionValid()) {
         CreateAttractionEffectFilter();
     } else if (IsShadowMaskValid()) {
-        CreateColorfulShadowFilter();
+        float elevation = GetShadowElevation();
+        Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f); // 0.25f 128.0f
+        Drawing::scalar blurRadius = elevation > 0.0f ? n1 : GetShadowRadius();
+        auto colorfulShadowFilter =
+            std::make_shared<RSColorfulShadowFilter>(blurRadius, GetShadowOffsetX(), GetShadowOffsetY());
+        if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
+            colorfulShadowFilter->SetShadowColorMask(GetShadowColor());
+        }
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = colorfulShadowFilter;
+        } else {
+            foregroundFilter_ = colorfulShadowFilter;
+        }
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else if (IsHDRUIBrightnessValid()) {
