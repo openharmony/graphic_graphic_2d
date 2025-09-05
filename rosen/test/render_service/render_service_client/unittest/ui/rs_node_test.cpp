@@ -4843,7 +4843,7 @@ HWTEST_F(RSNodeTest, RemoveChildByNodeSelf001, TestSize.Level1)
 HWTEST_F(RSNodeTest, DrawOnNode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    rsNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
+    rsNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
     ASSERT_FALSE(rsNode->recordingUpdated_);
     rsNode->SetFreeze(true);
     rsNode->InitUniRenderEnabled();

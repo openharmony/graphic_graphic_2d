@@ -110,7 +110,7 @@ bool DoDrawOnNode(const uint8_t* data, size_t size)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(isRenderServiceNode, isTextureExportNode);
-    RSModifierType type = RSModifierType::INVALID;
+    ModifierNG::RSModifierType type = ModifierNG::RSModifierType::INVALID;
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
     canvasNode->DrawOnNode(type, func);
     return true;
@@ -190,7 +190,7 @@ bool DoDrawOnNode002(const uint8_t* data, size_t size)
     int width = GetData<int>();
     int height = GetData<int>();
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(isRenderServiceNode, isTextureExportNode);
-    RSModifierType type = RSModifierType::BOUNDS;
+    ModifierNG::RSModifierType type = ModifierNG::RSModifierType::BOUNDS;
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
     RSCanvasNode rsCanvasNode(isRenderServiceNode, isTextureExportNode);
     rsCanvasNode.DrawOnNode(type, func);
