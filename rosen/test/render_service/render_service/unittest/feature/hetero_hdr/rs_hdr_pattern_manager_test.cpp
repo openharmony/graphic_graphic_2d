@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, Hardware
+ * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -50,28 +50,28 @@ using namespace OHOS::Rosen::DrawableV2;
 using namespace std;
 
 namespace {
-    constexpr int GRAPH_NUM = 4;
+    constexpr int GRAPH_NUM = 2;
 }
 
 namespace OHOS::Rosen {
 
-class MockRSHDRPatternManager : public RSHDRPatterManager {
+class MockRSHDRPatternManager : public RSHDRPatternManager {
 public:
     MockRSHDRPatternManager() = default;
     ~MockRSHDRPatternManager() = default;
     void SetMhcDev() {
         MHCDevice_ = mockMhcDevice;
-    }   
+    }
     std::shared_ptr<MHCDevice> mockMhcDevice = std::make_shared<MHCDevice>();
 };
 
-//模拟单例类的函数
+// 模拟单例类的函数
 class SingletonMockRSHDRPatternManager {
 public:
     static MockRSHDRPatternManager& Instance()
     {
         static MockRSHDRPatternManager instance;
-        instance.SetMhcDev(); //only need set once
+        instance.SetMhcDev();  // only need set once
         return instance;
     }
 };
@@ -86,54 +86,54 @@ public:
 
 void RSHDRPatternManagerTest::SetUpTestCase()
 {
-    RS_LOGI("**********************RSHDRPatternManagerTest SetUpTestCase********************");
+    RS_LOGI("************************RSHDRPatternManagerTest SetUpTestCase************************");
     SingletonMockRSHDRPatternManager::Instance().isFinishDLOpen_ = true;
 }
 
 void RSHDRPatternManagerTest::TearDownTestCase()
 {
-    RS_LOGI("**********************RSHDRPatternManagerTest TearDownTestCase********************");
-    //last ut must set graphPatternInstance_ and MHCLibFrameworkHandle_
-    auto graphPatternDestroy = [](void*) {return;};
+    RS_LOGI("************************RSHDRPatternManagerTest TearDownTestCase************************");
+    // last ut must set graphPatternInstance_ and MHCLibFrameworkHandle_
+    auto graphPatternDestroy = [](void*) { return; };
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
     SingletonMockRSHDRPatternManager::Instance().MHCLibFrameworkHandle_ = nullptr;
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternDestroy = graphPatternDestroy;
 }
 
-void RSHDRPatternManagerTest::SetUp() { RS_LOGI("SetUp-----------------------------------"); }
+void RSHDRPatternManagerTest::SetUp() { RS_LOGI("SetUp------------------------------------"); }
 
-void RSHDRPatternManagerTest::TearDown() { RS_LOGI("TearDown-----------------------------------"); }
+void RSHDRPatternManagerTest::TearDown() { RS_LOGI("TearDown------------------------------------"); }
 
 /**
  * @tc.name: RSHDRPatternManagerInterfaceTest
  * @tc.desc: Test RSHDRPatternManager interface
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
 HWTEST_F(RSHDRPatternManagerTest, RSHDRPatternManagerInterfaceTest, TestSize.Level1)
 {
     RSHDRPatternManager::Instance().MHCDlOpen();
 
-    uint64_t frameId  = 1;
+    uint64_t frameId = 1;
     RSHDRPatternManager::Instance().MHCRequestEGraph(frameId);
-    RSHDRPatternManager::Instance().MHCSubmitHDRTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr, nullptr);
     RSHDRPatternManager::Instance().MHCSubmitHDRTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr, nullptr);
     RSHDRPatternManager::Instance().MHCSubmitVulkanTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr);
     RSHDRPatternManager::Instance().MHCWait(frameId, MHC_PATTERN_TASK_HDR_HPAE);
     RSHDRPatternManager::Instance().MHCGetVulkanTaskWaitEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
     RSHDRPatternManager::Instance().MHCGetVulkanTaskNotifyEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
+    RSHDRPatternManager::Instance().MHCReleaseEGraph(frameId);
     RSHDRPatternManager::Instance().MHCReleaseAll();
     RSHDRPatternManager::Instance().MHCCheck("ut test");
 
     RSHDRPatternManager::Instance().MHCResetCurFrameId();
-    EXPECT_EQ(RSHDRPatternManager::Instance().lastFrameId_, 0)
+    EXPECT_EQ(RSHDRPatternManager::Instance().lastFrameId_, 0);
 }
 
 /**
  * @tc.name: MHCDlOpenTest
  * @tc.desc: Test MHCDlOpen
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
 {
@@ -151,9 +151,9 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCGraphPatternInitTest
  * @tc.desc: Test MHCGraphPatternInit
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().isFinishDLOpen_ = false;
     bool ret = SingletonMockRSHDRPatternManager::Instance().MHCGraphPatternInit(GRAPH_NUM);
@@ -165,10 +165,10 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
     EXPECT_EQ(ret, true);
 
     SingletonMockRSHDRPatternManager::Instance().isFinishDLOpen_ = true;
-    SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = nullptr
-    
-    auto getGraphPatternInstance = [](PatternType, const char*) {return reinterpret_cast<void*>(0x1234); };
-    auto graphPatternInit = [](void*, size_t) {return true; };
+    SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = nullptr;
+
+    auto getGraphPatternInstance = [](PatternType, const char*) { return reinterpret_cast<void*>(0x1234); };
+    auto graphPatternInit = [](void*, size_t) { return true; };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->getGraphPatternInstance = getGraphPatternInstance;
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternInit = graphPatternInit;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGraphPatternInit(GRAPH_NUM);
@@ -178,16 +178,16 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MHCRequesEGraphTest
+ * @tc.name: MHCRequestEGraphTest
  * @tc.desc: Test MHCRequestEGraph
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
-    auto graphPatternRequestEGraph = [](void*, uint64_t) {return true; };
+    auto graphPatternRequestEGraph = [](void*, uint64_t) { return true; };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternRequestEGraph = graphPatternRequestEGraph;
     bool ret = SingletonMockRSHDRPatternManager::Instance().MHCRequestEGraph(0);
     EXPECT_EQ(ret, true);
@@ -199,9 +199,9 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCSubmitHDRTaskTest
  * @tc.desc: Test MHCSubmitHDRTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCSubmitHDRTaskTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCSubmitHDRTaskTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
@@ -217,14 +217,14 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCSubmitVulkanTaskTest
  * @tc.desc: Test MHCSubmitVulkanTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCSubmitVulkanTaskTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCSubmitVulkanTaskTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
     auto graphPatternVulkanTaskSubmit = [](void*, uint64_t, MHCPatternTaskName, void*, void*) { return; };
-    auto func = []() {return 0;}
+    auto func = []() { return 0; };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternVulkanTaskSubmit = graphPatternVulkanTaskSubmit;
     bool ret = SingletonMockRSHDRPatternManager::Instance().MHCSubmitVulkanTask(0, MHC_PATTERN_TASK_HDR_HPAE, func, nullptr);
     EXPECT_EQ(ret, true);
@@ -236,15 +236,15 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCWaitTest
  * @tc.desc: Test MHCWait
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCWaitTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCWaitTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
     auto graphPatternWait = [](void*, uint64_t, MHCPatternTaskName) { return; };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternWait = graphPatternWait;
-    bool ret =  SingletonMockRSHDRPatternManager::Instance().MHCWait(0, MHC_PATTERN_TASK_HDR_HPAE);
+    bool ret = SingletonMockRSHDRPatternManager::Instance().MHCWait(0, MHC_PATTERN_TASK_HDR_HPAE);
     EXPECT_EQ(ret, true);
 
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = nullptr;
@@ -254,15 +254,15 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCGetVulkanTaskWaitEventTest
  * @tc.desc: Test MHCGetVulkanTaskWaitEvent
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
     auto graphPatternGetVulkanWaitEvent = [](void*, uint64_t, MHCPatternTaskName) { return static_cast<uint16_t >(123); };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternGetVulkanWaitEvent = graphPatternGetVulkanWaitEvent;
-    uint16_t ret = SingletonMockRSHDRPatternManager::Instance().MHCWait(0, MHC_PATTERN_TASK_HDR_HPAE);
+    uint16_t ret = SingletonMockRSHDRPatternManager::Instance().MHCGetVulkanTaskWaitEvent(0, MHC_PATTERN_TASK_HDR_HPAE);
     EXPECT_EQ(ret, 123);
 
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = nullptr;
@@ -272,9 +272,9 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCGetVulkanTaskNotifyEventTest
  * @tc.desc: Test MHCGetVulkanTaskNotifyEvent
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
@@ -290,9 +290,9 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCReleaseEGraphTest
  * @tc.desc: Test MHCReleaseEGraph
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
@@ -308,13 +308,13 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCReleaseAllTest
  * @tc.desc: Test MHCReleaseAll
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCReleaseAllTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCReleaseAllTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
 
-    auto graphPatternReleaseAll = [](void*, uint64_t) { return true; };
+    auto graphPatternReleaseAll = [](void*) { return true; };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternReleaseAll = graphPatternReleaseAll;
     bool ret = SingletonMockRSHDRPatternManager::Instance().MHCReleaseAll();
     EXPECT_EQ(ret, true);
@@ -326,13 +326,13 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCDlsymInvalidTest
  * @tc.desc: Test MHCDlsymInvalid
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCDlsymInvalidTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCDlsymInvalidTest, TestSize.Level1)
 {
     auto graphPatternDestroy = [](void*) { return; };
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternDestroy = graphPatternDestroy;
-    
+
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternReleaseAll = nullptr;
     bool ret = SingletonMockRSHDRPatternManager::Instance().MHCDlsymInvalid();
     EXPECT_EQ(ret, true);
@@ -363,7 +363,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
     SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternInit = nullptr;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCDlsymInvalid();
     EXPECT_EQ(ret, true);
-    SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternInstance = nullptr;
+    SingletonMockRSHDRPatternManager::Instance().MHCDevice_->getGraphPatternInstance = nullptr;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCDlsymInvalid();
     EXPECT_EQ(ret, true);
 }
@@ -372,90 +372,90 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCGetFrameIdForGPUTaskTest
  * @tc.desc: Test MHCGetFrameIdForGPUTaskTask
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTaskTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTaskTest, TestSize.Level1)
 {
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = false;
     SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().lastFrameConsumed_ = false;
     SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
     // brach 1
     auto ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = true;
     SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);   
+    EXPECT_EQ(ret.size(), 0);
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = false;
     SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);   
+    EXPECT_EQ(ret.size(), 0);
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = true;
     SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);  
-    
+    EXPECT_EQ(ret.size(), 0);
+
     // brach 2
-    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;  //bypass brach 1
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;  // bypass brach 1
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = false;
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().lastFrameConsumed_ = false;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = false;
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdConsumed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().lastFrameConsumed_ = true;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 1);
+    EXPECT_EQ(ret.size(), 1);
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = true;
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().lastFrameConsumed_ = false;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 
     SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = true;
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdConsumed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().lastFrameConsumed_ = true;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 
     // brach 3
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = false;   //bypass brach 1
-    SingletonMockRSHDRPatternManager::Instance().lastFrameIdConsumed_ = false;  //bypass brach 2
-
-    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;   
-    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;  
+    SingletonMockRSHDRPatternManager::Instance().lastFrameIdUsed_ = false;  // bypass brach 1
+    SingletonMockRSHDRPatternManager::Instance().lastFrameConsumed_ = false;  // bypass brach 2
+    
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 
-    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;   
-    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;  
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 
-    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;   
-    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = true;  
-    SingletonMockRSHDRPatternManager::Instance().tid_ = gettid()
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().tid_ = gettid();
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 1);
+    EXPECT_EQ(ret.size(), 1);
 
-    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;   
-    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = true;  
-    SingletonMockRSHDRPatternManager::Instance().tid_ = gettid()
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().tid_ = gettid();
     ret = SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size() 0);
+    EXPECT_EQ(ret.size(), 0);
 }
 
 /**
  * @tc.name: PrepareHDRSemaphoreVectorTest
- * @tc.desc: Test MrepareHDRSemaphoreVector
+ * @tc.desc: Test PrepareHDRSemaphoreVector
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: 
  */
- HWTEST_F(RSHDRPatternManagerTest, PrepareHDRSemaphoreVectorTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, PrepareHDRSemaphoreVectorTest, TestSize.Level1)
 {
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
     ASSERT_NE(surface, nullptr);
@@ -472,16 +472,12 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
     std::vector<GrBackendSemaphore> semaphoreVec1 = {backendSemaphore};
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec1, surface, frameIdVec);
 
-    auto rsSurfaceOhosVulkan = make_shared<rsSurfaceOhosVulkan>(IConsumerSurface::Create);
-    std::vector<GrBackendSemaphore> semaphoreVec1 = {backendSemaphore};
-    RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec1, surface, frameIdVec);
+    auto rsSurfaceOhosVulkan = make_shared<RSSurfaceOhosVulkan>(IConsumerSurface::Create());
+    std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
+    RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 
-    uint64_t frameId = 0
+    uint64_t frameId = 0;
     RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
 }
 
-}  // namespace OHOS::Rosen
-
-
-   
-    
+} // namespace OHOS::Rosen
