@@ -504,7 +504,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(curScreenDrawable) &&
         !curScreenDrawable.GetAccumulateDirtyInSkipFrame() && !needRefresh) {
-        isSkipDisplayInVirtual_ = true;
+        virtualProcesser->SetDisplaySkipInMirror(true);
         return mappedDamageRegion.GetRegionRectIs();
     }
     curScreenDrawable.SetAccumulateDirtyInSkipFrame(false);
@@ -945,6 +945,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     virtualProcesser->CalculateTransform(GetOriginScreenRotation());
     RSDirtyRectsDfx rsDirtyRectsDfx(*curScreenDrawable);
     std::shared_ptr<RSSLRScaleFunction> slrManager = enableVisibleRect_ ? nullptr : virtualProcesser->GetSlrManager();
+    curCanvas_ = virtualProcesser->GetCanvas().get();
+    if (!curCanvas_) {
+        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy failed to get canvas.");
+        return;
+    }
     if (!uniParam.IsVirtualDirtyEnabled() || (enableVisibleRect_ && curVisibleRect_.GetTop() > 0)) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
@@ -952,12 +957,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
         auto dirtyRects = CalculateVirtualDirty(virtualProcesser, *curScreenDrawable, params,
             slrManager ? slrManager->GetScaleMatrix() : virtualProcesser->GetCanvasMatrix());
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, curScreenParams->GetScreenInfo());
-    }
-
-    curCanvas_ = virtualProcesser->GetCanvas().get();
-    if (!curCanvas_) {
-        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy failed to get canvas.");
-        return;
+        if (virtualProcesser->GetDisplaySkipInMirror()) {
+            RS_TRACE_NAME("display node skip in DrawMirrorCopy");
+            curCanvas_->RestoreToCount(0);
+            return;
+        }
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -1121,9 +1125,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
         Drawing::Matrix matrix = curCanvas_->GetTotalMatrix();
         std::vector<RectI> dirtyRects = CalculateVirtualDirty(virtualProcesser, *curScreenDrawable, params, matrix);
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, curScreenParams->GetScreenInfo());
-        if (isSkipDisplayInVirtual_) {
-            RS_TRACE_NAME("display node skip in virtual");
-            isSkipDisplayInVirtual_ = false;
+        if (virtualProcesser->GetDisplaySkipInMirror()) {
+            RS_TRACE_NAME("display node skip in DrawMirror");
             curCanvas_->RestoreToCount(0);
             return;
         }

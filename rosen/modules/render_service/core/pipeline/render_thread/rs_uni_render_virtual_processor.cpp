@@ -169,6 +169,13 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     return true;
 }
 
+void RSUniRenderVirtualProcessor::CancelCurrentFrame()
+{
+    if (renderFrame_ != nullptr) {
+        renderFrame_->CancelCurrentFrame();
+    }
+}
+
 bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
 {
     if (!RSProcessor::UpdateMirrorInfo(displayDrawable)) {

@@ -462,6 +462,18 @@ void RSSurfaceOhosVulkan::SetGpuSemaphore(bool& submitWithFFTS, const uint64_t& 
 }
 #endif
 
+void RSSurfaceOhosVulkan::CancelBufferForCurrentFrame()
+{
+    if (mSurfaceList.empty()) {
+        RS_LOGE("CancelBuffer failed: mSurfaceList is empty");
+        return ;
+    }
+    auto buffer = mSurfaceList.front();
+    mSurfaceList.pop_front();
+    NativeWindowCancelBuffer(mNativeWindow, buffer);
+    mSurfaceMap.erase(buffer);
+}
+
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     if (mSurfaceList.empty()) {

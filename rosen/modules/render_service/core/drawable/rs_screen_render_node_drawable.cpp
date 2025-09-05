@@ -760,6 +760,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             curCanvas_ = virtualProcessor->GetCanvas();
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            if (virtualProcessor->GetDisplaySkipInMirror()) {
+                RS_TRACE_NAME("skip in virtual screen and cancelbuffer");
+                virtualProcessor->SetDisplaySkipInMirror(false);
+                virtualProcessor->CancelCurrentFrame();
+                return;
+            }
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
