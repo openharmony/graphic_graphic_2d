@@ -17,21 +17,19 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr int DVFS_LEVEL_MIDDLE = 3;
-constexpr int DVFS_LEVEL_HIGH = 4;
-constexpr float MAX_SCALE_ARSR = 2.0;
+inline constexpr int DVFS_LEVEL_MIDDLE = 3;
+inline constexpr int DVFS_LEVEL_HIGH = 4;
+inline constexpr float MAX_SCALE_ARSR = 2.0;
 // for scene id capability bit0 ~ bit55
-constexpr uint64_t MDC_CAP_HEBCE = 1;
-constexpr uint64_t MDC_CAP_UVUP = 1 << 1;
-constexpr uint64_t MDC_CAP_SCALE = 1 << 2;
-constexpr uint64_t MDC_CAP_ROT = 1 << 3;
-constexpr uint64_t MDC_CAP_HDR = 1 << 4;
-constexpr uint64_t MDC_USER_RS_VIDEO_HDR = 1ULL << 35;
-constexpr uint64_t HDR_VIDEO_USER_TYPE = MDC_CAP_HEBCE | MDC_CAP_HDR | MDC_CAP_ROT |
+inline constexpr uint64_t MDC_CAP_HEBCE = 1;
+inline constexpr uint64_t MDC_CAP_UVUP = 1 << 1;
+inline constexpr uint64_t MDC_CAP_SCALE = 1 << 2;
+inline constexpr uint64_t MDC_CAP_ROT = 1 << 3;
+inline constexpr uint64_t MDC_CAP_HDR = 1 << 4;
+inline constexpr uint64_t MDC_USER_RS_VIDEO_HDR = 1ULL << 35;
+inline constexpr uint64_t HDR_VIDEO_USER_TYPE = MDC_CAP_HEBCE | MDC_CAP_HDR | MDC_CAP_ROT |
     MDC_CAP_SCALE | MDC_USER_RS_VIDEO_HDR;
-constexpr uint64_t AIHDR_VIDEO_USER_TYPE = MDC_CAP_HEBCE | MDC_CAP_ROT | MDC_CAP_SCALE | MDC_USER_RS_VIDEO_HDR;
-}
+inline constexpr uint64_t AIHDR_VIDEO_USER_TYPE = MDC_CAP_HEBCE | MDC_CAP_ROT | MDC_CAP_SCALE | MDC_USER_RS_VIDEO_HDR;
 
 RSHeteroHDRHpae& RSHeteroHDRHpae::GetInstance()
 {
