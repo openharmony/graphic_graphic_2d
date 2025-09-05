@@ -54,10 +54,10 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
         RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
 #ifdef RS_ENABLE_TV_PQ_METADATA
         auto& renderParams = surfaceDrawable.GetRenderParams();
-            if (renderParams) {
-                auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
-                RSTvMetadataManager::Instance().RecordTvMetadata(surfaceRenderParams, params.buffer);
-            }
+        if (renderParams) {
+            auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
+            RSTvMetadataManager::Instance().RecordTvMetadata(surfaceRenderParams, params.buffer);
+        }
 #endif
         DrawImage(canvas, params);
     } else {
