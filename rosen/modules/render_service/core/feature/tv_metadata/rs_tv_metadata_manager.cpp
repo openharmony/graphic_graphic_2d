@@ -190,7 +190,7 @@ void RSTvMetadataManager::CombineMetadataForAllLayers(const std::vector<LayerInf
         return;
     }
     if (tvUniRenderBuffer == nullptr) {
-       tvUniRenderMetadata =  preUniRenderTvMetadata;
+        tvUniRenderMetadata =  preUniRenderTvMetadata;
     } else {
         static_cast<void>(MetadataHelper::EraseVideoTVInfoKey(tvUniRenderBuffer));
     }
