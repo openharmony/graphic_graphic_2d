@@ -102,7 +102,7 @@ public:
     NODE_ON_TREE_STATUS GetNodeOnTreeStatus(const void* addr);
     void SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFlag, bool isOnTree);
 #endif
-    size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type) const;
+    size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
     MemoryNodeOfPid* FindNodeById(std::vector<MemoryNodeOfPid>& nodeVec, NodeId id) const;
     void SetDrawableNodeInfo(const NodeId id, const MemoryInfo& info);
 private:
