@@ -14,6 +14,7 @@
 */
 
 #include "cache_data.h"
+#include <hilog/log.h>
 #include <cerrno>
 #include <chrono>
 #include <sys/mman.h>
@@ -73,7 +74,7 @@ bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
     uint32_t* storedCrc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
     uint32_t computedCrc = CrcGen(buffer + RS_CACHE_HEAD_LEN, bufferSize - RS_CACHE_HEAD_LEN);
     if (computedCrc != *storedCrc) {
-        LOGE("abandon, because of mismatched crc code");
+        HILOG_COMM_ERROR("abandon, because of mismatched crc code");
         DumpAbnormalCacheToFile(buffer, bufferSize);
         return false;
     }

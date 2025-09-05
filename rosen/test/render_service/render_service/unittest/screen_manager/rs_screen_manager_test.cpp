@@ -41,7 +41,6 @@ public:
     static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
-    static constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 
@@ -136,6 +135,7 @@ HWTEST_F(RSScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
     EXPECT_EQ(screenManagerImpl.activeScreenId_, screenManagerImpl.innerScreenId_);
     screenManagerImpl.HandleSensorData(0.f);
     EXPECT_EQ(screenManagerImpl.activeScreenId_, screenManagerImpl.externalScreenId_);
+    screenManagerImpl.activeScreenId_ = 0;
 }
 
 /*
@@ -1259,8 +1259,8 @@ HWTEST_F(RSScreenManagerTest, CheckVirtualScreenStatusChanged, TestSize.Level2)
     ASSERT_EQ(true, screenManagerImpl.CheckVirtualScreenStatusChanged(id));
     screen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     screen->isVirtual_ = true;
-    screen->SetVirtualScreenPlaying(true);
-    screenManagerImpl.screens_[id] = std::move(screen)
+    screen->SetVirtualScreenPlay(true);
+    screenManagerImpl.screens_[id] = std::move(screen);
     ASSERT_EQ(true, screenManagerImpl.CheckVirtualScreenStatusChanged(id));
     ASSERT_EQ(false, screenManagerImpl.CheckVirtualScreenStatusChanged(id));
 }
@@ -4336,8 +4336,8 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIBIQ0Q
  */
- HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
- {
+HWTEST_F(RSScreenManagerTest, OnHwcDeadEvent, TestSize.Level1)
+{
     auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
     EXPECT_NE(screenManagerImpl, nullptr);
 
@@ -4347,7 +4347,7 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
     screenManagerImpl->screens_[sId1] = std::make_shared<impl::RSScreen>(sId1, true, nullptr, nullptr);
     screenManagerImpl->RSScreenManager::OnHwcDeadEvent();
     EXPECT_EQ(screenManagerImpl->screens_.size(), 1);
- }
+}
 
 /*
  * @tc.name: OnHwcDead

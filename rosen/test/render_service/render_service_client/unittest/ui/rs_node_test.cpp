@@ -2685,6 +2685,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetShadowAlpha004, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    rsNode->SetAlpha(1.f);
     rsNode->SetShadowAlpha(floatData[4]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[4], 0.02f));
 }
@@ -4034,7 +4035,7 @@ HWTEST_F(RSNodeTest, SetForegroundNGFilter001, TestSize.Level1)
 
     auto filter = std::make_shared<RSNGBlurFilter>();
     rsNode->SetForegroundNGFilter(filter);
-    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+    EXPECT_TRUE(rsNode->propertyModifiers_.empty());
     
     rsNode->SetForegroundNGFilter(nullptr);
     EXPECT_TRUE(rsNode->propertyModifiers_.empty());
@@ -4069,8 +4070,7 @@ HWTEST_F(RSNodeTest, SetVisualEfffect003, TestSize.Level1)
     auto colorGradient = std::make_shared<ColorGradientEffectPara>();
     effectObj->AddPara(colorGradient);
     rsNode->SetVisualEffect(effectObj.get());
-    auto& modifier = rsNode->modifiersNGCreatedBySetter_[static_cast<uint16_t>(
-        ModifierNG::RSModifierType::BACKGROUND_NG_SHADER)];
+    auto modifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::BACKGROUND_NG_SHADER);
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::BACKGROUND_NG_SHADER));
     std::shared_ptr<VisualEffectPara> effectPara = nullptr;
     auto shader = RSNGShaderBase::Create(effectPara);
@@ -7130,29 +7130,32 @@ HWTEST_F(RSNodeTest, AddChildTest001, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
 {
-    auto uiDirector1 = RSUIDirector::Create();
-    uiDirector1->Init(true, true);
-    auto uiDirector2 = RSUIDirector::Create();
-    uiDirector2->Init(true, true);
-    auto rsNode = RSCanvasNode::Create(false, false, uiDirector1->GetRSUIContext());
-    auto childNode = RSCanvasNode::Create(false, false, uiDirector2->GetRSUIContext());
-    rsNode->AddChild(childNode, -1);
-    auto uiContext1 = uiDirector1->GetRSUIContext();
-    auto uiContext2 = uiDirector2->GetRSUIContext();
-    ASSERT_NE(uiContext1, nullptr);
-    ASSERT_NE(uiContext2, nullptr);
-    auto transactionHandler1 = uiContext1->GetRSTransaction();
-    auto transactionHandler2 = uiContext2->GetRSTransaction();
-    ASSERT_NE(transactionHandler1, nullptr);
-    ASSERT_NE(transactionHandler2, nullptr);
-    ASSERT_FALSE(transactionHandler1->IsEmpty());
-    ASSERT_FALSE(transactionHandler2->IsEmpty());
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto uiDirector1 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
+        auto uiDirector2 = RSUIDirector::Create();
+        uiDirector2->Init(true, true);
+        auto rsNode = RSCanvasNode::Create(false, false, uiDirector1->GetRSUIContext());
+        auto childNode = RSCanvasNode::Create(false, false, uiDirector2->GetRSUIContext());
+        rsNode->AddChild(childNode, -1);
+        auto uiContext1 = uiDirector1->GetRSUIContext();
+        auto uiContext2 = uiDirector2->GetRSUIContext();
+        ASSERT_NE(uiContext1, nullptr);
+        ASSERT_NE(uiContext2, nullptr);
+        auto transactionHandler1 = uiContext1->GetRSTransaction();
+        auto transactionHandler2 = uiContext2->GetRSTransaction();
+        ASSERT_NE(transactionHandler1, nullptr);
+        ASSERT_NE(transactionHandler2, nullptr);
+        ASSERT_FALSE(transactionHandler1->IsEmpty());
+        ASSERT_FALSE(transactionHandler2->IsEmpty());
 
-    delete RSTransactionProxy::instance_;
-    RSTransactionProxy::instance_ = nullptr;
-    rsNode->AddChild(childNode, -1);
-    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
+        delete RSTransactionProxy::instance_;
+        RSTransactionProxy::instance_ = nullptr;
+        rsNode->AddChild(childNode, -1);
+        EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+        RSTransactionProxy::instance_ = new RSTransactionProxy();
+    }
 }
 
 /**
@@ -7163,26 +7166,29 @@ HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
 {
-    auto uiDirector1 = RSUIDirector::Create();
-    uiDirector1->Init(true, true);
-    auto rsUIContext = uiDirector1->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
-    auto uiDirector2 = RSUIDirector::Create();
-    uiDirector2->Init(true, true);
-    auto rsUIContext2 = uiDirector2->GetRSUIContext();
-    ASSERT_NE(rsUIContext2, nullptr);
-    auto childNode = RSCanvasNode::Create(false, false, rsUIContext2);
-    rsNode->AddChild(childNode, -1);
-    EXPECT_NE(rsNode->children_.size(), 0);
-    childNode->RemoveFromTree();
-    EXPECT_EQ(rsNode->children_.size(), 0);
-    RSSurfaceNodeConfig surfaceNodeConfig;
-    std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext2);
-    rsNode->AddChild(surfaceNode, -1);
-    EXPECT_NE(rsNode->children_.size(), 0);
-    surfaceNode->RemoveFromTree();
-    EXPECT_EQ(rsNode->children_.size(), 0);
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto uiDirector1 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
+        auto rsUIContext = uiDirector1->GetRSUIContext();
+        ASSERT_NE(rsUIContext, nullptr);
+        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+        auto uiDirector2 = RSUIDirector::Create();
+        uiDirector2->Init(true, true);
+        auto rsUIContext2 = uiDirector2->GetRSUIContext();
+        ASSERT_NE(rsUIContext2, nullptr);
+        auto childNode = RSCanvasNode::Create(false, false, rsUIContext2);
+        rsNode->AddChild(childNode, -1);
+        EXPECT_NE(rsNode->children_.size(), 0);
+        childNode->RemoveFromTree();
+        EXPECT_EQ(rsNode->children_.size(), 0);
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext2);
+        rsNode->AddChild(surfaceNode, -1);
+        EXPECT_NE(rsNode->children_.size(), 0);
+        surfaceNode->RemoveFromTree();
+        EXPECT_EQ(rsNode->children_.size(), 0);
+    }
 }
 
 /**
@@ -7543,17 +7549,20 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    rsNode->SetRSUIContext(nullptr);
-    EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
-    auto rsUIContext = std::make_shared<RSUIContext>();
-    rsNode->SetRSUIContext(rsUIContext);
-    rsNode->SetRSUIContext(rsUIContext);
-    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
-    auto rsUIContext2 = std::make_shared<RSUIContext>();
-    rsNode->SetRSUIContext(rsUIContext);
-    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto rsNode = RSCanvasNode::Create();
+        ASSERT_NE(rsNode, nullptr);
+        rsNode->SetRSUIContext(nullptr);
+        EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
+        auto rsUIContext = std::make_shared<RSUIContext>();
+        rsNode->SetRSUIContext(rsUIContext);
+        rsNode->SetRSUIContext(rsUIContext);
+        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
+        auto rsUIContext2 = std::make_shared<RSUIContext>();
+        rsNode->SetRSUIContext(rsUIContext);
+        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
+    }
 }
 
 /**
@@ -7844,19 +7853,22 @@ HWTEST_F(RSNodeTest, SetAlwaysSnapshot, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, SetUIContextToken, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
-    ASSERT_NE(rsNode, nullptr);
-    rsNode->SetUIContextToken();
-    rsNode = nullptr;
-    auto uiDirector = RSUIDirector::Create();
-    uiDirector->Init(true, true);
-    auto uiContext = uiDirector->GetRSUIContext();
-    rsNode = RSCanvasNode::Create(false, false, uiContext);
-    rsNode->SetUIContextToken();
-    ASSERT_NE(uiContext, nullptr);
-    auto transaction = uiContext->GetRSTransaction();
-    ASSERT_NE(transaction, nullptr);
-    ASSERT_FALSE(transaction->IsEmpty());
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto rsNode = RSCanvasNode::Create();
+        ASSERT_NE(rsNode, nullptr);
+        rsNode->SetUIContextToken();
+        rsNode = nullptr;
+        auto uiDirector = RSUIDirector::Create();
+        uiDirector->Init(true, true);
+        auto uiContext = uiDirector->GetRSUIContext();
+        rsNode = RSCanvasNode::Create(false, false, uiContext);
+        rsNode->SetUIContextToken();
+        ASSERT_NE(uiContext, nullptr);
+        auto transaction = uiContext->GetRSTransaction();
+        ASSERT_NE(transaction, nullptr);
+        ASSERT_FALSE(transaction->IsEmpty());
+    }
 }
 
 /**

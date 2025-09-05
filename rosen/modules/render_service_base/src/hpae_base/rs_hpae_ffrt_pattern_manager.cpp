@@ -31,7 +31,7 @@ namespace {
 using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
 using GPInstanceInitFunc = bool(*)(void*, size_t);
 using GPInstanceDestroyFunc = void(*)(void*);
-using GPRequestEGraphFunc = bool(*)(void*, uint64_t);
+using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseAllEGraphFunc = bool(*)(void*);
 using GPWaitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName);
@@ -42,7 +42,7 @@ using GPGPTaskSubmitFunc = void(*)(void*, uint64_t, MHC_TaskInfo*);
 static GPInstanceGetFunc g_getGPInstance = nullptr;
 static GPInstanceInitFunc g_GPInit = nullptr;
 static GPInstanceDestroyFunc g_GPDestroy = nullptr;
-static GPRequestEGraphFunc g_GPRequestEGraph = nullptr;
+static GPRequstEGraphFunc g_GPRequestEGraph = nullptr;
 static GPReleaseEGraphFunc g_GPReleaseEGraph = nullptr;
 static GPReleaseAllEGraphFunc g_GPReleaseAll = nullptr;
 static GPWaitFunc g_GPWait = nullptr;
@@ -66,7 +66,7 @@ RSHpaeFfrtPatternManager::RSHpaeFfrtPatternManager()
     if (!MHCGraphPatternInit(GRAPH_NUM)) {
         HPAE_LOGE("MHCGraphPatternInit() failed!");
     }
-    HPAE_LOGW("mhc_so MHCGraphPatternInit success!");
+    HPAE_LOGI("mhc_so MHCGraphPatternInit success!");
 }
 
 RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
@@ -75,7 +75,6 @@ RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
         g_GPDestroy(g_instance);
         g_instance = nullptr;
     }
-
     if (g_mhcHandle) {
 #if defined(ROSEN_OHOS)
         dlclose(g_mhcHandle);
@@ -97,11 +96,11 @@ RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
 bool RSHpaeFfrtPatternManager::MHCDlOpen()
 {
 #if defined(ROSEN_OHOS)
-    HPAE_LOGW("mhc_so MHCDlOpen start\n");
+    HPAE_LOGI("mhc_so MHCDlOpen start\n");
     if (g_mhcHandle == nullptr) {
         g_mhcHandle = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
         if (!g_mhcHandle) {
-            HPAE_LOGW("mhc_so dlopen libmhc_framework.so error\n");
+            HPAE_LOGW("mhc_so dlopen libmhc_framework.so error");
             return false;
         }
     }
@@ -109,9 +108,9 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
     g_getGPInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_get"));
     g_GPInit = reinterpret_cast<GPInstanceInitFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_init"));
     g_GPDestroy = reinterpret_cast<GPInstanceDestroyFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_destroy"));
-    g_GPRequestEGraph = reinterpret_cast<GPRequestEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_request_eg"));
+    g_GPRequestEGraph = reinterpret_cast<GPRequstEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_request_eg"));
     g_GPReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_eg"));
-    g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_relsease_all"));
+    g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_all"));
     g_GPWait = reinterpret_cast<GPWaitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_wait"));
     g_GPGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(
         dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_wait_event"));
@@ -126,7 +125,7 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
         return false;
     }
 
-    HPAE_LOGW("mhc_so LoadLibMHC success\n");
+    HPAE_LOGI("mhc_so LoadLibMHC success\n");
     return true;
 #else
     return false;
@@ -139,13 +138,12 @@ bool RSHpaeFfrtPatternManager::MHCCheck(const std::string logTag, uint64_t frame
         HPAE_LOGE("mhc_so MHCCheck %{public}s g_instance == nullptr", logTag.c_str());
         return false;
     }
-    HPAE_LOGW("mhc_so %{public}s MHCCheck frameId:%{public}" PRIu64 " ", logTag.c_str(), frameId);
     return true;
 }
 
 bool RSHpaeFfrtPatternManager::MHCGraphPatternInit(size_t size)
 {
-    HPAE_LOGW("mhc_so MHCGraphPatternInit");
+    HPAE_LOGI("mhc_so MHCGraphPatternInit");
     if (g_instance) {
         return true;
     }
@@ -153,7 +151,7 @@ bool RSHpaeFfrtPatternManager::MHCGraphPatternInit(size_t size)
         HPAE_LOGW("mhc_so g_getGPInstance nullptr");
         return false;
     }
-    g_instance =  g_getGPInstance(PatternType_C::BLUR, "blur_graph");
+    g_instance = g_getGPInstance(PatternType_C::BLUR, "blur_graph");
     return g_GPInit(g_instance, size);
 }
 
@@ -197,7 +195,7 @@ uint16_t RSHpaeFfrtPatternManager::MHCGetVulkanTaskWaitEvent(uint64_t frameId, M
     }
 
     auto eventId = g_GPGetVulkanWaitEvent(g_instance, frameId, taskName);
-    HPAE_LOGW("mhc_so MHCGetVulkanTaskWaitEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
+    HPAE_LOGD("mhc_so MHCGetVulkanTaskWaitEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
     return eventId;
 }
 
@@ -213,7 +211,7 @@ uint16_t RSHpaeFfrtPatternManager::MHCGetVulkanTaskNotifyEvent(uint64_t frameId,
     }
 
     auto eventId = g_GPGetVulkanNotifyEvent(g_instance, frameId, taskName);
-    HPAE_LOGW("mhc_so MHCGetVulkanTaskNotifyEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
+    HPAE_LOGD("mhc_so MHCGetVulkanTaskNotifyEvent event = %{public}d, taskName=%{public}d\n", eventId, taskName);
     return eventId;
 }
 
@@ -233,7 +231,7 @@ bool RSHpaeFfrtPatternManager::MHCReleaseEGraph(uint64_t frameId)
 
 void RSHpaeFfrtPatternManager::MHCReleaseAll()
 {
-    HPAE_LOGW("mhc_so MHCReleaseAll");
+    HPAE_LOGI("mhc_so MHCReleaseAll");
     if (g_instance == nullptr) {
         HPAE_LOGE("mhc_so MHCReleaseAll g_instance == nullptr");
         return;
@@ -249,7 +247,7 @@ void RSHpaeFfrtPatternManager::MHCReleaseAll()
 }
 
 bool RSHpaeFfrtPatternManager::MHCSubmitTask(uint64_t frameId, MHC_PatternTaskName taskName, \
-    std::function<void()>&& preFunc, void*** taskHandleVec, size_t numTask, std::function<void()>&&afterFunc)
+    std::function<void()>&& preFunc, void*** taskHandleVec, size_t numTask, std::function<void()>&& afterFunc)
 {
     if (!MHCCheck("MHCSubmitTask", frameId)) {
         return false;
@@ -284,12 +282,14 @@ bool RSHpaeFfrtPatternManager::IsThreadIdMatch()
     return false;
 #endif
 }
+
 void RSHpaeFfrtPatternManager::SetThreadId()
 {
 #if defined(ROSEN_OHOS)
     tid_ = gettid();
 #endif
 }
+
 bool RSHpaeFfrtPatternManager::IsUpdated()
 {
     return updated_ && IsThreadIdMatch();

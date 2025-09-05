@@ -16,6 +16,7 @@
 #include "animation/rs_value_estimator.h"
 
 #include "common/rs_common_def.h"
+#include "pipeline/rs_draw_cmd_list.h"
 #include "platform/common/rs_log.h"
 #include "modifier/rs_render_property.h"
 #include "render/rs_material_filter.h"
@@ -57,6 +58,34 @@ float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInt
     return FRACTION_MIN;
 }
 
+template<>
+void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::InitCurveAnimationValue(
+    const std::shared_ptr<RSRenderPropertyBase>& property, const std::shared_ptr<RSRenderPropertyBase>& startValue,
+    const std::shared_ptr<RSRenderPropertyBase>& endValue, const std::shared_ptr<RSRenderPropertyBase>& lastValue)
+{
+    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(property);
+    auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(endValue);
+    if (animatableProperty && animatableEndValue) {
+        property_ = animatableProperty;
+        auto rsDrawCmdList = std::make_shared<RSDrawCmdList>(animatableProperty->Get(), animatableEndValue->Get());
+        animatableProperty->Set(rsDrawCmdList);
+    }
+}
+
+template<>
+void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::UpdateAnimationValue(const float fraction, const bool isAdditive)
+{
+    if (property_ == nullptr) {
+        return;
+    }
+    auto animationValue = property_->Get();
+    if (animationValue && animationValue->GetType() == Drawing::CmdList::Type::RS_DRAW_CMD_LIST) {
+        auto rsDrawCmdList = std::static_pointer_cast<RSDrawCmdList>(animationValue);
+        rsDrawCmdList->Estimate(fraction);
+        property_->Set(rsDrawCmdList);
+    }
+}
 template class RSCurveValueEstimator<float>;
+template class RSCurveValueEstimator<Drawing::DrawCmdListPtr>;
 } // namespace Rosen
 } // namespace OHOS

@@ -61,6 +61,7 @@ public:
         const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
+    static void RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb);
 
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);

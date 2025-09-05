@@ -1806,6 +1806,101 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnPurgePendingPostNodesInner
+ * @tc.desc: Test OnPurgePendingPostNodesInner
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, OnPurgePendingPostNodesInner, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    surfaceRenderNode->renderDrawable_ = nullptr;
+    uifirstManager_.OnPurgePendingPostNodesInner(surfaceRenderNode, false, adapter->GetRsSubThreadCache());
+    EXPECT_TRUE(surfaceRenderNode->skipFrameDirtyRect_.IsEmpty());
+    surfaceRenderNode->renderDrawable_ = adapter;
+    auto surfaceDirtyManager = surfaceRenderNode->GetDirtyManager();
+    RectI dirtyRect1 = {1, 1, 10, 10};
+    surfaceDirtyManager->SetCurrentFrameDirtyRect(dirtyRect1);
+    uifirstManager_.OnPurgePendingPostNodesInner(surfaceRenderNode, false, adapter->GetRsSubThreadCache());
+    EXPECT_EQ(surfaceRenderNode->skipFrameDirtyRect_, dirtyRect1);
+
+    nodeId = 2;
+    auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    surfaceRenderNode->childSubSurfaceNodes_[nodeId] = surfaceRenderNode2;
+
+    nodeId = 3;
+    auto surfaceRenderNode3 = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter3 = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode3));
+    auto surfaceDirtyManager3 = surfaceRenderNode3->GetDirtyManager();
+    RectI dirtyRect2 = {0, 0, 5, 20};
+    surfaceDirtyManager3->SetCurrentFrameDirtyRect(dirtyRect2);
+    RectI dirtyRectRet = {0, 0, 11, 20};
+    surfaceRenderNode->childSubSurfaceNodes_[nodeId] = surfaceRenderNode3;
+    std::cout << surfaceRenderNode->SubSurfaceNodesDump() << std::endl;
+    uifirstManager_.OnPurgePendingPostNodesInner(surfaceRenderNode, false, adapter->GetRsSubThreadCache());
+    EXPECT_EQ(surfaceRenderNode->skipFrameDirtyRect_, dirtyRectRet);
+}
+
+/**
+ * @tc.name: NeedPurgePendingPostNodesInner
+ * @tc.desc: Test NeedPurgePendingPostNodesInner
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, NeedPurgePendingPostNodesInner, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> map = {{nodeId, surfaceRenderNode}};
+    auto iter = map.begin();
+    auto ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, adapter, false);
+    EXPECT_FALSE(ret);
+
+    uifirstManager_.purgeEnable_ = true;
+    auto& subThreadCache = adapter->GetRsSubThreadCache();
+    subThreadCache.isCacheCompletedValid_ = true;
+    subThreadCache.SetSubThreadSkip(false);
+    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, adapter, true);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: DoPurgePendingPostNodes000
+ * @tc.desc: Test DoPurgePendingPostNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes000, TestSize.Level1)
+{
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    uifirstManager_.subthreadProcessingNode_.clear();
+    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
+    surfaceRenderNode->isOnTheTree_ = true;
+    uifirstManager_.purgeEnable_ = true;
+    auto& subThreadCache = adapter->GetRsSubThreadCache();
+    subThreadCache.isCacheCompletedValid_ = true;
+    subThreadCache.SetSubThreadSkip(false);
+    subThreadCache.SetUifirstSurfaceCacheContentStatic(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(adapter->GetRenderParams().get());
+    EXPECT_NE(surfaceParams, nullptr);
+    surfaceParams->surfaceCacheContentStatic_ = true;
+
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+    EXPECT_TRUE(pendingNode.empty());
+}
+
+/**
  * @tc.name: DoPurgePendingPostNodes001
  * @tc.desc: Test DoPurgePendingPostNodes
  * @tc.type: FUNC
@@ -1957,26 +2052,26 @@ HWTEST_F(RSUifirstManagerTest, HandlePurgeBehindWindow001, TestSize.Level1)
         .isFirst = false
     };
 
-    uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
+    auto ret = uifirstManager_.HandlePurgeBehindWindow(it);
+    EXPECT_FALSE(ret);
 
     it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId].isFirst = true;
     uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime = -30;
-    uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
+    ret = uifirstManager_.HandlePurgeBehindWindow(it);
+    EXPECT_FALSE(ret);
 
     it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId].isFirst = true;
     uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime = -29;
-    uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
+    ret = uifirstManager_.HandlePurgeBehindWindow(it);
+    EXPECT_FALSE(ret);
 
     it = pendingNode.begin();
     uifirstManager_.pendingNodeBehindWindow_[nodeId].isFirst = false;
     uifirstManager_.pendingNodeBehindWindow_[nodeId].curTime = -29;
-    uifirstManager_.HandlePurgeBehindWindow(it, pendingNode);
-    EXPECT_TRUE(pendingNode.empty());
+    ret = uifirstManager_.HandlePurgeBehindWindow(it);
+    EXPECT_TRUE(ret);
 }
 
 /**

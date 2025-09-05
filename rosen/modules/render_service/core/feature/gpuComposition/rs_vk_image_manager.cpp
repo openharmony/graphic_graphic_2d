@@ -143,12 +143,12 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     std::lock_guard<std::mutex> lock(opMutex_);
     bool isProtectedCondition = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) ||
         RsVulkanContext::GetSingleton().GetIsProtected();
-    auto bufferId = buffer->GetSeqNum();
+    auto bufferId = buffer->GetBufferId();
     if (isProtectedCondition || imageCacheSeqs_.find(bufferId) == imageCacheSeqs_.end()) {
-        RS_TRACE_NAME_FMT("create vkImage, bufferId=%u", bufferId);
+        RS_TRACE_NAME_FMT("create vkImage, bufferId=%lu", bufferId);
         return NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
     } else {
-        RS_TRACE_NAME_FMT("find cache vkImage, bufferId=%u", bufferId);
+        RS_TRACE_NAME_FMT("find cache vkImage, bufferId=%lu", bufferId);
         return imageCacheSeqs_[bufferId];
     }
 }
@@ -161,11 +161,11 @@ std::shared_ptr<VkImageResource> RSVkImageManager::CreateImageCacheFromBuffer(co
         ROSEN_LOGE("RSVkImageManager::CreateImageCacheFromBuffer buffer is nullptr");
         return nullptr;
     }
-    auto bufferId = buffer->GetSeqNum();
+    auto bufferId = buffer->GetBufferId();
     auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
         ROSEN_LOGE(
-            "RSVkImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
+            "RSVkImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}lu.",
             bufferId);
         return nullptr;
     }
@@ -179,20 +179,20 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
         ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer buffer is nullptr");
         return {};
     }
-    auto bufferId = buffer->GetSeqNum();
+    auto bufferId = buffer->GetBufferId();
     auto deleteFlag = buffer->GetBufferDeleteFromCacheFlag();
     auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
-        ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
+        ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}lu.",
             bufferId);
         return {};
     }
 
     size_t imageCacheSeqSize = imageCacheSeqs_.size();
-    DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: create image, bufferId=%{public}u, threadIndex=%{public}d, "
+    DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: create image, bufferId=%{public}lu, threadIndex=%{public}d, "
         "deleteFlag=%{public}d, isProtected=%{public}d,cacheSeq=%{public}lu",
         bufferId, threadIndex, deleteFlag, isProtectedCondition, imageCacheSeqSize);
-    RS_TRACE_NAME_FMT("RSVkImageManagerDfx: create image, bufferId=%u, "
+    RS_TRACE_NAME_FMT("RSVkImageManagerDfx: create image, bufferId=%lu, "
         "deleteFlag=%d, isProtected=%d, cacheSeq=%lu",
         bufferId, deleteFlag, isProtectedCondition, imageCacheSeqSize);
     imageCache->SetThreadIndex(threadIndex);
@@ -201,7 +201,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
         return imageCache;
     }
 
-    RS_LOGD("RSVkImageManager::NewImageCacheFromBuffer %{public}u", bufferId);
+    RS_LOGD("RSVkImageManager::NewImageCacheFromBuffer %{public}lu", bufferId);
     if (imageCacheSeqSize < MAX_CACHE_SIZE_FOR_REUSE) {
         imageCacheSeqs_.emplace(bufferId, imageCache);
     }
@@ -209,9 +209,9 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
     return imageCache;
 }
 
-void RSVkImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
+void RSVkImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 {
-    DFX_LOG(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: tryUnmapImage, bufferId=%{public}u", seqNum);
+    DFX_LOG(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: tryUnmapImage, bufferId=%{public}lu", seqNum);
     pid_t threadIndex = UNI_RENDER_THREAD_INDEX;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
@@ -226,13 +226,13 @@ void RSVkImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
         if (iter == imageCacheSeqs_.end()) {
             return;
         }
-        RS_TRACE_NAME_FMT("RSVkImageManagerDfx: unmap image, bufferId=%u", seqNum);
+        RS_TRACE_NAME_FMT("RSVkImageManagerDfx: unmap image, bufferId=%lu", seqNum);
         imageCacheSeqs_.erase(iter);
-        DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: UnmapImage, bufferId=%{public}u, "
+        DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: UnmapImage, bufferId=%{public}lu, "
             "cacheSeq=[%{public}lu]",
             seqNum, imageCacheSeqs_.size());
     };
-    DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: findImageToUnmap, bufferId=%{public}u", seqNum);
+    DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: findImageToUnmap, bufferId=%{public}lu", seqNum);
     RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);
 }
 
@@ -270,9 +270,9 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
         return nullptr;
     }
     if (buffer != nullptr && buffer->GetBufferDeleteFromCacheFlag()) {
-        RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
-            buffer->GetSeqNum());
-        UnMapImageFromSurfaceBuffer(buffer->GetSeqNum());
+        RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}" PRIu64 " marked for deletion from cache, unmapping",
+            buffer->GetBufferId());
+        UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
     }
     auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
     auto screenColorSpace = RSBaseRenderEngine::GetCanvasColorSpace(canvas);

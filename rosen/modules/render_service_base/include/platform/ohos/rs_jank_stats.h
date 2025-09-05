@@ -28,6 +28,9 @@
 #include "nocopyable.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/common/rs_system_properties.h"
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+#include "xperf_service_client.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -162,7 +165,7 @@ public:
     void AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName = "", const uint32_t fps = 0);
     void AvcodecVideoCollectBegin();
     void AvcodecVideoCollectFinish();
-    void AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence);
+    void AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence);
     bool GetEarlyZEnableFlag();
     bool GetFlushEarlyZ();
 

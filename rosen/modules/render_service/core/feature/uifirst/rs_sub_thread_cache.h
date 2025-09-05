@@ -206,7 +206,7 @@ public:
     void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
     Drawing::Region GetUifirstDirtyRegion() const;
     bool CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        Drawing::RectI& dirtyRect);
+        Drawing::RectI& dirtyRect, bool isUifirstRootNode);
     bool GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix,
         Drawing::RectF& latestDirtyRect, Drawing::RectF& absDrawRect);
     bool MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
@@ -228,6 +228,10 @@ public:
     void ResetCacheCompletedBehindWindowData();
     void DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
         const Drawing::scalar px = 0.f, const Drawing::scalar py = 0.f);
+
+    void SetUifirstSurfaceCacheContentStatic(bool staticContent);
+    bool GetUifirstSurfaceCacheContentStatic() const;
+
 private:
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
     bool DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& rscanvas,
@@ -289,6 +293,7 @@ private:
     Drawing::Region uifirstMergedDirtyRegion_;
     std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheCompletedBehindWindowData_ = nullptr;
+    bool uifirstSurfaceCacheContentStatic_ = true;
 };
 } // DrawableV2
 } // OHOS::Rosen

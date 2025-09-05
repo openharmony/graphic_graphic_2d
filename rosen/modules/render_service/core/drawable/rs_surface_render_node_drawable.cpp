@@ -711,19 +711,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     
-    // Regional screen recording does not enable uifirst.
-    bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
-    if (!enableVisibleRect) {
-        if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
-            if (GetDrawSkipType() == DrawSkipType::NONE) {
-                SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
-            }
-            return;
+    // enable uifirst for all scenarios.
+    if (subThreadCache_.DealWithUIFirstCache(this, *rscanvas, *surfaceParams, *uniParam)) {
+        if (GetDrawSkipType() == DrawSkipType::NONE) {
+            SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
         }
-        if (DrawHDRCacheWithDmaFFRT(*rscanvas, *surfaceParams)) {
-            SetDrawSkipType(DrawSkipType::HARDWARE_HDR_CACHE_SKIP);
-            return;
-        }
+        return;
+    }
+    if (DrawHDRCacheWithDmaFFRT(*rscanvas, *surfaceParams)) {
+        SetDrawSkipType(DrawSkipType::HARDWARE_HDR_CACHE_SKIP);
+        return;
     }
 
     // can't use NodeMatchOptimize if leash window is on draw
@@ -739,7 +736,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        HILOG_COMM_ERROR("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
         if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
             SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
             return;
@@ -846,8 +843,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (!(surfaceParams->GetNeedOffscreen() && RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable())) {
             curCanvas_->PopDirtyRegion();
         }
-        int processedNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
-        AcquireFenceTracker::SetContainerNodeNum(processedNodes);
         RS_TRACE_NAME_FMT("RSUniRenderThread::Render() the number of total ProcessedNodes: %d",
             RSRenderNodeDrawable::GetTotalProcessedNodeCount());
         const RSNodeStatsType nodeStats = CreateRSNodeStatsItem(
@@ -1172,8 +1167,8 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     // Skip Drawing
     auto isSnapshotSkipLayer =
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && specialLayerManager.Find(SpecialLayerType::SNAPSHOT_SKIP);
-    if ((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
-        isSnapshotSkipLayer) {
+    if (((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
+        isSnapshotSkipLayer) && !RSUniRenderThread::GetCaptureParam().ignoreSpecialLayer_) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());
@@ -1213,7 +1208,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
+        HILOG_COMM_ERROR("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
         if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
             return;
         }

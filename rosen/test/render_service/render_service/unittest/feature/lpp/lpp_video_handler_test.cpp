@@ -424,22 +424,30 @@ HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer006, TestSize.Level1)
     bufferQueue->sourceType_ = OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO;
     bufferQueue->lppSlotInfo_ = new LppSlotInfo { .readOffset = 0,
         .writeOffset = 1,
-        .slot = { { .seqId = 100, .timestamp = 1000, .damage = { 1, 2, 3, 4 } } },
+        .slot = { { .seqId = 100, .timestamp = 1000, .crop = { 1, 2, 3, 4 } } },
         .frameRate = 0,
         .isStopShbDraw = 0 };
     bufferQueue->isRsDrawLpp_ = false;
-    bufferQueue->lppBufferCache_[100] = SurfaceBuffer::Create();
+    auto buffer = SurfaceBuffer::Create();
+    BufferHandle handle;
+    handle.width = 100;
+    handle.height = 100;
+    buffer->SetBufferHandle(&handle);
+    bufferQueue->lppBufferCache_[100] = buffer;
  
     auto& lppVideoHandler = LppVideoHandler::Instance();
     lppVideoHandler.lowPowerSurfaceNode_.clear();
     lppVideoHandler.ConsumeAndUpdateLppBuffer(surfaceNode_);
     EXPECT_FALSE(lppVideoHandler.lowPowerSurfaceNode_.empty());
  
-    bufferQueue->lppSlotInfo_->slot[0].damage[0] = -1;
-    bufferQueue->lppSlotInfo_->slot[0].damage[1] = -1;
-    bufferQueue->lppSlotInfo_->slot[0].damage[2] = -1;
-    bufferQueue->lppSlotInfo_->slot[0].damage[3] = -1;
- 
+    bufferQueue->lppSlotInfo_->slot[0].crop[0] = -1;
+    bufferQueue->lppSlotInfo_->slot[0].crop[1] = -1;
+    bufferQueue->lppSlotInfo_->slot[0].crop[2] = -1;
+    bufferQueue->lppSlotInfo_->slot[0].crop[3] = -1;
+    handle.width = -1;
+    handle.height = -1;
+    buffer->SetBufferHandle(&handle);
+    bufferQueue->lppBufferCache_[100] = buffer;
     lppVideoHandler.lowPowerSurfaceNode_.clear();
     lppVideoHandler.ConsumeAndUpdateLppBuffer(surfaceNode_);
     EXPECT_FALSE(lppVideoHandler.lowPowerSurfaceNode_.empty());
@@ -464,11 +472,16 @@ HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer007, TestSize.Level1)
     bufferQueue->sourceType_ = OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO;
     bufferQueue->lppSlotInfo_ = new LppSlotInfo { .readOffset = 0,
         .writeOffset = 1,
-        .slot = { { .seqId = 100, .timestamp = 1000, .damage = { -1, -1, -1, -1 } } },
+        .slot = { { .seqId = 100, .timestamp = 1000, .crop = { -1, -1, -1, -1 } } },
         .frameRate = 0,
         .isStopShbDraw = 0 };
     bufferQueue->isRsDrawLpp_ = false;
-    bufferQueue->lppBufferCache_[100] = SurfaceBuffer::Create();
+    auto buffer = SurfaceBuffer::Create();
+    BufferHandle handle;
+    handle.width = -1;
+    handle.height = -1;
+    buffer->SetBufferHandle(&handle);
+    bufferQueue->lppBufferCache_[100] = buffer;
     auto& lppVideoHandler = LppVideoHandler::Instance();
     lppVideoHandler.lowPowerSurfaceNode_.clear();
     lppVideoHandler.ConsumeAndUpdateLppBuffer(surfaceNode_);

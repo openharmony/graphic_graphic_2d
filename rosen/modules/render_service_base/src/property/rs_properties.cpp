@@ -4457,6 +4457,18 @@ void RSProperties::UpdateFilter()
 #endif
 }
 
+bool RSProperties::DisableHWCForFilter() const
+{
+    // The difference compared to needFilter_ is no need to disable hwc when foregroundFilter is HDR_UI_BRIGHTNESS
+    return backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
+        IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
+        IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+        (foregroundFilter_ != nullptr && foregroundFilter_->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
+        IsFgBrightnessValid() || IsBgBrightnessValid() ||
+        (foregroundFilterCache_ != nullptr && foregroundFilterCache_->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
+        IsWaterRippleValid() || needDrawBehindWindow_ || mask_ || colorFilter_ != nullptr || localMagnificationCap_;
+}
+
 void RSProperties::UpdateForegroundFilter()
 {
     foregroundFilter_.reset();

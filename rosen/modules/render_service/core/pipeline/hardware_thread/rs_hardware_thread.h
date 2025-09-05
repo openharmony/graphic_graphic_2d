@@ -57,7 +57,7 @@ public:
     int GetHardwareTid() const;
     GSError ClearFrameBuffers(OutputPtr output);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
-    void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
+    void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void DumpEventQueue();
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
     void ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId);
@@ -115,7 +115,7 @@ private:
     std::mutex mutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     int hardwareTid_ = -1;
-    std::unordered_map<uint64_t,std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
+    std::unordered_map<uint64_t, std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();

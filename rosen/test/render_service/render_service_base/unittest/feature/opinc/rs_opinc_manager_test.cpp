@@ -66,11 +66,11 @@ HWTEST_F(RSOpincManagerTest, OpincGetNodeSupportFlag, Function | SmallTest | Lev
 
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(++id);
     ASSERT_NE(rsCanvasRenderNode, nullptr);
-    ASSERT_FALSE(opincManager_.OpincGetNodeSupportFlag(*rsCanvasRenderNode));
+    ASSERT_TRUE(opincManager_.OpincGetNodeSupportFlag(*rsCanvasRenderNode));
 
     auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(++id);
     ASSERT_NE(rsCanvasDrawingRenderNode, nullptr);
-    ASSERT_FALSE(opincManager_.OpincGetNodeSupportFlag(*rsCanvasDrawingRenderNode));
+    ASSERT_TRUE(opincManager_.OpincGetNodeSupportFlag(*rsCanvasDrawingRenderNode));
 }
 
 /**

@@ -761,9 +761,9 @@ public:
         srcRect_ = rect;
     }
 
-    void NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet);
+    void NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet);
 
-    void NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet);
+    void NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet);
 
     const RectI& GetSrcRect() const
     {
@@ -1722,7 +1722,10 @@ public:
         }
         return occlusionParams_;
     }
-
+    void MergeSkippedDirtyRect(const RectI& surfaceDirtyRect)
+    {
+        skipFrameDirtyRect_ = skipFrameDirtyRect_.JoinRect(surfaceDirtyRect);
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;

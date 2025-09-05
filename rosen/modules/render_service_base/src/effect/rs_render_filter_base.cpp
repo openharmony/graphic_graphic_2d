@@ -50,12 +50,12 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderEdgeLightFilter>();
         }
     },
-    {RSNGEffectType::DIRECTION_LIGHT, [] {
-            return std::make_shared<RSNGRenderDirectionLightFilter>();
-        }
-    },
     {RSNGEffectType::COLOR_GRADIENT, [] {
             return std::make_shared<RSNGRenderColorGradientFilter>();
+        }
+    },
+    {RSNGEffectType::DIRECTION_LIGHT, [] {
+            return std::make_shared<RSNGRenderDirectionLightFilter>();
         }
     },
     {RSNGEffectType::MASK_TRANSITION, [] {
@@ -86,7 +86,7 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
 {
     std::shared_ptr<RSNGRenderFilterBase> head = nullptr;
     auto current = head;
-    for (size_t filterCount = 0; filterCount <= EFFECT_COUNT_LIMIT; ++filterCount) {
+    for (size_t filterCount = 0; filterCount < EFFECT_COUNT_LIMIT; ++filterCount) {
         RSNGEffectTypeUnderlying type = 0;
         if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
             ROSEN_LOGE("RSNGRenderFilterBase: Unmarshalling type failed");
@@ -116,8 +116,8 @@ std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectTyp
     return false;
 }
 
-void RSNGRenderFilterBase::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
-                                           std::shared_ptr<Drawing::GEVisualEffect> dest)
+void RSNGRenderFilterBase::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect>& src,
+                                           std::shared_ptr<Drawing::GEVisualEffect>& dest)
 {
     RSUIFilterHelper::UpdateCacheData(src, dest);
 }
@@ -132,8 +132,8 @@ void RSUIFilterHelper::GenerateGEVisualEffect(std::shared_ptr<RSNGRenderFilterBa
 void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>& filter,
     std::shared_ptr<Drawing::GEVisualEffectContainer>& container)
 {
-    if (!container) {
-        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: container nullptr");
+    if (!filter || !container) {
+        RS_LOGE("RSUIFilterHelper::UpdateToGEContainer: filter or container nullptr");
         return;
     }
 
@@ -144,7 +144,7 @@ void RSUIFilterHelper::UpdateToGEContainer(std::shared_ptr<RSNGRenderFilterBase>
     }
 }
 
-bool RSUIFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filter)
+bool RSUIFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase>& filter)
 {
     auto current = filter;
     while (current) {
@@ -156,8 +156,8 @@ bool RSUIFilterHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderFilterBase> filt
     return false;
 }
 
-void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> src,
-                                       std::shared_ptr<Drawing::GEVisualEffect> dest)
+void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect>& src,
+                                       std::shared_ptr<Drawing::GEVisualEffect>& dest)
 {
     if (src == nullptr) {
         RS_LOGE("RSUIFilterHelper::UpdateCacheData: src is nullptr");
@@ -180,7 +180,7 @@ void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect> 
     }
 }
 
-void RSUIFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase> filter,
+void RSUIFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase>& filter,
     const Vector3f& rotationAngle)
 {
     auto current = filter;

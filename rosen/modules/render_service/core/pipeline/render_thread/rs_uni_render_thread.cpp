@@ -53,6 +53,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
+#include "utils/system_properties.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
@@ -199,10 +200,6 @@ void RSUniRenderThread::InitGrContext()
             auto& schedClient = ResSchedClient::GetInstance();
             schedClient.ReportData(ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
         });
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
-    RSHpaeManager::GetInstance().InitIoBuffers();
-    RSHpaeManager::GetInstance().InitHpaeBlurResource();
-#endif
 }
 
 void RSUniRenderThread::Inittcache()
@@ -249,6 +246,9 @@ void RSUniRenderThread::Start()
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
         InitGrContext();
+#if defined(ROSEN_OHOS)
+        RSHpaeManager::GetInstance().InitHpaeBlurResource();
+#endif
         tid_ = gettid();
 #ifdef RES_SCHED_ENABLE
         SubScribeSystemAbility();
@@ -460,13 +460,17 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
     }
 }
 
-void RSUniRenderThread::ReleaseSurfaceBufferOpItemBuffer()
+void RSUniRenderThread::ReleaseSurfaceOpItemBuffer()
 {
-    auto fence = GetAcquireFence();
-    int32_t fenceFd = fence->Dup();
+    int32_t fenceFd = INVALID_FD;
+    if (acquireFence_ && acquireFence_->GetStatus() != SIGNALED) {
+        fenceFd = acquireFence_->Dup();
+    }
     RSSurfaceBufferCallbackManager::Instance().SetReleaseFence(fenceFd);
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
-    ::close(fenceFd);
+    if (fenceFd != INVALID_FD) {
+        ::close(fenceFd);
+    }
 }
 
 sptr<SyncFence> RSUniRenderThread::GetAcquireFence()
@@ -926,7 +930,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         RS_TRACE_NAME_FMT("Reclaim Memory, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         // Ensure user don't enable the parameter. When we have an interrupt mechanism, remove it.
-        if (isReclaim && system::GetParameter("persist.ace.testmode.enabled", "0") == "1") {
+        if (isReclaim && RSSystemProperties::GetAceTestMode()) {
 #ifdef OHOS_PLATFORM
             RSBackgroundThread::Instance().PostTask([]() {
                 RS_LOGI("RSUniRenderThread::PostReclaimMemoryTask Start Reclaim File");
@@ -947,6 +951,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
     };
 
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
+    SetIsPostedReclaimMemoryTask(true);
 }
 
 void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
@@ -963,8 +968,10 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
             DefaultClearMemoryCache();
         }
     }
-    if (isTimeToReclaim_.load()) {
+    bool ifStatusBarDirtyOnly = RSMainThread::Instance()->GetIfStatusBarDirtyOnly();
+    if (isTimeToReclaim_.load() && !ifStatusBarDirtyOnly) {
         RemoveTask(RECLAIM_MEMORY);
+        SetIsPostedReclaimMemoryTask(false);
         if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
@@ -1113,15 +1120,42 @@ void RSUniRenderThread::PurgeShaderCacheAfterAnimate()
 #endif
 }
 
-void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString)
+void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString, bool checkIsInUniRenderThread)
 {
-    PostSyncTask([this, &dumpString]() {
+    auto task = [this, &dumpString]() {
         if (!rootNodeDrawable_) {
             dumpString.append("rootNode is null\n");
             return;
         }
         rootNodeDrawable_->DumpDrawableTree(0, dumpString, RSMainThread::Instance()->GetContext());
-    });
+    };
+    if (checkIsInUniRenderThread) {
+        if (gettid() == tid_) {
+            task();
+        } else {
+            dumpString.append("not in RSUniRenderThread, skip tree dump\n");
+        }
+    } else {
+        PostSyncTask(task);
+    }
+}
+
+void RSUniRenderThread::ProcessVulkanErrorTreeDump()
+{
+#ifdef ROSEN_OHOS
+    if (!Drawing::SystemProperties::IsVkImageDfxEnabled()) {
+        return;
+    }
+    RS_LOGE("------ RSUniRenderThread tree dump start ------");
+    std::string rsTreeDump;
+    RenderServiceTreeDump(rsTreeDump, true);
+    std::istringstream stream(rsTreeDump);
+    std::string line;
+    while (std::getline(stream, line, '\n')) {
+        RS_LOGE("%{public}s", line.c_str());
+    }
+    RS_LOGE("------ RSUniRenderThread tree dump end ------");
+#endif
 }
 
 void RSUniRenderThread::UpdateScreenNodeScreenId()

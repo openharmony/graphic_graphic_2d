@@ -16,7 +16,6 @@
 #include "effect_vulkan_context.h"
 
 namespace OHOS::Rosen {
-std::map<int, std::shared_ptr<Drawing::GPUContext>> EffectVulkanContext::drawingContextMap_;
 std::mutex EffectVulkanContext::drawingContextMutex_;
 
 EffectVulkanContext::EffectVulkanContext(std::string cacheDir)
@@ -28,7 +27,6 @@ EffectVulkanContext::EffectVulkanContext(std::string cacheDir)
 EffectVulkanContext::~EffectVulkanContext()
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
-    drawingContextMap_.clear();
 }
 
 EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheDir)
@@ -40,7 +38,6 @@ EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheD
 void EffectVulkanContext::ReleaseDrawingContextForThread(int tid)
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
-    drawingContextMap_.erase(tid);
 }
 
 void EffectVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext)
@@ -50,7 +47,6 @@ void EffectVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing
         EffectVulkanContext::ReleaseDrawingContextForThread(tid);
     };
     static thread_local auto drawContextHolder = std::make_shared<DrawContextHolder>(func);
-    drawingContextMap_[tid] = drawingContext;
 }
 
 std::shared_ptr<Drawing::GPUContext> EffectVulkanContext::CreateDrawingContext()

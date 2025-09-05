@@ -131,6 +131,28 @@ const std::string& RsCommonHook::GetTvPlayerBundleName() const
     return tvPlayerBundleName_;
 }
 
+void RsCommonHook::SetSolidColorLayerConfigFromHgm(
+    const std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm)
+{
+    solidLayerConfigFromHgm_ = solidLayerConfigFromHgm;
+}
+
+bool RsCommonHook::IsSolidColorLayerConfig(const std::string& bundleName)
+{
+    return solidLayerConfigFromHgm_.find(bundleName) != solidLayerConfigFromHgm_.end();
+}
+
+void RsCommonHook::SetHwcSolidColorLayerConfigFromHgm(
+    const std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm)
+{
+    hwcSolidLayerConfigFromHgm_ = hwcSolidLayerConfigFromHgm;
+}
+
+bool RsCommonHook::IsHwcSolidColorLayerConfig(const std::string& bundleName)
+{
+    return hwcSolidLayerConfigFromHgm_.find(bundleName) != hwcSolidLayerConfigFromHgm_.end();
+}
+
 void RsCommonHook::SetFilterUnderHwcConfigByApp(const std::string& appName, const std::string& val)
 {
     filterUnderHwcConfig_[appName] = val;

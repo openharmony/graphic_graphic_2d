@@ -44,11 +44,12 @@ public:
     void SyncRefreshRateUpdateCallback(int32_t refreshRate);
     void SyncXComponentExpectedFrameRateCallback(pid_t pid, const std::string& xcomponentId, int32_t expectedFrameRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
-    void DestroyXComponent(pid_t pid, const std::string& xcomponentId);
 
 private:
     HgmConfigCallbackManager();
     ~HgmConfigCallbackManager() noexcept override;
+    void DestroyXComponent(pid_t pid, const std::string& xcomponentId);
+
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;

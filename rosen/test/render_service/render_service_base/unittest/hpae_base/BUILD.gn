@@ -15,7 +15,6 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-
 module_output_path = "graphic_2d/graphic_2d/render_service_base/hpae_base"
 
 ##############################  RSRenderServiceBaseHpaeBaseTest  ##################################
@@ -23,10 +22,11 @@ ohos_source_set("mock_dlfcn") {
   testonly = true
 
   sources = [ "mock_dlfcn.cpp" ]
+
   cflags = [
     "-Dprivate=public",
     "-Dprotected=public",
-]
+  ]
 
   configs = [
     ":render_test",
@@ -46,7 +46,7 @@ ohos_source_set("mock_dlfcn") {
   ]
 
   subsystem_name = "graphic"
-  }
+}
 
 ohos_unittest("RSRenderServiceBaseHpaeBaseTest") {
   module_out_path = module_output_path
@@ -57,7 +57,6 @@ ohos_unittest("RSRenderServiceBaseHpaeBaseTest") {
     "rs_hpae_filter_cache_manager_test.cpp",
     "rs_hpae_fusion_operator_test.cpp",
     "rs_hpae_hianimation_test.cpp",
-    "rs_hpae_perf_thread_test.cpp",
     "rs_hpae_scheduler_test.cpp",
   ]
 

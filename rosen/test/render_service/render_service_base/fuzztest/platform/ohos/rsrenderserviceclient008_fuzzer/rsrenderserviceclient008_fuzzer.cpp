@@ -410,7 +410,11 @@ bool DoGetScreenType002()
     client->GetBitmap(nodeId, bm);
     client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     client->RegisterTypeface(typeface);
-    client->UnRegisterTypeface(typeface);
+    if (typeface) {
+        client->UnRegisterTypeface(typeface->GetUniqueID());
+    } else {
+        client->UnRegisterTypeface(0);
+    }
     client->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
     client->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     return true;

@@ -37,6 +37,7 @@
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_hisysevent.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
@@ -45,6 +46,9 @@
 #include "screen_manager/rs_screen_mode_info.h"
 #include "drawable/rs_canvas_render_node_drawable.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
@@ -92,6 +96,16 @@ uint32_t PixelMapSamplingDump(std::unique_ptr<Media::PixelMap>& pixelmap, int32_
     uint32_t pixel = 0;
     pixelmap->ReadPixel({x, y}, pixel);
     return pixel;
+}
+
+inline int64_t GenerateCurrentTimeStamp()
+{
+    struct timeval now;
+    if (gettimeofday(&now, nullptr) == 0) {
+        constexpr int64_t secToUsec = 1000 * 1000;
+        return static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    }
+    return 0;
 }
 
 bool RSUiCaptureTaskParallel::IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect)
@@ -182,6 +196,7 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
             nodeId_);
         return false;
     }
+    needDump_ = node->GetNodeName().find("Calendar") != std::string::npos;
 
     if (node->GetType() != RSRenderNodeType::ROOT_NODE &&
         node->GetType() != RSRenderNodeType::CANVAS_NODE &&
@@ -378,7 +393,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
         auto copytask =
             RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
-                surface, std::move(pixelMap_), nodeId_, captureConfig_, callback);
+                surface, std::move(pixelMap_), nodeId_, captureConfig_, callback, 0, needDump_);
         if (!copytask) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: create capture task failed!");
             return false;
@@ -483,7 +498,7 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureTaskParallel::CreateSurface(
 std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
     NodeId id, const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback,
-    int32_t rotation)
+    int32_t rotation, bool needDump)
 {
     Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
     if (!backendTexture.IsValid()) {
@@ -495,7 +510,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
     std::get<0>(*wrapperSf) = std::move(surface);
     std::function<void()> copytask = [
-        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation]() -> void {
+        wrapper, captureConfig, callback, backendTexture, wrapperSf, id, rotation, needDump]() -> void {
         RS_TRACE_NAME_FMT("copy and send capture useDma:%d", captureConfig.useDma);
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSUiCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
@@ -573,6 +588,13 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                          PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() - 1);
         if ((pixelDump & ALPHA_MASK) == 0) {
             RS_LOGW("RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask pixelmap is transparent");
+            if (needDump) {
+                RS_LOGI("RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask Do Dumptree. "
+                    "nodeId:[%{public}" PRIu64 "]", id);
+                RSMainThread::Instance()->PostTask([id]() {
+                    RSUiCaptureTaskParallel::DumpInfo(id);
+                });
+            }
         }
         RS_LOGI("RSUiCaptureTaskParallel::Capture capture success nodeId:[%{public}" PRIu64
                 "], pixelMap width: %{public}d, height: %{public}d",
@@ -642,6 +664,34 @@ bool RSUiCaptureTaskParallel::IsStartEndSameNode()
     isStartEndNodeSame_ = (nodeId_ == captureConfig_.uiCaptureInRangeParam.endNodeId);
     RS_LOGD("RSUiCaptureTaskParallel::IsStartEndSameNode isStartEndNodeSame_: %{public}d", isStartEndNodeSame_);
     return isStartEndNodeSame_;
+}
+
+void RSUiCaptureTaskParallel::DumpInfo(NodeId id)
+{
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+    if (node == nullptr) {
+        RS_LOGE("RSUiCaptureTaskParallel::DumpInfo: Node is nullptr, nodeId: %{public}" PRIu64, id);
+        return;
+    }
+    std::string dumpString = "";
+    dumpString += "------id------\n";
+    dumpString += std::to_string(id);
+    dumpString += "------timeStamp------\n";
+    dumpString += std::to_string(GenerateCurrentTimeStamp());
+    dumpString += "------RenderNodeTree------\n";
+    node->DumpTree(0, dumpString);
+    dumpString += "------DrawableTree------\n";
+    RSUniRenderThread::Instance().PostSyncTask([node, &dumpString]() {
+        auto drawable = node->GetRenderDrawable();
+        if (!drawable) {
+            RS_LOGE("RSUiCaptureTaskParallel::DumpInfo: Drawable is nullptr");
+            return;
+        }
+        drawable->DumpDrawableTree(0, dumpString, RSMainThread::Instance()->GetContext());
+    });
+    RS_LOGI("RSUiCaptureTaskParallel::DumpInfo: success, nodeId: %{public}" PRIu64, id);
+    RSHiSysEvent::EventWrite(RSEventName::CALENDAR_ICON_TRANSPARENT, RSEventType::RS_FAULT,
+        "DUMPTREE", dumpString);
 }
 } // namespace Rosen
 } // namespace OHOS

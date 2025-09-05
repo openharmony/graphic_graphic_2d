@@ -89,7 +89,7 @@ public:
     RSVkImageManager() = default;
     ~RSVkImageManager() noexcept override = default;
 
-    void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
+    void UnMapImageFromSurfaceBuffer(uint64_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
@@ -108,7 +108,7 @@ private:
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition);
     bool WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence);
 
-    std::unordered_map<int32_t, std::shared_ptr<VkImageResource>> imageCacheSeqs_; // guarded by opMutex_
+    std::unordered_map<uint64_t, std::shared_ptr<VkImageResource>> imageCacheSeqs_; // guarded by opMutex_
 };
 
 } // namespace Rosen

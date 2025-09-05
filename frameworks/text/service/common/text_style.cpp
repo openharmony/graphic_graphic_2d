@@ -122,6 +122,7 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         decorationStyle == rhs.decorationStyle &&
         decorationThicknessScale == rhs.decorationThicknessScale &&
         fontWeight == rhs.fontWeight &&
+        fontWidth == rhs.fontWidth &&
         fontStyle == rhs.fontStyle &&
         baseline == rhs.baseline &&
         fontFamilies == rhs.fontFamilies &&

@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const std::string FORCE_USE_APP_VSYNC = "FORCE_USE_APP_VSYNC";
+const std::string_view FORCE_USE_APP_VSYNC = "FORCE_USE_APP_VSYNC";
 }
 HgmVoter::HgmVoter(const std::vector<std::string>& voters) : voters_(voters)
 {
@@ -113,15 +113,13 @@ std::pair<bool, bool> HgmVoter::MergeRangeByPriority(VoteRange& rangeRes, const 
 
 bool HgmVoter::CheckForceUseAppVSync()
 {
-    auto voterIter = voters_.begin();
-    for (; voterIter != voters_.end(); ++voterIter) {
+    for (auto voterIter = voters_.begin(); voterIter != voters_.end(); ++voterIter) {
         auto iter = voteRecord_.find(*voterIter);
         if (iter == voteRecord_.end()) {
             continue;
         }
-
-        for (auto vec = iter->second.first.begin(); vec != iter->second.first.end(); ++vec) {
-            if (FORCE_USE_APP_VSYNC == vec->extInfo) {
+        for (auto& voteInfo : iter->second.first) {
+            if (FORCE_USE_APP_VSYNC == voteInfo.extInfo) {
                 return true;
             }
         }

@@ -649,33 +649,35 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
 */
 HWTEST_F(RSSurfaceCaptureTaskParallelTest, TestSurfaceCaputreIt, TestSize.Level2)
 {
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.useCurWindow = true;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        RSSurfaceCaptureConfig captureConfig;
+        captureConfig.useCurWindow = true;
 
-    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
-    EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    // DMA Surface Cpautre
-    surfaceCaptureCb_->Reset();
-    captureConfig.useDma = true;
-    ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
-    EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    // No DMA Canvas Node
-    surfaceCaptureCb_->Reset();
-    ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, surfaceCaptureCb_, 0.5, 0.5);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
-    EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
-    // DMA Canvas Node
-    surfaceCaptureCb_->Reset();
-    captureConfig.useDma = true;
-    ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, surfaceCaptureCb_, 0.5, 0.5);
-    EXPECT_EQ(ret, true);
-    EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
-    EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+        bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_);
+        EXPECT_EQ(ret, true);
+        EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+        EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+        // DMA Surface Cpautre
+        surfaceCaptureCb_->Reset();
+        captureConfig.useDma = true;
+        ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+        EXPECT_EQ(ret, true);
+        EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+        EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+        // No DMA Canvas Node
+        surfaceCaptureCb_->Reset();
+        ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, surfaceCaptureCb_, 0.5, 0.5);
+        EXPECT_EQ(ret, true);
+        EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+        EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+        // DMA Canvas Node
+        surfaceCaptureCb_->Reset();
+        captureConfig.useDma = true;
+        ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, surfaceCaptureCb_, 0.5, 0.5);
+        EXPECT_EQ(ret, true);
+        EXPECT_EQ(CheckSurfaceCaptureCallback(), true);
+        EXPECT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+    }
 }
 
 /*
@@ -703,12 +705,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     ASSERT_NE(uniParams, nullptr);
     bool secExemption = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    captureParam.secExemption = false;
+    captureParam.ignoreSpecialLayer = false;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
     bool secExemption1 = uniParams == nullptr ? false : uniParams->GetSecExemption();
     ASSERT_EQ(secExemption, secExemption1);
 
-    captureParam.secExemption = true;
+    captureParam.ignoreSpecialLayer = true;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
     bool secExemption2 = uniParams == nullptr ? false : uniParams->GetSecExemption();
     ASSERT_EQ(secExemption, secExemption2);

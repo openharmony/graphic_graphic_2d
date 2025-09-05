@@ -1182,8 +1182,8 @@ HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion004, TestSize.Level1
 {
     constexpr int srcDamageRegionWidth{1001};
     constexpr int srcDamageRegionHeight{2003};
-    constexpr int sampledDamageRegionWidth{132};
-    constexpr int sampledDamageRegionHeight{257};
+    constexpr int sampledDamageRegionWidth{256};
+    constexpr int sampledDamageRegionHeight{384};
     constexpr int sampledDrawnRegionWidth{2048};
     constexpr int sampledDrawnRegionHeight{3072};
 
@@ -1360,6 +1360,40 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory001, TestSize.Level1)
     auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
     EXPECT_EQ(rects.empty(), false);
     displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistory002
+ * @tc.desc: test MergeDirtyHistory with enable dirty alignment
+ * @tc.type: FUNC
+ * @tc.require: #ICVA00
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory002, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNodeDrawable> displayDrawable(
+        GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext));
+    ASSERT_NE(displayDrawable, nullptr);
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+    int32_t bufferAge = 0;
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    EXPECT_EQ(rects.empty(), false);
 }
 
 /**

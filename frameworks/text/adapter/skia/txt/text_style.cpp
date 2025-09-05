@@ -17,11 +17,14 @@
 
 #include <sstream>
 
+#include "include/TextStyle.h"
 #include "txt/platform.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+namespace skt = skia::textlayout;
+
 void FontFeatures::SetFeature(std::string tag, int value)
 {
     features_.emplace_back(std::make_pair(tag, value));
@@ -92,12 +95,13 @@ bool TextStyle::operator==(TextStyle const& other) const
         decoration == other.decoration &&
         decorationColor == other.decorationColor &&
         decorationStyle == other.decorationStyle &&
-        decorationThicknessMultiplier == other.decorationThicknessMultiplier &&
+        skt::nearlyEqual(decorationThicknessMultiplier, other.decorationThicknessMultiplier) &&
         fontWeight == other.fontWeight &&
+        fontWidth == other.fontWidth &&
         fontStyle == other.fontStyle &&
-        letterSpacing == other.letterSpacing &&
-        wordSpacing == other.wordSpacing &&
-        height == other.height &&
+        skt::nearlyEqual(letterSpacing, other.letterSpacing) &&
+        skt::nearlyEqual(wordSpacing, other.wordSpacing) &&
+        skt::nearlyEqual(height, other.height) &&
         heightOverride == other.heightOverride &&
         halfLeading == other.halfLeading &&
         locale == other.locale &&
@@ -106,6 +110,10 @@ bool TextStyle::operator==(TextStyle const& other) const
         foreground == other.foreground &&
         fontFamilies == other.fontFamilies &&
         textShadows == other.textShadows &&
+        skt::nearlyEqual(fontSize, other.fontSize) &&
+        skt::nearlyEqual(maxLineHeight, other.maxLineHeight) &&
+        skt::nearlyEqual(minLineHeight, other.minLineHeight) &&
+        lineHeightStyle == other.lineHeightStyle &&
         badgeType == other.badgeType;
 }
 } // namespace SPText

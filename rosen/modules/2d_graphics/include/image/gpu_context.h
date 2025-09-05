@@ -206,9 +206,14 @@ public:
     void DumpAllResource(std::stringstream& dump) const;
 
     /**
-     * @brief                   Free GPU created by the contetx.
+     * @brief                   Free GPU created by the context.
      */
     void FreeGpuResources();
+
+    /**
+     * @brief                   Free CPU cache in the context.
+     */
+    void FreeCpuCache(uint32_t uniqueId = 0);
 
     /**
      * @brief                   Deeply clean resources in Relcaim.

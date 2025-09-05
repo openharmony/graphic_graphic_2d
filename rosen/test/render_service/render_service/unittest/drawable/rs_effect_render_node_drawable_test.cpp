@@ -83,7 +83,7 @@ void RSEffectRenderNodeDrawableTest::TearDown() {}
  * @tc.name: OnDrawTest
  * @tc.desc: Test OnDraw
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #ICEF7K
  */
 HWTEST_F(RSEffectRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 {
@@ -140,25 +140,6 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
     RSUniRenderThread::SetCaptureParam(params);
     drawable->OnCapture(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
-}
-
-/**
- * @tc.name: OnDraw
- * @tc.desc: Test OnDraw
- * @tc.type: FUNC
- * @tc.require: #ICEF7K
- */
-HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw, TestSize.Level1)
-{
-    ASSERT_NE(effectDrawable_, nullptr);
-    ASSERT_NE(drawable_->renderParams_, nullptr);
-    // default case, shouldpaint == false
-    effectDrawable_->OnDraw(*drawingCanvas_);
-
-    // if should paint
-    drawable_->renderParams_->shouldPaint_ = true;
-    drawable_->renderParams_->contentEmpty_ = false;
-    effectDrawable_->OnDraw(*drawingCanvas_);
 }
 
 /**

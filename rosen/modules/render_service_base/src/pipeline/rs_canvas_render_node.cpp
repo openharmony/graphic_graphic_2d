@@ -84,7 +84,7 @@ void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
         return;
     }
     ApplyModifiers();
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
+#if defined(ROSEN_OHOS)
     visitor->RegisterHpaeCallback(*this);
 #endif
     visitor->QuickPrepareCanvasRenderNode(*this);

@@ -30,6 +30,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -173,7 +174,7 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
     }
 
     if (!processor->InitForRenderThread(*this, renderEngine)) {
-        RS_LOGE("RSScreenRenderNodeDrawable::RequestFrame processor init failed!");
+        HILOG_COMM_ERROR("RSScreenRenderNodeDrawable::RequestFrame processor init failed!");
         return nullptr;
     }
 
@@ -559,6 +560,11 @@ void RSScreenRenderNodeDrawable::SetDamageRegion(const std::vector<RectI>& rects
     expandRenderFrame_->SetDamageRegion(rects);
 }
 
+void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDirtyInSkipFrame)
+{
+    accumulateDirtyInSkipFrame_ = accumulateDirtyInSkipFrame;
+}
+
 void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
@@ -682,8 +688,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (SkipFrame(vsyncRefreshRate, screenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
-        RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
-            screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval, screenInfo.expectedRefreshRate);
+        accumulateDirtyInSkipFrame_ |= RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*this);
+        RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u, dirty:%d",
+            paramScreenId, screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval,
+            screenInfo.expectedRefreshRate, accumulateDirtyInSkipFrame_);
         screenManager->PostForceRefreshTask();
         return;
     }
@@ -699,6 +707,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     uniParam->SetRSProcessor(processor);
+    RSUniRenderThread::Instance().SetEnableVisibleRect(false);
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
     auto mirroredRenderParams = mirroredDrawable ?
         static_cast<RSScreenRenderParams*>(mirroredDrawable->GetRenderParams().get()) : nullptr;
@@ -751,6 +760,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             curCanvas_ = virtualProcessor->GetCanvas();
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            if (virtualProcessor->GetDisplaySkipInMirror()) {
+                RS_TRACE_NAME("skip in virtual screen and cancelbuffer");
+                virtualProcessor->SetDisplaySkipInMirror(false);
+                virtualProcessor->CancelCurrentFrame();
+                return;
+            }
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
@@ -850,6 +865,11 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     // hpae offline: post offline task
     CheckAndPostAsyncProcessOfflineTask();
+#if defined(ROSEN_OHOS)
+    bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AncoHebcStatus::NOT_USE_HEBC);
+    RSHpaeManager::GetInstance().CheckHpaeBlur(
+        isHdrOn, params->GetNewPixelFormat(), params->GetNewColorSpace(), isHebc);
+#endif
     RSUniRenderThread::Instance().WaitUntilScreenNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);

@@ -15,6 +15,8 @@
 
 #include "recording/recording_canvas.h"
 
+#include <hilog/log.h>
+
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
@@ -244,7 +246,7 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
     FilterMode filterMode, const Brush* brush)
 {
     if (image == nullptr) {
-        LOGE("RecordingCanvas::DrawImageNine, image is nullptr!");
+        HILOG_COMM_ERROR("RecordingCanvas::DrawImageNine, image is nullptr!");
         return;
     }
     if (!addDrawOpImmediate_) {
@@ -268,7 +270,7 @@ void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattic
     FilterMode filterMode)
 {
     if (image == nullptr) {
-        LOGE("RecordingCanvas::DrawImageLattice failed, image is nullptr");
+        HILOG_COMM_ERROR("RecordingCanvas::DrawImageLattice failed, image is nullptr");
         return;
     }
     if (!addDrawOpImmediate_) {
@@ -369,7 +371,7 @@ void RecordingCanvas::DrawRecordCmd(const std::shared_ptr<RecordCmd> recordCmd,
     const Matrix* matrix, const Brush* brush)
 {
     if (recordCmd == nullptr) {
-        LOGE("RecordingCanvas::DrawRecordCmd, recordCmd is nullptr!");
+        HILOG_COMM_ERROR("RecordingCanvas::DrawRecordCmd, recordCmd is nullptr!");
         return;
     }
 

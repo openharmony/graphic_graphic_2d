@@ -20,6 +20,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_rect.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
@@ -57,8 +58,16 @@ typedef enum {
 
 class RSB_EXPORT RSRenderParams {
 public:
-    RSRenderParams(NodeId id) : id_(id) {}
-    virtual ~RSRenderParams() = default;
+    RSRenderParams(NodeId id) : id_(id)
+    {
+        MemoryInfo info = { sizeof(*this), ExtractPid(GetId()), GetId(), 0, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE };
+        MemoryTrack::Instance().AddNodeRecord(GetId(), info);
+    }
+
+    virtual ~RSRenderParams()
+    {
+        MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    }
 
     struct SurfaceParam {
         int width = 0;

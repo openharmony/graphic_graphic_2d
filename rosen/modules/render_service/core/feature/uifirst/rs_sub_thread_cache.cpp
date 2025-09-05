@@ -234,7 +234,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
         return false;
     }
     if (ROSEN_EQ(surfaceDrawable->boundsWidth_, 0.f) || ROSEN_EQ(surfaceDrawable->boundsHeight_, 0.f)) {
-        RS_LOGE("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
+        HILOG_COMM_ERROR("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
         return false;
     }
 
@@ -385,7 +385,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 
 void RsSubThreadCache::ResetUifirst(bool isOnlyClearCache)
 {
-    RS_LOGI("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", nodeId_, isOnlyClearCache);
+    HILOG_COMM_INFO("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", nodeId_, isOnlyClearCache);
     if (isOnlyClearCache) {
         ClearCacheSurfaceOnly();
     } else {
@@ -629,7 +629,7 @@ bool RsSubThreadCache::GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix
 }
 
 bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    Drawing::RectI& dirtyRect)
+    Drawing::RectI& dirtyRect, bool isUifirstRootNode)
 {
     if (!surfaceDrawable) {
         RS_LOGE("CalculateUifirstDirtyRegion surfaceDrawable is nullptr");
@@ -640,7 +640,10 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGE("CalculateUifirstDirtyRegion uifirstDirtyManager is nullptr");
         return false;
     }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    // Avoid diffrent values of absDrawRect in rending thread and subthread.
+    auto surfaceParams = isUifirstRootNode ?
+        static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get()) :
+        static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("CalculateUifirstDirtyRegion surfaceParams is nullptr");
         return false;
@@ -701,7 +704,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
         return false;
     }
     Drawing::RectI tempRect = {};
-    bool isCalculateSucc = CalculateUifirstDirtyRegion(surfaceDrawable, tempRect);
+    bool isCalculateSucc = CalculateUifirstDirtyRegion(surfaceDrawable, tempRect, true);
     uifirstMergedDirtyRegion_.SetRect(tempRect);
     dirtyRects.Join(tempRect);
     for (const auto& nestedDrawable : surfaceDrawable->
@@ -710,7 +713,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
         if (surfaceNodeDrawable) {
             tempRect = {};
             isCalculateSucc = isCalculateSucc && surfaceNodeDrawable->GetRsSubThreadCache().
-                CalculateUifirstDirtyRegion(surfaceNodeDrawable.get(), tempRect);
+                CalculateUifirstDirtyRegion(surfaceNodeDrawable.get(), tempRect, false);
             Drawing::Region resultRegion;
             resultRegion.SetRect(tempRect);
             uifirstMergedDirtyRegion_.Op(resultRegion, Drawing::RegionOp::UNION);
@@ -1017,7 +1020,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         return false;
     }
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
+        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
             __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
             cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
     }
@@ -1065,7 +1068,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     if (!drawCacheSuccess) {
         surfaceDrawable->SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", surfaceParams.GetName().c_str());
-        RS_LOGI("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, surfaceDrawable->name_.c_str(),
+        HILOG_COMM_INFO("uifirst %{public}s drawcache failed! id:%{public}" PRIu64, surfaceDrawable->name_.c_str(),
             surfaceDrawable->nodeId_);
     }
     surfaceDrawable->DrawForeground(canvas, bounds);
@@ -1157,4 +1160,15 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     filter->PostProcess(canvas);
     RS_TRACE_NAME_FMT("RsSubThreadCache::DrawBehindWindowBeforeCache imageRect:%s", imageRect.ToString().c_str());
 }
+
+void RsSubThreadCache::SetUifirstSurfaceCacheContentStatic(bool staticContent)
+{
+    uifirstSurfaceCacheContentStatic_ = staticContent;
+}
+
+bool RsSubThreadCache::GetUifirstSurfaceCacheContentStatic() const
+{
+    return uifirstSurfaceCacheContentStatic_;
+}
+
 } // namespace OHOS::Rosen

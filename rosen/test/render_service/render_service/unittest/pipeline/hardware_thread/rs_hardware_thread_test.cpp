@@ -1066,7 +1066,7 @@ HWTEST_F(RSHardwareThreadTest, ClearRedrawGPUCompositionCache001, TestSize.Level
     auto &hardwareThread = RSHardwareThread::Instance();
     hardwareThread.Start();
     ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
-    std::set<uint32_t> bufferIds = {1};
+    std::set<uint64_t> bufferIds = {1};
     hardwareThread.ClearRedrawGPUCompositionCache(bufferIds);
 }
 
@@ -1246,7 +1246,7 @@ HWTEST_F(RSHardwareThreadTest, ClearRedrawGPUCompositionCache002, TestSize.Level
     hardwareThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     hardwareThread.uniRenderEngine_->Init();
     ASSERT_NE(hardwareThread.uniRenderEngine_, nullptr);
-    std::set<uint32_t> bufferIds = {1};
+    std::set<uint64_t> bufferIds = {1};
     hardwareThread.ClearRedrawGPUCompositionCache(bufferIds);
 }
 

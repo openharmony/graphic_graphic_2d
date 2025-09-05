@@ -47,10 +47,7 @@ private:
     skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);
     skia::textlayout::TextStyle TextStyleToSkStyle(const TextStyle& txt);
     void CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle);
-
     std::shared_ptr<skia::textlayout::ParagraphBuilder> builder_;
-    TextStyle baseStyle_;
-
     std::vector<PaintRecord> paints_;
     mutable pthread_t threadId_;
 };

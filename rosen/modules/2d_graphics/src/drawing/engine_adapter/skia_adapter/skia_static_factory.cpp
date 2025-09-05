@@ -87,6 +87,11 @@ std::vector<std::shared_ptr<Typeface>> SkiaStaticFactory::GetSystemFonts()
     return SkiaTypeface::GetSystemFonts();
 }
 
+void SkiaStaticFactory::RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb)
+{
+    return SkiaTypeface::RegisterOnTypefaceDestroyed(cb);
+}
+
 #ifdef RS_ENABLE_GPU
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,

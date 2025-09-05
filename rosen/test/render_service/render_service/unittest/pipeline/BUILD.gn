@@ -103,6 +103,14 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSRenderServiceUnitTest
@@ -137,6 +145,14 @@ ohos_unittest("RSRenderServiceUnitTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -199,6 +215,14 @@ ohos_unittest("RSUniRenderProcessorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSUniRenderThreadTest
@@ -237,6 +261,14 @@ ohos_unittest("RSUniRenderThreadTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSRenderServiceVisitorTest
@@ -273,6 +305,14 @@ ohos_unittest("RSRenderServiceVisitorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSComposerAdapterTest
@@ -307,6 +347,14 @@ ohos_unittest("RSComposerAdapterTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -374,6 +422,14 @@ ohos_unittest("RSRenderServiceConnectionTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSProcessorFactoryTest
@@ -405,6 +461,14 @@ ohos_unittest("RSProcessorFactoryTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -440,6 +504,14 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -540,6 +612,14 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSUniRenderUtilTest
@@ -572,6 +652,14 @@ ohos_unittest("RSUniRenderUtilTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSUniRenderUtilDirtyRegionTest
@@ -592,6 +680,14 @@ ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
     external_deps += [ "sensor:sensor_interface_native" ]
     defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSUniRenderUtilSecUIExtensionTest
@@ -608,6 +704,14 @@ ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -649,6 +753,14 @@ ohos_unittest("RSUniRenderVisitorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSPointerWindowManagerTest
@@ -681,6 +793,14 @@ ohos_unittest("RSPointerWindowManagerTest") {
       "drivers_interface_display:display_commontype_idl_headers",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -724,6 +844,14 @@ ohos_unittest("RSHardwareThreadTest") {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "RES_SCHED_ENABLE" ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSMainThreadTest
@@ -763,6 +891,14 @@ ohos_unittest("RSMainThreadTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSRenderTaskTest
@@ -794,6 +930,14 @@ ohos_unittest("RSRenderTaskTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -845,6 +989,14 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -916,6 +1068,14 @@ ohos_unittest("RSRoundCornerDisplayTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSRealtimeRefreshRateManagerTest
@@ -983,6 +1143,14 @@ ohos_unittest("RSRenderEngineTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSDividedRenderUtilTest
@@ -1040,6 +1208,14 @@ ohos_unittest("RSDrawFrameTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ## Build RSUniRenderEngineTest
@@ -1074,6 +1250,14 @@ ohos_unittest("RSUniRenderEngineTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -1148,6 +1332,14 @@ ohos_unittest("RSUniHwcVisitorTest") {
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
     ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 

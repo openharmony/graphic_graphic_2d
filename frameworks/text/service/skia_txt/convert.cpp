@@ -101,6 +101,10 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.isTrailingSpaceOptimized = style.isTrailingSpaceOptimized;
     paragraphStyle.enableAutoSpace = style.enableAutoSpace;
     paragraphStyle.verticalAlignment = style.verticalAlignment;
+    paragraphStyle.maxLineHeight = style.maxLineHeight;
+    paragraphStyle.minLineHeight= style.minLineHeight;
+    paragraphStyle.lineSpacing = style.lineSpacing;
+    paragraphStyle.lineHeightStyle = style.lineHeightStyle;
 
     return paragraphStyle;
 }
@@ -171,13 +175,11 @@ void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
         }
     }
 
-    if (!style.fontVariations.GetAxisValues().empty()) {
-        for (const auto& [axis, value] : style.fontVariations.GetAxisValues()) {
-            textStyle.fontVariations.SetAxisValue(axis, value);
-        }
-    } else {
-        textStyle.fontVariations.SetAxisValue(WGHT_AXIS,
-            (static_cast<float>(style.fontWeight) + 1.0) * FONT_WEIGHT_MULTIPLE);
+    textStyle.fontVariations.SetAxisValue(WGHT_AXIS,
+        (static_cast<float>(style.fontWeight) + 1.0) * FONT_WEIGHT_MULTIPLE);
+
+    for (const auto& [axis, value] : style.fontVariations.GetAxisValues()) {
+        textStyle.fontVariations.SetAxisValue(axis, value);
     }
 }
 
@@ -213,6 +215,9 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.isPlaceholder = style.isPlaceholder;
     textStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
     textStyle.badgeType = style.badgeType;
+    textStyle.maxLineHeight = style.maxLineHeight;
+    textStyle.minLineHeight = style.minLineHeight;
+    textStyle.lineHeightStyle = style.lineHeightStyle;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;

@@ -28,6 +28,11 @@ struct JsEnumInt {
     size_t enumInt;
 };
 
+const std::vector<struct JsEnumInt> LINE_HEIGHT_STYLE = {
+    {"FONT_SIZE", static_cast<size_t>(LineHeightStyle::kFontSize)},
+    {"FONT_HEIGHT", static_cast<size_t>(LineHeightStyle::kFontHeight)},
+};
+
 const std::vector<struct JsEnumInt> TEXT_ALIGN = {
     { "LEFT", static_cast<size_t>(TextAlign::LEFT) },
     { "RIGHT", static_cast<size_t>(TextAlign::RIGHT) },
@@ -165,9 +170,9 @@ static const std::vector<struct JsEnumInt> TEXT_HIGH_CONTRAST = {
 };
 
 static const std::vector<struct JsEnumInt> TEXT_BADGE_TYPE = {
-    { "TEXT_BADGE_NONE", static_cast<uint32_t>(TextBadgeType::BADGE_NONE) },
-    { "TEXT_SUPERSCRIPT", static_cast<uint32_t>(TextBadgeType::SUPERSCRIPT) },
-    { "TEXT_SUBSCRIPT", static_cast<uint32_t>(TextBadgeType::SUBSCRIPT) },
+    { "TEXT_BADGE_NONE", static_cast<size_t>(TextBadgeType::BADGE_NONE) },
+    { "TEXT_SUPERSCRIPT", static_cast<size_t>(TextBadgeType::SUPERSCRIPT) },
+    { "TEXT_SUBSCRIPT", static_cast<size_t>(TextBadgeType::SUBSCRIPT) },
 };
 
 static const std::vector<struct JsEnumInt> TEXT_UNDEFINED_GLYPH_DISPLAY = {
@@ -176,10 +181,10 @@ static const std::vector<struct JsEnumInt> TEXT_UNDEFINED_GLYPH_DISPLAY = {
 };
 
 static const std::vector<struct JsEnumInt> TEXT_VERTICAL_ALIGN = {
-    { "BASELINE", static_cast<uint32_t>(TextVerticalAlign::BASELINE) },
-    { "BOTTOM", static_cast<uint32_t>(TextVerticalAlign::BOTTOM) },
-    { "CENTER", static_cast<uint32_t>(TextVerticalAlign::CENTER) },
-    { "TOP", static_cast<uint32_t>(TextVerticalAlign::TOP) },
+    { "BASELINE", static_cast<size_t>(TextVerticalAlign::BASELINE) },
+    { "BOTTOM", static_cast<size_t>(TextVerticalAlign::BOTTOM) },
+    { "CENTER", static_cast<size_t>(TextVerticalAlign::CENTER) },
+    { "TOP", static_cast<size_t>(TextVerticalAlign::TOP) },
 };
 
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
@@ -204,6 +209,7 @@ const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_
     { "TextBadgeType", TEXT_BADGE_TYPE },
     { "TextUndefinedGlyphDisplay", TEXT_UNDEFINED_GLYPH_DISPLAY },
     { "TextVerticalAlign", TEXT_VERTICAL_ALIGN},
+    { "LineHeightStyle", LINE_HEIGHT_STYLE},
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

@@ -56,6 +56,14 @@ public:
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
 
+    void SetSolidColorLayerConfigFromHgm(
+        const std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm);
+    void SetHwcSolidColorLayerConfigFromHgm(
+        const std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm);
+
+    bool IsSolidColorLayerConfig(const std::string& bundleName);
+    bool IsHwcSolidColorLayerConfig(const std::string& bundleName);
+
     void SetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName, const std::string& val);
     std::string GetOverlappedHwcNodeInAppEnabledConfig(const std::string& appName);
 
@@ -86,6 +94,9 @@ private:
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 
+    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm_;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm_;
+    
     // DISPLAY ENGINE
     std::string pkgName_{};
     mutable std::mutex setMutex_{};

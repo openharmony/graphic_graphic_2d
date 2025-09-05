@@ -22,6 +22,7 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
+#include "common/rs_optional_trace.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
@@ -35,10 +36,10 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "feature/composite_layer/rs_composite_layer_utils.h"
-#include "ui/rs_proxy_node.h"
 #include "rs_trace.h"
-#include "common/rs_optional_trace.h"
-#include "rs_ui_context.h"
+#include "ui/rs_proxy_node.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 #include "transaction/rs_interfaces.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -88,7 +89,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     node->surfaceNodeType_ = config.nodeType;
 
     RS_TRACE_NAME_FMT("RSSurfaceNode::Create name: %s type: %hhu, id: %lu, token:%lu", node->name_.c_str(),
-        config.nodeType, node->GetId(), rsUIContext ? rsUIContext->GetToken() : -1);
+        config.nodeType, node->GetId(), rsUIContext ? rsUIContext->GetToken() : 0);
     RS_LOGD("RSSurfaceNode::Create name:%{public}s type: %{public}hhu "
         "isWindow %{public}d %{public}d ", config.name.c_str(),
         config.nodeType, isWindow, node->IsRenderServiceNode());
@@ -502,6 +503,17 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
     return surfaceNode;
 }
 
+RSSurfaceNode::SharedPtr RSSurfaceNode::CreateShadowSurfaceNode()
+{
+    RSSurfaceNodeConfig config = { GetName() };
+    SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode_, GetId()));
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    surfaceNode->SetRSUIContext(rsUIContext);
+    surfaceNode->isShadowNode_ = true;
+    surfaceNode->SetSkipCheckInMultiInstance(true);
+    return surfaceNode;
+}
+
 void RSSurfaceNode::SetSurfaceIdToRenderNode()
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -635,6 +647,13 @@ RSSurfaceNode::RSSurfaceNode(
 
 RSSurfaceNode::~RSSurfaceNode()
 {
+    if (isShadowNode_) {
+        auto rsUIContext = GetRSUIContext();
+        if (rsUIContext) {
+            RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
+        }
+        return;
+    }
     RS_LOGI("RSSurfaceNode::~RSSurfaceNode, Node: %{public}" PRIu64 ", Name: %{public}s", GetId(), GetName().c_str());
     // both divided and unirender need to unregister listener when surfaceNode destroy
     auto renderServiceClient =
@@ -668,7 +687,7 @@ void RSSurfaceNode::AttachToDisplay(uint64_t screenId)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeAttachToDisplay>(GetId(), screenId);
     if (AddCommand(command, IsRenderServiceNode())) {
-        RS_LOGI("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+        HILOG_COMM_INFO("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
             "screen id: %{public}" PRIu64, GetName().c_str(), GetId(), screenId);
         RS_TRACE_NAME_FMT("RSSurfaceNode:attach to display, node:[name: %s, id: %" PRIu64 "], "
             "screen id: %" PRIu64, GetName().c_str(), GetId(), screenId);
@@ -679,7 +698,7 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeDetachToDisplay>(GetId(), screenId);
     if (AddCommand(command, IsRenderServiceNode())) {
-        RS_LOGI("RSSurfaceNode:detach from display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+        HILOG_COMM_INFO("RSSurfaceNode:detach from display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
                 "screen id: %{public}" PRIu64,
             GetName().c_str(), GetId(), screenId);
         RS_TRACE_NAME_FMT("RSSurfaceNode:detach from display, node:[name: %s, id: %" PRIu64 "], "

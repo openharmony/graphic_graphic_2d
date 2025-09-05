@@ -134,7 +134,7 @@ void RSScreenRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
-        RS_LOGE("RSScreenRenderNode::InitRenderParams failed");
+        HILOG_COMM_ERROR("RSScreenRenderNode::InitRenderParams failed");
         return;
     }
 #endif

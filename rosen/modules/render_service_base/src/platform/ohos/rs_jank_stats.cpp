@@ -1247,13 +1247,12 @@ void RSJankStats::AvcodecVideoCollectFinish()
     }
 }
 
-void RSJankStats::AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence)
+void RSJankStats::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence)
 {
     if (!avcodecVideoCollectOpen_) {
         return;
     }
-
-    auto it = avcodecVideoMap_.find(queueId);
+    auto it = avcodecVideoMap_.find(uniqueId);
     if (it == avcodecVideoMap_.end()) {
         return;
     }
@@ -1268,12 +1267,12 @@ void RSJankStats::AvcodecVideoCollect(const uint64_t queueId, const uint32_t seq
     } else if (it->second.previousSequence != sequence) {
         uint64_t frameTime = now - it->second.previousFrameTime;
         if (frameTime > it->second.reportTime) {
-            RSBackgroundThread::Instance().PostTask([queueId, frameTime]() {
+            RSBackgroundThread::Instance().PostTask([uniqueId, frameTime]() {
                 RS_TRACE_NAME_FMT("AvcodecVideoCollect NotifyVideoFaultToXperf [uniqueId %lu, frameTime %lu]",
-                    queueId, frameTime);
+                    uniqueId, frameTime);
                 RS_LOGD("AvcodecVideoCollect NotifyVideoFaultToXperf" \
                     "[uniqueId %{public}" PRIu64 ", frameTime %{public}" PRIu64 "]",
-                    queueId, frameTime);
+                    uniqueId, frameTime);
             });
         }
         it->second.decodeCount++;

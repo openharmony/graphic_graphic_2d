@@ -91,7 +91,7 @@ RSScreen::RSScreen(ScreenId id,
         hdrCapability_.formatCount = 0;
         name_ = "Screen_" + std::to_string(id_);
         PhysicalScreenInit();
-        RS_LOGW("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
+        HILOG_COMM_WARN("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
             "screenType: %{public}u}", id_, width_, height_, screenType_);
     }
     capability_.props.clear();
@@ -111,7 +111,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
-    RS_LOGW("init virtual screen: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
+    HILOG_COMM_WARN("init virtual screen: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
         ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u, whiteList size: %{public}zu}",
         id_, mirroredId_, width_, height_, name_.c_str(), screenType_, whiteList_.size());
 }
@@ -158,14 +158,14 @@ void RSScreen::PhysicalScreenInit() noexcept
                    [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id_ == 0) {
-        RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",
-            __func__, id_);
+        HILOG_COMM_INFO("PhysicalScreenInit: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",
+                        id_);
         if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
-            RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
-                __func__, id_);
+            HILOG_COMM_ERROR("PhysicalScreenInit: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
+                             id_);
         } else {
-            RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") end SetScreenPowerStatus to On",
-                __func__, id_);
+            HILOG_COMM_INFO("PhysicalScreenInit: RSScreen(id %{public}" PRIu64 ") end SetScreenPowerStatus to On",
+                            id_);
         }
     }
     auto activeMode = GetActiveMode();
@@ -388,13 +388,13 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     }
 
     if (modeId >= supportedModes_.size()) {
-        RS_LOGE("%{public}s: set fails because the index is out of bounds.", __func__);
+        HILOG_COMM_ERROR("SetActiveMode: set fails because the index is out of bounds.");
         return StatusCode::INVALID_ARGUMENTS;
     }
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
-        RS_LOGE("%{public}s: Hdi SetScreenMode fails.", __func__);
+        HILOG_COMM_ERROR("SetActiveMode: Hdi SetScreenMode fails.");
         return StatusCode::SET_RATE_ERROR;
     }
     auto activeMode = GetActiveMode();
@@ -421,9 +421,9 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
     if (activeRect.x < 0 || activeRect.y < 0 || activeRect.w <= 0 || activeRect.h <= 0 ||
         static_cast<uint32_t>(activeRect.x + activeRect.w) > width_ ||
         static_cast<uint32_t>(activeRect.y + activeRect.h) > height_) {
-        RS_LOGW("%{public}s failed:, for activeRect: "
+        HILOG_COMM_WARN("SetScreenActiveRect failed:, for activeRect: "
             "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
-            __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+            activeRect.x, activeRect.y, activeRect.w, activeRect.h);
         return StatusCode::INVALID_ARGUMENTS;
     }
 
@@ -433,19 +433,19 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     GraphicIRect reviseRect = activeRect;
     if (!CalculateMaskRectAndReviseRect(activeRect, reviseRect)) {
-        RS_LOGW("CalculateMaskRect failed or not need");
+        HILOG_COMM_WARN("CalculateMaskRect failed or not need");
     }
     reviseRect_ = RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
     lock.unlock();
 
     if (hdiScreen_->SetScreenActiveRect(reviseRect) < 0) {
-        RS_LOGE("%{public}s failed: hdi SetScreenActiveRect failed, activeRect with revise:"
+        HILOG_COMM_ERROR("SetScreenActiveRect failed: hdi SetScreenActiveRect failed, activeRect with revise:"
             "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
-            __func__, reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+            reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
         return StatusCode::HDI_ERROR;
     }
-    RS_LOGI("%{public}s success, reviseRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
-        "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
+    HILOG_COMM_INFO("SetScreenActiveRect success, reviseRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
+        "%{public}" PRId32 ", %{public}" PRId32 ")", reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
     return StatusCode::SUCCESS;
 }
 
@@ -503,8 +503,8 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
-    RS_LOGI("%{public}s screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", __func__, id_, width,
-            height);
+    HILOG_COMM_INFO("SetResolution screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u",
+                    id_, width, height);
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
     if (IsVirtual()) {
         width_ = width;
@@ -512,7 +512,7 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
         return StatusCode::SUCCESS;
     }
     if (width < phyWidth_ || height < phyHeight_) {
-        RS_LOGE("%{public}s phyWidth: %{public}u phyHeight: %{public}u", __func__, phyWidth_, phyHeight_);
+        HILOG_COMM_ERROR("SetResolution phyWidth: %{public}u phyHeight: %{public}u", phyWidth_, phyHeight_);
         return StatusCode::INVALID_ARGUMENTS;
     }
     width_ = width;
@@ -523,9 +523,9 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
             static_cast<float>(phyHeight_) / height_);
         samplingTranslateX_ = (phyWidth_ - width_ * samplingScale_) / 2.f;
         samplingTranslateY_ = (phyHeight_ - height_ * samplingScale_) / 2.f;
-        RS_LOGI("%{public}s: sampling is enabled. "
+        HILOG_COMM_INFO("SetResolution: sampling is enabled. "
             "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
-            __func__, samplingScale_, samplingTranslateX_, samplingTranslateY_);
+            samplingScale_, samplingTranslateX_, samplingTranslateY_);
     }
     return StatusCode::SUCCESS;
 }
@@ -552,17 +552,17 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
         return StatusCode::HDI_ERROR;
     }
 
-    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
+    HILOG_COMM_WARN("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     hasLogBackLightAfterPowerStatusChanged_ = false;
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
-        RS_LOGW("[UL_POWER] %{public}s failed to set power status", __func__);
+        HILOG_COMM_WARN("[UL_POWER] SetPowerStatus failed to set power status");
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
         return StatusCode::HDI_ERROR;
     }
     powerStatus_ = static_cast<ScreenPowerStatus>(powerStatus);
 
-    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus);
+    HILOG_COMM_WARN("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus);
     return StatusCode::SUCCESS;
 }
 
@@ -907,8 +907,8 @@ void RSScreen::SetScreenBacklight(uint32_t level)
         return;
     }
     if (!hasLogBackLightAfterPowerStatusChanged_) {
-        RS_LOGI("%{public}s id: %{public}" PRIu64 ", level is %{public}u, current level is %{public}d", __func__, id_,
-                level, screenBacklightLevel_);
+        HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64 ", level is %{public}u, current level is %{public}d",
+                        id_, level, screenBacklightLevel_);
     }
 
     RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id_, level);
@@ -917,8 +917,9 @@ void RSScreen::SetScreenBacklight(uint32_t level)
         return;
     }
     if (!hasLogBackLightAfterPowerStatusChanged_) {
-        RS_LOGI("%{public}s id: %{public}" PRIu64 ", level is %{public}u done, last level is %{public}d", __func__, id_,
-                level, screenBacklightLevel_);
+        HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64
+            ", level is %{public}u done, last level is %{public}d",
+            id_, level, screenBacklightLevel_);
         hasLogBackLightAfterPowerStatusChanged_ = true;
     }
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
@@ -1050,7 +1051,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
-    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.", __func__,
+    HILOG_COMM_INFO("SetScreenCorrection: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.",
         id_, static_cast<uint32_t>(screenRotation));
     screenRotation_ = screenRotation;
 }
@@ -1446,7 +1447,7 @@ bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
     if (IsVirtual()) {
         screenStatus_ = screenStatus;
         if (screenStatus == VirtualScreenStatus::VIRTUAL_SCREEN_PLAY) {
-            SetVirtualScreenPlaying(true);
+            SetVirtualScreenPlay(true);
         }
         return true;
     }
@@ -1536,16 +1537,16 @@ void RSScreen::SetPSurfaceChange(bool pSurfaceChange)
     pSurfaceChange_ = pSurfaceChange;
 }
 
-bool RSScreen::GetAndResetVirtualScreenPlaying()
+bool RSScreen::GetAndResetVirtualScreenPlay()
 {
     bool expected = true;
-    return virtualScreenPlaying_.compare_exchange_strong(expected, false);
+    return virtualScreenPlay_.compare_exchange_strong(expected, false);
 }
 
 // only used in virtual screen
-void RSScreen::SeVirtualScreenPlaying(bool virtualScreenPlaying)
+void RSScreen::SetVirtualScreenPlay(bool virtualScreenPlay)
 {
-    virtualScreenPlaying_ = virtualScreenPlaying;
+    virtualScreenPlay_ = virtualScreenPlay;
 }
 } // namespace impl
 } // namespace Rosen

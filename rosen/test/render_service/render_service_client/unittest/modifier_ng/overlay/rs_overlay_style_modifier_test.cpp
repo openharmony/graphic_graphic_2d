@@ -50,4 +50,17 @@ HWTEST_F(RSOverlayStyleModifierNGTypeTest, RSOverlayStyleModifierTest, TestSize.
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OVERLAY_STYLE);
     EXPECT_EQ(modifier->GetInnerPropertyType(), ModifierNG::RSPropertyType::OVERLAY_STYLE);
 }
+
+/**
+ * @tc.name: RSOverlayStyleModifierTest1
+ * @tc.desc: Test SetContentTransitionParam functions of RSOverlayStyleModifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSOverlayStyleModifierNGTypeTest, RSOverlayStyleModifierTest1, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSOverlayStyleModifier> modifier =
+        std::make_shared<ModifierNG::RSOverlayStyleModifier>();
+    modifier->SetContentTransitionParam(ContentTransitionType::OPACITY);
+    EXPECT_EQ(modifier->contentTransitionType_, ContentTransitionType::OPACITY);
+}
 } // namespace OHOS::Rosen

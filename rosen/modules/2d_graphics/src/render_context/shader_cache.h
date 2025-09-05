@@ -71,6 +71,10 @@ public:
 
     void PurgeShaderCacheAfterAnimate(const std::function<bool(void)>& nextFrameHasArrived);
 
+    void SetMaxUniRenderSize(int maxUniRenderSize);
+ 
+    int GetMaxUniRenderSize();
+
 private:
     ShaderCache() = default;
     ~ShaderCache();
@@ -78,6 +82,8 @@ private:
     void operator=(const ShaderCache &) = delete;
 
     void WriteToDisk();
+
+    int CalMaxUniRenderSize();
 
     bool initialized_ = false;
     std::unique_ptr<CacheData> cacheData_;
@@ -90,6 +96,8 @@ private:
 
     size_t bufferSize_ = 16 * 1024;
     bool cacheDirty_ = false;
+
+    int maxUniRenderSize_ = 0;
 
     static constexpr uint8_t ID_KEY = 0;
 

@@ -89,7 +89,7 @@ bool CheckScbReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 {
     auto sortedChildren = node.GetSortedChildren();
-    if (node.IsScbScreen() || node.IsSCBNode()) {
+    if (IS_SCB_WINDOW_TYPE(node.GetSurfaceWindowType())) {
         for (const auto& child : *sortedChildren) {
             if (CheckScbReadyToDraw(child)) {
                 return true;
@@ -1492,7 +1492,7 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
 #endif
 }
 
-void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet)
+void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet)
 {
 #ifdef RS_ENABLE_GPU
     if (!surfaceHandler_) {
@@ -1500,17 +1500,17 @@ void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSe
     }
 
     if (auto buffer = surfaceHandler_->GetBuffer()) {
-        bufferCacheSet.insert(buffer->GetSeqNum());
+        bufferCacheSet.insert(buffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache bufferSeqNum:%d", buffer->GetSeqNum());
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
-        bufferCacheSet.insert(preBuffer->GetSeqNum());
+        bufferCacheSet.insert(preBuffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache preBufferSeqNum:%d", preBuffer->GetSeqNum());
     }
 #endif
 }
 
-void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
+void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet)
 {
 #ifdef RS_ENABLE_GPU
     if (!surfaceHandler_) {
@@ -1521,7 +1521,7 @@ void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
         return;
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
-        bufferCacheSet.insert(preBuffer->GetSeqNum());
+        bufferCacheSet.insert(preBuffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%d", preBuffer->GetSeqNum());
     }
     surfaceParams->SetPreBuffer(nullptr);
@@ -1636,7 +1636,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
         std::lock_guard<std::mutex> lock(mutexUI_);
         if (callbackFromUI_) {
             RS_TRACE_NAME_FMT("NotifyUIBufferAvailable done. id:%llu", GetId());
-            ROSEN_LOGI("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %{public}" PRIu64, GetId());
+            HILOG_COMM_INFO("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %{public}" PRIu64, GetId());
             callbackFromUI_->OnBufferAvailable();
 #ifdef OHOS_PLATFORM
             if (IsAppWindow()) {
@@ -2830,7 +2830,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         uniqueIdStr = GetRSSurfaceHandler() != nullptr && GetRSSurfaceHandler()->GetConsumer() != nullptr ?
                         std::to_string(GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) : "null";
 #endif
-        RS_LOGI("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+        HILOG_COMM_INFO("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
             "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, screenNodeId: %{public}" PRIu64,
             GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), screenNodeId);
     }
@@ -3080,12 +3080,12 @@ void RSSurfaceRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::InitRenderParams failed");
+        HILOG_COMM_ERROR("RSSurfaceRenderNode::InitRenderParams failed");
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
-        RS_LOGE("RSSurfaceRenderNode::InitRenderParams surfaceParams is null");
+        HILOG_COMM_ERROR("RSSurfaceRenderNode::InitRenderParams surfaceParams is null");
         return;
     }
     surfaceParams->SetIsUnobscuredUEC(IsUnobscuredUIExtensionNode());

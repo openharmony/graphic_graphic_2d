@@ -32,8 +32,15 @@ class FontCollection;
 
 namespace OHOS {
 namespace Rosen {
+struct FontEventInfo {
+    std::string familyName;
+    std::vector<uint32_t> uniqueIds;
+
+    FontEventInfo(const std::string& name) : familyName(name) {}
+};
+
 class RS_EXPORT FontCollection {
-    using FontCallbackType = void (*)(const FontCollection*, const std::string&);
+    using FontCallbackType = void (*)(const FontCollection*, const FontEventInfo&);
 
 public:
     static std::shared_ptr<FontCollection> From(std::shared_ptr<txt::FontCollection> fontCollection);
@@ -67,7 +74,7 @@ protected:
 
     public:
         void AddCallback(FontCallbackType cb);
-        void ExecuteCallback(const FontCollection* fc, const std::string& family) const;
+        void ExecuteCallback(const FontCollection* fc, const FontEventInfo& info) const;
     };
     static FontCallback unloadFontStartCallback_;
     static FontCallback unloadFontFinishCallback_;

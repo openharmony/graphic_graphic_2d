@@ -125,9 +125,6 @@ public:
         float realImageWidth, float realImageHeight);
     // Calculate the rotation angle around the z-axis from quaternion
     static float GetYawFromQuaternion(const Quaternion& q);
-    static void CollectHardwareEnabledNodeByScreenNodeId(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& enableNodes,
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& topEnabledNodes, NodeId id);
     static void CollectHardwareEnabledNodesByDisplayNodeId(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& enableNodes,
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& topEnabledNodes, NodeId id);

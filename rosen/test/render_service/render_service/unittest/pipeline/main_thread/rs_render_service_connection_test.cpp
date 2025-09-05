@@ -77,4 +77,24 @@ HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic002, TestSize.Level1)
     rsRenderServiceConnection->GetMemoryGraphics(memoryGraphics);
     ASSERT_EQ(memoryGraphics.size(), 0);
 }
+
+/**
+ * @tc.name: RegisterTypefaceTest001
+ * @tc.desc: test register typeface and unregister typeface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection =
+        new RSRenderServiceConnection(0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+    auto tf = Drawing::Typeface::MakeDefault();
+    uint64_t uniqueId = 1;
+    EXPECT_TRUE(rsRenderServiceConnection->RegisterTypeface(uniqueId, tf));
+    EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(uniqueId));
+    EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(0));
+}
 } // namespace OHOS::Rosen

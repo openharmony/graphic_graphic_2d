@@ -215,22 +215,22 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     ASSERT_NE(drawable, nullptr);
 
     drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
-    drawable->OnSync();
-    ASSERT_FALSE(drawable->needSync_);
+    drawable->needClearOp_ = true;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->CreateDrawFunc();
 
-    NodeId idTwo = 2;
-    RSRenderNode nodeTwo(idTwo);
-    auto drawCmdList2 = std::make_shared<Drawing::DrawCmdList>(100, 100, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-    drawCmdList2->AddDrawOp(std::make_shared<Drawing::FlushOpItem>());
-    auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property2->GetRef() = drawCmdList2;
-    auto modifier3 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    modifier3->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property2);
-    nodeTwo.AddModifier(modifier3);
-    auto drawable2 = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
-        DrawableV2::RSCustomModifierDrawable::OnGenerate(nodeTwo, ModifierNG::RSModifierType::CONTENT_STYLE));
-    ASSERT_NE(drawable2, nullptr);
+    drawable->needClearOp_ = false;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->CreateDrawFunc();
+
+    drawable->needClearOp_ = true;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
+    drawable->CreateDrawFunc();
+
+    drawable->needClearOp_ = false;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
+    drawable->CreateDrawFunc();
+    ASSERT_NE(drawable, nullptr);
 }
 #endif
 

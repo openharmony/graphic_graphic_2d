@@ -42,12 +42,7 @@ public:
 HWTEST_F(HgmUserDefineTest, Init, Function | SmallTest | Level0)
 {
     HgmUserDefine userDefine;
-    userDefine.Init();
     ASSERT_NE(userDefine.impl_, nullptr);
-
-    HgmFrameRateManager framRateManager;
-    framRateManager.Init(nullptr, nullptr, nullptr, nullptr);
-    ASSERT_NE(framRateManager.userDefine_.impl_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

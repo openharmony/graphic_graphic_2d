@@ -86,6 +86,15 @@ ohos_fuzztest("RSRenderServiceConnection00BFuzzTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
+
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ###############################################################################

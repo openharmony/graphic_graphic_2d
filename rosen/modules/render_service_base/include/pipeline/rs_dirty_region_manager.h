@@ -70,7 +70,7 @@ public:
     // clear allinfo except dirtyregion history
     void Clear();
     // record hwc region for virtual screen
-    void MergeHwcDirtyRect(const RectI& rect);
+    void MergeHwcDirtyRect(const RectI& rect, RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT);
 
     // update current frame's visited dirtyregion
     void UpdateVisitedDirtyRects(const std::vector<RectI>& rects);
@@ -259,6 +259,11 @@ public:
         return hwcDirtyRegion_;
     }
 
+    const std::map<RSSurfaceNodeType, RectI>& GetTypeHwcDirtyRegion() const
+    {
+        return typeHwcDirtyRegion_;
+    }
+
     const RectI& GetUifirstFrameDirtyRegion()
     {
         return uifirstFrameDirtyRegion_;
@@ -337,6 +342,7 @@ private:
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
     RectI uifirstFrameDirtyRegion_; // dirtyRegion in current frame
     RectI hwcDirtyRegion_;          // hwc dirty region used in virtual screen
+    std::map<RSSurfaceNodeType, RectI> typeHwcDirtyRegion_; // typeHwc dirty region used in virtual screen
     RectI debugRect_;               // dirtyRegion for showing currentFreshRate debug
     RectI mergedDirtyInVirtualScreen_;
     std::vector<RectI> visitedDirtyRegions_ = {};  // visited app's dirtyRegion

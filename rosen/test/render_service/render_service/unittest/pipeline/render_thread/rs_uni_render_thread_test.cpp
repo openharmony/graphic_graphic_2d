@@ -391,6 +391,40 @@ HWTEST_F(RSUniRenderThreadTest, RenderServiceTreeDump001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RenderServiceTreeDump002
+ * @tc.desc: Test RenderServiceTreeDump
+ * @tc.type: FUNC
+ * @tc.require: issueICVKSS
+ */
+HWTEST_F(RSUniRenderThreadTest, RenderServiceTreeDump002, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    std::string dumpString = "test";
+    bool checkIsInUniRenderThread = true;
+    instance.RenderServiceTreeDump(dumpString, checkIsInUniRenderThread);
+    EXPECT_TRUE(checkIsInUniRenderThread);
+
+    instance.PostSyncTask([&instance, &dumpString, checkIsInUniRenderThread]() {
+        instance.tid_ = gettid();
+        instance.RenderServiceTreeDump(dumpString, checkIsInUniRenderThread);
+    });
+    EXPECT_TRUE(checkIsInUniRenderThread);
+}
+
+/**
+ * @tc.name: ProcessVulkanErrorTreeDumpTest001
+ * @tc.desc: Test ProcessVulkanErrorTreeDump
+ * @tc.type: FUNC
+ * @tc.require: issueICVKSS
+ */
+HWTEST_F(RSUniRenderThreadTest, ProcessVulkanErrorTreeDumpTest001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.ProcessVulkanErrorTreeDump();
+    EXPECT_TRUE(instance.rootNodeDrawable_ == nullptr);
+}
+
+/**
  * @tc.name: UpdateScreenNodeScreenId001
  * @tc.desc: Test UpdateScreenNodeScreenId
  * @tc.type: FUNC

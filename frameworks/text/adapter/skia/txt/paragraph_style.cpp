@@ -24,6 +24,7 @@ TextStyle ParagraphStyle::ConvertToTextStyle() const
 {
     TextStyle result;
     result.fontWeight = fontWeight;
+    result.fontWidth = fontWidth;
     result.fontStyle = fontStyle;
     result.fontFamilies = std::vector<std::string>({ fontFamily });
     if (fontSize >= 0) {

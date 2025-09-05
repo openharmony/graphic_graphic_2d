@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_surface_node_command.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -67,14 +68,14 @@ T GetData()
 bool DoSurfacenodecommand(const uint8_t* data, size_t size)
 {
     // test
-    NodeId id = GetData<NodeId>();
+    auto pid = getpid();
+    NodeId id = static_cast<NodeId>(pid) << 32;
     RSContext context;
     Drawing::Matrix matrix;
     Drawing::Rect clipRect;
     Vector4f bounds = {GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()};
     uint64_t screenId = GetData<uint64_t>();
     SurfaceId surfaceId = GetData<SurfaceId>();
-    SurfaceNodeCommandHelper::Create(context, id);
     SurfaceNodeCommandHelper::SetContextMatrix(context, id, matrix);
     SurfaceNodeCommandHelper::SetContextAlpha(context, id, GetData<float>());
     SurfaceNodeCommandHelper::SetContextClipRegion(context, id, clipRect);
@@ -114,7 +115,9 @@ bool DoCreateWithConfig(const uint8_t* data, size_t size)
     std::string name(STRING_LEN, GetData<char>());
     uint8_t type = GetData<uint8_t>();
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
-    SurfaceNodeCommandHelper::CreateWithConfig(context, id, name, type, windowType);
+    if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(id))) {
+        SurfaceNodeCommandHelper::CreateWithConfig(context, id, name, type, windowType);
+    }
     return true;
 }
 
@@ -123,14 +126,10 @@ bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
     // test
     NodeId id = GetData<NodeId>();
     RSContext context;
-    uint64_t screenId = GetData<uint64_t>();
     bool isEnabled = GetData<bool>();
     uint8_t surfaceNodeType = GetData<uint8_t>();
     bool isHidden = GetData<bool>();
-
     SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, isEnabled);
-    SurfaceNodeCommandHelper::AttachToDisplay(context, id, screenId);
-    SurfaceNodeCommandHelper::DetachToDisplay(context, id, screenId);
     SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, surfaceNodeType);
     SurfaceNodeCommandHelper::MarkUIHidden(context, id, isHidden);

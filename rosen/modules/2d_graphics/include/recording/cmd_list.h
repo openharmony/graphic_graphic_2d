@@ -107,6 +107,7 @@ public:
         CMD_LIST = 0,
         DRAW_CMD_LIST,
         MASK_CMD_LIST,
+        RS_DRAW_CMD_LIST,
     };
 
     CmdList() = default;

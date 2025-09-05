@@ -56,7 +56,7 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
     FontCollection::RegisterUnloadFontFinishCallback(nullptr);
     FontCollection::RegisterLoadFontStartCallback(nullptr);
     FontCollection::RegisterLoadFontFinishCallback(nullptr);
-    auto callback = [](const FontCollection* fc, const std::string& family) {};
+    auto callback = [](const FontCollection* fc, const FontEventInfo& info) {};
     FontCollection::RegisterLoadFontStartCallback(callback);
     FontCollection::RegisterUnloadFontStartCallback(callback);
     FontCollection::RegisterLoadFontFinishCallback(callback);

@@ -14,8 +14,8 @@
  */
 
 #include "hpae_base/rs_hpae_scheduler.h"
+
 #include "hpae_base/rs_hpae_log.h"
-#include "hpae_base/rs_hpae_perf_thread.h"
 
 namespace OHOS::Rosen {
 
@@ -46,7 +46,6 @@ HpaeBackgroundCacheItem RSHpaeScheduler::GetCachedHpaeItem()
 void RSHpaeScheduler::SetHpaeFrameId(uint64_t frameId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    HPAE_TRACE_NAME_FMT("shenh: SetHpaeFrameId: %u", frameId);
     hpaeFrameId_ = frameId;
 }
 
@@ -74,7 +73,6 @@ void RSHpaeScheduler::WaitBuildTask()
     using namespace std::chrono_literals;
     std::unique_lock<std::mutex> lock(buildTaskMutex_);
     if (!buildTaskDone_) {
-        HPAE_TRACE_NAME("WaitBuildTask");
         buildTaskCv_.wait_for(lock, 10ms, [this]() {
             return this->buildTaskDone_;
         });

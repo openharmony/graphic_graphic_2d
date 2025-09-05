@@ -29,15 +29,6 @@ using HpaeBufferInfo = struct HpaeBufferInfo_ {
     std::shared_ptr<Drawing::GPUContext> grContext = nullptr;
     void* bufferHandle = nullptr;
     std::shared_ptr<Drawing::Image> snapshot = nullptr;
-
-    void operator=(const HpaeBufferInfo_ &hpaeBufferInfo)
-    {
-        this->surface = hpaeBufferInfo.surface;
-        this->canvas = hpaeBufferInfo.canvas;
-        this->grContext = hpaeBufferInfo.grContext;
-        this->bufferHandle = hpaeBufferInfo.bufferHandle;
-        this->snapshot = hpaeBufferInfo.snapshot;
-    }
 };
 
 using HpaeTask = struct {
@@ -46,7 +37,7 @@ using HpaeTask = struct {
 };
 
 struct HpaeBackgroundCacheItem {
-    std::shared_ptr<Drawing::Surface> surface_;
+    std::weak_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> blurImage_;
     HpaeTask hpaeTask_; // id for this cache item
     uint64_t gpFrameId_ = 0;

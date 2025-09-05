@@ -14,12 +14,14 @@
  */
 
 #include <fstream>
+#include <limits>
 #include <string>
 
 #include "drawing_bitmap.h"
 #include "drawing_brush.h"
 #include "drawing_canvas.h"
 #include "drawing_color.h"
+#include "drawing_error_code.h"
 #include "drawing_font.h"
 #include "drawing_font_collection.h"
 #include "drawing_path.h"
@@ -30,7 +32,9 @@
 #include "drawing_text_line.h"
 #include "drawing_text_run.h"
 #include "drawing_text_typography.h"
+#include "font_utils.h"
 #include "gtest/gtest.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "text_style.h"
@@ -2969,6 +2973,573 @@ HWTEST_F(NdkTypographyTest, TypographyTest107, TestSize.Level0)
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographyLineSpacingTest
+ * @tc.desc: Test for lineSpacing basic functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for line spacing 30
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, 30.0);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 77
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 77));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyLineSpacingTest
+ * @tc.desc: Test for lineSpacing function with text behavior function in greedy layout
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for line spacing 30
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, 30.0);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, OH_Drawing_TextHeightBehavior::TEXT_HEIGHT_DISABLE_ALL);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt - 1; ++i) {
+        // Test for every single line width 77
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 77.0));
+    }
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, lineCnt - 1), 47.0));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyLineSpacingTest
+ * @tc.desc: Test for lineSpacing function with text behavior function in balance layout
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyLineSpacingTest003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for line spacing 30
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, 30.0);
+    double lineSpacing = 0.0f;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, &lineSpacing);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_TypographyTextSetHeightBehavior(typoStyle, OH_Drawing_TextHeightBehavior::TEXT_HEIGHT_DISABLE_ALL);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt - 1; ++i) {
+        // Test for every single line width 77
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 77.0));
+    }
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, lineCnt - 1), 47.0));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.desc: Test for maxLineHeight and minLineHeight basic functions(trigger max limit)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    // Test for min line height 30
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 30.0);
+    // Test for min line height 30
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, 30.0);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 30
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 30.0));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.desc: Test for maxLineHeight and minLineHeight basic functions(trigger min limit)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    // Test for min line height 100
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 100.0);
+    // Test for min line height 100
+    double maxLineHeight = 0.0f;
+    OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &maxLineHeight);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(maxLineHeight, 100.0));
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, 100.0);
+    double minLineHeight = 0.0f;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, &minLineHeight);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 100
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 100.0));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.desc: Test for maxLineHeight less than minLineHeight
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    // Test for min line height 10
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 10.0);
+    // Test for min line height 30
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, 30.0);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 10
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 10.0));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.desc: Test for maxLineHeight less than zero
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest004, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    // Test for min line height -10
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, -10.0);
+    // Test for min line height 20
+    OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, 20.0);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 47
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 47.0));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.desc: Test for set max double value to maxLineHeight
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyMaxAndMinLineHeightTest005, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTypographyTextFontSize(typoStyle, 40);
+    // Test for min line height 10
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
+        std::numeric_limits<double>::max());
+    double limitLineHeight = 0.0f;
+    OH_Drawing_ErrorCode maxHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &limitLineHeight);
+    EXPECT_EQ(maxHeightCode, OH_DRAWING_SUCCESS);
+    // Test for min line height 30
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM,
+        std::numeric_limits<double>::max());
+    OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 1);
+    int heightStyle = 0;
+    OH_Drawing_ErrorCode heightStyleCode = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &heightStyle);
+    EXPECT_EQ(heightStyleCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode minHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, &limitLineHeight);
+    EXPECT_EQ(minHeightCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, 0),
+        std::numeric_limits<double>::max()));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyLineHeightStyle
+ * @tc.desc: Test for lineHeightStyle fontSize
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    OH_Drawing_SetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
+        OH_Drawing_LineHeightStyle::TEXT_LINE_HEIGHT_BY_FONT_SIZE);
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 40
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 40.0));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyLineHeightStyle
+ * @tc.desc: Test for lineHeightStyle fontHeight
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    OH_Drawing_SetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE,
+        OH_Drawing_LineHeightStyle::TEXT_LINE_HEIGHT_BY_FONT_HEIGHT);
+    int lineHeightStyle = 0;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_GetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyle);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "行高测试";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 30
+    OH_Drawing_TypographyLayout(typography, 30);
+    size_t lineCnt = OH_Drawing_TypographyGetLineCount(typography);
+    // Test for layout count 4
+    EXPECT_EQ(lineCnt, 4);
+    for (size_t i = 0; i < lineCnt; ++i) {
+        // Test for every single line width 47
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLineHeight(typography, i), 47.0));
+    }
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyLineHeightStyle
+ * @tc.desc: Test for lineHeightStyle invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyLineHeightStyleTest003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    // Invalid param 3
+    int heightStyle = 3;
+    OH_Drawing_ErrorCode styleErrorCode = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, heightStyle);
+    EXPECT_EQ(styleErrorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_ErrorCode paragraphStyleErrorCode = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, heightStyle);
+    EXPECT_EQ(paragraphStyleErrorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    // Invalid param 3
+    int invalidHeightStyle = -1;
+    OH_Drawing_ErrorCode paragraphStyleErrorCodeTwo = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, invalidHeightStyle);
+    EXPECT_EQ(paragraphStyleErrorCodeTwo, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyAttributeInterfaceTest
+ * @tc.desc: Test for attribute setter invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyAttributeInterfaceTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_SetTextStyleAttributeInt(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_SetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_SetTextStyleAttributeDouble(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0.0f);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_SetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0.0f);
+    EXPECT_EQ(errorCodeFour, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeFive = OH_Drawing_SetTypographyStyleAttributeInt(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
+    EXPECT_EQ(errorCodeFive, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeSix = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0);
+    EXPECT_EQ(errorCodeSix, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeSeven = OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, 0);
+    EXPECT_EQ(errorCodeSeven, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeEight = OH_Drawing_SetTextStyleAttributeDouble(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, 0.0f);
+    EXPECT_EQ(errorCodeEight, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeNine = OH_Drawing_SetTypographyStyleAttributeDouble(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM,
+        std::numeric_limits<double>::max());
+    EXPECT_EQ(errorCodeNine, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyAttributeInterfaceTest
+ * @tc.desc: Test for attribute getter invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographyAttributeInterfaceTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 40
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
+    int lineHeightStyleInt = 0;
+    OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_GetTextStyleAttributeInt(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleInt);
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    int lineHeightMaxInt = 0;
+    OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_GetTextStyleAttributeInt(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &lineHeightMaxInt);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    double lineHeightStyleDouble = 0.0f;
+    OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_GetTextStyleAttributeDouble(txtStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_GetTypographyStyleAttributeInt(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleInt);
+    EXPECT_EQ(errorCodeFour, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeFive = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &lineHeightMaxInt);
+    EXPECT_EQ(errorCodeFive, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeSix = OH_Drawing_GetTypographyStyleAttributeDouble(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeSix, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_ErrorCode errorCodeSeven = OH_Drawing_GetTypographyStyleAttributeDouble(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeSeven, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    double limitLineHeight = 0.0f;
+    OH_Drawing_ErrorCode maxHeightCode = OH_Drawing_GetTypographyStyleAttributeDouble(nullptr,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &limitLineHeight);
+    EXPECT_EQ(maxHeightCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCodeEight = OH_Drawing_GetTextStyleAttributeDouble(nullptr,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_I_LINE_HEIGHT_STYLE, &lineHeightStyleDouble);
+    EXPECT_EQ(errorCodeEight, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
  * @tc.name: TextStyleAddShadowTest001
  * @tc.desc: test for multiple shadow parameters and abnormal shadow parameters.
  * @tc.type: FUNC
@@ -4138,6 +4709,118 @@ HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest001, TestSize.Level0)
     OH_Drawing_TextStyleAddFontVariation(textStyle, nullptr, value);
     OH_Drawing_TextStyleAddFontVariation(nullptr, axis, value);
     OH_Drawing_DestroyTypographyStyle(style);
+}
+
+/*
+ * @tc.name: TextStyleAddFontVariationTest002
+ * @tc.desc: test for the fontvariation wdth axis.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    const char* fontFamilies[] = {"Noto Sans"};
+    OH_Drawing_SetTextStyleFontFamilies(textStyle, 1, fontFamilies);
+    // 50.0 is half of the maximum font width supported by the font
+    OH_Drawing_TextStyleAddFontVariation(textStyle, "wdth", 50.0);
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    ASSERT_NE(fontCollection, nullptr);
+    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, textStyle);
+    const char* text = "HelloWorld";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    constexpr double maxWidth = 1000.0;
+    OH_Drawing_TypographyLayout(typography, maxWidth);
+
+    constexpr double expectedResult = 55.1037902832;
+    EXPECT_NEAR(OH_Drawing_TypographyGetLongestLine(typography), expectedResult, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(textStyle);
+}
+
+/*
+ * @tc.name: TextStyleAttributeFontWidthTest001
+ * @tc.desc: test invalid data for font width.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleAttributeFontWidthTest001, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    auto res = OH_Drawing_SetTextStyleAttributeInt(txtStyle, TEXT_STYLE_ATTR_I_FONT_WIDTH, 0);
+    EXPECT_EQ(res, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    constexpr int maxThanRange = 10;
+    res = OH_Drawing_SetTextStyleAttributeInt(txtStyle, TEXT_STYLE_ATTR_I_FONT_WIDTH, maxThanRange);
+    EXPECT_EQ(res, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    int outResult = 0;
+    res = OH_Drawing_GetTextStyleAttributeInt(txtStyle, TEXT_STYLE_ATTR_I_FONT_WIDTH, &outResult);
+    EXPECT_EQ(outResult, FONT_WIDTH_NORMAL);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TextStyleAttributeFontWidthTest002
+ * @tc.desc: test valid data for font width.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TextStyleAttributeFontWidthTest002, TestSize.Level0)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    auto res = OH_Drawing_SetTextStyleAttributeInt(txtStyle, TEXT_STYLE_ATTR_I_FONT_WIDTH, FONT_WIDTH_SEMI_EXPANDED);
+    EXPECT_EQ(res, OH_DRAWING_SUCCESS);
+    int outResult = 0;
+    res = OH_Drawing_GetTextStyleAttributeInt(txtStyle, TEXT_STYLE_ATTR_I_FONT_WIDTH, &outResult);
+    EXPECT_EQ(outResult, FONT_WIDTH_SEMI_EXPANDED);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeFontWidthTest001
+ * @tc.desc: test invalid data for font width.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeFontWidthTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    auto res = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle, TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, 0);
+    EXPECT_EQ(res, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    constexpr int maxThanRange = 10;
+    res = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle, TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, maxThanRange);
+    EXPECT_EQ(res, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    int outResult = 0;
+    res = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle, TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, &outResult);
+    EXPECT_EQ(outResult, FONT_WIDTH_NORMAL);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeFontWidthTest002
+ * @tc.desc: test valid data for font width.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeFontWidthTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    auto res = OH_Drawing_SetTypographyStyleAttributeInt(typoStyle,
+        TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, FONT_WIDTH_SEMI_EXPANDED);
+    EXPECT_EQ(res, OH_DRAWING_SUCCESS);
+    int outResult = 0;
+    res = OH_Drawing_GetTypographyStyleAttributeInt(typoStyle, TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, &outResult);
+    EXPECT_EQ(outResult, FONT_WIDTH_SEMI_EXPANDED);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
 /*

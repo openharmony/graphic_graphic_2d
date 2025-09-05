@@ -200,7 +200,7 @@ uint32_t RSHardwareThread::GetunExecuteTaskNum()
     return unExecuteTaskNum_.load();
 }
 
-void RSHardwareThread::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+void RSHardwareThread::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
 {
     std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
     PostDelayTask(

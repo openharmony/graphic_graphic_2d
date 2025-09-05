@@ -25,6 +25,7 @@
 #include "sync_fence.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
@@ -92,6 +93,21 @@ public:
             surfaceFrame_ = nullptr;
         }
     }
+
+    void CancelCurrentFrame()
+    {
+        if (targetSurface_ != nullptr) {
+#if defined(RS_ENABLE_VK)
+            if (RSSystemProperties::IsUseVulkan()) {
+                auto surfaceVk = static_cast<RSSurfaceOhosVulkan*>(targetSurface_.get());
+                if (surfaceVk != nullptr) {
+                    surfaceVk->CancelBufferForCurrentFrame();
+                }
+            }
+#endif
+        }
+    }
+
     const std::shared_ptr<RSSurfaceOhos>& GetSurface() const
     {
         return targetSurface_;
@@ -208,7 +224,7 @@ public:
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
-    void ClearCacheSet(const std::set<uint32_t>& unmappedCache);
+    void ClearCacheSet(const std::set<uint64_t>& unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);

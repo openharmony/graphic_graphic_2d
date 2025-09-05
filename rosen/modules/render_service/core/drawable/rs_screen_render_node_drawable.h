@@ -77,8 +77,14 @@ public:
         return syncDirtyManager_;
     }
 
+    bool GetAccumulateDirtyInSkipFrame() const
+    {
+        return accumulateDirtyInSkipFrame_;
+    }
+
     int32_t GetBufferAge();
     void SetDamageRegion(const std::vector<RectI>& rects);
+    void SetAccumulateDirtyInSkipFrame(bool accumulateDirtyInSkipFrame);
 #ifndef ROSEN_CROSS_PLATFORM
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
     sptr<IBufferConsumerListener> GetConsumerListener() const
@@ -208,6 +214,8 @@ private:
     bool filterCacheOcclusionUpdated_ = false;
 
     bool hardCursorLastCommitSuccess_ = false;
+
+    bool accumulateDirtyInSkipFrame_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

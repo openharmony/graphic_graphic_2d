@@ -162,7 +162,12 @@ RSImplicitCurveAnimationParam::RSImplicitCurveAnimationParam(
 std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endValue - startValue);
+    std::shared_ptr<RSCurveAnimation> curveAnimation;
+    if (property->GetPropertyType() == RSPropertyType::DRAW_CMD_LIST) {
+        curveAnimation = std::make_shared<RSCurveAnimation>(property, startValue, endValue);
+    } else {
+        curveAnimation = std::make_shared<RSCurveAnimation>(property, endValue - startValue);
+    }
     curveAnimation->SetTimingCurve(timingCurve_);
     curveAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(curveAnimation);

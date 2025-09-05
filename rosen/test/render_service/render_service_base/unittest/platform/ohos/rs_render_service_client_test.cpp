@@ -49,8 +49,9 @@ void RSClientTest::SetUpTestCase()
 {
     rsClient = std::make_shared<RSRenderServiceClient>();
     uint64_t tokenId;
-    const char* perms[1];
+    const char* perms[2];
     perms[0] = "ohos.permission.CAPTURE_SCREEN";
+    perms[1] = "ohos.permission.CAPTURE_SCREEN_ALL";
     NativeTokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = 1,
@@ -796,7 +797,7 @@ HWTEST_F(RSClientTest, SetRefreshRateMode001, TestSize.Level1)
     rsClient->SetRefreshRateMode(rateMode);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRateMode = rsClient->GetCurrentRefreshRateMode();
-    EXPECT_NE(currentRateMode, rateMode);
+    EXPECT_EQ(currentRateMode, rateMode);
 }
 
 /**
@@ -1292,7 +1293,7 @@ HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
     int32_t pid = 1001;
     float gpuMemInMB = 0.0f;
     auto res = rsClient->GetPidGpuMemoryInMB(pid, gpuMemInMB);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
+    EXPECT_EQ(res, ERR_UNKNOWN_OBJECT);
 }
 
 /**

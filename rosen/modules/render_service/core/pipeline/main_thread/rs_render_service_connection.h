@@ -50,6 +50,11 @@ public:
         return token_;
     }
 
+    void RemoveToken() override
+    {
+        token_ = nullptr;
+    }
+
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;

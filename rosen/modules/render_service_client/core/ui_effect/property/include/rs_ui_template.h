@@ -210,7 +210,7 @@ public:
         // IMPORTANT: Implicit type conversion is not allowed.
         // For example, double or int is NOT allowed where float is expected.
         static_assert(std::is_same_v<typename Tag::ValueType, std::decay_t<T>> ||
-            std::is_base_of_v<std::decay_t<T>, typename Tag::ValueType>,
+            std::is_base_of_v<typename Tag::ValueType, std::decay_t<T>>,
             "Setter type mismatch, explicit conversion required.");
         return std::get<Tag>(properties_).value_->Set(std::forward<T>(value));
     }
@@ -234,7 +234,7 @@ public:
         // IMPORTANT: Implicit type conversion is not allowed.
         // For example, double or int is NOT allowed where float is expected.
         using ValueTypeIn = typename PropertyTagAt<Index>::ValueType;
-        static_assert(std::is_same_v<ValueTypeIn, std::decay_t<T>> || std::is_base_of_v<std::decay_t<T>, ValueTypeIn>,
+        static_assert(std::is_same_v<ValueTypeIn, std::decay_t<T>> || std::is_base_of_v<ValueTypeIn, std::decay_t<T>>,
             "Setter type mismatch, explicit conversion requeired.");
         return std::get<Index>(properties_).value_->Set(std::forward<T>(value));
     }

@@ -456,6 +456,7 @@ protected:
     friend class RSImplicitAnimator;
     friend class RSExtendedModifier;
     friend class RSModifier;
+    friend class ModifierNG::RSCustomModifier;
     friend class RSNGEffectUtils;
 };
 
@@ -466,11 +467,7 @@ protected:
  */
 template<typename T>
 class RSAnimatableProperty : public RSProperty<T> {
-    static_assert(std::is_floating_point_v<T> || std::is_same_v<Color, T> || std::is_same_v<Matrix3f, T> ||
-                  std::is_same_v<Vector2f, T> || std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
-                  std::is_same_v<Quaternion, T> || std::is_same_v<Vector4<Color>, T> ||
-                  supports_animatable_arithmetic<T>::value || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
-                  std::is_same_v<RRect, T>);
+    static_assert(supports_animatable_arithmetic<T>::value || std::is_base_of_v<RSAnimatableArithmetic<T>, T>);
 
 public:
     /**

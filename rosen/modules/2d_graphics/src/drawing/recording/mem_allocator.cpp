@@ -15,6 +15,8 @@
 
 #include "recording/mem_allocator.h"
 
+#include <hilog/log.h>
+
 #include "securec.h"
 #include "utils/log.h"
 
@@ -88,7 +90,7 @@ bool MemAllocator::Resize(size_t size)
         return false;
     }
     if (size > LARGE_MALLOC) {
-        LOGW("MemAllocator::Resize this time malloc large memory, size:%{public}zu", size);
+        HILOG_COMM_WARN("MemAllocator::Resize this time malloc large memory, size:%{public}zu", size);
     }
     char* newData = new(std::nothrow) char[size];
     if (!newData) {

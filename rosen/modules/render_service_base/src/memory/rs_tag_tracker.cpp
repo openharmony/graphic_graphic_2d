@@ -73,6 +73,9 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_FILTER :
             tagType = "filter";
             break;
+        case TAG_FILTER_CACHE :
+            tagType = "filter_cache";
+            break;
         case TAG_CAPTURE :
             tagType = "capture";
             break;

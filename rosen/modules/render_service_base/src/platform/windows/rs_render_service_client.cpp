@@ -214,17 +214,17 @@ int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, 
 {
     return 0;
 }
- 
+
 int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
 {
     return 0;
 }
- 
+
 int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
 {
     return 0;
 }
- 
+
 int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
 {
     return 0;
@@ -514,7 +514,7 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     return {};
 }
 
-bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)
 {
     return {};
 }

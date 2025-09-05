@@ -1263,6 +1263,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     HandleTunnelLayerId(node);
     PrepareForMultiScreenViewSurfaceNode(node);
+    CollectSurfaceLockLayer(node);
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
@@ -1855,8 +1856,8 @@ inline void RSUniRenderVisitor::CollectNodeForOcclusion(RSRenderNode& node)
 
 void RSUniRenderVisitor::RegisterHpaeCallback(RSRenderNode& node)
 {
-#if defined(ROSEN_OHOS) && defined(ENABLE_HPAE_BLUR)
-    RSHpaeManager::GetInstance().RegisterHpaeCallback(node, screenInfo_.phyWidth, screenInfo_.phyHeight);
+#if defined(ROSEN_OHOS)
+    RSHpaeManager::GetInstance().RegisterHpaeCallback(node, curScreenNode_);
 #endif
 }
 
@@ -2418,23 +2419,27 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr
         // for filter in surface, accumulated dirty within surface should be considered.
         belowDirtyToConsider.OrSelf(filterDirtyType != FilterDirtyType::CONTAINER_FILTER ?
             filterInfo.belowDirty_ : Occlusion::Region());
+        bool effectNodeIntersectBgDirty = false;
         if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
             filterNode->GetRenderProperties().GetNeedDrawBehindWindow()) {
             // backgroundfilter affected by below dirty
-            filterNode->UpdateFilterCacheWithBelowDirty(
-                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider, false);
+            effectNodeIntersectBgDirty = filterNode->UpdateFilterCacheWithBelowDirty(
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider, false) &&
+                filterNode->IsInstanceOf<RSEffectRenderNode>();
         }
         if (filterNode->GetRenderProperties().GetFilter()) {
             // foregroundfilter affected by below dirty
             filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, true);
         }
-        bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterNode->GetFilterRect()));
+        RectI filterRect = filterNode->GetFilterRect();
+        bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterRect));
         filterNode->PostPrepareForBlurFilterNode(*dirtyManager, needRequestNextVsync_);
         RsFrameBlurPredict::GetInstance().PredictDrawLargeAreaBlur(*filterNode);
         if (isIntersect) {
+            RectI filterDirty = effectNodeIntersectBgDirty ? filterRect : filterInfo.filterDirty_.GetBound().ToRectI();
             RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeFilterDirtyWithPreDirty [%" PRIu64 "] type %d intersects below dirty"
-                " Add %s to dirty.", filterInfo.id_, filterDirtyType, filterInfo.filterDirty_.GetRegionInfo().c_str());
-            dirtyManager->MergeDirtyRect(filterInfo.filterDirty_.GetBound().ToRectI());
+                " Add %s to dirty.", filterInfo.id_, filterDirtyType, filterDirty.ToString().c_str());
+            dirtyManager->MergeDirtyRect(filterDirty);
         } else {
             dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
         }
@@ -2960,10 +2965,23 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
     auto isOccluded = curSurfaceNode_ ?
         curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
-    if (subTreeSkipped && (!isOccluded || node.IsFirstLevelCrossNode())) {
-        hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
-        CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
-        UpdateSubSurfaceNodeRectInSkippedSubTree(node);
+    if (subTreeSkipped) {
+        if (!isOccluded || node.IsFirstLevelCrossNode()) {
+            hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
+            CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
+            UpdateSubSurfaceNodeRectInSkippedSubTree(node);
+        } else if (curSurfaceNode_->GetId() == node.GetId()) {
+            const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
+            for (auto& hwcNode : hwcNodes) {
+                auto hwcNodePtr = hwcNode.lock();
+                if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+                    continue;
+                }
+                hwcNodePtr->SetHardwareForcedDisabledState(true);
+                RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
+                    hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+            }
+        }
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
@@ -3620,6 +3638,20 @@ void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node
         }
         child->GetRenderProperties().GetBoundsGeometry()->SetAbsMatrix(absMatrix);
     }
+}
+
+void RSUniRenderVisitor::CollectSurfaceLockLayer(RSSurfaceRenderNode& node)
+{
+    bool isSurfaceLockLayer = node.GetFixRotationByUser();
+    auto hardwareEnabledNodes = node.GetChildHardwareEnabledNodes();
+    for (auto surfaceNode : hardwareEnabledNodes) {
+        auto surfaceNodePtr = surfaceNode.lock();
+        if (!surfaceNodePtr || !(surfaceNodePtr->IsOnTheTree())) {
+            continue;
+        }
+        isSurfaceLockLayer = isSurfaceLockLayer || surfaceNodePtr->GetFixRotationByUser();
+    }
+    RSMainThread::Instance()->SetHasSurfaceLockLayer(isSurfaceLockLayer);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -25,6 +25,7 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "feature/ui_capture/rs_divided_ui_capture.h"
+#include "pipeline/rs_render_thread.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
@@ -167,6 +168,22 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 #else
     return false;
 #endif
+}
+
+uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType type)
+{
+    return 0 ;
+}
+
+void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid,
+    const std::string &name, const std::vector<NodeId> &nodeIdList)
+{
+}
+
+void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -485,23 +502,11 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
 
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
-        [](uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
-        return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
-    };
-
-    static std::once_flag onceFlag;
-    std::call_once(onceFlag, []() {
-        Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
-    });
-
     if (RSSystemProperties::GetUniRenderEnabled()) {
         bool result = renderServiceClient_->RegisterTypeface(typeface);
         if (result) {
             RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
                 typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-            uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-            RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
         } else {
             RS_LOGE("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
                 typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
@@ -511,26 +516,16 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
 }
 
-bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)
 {
-    RS_LOGW("RSInterfaces:Unreg typeface: family name:%{public}s, uniqueid:%{public}u",
-        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+    RS_LOGI("RSInterfaces:Unreg typeface: uniqueid:%{public}u", uniqueId);
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        bool result = renderServiceClient_->UnRegisterTypeface(typeface);
-        if (result) {
-            uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-            RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
-        }
-        return result;
+        return renderServiceClient_->UnRegisterTypeface(uniqueId);
     }
 
-    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
 
@@ -597,7 +592,7 @@ void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
 
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    RS_LOGI("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64
+    HILOG_COMM_INFO("[UL_POWER]RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64
             ", ScreenPowerStatus: %{public}u",
         id, static_cast<uint32_t>(status));
     renderServiceClient_->SetScreenPowerStatus(id, status);
@@ -618,7 +613,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         callback->OnSurfaceCapture(pixelmap);
     };
-    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    RSRenderThread::Instance().PostTask(offscreenRenderTask);
     return true;
 }
 

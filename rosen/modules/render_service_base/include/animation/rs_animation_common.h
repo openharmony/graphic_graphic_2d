@@ -26,6 +26,7 @@ static constexpr float EPSILON = 1e-6;
 static constexpr int64_t MS_TO_NS = 1000000;
 static constexpr int64_t SECOND_TO_MS = 1000;
 static constexpr int32_t MAX_FRAME_TIME_FRACTION = 120;
+static constexpr int CONTENT_TRANSITION_DURATION_MS = 200;
 
 enum class RotationMode {
     ROTATE_NONE,
@@ -48,6 +49,11 @@ enum class ImplicitAnimationParamType {
     INTERPOLATING_SPRING,
     TRANSITION,
     CANCEL
+};
+
+enum class ContentTransitionType : uint8_t {
+    IDENTITY = 0,
+    OPACITY,
 };
 
 } // namespace Rosen

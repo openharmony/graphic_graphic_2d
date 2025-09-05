@@ -103,6 +103,17 @@ std::vector<std::shared_ptr<Typeface>> StaticFactory::GetSystemFonts()
     return EngineStaticFactory::GetSystemFonts();
 }
 
+void StaticFactory::RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::RegisterOnTypefaceDestroyed(cb);
+    }
+#endif
+    return EngineStaticFactory::RegisterOnTypefaceDestroyed(cb);
+}
+
+
 std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
     const FontArguments& fontArguments)
 {
@@ -398,7 +409,7 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
 #ifdef RS_ENABLE_VK
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
+        DDGRStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {

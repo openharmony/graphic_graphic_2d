@@ -1255,6 +1255,96 @@ HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest002, Function | MediumTes
 }
 
 /*
+ * Function: ConnectionsPostEventTest003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test ConnectionsPostEvent
+ */
+HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest003, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = sptr<VSyncConnection>::MakeSptr(vsyncDistributor, "test");
+    std::vector<sptr<VSyncConnection>> conns = {conn};
+    int64_t now = 10000000;
+    int64_t period = 16666666;
+    int64_t generatorRefreshRate = 60;
+    int64_t vsyncCount = 1;
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = true;
+    conn->highPriorityRate_ = 60;
+    bool isDvsyncController = false;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = true;
+    conn->highPriorityRate_ = 60;
+    isDvsyncController = true;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = true;
+    conn->highPriorityRate_ = -1;
+    isDvsyncController = false;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = true;
+    conn->highPriorityRate_ = -1;
+    isDvsyncController = true;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    int64_t receiveData[3];
+    int32_t length = conn->socketPair_->ReceiveData(receiveData, sizeof(receiveData));
+    ASSERT_GT(length, 0);
+}
+
+/*
+ * Function: ConnectionsPostEventTest004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test ConnectionsPostEvent
+ */
+HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest004, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = sptr<VSyncConnection>::MakeSptr(vsyncDistributor, "test");
+    std::vector<sptr<VSyncConnection>> conns = {conn};
+    int64_t now = 10000000;
+    int64_t period = 16666666;
+    int64_t generatorRefreshRate = 60;
+    int64_t vsyncCount = 1;
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = false;
+    conn->highPriorityRate_ = 60;
+    bool isDvsyncController = false;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = false;
+    conn->highPriorityRate_ = 60;
+    isDvsyncController = true;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = false;
+    conn->highPriorityRate_ = -1;
+    isDvsyncController = false;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    vsyncDistributor->vsyncMode_ = VSYNC_MODE_LTPS;
+    conn->highPriorityState_ = false;
+    conn->highPriorityRate_ = -1;
+    isDvsyncController = true;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+
+    int64_t receiveData[3];
+    int32_t length = conn->socketPair_->ReceiveData(receiveData, sizeof(receiveData));
+    ASSERT_GT(length, 0);
+}
+
+/*
 * Function: DisableDVSyncControllerTest001
 * Type: Function
 * Rank: Important(2)

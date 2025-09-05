@@ -224,16 +224,17 @@ HWTEST_F(RSNGRenderShaderBaseTest, CheckEnableEDR001, TestSize.Level1)
 HWTEST_F(RSNGRenderShaderBaseTest, SetRotationAngle001, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    std::shared_ptr<RSNGRenderShaderBase> emptyHead = nullptr;
     const Vector3f rotationAngle = {1.0f, 0.0f, 0.0f};
     {
-        RSNGRenderShaderHelper::SetRotationAngle(nullptr, rotationAngle);
+        RSNGRenderShaderHelper::SetRotationAngle(emptyHead, rotationAngle);
     }
     {
         head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
         RSNGRenderShaderHelper::SetRotationAngle(head, rotationAngle);
     }
     {
-        RSNGRenderShaderHelper::SetRotationAngle(nullptr, rotationAngle);
+        RSNGRenderShaderHelper::SetRotationAngle(emptyHead, rotationAngle);
     }
     {
         head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
@@ -258,16 +259,17 @@ HWTEST_F(RSNGRenderShaderBaseTest, SetRotationAngle001, TestSize.Level1)
 HWTEST_F(RSNGRenderShaderBaseTest, SetCornerRadius001, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    std::shared_ptr<RSNGRenderShaderBase> emptyHead = nullptr;
     const float cornerRadius = 1.0f;
     {
-        RSNGRenderShaderHelper::SetCornerRadius(nullptr, cornerRadius);
+        RSNGRenderShaderHelper::SetCornerRadius(emptyHead, cornerRadius);
     }
     {
         head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
         RSNGRenderShaderHelper::SetCornerRadius(head, cornerRadius);
     }
     {
-        RSNGRenderShaderHelper::SetCornerRadius(nullptr, cornerRadius);
+        RSNGRenderShaderHelper::SetCornerRadius(emptyHead, cornerRadius);
     }
     {
         head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);

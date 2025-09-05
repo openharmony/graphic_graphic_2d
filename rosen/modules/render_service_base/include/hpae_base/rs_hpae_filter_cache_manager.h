@@ -110,6 +110,8 @@ private:
 
     int BlurUsingFilteredSnapshot();
 
+    void ReleaseHpaeBufferInfo();
+
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
 

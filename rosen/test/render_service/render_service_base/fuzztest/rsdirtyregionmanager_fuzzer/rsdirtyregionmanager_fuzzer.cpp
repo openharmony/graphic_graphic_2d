@@ -229,7 +229,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         rsDirtyRegionManager.GetCurrentFrameAdvancedDirtyRegion();
     });
     AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
-        rsDirtyRegionManager.MergeHwcDirtyRect(GetRectI());
+        rsDirtyRegionManager.MergeHwcDirtyRect(GetRectI(), GetData<RSSurfaceNodeType>());
     });
     AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         RSDirtyRegionManager::GetPixelAlignedRect(GetRectI());

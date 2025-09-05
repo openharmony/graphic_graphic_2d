@@ -3,7 +3,7 @@
 # Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
-#You may obtain a copy of the License at
+# You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -27,11 +27,11 @@ compile_check_file = [
     ('rs_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'RSParallelManager::Singleton().OnDrawNodeDrawable'),
 ]
 compile_check_groundtruth = [
-    ['rs_logical_display_render_node_drawable.cpp', 89, 207],
+    ['rs_logical_display_render_node_drawable.cpp', 121, 247],
     ['rs_surface_render_node_drawable.cpp', 560, 682],
     ['rs_canvas_render_node_drawable.cpp', 74, 112],
     ['rs_effect_render_node_drawable.cpp', 36, 71],
-    ['rs_render_node_drawable.cpp', 92, 107]
+    ['rs_render_node_drawable.cpp', 92, 107],
 ]
 
 
@@ -40,7 +40,7 @@ def find_lines_in_file(file_path, start_flag, end_flag):
     line_numbers = [0, 0]
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            for line_number, file in enumerate(file, 1):
+            for line_number, line in enumerate(file, 1):
                 if start_flag in line:
                     line_numbers[0] = line_number
                 elif end_flag in line:
@@ -60,18 +60,19 @@ def code_check(code_record):
             groundtruth = end - start
             real = code_record[2] - code_record[1]
             return real == groundtruth
-        return False
+    return False
 
-def mian()
+
+def main():
     # Code Status
     print("[Compile Check Result]")
     code_records = []
     for check, start_flag, end_flag in compile_check_file:
         file_path = os.path.join(compile_check_file_prefix, check)
         line_numbers = find_lines_in_file(file_path, start_flag, end_flag)
-        code_record = [ check ] + line_numbers
-        code_records = [ code_record ]
-        print(code_record, end = ',\n')
+        code_record = [check] + line_numbers
+        code_records = [code_record]
+        print(code_record, end=',\n')
     # Code Check
     print("[Function Modified]")
     passed = True
@@ -80,7 +81,7 @@ def mian()
             print(check, "OnDraw has been modified! \
                             Please contact with Committer!")
             passed = False
-        if passed == False
+        if passed == False:
             sys.exit(-1)
 
 # Main

@@ -48,6 +48,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationSha
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessBlenderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessLinearBlenderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::lightUpShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::shadowBlenderEffect_ = nullptr;
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
@@ -474,7 +475,6 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
-        cacheManager->ClearEffectCacheWithDrawnRegion(*canvas, clipIBounds);
         return;
     }
 #endif
@@ -554,13 +554,64 @@ void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const f
     Drawing::Matrix scaleMat;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-    auto shader = Drawing::ShaderEffect::CreateLightUp(lightUpEffectDegree, *imageShader);
+    auto shader = MakeLightUpShader(lightUpEffectDegree, imageShader);
+    if (shader == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::MakeLightUpShader shader is null");
+        return;
+    }
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
     canvas->DrawBackground(brush);
+}
+
+std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeLightUpShader(
+    float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform float lightUpDeg;
+        uniform shader imageShader;
+        vec3 rgb2hsv(in vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        vec3 hsv2rgb(in vec3 c)
+        {
+            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+            return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+        half4 main(float2 coord)
+        {
+            vec4 color = imageShader.eval(coord);
+            float a = color.a;
+            vec3 rgb = max(color.rgb, 0.0);
+            vec3 hsv = rgb2hsv(rgb);
+            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
+            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
+            hsv.z += lightUpDeg - 1.0;
+            hsv.z = max(hsv.z, 0.0);
+            return vec4(hsv2rgb(hsv), a);
+        }
+    )";
+    if (lightUpShaderEffect_ == nullptr) {
+        lightUpShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
+        if (lightUpShaderEffect_ == nullptr) {
+            ROSEN_LOGE("MakeLightUpShader::RuntimeShader effect error\n");
+            return nullptr;
+        }
+    }
+    std::shared_ptr<Drawing::ShaderEffect> children[] = {imageShader};
+    size_t childCount = 1;
+    auto data = std::make_shared<Drawing::Data>();
+    data->BuildWithCopy(&lightUpDeg, sizeof(lightUpDeg));
+    return lightUpShaderEffect_->MakeShader(data, children, childCount, nullptr, false);
 }
 
 void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree)

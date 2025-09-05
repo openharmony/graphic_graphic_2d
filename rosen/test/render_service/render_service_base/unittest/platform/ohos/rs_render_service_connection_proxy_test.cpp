@@ -1555,6 +1555,21 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, FreezeScreenTest, TestSize.Level1)
     EXPECT_EQ(ret, ERR_OK);
 }
 
+/**
+ * @tc.name: SetVirtualScreenStatus Test
+ * @tc.desc: SetVirtualScreenStatus Test
+ * @tc.type:FUNC
+ * @tc.require: issueIK45M
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenStatusTest, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    VirtualScreenStatus virtualScreenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS;
+    bool success;
+    proxy->SetVirtualScreenStatus(screenId, virtualScreenStatus, success);
+    ASSERT_TRUE(proxy);
+}
+
 /*
  * @tc.name: DropFrameByPidWithInvalidParameter Test
  * @tc.desc: DropFrameByPidWithInvalidParameter Test

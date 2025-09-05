@@ -457,6 +457,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     std::unordered_map<std::string, std::string>& hwcVideoConfigFromHgm = configData->hwcSourceTuningConfig_;
     std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm = configData->hwcSolidLayerConfig_;
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
+    static bool unused = [&solidLayerConfigFromHgm, &hwcSolidLayerConfigFromHgm, &rsCommonHook]() {
+        rsCommonHook.SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
+        rsCommonHook.SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
+        return true;
+    }();
     if (pkgs.size() > 1) {
         return;
     }

@@ -58,4 +58,14 @@ void HWCParam::SetSolidLayerEnable(bool isEnable)
 {
     isSolidLayerEnable_ = isEnable;
 }
+ 
+bool HWCParam::IsSolidLayerInMultiWindowEnable()
+{
+    return isSolidLayerInMultiWindowEnable_;
+}
+ 
+void HWCParam::SetSolidLayerInMultiWindowEnable(bool isEnable)
+{
+    isSolidLayerInMultiWindowEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

@@ -170,7 +170,7 @@ private:
     void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
         skt::InternalState& state);
 
-    void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& txt);
+    void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textStyle);
 
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
 #ifdef USE_M133_SKIA

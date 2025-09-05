@@ -2754,7 +2754,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     nodeTest->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
     nodeTest->UpdateDrawableVecV2();
     auto sum = nodeTest->dirtySlots_.size();
-    EXPECT_NE(nodeTest->dirtySlots_.size(), 0);
+    EXPECT_NE(nodeTest->dirtySlots_.size(), 2);
 
     nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
     std::shared_ptr<DrawableTest> drawableTest2 = std::make_shared<DrawableTest>();
@@ -2766,7 +2766,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RRect rrect;
     nodeTest->renderProperties_.rrect_ = rrect;
     nodeTest->UpdateDrawableVecV2();
-    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum);
+    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum + 1);
 }
 
 /**

@@ -21,7 +21,7 @@
 namespace OHOS::Rosen::ModifierNG {
 class RSC_EXPORT RSShadowModifier : public RSModifier {
 public:
-    RSShadowModifier() = default;
+    RSShadowModifier();
     ~RSShadowModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::SHADOW;
@@ -53,6 +53,8 @@ public:
     int GetShadowColorStrategy() const;
     bool GetShadowIsFilled() const;
     bool GetUseShadowBatching() const;
+private:
+    float shadowAlpha_;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_SHADOW_MODIFIER_H

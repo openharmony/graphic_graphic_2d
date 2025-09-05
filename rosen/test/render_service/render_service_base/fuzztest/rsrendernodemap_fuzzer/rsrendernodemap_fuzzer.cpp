@@ -75,7 +75,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderNodeMap.GetRenderNode(id);
     rsRenderNodeMap.GetAnimationFallbackNode();
     rsRenderNodeMap.ContainPid(pid);
-    rsRenderNodeMap.FilterNodeByPid(pid);
     rsRenderNodeMap.TraversalNodes(func);
     rsRenderNodeMap.GetResidentSurfaceNodeMap();
     rsRenderNodeMap.IsResidentProcessNode(id);
