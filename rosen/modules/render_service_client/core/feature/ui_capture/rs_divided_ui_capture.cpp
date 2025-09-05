@@ -45,6 +45,7 @@ const int MAX_WAIT_TIME = 2000;
 
 std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
 {
+    RS_LOGI("RSDividedUICapture::TakeLocalCapture nodeId is %{public}" PRIu64, nodeId_);
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture: scale is invalid.");
         return nullptr;
@@ -56,6 +57,10 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
     }
     std::shared_ptr<RSDividedUICaptureVisitor> visitor =
         std::make_shared<RSDividedUICaptureVisitor>(nodeId_, scaleX_, scaleY_);
+    if (!node->IsOnTheTree()) {
+        ROSEN_LOGD("RSDividedUICapture::TakeLocalCapture IsNotOnTheTree, Do ApplyModifiers");
+        node->ApplyModifiers();
+    }
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture: pixelmap == nullptr!");
@@ -68,8 +73,7 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
     visitor->SetPaintFilterCanvas(canvas);
     if (!node->IsOnTheTree()) {
-        RS_TRACE_NAME_FMT("RSDividedUICapture::PostTaskToRTRecord id is %llu", node->GetId());
-        node->ApplyModifiers();
+        ROSEN_LOGD("RSDividedUICapture::TakeLocalCapture IsNotOnTheTree, Do Prepare");
         node->Prepare(visitor);
     }
     node->Process(visitor);
@@ -94,6 +98,12 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
+    RS_LOGD("RSDividedUICapture::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
+        " origin pixelmap width is [%{public}u], height is [%{public}u],"
+        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
+        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
+        scaleX_, scaleY_);
     return Media::PixelMap::Create(opts);
 }
 
