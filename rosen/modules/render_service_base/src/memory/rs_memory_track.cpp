@@ -35,7 +35,7 @@ constexpr uint32_t MEM_NODEID_STRING_LEN = 20;
 MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id, size_t drawableNodeSize)
     : nodeSize_(size), nodeId_(id), drawableNodeSize_(drawableNodeSize) {}
 
-size_t MemoryNodeOfPid::GetDrawableMemSize()
+size_t MemoryNodeOfPid::GetDrawableMemSize() const
 {
     return drawableNodeSize_;
 }
@@ -67,7 +67,8 @@ MemoryTrack& MemoryTrack::Instance()
     return instance;
 }
 
-MemoryNodeOfPid* MemoryTrack::FindNodeById(std::vector<MemoryNodeOfPid>& nodesVec, NodeId id)
+MemoryNodeOfPid* MemoryTrack::FindNodeById(std::vector<MemoryNodeOfPid>& nodesVec,
+    NodeId id) const
 {
     auto it = std::find_if(nodesVec.begin(), nodesVec.end(), [id](MemoryNodeOfPid& node) {
         return node.GetNodeId() == id;
