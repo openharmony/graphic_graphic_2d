@@ -29,7 +29,7 @@ std::shared_ptr<RSModifierManagerMap>& RSModifierManagerMap::Instance()
 
 const std::shared_ptr<RSModifierManager>& RSModifierManagerMap::GetModifierManager()
 {
-    thread_local std::shared_ptr<RSImplicitAnimator> manager = nullptr;
+    thread_local std::shared_ptr<RSModifierManager> manager = nullptr;
     if (manager == nullptr) {
         manager = std::make_shared<RSModifierManager>();
     }

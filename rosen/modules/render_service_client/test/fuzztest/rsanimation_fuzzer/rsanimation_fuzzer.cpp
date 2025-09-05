@@ -417,8 +417,6 @@ namespace OHOS {
 
     void RSImplicitAnimatorMapFuzzTest()
     {
-        int32_t animatorId = GetData<int32_t>();
-
         auto implicitAnimatorMap = RSImplicitAnimatorMap::Instance().GetAnimator();
         if (implicitAnimatorMap == nullptr) {
             return;
