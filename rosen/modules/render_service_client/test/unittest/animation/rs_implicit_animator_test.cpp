@@ -435,6 +435,7 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
 HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
 {
     auto rsUIContext = std::make_shared<RSUIContext>();
+    EXPECT_EQ(rsUIContext->rsImplicitAnimator_, nullptr);
     // repeat count
     int count = 10;
     // thread count
@@ -451,7 +452,35 @@ HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
     });
     t1.join();
     t2.join();
-    EXPECT_EQ(rsUIContext->rsImplicitAnimators_.size(), threadCount);
+    EXPECT_NE(rsUIContext->rsImplicitAnimator_, nullptr);
+}
+
+/**
+ * @tc.name: GetRSModifierManager
+ * @tc.desc: Verify the GetRSModifierManager
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, GetRSModifierManager, TestSize.Level1)
+{
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    EXPECT_EQ(rsUIContext->rsModifierManager_, nullptr);
+    // repeat count
+    int count = 10;
+    // thread count
+    int threadCount = 2;
+    std::thread t1([rsUIContext, count] {
+        for (int i = 0; i < count; i++) {
+            rsUIContext->GetRSModifierManager();
+        }
+    });
+    std::thread t2([rsUIContext, count] {
+        for (int i = 0; i < count; i++) {
+            rsUIContext->GetRSModifierManager();
+        }
+    });
+    t1.join();
+    t2.join();
+    EXPECT_NE(rsUIContext->rsModifierManager_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

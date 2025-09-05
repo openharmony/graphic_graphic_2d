@@ -190,15 +190,14 @@ private:
     RSNodeMapV2 nodeMap_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_;
     std::shared_ptr<RSSyncTransactionHandler> rsSyncTransactionHandler_;
-    std::unordered_map<pid_t, std::shared_ptr<RSImplicitAnimator>> rsImplicitAnimators_;
-    std::shared_ptr<RSModifierManager> rsModifierManager_;
+    static thread_local std::shared_ptr<RSImplicitAnimator> rsImplicitAnimator_;
+    static thread_local std::shared_ptr<RSModifierManager> rsModifierManager_;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
     std::recursive_mutex animationMutex_;
 
     TaskRunner taskRunner_ = TaskRunner();
-    std::mutex implicitAnimatorMutex_;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;
