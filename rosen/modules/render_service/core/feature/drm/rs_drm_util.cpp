@@ -181,9 +181,9 @@ void RSDrmUtil::MarkAllBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>&
         }
         bool isIntersect =
             drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
-        bool isVisible = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-            drmNodePtr->GetInstanceRootNode())->GetVisibleRegion().IsEmpty();
-        if (isIntersect && !isVisible && IsDRMBelowFilter(curScreenNode, appWindowNode, drmNodePtr)) {
+        auto drmAppWindow = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(drmNodePtr->GetInstanceRootNode());
+        bool isVisibleRegionEmpty = drmAppWindow ? drmAppWindow->GetVisibleRegion().IsEmpty() : true;
+        if (isIntersect && !isVisibleRegionEmpty && IsDRMBelowFilter(curScreenNode, appWindowNode, drmNodePtr)) {
             node->MarkBlurIntersectWithDRM(true, GetDarkColorMode(node, appWindowNode));
         }
     }
@@ -232,8 +232,8 @@ bool RSDrmUtil::IsDRMBelowFilter(const std::shared_ptr<RSScreenRenderNode>& curS
     const std::shared_ptr<RSSurfaceRenderNode>& drmNode)
 {
     auto& curMainAndLeashSurfaces = curScreenNode->GetAllMainAndLeashSurfaces();
-    auto filterNodeIndex = 0;
-    auto drmNodeIndex = 0;
+    size_t filterNodeIndex = 0;
+    size_t drmNodeIndex = 0;
     for (size_t i = 0; i < curMainAndLeashSurfaces.size(); ++i) {
         auto leashWindowNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curMainAndLeashSurfaces[i]);
         if (appWindowNode == leashWindowNode) {
