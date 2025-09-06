@@ -417,7 +417,7 @@ void MemoryManager::DumpGpuCache(
     }
     /* GPU */
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    log.AppendFormat("\n---------------\nSkia GPU Caches:%s\n", name.c_str());
+    log.AppendFormat("\n---------------\nGPU Caches:%s\n", name.c_str());
     Drawing::TraceMemoryDump gpuTracer("category", true);
     if (tag) {
         gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, *tag);
@@ -430,6 +430,41 @@ void MemoryManager::DumpGpuCache(
 #endif
 }
 
+void MemoryManager::DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
+    Drawing::GPUResourceTag* tag, std::string& name, GpuPidInfo& info)
+{
+    if (!gpuContext) {
+        log.AppendFormat("gpuContext is nullptr.\n");
+        return;
+    }
+    /* GPU */
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    log.AppendFormat("\n---------------\nGPU Caches:%s\n", name.c_str());
+    Drawing::TraceMemoryDump gpuTracer("category", true);
+    if (tag) {
+        gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, *tag);
+    } else {
+        gpuContext->DumpMemoryStatistics(&gpuTracer);
+    }
+    gpuTracer.LogOutput(log);
+    log.AppendFormat("Total GPU memory usage:\n");
+    gpuTracer.LogTotals(log);
+    if (tag) {
+        uint32_t pid = tag->fPid;
+        float gpuMemInMB = gpuTracer.GetGpuMemorySizeInMB();
+        std::pair<std::string, float> windowInfo = std::make_pair(name, gpuMemInMB);
+        if (info.find(pid) == info.end()) {
+            std::vector<std::pair<std::string, float>> temp;
+            temp.emplace_back(windowInfo);
+            info[pid] = std::make_tuple(gpuMemInMB, temp);
+        } else {
+            std::get<0>(info[pid]) += gpuMemInMB;
+            std::get<1>(info[pid]).emplace_back(windowInfo);
+        }
+    }
+#endif
+}
+
 void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
     std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
@@ -437,10 +472,29 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
         log.AppendFormat("No valid gpu cache instance.\n");
         return;
     }
+    GpuPidInfo totalInfo;
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     for (auto& nodeTag : nodeTags) {
         Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0, nodeTag.second);
-        DumpGpuCache(log, gpuContext, &tag, nodeTag.second);
+        DumpGpuCacheWithPidInfo(log, gpuContext, &tag, nodeTag.second, totalInfo);
+    }
+    log.AppendFormat("---------------:\n");
+    log.AppendFormat("AppRenderMem detail:\n");
+    for (auto [pid, info] : totalInfo) {
+        float pidMem = std::get<0>(info);
+        std::vector<std::pair<std::string, float>> infoVec = std::get<1>(info);
+        if (pidMem < 0.001f) {
+            continue;
+        }
+        std::string temp;
+        for (auto appInfo : infoVec) {
+            if (appInfo.second < 0.001f) {
+                continue;
+            }
+            temp.append("   name: " + appInfo.first);
+            temp.append("   size: " + std::to_string(appInfo.second) + "MB\n");
+        }
+        log.AppendFormat("Pid: %d, totalGpuMemSize: %fMB, detail: \n%s", pid, pidMem, temp.c_str());
     }
 #endif
 }

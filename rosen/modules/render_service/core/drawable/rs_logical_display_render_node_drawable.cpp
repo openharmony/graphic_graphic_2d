@@ -29,6 +29,7 @@
 #include "property/rs_point_light_manager.h"
 #include "render/rs_pixel_map_util.h"
 #include "static_factory.h"
+#include "memory/rs_tag_tracker.h"
 
 // dfx
 #include "drawable/dfx/rs_refresh_rate_dfx.h"
@@ -1439,9 +1440,11 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
     bool createOffscreenSurface = !params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || !offscreenSurface_ ||
         (screenParams->GetHDRPresent() &&
         offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16);
+    bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
+    RSTagTracker tagTracker(curCanvas_->GetGPUContext(),
+        hdrOrScRGB ? RSTagTracker::TAGTYPE::TAG_HDR_OFFSCREEN : RSTagTracker::TAGTYPE::TAG_COMMON_OFFSCREEN);
     if (createOffscreenSurface) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
-        bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
         if (hdrOrScRGB) {
             RS_LOGD("HDR PrepareHdrDraw");
             if (!params->GetNeedOffscreen() && useCanvasSize) {
