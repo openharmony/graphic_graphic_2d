@@ -281,7 +281,6 @@ public:
     }
 };
 
-
 /**
  * @tc.name: UpdateHDRNodesTest001
  * @tc.desc: Test UpdateHDRNodes
@@ -411,330 +410,299 @@ HWTEST_F(RSHeteroHDRManagerTest, UpdateHDRNodesTest004, TestSize.Level1)
  */
 HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest001, TestSize.Level1)
 {
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    mockRSHeteroHDRManager.isHeteroComputingHdrOn_ = false;
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-
-    mockRSHeteroHDRManager.isHeteroComputingHdrOn_ = true;
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-    EXPECT_EQ(mockRSHeteroHDRManager.pendingPostNodes_.size(), 0);
+    TestPostHDRSubTasksWhenHeteroOff();
+    TestPostHDRSubTasksWhenHeteroOn();
+    TestPostHDRSubTasksWithValidSurfaceNode();
+    TestPostHDRSubTasksWithMDCExisted();
+    TestPostHDRSubTasksWithVsyncIdZero();
+    TestPostHDRSubTasksWithDestroyedFlag();
+    TestPostHDRSubTasksWithVideoGainmap();
+    TestPostHDRSubTasksWithColorFollow();
+    TestPostHDRSubTasksWithHDRNotPresent();
 }
 
-/**
- * @tc.name: PostHDRSubTasksTest002
- * @tc.desc: Test PostHDRSubTasks with valid surface node
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002, TestSize.Level1)
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWhenHeteroOff()
 {
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
-    auto rsContext = std::make_shared<RSContext>();
-    auto& nodeMap = rsContext->GetMutableNodeMap();
-    NodeId instanceRootNodeId = appNode->GetId();
-    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
-    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = appNode;
-    surfaceNode->context_ = rsContext;
-    surfaceNode->instanceRootNodeId_ = appNode->GetId();
-
-    ASSERT_TRUE(surfaceNode != nullptr);
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    ASSERT_TRUE(surfaceHandler != nullptr);
-
-    mockRSHeteroHDRManager.isHeteroComputingHdrOn_ = true;
-    EXPECT_CALL(mockRSHeteroHDRManager, MHCRequestEGraph(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockRSHeteroHDRManager, MHCSetCurFrameId(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockRSHeteroHDRManager, TryConsumeBuffer(_)).WillRepeatedly(testing::Return(true));
-    
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    MockRSHeteroHDRManager mock;
+    mock.isHeteroComputingHdrOn_ = false;
+    mock.PostHDRSubTasks();
+    EXPECT_EQ(mock.pendingPostNodes_.size(), 0);
 }
 
-/**
- * @tc.name: PostHDRSubTasksTest003
- * @tc.desc: Test PostHDRSubTasks with MDC and Vsync conditions
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest003, TestSize.Level1)
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWhenHeteroOn()
 {
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
+    MockRSHeteroHDRManager mock;
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.PostHDRSubTasks();
+    EXPECT_EQ(mock.pendingPostNodes_.size(), 0);
+}
+
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithValidSurfaceNode()
+{
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
+
+    EXPECT_CALL(mock, MHCRequestEGraph(_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(mock, MHCSetCurFrameId(_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(mock, TryConsumeBuffer(_)).WillRepeatedly(Return(true));
     
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
+}
+
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithMDCExisted()
+{
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
+
     RSHeteroHDRHpae::GetInstance().MDCExistedStatus_.store(true);
-    mockRSHeteroHDRManager.curHandleStatus_ = RSHeteroHDRHpae::GetInstance().existedChannelStatus_;
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    mock.curHandleStatus_ = RSHeteroHDRHpae::GetInstance().existedChannelStatus_;
+    
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
+}
+
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithVsyncIdZero()
+{
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
 
     HgmCore::Instance().SetVsyncId(0);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-    HgmCore::Instance().SetVsyncId(1);
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
+    HgmCore::Instance().SetVsyncId(1); // Reset to non-zero
 }
 
-/**
- * @tc.name: PostHDRSubTasksTest004
- * @tc.desc: Test PostHDRSubTasks with destroyed flag
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest004, TestSize.Level1)
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithDestroyedFlag()
 {
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    // Setup code for surfaceNode
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
+
+    mock.destroyedFlag_.store(false);
+    mock.PostHDRSubTasks();
     
-    mockRSHeteroHDRManager.destroyedFlag_.store(false);
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-    mockRSHeteroHDRManager.destroyedFlag_.store(true);
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-    mockRSHeteroHDRManager.destroyedFlag_.store(false);
+    mock.destroyedFlag_.store(true);
+    mock.PostHDRSubTasks();
+    
+    mock.destroyedFlag_.store(false);
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
 }
 
-/**
- * @tc.name: PostHDRSubTasksTest005
- * @tc.desc: Test PostHDRSubTasks with AI_HDR_VIDEO_GAINMAP
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest005, TestSize.Level1)
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithVideoGainmap()
 {
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
+
     surfaceNode->SetVideoHdrStatus(AI_HDR_VIDEO_GAINMAP);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
+}
+
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithColorFollow()
+{
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
+
+    auto params = GetRenderParams(surfaceNode);
+    params->SetColorFollow(true);
+    
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
+}
+
+void RSHeteroHDRManagerTest::TestPostHDRSubTasksWithHDRNotPresent()
+{
+    MockRSHeteroHDRManager mock;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    SetupSurfaceContext(surfaceNode, appNode);
+
+    auto params = GetScreenParams(screenNode);
+    params->SetHDRPresent(false);
+    
+    mock.isHeteroComputingHdrOn_ = true;
+    mock.UpdateHDRNodes(*surfaceNode, false);
+    mock.PostHDRSubTasks();
 }
 
 /**
- * @tc.name: PostHDRSubTasksTest006
- * @tc.desc: Test PostHDRSubTasks with color follow and HDR present
+ * @tc.name: PostHDRSubTasksTest002_01
+ * @tc.desc: Test PostHDRSubTasks basic app and leash node condition
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest006, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_01, TestSize.Level1)
 {
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    surfaceParams->SetColorFollow(true);
-    
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-
-    auto screenParams = GetScreenParams(screenNode);
-    screenParams->SetHDRPresent(false);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-}
-
-/**
- * @tc.name: PostHDRSubTasksTest002
- * @tc.desc: Test PostHDRSubTasks app and leash node condition
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002, TestSize.Level1)
-{
-    auto screenNode = GenerateScreenNode();
-    auto appNode = GenerateAppNode();
-    auto leashNode = GenerateLeashNode();
-    auto surfaceNode = GenerateSurfaceNode();
-    ASSERT_TRUE(screenNode != nullptr && appNode != nullptr && leashNode != nullptr && surfaceNode != nullptr);
-    
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    ASSERT_TRUE(surfaceHandler != nullptr);
+    ASSERT_NE(surfaceHandler, nullptr);
 
     auto appParams = GetRenderParams(appNode);
-    auto leashParams = GetRenderParams(leashNode);
     auto surfaceParams = GetRenderParams(surfaceNode);
     surfaceParams->SetAncestorScreenNode(screenNode);
 
     appParams->shouldPaint_ = true;
     appParams->contentEmpty_ = false;
-    leashParams->shouldPaint_ = true;
-    leashParams->contentEmpty_ = false;
 
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    mockRSHeteroHDRManager.isHeteroComputingHdrOn_ = true;
-    EXPECT_CALL(mockRSHeteroHDRManager, MHCRequestEGraph(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockRSHeteroHDRManager, MHCSetCurFrameId(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockRSHeteroHDRManager, TryConsumeBuffer(_)).WillRepeatedly(testing::Return(true));
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
     
-    RSHeteroHDRHpae::GetInstance().MDCExistedStatus_.store(true);
-    mockRSHeteroHDRManager.curHandleStatus_ = RSHeteroHDRHpae::GetInstance().existedChannelStatus_;
-
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
 }
 
 /**
- * @tc.name: PostHDRSubTasksTest003
- * @tc.desc: Test PostHDRSubTasks with node hierarchy
+ * @tc.name: PostHDRSubTasksTest002_02
+ * @tc.desc: Test PostHDRSubTasks with surface node as app child
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest003, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_02, TestSize.Level1)
 {
-    auto screenNode = GenerateScreenNode();
-    auto appNode = GenerateAppNode();
-    auto leashNode = GenerateLeashNode();
-    auto surfaceNode = GenerateSurfaceNode();
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockExpectations(mockRSHeteroHDRManager);
     
     appNode->AddChild(surfaceNode);
-    auto rsContext = std::make_shared<RSContext>();
-    auto& nodeMap = rsContext->GetMutableNodeMap();
-    NodeId instanceRootNodeId = appNode->GetId();
-    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
-    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = appNode;
-    surfaceNode->context_ = rsContext;
-    surfaceNode->instanceRootNodeId_ = appNode->GetId();
+    SetupSurfaceContext(surfaceNode, appNode);
 
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-
-    leashNode->AddChild(appNode);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
+    
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
 }
 
 /**
- * @tc.name: PostHDRSubTasksTest004
- * @tc.desc: Test PostHDRSubTasks with screen node hierarchy
+ * @tc.name: PostHDRSubTasksTest002_03
+ * @tc.desc: Test PostHDRSubTasks with app node as leash child
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest004, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_03, TestSize.Level1)
 {
-    auto screenNode = GenerateScreenNode();
-    auto appNode = GenerateAppNode();
-    auto leashNode = GenerateLeashNode();
-    auto surfaceNode = GenerateSurfaceNode();
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockExpectations(mockRSHeteroHDRManager);
-    
-    auto appParams = GetRenderParams(appNode);
-    auto leashParams = GetRenderParams(leashNode);
-    
-    appParams->SetAncestorScreenNode(screenNode);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    leashNode->AddChild(appNode);
+    SetupSurfaceContext(surfaceNode, appNode);
 
-    leashParams->SetAncestorScreenNode(screenNode);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
+    
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
 }
 
 /**
- * @tc.name: PostHDRSubTasksTest005
+ * @tc.name: PostHDRSubTasksTest002_04
+ * @tc.desc: Test PostHDRSubTasks with ancestor screen node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_04, TestSize.Level1)
+{
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+    
+    SetupSurfaceContext(surfaceNode, appNode);
+    leashNode->AddChild(appNode);
+    
+    auto appParams = GetRenderParams(appNode);
+    appParams->SetAncestorScreenNode(screenNode);
+
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
+    
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
+}
+
+/**
+ * @tc.name: PostHDRSubTasksTest002_05
  * @tc.desc: Test PostHDRSubTasks with pending nodes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest005, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_05, TestSize.Level1)
 {
-    auto screenNode = GenerateScreenNode();
-    auto appNode = GenerateAppNode();
-    auto leashNode = GenerateLeashNode();
-    auto surfaceNode = GenerateSurfaceNode();
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockExpectations(mockRSHeteroHDRManager);
+    SetupSurfaceContext(surfaceNode, appNode);
+    leashNode->AddChild(appNode);
     
     auto leashParams = GetRenderParams(leashNode);
-    auto pendingNodes = RSUifirstManager::Instance().GetPendingPostNodes();
-    
-    std::weak_ptr<RSRenderNode> ancestorScreenNode;
-    leashParams->SetAncestorScreenNode(ancestorScreenNode);
-    pendingNodes.insert({surfaceNode->GetId(), surfaceNode});
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-
-    pendingNodes.erase({surfaceNode->GetId()});
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-
     leashParams->SetAncestorScreenNode(screenNode);
+
+    auto& pendingNodes = RSUifirstManager::Instance().GetPendingPostNodes();
     pendingNodes.insert({surfaceNode->GetId(), surfaceNode});
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
+    
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
+    
+    pendingNodes.erase(surfaceNode->GetId());
 }
 
 /**
- * @tc.name: PostHDRSubTasksTest006
- * @tc.desc: Test PostHDRSubTasks with paint and hardware conditions
+ * @tc.name: PostHDRSubTasksTest002_06
+ * @tc.desc: Test PostHDRSubTasks with painting skipped
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest006, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_06, TestSize.Level1)
 {
-    auto screenNode = GenerateScreenNode();
-    auto appNode = GenerateAppNode();
-    auto leashNode = GenerateLeashNode();
-    auto surfaceNode = GenerateSurfaceNode();
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockExpectations(mockRSHeteroHDRManager);
+    SetupSurfaceContext(surfaceNode, appNode);
+    leashNode->AddChild(appNode);
     
     auto appParams = GetRenderParams(appNode);
-    auto leashParams = GetRenderParams(leashNode);
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    leashParams->shouldPaint_ = false;
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
-
     appParams->shouldPaint_ = false;
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
 
-    surfaceParams->SetHardwareEnabled(true);
-    mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-    mockRSHeteroHDRManager.PostHDRSubTasks();
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
+    
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
 }
 
-// Helper function to set up mock expectations
-void SetupMockExpectations(MockRSHeteroHDRManager& mockManager)
+/**
+ * @tc.name: PostHDRSubTasksTest002_07
+ * @tc.desc: Test PostHDRSubTasks with hardware enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest002_07, TestSize.Level1)
 {
-    mockManager.isHeteroComputingHdrOn_ = true;
-    EXPECT_CALL(mockManager, MHCRequestEGraph(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockManager, MHCSetCurFrameId(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockManager, TryConsumeBuffer(_)).WillRepeatedly(testing::Return(true));
-    RSHeteroHDRHpae::GetInstance().MDCExistedStatus_.store(true);
-    mockManager.curHandleStatus_ = RSHeteroHDRHpae::GetInstance().existedChannelStatus_;
+    auto [screenNode, appNode, leashNode, surfaceNode] = GenerateTestNodes();
+    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+    
+    SetupSurfaceContext(surfaceNode, appNode);
+    leashNode->AddChild(appNode);
+    
+    auto surfaceParams = GetRenderParams(surfaceNode);
+    surfaceParams->SetHardwareEnabled(true);
+
+    MockRSHeteroHDRManager mock;
+    SetupMockForHDR(mock);
+    
+    mock.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+    mock.PostHDRSubTasks();
 }
 
 /**
@@ -750,7 +718,6 @@ HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest003, TestSize.Level1)
     shared_ptr<RSSurfaceRenderNode> leashNode;
     shared_ptr<RSSurfaceRenderNode> surfaceNode;
     GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
     auto rsContext = std::make_shared<RSContext>();
     auto& nodeMap = rsContext->GetMutableNodeMap();
     NodeId instanceRootNodeId = appNode->GetId();
@@ -758,45 +725,23 @@ HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest003, TestSize.Level1)
     nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = appNode;
     surfaceNode->context_ = rsContext;
     surfaceNode->instanceRootNodeId_ = appNode->GetId();
-    
     ASSERT_TRUE(surfaceNode != nullptr);
     auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     ASSERT_TRUE(surfaceHandler != nullptr);
     auto surfaceParams = GetRenderParams(surfaceNode);
     ASSERT_TRUE(surfaceParams != nullptr);
 
+    // all return true
     MockRSHeteroHDRManager mockRSHeteroHDRManager;
     mockRSHeteroHDRManager.isHeteroComputingHdrOn_ = true;
     EXPECT_CALL(mockRSHeteroHDRManager, MHCRequestEGraph(_)).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(mockRSHeteroHDRManager, MHCSetCurFrameId(_)).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(mockRSHeteroHDRManager, TryConsumeBuffer(_)).WillRepeatedly(testing::Return(true));
-    
     RSHeteroHDRHpae::GetInstance().MDCExistedStatus_.store(true);
     mockRSHeteroHDRManager.curHandleStatus_ = RSHeteroHDRHpae::GetInstance().existedChannelStatus_;
 
     mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
     mockRSHeteroHDRManager.PostHDRSubTasks();
-}
-
-/**
- * @tc.name: PostHDRSubTasksTest004
- * @tc.desc: Test PostHDRSubTasks with rotation
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest004, TestSize.Level1)
-{
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockManager(mockRSHeteroHDRManager);
     
     RSLayerInfo layerInfo = surfaceParams->GetLayerInfo();
     layerInfo.transformType = GRAPHIC_ROTATE_90;
@@ -808,29 +753,8 @@ HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest004, TestSize.Level1)
     surfaceParams->SetLayerInfo(layerInfo);
     mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
     mockRSHeteroHDRManager.PostHDRSubTasks();
-}
 
-/**
- * @tc.name: PostHDRSubTasksTest005
- * @tc.desc: Test PostHDRSubTasks with invalid dstRect
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest005, TestSize.Level1)
-{
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockManager(mockRSHeteroHDRManager);
-    
-    RSLayerInfo layerInfo = surfaceParams->GetLayerInfo();
+    // rect test
     layerInfo.dstRect.w = 0;
     layerInfo.dstRect.h = 1;
     surfaceParams->SetLayerInfo(layerInfo);
@@ -842,29 +766,9 @@ HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest005, TestSize.Level1)
     surfaceParams->SetLayerInfo(layerInfo);
     mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
     mockRSHeteroHDRManager.PostHDRSubTasks();
-}
+    layerInfo.dstRect.w = 1;
+    layerInfo.dstRect.h = 1;
 
-/**
- * @tc.name: PostHDRSubTasksTest006
- * @tc.desc: Test PostHDRSubTasks with invalid srcRect
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest006, TestSize.Level1)
-{
-    shared_ptr<RSScreenRenderNode> screenNode;
-    shared_ptr<RSSurfaceRenderNode> appNode;
-    shared_ptr<RSSurfaceRenderNode> leashNode;
-    shared_ptr<RSSurfaceRenderNode> surfaceNode;
-    GenerateValidSurfaceNode(screenNode, appNode, leashNode, surfaceNode);
-    
-    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    MockRSHeteroHDRManager mockRSHeteroHDRManager;
-    SetupMockManager(mockRSHeteroHDRManager);
-    
-    RSLayerInfo layerInfo = surfaceParams->GetLayerInfo();
     layerInfo.srcRect.w = 1;
     layerInfo.srcRect.h = 0;
     surfaceParams->SetLayerInfo(layerInfo);
@@ -876,17 +780,8 @@ HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest006, TestSize.Level1)
     surfaceParams->SetLayerInfo(layerInfo);
     mockRSHeteroHDRManager.UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
     mockRSHeteroHDRManager.PostHDRSubTasks();
-}
-
-// Helper function to set up mock manager
-void SetupMockManager(MockRSHeteroHDRManager& mockManager)
-{
-    mockManager.isHeteroComputingHdrOn_ = true;
-    EXPECT_CALL(mockManager, MHCRequestEGraph(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockManager, MHCSetCurFrameId(_)).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mockManager, TryConsumeBuffer(_)).WillRepeatedly(testing::Return(true));
-    RSHeteroHDRHpae::GetInstance().MDCExistedStatus_.store(true);
-    mockManager.curHandleStatus_ = RSHeteroHDRHpae::GetInstance().existedChannelStatus_;
+    layerInfo.srcRect.w = 1;
+    layerInfo.srcRect.h = 1;
 }
 
 /**
@@ -1127,42 +1022,19 @@ HWTEST_F(RSHeteroHDRManagerTest, PostHDRSubTasksTest022, TestSize.Level1)
  */
 HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest001, TestSize.Level1)
 {
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
     bool ret = RSHeteroHDRUtil::ValidateSurface(nullptr);
     EXPECT_EQ(ret, false);
-}
 
-/**
- * @tc.name: ValidateSurfaceTest002
- * @tc.desc: Test ValidateSurface without buffer
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest002, TestSize.Level1)
-{
     NodeId id = 5;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_TRUE(surfaceNode != nullptr);
     surfaceNode->InitRenderParams();
     auto surfaceParams = GetRenderParams(surfaceNode);
     ASSERT_NE(surfaceParams, nullptr);
-    
-    bool ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
     EXPECT_EQ(ret, false);
-}
 
-/**
- * @tc.name: ValidateSurfaceTest003
- * @tc.desc: Test ValidateSurface with valid parameters
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest003, TestSize.Level1)
-{
-    NodeId id = 5;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    surfaceNode->InitRenderParams();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -1173,118 +1045,97 @@ HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest003, TestSize.Level1)
         .timeout = 0,
     };
     surfaceParams->GetBuffer()->Alloc(requestConfig);
-    
+
     RSLayerInfo layerInfo;
     layerInfo.srcRect.w = 400;
     layerInfo.srcRect.h = 400;
     layerInfo.dstRect.w = 400;
     layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
-    
-    bool ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
     EXPECT_EQ(ret, true);
-}
 
-/**
- * @tc.name: ValidateSurfaceTest004
- * @tc.desc: Test ValidateSurface with invalid srcRect dimensions
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest004, TestSize.Level1)
-{
-    NodeId id = 5;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    surfaceNode->InitRenderParams();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
-    RSLayerInfo layerInfo;
+    layerInfo.srcRect.w = 0;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
-    
-    // Test various invalid srcRect dimensions
-    std::vector<std::tuple<int, int>> testCases = {
-        {0, 400}, {5000, 400}, {400, 0}, {400, 5000}
-    };
-    
-    for (const auto& [w, h] : testCases) {
-        layerInfo.srcRect.w = w;
-        layerInfo.srcRect.h = h;
-        layerInfo.dstRect.w = 400;
-        layerInfo.dstRect.h = 400;
-        surfaceParams->SetLayerInfo(layerInfo);
-        
-        bool ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
-        EXPECT_EQ(ret, false);
-    }
-}
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
 
-/**
- * @tc.name: ValidateSurfaceTest005
- * @tc.desc: Test ValidateSurface with invalid dstRect dimensions
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest005, TestSize.Level1)
-{
-    NodeId id = 5;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    surfaceNode->InitRenderParams();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
-    RSLayerInfo layerInfo;
-    
-    // Test various invalid dstRect dimensions
-    std::vector<std::tuple<int, int>> testCases = {
-        {0, 400}, {5000, 400}, {400, 0}, {400, 5000}
-    };
-    
-    for (const auto& [w, h] : testCases) {
-        layerInfo.srcRect.w = 400;
-        layerInfo.srcRect.h = 400;
-        layerInfo.dstRect.w = w;
-        layerInfo.dstRect.h = h;
-        surfaceParams->SetLayerInfo(layerInfo);
-        
-        bool ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
-        EXPECT_EQ(ret, false);
-    }
-}
+    layerInfo.srcRect.w = 5000;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
 
-/**
- * @tc.name: ValidateSurfaceTest006
- * @tc.desc: Test ValidateSurface with invalid buffer dimensions
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest006, TestSize.Level1)
-{
-    NodeId id = 5;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    surfaceNode->InitRenderParams();
-    auto surfaceParams = GetRenderParams(surfaceNode);
-    
-    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
-    RSLayerInfo layerInfo;
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 0;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 5000;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 0;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 5000;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 0;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 5000;
+    surfaceParams->SetLayerInfo(layerInfo);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, false);
+
+
     layerInfo.srcRect.w = 400;
     layerInfo.srcRect.h = 400;
     layerInfo.dstRect.w = 400;
     layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
-    
-    // Test invalid buffer dimensions
+
     surfaceParams->GetBuffer()->SetSurfaceBufferWidth(1);
     surfaceParams->GetBuffer()->SetSurfaceBufferHeight(0);
-    bool ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
     EXPECT_EQ(ret, false);
-    
+
     surfaceParams->GetBuffer()->SetSurfaceBufferWidth(0);
     surfaceParams->GetBuffer()->SetSurfaceBufferHeight(1);
     ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
     EXPECT_EQ(ret, false);
-    
-    // Test valid buffer dimensions
+
     surfaceParams->GetBuffer()->SetSurfaceBufferWidth(1);
     surfaceParams->GetBuffer()->SetSurfaceBufferHeight(1);
     ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
@@ -1739,263 +1590,243 @@ HWTEST_F(RSHeteroHDRManagerTest, DrawHDRBufferWithGPUTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenDrawHDRBufferParamsTest_Basic
- * @tc.desc: Test basic GenDrawHDRBufferParams functionality
+ * @tc.name: GenDrawHDRBufferParamsTest001
+ * @tc.desc: Test GenDrawHDRBufferParams basic parameters
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_Basic, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest001, TestSize.Level1)
 {
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(surfaceNode, nullptr);
-    
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    bool isFixedDstBuffer = false;
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+
     MDCRectT hpaeDstRect {0, 0, 100, 100};
     BufferDrawParam drawableParams;
-    
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
+    bool isFixedDstBuffer = false;
+
+    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+        isFixedDstBuffer, drawableParams);
+
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
     surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    ASSERT_NE(surfaceParams, nullptr);
-    
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
+    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+        isFixedDstBuffer, drawableParams);
 }
 
 /**
- * @tc.name: GenDrawHDRBufferParamsTest_LayerInfo
- * @tc.desc: Test GenDrawHDRBufferParams with layer info
+ * @tc.name: GenDrawHDRBufferParamsTest002
+ * @tc.desc: Test GenDrawHDRBufferParams with buffer setup
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_LayerInfo, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest002, TestSize.Level1)
 {
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
     surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(
+        surfaceDrawable->GetRenderParams().get());
+
     RSLayerInfo layerInfo;
-    layerInfo.srcRect.w = 1;
-    layerInfo.srcRect.h = 1;
-    layerInfo.dstRect.w = 1;
-    layerInfo.dstRect.h = 1;
-    layerInfo.transformType = GRAPHIC_ROTATE_NONE;
+    layerInfo.srcRect = {1, 1};
+    layerInfo.dstRect = {1, 1};
     surfaceParams->SetLayerInfo(layerInfo);
-    
-    bool isFixedDstBuffer = false;
-    MDCRectT hpaeDstRect {0, 0, 100, 100};
-    BufferDrawParam drawableParams;
-    
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-}
-
-/**
- * @tc.name: GenDrawHDRBufferParamsTest_Buffer
- * @tc.desc: Test GenDrawHDRBufferParams with buffer configuration
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_Buffer, TestSize.Level1)
-{
-    NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
-    auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
-    surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
+    
     BufferRequestConfig requestConfig = {
         .width = 0x100,
         .height = 0x100,
-        .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE,
     };
     surfaceParams->GetBuffer()->Alloc(requestConfig);
     surfaceParams->SetHardwareEnabled(true);
-    
-    bool isFixedDstBuffer = false;
+
+    auto hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
+    hdrSurfaceHandler->SetConsumer(IConsumerSurface::Create("test consumer"));
+    RSUniRenderThread::Instance().uniRenderEngine_ = 
+        std::make_shared<RSRenderEngine>();
+
     MDCRectT hpaeDstRect {0, 0, 100, 100};
     BufferDrawParam drawableParams;
-    
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
+    bool isFixedDstBuffer = false;
+    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+        isFixedDstBuffer, drawableParams);
 }
 
 /**
- * @tc.name: GenDrawHDRBufferParamsTest_Matrix
+ * @tc.name: GenDrawHDRBufferParamsTest003
  * @tc.desc: Test GenDrawHDRBufferParams with matrix transformation
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_Matrix, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest003, TestSize.Level1)
 {
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
     surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(
+        surfaceDrawable->GetRenderParams().get());
+
     RSLayerInfo layerInfo;
     layerInfo.matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceParams->SetLayerInfo(layerInfo);
-    
-    bool isFixedDstBuffer = false;
+
     MDCRectT hpaeDstRect {0, 0, 100, 100};
     BufferDrawParam drawableParams;
-    
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
+    bool isFixedDstBuffer = false;
+    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+        isFixedDstBuffer, drawableParams);
 }
 
 /**
- * @tc.name: GenDrawHDRBufferParamsTest_FixedDstBuffer
+ * @tc.name: GenDrawHDRBufferParamsTest004
  * @tc.desc: Test GenDrawHDRBufferParams with fixed destination buffer
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_FixedDstBuffer, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest004, TestSize.Level1)
 {
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
-    auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
-    surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
-    bool isFixedDstBuffer = true;
-    MDCRectT hpaeDstRect {0, 0, 100, 100};
-    BufferDrawParam drawableParams;
-    
-    // Test different srcRect configurations
-    drawableParams.srcRect.SetRight(0.0);
-    drawableParams.srcRect.SetBottom(0.0);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    drawableParams.srcRect.SetRight(0.0);
-    drawableParams.srcRect.SetBottom(1.0);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    drawableParams.srcRect.SetRight(1.0);
-    drawableParams.srcRect.SetBottom(0.0);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    drawableParams.srcRect.SetRight(1.0);
-    drawableParams.srcRect.SetBottom(1.0);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-}
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
 
-/**
- * @tc.name: GenDrawHDRBufferParamsTest_ScalingMode
- * @tc.desc: Test GenDrawHDRBufferParams with different scaling modes
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_ScalingMode, TestSize.Level1)
-{
-    NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
     surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
-    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
-    surfaceParams->GetBuffer()->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_FIT);
-    
-    bool isFixedDstBuffer = true;
-    MDCRectT hpaeDstRect {0, 0, 100, 100};
-    BufferDrawParam drawableParams;
-    
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-}
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(
+        surfaceDrawable->GetRenderParams().get());
 
-/**
- * @tc.name: GenDrawHDRBufferParamsTest_BufferTransform
- * @tc.desc: Test GenDrawHDRBufferParams with buffer transformations
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_BufferTransform, TestSize.Level1)
-{
-    NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
-    auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
-    surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
-    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     RSLayerInfo layerInfo;
-    
-    bool isFixedDstBuffer = true;
+    layerInfo.srcRect = {1, 1};
+    layerInfo.dstRect = {1, 1};
+    surfaceParams->SetLayerInfo(layerInfo);
+
     MDCRectT hpaeDstRect {0, 0, 100, 100};
     BufferDrawParam drawableParams;
-    
-    // Test different buffer transforms
-    surfaceParams->GetBuffer()->SetSurfaceBufferTransform(GRAPHIC_ROTATE_90);
-    surfaceParams->SetLayerInfo(layerInfo);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    surfaceParams->GetBuffer()->SetSurfaceBufferTransform(GRAPHIC_ROTATE_180);
-    surfaceParams->SetLayerInfo(layerInfo);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    surfaceParams->GetBuffer()->SetSurfaceBufferTransform(GRAPHIC_ROTATE_270);
-    surfaceParams->SetLayerInfo(layerInfo);
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
+    bool isFixedDstBuffer = true;
+
+    auto TestCombination = [&](float right, float bottom) {
+        drawableParams.srcRect.SetRight(right);
+        drawableParams.srcRect.SetBottom(bottom);
+        RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+            isFixedDstBuffer, drawableParams);
+    };
+
+    TestCombination(0.0, 0.0);
+    TestCombination(0.0, 1.0);
+    TestCombination(1.0, 0.0);
+    TestCombination(1.0, 1.0);
 }
 
 /**
- * @tc.name: GenDrawHDRBufferParamsTest_HpaeDstRect
- * @tc.desc: Test GenDrawHDRBufferParams with different destination rectangles
+ * @tc.name: GenDrawHDRBufferParamsTest005
+ * @tc.desc: Test GenDrawHDRBufferParams with scaling mode
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest_HpaeDstRect, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest005, TestSize.Level1)
 {
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
-    
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
     surfaceDrawable->renderParams_ = std::move(drawableParam);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceDrawable->GetRenderParams().get());
-    
-    bool isFixedDstBuffer = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(
+        surfaceDrawable->GetRenderParams().get());
+
+    surfaceParams->GetBuffer()->SetSurfaceBufferScalingMode(
+        ScalingMode::SCALING_MODE_SCALE_FIT);
+
+    MDCRectT hpaeDstRect {0, 0, 100, 100};
     BufferDrawParam drawableParams;
-    
-    // Test different hpaeDstRect configurations
+    bool isFixedDstBuffer = true;
+    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+        isFixedDstBuffer, drawableParams);
+}
+
+/**
+ * @tc.name: GenDrawHDRBufferParamsTest006
+ * @tc.desc: Test GenDrawHDRBufferParams with buffer transform
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest006, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+
+    auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
+    surfaceDrawable->renderParams_ = std::move(drawableParam);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(
+        surfaceDrawable->GetRenderParams().get());
+
+    RSLayerInfo layerInfo;
+    surfaceParams->SetLayerInfo(layerInfo);
+    MDCRectT hpaeDstRect {0, 0, 100, 100};
+    BufferDrawParam drawableParams;
+    bool isFixedDstBuffer = true;
+
+    auto TestRotation = [&](GraphicTransformType rotation) {
+        surfaceParams->GetBuffer()->SetSurfaceBufferTransform(rotation);
+        RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+            isFixedDstBuffer, drawableParams);
+    };
+
+    TestRotation(GRAPHIC_ROTATE_90);
+    TestRotation(GRAPHIC_ROTATE_180);
+    TestRotation(GRAPHIC_ROTATE_270);
+}
+
+/**
+ * @tc.name: GenDrawHDRBufferParamsTest007
+ * @tc.desc: Test GenDrawHDRBufferParams with different hpaeDstRect sizes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest007, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceDrawable = std::make_shared<
+        DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+
+    auto drawableParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable->nodeId_);
+    surfaceDrawable->renderParams_ = std::move(drawableParam);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(
+        surfaceDrawable->GetRenderParams().get());
+
     const Rosen::Drawing::Rect boundsRect {0, 0, 100, 100};
     surfaceParams->SetBoundsRect(boundsRect);
-    
-    MDCRectT hpaeDstRect = {0, 0, 120, 20};
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    hpaeDstRect = {0, 0, 20, 20};
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    hpaeDstRect = {0, 0, 100, 100};
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    hpaeDstRect = {0, 0, 0, 100};
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
-    
-    hpaeDstRect = {0, 0, 100, 0};
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, isFixedDstBuffer, drawableParams);
+    bool isFixedDstBuffer = true;
+    BufferDrawParam drawableParams;
+
+    auto TestRect = [&](int w, int h) {
+        MDCRectT rect = {0, 0, w, h};
+        RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, rect, 
+            isFixedDstBuffer, drawableParams);
+    };
+
+    TestRect(120, 20);
+    TestRect(120, 20);
+    TestRect(20, 20);
+    TestRect(100, 100);
+    TestRect(0, 100);
+    TestRect(100, 0);
 }
 
 /**

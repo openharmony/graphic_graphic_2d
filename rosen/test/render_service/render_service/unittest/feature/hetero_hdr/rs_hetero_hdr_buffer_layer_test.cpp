@@ -69,7 +69,7 @@ public:
  * @tc.name: PrepareHDRDstBufferTest
  * @tc.desc: Test PrepareHDRDstBuffer
  * @tc.type: FUNC
- * @tc.require: 
+* @tc.require:
  */
 HWTEST_F(RSHeteroHDRBufferLayerTest, PrepareHDRDstBufferTest, TestSize.Level1)
 {
@@ -134,7 +134,7 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, PrepareHDRDstBufferTest, TestSize.Level1)
  * @tc.name: ConsumeAndUpdateBufferTest
  * @tc.desc: Test ConsumeAndUpdateBuffer
  * @tc.type: FUNC
- * @tc.require: 
+* @tc.require:
  */
 HWTEST_F(RSHeteroHDRBufferLayerTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
 {
@@ -208,7 +208,7 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, RequestSurfaceBufferTest, TestSize.Level1)
  * @tc.name: CreateSurfaceTest
  * @tc.desc: Test CreateSurface
  * @tc.type: FUNC
- * @tc.require: 
+* @tc.require:
  */
 HWTEST_F(RSHeteroHDRBufferLayerTest, CreateSurfaceTest, TestSize.Level1)
 {
@@ -244,7 +244,7 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, CreateSurfaceTest, TestSize.Level1)
  * @tc.name: ReleaseBufferTest
  * @tc.desc: Test ReleaseBuffer
  * @tc.type: FUNC
- * @tc.require: 
+* @tc.require:
  */
 HWTEST_F(RSHeteroHDRBufferLayerTest, ReleaseBufferTest, TestSize.Level1)
 {
@@ -273,7 +273,7 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, ReleaseBufferTest, TestSize.Level1)
  * @tc.name: CleanCacheTest
  * @tc.desc: Test CleanCache
  * @tc.type: FUNC
- * @tc.require: 
+* @tc.require:
  */
 HWTEST_F(RSHeteroHDRBufferLayerTest, CleanCacheTest, TestSize.Level1)
 {

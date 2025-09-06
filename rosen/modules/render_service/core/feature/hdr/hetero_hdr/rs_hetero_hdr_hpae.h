@@ -13,211 +13,249 @@
  * limitations under the License.
  */
 
-#ifndef RS_HETERO_HDR_HPAE_H 
+#ifndef RS_HETERO_HDR_HPAE_H
 #define RS_HETERO_HDR_HPAE_H
 
+#include <condition_variable>
 #include <cstdint>
+#include <dlfcn.h>
+#include <set>
+#include <unordered_map>
+#include <vector>
+
+#include <buffer_handle.h>
+
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "rs_trace.h"
+#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
-inline constexpr int DVFS_LEVEL_MIDDLE = 3;
-inline constexpr int DVFS_LEVEL_HIGH = 4;
-inline constexpr float MAX_SCALE_ARSR = 2.0;
-// for scene id capability bit0 ~ bit55
-inline constexpr uint64_t MDC_CAP_HEBCE = 1;
-inline constexpr uint64_t MDC_CAP_UVUP = 1 << 1;
-inline constexpr uint64_t MDC_CAP_SCALE = 1 << 2;
-inline constexpr uint64_t MDC_CAP_ROT = 1 << 3;
-inline constexpr uint64_t MDC_CAP_HDR = 1 << 4;
-inline constexpr uint64_t MDC_USER_RS_VIDEO_HDR = 1ULL << 35;
-inline constexpr uint64_t HDR_VIDEO_USER_TYPE = MDC_CAP_HEBCE | MDC_CAP_HDR | MDC_CAP_ROT |
-    MDC_CAP_SCALE | MDC_USER_RS_VIDEO_HDR;
-inline constexpr uint64_t AIHDR_VIDEO_USER_TYPE = MDC_CAP_HEBCE | MDC_CAP_ROT | MDC_CAP_SCALE | MDC_USER_RS_VIDEO_HDR;
+/* Rectangle */
+using MDCRectT = struct MDCRectT {
+    int32_t left;
+    int32_t top;
+    int32_t right;
+    int32_t bottom;
+};
 
-RSHeteroHDRHpae& RSHeteroHDRHpae::GetInstance()
-{
-    static RSHeteroHDRHpae instance;
-    return instance;
-}
+/* Request MDC effect resources */
+enum EffectResourceRequest {
+    EFFECT_NONE,
+    EFFECT_ARSR = 1ULL << 0,
+    EFFECT_HDR = 1ULL << 1,
+    ROUNDED_CORNER = 1ULL << 2,
+    AIHDR_ENHANCE_MODE = 1ULL << 3,
+    AIHDR_HIGHLIGHT_MODE = 1ULL << 4,
+    AIHDR_ENHANCE_LUT = 1ULL << 5,
+    AIHDR_HIGHLIGHT_LUT = 1ULL << 6,
+};
 
-RSHeteroHDRHpae::RSHeteroHDRHpae()
-{
-    MDCHandle_ = dlopen(MDCLib_, RTLD_NOW);
-    if (MDCHandle_ == nullptr) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRHpae dlopen MDClib is failed");
-        return;
-    }
-    *reinterpret_cast<void**>(&getMDCDevice) = dlsym(MDCHandle_, "GetMdcDevice");
-    if (getMDCDevice == nullptr) {
-        dlclose(MDCHandle_);
-        MDCHandle_ = nullptr;
-    }
-    MDCDev_ = getMDCDevice();
-    if (MDCDev_ == nullptr) {
-        dlclose(MDCHandle_);
-        MDCHandle_ = nullptr;
-        getMDCDevice = nullptr;
-        RS_LOGE("[hdrHetero]:RSHeteroHDRHpae getMDCDevice is failed");
-        return;
-    }
-}
-
-RSHeteroHDRHpae::~RSHeteroHDRHpae()
-{
-    if (MDCHandle_) {
-        dlclose(MDCHandle_);
-        MDCHandle_ = nullptr;
-        MDCDev_ = nullptr;
-    }
-}
-
-bool RSHeteroHDRHpae::IsHpaeAvailable() const
-{
-    return (MDCDev_ && MDCHandle_);
-}
-
-void RSHeteroHDRHpae::SetEffectResourceRequest(HdrStatus curHandleHdrStatus)
-{
-    if (curHandleHdrStatus == AI_HDR_VIDEO_GAINMAP) {
-        MDCContent_.effectResourceRequest = AIHDR_HIGHLIGHT_MODE;
-        return;
-    }
+using MDCContentsT = struct MDCCopybitContents {
     /*
-    * The precondition has already determined that the width and height of dstBuffer are not zero,
-    * so there is no need to check them here.
+     * Request Direct MDC Channel
+     *
+     * MDC_POWER_UP = 0x1,
+     * MDC_POWER_DOWN = 0x2,
+     *
+     */
+    union {
+        uint32_t powerMode;
+        uint32_t MDCPowerMode;
+    };
+
+    /*
+     * Request Direct MDC Channel
+     *
+     * MDC_VOLTAGE_LOW = 0x1,
+     * MDC_VOLTAGE_NORMAL = 0x2,
+     * MDC_VOLTAGE_HIGH = 0x3,
+     */
+    union {
+        uint32_t MDCVoltaLev;
+        uint32_t perfLev;
+    };
+
+    /*
+     * MUST use copybit to compose,
+     * input param: 1 is needed.
+     * only for ISP and online play used.
+     */
+    union {
+        uint32_t needHold;
+        uint32_t hold;
+    };
+    /*
+     * handle secure buffer(drm),
+     * input param: 1 is secure.
+     * default 0 is non-secure
+     */
+    uint32_t secure;
+
+    /*
+     * Transformation to apply to the buffer during copybit.
+     * Reference system/core/include/system/window.h defined
+     * Set default value: 0
+     * 90 degrees: NATIVE_WINDOW_TRANSFORM_ROT_90
+     */
+    uint32_t transform;
+
+    /*
+     * This is the information of the source buffer to copybit. This handle
+     * is guaranteed to have been allocated from gralloc by caller.
+     * The width, height and format have been set.
+     */
+    union {
+        BufferHandle* srcBufferHandle;
+
+        BufferHandle* srcHandle;
+
+        uint64_t srcHandlePadding;
+    };
+
+    /*
+     * This is the information of the destination buffer to copybit. This handle
+     * is guaranteed to have been allocated from gralloc by caller.
+     * The width, height and format have been set.
+     */
+    union {
+        BufferHandle* dstBufferHandle;
+
+        BufferHandle* dstHandle;
+
+        uint64_t dstHandlePadding;
+    };
+
+    /*
+     * Area of the source to consider, the origin is the top-left corner of
+     * the buffer.
+     */
+    MDCRectT srcRect;
+
+    /* where to copybit the source rect onto the display. */
+    MDCRectT dstRect;
+
+    /*
+     * Sync fence object that will be signaled when the buffer's
+     * contents are available. May be -1 if the contents are already
+     * available. but the MDC must wait for the source buffer
+     * to be signaled before reading from them.
+     */
+    int32_t acquireFenceFd;
+
+    /*
+     * Sync fence object that will be signaled when the buffer's
+     * contents are available. May be -1 if the contents are already
+     * available. but the caller must wait for the destination buffer
+     * to be signaled before reading from them. The destination buffer will
+     * be signaled when MDC copybit operation had been finished.
+     */
+    int32_t releaseFenceFd;
+
+    /* Refer to the definition of the EffectResourceRequest enumeration values. */
+    uint64_t effectResourceRequest = 0;
+
+    /*
+    * MDC support async & sync ffts task
     */
-    float wRatio = float(MDCContent_.srcRect.right - MDCContent_.srcRect.left) /
-                   float(MDCContent_.dstRect.right - MDCContent_.dstRect.left);
-    float hRatio = float(MDCContent_.srcRect.bottom - MDCContent_.srcRect.top) /
-                   float(MDCContent_.dstRect.bottom - MDCContent_.dstRect.top);
+    bool isAsyncTask = false;
 
-    bool scaleARSR = (wRatio < MAX_SCALE_ARSR && hRatio < MAX_SCALE_ARSR);
-    if (scaleARSR) {
-        MDCContent_.effectResourceRequest = EFFECT_HDR | EFFECT_ARSR;
-    } else {
-        MDCContent_.effectResourceRequest = EFFECT_HDR;
-    }
-}
+    /*
+    * taskId For async mode to destroy cmdlist
+    */
+    uint32_t* taskId;
 
-int32_t RSHeteroHDRHpae::BuildHpaeHDRTask(HpaeTaskInfoT& taskInfo)
-{
-    if (taskInfo.dstRect.right == 0 || taskInfo.dstRect.bottom == 0) {
-        *(taskInfo.taskPtr) = nullptr;
-        RS_LOGE("[hdrHetero]:RSHeteroHDRHpae BuildHpaeHDRTask dstRect is invalid");
-        return -1;
-    }
-    if (!(MDCExistedStatus_.load())) {
-        return -1;
-    }
-    MDCContent_.srcRect = taskInfo.srcRect;
-    MDCContent_.dstRect = taskInfo.dstRect;
-    MDCContent_.perfLev = DVFS_LEVEL_HIGH;
-    MDCContent_.transform = taskInfo.transform;
-    MDCContent_.srcHandle = taskInfo.srcHandle;
-    MDCContent_.dstHandle = taskInfo.dstHandle;
-    MDCContent_.acquireFenceFd = taskInfo.acquireFenceFd;
-    MDCContent_.releaseFenceFd = taskInfo.releaseFenceFd;
-    MDCContent_.displaySdrNit = taskInfo.displaySdrNit;
-    MDCContent_.displayHdrNit = taskInfo.displayHdrNit;
-    MDCContent_.isAsyncTask = true;
-    MDCContent_.taskId = taskInfo.taskId;
-    MDCContent_.taskPtr = taskInfo.taskPtr;
+    /*
+    * taskPtr(cmdlistHeader) For async mode to submit task
+    */
+    void** taskPtr;
 
-    SetEffectResourceRequest(taskInfo.curHandleStatus);
+    int32_t expectRunTime = -1;
 
-    int ret = MDCDev_->copybit(MDCDev_, 0, &MDCContent_);
+    /*
+    * accept nit from rs
+    */
+    float displaySdrNit;
+    float displayHdrNit;
+};
 
-    RS_LOGD("[hdrHetero]:RSHeteroHDRHpae BuildHpaeHDRTask compose ret:%{public}d copybit taskId:%{public}d",
-        ret, *MDCContent_.taskId);
+/*
+ * Support set more prelayers
+ * for AIHDR lut layer
+ * for cld top bottom layers.
+ */
+struct MDCLayerInfoT {
+    uint32_t transform = 0;
+    uint64_t effectResourceRequest = 0;
+    MDCRectT srcRect;
+    MDCRectT dstRect;
+    BufferHandle* handle;
+};
 
-    if (ret != 0) {
-        MDCStatus_.store(false);
-        MDCDev_->destroyTask(*MDCContent_.taskId);
-        MDCContent_.taskPtr = nullptr;
-        return -1;
-    }
-    MDCStatus_.store(true);
-    return 0;
-}
+/*
+ * Every device data structure must begin with hw_device_t
+ * followed by module specific public methods and attributes.
+ */
+struct MDCDeviceT {
+    int (*copybit)(struct MDCDeviceT* dev, int channel, MDCContentsT* hwLayers);
+    int (*requestPowerMode)(struct MDCDeviceT* dev, int powerMode);
+    int (*requestVoltaLev)(struct MDCDeviceT* dev, int voltaLev);
+    int (*requestCoreClkLev)(struct MDCDeviceT* dev, int coreClkLev);
+    int (*requestChannel)(struct MDCDeviceT* dev);
+    int (*releaseChannel)(struct MDCDeviceT* dev, int channel);
+    int (*requestChannelByCap)(struct MDCDeviceT* dev, uint64_t needCaps);
+    bool (*checkResourceConflict) (struct MDCDeviceT* dev, uint64_t needCaps);
+    void (*dump)(struct MDCDeviceT* dev);
+    int (*setMultiPreLayers)(std::vector<MDCLayerInfoT>& preLayers);
+    void (*destroyTask)(uint32_t taskId);
+};
 
-uint64_t RSHeteroHDRHpae::GetChannelCaps(HdrStatus curHandleHdrStatus)
-{
-    uint64_t channelCap = 0;
-    if (curHandleHdrStatus == HDR_VIDEO) {
-        channelCap = HDR_VIDEO_USER_TYPE;
-    } else if (curHandleHdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP) {
-        channelCap = AIHDR_VIDEO_USER_TYPE;
-    }
-    return channelCap;
-}
+struct HpaeTaskInfoT {
+    void** taskPtr;
+    uint32_t* taskId;
+    MDCRectT srcRect;
+    MDCRectT dstRect;
+    int transform = 0;
+    BufferHandle* srcHandle;
+    BufferHandle* dstHandle;
+    int32_t acquireFenceFd = -1;
+    int32_t releaseFenceFd = -1;
+    float displaySdrNit = 500.0f; // default SDR 500 nit
+    float displayHdrNit = 500.0f; // default HDR 500 nit
+    HdrStatus curHandleStatus = HdrStatus::NO_HDR;
+};
 
-int32_t RSHeteroHDRHpae::RequestHpaeChannel(HdrStatus curHandleHdrStatus)
-{
-    if (MDCExistedStatus_.load()) {
-        if (existedChannelStatus_.load() == curHandleHdrStatus) {
-            return 0;
-        } else {
-            ReleaseHpaeHDRChannel();
-        }
-    }
-    if (MDCDev_->requestChannelByCap == nullptr) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRHpae RequestHpaeChannel requestChannelByCap is null");
-        return -1;
-    }
-    int channelStatus = -1;
-    uint64_t channelCap = GetChannelCaps(curHandleHdrStatus);
-    if (channelCap != 0) {
-        channelStatus = MDCDev_->requestChannelByCap(MDCDev_, channelCap);
-    }
-    if (channelStatus < 0) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRHpae RequestHpaeChannel request MDC channel failed caps:%{public}" PRIu64,
-            channelCap);
-        return channelStatus;
-    }
-    MDCExistedStatus_.store(true);
-    existedChannelStatus_.store(curHandleHdrStatus);
-    return 0;
-}
+class RSHeteroHDRHpae {
+public:
+    static RSHeteroHDRHpae& GetInstance();
+    bool IsHpaeAvailable() const;
+    int32_t BuildHpaeHDRTask(HpaeTaskInfoT& taskInfo);
+    int32_t RequestHpaeChannel(HdrStatus curHandleHdrStatus);
+    bool CheckHpaeAccessible(HdrStatus curHandleHdrStatus);
+    void DestroyHpaeHDRTask(uint32_t taskId);
+    void ReleaseHpaeHDRChannel();
+private:
+    RSHeteroHDRHpae();
+    ~RSHeteroHDRHpae();
+    RSHeteroHDRHpae(const RSHeteroHDRHpae&) = delete;
+    RSHeteroHDRHpae(const RSHeteroHDRHpae&&) = delete;
+    RSHeteroHDRHpae& operator=(const RSHeteroHDRHpae&) = delete;
+    RSHeteroHDRHpae& operator=(const RSHeteroHDRHpae&&) = delete;
+    void SetEffectResourceRequest(HdrStatus curHandleHdrStatus);
+    uint64_t GetChannelCaps(HdrStatus curHandleHdrStatus);
 
-bool RSHeteroHDRHpae::CheckHpaeAccessible(HdrStatus curHandleHdrStatus)
-{
-    if (RequestHpaeChannel(curHandleHdrStatus) != 0) {
-        return false;
-    }
-    bool isConflict = true;
-    uint64_t channelCap = GetChannelCaps(curHandleHdrStatus);
-    if (channelCap != 0) {
-        isConflict = MDCDev_->checkResourceConflict(MDCDev_, channelCap);
-    } else {
-        RS_LOGW("[hdrHetero]:RSHeteroHDRHpae CheckHpaeAccessible channelCap is invalid");
-        return false;
-    }
-    if (isConflict) {
-        RS_LOGW("[hdrHetero]:RSHeteroHDRHpae CheckHpaeAccessible Hpae is conflict:%{public}" PRIu64, channelCap);
-        ReleaseHpaeHDRChannel();
-        return false;
-    }
-    return true;
-}
-
-void RSHeteroHDRHpae::DestroyHpaeHDRTask(uint32_t taskId)
-{
-    if (MDCStatus_.load()) {
-        MDCDev_->destroyTask(taskId);
-        MDCStatus_.store(true);
-    }
-}
-
-void RSHeteroHDRHpae::ReleaseHpaeHDRChannel()
-{
-    if (MDCExistedStatus_.load() && MDCDev_ != nullptr) {
-        RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRHpae ReleaseHpaeHDRChannel");
-        MDCDev_->releaseChannel(MDCDev_, 0);
-        MDCExistedStatus_.store(false);
-        existedChannelStatus_.store(HdrStatus::NO_HDR);
-        RS_LOGD("[hdrHetero]:RSHeteroHDRHpae ReleaseHpaeHDRChannel done");
-    }
-}
+    void* MDCHandle_ = nullptr;
+    const char* MDCLib_ = "/vendor/lib64/libmediacomm.z.so";
+    MDCDeviceT* (*getMDCDevice)() = nullptr;
+    MDCDeviceT* MDCDev_ = nullptr;
+    MDCContentsT MDCContent_;
+    std::atomic<bool> MDCStatus_{ false };
+    std::atomic<bool> MDCExistedStatus_{ false };
+    std::atomic<HdrStatus> existedChannelStatus_{ HdrStatus::NO_HDR };
+};
 } // namespace Rosen
 } // namespace OHOS
+
 #endif // RS_HETERO_HDR_HPAE_H

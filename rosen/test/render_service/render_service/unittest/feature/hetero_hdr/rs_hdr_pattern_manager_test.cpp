@@ -109,7 +109,7 @@ void RSHDRPatternManagerTest::TearDown() { RS_LOGI("TearDown--------------------
  * @tc.name: RSHDRPatternManagerInterfaceTest
  * @tc.desc: Test RSHDRPatternManager interface
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, RSHDRPatternManagerInterfaceTest, TestSize.Level1)
 {
@@ -134,7 +134,7 @@ HWTEST_F(RSHDRPatternManagerTest, RSHDRPatternManagerInterfaceTest, TestSize.Lev
  * @tc.name: MHCDlOpenTest
  * @tc.desc: Test MHCDlOpen
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
 {
@@ -152,7 +152,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlOpenTest, TestSize.Level1)
  * @tc.name: MHCGraphPatternInitTest
  * @tc.desc: Test MHCGraphPatternInit
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
 {
@@ -182,7 +182,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
  * @tc.name: MHCRequestEGraphTest
  * @tc.desc: Test MHCRequestEGraph
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
 {
@@ -200,7 +200,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
  * @tc.name: MHCSubmitHDRTaskTest
  * @tc.desc: Test MHCSubmitHDRTask
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCSubmitHDRTaskTest, TestSize.Level1)
 {
@@ -220,7 +220,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCSubmitHDRTaskTest, TestSize.Level1)
  * @tc.name: MHCSubmitVulkanTaskTest
  * @tc.desc: Test MHCSubmitVulkanTask
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCSubmitVulkanTaskTest, TestSize.Level1)
 {
@@ -241,7 +241,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCSubmitVulkanTaskTest, TestSize.Level1)
  * @tc.name: MHCWaitTest
  * @tc.desc: Test MHCWait
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCWaitTest, TestSize.Level1)
 {
@@ -259,7 +259,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCWaitTest, TestSize.Level1)
  * @tc.name: MHCGetVulkanTaskWaitEventTest
  * @tc.desc: Test MHCGetVulkanTaskWaitEvent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.Level1)
 {
@@ -280,7 +280,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskWaitEventTest, TestSize.Level1
  * @tc.name: MHCGetVulkanTaskNotifyEventTest
  * @tc.desc: Test MHCGetVulkanTaskNotifyEvent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize.Level1)
 {
@@ -301,7 +301,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetVulkanTaskNotifyEventTest, TestSize.Leve
  * @tc.name: MHCReleaseEGraphTest
  * @tc.desc: Test MHCReleaseEGraph
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
 {
@@ -319,7 +319,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCReleaseEGraphTest, TestSize.Level1)
  * @tc.name: MHCReleaseAllTest
  * @tc.desc: Test MHCReleaseAll
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCReleaseAllTest, TestSize.Level1)
 {
@@ -337,7 +337,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCReleaseAllTest, TestSize.Level1)
  * @tc.name: MHCDlsymInvalidTest
  * @tc.desc: Test MHCDlsymInvalid
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCDlsymInvalidTest, TestSize.Level1)
 {
@@ -383,7 +383,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlsymInvalidTest, TestSize.Level1)
  * @tc.name: MHCGetFrameIdForGPUTaskTest_Branch1
  * @tc.desc: Test MHCGetFrameIdForGPUTask branch 1 scenarios
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch1, TestSize.Level1)
 {
@@ -418,7 +418,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch1, TestSize.Leve
  * @tc.name: MHCGetFrameIdForGPUTaskTest_Branch2
  * @tc.desc: Test MHCGetFrameIdForGPUTask branch 2 scenarios
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch2, TestSize.Level1)
 {
@@ -452,7 +452,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch2, TestSize.Leve
  * @tc.name: MHCGetFrameIdForGPUTaskTest_Branch3
  * @tc.desc: Test MHCGetFrameIdForGPUTask branch 3 scenarios
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch3, TestSize.Level1)
 {
@@ -489,7 +489,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch3, TestSize.Leve
  * @tc.name: PrepareHDRSemaphoreVectorTest
  * @tc.desc: Test PrepareHDRSemaphoreVector
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHDRPatternManagerTest, PrepareHDRSemaphoreVectorTest, TestSize.Level1)
 {
