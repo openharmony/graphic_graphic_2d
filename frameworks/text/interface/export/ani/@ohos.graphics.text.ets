@@ -53,10 +53,10 @@ namespace text {
 
     constructor() {
       this.constructorNative();
-      this.registerCleaner(this.nativeObj);
     };
     native constructorNative(): void;
-    registerCleaner(ptr: long): void {
+    registerNative(ptr: long): void {
+      this.nativeObj = ptr;
       this.cleaner = new Cleaner("FontCollection", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
@@ -108,10 +108,10 @@ namespace text {
     private cleaner: Cleaner | null = null;
     constructor(paragraphStyle: ParagraphStyle, fontCollection: FontCollection) {
       this.constructorNative(paragraphStyle, fontCollection);
-      this.registerCleaner(this.nativeObj);
     };
     native constructorNative(paragraphStyle: ParagraphStyle, fontCollection: FontCollection): void;
-    registerCleaner(ptr: long): void {
+    registerNative(ptr: long): void {
+      this.nativeObj = ptr;
       this.cleaner = new Cleaner("ParagraphBuilder", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
@@ -151,11 +151,9 @@ namespace text {
     static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-    constructor() {
-      this.registerCleaner(this.nativeObj);
-    };
-    registerCleaner(ptr: long): void {
-      this.cleaner = new Cleaner("Typography", ptr);
+    registerNative(ptr: long): void {
+      this.nativeObj = ptr;
+      this.cleaner = new Cleaner("Paragraph", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
     native layoutSync(width: double): void;
@@ -679,12 +677,9 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-
-    constructor() {
-      this.registerCleaner("TextLine", this.nativeObj);
-    };
-    registerCleaner(className: string, ptr: long): void {
-      this.cleaner = new Cleaner(className , ptr);
+    registerNative(ptr: long): void {
+      this.nativeObj = ptr;
+      this.cleaner = new Cleaner("TextLine", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
     native getGlyphCount(): int;
@@ -728,12 +723,9 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-
-    constructor() {
-      this.registerCleaner("Run", this.nativeObj);
-    };
-    registerCleaner(className: string, ptr: long): void {
-      this.cleaner = new Cleaner(className , ptr);
+    registerNative(ptr: long): void {
+      this.nativeObj = ptr;
+      this.cleaner = new Cleaner("Run", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
     native getGlyphCount(): int;
@@ -800,11 +792,8 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-
-    constructor() {
-      this.registerCleaner(this.nativeObj);
-    };
-    registerCleaner(ptr: long): void {
+    registerNative(ptr: long): void {
+      this.nativeObj = ptr;
       this.cleaner = new Cleaner("LineTypeset", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
