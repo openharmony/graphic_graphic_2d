@@ -32,7 +32,6 @@ const std::string VOTER_NAME[] = {
     "VOTER_MID",
     "VOTER_LOW",
 };
-constexpr uint32_t SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE = 6;
 const std::string VRATE_CONTROL_MINIFPS = "minifps";
 }
 
@@ -128,7 +127,7 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
     if (!isChanged && appVoteData_.count(linker.first)) {
         expectedRange.preferred_ = static_cast<int32_t>(appVoteData_[linker.first]);
     }
-    auto appFrameRate = isPerformanceFirst_ && expectedRange.type_ != SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE ?
+    auto appFrameRate = isPerformanceFirst_ && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
                         OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
         appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
