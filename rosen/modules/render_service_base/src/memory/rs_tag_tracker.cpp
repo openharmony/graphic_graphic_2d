@@ -76,14 +76,20 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_CAPTURE :
             tagType = "capture";
             break;
-        case TAG_SUB_THREAD :
-            tagType = "sub_thread";
+        case TAG_UIFIRST :
+            tagType = "uifirst";
             break;
         case TAG_ACQUIRE_SURFACE :
             tagType = "acquire_surface";
             break;
         case TAG_RENDER_FRAME :
             tagType = "render_frame";
+            break;
+        case TAG_HDR_OFFSCREEN :
+            tagType = "hdr_offscreen";
+            break;
+        case TAG_COMMON_OFFSCREEN :
+            tagType = "common_offscreen";
             break;
         case TAG_DRAW_SURFACENODE :
             tagType = "draw_surface_node";
