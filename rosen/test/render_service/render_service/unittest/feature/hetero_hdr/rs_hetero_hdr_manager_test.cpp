@@ -1861,7 +1861,7 @@ HWTEST_F(RSHeteroHDRManagerTest, DrawHDRBufferWithGPUTest, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest001
  * @tc.desc: Test GenDrawHDRBufferParams with basic surface params
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest001, TestSize.Level1)
 {
@@ -1894,7 +1894,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest001, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest002
  * @tc.desc: Test GenDrawHDRBufferParams with buffer setup
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest002, TestSize.Level1)
 {
@@ -1926,7 +1926,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest002, TestSize.Level1)
 
     auto hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
     hdrSurfaceHandler->SetConsumer(IConsumerSurface::Create("test consumer"));
-    RSUniRenderThread::Instance().uniRenderEngine_ = 
+    RSUniRenderThread::Instance().uniRenderEngine_ =
         std::make_shared<RSRenderEngine>();
 
     MDCRectT hpaeDstRect {0, 0, 100, 100};
@@ -1947,7 +1947,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest002, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest003
  * @tc.desc: Test GenDrawHDRBufferParams with matrix transformation
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest003, TestSize.Level1)
 {
@@ -1987,7 +1987,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest003, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest004
  * @tc.desc: Test GenDrawHDRBufferParams with fixed destination buffer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest004, TestSize.Level1)
 {
@@ -2011,7 +2011,8 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest004, TestSize.Level1)
     bool isFixedDstBuffer = true;
 
     // 明确指定捕获的变量
-    auto testCombination = [surfaceDrawable, hpaeDstRect, isFixedDstBuffer, &drawableParams](float right, float bottom) {
+    auto testCombination = [surfaceDrawable, hpaeDstRect, isFixedDstBuffer,
+        &drawableParams](float right, float bottom) {
         drawableParams.srcRect.SetRight(right);
         drawableParams.srcRect.SetBottom(bottom);
         RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
@@ -2030,7 +2031,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest004, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest005
  * @tc.desc: Test GenDrawHDRBufferParams with scaling mode
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest005, TestSize.Level1)
 {
@@ -2062,7 +2063,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest005, TestSize.Level1)
     
     // 验证缩放模式是否被正确处理
     EXPECT_EQ(drawableParams.hdrHeteroType, RSHeteroHDRUtilConst::HDR_HETERO_NO);
-    EXPECT_EQ(surfaceParams->GetBuffer()->GetSurfaceBufferScalingMode(), 
+    EXPECT_EQ(surfaceParams->GetBuffer()->GetSurfaceBufferScalingMode(),
               ScalingMode::SCALING_MODE_SCALE_FIT);
 }
 
@@ -2070,7 +2071,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest005, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest006
  * @tc.desc: Test GenDrawHDRBufferParams with buffer transform
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest006, TestSize.Level1)
 {
@@ -2091,9 +2092,10 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest006, TestSize.Level1)
     bool isFixedDstBuffer = true;
 
     // 明确指定捕获的变量
-    auto testRotation = [surfaceParams, surfaceDrawable, hpaeDstRect, isFixedDstBuffer, &drawableParams](GraphicTransformType rotation) {
+    auto testRotation = [surfaceParams, surfaceDrawable, hpaeDstRect, isFixedDstBuffer,
+        &drawableParams](GraphicTransformType rotation) {
         surfaceParams->GetBuffer()->SetSurfaceBufferTransform(rotation);
-        RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect, 
+        RSHeteroHDRUtil::GenDrawHDRBufferParams(*surfaceDrawable, hpaeDstRect,
             isFixedDstBuffer, drawableParams);
         EXPECT_EQ(surfaceParams->GetBuffer()->GetSurfaceBufferTransform(), rotation);
     };
@@ -2107,7 +2109,7 @@ HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest006, TestSize.Level1)
  * @tc.name: GenDrawHDRBufferParamsTest007
  * @tc.desc: Test GenDrawHDRBufferParams with different hpaeDstRect sizes
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSHeteroHDRManagerTest, GenDrawHDRBufferParamsTest007, TestSize.Level1)
 {

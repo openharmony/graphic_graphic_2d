@@ -1074,11 +1074,13 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
  
         Drawing::FlushInfo drawingFlushInfo;
-        drawingFlushInfo.backendSurfaceAccess = true; drawingFlushInfo.numSemaphores = semaphoreVec.size();
+        drawingFlushInfo.backendSurfaceAccess = true;
+        drawingFlushInfo.numSemaphores = semaphoreVec.size();
         drawingFlushInfo.backendSemaphore = static_cast<void*>(semaphoreVec.data());
         drawingFlushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
         drawingFlushInfo.finishedContext = destroyInfo;
-        surface->Flush(&drawingFlushInfo); grContext->Submit();
+        surface->Flush(&drawingFlushInfo);
+        grContext->Submit();
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         for (auto frameId : frameIdVec) {
             RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
