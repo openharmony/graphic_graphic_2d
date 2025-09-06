@@ -122,7 +122,7 @@ void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAni
     }
     auto rsUIContext = target->GetRSUIContext();
     auto& modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager == nullptr) {
         ROSEN_LOGE("RSSpringAnimation::StartUIAnimation: failed to get modifier manager, "
             "animationId: %{public}" PRIu64 "!", GetId());

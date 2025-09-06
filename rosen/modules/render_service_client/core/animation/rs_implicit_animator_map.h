@@ -29,7 +29,7 @@ class RSC_EXPORT RSImplicitAnimatorMap final {
 public:
     static RSImplicitAnimatorMap& Instance();
 
-    const std::shared_ptr<RSImplicitAnimator>& GetAnimator(const int32_t id);
+    const std::shared_ptr<RSImplicitAnimator>& GetAnimator();
 
 private:
     RSImplicitAnimatorMap() = default;
@@ -38,9 +38,6 @@ private:
     RSImplicitAnimatorMap(const RSImplicitAnimatorMap&&) = delete;
     RSImplicitAnimatorMap& operator=(const RSImplicitAnimatorMap&) = delete;
     RSImplicitAnimatorMap& operator=(const RSImplicitAnimatorMap&&) = delete;
-
-    std::mutex mutex_;
-    std::unordered_map<int32_t, std::shared_ptr<RSImplicitAnimator>> animatorMap_;
 };
 } // namespace Rosen
 } // namespace OHOS
