@@ -2650,7 +2650,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetShadowAlpha(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[1], 0.02f));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), 1.f, 0.02f));
 }
 
 /**
@@ -2662,7 +2662,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetShadowAlpha(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[2], 0.02f));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), 0.f, 0.02f));
 }
 
 /**
@@ -2674,7 +2674,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha003, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetShadowAlpha(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[3], 0.02f));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), 1.f, 0.02f));
 }
 
 /**
@@ -2685,6 +2685,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetShadowAlpha004, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    rsNode->SetAlpha(1.f);
     rsNode->SetShadowAlpha(floatData[4]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[4], 0.02f));
 }

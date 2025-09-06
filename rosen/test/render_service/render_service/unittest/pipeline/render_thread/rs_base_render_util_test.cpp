@@ -827,7 +827,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_002, Function | SmallTest | Level2)
 HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_003, Function | SmallTest | Level2)
 {
     ComposeInfo info;
-    node_->GetMutableRenderProperties().SetShadowAlpha(1.0f);
+    node_->GetMutableRenderProperties().SetShadowColor(RgbPalette::White());
     bool needClient = RSBaseRenderUtil::IsNeedClient(*node_, info);
     ASSERT_EQ(needClient, true);
 }

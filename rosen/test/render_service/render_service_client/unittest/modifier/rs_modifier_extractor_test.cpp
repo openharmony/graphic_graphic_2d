@@ -285,6 +285,20 @@ HWTEST_F(RSModifierExtractorTest, GetShadowColorStrategy001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetShadowAlpha001
+ * @tc.desc: test results of GetShadowAlpha
+ * @tc.type: FUNC
+ * @tc.require: issueICVWWH
+ */
+HWTEST_F(RSModifierExtractorTest, GetShadowAlpha001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float alpha = extractor.GetShadowAlpha();
+    EXPECT_TRUE(alpha == 0.f);
+}
+
+/**
  * @tc.name: GetSpherizeDegree001
  * @tc.desc: test results of GetSpherizeDegree
  * @tc.type: FUNC

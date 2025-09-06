@@ -17,6 +17,7 @@
 
 #include <securec.h>
 
+#include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -279,7 +280,21 @@ float RSModifierExtractor::GetShadowOffsetY() const
 
 float RSModifierExtractor::GetShadowAlpha() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, SHADOW, SHADOW_ALPHA, 1.f, =);
+    // Using macro expansion as a temporary modification
+    // Need modifier the macro to invoke the corresponding method in the modifier instead of accessing the property
+    float alpha = 0.f;
+    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)
+                                        : RSNodeMap::Instance().GetNode<RSNode>(id_);
+    if (!node) {
+        return alpha;
+    }
+    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
+    for (auto& [_, modifier] : node->modifiersNG_) {
+        if (modifier->GetType() == ModifierNG::RSModifierType::SHADOW) {
+            alpha = std::static_pointer_cast<ModifierNG::RSShadowModifier>(modifier)->GetShadowAlpha();
+        }
+    }
+    return alpha;
 }
 
 float RSModifierExtractor::GetShadowElevation() const

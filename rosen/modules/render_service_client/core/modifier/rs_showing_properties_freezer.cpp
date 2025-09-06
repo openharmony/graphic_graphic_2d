@@ -231,7 +231,10 @@ std::optional<float> RSShowingPropertiesFreezer::GetShadowOffsetY() const
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowAlpha() const
 {
-    return GetPropertyImplNG<float, ModifierNG::RSModifierType::SHADOW, ModifierNG::RSPropertyType::SHADOW_ALPHA>();
+    if (auto color = GetShadowColor()) {
+        return color->GetAlphaF();
+    }
+    return std::nullopt;
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetShadowElevation() const

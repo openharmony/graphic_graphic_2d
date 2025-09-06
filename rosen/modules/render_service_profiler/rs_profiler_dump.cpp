@@ -450,9 +450,6 @@ void RSProfiler::DumpNodePropertiesShadow(const RSProperties& properties, JsonWr
     if (!ROSEN_EQ(properties.GetShadowOffsetY(), DEFAULT_SHADOW_OFFSET_Y)) {
         out["ShadowOffsetY"] = properties.GetShadowOffsetY();
     }
-    if (!ROSEN_EQ(properties.GetShadowAlpha(), 0.f)) {
-        out["ShadowAlpha"] = properties.GetShadowAlpha();
-    }
     if (!ROSEN_EQ(properties.GetShadowElevation(), 0.f)) {
         out["ShadowElevation"] = properties.GetShadowElevation();
     }
