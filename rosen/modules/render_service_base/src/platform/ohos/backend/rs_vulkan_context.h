@@ -37,7 +37,7 @@
 
 typedef enum VkSemaphoreExtTypeHUAWEI {
     VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
-    VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
+    VK_SEMAPHORE_EXT_TYPE_FFTS = 0x80000001,
 }VkSemaphoreExtTypeHUAWEI;
 
 typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {

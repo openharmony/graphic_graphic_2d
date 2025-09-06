@@ -354,15 +354,15 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     semaphoreInfo.flags = 0;
 
     VkSemaphoreExtTypeCreateInfoHUAWEI semaphoreExtTypeCreateInfoHUAWEI = {};
-    semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO;
     semaphoreExtTypeCreateInfoHUAWEI.pNext = nullptr;
 
-    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
     semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[0];
     semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
     vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semaWaitFfts);
 
-    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
     semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[1];
     semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
     vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semaNotifyFfts);
