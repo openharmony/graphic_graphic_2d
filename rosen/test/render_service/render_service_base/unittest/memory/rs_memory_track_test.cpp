@@ -152,6 +152,206 @@ HWTEST_F(RSMemoryTrackTest, MemoryNodeOfPidOperatorEqualTest, testing::ext::Test
 }
 
 /**
+ * @tc.name: GetDrawableMemSizeTest001
+ * @tc.desc: GetDrawableMemSizeTest001 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, GetDrawableMemSizeTest001, testing::ext::TestSize.Level1)
+{
+    MemoryNodeOfPid node;
+    size_t size = 2048;
+    node.SetDrawableMemSize(size);
+    EXPECT_EQ(node.GetDrawableMemSize(), size);
+}
+
+/**
+ * @tc.name: SetDrawableMemSizeTest001
+ * @tc.desc: SetDrawableMemSizeTest001 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, SetDrawableMemSizeTest001, testing::ext::TestSize.Level1)
+{
+    MemoryNodeOfPid node;
+    size_t size = 2048;
+    node.SetDrawableMemSize(size);
+    EXPECT_EQ(node.GetDrawableMemSize(), size);
+}
+
+/**
+ * @tc.name: GetNodeIdTest001
+ * @tc.desc: GetNodeIdTest001 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeIdTest001, testing::ext::TestSize.Level1)
+{
+    MemoryNodeOfPid node(0, 100, 0);
+    EXPECT_EQ(node.GetNodeId(), 100);
+}
+
+/**
+ * @tc.name: FindNodeByIdTest001
+ * @tc.desc: FindNodeByIdTest001 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, FindNodeByIdTest001, testing::ext::TestSize.Level1)
+{
+    NodeId testId = 1;
+    MemoryNodeOfPid node1 = { 1024, testId };
+    MemoryNodeOfPid node2 = { 2048, 2 };
+    std::vector<MemoryNodeOfPid> nodesVec = { node1, node2 };
+    MemoryNodeOfPid* result = MemoryTrack::Instance().FindNodeById(nodesVec, testId);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetNodeId(), testId);
+}
+
+/**
+ * @tc.name: FindNodeByIdTest002
+ * @tc.desc: FindNodeByIdTest002 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, FindNodeByIdTest002, testing::ext::TestSize.Level1)
+{
+    NodeId nonExistId = 3;
+    MemoryNodeOfPid node1 = { 1024, 1 };
+    MemoryNodeOfPid node2 = { 2048, 2 };
+    std::vector<MemoryNodeOfPid> nodesVec = { node1, node2 };
+    MemoryNodeOfPid* result = MemoryTrack::Instance().FindNodeById(nodesVec, nonExistId);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: FindNodeByIdTest003
+ * @tc.desc: FindNodeByIdTest003 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, FindNodeByIdTest003, testing::ext::TestSize.Level1)
+{
+    NodeId testId = 1;
+    std::vector<MemoryNodeOfPid> nodesVec = {};
+    MemoryNodeOfPid* result = MemoryTrack::Instance().FindNodeById(nodesVec, testId);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: SetDrawableNodeInfoTest001
+ * @tc.desc: SetDrawableNodeInfoTest001 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, SetDrawableNodeInfoTest001, testing::ext::TestSize.Level1)
+{
+    NodeId testId = 1;
+    MemoryInfo testInfo = { 1024, 1 };
+    MemoryNodeOfPid testNode = { 0, testId };
+    MemoryTrack::Instance().memNodeOfPidMap_[testInfo.pid] = { testNode };
+    MemoryTrack::Instance().SetDrawableNodeInfo(testId, testInfo);
+    EXPECT_EQ(testNode.GetDrawableMemSize(), 0);
+}
+
+/**
+ * @tc.name: SetDrawableNodeInfoTest002
+ * @tc.desc: SetDrawableNodeInfoTest002 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, SetDrawableNodeInfoTest002, testing::ext::TestSize.Level1)
+{
+    NodeId testId = -2;
+    MemoryInfo testInfo = { 1024, -2 };
+    MemoryNodeOfPid testNode = { 0, testId };
+    MemoryTrack::Instance().SetDrawableNodeInfo(testId, testInfo);
+    EXPECT_EQ(testNode.GetDrawableMemSize(), 0);
+}
+
+/**
+ * @tc.name: SetDrawableNodeInfoTest003
+ * @tc.desc: SetDrawableNodeInfoTest003 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, SetDrawableNodeInfoTest003, testing::ext::TestSize.Level1)
+{
+    NodeId testId = 1;
+    NodeId nonExistId = 2;
+    MemoryInfo testInfo = { 1024, 1 };
+    MemoryNodeOfPid testNode = { testId, 0 };
+    MemoryTrack::Instance().memNodeOfPidMap_[testInfo.pid] = { testNode };
+    MemoryTrack::Instance().SetDrawableNodeInfo(nonExistId, testInfo);
+    auto& nodes = MemoryTrack::Instance().memNodeOfPidMap_[testInfo.pid];
+    auto* node = MemoryTrack::Instance().FindNodeById(nodes, nonExistId);
+    ASSERT_EQ(node, nullptr);
+}
+
+/**
+ * @tc.name: GetNodeMemoryOfPidTest001
+ * @tc.desc: GetNodeMemoryOfPidTest001 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPidTest001, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 0;
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE;
+    MemoryNodeOfPid node1 = { 0, 2048, 1024 };
+    MemoryNodeOfPid node2 = { 0, 4096, 2048 };
+    MemoryTrack::Instance().memNodeOfPidMap_[testPid] = { node1, node2 };
+    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, type);
+    EXPECT_EQ(result, (1024 + 2048) / BYTE_CONVERT);
+}
+
+/**
+ * @tc.name: GetNodeMemoryOfPidTest002
+ * @tc.desc: GetNodeMemoryOfPidTest002 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPidTest002, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 0;
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_NODE;
+    MemoryNodeOfPid node1 = { 1024, 2048 };
+    MemoryNodeOfPid node2 = { 2048, 4096 };
+    MemoryTrack::Instance().memNodeOfPidMap_[testPid] = { node1, node2 };
+    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, type);
+    EXPECT_EQ(result, (1024 + 2048) / BYTE_CONVERT);
+}
+
+/**
+ * @tc.name: GetNodeMemoryOfPidTest003
+ * @tc.desc: GetNodeMemoryOfPidTest003 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPidTest003, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = -2;
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE;
+    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, type);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: GetNodeMemoryOfPidTest004
+ * @tc.desc: GetNodeMemoryOfPidTest004 Test
+ * @tc.type: FUNC
+ * @tc.require:ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPidTest004, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 0;
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE;
+    MemoryTrack::Instance().memNodeOfPidMap_[testPid] = {};
+    size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, type);
+    EXPECT_EQ(result, 0);
+}
+
+/**
  * @tc.name: AddNodeRecordTest001
  * @tc.desc: Test adding a node record with valid parameters.
  * @tc.type: FUNC
@@ -198,6 +398,21 @@ HWTEST_F(RSMemoryTrackTest, AddNodeRecordTest003, testing::ext::TestSize.Level1)
     MemoryTrack::Instance().AddNodeRecord(id, info2);
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(ExtractPid(id));
     ASSERT_EQ(result.GetCpuMemorySize(), 2048);
+    MemoryTrack::Instance().RemoveNodeRecord(id);
+}
+
+/**
+ * @tc.name: AddNodeRecordTest004
+ * @tc.desc: Test adding node with same size as existing record.
+ * @tc.type: FUNC
+ * @tc.require: ICVK6I
+ */
+HWTEST_F(RSMemoryTrackTest, AddNodeRecordTest004, testing::ext::TestSize.Level1)
+{
+    NodeId id = 3001;
+    MemoryInfo info1 = { 2048, ExtractPid(id), id, 0, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE };
+    MemoryTrack::Instance().AddNodeRecord(id, info1);
+    EXPECT_EQ(info1.type, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     MemoryTrack::Instance().RemoveNodeRecord(id);
 }
 

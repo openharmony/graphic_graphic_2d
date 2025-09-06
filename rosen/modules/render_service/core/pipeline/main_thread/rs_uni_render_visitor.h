@@ -427,7 +427,7 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
-    bool isExpandScreenDirtyEnabled_ = false;
+    bool isVirtualExpandScreenDirtyEnabled_ = false;
     bool needRequestNextVsync_ = true;
     bool isTargetUIFirstDfxEnabled_ = false;
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -480,6 +480,8 @@ private:
     NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
 
     int32_t rsScreenNodeChildNum_ = 0;
+
+    ScreenState screenState_ = ScreenState::UNKNOWN;
     
     bool isSkipDrawInVirtualScreen_ = false;
 };

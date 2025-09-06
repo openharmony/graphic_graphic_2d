@@ -1357,11 +1357,15 @@ HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStartTest005, TestSize.L
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
 
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    uint64_t reportTime = 16;
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(123);
-    data.WriteString("surfaceName");
-    data.WriteUint32(60);
-    data.WriteUint64(20);
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
+    data.WriteUint64(reportTime);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 }
@@ -1433,9 +1437,13 @@ HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStopTest004, TestSize.Le
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(123);
-    data.WriteString("surfaceName");
-    data.WriteUint32(60);
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUInt64Vector(uniqueIdList);
+    data.WriteStringVector(surfaceNameList);
+    data.WriteUint32(fps);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 }

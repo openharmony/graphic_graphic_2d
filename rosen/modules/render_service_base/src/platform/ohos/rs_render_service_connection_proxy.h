@@ -384,9 +384,12 @@ public:
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
-    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
+    ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;
 
-    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
+    ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
     bool GetHighContrastTextState() override;
 
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;

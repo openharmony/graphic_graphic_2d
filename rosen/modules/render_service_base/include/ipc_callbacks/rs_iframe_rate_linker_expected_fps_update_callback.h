@@ -17,7 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_RS_IFRAME_RATE_LINKER_EXPECTED_FPS_UPDATE_CALLBACK_H
 
 #include <iremote_broker.h>
-#include "pipeline/rs_render_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 
 namespace OHOS {
 namespace Rosen {

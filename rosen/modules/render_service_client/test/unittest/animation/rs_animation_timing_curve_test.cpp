@@ -441,6 +441,24 @@ HWTEST_F(RSAnimationTimingCurveTest, CreateInterpolatingSpring001, TestSize.Leve
     GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest CreateInterpolatingSpring001 end";
 }
 
+/**
+ * @tc.name: SetFinishCallbackTypeTest
+ * @tc.desc: Verify the SetFinishCallbackType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTimingCurveTest, SetFinishCallbackTypeTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest SetFinishCallbackTypeTest start";
+    RSAnimationTimingProtocol protocol;
+    protocol.SetFinishCallbackType(FinishCallbackType::TIME_SENSITIVE);
+    ASSERT_EQ(protocol.GetFinishCallbackType(), FinishCallbackType::TIME_SENSITIVE);
+    protocol.SetFinishCallbackType(FinishCallbackType::TIME_INSENSITIVE);
+    ASSERT_EQ(protocol.GetFinishCallbackType(), FinishCallbackType::TIME_INSENSITIVE);
+    protocol.SetFinishCallbackType(FinishCallbackType::LOGICALLY);
+    ASSERT_EQ(protocol.GetFinishCallbackType(), FinishCallbackType::LOGICALLY);
+    GTEST_LOG_(INFO) << "RSAnimationTimingCurveTest SetFinishCallbackTypeTest end";
+}
+
 #ifndef MODIFIER_NG
 /**
  * @tc.name: CreateCubicCurveTest004

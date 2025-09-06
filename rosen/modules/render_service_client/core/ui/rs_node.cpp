@@ -2871,7 +2871,6 @@ void RSNode::ClearAllModifiers()
         }
     }
     modifiersNG_.clear();
-    modifiersTypeMap_.clear();
     properties_.clear();
 }
 
@@ -2898,18 +2897,6 @@ void RSNode::DoFlushModifier()
             }
         }
     }
-}
-
-const std::shared_ptr<RSModifier> RSNode::GetModifier(const PropertyId& propertyId)
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    CHECK_FALSE_RETURN_VALUE(CheckMultiThreadAccess(__func__), nullptr);
-    auto iter = modifiers_.find(propertyId);
-    if (iter != modifiers_.end()) {
-        return iter->second;
-    }
-
-    return {};
 }
 
 const std::shared_ptr<RSPropertyBase> RSNode::GetProperty(const PropertyId& propertyId)
@@ -3017,17 +3004,6 @@ void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSUpdateOcclusionCullingStatus>(GetId(), enable, keyOcclusionNodeId);
     AddCommand(command, IsRenderServiceNode());
-}
-
-std::vector<PropertyId> RSNode::GetModifierIds() const
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    std::vector<PropertyId> ids;
-    CHECK_FALSE_RETURN_VALUE(CheckMultiThreadAccess(__func__), ids);
-    for (const auto& [id, _] : modifiers_) {
-        ids.push_back(id);
-    }
-    return ids;
 }
 
 void RSNode::MarkAllExtendModifierDirty()

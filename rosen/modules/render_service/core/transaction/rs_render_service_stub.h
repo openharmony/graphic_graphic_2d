@@ -33,7 +33,7 @@ public:
     ~RSRenderServiceStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
+    virtual sptr<RSIRenderServiceConnection> GetConnection(sptr<RSIConnectionToken>& token) = 0;
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
     RSRenderServiceSecurityUtils securityUtils_;

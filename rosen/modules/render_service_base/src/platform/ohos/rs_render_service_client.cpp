@@ -2576,5 +2576,27 @@ void RSRenderServiceClient::ClearUifirstCache(NodeId id)
     }
     renderService->ClearUifirstCache(id);
 }
+
+void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoStart renderService == nullptr!");
+        return;
+    }
+    renderService->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+}
+
+void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoStop renderService == nullptr!");
+        return;
+    }
+    renderService->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
 } // namespace Rosen
 } // namespace OHOS

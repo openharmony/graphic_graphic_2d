@@ -337,7 +337,8 @@ Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNo
 }
 
 void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
-    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable)
+    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
+    const sptr<RSScreenManager>& screenManager)
 {
     // All other factors that may prevent skipping virtual expand screen need to be considered
     // update accumulated dirty region
@@ -346,6 +347,38 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
 
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
+
+    // update accumulated special layer status changed
+    if (screenManager == nullptr) {
+        return;
+    }
+    auto currentBlackList = screenManager->GetVirtualScreenBlackList(params.GetScreenId());
+    if (currentBlackList != params.GetLastBlackList()) {
+        params.SetLastBlackList(currentBlackList);
+        params.SetAccumulatedSpecialLayerStatusChanged(true);
+        return;
+    }
+    const auto& displayDrawables = params.GetDisplayDrawables();
+    for (const auto& drawable : displayDrawables) {
+        if (UNLIKELY(drawable == nullptr)) {
+            continue;
+        }
+        const auto& displayDrawable = static_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable*>(drawable.get());
+        if (UNLIKELY(displayDrawable == nullptr || drawable->GetRenderParams() == nullptr)) {
+            continue;
+        }
+        const auto& displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
+        if (UNLIKELY(displayParams == nullptr)) {
+            continue;
+        }
+        if (displayParams->GetSecurityExemption() != params.GetLastSecExemption()) {
+            params.SetLastSecExemption(displayParams->GetSecurityExemption());
+            params.SetAccumulatedSpecialLayerStatusChanged(true);
+            return;
+        }
+        params.SetAccumulatedSpecialLayerStatusChanged(
+            displayParams->IsSpecialLayerChanged() || params.GetAccumulatedSpecialLayerStatusChanged());
+    }
 }
 
 bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
@@ -454,6 +487,92 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
         }
     }
     return false;
+}
+
+void RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params)
+{
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams ==nullptr || !surfaceParams->IsLeashOrMainWindow()) {
+            continue;
+        }
+        // for cross-screen surface, only consider the dirty region on the first display (use global dirty for others).
+        if (surfaceParams->IsFirstLevelCrossNode() && !params.IsFirstVisitCrossNodeDisplay()) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceDirtyManager == nullptr) {
+            continue;
+        }
+        surfaceDirtyManager->AccumulateVirtualExpandScreenDirtyRegions(
+            surfaceDirtyManager->GetCurrentFrameDirtyRegion());
+    }
+    if (auto screenDirtyManager = screenDrawable.GetSyncDirtyManager()) {
+        screenDirtyManager->AccumulateVirtualExpandScreenDirtyRegions(
+            screenDirtyManager->GetCurrentFrameDirtyRegion());
+    }
+}
+
+void RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params)
+{
+    if (auto screenDirtyManager = screenDrawable.GetSyncDirtyManager()) {
+        if (params.GetAccumulatedSpecialLayerStatusChanged()) {
+            screenDirtyManager->ResetDirtyAsSurfaceSize();
+        } else {
+            for (const auto& rect : screenDirtyManager->GetVirtualExpandScreenAccumulatedDirtyRegions()) {
+                screenDirtyManager->MergeDirtyRect(rect);
+            }
+        }
+    }
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams == nullptr || !surfaceParams->IsLeashOrMainWindow()) {
+            continue;
+        }
+        // for cross-screen surface, only consider the dirty region on the first display (use global dirty for others).
+        if (surfaceParams->IsFirstLevelCrossNode() && !params.IsFirstVisitCrossNodeDisplay()) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceDirtyManager == nullptr) {
+            continue;
+        }
+        for (const auto& rect : surfaceDirtyManager->GetVirtualExpandScreenAccumulatedDirtyRegions()) {
+            surfaceDirtyManager->MergeDirtyRect(rect);
+        }
+    }
+}
+
+void RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(
+    DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params)
+{
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            continue;
+        }
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceDirtyManager == nullptr) {
+            continue;
+        }
+        surfaceDirtyManager->ClearVirtualExpandScreenAccumulatedDirtyRegions();
+    }
+    if (auto screenDirtyManager = screenDrawable.GetSyncDirtyManager()) {
+        screenDirtyManager->ClearVirtualExpandScreenAccumulatedDirtyRegions();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

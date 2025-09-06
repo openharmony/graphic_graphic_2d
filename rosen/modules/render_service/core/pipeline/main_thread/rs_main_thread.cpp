@@ -1716,7 +1716,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             RSHeteroHDRManager::Instance().UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
         };
     }
-    RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
@@ -3943,10 +3942,19 @@ static std::string Data2String(std::string data, uint32_t tagetNumber)
     }
 }
 
-void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
+size_t RSMainThread::RenderNodeModifierDump(pid_t pid)
 {
-    std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
-    std::unordered_map<int, int> nullnode_info; // [pid, count]
+    size_t allModifySize = 0;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraversalNodesByPid(pid, [&allModifySize] (const std::shared_ptr<RSBaseRenderNode>& node) {
+        allModifySize += node->GetAllModifierSize();
+    });
+    return allModifySize / BYTE_CONVERT;
+}
+
+void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
+    std::unordered_map<int, int>& nullnode_info)
+{
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
         int pid = info.pid;
@@ -3966,16 +3974,39 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
             }
         }
     }
+}
+
+void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
+{
+    std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
+    std::unordered_map<int, int> nullnode_info; // [pid, count]
+
+    GetNodeInfo(node_info, nullnode_info);
     std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("OnTree", NODE_DUMP_STRING_LEN);
+        Data2String("OnTree", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("NodeMemSize", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("DrawableMem", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("ModifierMem", NODE_DUMP_STRING_LEN);
     log.AppendFormat("%s\n", log_str.c_str());
+    size_t totalNodeSize = 0;
     for (auto& [pid, info]: node_info) {
+        size_t renderNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_NODE);
+        size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid,
+            MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
+        size_t modifierNodeSize = RenderNodeModifierDump(pid);
         log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
-            Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
-            Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN);
+        Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(renderNodeSize), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(drawableNodeSize), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(modifierNodeSize), NODE_DUMP_STRING_LEN);
         log.AppendFormat("%s\n", log_str.c_str());
+        totalNodeSize += renderNodeSize + drawableNodeSize + modifierNodeSize;
     }
+    log_str = Data2String("Total Node Size(RenderNode/Drawable/Modifier)", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(totalNodeSize), NODE_DUMP_STRING_LEN);
+    log.AppendFormat("%s\n", log_str.c_str());
     if (!nullnode_info.empty()) {
         log_str = "Purgeable node: \n" +
             Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +

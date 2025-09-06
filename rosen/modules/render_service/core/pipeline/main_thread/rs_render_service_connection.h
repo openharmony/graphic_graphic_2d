@@ -444,9 +444,11 @@ private:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
-    ErrCode AvcodecVideoStart(uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime) override;
+    ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;
 
-    ErrCode AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps) override;
+    ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 
@@ -506,6 +508,7 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
+    friend class RSRenderServiceStub;
 };
 } // namespace Rosen
 } // namespace OHOS
