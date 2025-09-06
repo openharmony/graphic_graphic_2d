@@ -69,28 +69,31 @@ static void Clean(ani_env* env, ani_object object)
     ani_long ptrAddr = 0;
     ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptrAddr);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to clean ptrAddr");
-        return;
-    }
-    if (ptrAddr == 0) {
-        TEXT_LOGE("Auto clean failed, undefined ptrAddr");
-        return;
-    }
-    ani_ref stringRef = nullptr;
-    ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Auto clean failed, ptrAddr %{public}" PRId64, ptrAddr);
+        TEXT_LOGE("Failed to get ptrAddr");
         return;
     }
 
+    ani_ref stringRef = nullptr;
+    ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to get className, ptrAddr %{public}" PRId64, ptrAddr);
+        return;
+    }
     std::string className;
     ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(stringRef), className);
     if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to convert className to string, ptrAddr %{public}" PRId64, ptrAddr);
         return;
     }
+
+    if (ptrAddr == 0) {
+        TEXT_LOGE("Failed to clean, undefined ptrAddr, className %{public}s", className.c_str());
+        return;
+    }
+   
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
-        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Typography", SafeDelete<AniParagraph>},
+        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},
         {"FontCollection", SafeDelete<AniFontCollection>}, {"LineTypeset", SafeDelete<AniLineTypeset>},
         {"TextLine", SafeDelete<AniTextLine>}, {"Run", SafeDelete<AniRun>}};
 

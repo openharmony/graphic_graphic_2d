@@ -76,7 +76,8 @@ AniFontCollection::AniFontCollection(std::shared_ptr<FontCollection> fc)
 void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
-    ani_status ret = env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection));
+    ani_status ret = env->Object_CallMethodByName_Void(
+        object, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFontCollection));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
@@ -90,7 +91,8 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
     static AniFontCollection aniFontCollection = AniFontCollection(FontCollection::Create());
 
     ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
-    ani_status ret = env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(&aniFontCollection));
+    ani_status ret = env->Object_CallMethodByName_Void(
+        obj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(&aniFontCollection));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani font collection obj");
         return nullptr;
@@ -211,8 +213,8 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
         ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
         AniFontCollection* aniFontCollection = new AniFontCollection();
         aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
-        ani_status ret =
-            env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection));
+        ani_status ret = env->Object_CallMethodByName_Void(
+            staticObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFontCollection));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
             delete aniFontCollection;
