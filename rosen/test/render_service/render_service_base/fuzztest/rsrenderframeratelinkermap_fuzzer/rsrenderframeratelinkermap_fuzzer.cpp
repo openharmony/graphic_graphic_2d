@@ -28,8 +28,8 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "pipeline/rs_render_frame_rate_linker.h"
-#include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 
 namespace OHOS {

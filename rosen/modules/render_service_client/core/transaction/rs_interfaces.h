@@ -1280,6 +1280,12 @@ public:
      * @param id surface node id
      */
     void ClearUifirstCache(NodeId id);
+
+    void AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime);
+
+    void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

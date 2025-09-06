@@ -147,11 +147,41 @@ public:
     {
         return isAccumulatedHdrStatusChanged_;
     }
+    void SetAccumulatedSpecialLayerStatusChanged(bool isAccumulatedSpecialLayerStatusChanged)
+    {
+        isAccumulatedSpecialLayerStatusChanged_ = isAccumulatedSpecialLayerStatusChanged;
+    }
+
+    bool GetAccumulatedSpecialLayerStatusChanged() const
+    {
+        return isAccumulatedSpecialLayerStatusChanged_;
+    }
+
+    const std::unordered_set<NodeId> GetLastBlackList() const
+    {
+        return lastBlackList_;
+    }
+
+    void SetLastBlackList(std::unordered_set<NodeId> curBlackList)
+    {
+        lastBlackList_ = curBlackList;
+    }
+
+    bool GetLastSecExemption() const
+    {
+        return lastSecExemption_;
+    }
+
+    void SetLastSecExemption(bool curSecExemption)
+    {
+        lastSecExemption_ = curSecExemption;
+    }
 
     void ResetVirtualExpandAccumulatedParams()
     {
         isAccumulatedDirty_ = false;
         isAccumulatedHdrStatusChanged_ = false;
+        isAccumulatedSpecialLayerStatusChanged_ = false;
     }
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetRoundCornerDrawables()
@@ -218,6 +248,9 @@ private:
     // Only used in virtual expand screen to record accumulate frame status
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;
+    bool isAccumulatedSpecialLayerStatusChanged_ = false;
+    std::unordered_set<NodeId> lastBlackList_ = {};
+    bool lastSecExemption_ = false;
     float brightnessRatio_ = 1.0f;
     float hdrBrightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;

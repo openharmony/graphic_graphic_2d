@@ -251,8 +251,6 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_record_cmd_utils.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_display_sync.cpp",
-    "src/pipeline/rs_render_frame_rate_linker.cpp",
-    "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_allocator.cpp",
     "src/pipeline/rs_render_node_gc.cpp",
@@ -377,6 +375,8 @@ ohos_source_set("render_service_base_src") {
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
+    "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
+    "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",

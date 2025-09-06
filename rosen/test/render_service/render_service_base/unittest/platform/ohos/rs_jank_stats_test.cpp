@@ -833,11 +833,11 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoDumpTest001, TestSize.Level1)
  */
 HWTEST_F(RSJankStatsTest, AvcodecVideoStartTest001, TestSize.Level1)
 {
-    RSJankStats::GetInstance().AvcodecVideoStop(1111, "surfaceName", 60);
-    RSJankStats::GetInstance().AvcodecVideoStart(1111, "surfaceName", 60, 20);
-    RSJankStats::GetInstance().AvcodecVideoStart(2222, "surfaceName", 60, 20);
-    RSJankStats::GetInstance().AvcodecVideoStart(1111, "surfaceName", 60, 20);
-    RSJankStats::GetInstance().AvcodecVideoStop(1111, "surfaceName", 60);
+    RSJankStats::GetInstance().AvcodecVideoStop({1111}, {"surfaceName"}, 60);
+    RSJankStats::GetInstance().AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
+    RSJankStats::GetInstance().AvcodecVideoStart({2222}, {"surfaceName"}, 60, 20);
+    RSJankStats::GetInstance().AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
+    RSJankStats::GetInstance().AvcodecVideoStop({1111}, {"surfaceName"}, 60);
     std::string dumpString = "";
     std::string type = "avcodecVideo{\"func\":\"stop\",\"uniqueId\":\"2222\",\"surfacename\":\"surface\",\"fps\":111}";
     RSJankStats::GetInstance().AvcodecVideoDump(dumpString, type, "avcodecVideo");
@@ -845,18 +845,16 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoStartTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AvcodecVideoCollectBeginTest001
- * @tc.desc: AvcodecVideoCollectBegin/AvcodecVideoCollectFinist test
+ * @tc.name: AvcodecVideoCollectFinishTest001
+ * @tc.desc: AvcodecVideoCollectFinish test
  * @tc.type: FUNC
  * @tc.require: issueIA61E9
  */
-HWTEST_F(RSJankStatsTest, AvcodecVideoCollectBeginTest001, TestSize.Level1)
+HWTEST_F(RSJankStatsTest, AvcodecVideoCollectFinishTest001, TestSize.Level1)
 {
-    RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
-    RSJankStats::GetInstance().AvcodecVideoStart(1111, "surfaceName", 60, 20);
+    RSJankStats::GetInstance().AvcodecVideoStart({1111}, {"surfaceName"}, 60, 20);
     for (int i = 0; i < 10; i++) {
-        RSJankStats::GetInstance().AvcodecVideoCollectBegin();
         RSJankStats::GetInstance().AvcodecVideoCollectFinish();
     }
     std::string dumpString = "";
@@ -874,7 +872,7 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoCollectBeginTest001, TestSize.Level1)
 HWTEST_F(RSJankStatsTest, AvcodecVideoCollectTest001, TestSize.Level1)
 {
     RSJankStats::GetInstance().AvcodecVideoCollect(1111, 0110);
-    RSJankStats::GetInstance().AvcodecVideoStart(1111, "surfaceName", 60, 50);
+    RSJankStats::GetInstance().AvcodecVideoStart({1111}, {"surfaceName"}, 60, 50);
     RSJankStats::GetInstance().AvcodecVideoCollect(2222, 0211);
 
     RSJankStats::GetInstance().AvcodecVideoCollect(1111, 0111);
@@ -882,7 +880,7 @@ HWTEST_F(RSJankStatsTest, AvcodecVideoCollectTest001, TestSize.Level1)
     usleep(60 * 1000);
     RSJankStats::GetInstance().AvcodecVideoCollect(1111, 0113);
 
-    RSJankStats::GetInstance().AvcodecVideoStop(1111, "surfaceName", 60);
+    RSJankStats::GetInstance().AvcodecVideoStop({1111}, {"surfaceName"}, 60);
     std::string dumpString = "";
     std::string type = "avcodecVideo{\"func\":\"stop\",\"uniqueId\":\"2222\",\"surfacename\":\"surface\",\"fps\":60}";
     RSJankStats::GetInstance().AvcodecVideoDump(dumpString, type, "avcodecVideo");

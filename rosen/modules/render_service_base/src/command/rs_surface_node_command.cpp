@@ -401,6 +401,7 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
     nodeMap.TraverseLogicalDisplayNodes(
         [surfaceRenderNode, screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
+                !displayRenderNode->IsOnTheTree() ||
                 displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
                 return;
             }

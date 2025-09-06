@@ -85,6 +85,7 @@ public:
 
     void MarkAsHpaeSurface();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
+    void CancelBufferForCurrentFrame();
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;

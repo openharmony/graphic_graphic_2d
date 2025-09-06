@@ -114,7 +114,7 @@ public:
      * @param type The type of modifier to be applied during the drawing operation.
      * @param func The drawing function that defines the drawing logic to be executed on the node.
      */
-    void DrawOnNode(RSModifierType type, DrawFunc func) override;
+    void DrawOnNode(ModifierNG::RSModifierType type, DrawFunc func) override;
 
     /**
      * @brief Controls freeze state of canvas node rendering content

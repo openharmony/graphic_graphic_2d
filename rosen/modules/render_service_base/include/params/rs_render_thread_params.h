@@ -47,16 +47,9 @@ struct CaptureParam {
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
         bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID, bool captureFinished = false,
         bool ignoreSpecialLayer = false)
-        : isSnapshot_(isSnapshot),
-        isSingleSurface_(isSingleSurface),
-        isMirror_(isMirror),
-        isFirstNode_(isFirstNode),
-        isSystemCalling_(isSystemCalling),
-        isSelfCapture_(isSelfCapture),
-        isNeedBlur_(isNeedBlur),
-        isSoloNodeUiCapture_(isSoloNodeUiCapture),
-        endNodeId_(endNodeId),
-        captureFinished_(captureFinished),
+        : isSnapshot_(isSnapshot), isSingleSurface_(isSingleSurface), isMirror_(isMirror), isFirstNode_(isFirstNode),
+        isSystemCalling_(isSystemCalling), isSelfCapture_(isSelfCapture), isNeedBlur_(isNeedBlur),
+        isSoloNodeUiCapture_(isSoloNodeUiCapture), endNodeId_(endNodeId), captureFinished_(captureFinished),
         ignoreSpecialLayer_(ignoreSpecialLayer) {}
 };
 struct HardCursorInfo {
@@ -78,6 +71,9 @@ public:
 
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
+
+    void SetSecurityDisplay(bool isSecurityDisplay);
+    bool IsSecurityDisplay() const;
 
     bool IsPartialRenderEnabled() const
     {
@@ -104,9 +100,14 @@ public:
         return isVirtualDirtyEnabled_;
     }
 
-    bool IsExpandScreenDirtyEnabled() const
+    void SetVirtualExpandScreenDirtyEnabled(bool isVirtualExpandScreenDirtyEnabled)
     {
-        return isExpandScreenDirtyEnabled_;
+        isVirtualExpandScreenDirtyEnabled_ = isVirtualExpandScreenDirtyEnabled;
+    }
+
+    bool IsVirtualExpandScreenDirtyEnabled() const
+    {
+        return isVirtualExpandScreenDirtyEnabled_;
     }
 
     bool IsVirtualDirtyDfxEnabled() const
@@ -551,7 +552,7 @@ private:
     bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
-    bool isExpandScreenDirtyEnabled_ = false;
+    bool isVirtualExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
@@ -585,6 +586,8 @@ private:
     bool discardJankFrames_ = false;
 
     bool isSecurityExemption_ = false;
+    // use to mark security display
+    bool isSecurityDisplay_ = false;
     ScreenInfo screenInfo_ = {};
     std::shared_ptr<RSProcessor> processor_ = nullptr;
 

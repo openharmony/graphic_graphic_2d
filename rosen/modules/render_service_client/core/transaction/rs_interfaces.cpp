@@ -1215,5 +1215,17 @@ void RSInterfaces::ClearUifirstCache(NodeId id)
 {
     renderServiceClient_->ClearUifirstCache(id);
 }
+
+void RSInterfaces::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
+{
+    renderServiceClient_->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+}
+
+void RSInterfaces::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
+{
+    renderServiceClient_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
 } // namespace Rosen
 } // namespace OHOS

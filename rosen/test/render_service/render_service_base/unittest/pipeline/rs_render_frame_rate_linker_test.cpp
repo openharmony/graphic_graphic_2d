@@ -17,7 +17,7 @@
 #include <iremote_stub.h>
 
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
-#include "pipeline/rs_render_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 
 using namespace testing;
 using namespace testing::ext;

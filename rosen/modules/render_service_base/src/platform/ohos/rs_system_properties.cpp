@@ -360,9 +360,9 @@ bool RSSystemProperties::GetVirtualDirtyEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
-bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+bool RSSystemProperties::GetVirtualExpandScreenDirtyEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.expandscreendirty.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualexpandscreendirty.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -1059,7 +1059,7 @@ bool RSSystemProperties::IsFoldScreenFlag()
 bool RSSystemProperties::IsSmallFoldDevice()
 {
     static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-    return foldType == "2,0,0,0" || foldType == "4,2,0,0";
+    return foldType == "2,0,0,0" || foldType == "4,2,0,0" || foldType == "2,2,0,0";
 }
 
 bool RSSystemProperties::GetCacheCmdEnabled()

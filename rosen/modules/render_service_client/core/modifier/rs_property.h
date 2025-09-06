@@ -278,7 +278,6 @@ private:
     friend class RSSpringAnimation;
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
-    friend class RSModifier;
     friend class ModifierNG::RSModifier;
     friend class RSNode;
     friend class RSKeyframeAnimation;
@@ -290,8 +289,6 @@ private:
     friend class RSImplicitCancelAnimationParam;
     friend class RSImplicitCurveAnimationParam;
     friend class RSImplicitAnimator;
-    friend class RSGeometryTransModifier;
-    friend class RSExtendedModifier;
     friend class RSCustomTransitionEffect;
     friend class RSCurveAnimation;
     friend class ModifierNG::RSForegroundFilterModifier;
@@ -454,8 +451,6 @@ protected:
 
     friend class RSPathAnimation;
     friend class RSImplicitAnimator;
-    friend class RSExtendedModifier;
-    friend class RSModifier;
     friend class ModifierNG::RSCustomModifier;
     friend class RSNGEffectUtils;
 };
@@ -882,8 +877,6 @@ private:
 
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
-    friend class RSExtendedModifier;
-    friend class RSModifier;
     friend class RSNGEffectUtils;
 };
 

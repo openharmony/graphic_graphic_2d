@@ -26,7 +26,9 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
-
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 
@@ -58,6 +60,13 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
             RSHeteroHDRManager::Instance().ReleaseBuffer();
         } else {
             RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
+#ifdef RS_ENABLE_TV_PQ_METADATA
+            auto& renderParams = surfaceDrawable.GetRenderParams();
+            if (renderParams) {
+                auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
+                RSTvMetadataManager::Instance().RecordTvMetadata(surfaceRenderParams, params.buffer);
+            }
+#endif
             DrawImage(canvas, params);
         }
     } else {
