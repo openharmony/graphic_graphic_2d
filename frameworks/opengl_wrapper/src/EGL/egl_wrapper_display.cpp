@@ -668,6 +668,9 @@ void EglWrapperDisplay::ClearObjects()
 
 bool EglWrapperDisplay::CheckObject(EglWrapperObject *obj)
 {
+    if (obj == nullptr) {
+        return false;
+    }
     std::lock_guard<std::mutex> lock(lockMutex_);
     if (objects_.find(obj) != objects_.end()) {
         if (obj->GetDisplay() == this) {
@@ -796,17 +799,15 @@ EGLBoolean EglWrapperDisplay::QuerySurface(EGLSurface surf, EGLint attribute, EG
 EGLBoolean EglWrapperDisplay::SwapBuffers(EGLSurface surf)
 {
     WLOGD("");
-    std::lock_guard<std::recursive_mutex> lock(refLockMutex_);
-
-    EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surf);
-    if (!CheckObject(surfPtr)) {
-        if (surfPtr->GetEglSurface() == nullptr) {
-            WLOGE("INparament is invalid.");
+    EglWrapperSurface *surfPtr = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(refLockMutex_);
+        surfPtr = EglWrapperSurface::GetWrapperSurface(surf);
+        if (!CheckObject(surfPtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
             return EGL_FALSE;
         }
-        WLOGE("EGLSurface is invalid.");
-        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
-        return EGL_FALSE;
     }
 
     EGLBoolean ret = EGL_FALSE;
@@ -1121,21 +1122,22 @@ EGLSurface EglWrapperDisplay::CreateStreamProducerSurfaceKHR(EGLConfig config,
 EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageKHR(EGLSurface draw, EGLint *rects, EGLint nRects)
 {
     WLOGD("");
-    std::lock_guard<std::recursive_mutex> lock(refLockMutex_);
+    EglWrapperSurface *surfacePtr = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(refLockMutex_);
+        surfacePtr = EglWrapperSurface::GetWrapperSurface(draw);
+        if (!CheckObject(surfacePtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+            return EGL_FALSE;
+        }
 
-    EglWrapperSurface *surfacePtr = EglWrapperSurface::GetWrapperSurface(draw);
-    if (!CheckObject(surfacePtr)) {
-        WLOGE("EGLSurface is invalid.");
-        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
-        return EGL_FALSE;
+        if (nRects < 0 || (nRects > 0 && rects == NULL)) {
+            WLOGE("Parameter error.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+            return EGL_FALSE;
+        }
     }
-
-    if (nRects < 0 || (nRects > 0 && rects == NULL)) {
-        WLOGE("Paramter error.");
-        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
-        return EGL_FALSE;
-    }
-
     EGLBoolean ret = EGL_FALSE;
     EglWrapperDispatchTablePtr table = &gWrapperHook;
     if (table->isLoad && table->egl.eglSwapBuffersWithDamageKHR) {
@@ -1161,7 +1163,7 @@ EGLBoolean EglWrapperDisplay::SetDamageRegionKHR(EGLSurface surf, EGLint *rects,
     }
 
     if (nRects < 0 || (nRects > 0 && rects == nullptr)) {
-        WLOGE("Paramter error.");
+        WLOGE("Parameter error.");
         ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
         return EGL_FALSE;
     }
@@ -1318,19 +1320,21 @@ EGLSurface EglWrapperDisplay::CreatePlatformPixmapSurfaceEXT(EGLConfig config, v
 
 EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageEXT(EGLSurface surface, const EGLint *rects, EGLint nRects)
 {
-    std::lock_guard<std::recursive_mutex> lock(refLockMutex_);
+    EglWrapperSurface *surfPtr = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(refLockMutex_);
+        surfPtr = EglWrapperSurface::GetWrapperSurface(surface);
+        if (!CheckObject(surfPtr)) {
+            WLOGE("EGLSurface is invalid.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
+            return EGL_FALSE;
+        }
 
-    EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surface);
-    if (!CheckObject(surfPtr)) {
-        WLOGE("EGLSurface is invalid.");
-        ThreadPrivateDataCtl::SetError(EGL_BAD_SURFACE);
-        return EGL_FALSE;
-    }
-
-    if (nRects < 0 || (nRects > 0 && rects == nullptr)) {
-        WLOGE("Paramter error.");
-        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
-        return EGL_FALSE;
+        if (nRects < 0 || (nRects > 0 && rects == nullptr)) {
+            WLOGE("Parameter error.");
+            ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+            return EGL_FALSE;
+        }
     }
 
     EGLBoolean ret = EGL_FALSE;
