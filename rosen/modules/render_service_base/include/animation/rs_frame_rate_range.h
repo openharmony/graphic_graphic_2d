@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t UNKNOWN_FRAME_RATE_TYPE = 0;
 // ace scene
 constexpr uint32_t REFRESH_DRAG_FRAME_RATE_TYPE = (1 << 0);
 constexpr uint32_t SWIPER_DRAG_FRAME_RATE_TYPE = (1 << 1);
@@ -83,7 +84,7 @@ public:
         this->min_ = 0;
         this->max_ = 0;
         this->preferred_ = 0;
-        this->type_ = 0;
+        this->type_ = UNKNOWN_FRAME_RATE_TYPE;
         this->isEnergyAssurance_ = false;
         this->componentScene_ = ComponentScene::UNKNOWN_SCENE;
     }
@@ -202,7 +203,7 @@ public:
     int min_ = 0;
     int max_ = 0;
     int preferred_ = 0;
-    uint32_t type_ = 0;
+    uint32_t type_ = UNKNOWN_FRAME_RATE_TYPE;
     bool isEnergyAssurance_ = false;
     ComponentScene componentScene_ = ComponentScene::UNKNOWN_SCENE;
 };
