@@ -49,7 +49,7 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::SHADOW);
 
-    EXPECT_EQ(modifier->GetShadowAlpha(), -1.f);
+    EXPECT_EQ(modifier->GetShadowAlpha(), 0.f);
 
     Color shadowColor(15, 11, 15, 16);
     modifier->SetShadowColor(shadowColor);
