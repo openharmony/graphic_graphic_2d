@@ -41,6 +41,7 @@
 #include "params/rs_surface_render_params.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_message_bus.h"
