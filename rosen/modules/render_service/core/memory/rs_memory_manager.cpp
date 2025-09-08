@@ -92,7 +92,7 @@ constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
-const bool isBeta = RSSystemProperties::GetVersionType() == "beta";
+const bool IS_BETA = RSSystemProperties::GetVersionType() == "beta";
 }
 
 std::mutex MemoryManager::mutex_;
@@ -830,7 +830,7 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     if (isGpu) {
         info.gpuMemory = overflowMemory;
     }
-    if (isBeta) {
+    if (IS_BETA) {
         RSMainThread::Instance()->PostTask([pid, info]() mutable {
             RS_TRACE_NAME_FMT("RSMem Dump Task");
             std::unordered_set<std::u16string> argSets;
