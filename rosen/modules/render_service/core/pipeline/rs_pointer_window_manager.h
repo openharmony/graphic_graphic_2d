@@ -26,15 +26,13 @@ namespace OHOS {
 namespace Rosen {
 class RSPointerWindowManager {
 public:
-    RSPointerWindowManager();
+    RSPointerWindowManager() = default;
     ~RSPointerWindowManager() = default;
 
     static RSPointerWindowManager& Instance();
 
     void UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
         std::shared_ptr<RSScreenRenderNode>& curScreenNode);
-
-    static bool GetHardCursorEnabledPass();
     struct BoundParam {
         float x = 0.0f;
         float y = 0.0f;
@@ -168,7 +166,6 @@ private:
     std::atomic<bool> boundHasUpdate_ = false;
     BoundParam bound_ = {0.0f, 0.0f, 0.0f, 0.0f};
     int64_t rsNodeId_ = -1;
-    bool isHardCursorEnable_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

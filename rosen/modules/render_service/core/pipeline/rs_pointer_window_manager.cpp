@@ -34,11 +34,6 @@ RSPointerWindowManager& RSPointerWindowManager::Instance()
     return instance;
 }
 
-RSPointerWindowManager::RSPointerWindowManager()
-{
-    isHardCursorEnable_ = RSPointerWindowManager::GetHardCursorEnabledPass();
-}
-
 void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
     std::shared_ptr<RSScreenRenderNode>& curScreenNode)
 {
@@ -61,16 +56,6 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
             isNeedForceCommitByPointer_ = false;
         }
     }
-}
-
-bool RSPointerWindowManager::GetHardCursorEnabledPass()
-{
-    auto hardCursorFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam("HardCursorConfig");
-    auto hardCursorFeature = std::static_pointer_cast<HardCursorParam>(hardCursorFeatureParam);
-    if (hardCursorFeature != nullptr) {
-        return hardCursorFeature->IsHardCursorEnable();
-    }
-    return false;
 }
 
 void RSPointerWindowManager::UpdatePointerInfo()
@@ -184,9 +169,6 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
 
 bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
 {
-    if (!isHardCursorEnable_) {
-        return false;
-    }
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         return false;
