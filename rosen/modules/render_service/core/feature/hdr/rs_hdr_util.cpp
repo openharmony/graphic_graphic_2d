@@ -43,12 +43,20 @@ const std::vector<uint8_t> HDR_VIVID_METADATA = {
     81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0
 };
 }
-static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect_;
-std::unordered_set<uint8_t> aihdrMetadataTypeSet = {
-    HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR,
-    HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT,
-    HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE
-};
+
+inline HdrStatus CheckAIHDRType(uint8_t metadataType)
+{
+    switch (metadataType) {
+        case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR:
+            return HdrStatus::AI_HDR_VIDEO_GTM;
+        case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT:
+            return HdrStatus::AI_HDR_VIDEO_GAINMAP;
+        case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE:
+            return HdrStatus::AI_HDR_VIDEO_GAINMAP;
+        default:
+            return HdrStatus::NO_HDR;
+    }
+}
 
 HdrStatus RSHdrUtil::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
 {
@@ -70,14 +78,15 @@ HdrStatus RSHdrUtil::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBu
         RS_LOGD("RSHdrUtil::CheckIsHdrSurfaceBuffer HDRVideoEnabled false");
         return HdrStatus::NO_HDR;
     }
-    #ifdef USE_VIDEO_PROCESSING_ENGINE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     std::vector<uint8_t> metadataType{};
-    if ((surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType)
-        == GSERROR_OK) && (metadataType.size() > 0) &&
-        (aihdrMetadataTypeSet.find(metadataType[0]) != aihdrMetadataTypeSet.end())) {
-        return HdrStatus::AI_HDR_VIDEO;
+    if (surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK && !metadataType.empty()) {
+        auto AIHDRStatus = CheckAIHDRType(metadataType.front());
+        if (AIHDRStatus != HdrStatus::NO_HDR) {
+            return AIHDRStatus;
+        }
     }
-    #endif
+#endif
     if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
         surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
         surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
@@ -226,13 +235,15 @@ void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceN
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo srcColorSpaceInfo;
     CM_Matrix srcColorMatrix = CM_Matrix::MATRIX_P3;
+    CM_TransFunc srcTransFunc = CM_TransFunc::TRANSFUNC_SRGB;
     if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, srcColorSpaceInfo) == GSERROR_OK) {
         srcColorMatrix = srcColorSpaceInfo.matrix;
+        srcTransFunc = srcColorSpaceInfo.transfunc;
     }
     std::vector<uint8_t> dynamicMetadataVec;
     GSError ret = GSERROR_OK;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    if (srcColorMatrix == CM_Matrix::MATRIX_BT2020) {
+    if (srcTransFunc == CM_TransFunc::TRANSFUNC_PQ || srcTransFunc == CM_TransFunc::TRANSFUNC_HLG) {
         RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
     } else {
         RSColorSpaceConvert::Instance().GetSDRDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
@@ -326,7 +337,7 @@ void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode&
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
     if (firstLevelNode != nullptr && node.GetFirstLevelNodeId() != node.GetId()) {
         firstLevelNode->SetHDRPresent(flag);
-        RS_LOGD("RSHrdUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 "",
+        RS_LOGD("RSHdrUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 "",
             node.GetFirstLevelNodeId());
     }
     node.SetHDRPresent(flag);
@@ -383,48 +394,6 @@ bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& su
     // When the main screen uses F16 buffer and the window color space is not sRGB,
     // the window freeze capture can use F16 format to optimize performance.
     return (isHDROn || isScRGBEnable) && colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-}
-
-std::shared_ptr<Drawing::ShaderEffect> RSHdrUtil::MakeHdrHeadroomShader(float hrRatio,
-    std::shared_ptr<Drawing::ShaderEffect> imageShader)
-{
-    static constexpr char prog[] = R"(
-        uniform half hrRatio;
-        uniform shader imageShader;
-
-        mat3 Mat_RGB_P3toBT709 = mat3(
-            1.224939741445,  -0.042056249524,  -0.019637688845,
-            -0.224939599120,   1.042057784075,  -0.078636557327,
-            -0.000001097215,   0.000000329788,   1.098273664879
-        );
-
-        mat3 MAT_RGB_P3tosRGB_VPE = mat3(1.22494, -0.0420569, -0.0196376,
-                            -0.22494, 1.04206, -0.078636,
-                            0.0, 0.0, 1.09827);
-        
-        half4 main(float2 coord)
-        {
-            vec4 color = imageShader.eval(coord);
-            vec3 linearColor = sign(color.rgb) * pow(abs(color.rgb), vec3(2.2f));
-            linearColor = MAT_RGB_P3tosRGB_VPE * linearColor;
-            vec3 hdr = sign(linearColor) * pow(abs(linearColor), vec3(1.0f / 2.2f));
-            hdr = hdr * hrRatio;
-            return vec4(hdr, 1.0);
-        }
-    )";
-    if (hdrHeadroomShaderEffect_ == nullptr) {
-        hdrHeadroomShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
-        if (hdrHeadroomShaderEffect_ == nullptr) {
-            ROSEN_LOGE("MakeDynamicDimShader::RuntimeShader effect error\n");
-            return nullptr;
-        }
-    }
-    std::shared_ptr<Drawing::ShaderEffect> children[] = {imageShader};
-    size_t childCount = 1;
-    auto data = std::make_shared<Drawing::Data>();
-    data->BuildWithCopy(&hrRatio, sizeof(hrRatio));
-
-    return hdrHeadroomShaderEffect_->MakeShader(data, children, childCount, nullptr, false);
 }
 
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)

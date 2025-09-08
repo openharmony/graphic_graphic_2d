@@ -77,8 +77,6 @@ public:
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
     static ScreenColorGamut GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
     static bool NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-    std::shared_ptr<Drawing::ShaderEffect> MakeHdrHeadroomShader(float hrRatio,
-        std::shared_ptr<Drawing::ShaderEffect> imageShader);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
         const Drawing::SamplingOptions& sampling, std::shared_ptr<Drawing::Surface>& surface,

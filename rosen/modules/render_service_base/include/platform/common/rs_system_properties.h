@@ -268,7 +268,7 @@ public:
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
-    static bool GetHeterogComputingHDREnabled();
+    static bool GetHeterogeneousHDREnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();
     static bool GetUIFirstBehindWindowEnabled();

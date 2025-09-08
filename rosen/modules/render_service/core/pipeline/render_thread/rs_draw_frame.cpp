@@ -21,7 +21,7 @@
 #include "rs_trace.h"
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "feature/hetero_hdr/rs_hdr_manager.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
@@ -88,7 +88,7 @@ void RSDrawFrame::RenderFrame()
         RSBaseRenderUtil::GetAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
-    RSHdrManager::Instance().PostHdrSubTasks();
+    RSHeteroHDRManager::Instance().PostHDRSubTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
     RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();

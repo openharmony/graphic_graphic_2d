@@ -93,7 +93,6 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
 #endif
     subThreadCache_.SetNodeId(surfaceNode->GetId());
-    g_HDRHeterRenderContext.rsHdrBufferLayer_ = std::make_shared<RSHDRBUfferLayer>("HDRDstLayer", nodeId_);
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -727,10 +726,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (GetDrawSkipType() == DrawSkipType::NONE) {
             SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
         }
-        return;
-    }
-    if (DrawHDRCacheWithDmaFFRT(*rscanvas, *surfaceParams)) {
-        SetDrawSkipType(DrawSkipType::HARDWARE_HDR_CACHE_SKIP);
         return;
     }
 

@@ -324,7 +324,7 @@ bool DoReportGameStateData()
 bool DoGetScreenHDRStatus()
 {
     static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
-        HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
+        HdrStatus::AI_HDR_VIDEO_GTM, HdrStatus::HDR_EFFECT };
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     HdrStatus status = statusVec[GetData<uint8_t>() % statusVec.size()];

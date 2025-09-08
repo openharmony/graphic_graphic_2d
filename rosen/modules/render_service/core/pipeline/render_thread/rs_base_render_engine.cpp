@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "rs_base_render_engine.h"
 
 #include <memory>
@@ -19,7 +20,8 @@
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
-#include "feature/hdr/rs_hdr_util.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
@@ -59,7 +61,6 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
-constexpr float DEGAMMA = 1.0f / 2.2f;
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -708,28 +709,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: SRGB color gamut drawing completed");
     } else {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-
-    if (params.isHeterog) {
-        RS_LOGD("hdr video comin heterog");
-        float hrRatio = std::pow((params.displayNits / params.sdrNits), DEGAMMA);
-        Drawing::Matrix scaleMat;
-        auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-            Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-
-        RSHdrUtil util;
-        auto shader = util.MakeHdrHeadroomShader(hrRatio, imageShader);
-        if (shader == nullptr) {
-            RS_LOGE("RSHdrUtil::MakeHdrHeadroomShader shader is null");
-            return;
-        }
-        params.paint.SetShaderEffect(shader);
-
-        canvas.AttachBrush(params.paint);
-        canvas.DrawRect(params.dstRect);
-        canvas.DetachBrush();
-        return;
-    }
-
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Applying brightness ratio: %{public}.2f", params.brightnessRatio);
@@ -807,8 +786,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (imageShader == nullptr) {
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
-        params.paint.SetShaderEffect(imageShader);
-        ColorSpaceConvertor(imageShader, params, videoInfo.parameter_, canvas.GetHDRProperties());
+        bool needHetero = (params.hdrHeteroType & RSHeteroHDRUtilConst::HDR_HETERO) && !ROSEN_LE(params.sdrNits, 0.0f);
+        if (needHetero) {
+            RSHeteroHDRManager::Instance().GenerateHDRHeteroShader(params, imageShader);
+        } else {
+            params.paint.SetShaderEffect(imageShader);
+            ColorSpaceConvertor(imageShader, params, videoInfo.parameter_, canvas.GetHDRProperties());
+        }
     }
     canvas.AttachBrush(params.paint);
     canvas.DrawRect(params.dstRect);

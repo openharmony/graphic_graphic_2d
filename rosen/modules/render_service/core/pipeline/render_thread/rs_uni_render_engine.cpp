@@ -15,6 +15,7 @@
 
 #include "common/rs_singleton.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_engine.h"
@@ -49,17 +50,25 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     PostProcessFunc postProcess)
 {
     canvas.Save();
+    bool hdrHeteroRet = RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
+        if (hdrHeteroRet) {
+            std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
+            RegisterDeleteBufferListener(hdrSurfaceHandler->GetConsumer());
+            DrawImage(canvas, params);
+            RSHeteroHDRManager::Instance().ReleaseBuffer();
+        } else {
+            RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
 #ifdef RS_ENABLE_TV_PQ_METADATA
-        auto& renderParams = surfaceDrawable.GetRenderParams();
-        if (renderParams) {
-            auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
-            RSTvMetadataManager::Instance().RecordTvMetadata(surfaceRenderParams, params.buffer);
-        }
+            auto& renderParams = surfaceDrawable.GetRenderParams();
+            if (renderParams) {
+                auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
+                RSTvMetadataManager::Instance().RecordTvMetadata(surfaceRenderParams, params.buffer);
+            }
 #endif
-        DrawImage(canvas, params);
+            DrawImage(canvas, params);
+        }
     } else {
         DrawBuffer(canvas, params);
     }
@@ -211,15 +220,6 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
         RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
-        DrawImage(canvas, params);
-    } else {
-        DrawBuffer(canvas, params);
-    }
-}
-
-void RSUniRenderEngine::DrawHDRCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
-{
-    if (!params.useCPU) {
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

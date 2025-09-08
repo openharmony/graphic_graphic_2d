@@ -125,7 +125,6 @@ enum class DrawSkipType : uint8_t {
     UI_FIRST_CACHE_FAIL = 31,
     SURFACE_SKIP_IN_MIRROR = 32,
     NO_DISPLAY_NODE = 33,
-    HARDWARE_HDR_CACHE_SKIP = 34,
     SCREEN_STATE_INVALID = 35,
     SCREEN_FREEZE = 36,
 };

@@ -1568,8 +1568,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::HDR_VIDEO);
     testNode->SetVideoHdrStatus(HdrStatus::NO_HDR);
     EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::NO_HDR);
-    testNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO);
-    EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::AI_HDR_VIDEO);
+    testNode->SetVideoHdrStatus(HdrStatus::AI_HDR_VIDEO_GTM);
+    EXPECT_EQ(testNode->GetVideoHdrStatus(), HdrStatus::AI_HDR_VIDEO_GTM);
 }
 
 /**
