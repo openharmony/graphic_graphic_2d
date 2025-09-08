@@ -788,7 +788,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     } else {
         bool needHetero = (params.hdrHeteroType & RSHeteroHDRUtilConst::HDR_HETERO) && !ROSEN_LE(params.sdrNits, 0.0f);
         if (needHetero) {
-            float hdrRatio = std::pow((params.displayNits / params.sdrNits), DEGAMMA);
             RSHeteroHDRManager::Instance().GenerateHDRHeteroShader(params, imageShader);
         } else {
             params.paint.SetShaderEffect(imageShader);
@@ -801,7 +800,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
     DrawImageRect(canvas, image, params, samplingOptions);
 #endif // USE_VIDEO_PROCESSING_ENGINE
-    }
 }
 
 void RSBaseRenderEngine::DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
