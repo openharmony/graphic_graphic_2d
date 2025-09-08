@@ -106,7 +106,7 @@ void RSGraphicTest::SetUp()
     RSSurfaceNodeConfig config;
     string surfaceNodeName = "TestSurface";
     config.SurfaceNodeName = surfaceNodeName.append(to_string(imageWriteId_));
-    auto testSurface = RSSurfaceNode::Create(config, false);
+    auto testSurface = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE);
 
     testSurface->SetBounds({0, 0, GetScreenSize()[0], GetScreenSize()[1]});
     testSurface->SetFrame({0, 0, GetScreenSize()[0], GetScreenSize()[1]});

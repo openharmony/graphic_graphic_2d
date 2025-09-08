@@ -29,6 +29,7 @@
 #include "property/rs_point_light_manager.h"
 #include "render/rs_pixel_map_util.h"
 #include "static_factory.h"
+#include "memory/rs_tag_tracker.h"
 
 // dfx
 #include "drawable/dfx/rs_refresh_rate_dfx.h"
@@ -176,9 +177,9 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             HILOG_COMM_ERROR("RSLogicalDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
+        currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
+        RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
         if (mirroredRenderParams) {
-            currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
-            RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
             curVisibleRect_ = RSUniRenderThread::Instance().GetVisibleRect();
             enableVisibleRect_ = RSUniRenderThread::Instance().GetEnableVisibleRect();
             if (params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
@@ -193,12 +194,18 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             uniParam->SetSecExemption(curSecExemption_);
             DrawMirrorScreen(*params, processor);
             lastVisibleRect_ = curVisibleRect_;
-            lastBlackList_ = currentBlackList_;
             lastTypeBlackList_ = currentTypeBlackList_;
             lastSecExemption_ = curSecExemption_;
         } else {
+            RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
+            curSecExemption_ = params->GetSecurityExemption();
+            uniParam->SetSecExemption(curSecExemption_);
+            uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
             DrawExpandDisplay(*params);
+            lastSecExemption_ = curSecExemption_;
+            uniParam->SetSecurityDisplay(false);
         }
+        lastBlackList_ = currentBlackList_;
         return;
     }
 
@@ -504,7 +511,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(curScreenDrawable) &&
         !curScreenDrawable.GetAccumulateDirtyInSkipFrame() && !needRefresh) {
-        isSkipDisplayInVirtual_ = true;
+        virtualProcesser->SetDisplaySkipInMirror(true);
         return mappedDamageRegion.GetRegionRectIs();
     }
     curScreenDrawable.SetAccumulateDirtyInSkipFrame(false);
@@ -945,6 +952,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     virtualProcesser->CalculateTransform(GetOriginScreenRotation());
     RSDirtyRectsDfx rsDirtyRectsDfx(*curScreenDrawable);
     std::shared_ptr<RSSLRScaleFunction> slrManager = enableVisibleRect_ ? nullptr : virtualProcesser->GetSlrManager();
+    curCanvas_ = virtualProcesser->GetCanvas().get();
+    if (!curCanvas_) {
+        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy failed to get canvas.");
+        return;
+    }
     if (!uniParam.IsVirtualDirtyEnabled() || (enableVisibleRect_ && curVisibleRect_.GetTop() > 0)) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
@@ -952,12 +964,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
         auto dirtyRects = CalculateVirtualDirty(virtualProcesser, *curScreenDrawable, params,
             slrManager ? slrManager->GetScaleMatrix() : virtualProcesser->GetCanvasMatrix());
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, curScreenParams->GetScreenInfo());
-    }
-
-    curCanvas_ = virtualProcesser->GetCanvas().get();
-    if (!curCanvas_) {
-        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy failed to get canvas.");
-        return;
+        if (virtualProcesser->GetDisplaySkipInMirror()) {
+            RS_TRACE_NAME("display node skip in DrawMirrorCopy");
+            curCanvas_->RestoreToCount(0);
+            return;
+        }
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -1121,9 +1132,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
         Drawing::Matrix matrix = curCanvas_->GetTotalMatrix();
         std::vector<RectI> dirtyRects = CalculateVirtualDirty(virtualProcesser, *curScreenDrawable, params, matrix);
         rsDirtyRectsDfx.SetVirtualDirtyRects(dirtyRects, curScreenParams->GetScreenInfo());
-        if (isSkipDisplayInVirtual_) {
-            RS_TRACE_NAME("display node skip in virtual");
-            isSkipDisplayInVirtual_ = false;
+        if (virtualProcesser->GetDisplaySkipInMirror()) {
+            RS_TRACE_NAME("display node skip in DrawMirror");
             curCanvas_->RestoreToCount(0);
             return;
         }
@@ -1430,9 +1440,11 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
     bool createOffscreenSurface = !params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || !offscreenSurface_ ||
         (screenParams->GetHDRPresent() &&
         offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16);
+    bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
+    RSTagTracker tagTracker(curCanvas_->GetGPUContext(),
+        hdrOrScRGB ? RSTagTracker::TAGTYPE::TAG_HDR_OFFSCREEN : RSTagTracker::TAGTYPE::TAG_COMMON_OFFSCREEN);
     if (createOffscreenSurface) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
-        bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
         if (hdrOrScRGB) {
             RS_LOGD("HDR PrepareHdrDraw");
             if (!params->GetNeedOffscreen() && useCanvasSize) {

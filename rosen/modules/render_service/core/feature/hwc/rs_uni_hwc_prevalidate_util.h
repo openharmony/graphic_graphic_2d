@@ -89,8 +89,8 @@ private:
     bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
     void CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform,
         RequestLayerInfo& info);
-    static bool CheckHwcNodeAndGetPointerWindow(
-        const RSSurfaceRenderNode::SharedPtr& node, RSSurfaceRenderNode::SharedPtr& pointerWindow);
+    static bool CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node);
+    static bool IsPointerWindow(const RSSurfaceRenderNode::SharedPtr& node);
     static void EmplaceSurfaceNodeLayer(
         std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);

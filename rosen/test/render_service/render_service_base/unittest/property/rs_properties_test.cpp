@@ -3006,6 +3006,25 @@ HWTEST_F(RSPropertiesTest, SetLightIntensity001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLightIntensity002
+ * @tc.desc: test results of SetLightIntensity
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetLightIntensity002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetLightIntensity(-1.f);
+    EXPECT_NE(properties.lightSourcePtr_, nullptr);
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    properties.backref_ = node;
+    auto instance = RSPointLightManager::Instance();
+    instance->lightSourceNodeMap_.clear();
+    properties.SetLightIntensity(1.f);
+    EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
+}
+
+/**
  * @tc.name: SetLightColor001
  * @tc.desc: test results of SetLightColor
  * @tc.type: FUNC
@@ -3092,6 +3111,27 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType001, TestSize.Level1)
     properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBBC));
     EXPECT_EQ(properties.contentDirty_, true);
 }
+
+/**
+ * @tc.name: SetIlluminatedType002
+ * @tc.desc: test results of SetIlluminatedType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetIlluminatedType002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetIlluminatedType(-1);
+    EXPECT_NE(properties.illuminatedPtr_, nullptr);
+
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    properties.backref_ = node;
+    auto instance = RSPointLightManager::Instance();
+    instance->illuminatedNodeMap_.clear();
+    properties.SetIlluminatedType(1);
+    EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
+}
+
 
 /**
  * @tc.name: SetBloom001

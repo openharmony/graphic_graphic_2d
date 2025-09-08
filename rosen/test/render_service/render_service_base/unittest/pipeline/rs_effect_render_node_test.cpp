@@ -206,6 +206,25 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkFilterCacheFlagsWithForceClearFilterCache
+ * @tc.desc: test for force clear filter cache
+ * @tc.type: FUNC
+ * @tc.require: issueICVQH7
+ */
+HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsWithForceClearFilterCache, TestSize.Level1)
+{
+    RSEffectRenderNode node(1);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->MarkFilterForceClearCache();
+    node.filterRegion_ = RectI(0, 0, 10, 10);
+    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, false);
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), RectI(0, 0, 10, 10));
+}
+
+/**
  * @tc.name: MarkFilterHasEffectChildrenTest
  * @tc.desc: test results of MarkFilterHasEffectChildren
  * @tc.type:FUNC

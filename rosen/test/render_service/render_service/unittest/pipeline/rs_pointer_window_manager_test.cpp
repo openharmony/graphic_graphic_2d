@@ -146,7 +146,6 @@ HWTEST_F(RSPointerWindowManagerTest, CheckHardCursorSupportTest, TestSize.Level2
     surfaceNode->name_ = "pointer window";
     surfaceNode->isOnTheTree_ = true;
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
-    rsPointerWindowManager.isHardCursorEnable_ = true;
     bool res = rsPointerWindowManager.CheckHardCursorSupport(1);
     ASSERT_EQ(res, false);
 }

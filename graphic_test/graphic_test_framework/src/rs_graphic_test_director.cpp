@@ -311,5 +311,10 @@ void RSGraphicTestDirector::SendProfilerCommand(const std::string command, int o
         profilerThread_->SendCommand(command, outTime);
     }
 }
+
+void RSGraphicTestDirector::ReleaseRootNode()
+{
+    rootNode_.reset();
+}
 } // namespace Rosen
 } // namespace OHOS

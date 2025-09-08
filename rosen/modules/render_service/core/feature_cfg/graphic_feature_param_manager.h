@@ -33,8 +33,6 @@
 #include "drm_param.h"
 #include "color_gamut_param_parse.h"
 #include "color_gamut_param.h"
-#include "hard_cursor_param.h"
-#include "hard_cursor_param_parse.h"
 #include "hfbc_param_parse.h"
 #include "hfbc_param.h"
 #include "hwc_param_parse.h"
@@ -101,8 +99,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<FilterParam>(); }},
     {FEATURE_CONFIGS[DVSYNC], [] { return std::make_unique<DVSyncParamParse>(); },
         [] { return std::make_unique<DVSyncParam>(); }},
-    {FEATURE_CONFIGS[HARDCURSOR], [] { return std::make_unique<HardCursorParamParse>(); },
-        [] { return std::make_unique<HardCursorParam>(); }},
     {FEATURE_CONFIGS[SOC_PERF], [] { return std::make_unique<SOCPerfParamParse>(); },
         [] { return std::make_unique<SOCPerfParam>(); }},
     {FEATURE_CONFIGS[CAPTURE_BASE], [] {return std::make_unique<CaptureBaseParamParse>(); },

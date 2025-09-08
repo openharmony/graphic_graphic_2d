@@ -15,9 +15,12 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_unittest("string_convert_test") {
+ohos_unittest("text_utils_test") {
   module_out_path = text_ut_out_path
-  sources = [ "string_util_test.cpp" ]
+  sources = [
+    "string_util_test.cpp",
+    "typeface_map_test.cpp",
+  ]
 
   cflags_cc = [
     "-std=c++17",
@@ -42,5 +45,5 @@ ohos_unittest("string_convert_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":string_convert_test" ]
+  deps = [ ":text_utils_test" ]
 }

@@ -1119,6 +1119,11 @@ protected:
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
 #endif
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+    void ExpandDirtyRegionWithFilterRegion(RSDirtyRegionManager& dirtyManager)
+    {
+        dirtyManager.MergeDirtyRect(filterRegion_);
+        isDirtyRegionUpdated_ = true;
+    }
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;

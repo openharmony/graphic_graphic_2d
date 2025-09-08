@@ -53,6 +53,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
+#include "utils/system_properties.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
@@ -1119,15 +1120,42 @@ void RSUniRenderThread::PurgeShaderCacheAfterAnimate()
 #endif
 }
 
-void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString)
+void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString, bool checkIsInUniRenderThread)
 {
-    PostSyncTask([this, &dumpString]() {
+    auto task = [this, &dumpString]() {
         if (!rootNodeDrawable_) {
             dumpString.append("rootNode is null\n");
             return;
         }
         rootNodeDrawable_->DumpDrawableTree(0, dumpString, RSMainThread::Instance()->GetContext());
-    });
+    };
+    if (checkIsInUniRenderThread) {
+        if (gettid() == tid_) {
+            task();
+        } else {
+            dumpString.append("not in RSUniRenderThread, skip tree dump\n");
+        }
+    } else {
+        PostSyncTask(task);
+    }
+}
+
+void RSUniRenderThread::ProcessVulkanErrorTreeDump()
+{
+#ifdef ROSEN_OHOS
+    if (!Drawing::SystemProperties::IsVkImageDfxEnabled()) {
+        return;
+    }
+    RS_LOGE("------ RSUniRenderThread tree dump start ------");
+    std::string rsTreeDump;
+    RenderServiceTreeDump(rsTreeDump, true);
+    std::istringstream stream(rsTreeDump);
+    std::string line;
+    while (std::getline(stream, line, '\n')) {
+        RS_LOGE("%{public}s", line.c_str());
+    }
+    RS_LOGE("------ RSUniRenderThread tree dump end ------");
+#endif
 }
 
 void RSUniRenderThread::UpdateScreenNodeScreenId()

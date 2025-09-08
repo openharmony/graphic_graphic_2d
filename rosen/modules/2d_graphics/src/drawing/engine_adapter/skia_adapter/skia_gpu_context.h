@@ -88,6 +88,8 @@ public:
 
     void FreeGpuResources() override;
 
+    void FreeCpuCache(uint32_t uniqueId = 0) override;
+
     void ReclaimResources() override;
 
     void DumpGpuStats(std::string& out) override;
@@ -153,7 +155,7 @@ public:
     void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority) override;
 
     void FlushGpuMemoryInWaitQueue() override;
-    
+
     void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) override;
 
     void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) override;

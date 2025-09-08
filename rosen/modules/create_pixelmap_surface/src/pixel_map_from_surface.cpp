@@ -305,6 +305,8 @@ void PixelMapFromSurface::Clear() noexcept
 static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
     switch (vkFormat) {
+        case VK_FORMAT_B8G8R8A8_UNORM:
+            return Drawing::COLORTYPE_BGRA_8888;
         case VK_FORMAT_R8G8B8A8_UNORM:
             return Drawing::COLORTYPE_RGBA_8888;
         case VK_FORMAT_R16G16B16A16_SFLOAT:

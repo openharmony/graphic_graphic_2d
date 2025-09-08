@@ -1491,14 +1491,14 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     return renderService->RegisterTypeface(globalUniqueId, typeface);
 }
 
-bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnRegisterTypeface: renderService is nullptr");
         return false;
     }
-    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
+    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(uniqueId);
     ROSEN_LOGD("RSRenderServiceClient::UnRegisterTypeface: pid[%{public}d] unregister typface[%{public}u]",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
     return renderService->UnRegisterTypeface(globalUniqueId);
@@ -2575,6 +2575,28 @@ void RSRenderServiceClient::ClearUifirstCache(NodeId id)
         return;
     }
     renderService->ClearUifirstCache(id);
+}
+
+void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoStart renderService == nullptr!");
+        return;
+    }
+    renderService->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+}
+
+void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoStop renderService == nullptr!");
+        return;
+    }
+    renderService->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
 } // namespace Rosen
 } // namespace OHOS

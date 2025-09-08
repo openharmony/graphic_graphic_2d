@@ -116,7 +116,7 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
     }
     auto rsUIContext = rsUIContext_.lock();
     auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-        RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        RSImplicitAnimatorMap::Instance().GetAnimator();
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return 0;
@@ -151,7 +151,7 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
     }
     auto rsUIContext = rsUIContext_.lock();
     auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-        RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        RSImplicitAnimatorMap::Instance().GetAnimator();
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return 0;

@@ -67,12 +67,12 @@ static void OnVSync(long long timestamp, long long targetTimestamp, void* data)
 }
 
 namespace {
-/*
-* Function: OH_DisplaySoloist_Create
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Create by normal input
+/**
+ * Function: OH_DisplaySoloist_Create
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Create by normal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Create001, Function | MediumTest | Level0)
 {
@@ -81,12 +81,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Create001, Function | Mediu
     EXPECT_NE(nullptr, nativeDisplaySoloist);
 }
 
-/*
-* Function: OH_DisplaySoloist_Start
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Start by abnormal input
+/**
+ * Function: OH_DisplaySoloist_Start
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Start by abnormal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start001, Function | MediumTest | Level1)
 {
@@ -95,12 +95,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start001, Function | Medium
     EXPECT_EQ(SOLOIST_ERROR, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_Start
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Start by normal input
+/**
+ * Function: OH_DisplaySoloist_Start
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Start by normal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start002, Function | MediumTest | Level0)
 {
@@ -109,12 +109,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Start002, Function | Medium
     EXPECT_EQ(EXEC_SUCCESS, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_SetExpectedFrameRateRange
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by abnormal input
+/**
+ * Function: OH_DisplaySoloist_SetExpectedFrameRateRange
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by abnormal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange001, Function | MediumTest | Level1)
 {
@@ -125,12 +125,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
     EXPECT_EQ(SOLOIST_ERROR, result2);
 }
 
-/*
-* Function: OH_DisplaySoloist_SetExpectedFrameRateRange
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by abnormal input
+/**
+ * Function: OH_DisplaySoloist_SetExpectedFrameRateRange
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by abnormal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange002, Function | MediumTest | Level1)
 {
@@ -141,12 +141,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
     EXPECT_EQ(SOLOIST_ERROR, result2);
 }
 
-/*
-* Function: OH_DisplaySoloist_SetExpectedFrameRateRange
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by normal input
+/**
+ * Function: OH_DisplaySoloist_SetExpectedFrameRateRange
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_SetExpectedFrameRateRange by normal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange003, Function | MediumTest | Level0)
 {
@@ -155,12 +155,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
     EXPECT_EQ(EXEC_SUCCESS, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_Stop
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Stop by abnormal input
+/**
+ * Function: OH_DisplaySoloist_Stop
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Stop by abnormal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop001, Function | MediumTest | Level1)
 {
@@ -168,12 +168,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop001, Function | MediumT
     EXPECT_EQ(SOLOIST_ERROR, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_Stop
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Stop by normal input
+/**
+ * Function: OH_DisplaySoloist_Stop
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Stop by normal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop002, Function | MediumTest | Level0)
 {
@@ -181,12 +181,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Stop002, Function | MediumT
     EXPECT_EQ(EXEC_SUCCESS, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_Destroy
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Destroy by abnormal input
+/**
+ * Function: OH_DisplaySoloist_Destroy
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Destroy by abnormal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy001, Function | MediumTest | Level1)
 {
@@ -194,12 +194,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy001, Function | Medi
     EXPECT_EQ(SOLOIST_ERROR, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_Destroy
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_Destroy by normal input
+/**
+ * Function: OH_DisplaySoloist_Destroy
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_Destroy by normal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy002, Function | MediumTest | Level0)
 {
@@ -207,12 +207,12 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Destroy002, Function | Medi
     EXPECT_EQ(EXEC_SUCCESS, result);
 }
 
-/*
-* Function: OH_DisplaySoloist_ThreadNums
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_DisplaySoloist_ThreadNums by normal input
+/**
+ * Function: OH_DisplaySoloist_ThreadNums
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_DisplaySoloist_ThreadNums by normal input
  */
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_ThreadNums, Function | MediumTest | Level0)
 {

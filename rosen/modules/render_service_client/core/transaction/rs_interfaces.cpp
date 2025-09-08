@@ -502,23 +502,11 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
 
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
-        [](uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
-        return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
-    };
-
-    static std::once_flag onceFlag;
-    std::call_once(onceFlag, []() {
-        Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
-    });
-
     if (RSSystemProperties::GetUniRenderEnabled()) {
         bool result = renderServiceClient_->RegisterTypeface(typeface);
         if (result) {
             RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
                 typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-            uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-            RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
         } else {
             RS_LOGE("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
                 typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
@@ -528,26 +516,16 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
 }
 
-bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)
 {
-    RS_LOGW("RSInterfaces:Unreg typeface: family name:%{public}s, uniqueid:%{public}u",
-        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+    RS_LOGI("RSInterfaces:Unreg typeface: uniqueid:%{public}u", uniqueId);
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        bool result = renderServiceClient_->UnRegisterTypeface(typeface);
-        if (result) {
-            uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-            RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
-        }
-        return result;
+        return renderServiceClient_->UnRegisterTypeface(uniqueId);
     }
 
-    uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
-    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
 
@@ -1236,6 +1214,18 @@ bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 void RSInterfaces::ClearUifirstCache(NodeId id)
 {
     renderServiceClient_->ClearUifirstCache(id);
+}
+
+void RSInterfaces::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
+{
+    renderServiceClient_->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+}
+
+void RSInterfaces::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
+{
+    renderServiceClient_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
 } // namespace Rosen
 } // namespace OHOS

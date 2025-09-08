@@ -41,7 +41,9 @@ constexpr int64_t S_TO_NS = 1000000000;              // s to ns
 constexpr int64_t VSYNC_JANK_LOG_THRESHOLED = 6;     // 6 times vsync
 constexpr int64_t INPUTTIME_TIMEOUT = 100000000;          // ns, 100ms
 constexpr uint64_t DELAY_TIME_MS = 1000;
-constexpr uint32_t ACVIDEO_QUIT_FRAME_COUNT = 10;
+constexpr uint64_t ACVIDEO_EXPECTION_QUIT_TIME_MS = 6000;
+constexpr uint64_t ACVIDEO_NOTIFY_TIME_MS = 1000;
+constexpr int ACVIDEO_VECTOR_MAX_LENGTH = 8;
 }
 
 RSJankStats& RSJankStats::GetInstance()
@@ -1152,6 +1154,8 @@ void RSJankStats::AvcodecVideoDump(
         fps = static_cast<uint32_t>(jsonItemFps->valueint);
     }
 
+    std::vector<uint64_t> uniqueIdList{uniqueId};
+    std::vector<std::string> surfaceNameList{surfaceName};
     if (func == "start") {
         cJSON* jsonItemReportTime = cJSON_GetObjectItem(jsonObject, "reportTime");
         if (jsonItemReportTime != nullptr && cJSON_IsNumber(jsonItemReportTime)) {
@@ -1162,10 +1166,10 @@ void RSJankStats::AvcodecVideoDump(
             return;
         }
 
-        AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+        AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
         dumpString.append("AvcodecVideoStart ");
     } else {
-        AvcodecVideoStop(uniqueId, surfaceName, fps);
+        AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
         dumpString.append("AvcodecVideoStop ");
     }
     cJSON_Delete(jsonObject);
@@ -1173,43 +1177,112 @@ void RSJankStats::AvcodecVideoDump(
         ", fps:" + std::to_string(fps) + ", reportTime:" + std::to_string(reportTime) + "]\n");
 }
 
-void RSJankStats::AvcodecVideoStart(
-    const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime)
+void RSJankStats::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (avcodecVideoMap_.find(queueId) != avcodecVideoMap_.end()) {
-        RS_LOGE("AvcodecVideoStart mission exists. %{public}" PRIu64 ".", queueId);
+    if (!isBeta_) {
         return;
     }
-
-    AvcodecVideoParam& info = avcodecVideoMap_[queueId];
-    info.surfaceName = surfaceName;
-    info.fps = fps;
-    info.reportTime = reportTime;
-    info.startTime = static_cast<uint64_t>(GetCurrentSystimeMs());
-    info.decodeCount = 0;
-
-    avcodecVideoCollectOpen_ = true;
-    RS_TRACE_NAME_FMT("AvcodecVideoStart [queueId %lu, surfaceName %s, fps %u, reportTime %lu, startTime %lu]",
-        queueId, info.surfaceName.c_str(), info.fps, info.reportTime, info.startTime);
+    std::lock_guard<std::mutex> lock(avcodecMutex_);
+    if (uniqueIdList.size() != surfaceNameList.size()) {
+        RS_LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size not equal surfaceNameList size");
+        return;
+    }
+    int uniqueIdListSize = uniqueIdList.size();
+    if (uniqueIdListSize > ACVIDEO_VECTOR_MAX_LENGTH) {
+        RS_LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size exceeds maxium limit");
+        return;
+    }
+    for (int i = 0; i < uniqueIdListSize; i++) {
+        uint64_t uniqueId = uniqueIdList[i];
+        AvcodecVideoParam& info = avcodecVideoMap_[uniqueId];
+        info.surfaceName = surfaceNameList[i];
+        info.fps = fps;
+        info.reportTime = reportTime;
+        info.startTime = static_cast<uint64_t>(GetCurrentSystimeMs());
+        info.decodeCount = 0;
+        avcodecVideoCollectOpen_ = true;
+    }
 }
 
-void RSJankStats::AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName, const uint32_t fps)
+void RSJankStats::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, const uint32_t fps)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = avcodecVideoMap_.find(queueId);
-    if (it == avcodecVideoMap_.end()) {
-        RS_LOGE("AvcodecVideoStop mission does not exist. %{public}" PRIu64 ".", queueId);
+    if (!isBeta_) {
         return;
     }
+    std::lock_guard<std::mutex> lock(avcodecMutex_);
+    if (uniqueIdList.size() != surfaceNameList.size()) {
+        RS_LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size not equal surfaceNameList size");
+        return;
+    }
+    int uniqueIdListSize = uniqueIdList.size();
+    if (uniqueIdListSize > ACVIDEO_VECTOR_MAX_LENGTH) {
+        RS_LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size exceeds maxium limit");
+        return;
+    }
+    for (int i = 0; i < uniqueIdListSize; i++) {
+        uint64_t uniqueId = uniqueIdList[i];
+        auto it = avcodecVideoMap_.find(uniqueId);
+        if (it == avcodecVideoMap_.end()) {
+            RS_LOGE("RSJankStats::AvcodecVideoStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
+            continue;
+        }
+        uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
+        uint64_t avgFps = (duration > 0) ? (it->second.decodeCount * DELAY_TIME_MS / duration) : 0;
+        uint64_t happenTime = it->second.startTime;
+        std::thread thread([uniqueId, duration, avgFps, happenTime]() {
+            RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG"
+                "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
+                uniqueId, duration, avgFps, happenTime);
+            int32_t domainId = 5;
+            int32_t eventId = 1;
+            std::stringstream s;
+            // RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG
+            s << "#UNIQUEID:" << uniqueId <<
+                "#DURATION:" << duration <<
+                "#AVG_FPS:" << avgFps <<
+                "#HAPPEN_TIME:" << happenTime;
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+            OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
+#endif
+        });
+        thread.detach();
 
+        avcodecVideoMap_.erase(it);
+    }
+    if (avcodecVideoMap_.empty()) {
+        avcodecVideoCollectOpen_ = false;
+    }
+}
+
+void RSJankStats::AvcodecVideoExpectionStop(const uint64_t uniqueId)
+{
+    auto it = avcodecVideoMap_.find(uniqueId);
+    if (it == avcodecVideoMap_.end()) {
+        RS_LOGE("RSJankStats::AvcodecVideoExpectionStop mission does not exist. %{public}" PRIu64 ".", uniqueId);
+        return;
+    }
     uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
-    RS_TRACE_NAME_FMT("AvcodecVideoStop mission complete. NotifyVideoEventToXperf" \
-        "[uniqueId %lu, duration %lu, avgFps %lu]",
-        queueId, duration, it->second.decodeCount * DELAY_TIME_MS / duration);
-    RS_LOGD("AvcodecVideoStop mission complete. NotifyVideoEventToXperf" \
-        "[uniqueId %{public}" PRIu64 ", duration %{public}" PRIu64 ", avgFps %{public}" PRIu64 "]",
-        queueId, duration, it->second.decodeCount * DELAY_TIME_MS / duration);
+    uint64_t avgFps = (duration > 0) ? (it->second.decodeCount * DELAY_TIME_MS / duration) : 0;
+    uint64_t happenTime = it->second.startTime;
+    std::thread thread([uniqueId, duration, avgFps, happenTime]() {
+        RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoExpectionStop RS_NOTIFY_XPERF_VIDEO_EXPECTION_STOP_MSG"
+            "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
+            uniqueId, duration, avgFps, happenTime);
+        int32_t domainId = 5;
+        int32_t eventId = 2;
+        std::stringstream s;
+        // RS_NOTIFY_XPERF_VIDEO_EXPECTION_STOP_MSG
+        s << "#UNIQUEID:" << uniqueId <<
+            "#DURATION:" << duration <<
+            "#AVG_FPS:" << avgFps <<
+            "#HAPPEN_TIME:" << happenTime;
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+        OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
+#endif
+    });
+    thread.detach();
 
     avcodecVideoMap_.erase(it);
 
@@ -1218,42 +1291,32 @@ void RSJankStats::AvcodecVideoStop(const uint64_t queueId, const std::string& su
     }
 }
 
-void RSJankStats::AvcodecVideoCollectBegin()
-{
-    if (!avcodecVideoCollectOpen_) {
-        return;
-    }
-
-    for (auto& [queueId, info] : avcodecVideoMap_) {
-        info.continuousFrameLoss++;
-    }
-}
-
 void RSJankStats::AvcodecVideoCollectFinish()
 {
-    if (!avcodecVideoCollectOpen_) {
+    if (!avcodecVideoCollectOpen_ || !isBeta_) {
         return;
     }
 
+    uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
     std::vector<uint64_t> finishedVideos;
     for (auto it = avcodecVideoMap_.begin(); it != avcodecVideoMap_.end(); it++) {
-        if (it->second.continuousFrameLoss >= ACVIDEO_QUIT_FRAME_COUNT) {
-            RS_LOGD("AvcodecVideoCollectFinish. [uniqueId %{public}" PRIu64 "]", it->first);
+        if (it->second.previousFrameTime !=0 && now - it->second.previousFrameTime >= ACVIDEO_EXPECTION_QUIT_TIME_MS) {
+            RS_LOGD("RSJankStats::AvcodecVideoCollectFinish. [uniqueId %{public}" PRIu64 "]", it->first);
             finishedVideos.push_back(it->first);
         }
     }
-    for (auto queueId : finishedVideos) {
-        AvcodecVideoStop(queueId);
+    for (auto uniqueId : finishedVideos) {
+        AvcodecVideoExpectionStop(uniqueId);
     }
 }
 
-void RSJankStats::AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence)
+void RSJankStats::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence)
 {
-    if (!avcodecVideoCollectOpen_) {
+    if (!avcodecVideoCollectOpen_ || !isBeta_) {
         return;
     }
 
-    auto it = avcodecVideoMap_.find(queueId);
+    auto it = avcodecVideoMap_.find(uniqueId);
     if (it == avcodecVideoMap_.end()) {
         return;
     }
@@ -1264,22 +1327,35 @@ void RSJankStats::AvcodecVideoCollect(const uint64_t queueId, const uint32_t seq
         it->second.decodeCount++;
         it->second.previousSequence = sequence;
         it->second.previousFrameTime = now;
-        it->second.continuousFrameLoss = 0;
     } else if (it->second.previousSequence != sequence) {
         uint64_t frameTime = now - it->second.previousFrameTime;
+        if (now - it->second.previousNotifyTime < ACVIDEO_NOTIFY_TIME_MS) {
+            RS_LOGD("RSJankStats::AvcodecVideoCollect previousNotifyTime not exceeding threshold."
+                "uniqueId: %{public}" PRIu64 ", frameTime: %{public}" PRIu64 "", uniqueId, frameTime);
+            return;
+        }
         if (frameTime > it->second.reportTime) {
-            RSBackgroundThread::Instance().PostTask([queueId, frameTime]() {
-                RS_TRACE_NAME_FMT("AvcodecVideoCollect NotifyVideoFaultToXperf [uniqueId %lu, frameTime %lu]",
-                    queueId, frameTime);
-                RS_LOGD("AvcodecVideoCollect NotifyVideoFaultToXperf" \
-                    "[uniqueId %{public}" PRIu64 ", frameTime %{public}" PRIu64 "]",
-                    queueId, frameTime);
+            it->second.previousNotifyTime = now;
+            std::thread thread([uniqueId, frameTime]() {
+                RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoCollect RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG"
+                    "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 "", uniqueId, frameTime);
+                int32_t domainId = 5;
+                int32_t eventId = 0;
+                std::stringstream s;
+                // RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG
+                s << "#UNIQUEID:" << uniqueId <<
+                    "#FAULT_ID:" << 0 <<
+                    "#FAULT_CODE:" << 0 <<
+                    "#MAX_FRAME_TIME:" << frameTime;
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+                OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
+#endif
             });
+            thread.detach();
         }
         it->second.decodeCount++;
         it->second.previousSequence = sequence;
         it->second.previousFrameTime = now;
-        it->second.continuousFrameLoss = 0;
     }
 }
 

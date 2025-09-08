@@ -320,6 +320,18 @@ HWTEST_F(SkiaGPUContextTest, GetCurrentGpuResourceTag001, TestSize.Level1)
     ASSERT_TRUE(tagGet.fSid == gPUResourceTag.fSid);
 }
 
+/**
+ * @tc.name: FreeCpuCache001
+ * @tc.desc: Test FreeCpuCache
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaGPUContextTest, FreeCpuCache001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->FreeCpuCache();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

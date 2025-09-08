@@ -24,7 +24,7 @@
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
-#include "pipeline/rs_render_frame_rate_linker.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
 
@@ -64,7 +64,7 @@ public:
     // Vrate
     void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
     void EraseGameRateDiscountMap(pid_t pid);
-    void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; };
+    void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; }
 private:
     void Reset();
     void HandleLinkers();
@@ -91,7 +91,7 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<HgmVoter>> linkerVoteMap_;
     std::unordered_map<WindowId, FrameRateLinkerId> winLinkerMap_;
     std::unordered_map<VsyncName, std::vector<FrameRateLinkerId>> vsyncLinkerMap_;
-    std::unordered_map<FrameRateLinkerId, std::pair<uint32_t, uint32_t>> appVoteData_;
+    std::unordered_map<FrameRateLinkerId, std::pair<int32_t, bool>> appVoteData_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
     std::weak_ptr<HgmVSyncGeneratorController> controller_;
     // linkerid is key, vrate is value
@@ -107,7 +107,7 @@ private:
     uint32_t controllerRate_ = 0;
 
     std::atomic<bool> isPerformanceFirst_;
-    std::function<void(bool)> updateSoftVSyncFunc_{ nullptr };
+    std::function<void(bool)> updateSoftVSyncFunc_ { nullptr };
 };
 } // namespace Rosen
 } // namespace OHOS

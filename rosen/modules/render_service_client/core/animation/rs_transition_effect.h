@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderTransitionEffect;
+// to delete
 class RSTransitionModifier;
 class RSPropertyBase;
 

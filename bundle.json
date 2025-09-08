@@ -127,7 +127,8 @@
           "media_foundation",
           "selinux_adapter",
           "runtime_core",
-          "graphic_2d_ext"
+          "graphic_2d_ext",
+          "hiview"
         ],
         "third_party": [
           "skia"

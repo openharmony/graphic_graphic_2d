@@ -311,72 +311,6 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, IsPrevalidateEnable001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckHwcNodeAndGetPointerWindow001
- * @tc.desc: CheckHwcNodeAndGetPointerWindow, input nullptr or hwcNode not on the tree
- * @tc.type: FUNC
- * @tc.require: issueIATEBN
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow001, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = nullptr;
-    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
-    bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
-    EXPECT_EQ(ret, false);
-    hwcNode = RSTestUtil::CreateSurfaceNode();
-    hwcNode->isOnTheTree_ = false;
-    ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: CheckHwcNodeAndGetPointerWindow002
- * @tc.desc: CheckHwcNodeAndGetPointerWindow, input pointerWindow
- * @tc.type: FUNC
- * @tc.require: issueIATEBN
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow002, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
-    hwcNode->isOnTheTree_ = true;
-    hwcNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
-    hwcNode->name_ = "pointer window";
-    bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: CheckHwcNodeAndGetPointerWindow003
- * @tc.desc: CheckHwcNodeAndGetPointerWindow, input normal hwcNode
- * @tc.type: FUNC
- * @tc.require: issueIATEBN
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow003, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
-    hwcNode->isOnTheTree_ = true;
-    hwcNode->dstRect_ = { DEFAULT_POSITION, DEFAULT_POSITION, DEFAULT_WIDTH, DEFAULT_HEIGHT };
-    bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
-    EXPECT_EQ(ret, true);
-}
-
-/**
- * @tc.name: CheckHwcNodeAndGetPointerWindow003
- * @tc.desc: CheckHwcNodeAndGetPointerWindow, input surfaceNode without buffer
- * @tc.type: FUNC
- * @tc.require: issueIBQDHZ
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow004, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
-    hwcNode->isOnTheTree_ = true;
-    bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
-    EXPECT_EQ(ret, false);
-}
-
-/**
  * @tc.name: CheckIfDoArsrPre001
  * @tc.desc: CheckIfDoArsrPre, input normal surfacenode
  * @tc.type: FUNC
@@ -669,6 +603,73 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo003, TestSize.L
     hwcNode->name_ = "pointer window";
     surfaceNode->AddChildHardwareEnabledNode(hwcNode);
     surfaceNodes.emplace_back(surfaceNode);
+
+    ScreenInfo screenInfo;
+    uint32_t zOrder = DEFAULT_Z_ORDER;
+    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, surfaceNodes, DEFAULT_FPS, zOrder, screenInfo);
+    ASSERT_EQ(prevalidLayers.size(), 1);
+}
+
+/**
+ * @tc.name: IsPointerWindow001
+ * @tc.desc: CheckIsPointerWindow, input normal node
+ * @tc.type: FUNC
+ * @tc.require: issueICV4A9
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, IsPointerWindow001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    node->isOnTheTree_ = true;
+    auto ret = RSUniHwcPrevalidateUtil::IsPointerWindow(node);
+    ASSERT_EQ(ret, node->IsHardwareEnabledTopSurface());
+}
+
+/**
+ * @tc.name: IsPointerWindow002
+ * @tc.desc: CheckIsPointerWindow, input nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICV4A9
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, IsPointerWindow002, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    node->isOnTheTree_ = true;
+    node = nullptr;
+    auto ret = RSUniHwcPrevalidateUtil::IsPointerWindow(node);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CollectSurfaceNodeLayerInfo004
+ * @tc.desc: CheckCollectSurfaceNodeLayerInfo when isOnTheTree_ is true
+ * @tc.type: FUNC
+ * @tc.require: issueICV4A9
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo004, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    std::vector<RequestLayerInfo> prevalidLayers;
+    std::vector<RSBaseRenderNode::SharedPtr> surfaceNodes;
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    surfaceNode1->isOnTheTree_ = true;
+    surfaceNode1->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
+    surfaceNode1->name_ = "pointer window";
+
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->isOnTheTree_ = true;
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isOnTheTree_ = false;
+    hwcNode->dstRect_ = { DEFAULT_POSITION, DEFAULT_POSITION, DEFAULT_WIDTH, DEFAULT_HEIGHT };
+    surfaceNode2->AddChildHardwareEnabledNode(hwcNode);
+
+    surfaceNodes.emplace_back(surfaceNode1);
+    surfaceNodes.emplace_back(surfaceNode2);
 
     ScreenInfo screenInfo;
     uint32_t zOrder = DEFAULT_Z_ORDER;

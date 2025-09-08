@@ -151,7 +151,7 @@ bool RSSystemProperties::GetVirtualDirtyEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+bool RSSystemProperties::GetVirtualExpandScreenDirtyEnabled()
 {
     return false;
 }

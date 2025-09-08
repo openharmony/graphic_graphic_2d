@@ -85,7 +85,7 @@ void FontCollection::SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager)
 
 std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() const
 {
-    std::unique_lock lock(collectionMutex_);
+    std::shared_lock lock(collectionMutex_);
     std::vector<std::shared_ptr<RSFontMgr>> order;
     if (dynamicFontManager_)
         order.push_back(dynamicFontManager_);
@@ -109,7 +109,7 @@ void FontCollection::DisableFontFallback()
 
 void FontCollection::ClearFontFamilyCache()
 {
-    std::unique_lock lock(collectionMutex_);
+    std::shared_lock lock(collectionMutex_);
     if (sktFontCollection_) {
         sktFontCollection_->clearCaches();
     }
@@ -122,7 +122,7 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
         skia::textlayout::FontCollection::SetAdapterTextHeightEnabled(
             OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance().IsAdapterTextHeightEnabled());
         sktFontCollection_ = sk_make_sp<skia::textlayout::FontCollection>();
-        UpdateDefaultFamilies();
+        UpdateDefaultFamiliesInner();
         sktFontCollection_->setAssetFontManager(assetFontManager_);
         sktFontCollection_->setDynamicFontManager(dynamicFontManager_);
         sktFontCollection_->setTestFontManager(testFontManager_);
@@ -134,15 +134,31 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
     return sktFontCollection_;
 }
 
+void FontCollection::UpdateDefaultFamiliesInner()
+{
+    if (!sktFontCollection_) {
+        return;
+    }
+    std::vector<SkString> defaultFontFamilies;
+    for (const std::string& family :
+        OHOS::Rosen::SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies()) {
+        defaultFontFamilies.emplace_back(family);
+    }
+    sktFontCollection_->setDefaultFontManager(defaultFontManager_, std::move(defaultFontFamilies));
+}
+
 void FontCollection::UpdateDefaultFamilies()
 {
+    std::shared_lock lock(collectionMutex_);
+    UpdateDefaultFamiliesInner();
+}
+
+void FontCollection::RemoveCacheByUniqueId(uint32_t uniqueId)
+{
+    std::shared_lock lock(collectionMutex_);
     if (sktFontCollection_) {
-        std::vector<SkString> defaultFontFamilies;
-        for (const std::string& family :
-            OHOS::Rosen::SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies()) {
-            defaultFontFamilies.emplace_back(family);
-        }
-        sktFontCollection_->setDefaultFontManager(defaultFontManager_, std::move(defaultFontFamilies));
+        sktFontCollection_->removeCacheByUniqueId(uniqueId);
     }
 }
+
 } // namespace txt

@@ -298,7 +298,9 @@ public:
     {
         return isEnabledChanged_;
     }
-
+    void AccumulateVirtualExpandScreenDirtyRegions(const RectI& curFrameDirtyRegion);
+    const std::vector<RectI>& GetVirtualExpandScreenAccumulatedDirtyRegions() const;
+    void ClearVirtualExpandScreenAccumulatedDirtyRegions();
 private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
@@ -353,6 +355,7 @@ private:
     std::vector<RectI> currentFrameAdvancedDirtyRegion_ = {};
     std::vector<RectI> dirtyRegionForQuickReject_ = {};
     std::vector<std::vector<RectI>> advancedDirtyHistory_ = {};
+    std::vector<RectI> virtualExpandScreenAccumulatedDirtyRegions_ = {};
 
     // added for dfx
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;

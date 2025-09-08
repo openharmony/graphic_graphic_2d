@@ -65,6 +65,14 @@ ohos_unittest("RSParallelExecutorManagerMultiwinTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ohos_unittest("RSParallelExecutorMultiwinTest") {
@@ -93,6 +101,14 @@ ohos_unittest("RSParallelExecutorMultiwinTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ohos_unittest("RSParallelRBPolicyTest") {
@@ -120,6 +136,14 @@ ohos_unittest("RSParallelRBPolicyTest") {
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 
@@ -150,6 +174,14 @@ ohos_unittest("RSParallelManagerTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
+  }
 }
 
 ohos_unittest("RSParallelMultiwinPolicyTest") {
@@ -177,6 +209,14 @@ ohos_unittest("RSParallelMultiwinPolicyTest") {
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  if (!build_ohos_sdk && !is_arkui_x) {
+    external_deps += ["hiview:xperfservice_client"]
+    if (defined(defines)) {
+      defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    } else {
+      defines = [ "NOT_BUILD_FOR_OHOS_SDK" ]
+    }
   }
 }
 

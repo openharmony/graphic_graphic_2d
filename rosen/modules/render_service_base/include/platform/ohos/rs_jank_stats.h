@@ -28,6 +28,9 @@
 #include "nocopyable.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/common/rs_system_properties.h"
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+#include "xperf_service_client.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -132,7 +135,7 @@ struct AvcodecVideoParam {
     uint64_t decodeCount;
     uint32_t previousSequence = 0;
     uint64_t previousFrameTime = 0;
-    uint32_t continuousFrameLoss = 0;
+    uint64_t previousNotifyTime = 0;
 };
 
 class RSJankStats {
@@ -157,12 +160,13 @@ public:
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
     bool IsAnimationEmpty();
     void AvcodecVideoDump(std::string& dumpString, std::string& type, const std::string& avcodecVideo);
-    void AvcodecVideoStart(
-        const uint64_t queueId, const std::string& surfaceName, const uint32_t fps, const uint64_t reportTime);
-    void AvcodecVideoStop(const uint64_t queueId, const std::string& surfaceName = "", const uint32_t fps = 0);
-    void AvcodecVideoCollectBegin();
+    void AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime);
+    void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, const uint32_t fps = 0);
+    void AvcodecVideoExpectionStop(const uint64_t uniqueId);
     void AvcodecVideoCollectFinish();
-    void AvcodecVideoCollect(const uint64_t queueId, const uint32_t sequence);
+    void AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence);
     bool GetEarlyZEnableFlag();
     bool GetFlushEarlyZ();
 
@@ -229,6 +233,7 @@ private:
     static inline const std::string ACCUMULATED_BUFFER_COUNT_TRACE_NAME = "ACCUMULATED_BUFFER_COUNT";
     static inline const std::string JANK_FRAME_1_TO_5F_COUNT_TRACE_NAME = "JANK_FRAME_1-5F";
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
+    static inline const bool isBeta_ = RSSystemProperties::GetVersionType() == "beta";
     std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_1F", 1},
                                                                           {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };
     std::vector<JankFrameRecordStats> jankImplicitAnimatorFrameRecorder_{ {"JANK_IMPLICIT_ANIMATOR_FRAME_1F", 1},
@@ -271,6 +276,7 @@ private:
     Rosen::AppInfo appInfo_;
     bool avcodecVideoCollectOpen_ = false;
     std::unordered_map<uint64_t, AvcodecVideoParam> avcodecVideoMap_;
+    std::mutex avcodecMutex_;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,

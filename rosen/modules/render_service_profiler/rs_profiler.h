@@ -183,7 +183,6 @@ class RSIRenderServiceConnection;
 class RSRenderServiceConnection;
 class RSTransactionData;
 class RSRenderNode;
-class RSRenderModifier;
 class RSProperties;
 class RSContext;
 class RSScreenRenderNode;

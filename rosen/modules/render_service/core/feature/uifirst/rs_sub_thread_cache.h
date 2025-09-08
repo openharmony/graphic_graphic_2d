@@ -206,7 +206,7 @@ public:
     void SetUifirstDirtyRegion(Drawing::Region dirtyRegion);
     Drawing::Region GetUifirstDirtyRegion() const;
     bool CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        Drawing::RectI& dirtyRect);
+        Drawing::RectI& dirtyRect, bool isUifirstRootNode);
     bool GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix,
         Drawing::RectF& latestDirtyRect, Drawing::RectF& absDrawRect);
     bool MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
@@ -240,6 +240,7 @@ private:
         RSPaintFilterCanvas& rscanvas, NodeId startingWindowId);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
+    NodeId GetSubAppNodeId(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable);
 
     NodeId nodeId_ = 0;
     // Cache in RT

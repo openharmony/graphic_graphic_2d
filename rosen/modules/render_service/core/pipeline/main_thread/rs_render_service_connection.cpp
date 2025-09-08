@@ -62,7 +62,7 @@
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
-#include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -2518,6 +2518,18 @@ bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 {
     RS_LOGW("uneg typeface: pid[%{public}d], uniqueid:%{public}u",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    auto typeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    if (typeface == nullptr) {
+        return true;
+    }
+    uint32_t uniqueId = typeface->GetUniqueID();
+    auto task = [uniqueId]() {
+        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (context) {
+            context->FreeCpuCache(uniqueId);
+        }
+    };
+    RSUniRenderThread::Instance().PostTask(task);
     RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
@@ -3567,16 +3579,17 @@ bool RSRenderServiceConnection::GetHighContrastTextState()
     return RSBaseRenderEngine::IsHighContrastEnabled();
 }
 
-ErrCode RSRenderServiceConnection::AvcodecVideoStart(
-    uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime)
+ErrCode RSRenderServiceConnection::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {
-    RSJankStats::GetInstance().AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+    RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnection::AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps)
+ErrCode RSRenderServiceConnection::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
-    RSJankStats::GetInstance().AvcodecVideoStop(uniqueId, surfaceName, fps);
+    RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     return ERR_OK;
 }
 

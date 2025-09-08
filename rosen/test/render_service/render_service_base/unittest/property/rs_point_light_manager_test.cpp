@@ -63,6 +63,21 @@ HWTEST_F(RSPointLightManagerTest, RegisterLightSource001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterLightSource002
+ * @tc.desc: test results of RegisterLightSource
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, RegisterLightSource002, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> renderNode = nullptr;
+    instance->lightSourceNodeMap_.clear();
+    instance->RegisterLightSource(renderNode);
+    EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
+}
+
+/**
  * @tc.name: RegisterIlluminated001
  * @tc.desc: test results of RegisterIlluminated
  * @tc.type:FUNC
@@ -74,6 +89,21 @@ HWTEST_F(RSPointLightManagerTest, RegisterIlluminated001, TestSize.Level1)
     auto renderNode = std::make_shared<RSRenderNode>(1);
     instance->RegisterIlluminated(renderNode);
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: RegisterIlluminated002
+ * @tc.desc: test results of RegisterIlluminated
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, RegisterIlluminated002, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> renderNode = nullptr;
+    instance->illuminatedNodeMap_.clear();
+    instance->RegisterIlluminated(renderNode);
+    EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
 }
 
 /**
@@ -91,6 +121,21 @@ HWTEST_F(RSPointLightManagerTest, UnRegisterLightSource001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnRegisterLightSource002
+ * @tc.desc: test results of UnRegisterLightSource
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, UnRegisterLightSource002, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> renderNode = nullptr;
+    instance->lightSourceNodeMap_.clear();
+    instance->UnRegisterLightSource(renderNode);
+    EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
+}
+
+/**
  * @tc.name: UnRegisterIlluminated001
  * @tc.desc: test results of UnRegisterIlluminated
  * @tc.type:FUNC
@@ -102,6 +147,21 @@ HWTEST_F(RSPointLightManagerTest, UnRegisterIlluminated001, TestSize.Level1)
     auto renderNode = std::make_shared<RSRenderNode>(1);
     instance->UnRegisterIlluminated(renderNode);
     EXPECT_TRUE(true);
+}
+
+
+/**
+ * @tc.name: UnRegisterIlluminated002
+ * @tc.desc: test results of UnRegisterIlluminated
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, UnRegisterIlluminated002, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> renderNode = nullptr;
+    instance->UnRegisterIlluminated(renderNode);
+    EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
 }
 
 /**

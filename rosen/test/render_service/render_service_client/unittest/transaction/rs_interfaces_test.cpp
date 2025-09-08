@@ -207,7 +207,8 @@ HWTEST_F(RSInterfacesTest, UnRegisterTypeface001, TestSize.Level1)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto typefaceImpl = std::make_shared<Drawing::SkiaTypeface>();
     auto typeface = std::make_shared<Drawing::Typeface>(typefaceImpl);
-    bool res = instance.UnRegisterTypeface(typeface);
+    ASSERT_NE(typeface, nullptr);
+    bool res = instance.UnRegisterTypeface(typeface->GetUniqueID());
     EXPECT_TRUE(res);
 }
 

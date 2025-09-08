@@ -31,4 +31,14 @@ void RSRenderThreadParams::SetWatermarks(std::map<std::pair<pid_t, std::string>,
     surfaceNodeWatermarks_ = watermarks;
 }
 
+void RSRenderThreadParams::SetSecurityDisplay(bool isSecurityDisplay)
+{
+    isSecurityDisplay_ = isSecurityDisplay;
+}
+
+bool RSRenderThreadParams::IsSecurityDisplay() const
+{
+    return isSecurityDisplay_;
+}
+
 } // namespace OHOS::Rosen

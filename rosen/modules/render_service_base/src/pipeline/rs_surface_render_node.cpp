@@ -3047,7 +3047,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         RS_LOGE("RSSurfaceRenderNode::UpdatePartialRenderParams surfaceParams is null");
         return;
     }
-    if (IsMainWindowType()) {
+    if (IsLeashOrMainWindow()) {
         surfaceParams->SetVisibleRegionInVirtual(visibleRegionInVirtual_);
         surfaceParams->SetIsParentScaling(isParentScaling_);
     }

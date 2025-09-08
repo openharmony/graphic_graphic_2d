@@ -3547,7 +3547,7 @@ bool RSRenderNode::GetNodeIsSingleFrameComposer() const
 // arkui mark
 void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
-    RS_TRACE_NAME_FMT("mark opinc %llx, isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
+    RS_TRACE_NAME_FMT("mark opinc %" PRIu64 ", isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
     opincCache_.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
     if (stagingRenderParams_) {
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());

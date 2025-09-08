@@ -375,7 +375,6 @@ namespace OHOS {
         float first = GetData<float>();
         float second = GetData<float>();
         float third = GetData<float>();
-        int32_t animatorId = GetData<int32_t>();
         auto path = GetStringFromData(STR_LEN);
         auto isTransitionIn = GetData<bool>();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
@@ -384,7 +383,7 @@ namespace OHOS {
         auto motionPathOption = std::make_shared<RSMotionPathOption>(path);
         const RSAnimationTimingProtocol timingProtocol = {};
 
-        RSImplicitAnimatorMap::Instance().GetAnimator(animatorId);
+        RSImplicitAnimatorMap::Instance().GetAnimator();
         auto testKeyframeParam = std::make_shared<RSImplicitKeyframeAnimationParam>(timingProtocol,
             RSAnimationTimingCurve::DEFAULT, fraction, 0);
         testKeyframeParam->GetType();
@@ -418,9 +417,7 @@ namespace OHOS {
 
     void RSImplicitAnimatorMapFuzzTest()
     {
-        int32_t animatorId = GetData<int32_t>();
-
-        auto implicitAnimatorMap = RSImplicitAnimatorMap::Instance().GetAnimator(animatorId);
+        auto implicitAnimatorMap = RSImplicitAnimatorMap::Instance().GetAnimator();
         if (implicitAnimatorMap == nullptr) {
             return;
         }
@@ -615,8 +612,7 @@ namespace OHOS {
         g_size = size;
         g_pos = 0;
         // get data
-        int32_t managerId = GetData<int32_t>();
-        RSModifierManagerMap::Instance()->GetModifierManager(managerId);
+        RSModifierManagerMap::Instance()->GetModifierManager();
         RsAnimationGroupFuzzTest();
         RsAnimationTimingCurveFuzzTest();
         RsCurveAnimationFuzzTest();

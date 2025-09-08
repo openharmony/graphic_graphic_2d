@@ -47,17 +47,20 @@ private:
 void OH_Drawing_FontCollectionTest::SetUp()
 {
     OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
-    OHOS::Rosen::Drawing::Typeface::UnRegisterCallBackFunc([](auto) { return true; });
-    auto callback = [](const FontCollection* fc, const std::string& family) {
+    auto callback = [](const FontCollection* fc, const FontEventInfo& info) {
         EXPECT_NE(fc, nullptr);
-        EXPECT_FALSE(family.empty());
+        EXPECT_FALSE(info.familyName.empty());
     };
+    OHOS::Rosen::Drawing::Typeface::RegisterOnTypefaceDestroyed([](uint32_t uniqueId) { EXPECT_NE(uniqueId, 0); });
     FontCollection::RegisterLoadFontStartCallback(callback);
     FontCollection::RegisterUnloadFontStartCallback(callback);
     FontCollection::RegisterLoadFontFinishCallback(callback);
     FontCollection::RegisterUnloadFontFinishCallback(callback);
     FontCollection::RegisterLoadFontStartCallback(nullptr);
-    fontCollection_ = OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    auto fc = std::make_shared<txt::FontCollection>();
+    ASSERT_NE(fc, nullptr);
+    fc->CreateSktFontCollection();
+    fontCollection_ = OHOS::Rosen::FontCollection::From(std::move(fc));
     ASSERT_NE(fontCollection_, nullptr);
     fontMgr_ = fontCollection_->GetFontMgr();
     ASSERT_NE(fontMgr_, nullptr);
@@ -455,9 +458,6 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSi
     EXPECT_FALSE(fontCollection_->UnloadFont(""));
     EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans"));
     EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans Mono"));
-    OHOS::Rosen::Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
-    EXPECT_FALSE(fontCollection_->UnloadFont(""));
-    EXPECT_FALSE(fontCollection_->UnloadFont("Noto Sans"));
 }
 
 /*

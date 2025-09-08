@@ -354,7 +354,7 @@ public:
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
-    bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    bool UnRegisterTypeface(uint32_t uniqueId);
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
 
@@ -515,6 +515,12 @@ public:
     bool ProfilerIsSecureScreen();
 
     void ClearUifirstCache(NodeId id);
+
+    void AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime);
+
+    void AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+        const std::vector<std::string>& surfaceNameList, uint32_t fps);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);

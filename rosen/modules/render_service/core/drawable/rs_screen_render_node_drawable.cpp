@@ -679,7 +679,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool isVirtualExpandComposite =
         params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     if (isVirtualExpandComposite) {
-        RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *this);
+        RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *this, screenManager);
         if (RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *this)) {
             RS_TRACE_NAME("VirtualExpandScreenNode skip");
             return;
@@ -692,6 +692,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u, dirty:%d",
             paramScreenId, screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval,
             screenInfo.expectedRefreshRate, accumulateDirtyInSkipFrame_);
+        if (isVirtualExpandComposite) {
+            RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(*this, *params);
+        }
         screenManager->PostForceRefreshTask();
         return;
     }
@@ -760,11 +763,17 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             curCanvas_ = virtualProcessor->GetCanvas();
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            if (virtualProcessor->GetDisplaySkipInMirror()) {
+                RS_TRACE_NAME("skip in virtual screen and cancelbuffer");
+                virtualProcessor->SetDisplaySkipInMirror(false);
+                virtualProcessor->CancelCurrentFrame();
+                return;
+            }
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
             bool isOpDropped = uniParam->IsOpDropped();
-            uniParam->SetOpDropped(false);
+            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
                 SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
@@ -773,23 +782,29 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
-            // disable expand screen dirty when isEqualVsyncPeriod is false, because the dirty history is incorrect
-            if (uniParam->IsExpandScreenDirtyEnabled() && uniParam->IsVirtualDirtyEnabled() &&
-                screenInfo.isEqualVsyncPeriod) {
-                int32_t bufferAge = expandProcessor->GetBufferAge();
-                damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
-                    *this, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
-                uniParam->Reset();
-                if (!uniParam->IsVirtualDirtyDfxEnabled()) {
-                    expandProcessor->SetDirtyInfo(damageRegionRects);
-                }
+            RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
+            int32_t bufferAge = expandProcessor->GetBufferAge();
+            damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
+                *this, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+            uniParam->Reset();
+            if (uniParam->IsVirtualExpandScreenDirtyEnabled() && !uniParam->IsVirtualDirtyDfxEnabled()) {
+                expandProcessor->SetDirtyInfo(damageRegionRects);
             } else {
                 std::vector<RectI> emptyRects = {};
                 expandProcessor->SetRoiRegionToCodec(emptyRects);
             }
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
             curCanvas_ = expandProcessor->GetCanvas();
+            curCanvas_->Save();
+            if (uniParam->IsVirtualExpandScreenDirtyEnabled()) {
+                UpdateSurfaceDrawRegion(curCanvas_, params);
+                curCanvas_->SetDrawnRegion(params->GetDrawnRegion());
+                Drawing::Region clipRegion = GetFlippedRegion(damageRegionRects, screenInfo);
+                uniParam->SetClipRegion(clipRegion);
+                ClipRegion(*curCanvas_, clipRegion);
+            }
             curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
             params->ResetVirtualExpandAccumulatedParams();
             auto targetSurfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(

@@ -92,6 +92,7 @@ private:
     explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     bool FirstFrameHasNoEffectChildren() const;
+    bool IsForceClearFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable) const;
 
     bool isVisitedOcclusionFilterCacheEmpty_ = true;
     bool isRotationChanged_ = false;

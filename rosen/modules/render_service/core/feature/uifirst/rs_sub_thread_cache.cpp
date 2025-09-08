@@ -629,7 +629,7 @@ bool RsSubThreadCache::GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix
 }
 
 bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    Drawing::RectI& dirtyRect)
+    Drawing::RectI& dirtyRect, bool isUifirstRootNode)
 {
     if (!surfaceDrawable) {
         RS_LOGE("CalculateUifirstDirtyRegion surfaceDrawable is nullptr");
@@ -640,7 +640,10 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGE("CalculateUifirstDirtyRegion uifirstDirtyManager is nullptr");
         return false;
     }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    // Avoid diffrent values of absDrawRect in rending thread and subthread.
+    auto surfaceParams = isUifirstRootNode ?
+        static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get()) :
+        static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("CalculateUifirstDirtyRegion surfaceParams is nullptr");
         return false;
@@ -701,7 +704,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
         return false;
     }
     Drawing::RectI tempRect = {};
-    bool isCalculateSucc = CalculateUifirstDirtyRegion(surfaceDrawable, tempRect);
+    bool isCalculateSucc = CalculateUifirstDirtyRegion(surfaceDrawable, tempRect, true);
     uifirstMergedDirtyRegion_.SetRect(tempRect);
     dirtyRects.Join(tempRect);
     for (const auto& nestedDrawable : surfaceDrawable->
@@ -710,7 +713,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
         if (surfaceNodeDrawable) {
             tempRect = {};
             isCalculateSucc = isCalculateSucc && surfaceNodeDrawable->GetRsSubThreadCache().
-                CalculateUifirstDirtyRegion(surfaceNodeDrawable.get(), tempRect);
+                CalculateUifirstDirtyRegion(surfaceNodeDrawable.get(), tempRect, false);
             Drawing::Region resultRegion;
             resultRegion.SetRect(tempRect);
             uifirstMergedDirtyRegion_.Op(resultRegion, Drawing::RegionOp::UNION);
@@ -785,6 +788,29 @@ void RsSubThreadCache::UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::R
     canvas.DetachBrush();
 }
 
+NodeId RsSubThreadCache::GetSubAppNodeId(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
+{
+    NodeId tagNodeId = surfaceDrawable->GetId();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
+    if (UNLIKELY(!surfaceParams)) {
+        return tagNodeId;
+    }
+    for (const auto& subDrawable : surfaceDrawable->GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+        if (UNLIKELY(!subDrawable)) {
+            continue;
+        }
+        auto subSurfaceParams = static_cast<RSSurfaceRenderParams*>(subDrawable->GetUifirstRenderParams().get());
+        if (UNLIKELY(!subSurfaceParams)) {
+            continue;
+        }
+        if (subSurfaceParams->IsAppWindow()) {
+            tagNodeId = subDrawable->GetId();
+            break;
+        }
+    }
+    return tagNodeId;
+}
+
 void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas)
 {
     if (!surfaceDrawable) {
@@ -802,6 +828,8 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
         RS_LOGE("SubDraw, rscanvas is nullptr");
         return;
     }
+    RSTagTracker tagTracker(rscanvas->GetGPUContext(), GetSubAppNodeId(surfaceDrawable),
+        RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceDrawable->GetName());
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();

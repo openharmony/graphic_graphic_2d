@@ -56,7 +56,9 @@ const uint8_t DO_REPORT_EVENT_JANK_FRAME = 3;
 const uint8_t DO_REPORT_RS_SCENE_JANK_START = 4;
 const uint8_t DO_REPORT_RS_SCENE_JANK_END = 5;
 const uint8_t DO_REPORT_EVENT_GAMESTATE = 6;
-const uint8_t TARGET_SIZE = 7;
+const uint8_t DO_AVCODEC_VIDEO_START = 7;
+const uint8_t DO_AVCODEC_VIDEO_STOP = 8;
+const uint8_t TARGET_SIZE = 9;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -302,6 +304,52 @@ void DoReportGameStateData()
     WriteGameStateDataRs(info, dataP);
     connectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
+
+void DoAvcodecVideoStart()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::vector<uint64_t> uniqueIdList;
+    std::vector<std::string> surfaceNameList;
+    // MAX_MONITOR_VIDEO_LENGTH = 1024
+    uint8_t monitorListSize = GetData<int8_t>();
+    for (size_t i = 0; i < monitorListSize; i++) {
+        uniqueIdList.push_back(GetData<uint64_t>());
+        surfaceNameList.push_back(GetData<std::string>());
+    }
+    uint32_t fps = GetData<uint32_t>();
+    uint64_t reportTime = GetData<uint64_t>();
+    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteUInt64Vector(uniqueIdList);
+    dataParcel.WriteStringVector(surfaceNameList);
+    dataParcel.WriteUint32(fps);
+    dataParcel.WriteUint64(reportTime);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoAvcodecVideoStop()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::vector<uint64_t> uniqueIdList;
+    std::vector<std::string> surfaceNameList;
+    // MAX_MONITOR_VIDEO_LENGTH = 1024
+    uint8_t listSize = GetData<int8_t>();
+    for (uint8_t i = 0; i < listSize; i++) {
+        uniqueIdList.push_back(GetData<uint64_t>());
+        surfaceNameList.push_back(GetData<std::string>());
+    }
+    uint32_t fps = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteUInt64Vector(uniqueIdList);
+    dataParcel.WriteStringVector(surfaceNameList);
+    dataParcel.WriteUint32(fps);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -351,6 +399,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REPORT_EVENT_GAMESTATE:
             OHOS::Rosen::DoReportGameStateData();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_START:
+            OHOS::Rosen::DoAvcodecVideoStart();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
+            OHOS::Rosen::DoAvcodecVideoStop();
             break;
         default:
             return -1;
