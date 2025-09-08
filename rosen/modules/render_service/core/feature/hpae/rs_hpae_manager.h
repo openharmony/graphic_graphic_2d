@@ -103,6 +103,7 @@ private:
 
     // buffer queue
     uint32_t curIndex_ = 0;
+    uint64_t hpaeVsyncId_ = 0;
 
     std::atomic_bool releaseAllDone_{true};
     std::atomic_bool hpaeBufferAllocating_{false};

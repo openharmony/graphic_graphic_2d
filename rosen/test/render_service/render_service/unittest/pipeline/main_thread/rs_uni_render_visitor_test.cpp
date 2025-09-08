@@ -5113,6 +5113,41 @@ HWTEST_F(RSUniRenderVisitorTest, SetHdrWhenMultiDisplayChangeTest, TestSize.Leve
 }
 
 /*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache003
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache while canvasNode with filter
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(canvasNode, nullptr);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
+    canvasNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = node;
+    node->InitRenderParams();
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/*
  * @tc.name: TryNotifyUIBufferAvailable
  * @tc.desc: Test RSUniRenderVisitorTest.TryNotifyUIBufferAvailable test
  * @tc.type: FUNC
