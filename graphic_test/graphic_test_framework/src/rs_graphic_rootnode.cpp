@@ -36,6 +36,7 @@ void RSGraphicRootNode::ResetTestSurface()
 {
     screenSurfaceNode_->ClearChildren();
     testSurfaceNodes_.clear();
+    nodes_.clear();
 }
 
 void RSGraphicRootNode::AddChild(std::shared_ptr<RSNode> child, int index)

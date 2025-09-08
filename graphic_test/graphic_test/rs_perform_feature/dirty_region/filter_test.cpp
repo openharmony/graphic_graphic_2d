@@ -58,7 +58,8 @@ public:
             std::string fileName = "/data/local/graphic_test/rs_perform_feature/dirty_region/";
             namespace fs = std::filesystem;
             if (!fs::exists(fileName)) {
-                if (!fs::create_directories(fileName)) {
+                fs::create_directories(fileName);
+                if (!std::filesystem::exists(fileName)) {
                     std::cout << "create dir failed" << std::endl;
                     return;
                 }
