@@ -1053,7 +1053,7 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
         int32_t rate = connections_[i]->highPriorityState_ ? connections_[i]->highPriorityRate_ :
                                                              connections_[i]->rate_;
         if (rate < 0 && !NeedForceUpdateRate(connections_[i], rate)) {
-                continue;
+            continue;
         }
 
         if (rate == 0) {  // for RequestNextVSync
@@ -1194,21 +1194,6 @@ uint64_t VSyncDistributor::CheckVsyncReceivedAndGetRelTs(uint64_t timestamp)
 #endif
 }
 
-void VSyncDistributor::UpdateTriggerFlagForRNV(const sptr<VSyncConnection> &connection,
-    const int64_t& requestVsyncTime)
-{
-    bool isDvsyncConn = false;
-#if defined(RS_ENABLE_DVSYNC_2)
-    isDvsyncConn = (connection == DVSync::Instance().GetConnectionApp());
-#endif
-    if (!isDvsyncConn && isRs_) {
-        bool added = connection->AddRequestVsyncTimestamp(requestVsyncTime);
-        connection->triggerThisTime_ = (connection->triggerThisTime_ || !added);
-    } else {
-        connection->triggerThisTime_ = true;
-    }
-}
-
 VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &connection, const std::string &fromWhom,
                                               int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
@@ -1217,8 +1202,9 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         return VSYNC_ERROR_NULLPTR;
     }
     RS_TRACE_NAME_FMT("%s_RequestNextVSync", connection->info_.name_.c_str());
+    bool isDvsyncConn = false;
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().SetAppRequestedStatus(con, true);
+    isDvsyncConn = DVSync::Instance().SetAppRequestedStatus(connection, true);
 #endif
     bool NeedPreexecute = false;
     bool isUrgent = fromWhom == URGENT_SELF_DRAWING;
@@ -1236,7 +1222,12 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
             connection->rate_ = 0;
         }
 
-        UpdateTriggerFlagForRNV(connection, requestVsyncTime);
+        if (!isDvsyncConn && isRs_) {
+            bool added = connection->AddRequestVsyncTimestamp(requestVsyncTime);
+            connection->triggerThisTime_ = (connection->triggerThisTime_ || !added);
+        } else {
+            connection->triggerThisTime_ = true;
+        }
         if (isUrgent) {
             NeedPreexecute = VSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
         }

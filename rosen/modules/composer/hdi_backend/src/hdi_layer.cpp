@@ -873,7 +873,6 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
-
     std::vector<int8_t> valueBlob(sizeof(float));
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
     return device_->SetLayerPerFrameParameterSmq(
@@ -887,7 +886,6 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
-
     std::vector<int8_t> valueBlob(sizeof(float));
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetBrightnessRatio();
     return device_->SetLayerPerFrameParameterSmq(
@@ -923,7 +921,6 @@ int32_t HdiLayer::SetPerFrameLayerSourceTuning()
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
-
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetLayerSourceTuning();
     return device_->SetLayerPerFrameParameterSmq(
