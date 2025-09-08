@@ -58,8 +58,7 @@ void RSFrameRateVote::SetTransactionFlags(const std::string& transactionFlags)
 
 void RSFrameRateVote::CheckSurfaceAndUi()
 {
-    bool state = !isVideoApp_.load() || !hasUiOrSurface;
-    if (state) {
+    if (!isVideoApp_.load() || !hasUiOrSurface) {
         return;
     }
     hasUiOrSurface = false;
