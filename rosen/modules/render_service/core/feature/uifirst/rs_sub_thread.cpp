@@ -370,7 +370,7 @@ void RSSubThread::ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceR
         return;
     }
     NodeId nodeId = nodeDrawable->GetId();
-    RS_TRACE_NAME_FMT("ReleaseCacheSurfaceOnly id:" PRIu64, nodeId);
+    RS_TRACE_NAME_FMT("ReleaseCacheSurfaceOnly id:%" PRIu64, nodeId);
     RS_LOGI("ReleaseCacheSurfaceOnly id:%{public}" PRIu64, nodeId);
     nodeDrawable->GetRsSubThreadCache().ClearCacheSurfaceOnly();
 }
