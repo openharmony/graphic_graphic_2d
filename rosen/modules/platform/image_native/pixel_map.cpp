@@ -52,6 +52,15 @@ void PixelMap::GetImageInfo(ImageInfo &imageInfo)
 {
 }
 
+void PixelMap::SetPixelsAddr(void *addr, void *context, uint32_t size, AllocatorType type, CustomFreePixelMap func)
+{
+}
+
+PixelFormat PixelMap::GetPixelFormat()
+{
+    return pixelFormat_;
+}
+
 const uint8_t *PixelMap::GetPixels()
 {
     return nullptr;
