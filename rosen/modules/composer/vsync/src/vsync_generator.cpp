@@ -745,8 +745,8 @@ void VSyncGenerator::SubScribeSystemAbility()
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    RS_TRACE_NAME_FMT("UpdateMode, period:" PRId64 ", phase:" PRId64 ", referenceTime:" PRId64
-        ", referenceTimeOffsetPulseNum_:%d", period, phase, referenceTime, referenceTimeOffsetPulseNum_);
+    RS_TRACE_NAME_FMT("UpdateMode, period:%" PRId64 ", phase:%" PRId64 ", referenceTime:%" PRId64
+        ", referenceTimeOffsetPulseNum:%d", period, phase, referenceTime, referenceTimeOffsetPulseNum_);
     if (period < 0 || referenceTime < 0) {
         VLOGE("wrong parameter, period:" VPUBI64 ", referenceTime:" VPUBI64, period, referenceTime);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
