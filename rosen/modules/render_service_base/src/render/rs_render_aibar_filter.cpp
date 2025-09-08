@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 
+// LCOV_EXCL_START
 std::vector<float> RSAIBarShaderFilter::GetAiInvertCoef()
 {
     const auto& aiInvertCoef = RSSystemProperties::GetAiInvertCoef();
@@ -36,6 +37,7 @@ std::vector<float> RSAIBarShaderFilter::GetAiInvertCoef()
     }
     return aiInvertCoef;
 }
+// LCOV_EXCL_STOP
 
 void RSAIBarShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
