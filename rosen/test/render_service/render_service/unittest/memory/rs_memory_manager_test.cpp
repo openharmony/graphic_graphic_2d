@@ -828,6 +828,8 @@ HWTEST_F(RSMemoryManagerTest, WriteInfoToFile, testing::ext::TestSize.Level1)
     hidumperReport = "hidumper";
     MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
     ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
  * @tc.name: DumpGpuCacheWithPidInfoTest00
  * @tc.desc: DumpGpuCacheWithPidInfo
  * @tc.type: FUNC
