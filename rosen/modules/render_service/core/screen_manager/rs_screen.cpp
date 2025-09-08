@@ -1051,7 +1051,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
-    HILOG_COMM_INFO("SetScreenCorrection: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.",
+    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.", __func__,
         id_, static_cast<uint32_t>(screenRotation));
     screenRotation_ = screenRotation;
 }
