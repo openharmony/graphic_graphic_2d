@@ -16,6 +16,7 @@
 #include "feature/opinc/rs_opinc_manager.h"
 
 #include "params/rs_render_params.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "string_utils.h"
 
 namespace OHOS {
@@ -44,7 +45,10 @@ bool RSOpincManager::OpincGetNodeSupportFlag(RSRenderNode& node)
 bool RSOpincManager::OpincGetCanvasNodeSupportFlag(RSRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
-    if (node.GetSharedTransitionParam() ||
+    auto canvasNode = node.ReinterpretCastTo<RSCanvasRenderNode>();
+    bool isHDRNode = canvasNode != nullptr && canvasNode->GetHDRPresent();
+    if (isHDRNode ||
+        node.GetSharedTransitionParam() ||
         property.IsSpherizeValid() ||
         property.IsAttractionValid() ||
         property.NeedFilter() ||
