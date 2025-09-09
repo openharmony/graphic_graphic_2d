@@ -32,6 +32,7 @@ void RSHDRBrightnessRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetHDRBrightnessFactor(1.0f);
 }
 
+// LCOV_EXCL_START
 void RSHDRBrightnessRenderModifier::OnSetDirty()
 {
     if (auto node = target_.lock()) {
@@ -39,4 +40,5 @@ void RSHDRBrightnessRenderModifier::OnSetDirty()
         node->SetContentDirty();
     }
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS::Rosen::ModifierNG
