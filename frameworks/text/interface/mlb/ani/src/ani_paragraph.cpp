@@ -28,6 +28,7 @@
 #include "ani_text_utils.h"
 #include "canvas_ani/ani_canvas.h"
 #include "font_collection.h"
+#include "path_ani/ani_path.h"
 #include "text/font_metrics.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -166,13 +167,13 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
-    Drawing::Path* pathInternal = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, path);
-    if (pathInternal == nullptr) {
+    Drawing::AniPath* aniPath = AniTextUtils::GetNativeFromObj<Drawing::AniPath>(env, path);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         TEXT_LOGE("Path is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
-    typography->Paint(aniCanvas->GetCanvas(), pathInternal, hOffset, vOffset);
+    typography->Paint(aniCanvas->GetCanvas(), aniPath->GetPath().get(), hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetMaxWidth(ani_env* env, ani_object object)

@@ -66,11 +66,6 @@ AniFontCollection::AniFontCollection()
     fontCollection_ = FontCollection::From(nullptr);
 }
 
-AniFontCollection::AniFontCollection(std::shared_ptr<FontCollection> fc)
-{
-    fontCollection_ = fc;
-}
-
 void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
@@ -85,12 +80,14 @@ void AniFontCollection::Constructor(ani_env* env, ani_object object)
 
 ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 {
-    static AniFontCollection aniFontCollection = AniFontCollection(FontCollection::Create());
-
+    AniFontCollection* aniFontCollection = new AniFontCollection();
+    aniFontCollection->fontCollection_ = FontCollection::Create();
     ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
-    ani_status ret = env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(&aniFontCollection));
+    ani_status ret = env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani font collection obj");
+        delete aniFontCollection;
+        aniFontCollection = nullptr;
         return nullptr;
     }
     return obj;
