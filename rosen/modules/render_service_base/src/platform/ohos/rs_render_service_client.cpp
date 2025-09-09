@@ -1169,12 +1169,12 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     std::lock_guard<std::mutex> lock(mapMutex_);
     auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
     if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
-        ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
+        HILOG_COMM_WARN("RSRenderServiceClient::RegisterBufferAvailableListener "
                    "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
     }
 
     if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
-        ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
+        HILOG_COMM_WARN("RSRenderServiceClient::RegisterBufferAvailableListener "
                    "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
         bufferAvailableCbUIMap_.erase(iter);
     }

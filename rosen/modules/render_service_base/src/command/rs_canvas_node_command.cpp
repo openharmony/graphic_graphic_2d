@@ -30,7 +30,7 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
     auto node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
         context.weak_from_this(), isTextureExportNode);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
-        RS_LOGE("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
+        HILOG_COMM_ERROR("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
         RS_TRACE_NAME_FMT("RSCanvasNodeCommandHelper::Create after add, id:%" PRIu64 " ", id);
     }
     context.GetMutableNodeMap().RegisterRenderNode(node);

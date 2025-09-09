@@ -170,7 +170,7 @@ bool AllocateDeviceMemory(RsVulkanContext& vkContext, VkDeviceMemory* memory, Vk
     VkResult err = vkInterface.vkAllocateMemory(device, &allocInfo, nullptr, memory);
     if (err != VK_SUCCESS) {
         vkInterface.vkDestroyImage(device, image, nullptr);
-        ROSEN_LOGE("NativeBufferUtils: vkAllocateMemory Fail");
+        HILOG_COMM_ERROR("NativeBufferUtils: vkAllocateMemory Fail");
         return false;
     }
     return true;
