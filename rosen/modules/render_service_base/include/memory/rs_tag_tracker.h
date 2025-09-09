@@ -35,6 +35,8 @@ public:
         TAG_RENDER_FRAME,
         TAG_HDR_OFFSCREEN,
         TAG_COMMON_OFFSCREEN,
+        TAG_RENDER_GROUP,
+        TAG_OPINC,
         TAG_UNTAGGED,
         TAG_CAPTURE,
     };

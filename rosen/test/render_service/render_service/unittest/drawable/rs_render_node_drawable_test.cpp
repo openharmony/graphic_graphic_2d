@@ -672,6 +672,10 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
     params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
     ASSERT_NE(params.foregroundFilterCache_, nullptr);
+
+    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
+    drawable->UpdateCacheSurface(paintFilterCanvas1, params);
 }
 
 /**

@@ -54,6 +54,8 @@ HWTEST_F(RSTagTrackerTest, TagType2String001, TestSize.Level1)
     ASSERT_EQ("acquire_surface", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE));
     ASSERT_EQ("render_frame", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_RENDER_FRAME));
     ASSERT_EQ("draw_surface_node", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE));
+    ASSERT_EQ("render_group", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_RENDER_GROUP));
+    ASSERT_EQ("opinc", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_OPINC));
     ASSERT_EQ("", RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(15)));
     ASSERT_EQ("uifirst", RSTagTracker::TagType2String(RSTagTracker::TAGTYPE::TAG_UIFIRST));
 }

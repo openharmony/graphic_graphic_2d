@@ -719,6 +719,52 @@ HWTEST_F(RSRenderParamsTest, SetUiFirstRootNode_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetInstanceRootNodeIdTest
+ * @tc.desc: Test function SetInstanceRootNodeId
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetInstanceRootNodeIdTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    renderParams->instanceRootNodeId_ = 0;
+    NodeId instanceRootNodeId = 1;
+    renderParams->needSync_ = false;
+    renderParams->SetInstanceRootNodeId(instanceRootNodeId);
+    EXPECT_EQ(instanceRootNodeId, renderParams->instanceRootNodeId_);
+    EXPECT_TRUE(renderParams->needSync_);
+    bool ret = renderParams->SetInstanceRootNodeId(instanceRootNodeId);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: SetInstanceRootNodeNameTest
+ * @tc.desc: Test function SetInstanceRootNodeName
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetInstanceRootNodeNameTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    renderParams->instanceRootNodeName_ = "nodeTest";
+    std::string instanceRootNodeName = "instanceRootNodeName";
+    renderParams->needSync_ = false;
+    renderParams->SetInstanceRootNodeName(instanceRootNodeName);
+    EXPECT_EQ(instanceRootNodeName, renderParams->instanceRootNodeName_);
+    EXPECT_TRUE(renderParams->needSync_);
+    bool ret = renderParams->SetInstanceRootNodeName(instanceRootNodeName);
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: GetLayerInfo_001
  * @tc.desc: Test function GetLayerInfo
  * @tc.type:FUNC

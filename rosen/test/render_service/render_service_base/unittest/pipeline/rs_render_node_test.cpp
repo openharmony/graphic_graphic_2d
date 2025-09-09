@@ -2556,6 +2556,43 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
     EXPECT_FALSE(nodeTest->stagingRenderParams_->needSync_);
 }
 
+/**
+ * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest014
+ * @tc.desc: test instanceRootNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest014, TestSize.Level1)
+{
+std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+ 
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(10086);
+    EXPECT_NE(surfaceNode, nullptr);
+    surfaceNode->name_ = "instanceRootNode";
+    auto sContext = std::make_shared<RSContext>();
+    nodeTest->context_ = sContext;
+    nodeTest->instanceRootNodeId_ = surfaceNode->GetId();
+    auto& nodeMap = sContext->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+    auto instanceRootNode = nodeTest->GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
+    EXPECT_NE(instanceRootNode, nullptr);
+    EXPECT_EQ(instanceRootNode->GetName(), surfaceNode->GetName());
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_NE(nodeTest->stagingRenderParams_->GetInstanceRootNodeId(), surfaceNode->GetId());
+    EXPECT_NE(nodeTest->stagingRenderParams_->GetInstanceRootNodeName(), surfaceNode->GetName());
+ 
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeId(), surfaceNode->GetId());
+    EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeName(), surfaceNode->GetName());
+}
+
 #ifndef MODIFIER_NG
 /**
  * @tc.name: RemoveModifierTest014
