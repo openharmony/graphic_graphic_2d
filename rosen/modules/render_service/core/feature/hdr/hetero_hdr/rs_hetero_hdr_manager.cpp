@@ -431,8 +431,8 @@ void RSHeteroHDRManager::FindParentLeashWindowNode()
     if (appWindowNode) {
         ownedAppWindowIdMap_[nodeId] = appWindowNode->GetId();
     }
-    RS_LOGD("[hdrHetero]:RSHeteroHDRManager FindParentLeashWindowNode LeashWindowNode:%{public}llu, "
-        "AppWindowNode:%{public}llu", ownedLeashWindowIdMap_[nodeId], ownedAppWindowIdMap_[nodeId]);
+    RS_LOGD("[hdrHetero]:RSHeteroHDRManager FindParentLeashWindowNode LeashWindowNode:%{public}" PRIu64 ", "
+        "AppWindowNode:%{public}" PRIu64, ownedLeashWindowIdMap_[nodeId], ownedAppWindowIdMap_[nodeId]);
 }
 
 bool RSHeteroHDRManager::ReleaseBuffer()
