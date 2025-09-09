@@ -1239,25 +1239,30 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_004, TestSize.Level2)
 }
 
 /*
- * @tc.name: CheckPSurfaceChanged
- * @tc.desc: Test CheckPSurfaceChanged while suface change
+ * @tc.name: CheckVirtualScreenStatusChanged
+ * @tc.desc: Test CheckVirtualScreenStatusChanged while suface change
  * @tc.type: FUNC
  * @tc.require: issueICMB9P
  */
-HWTEST_F(RSScreenManagerTest, CheckPSurfaceChanged, TestSize.Level2)
+HWTEST_F(RSScreenManagerTest, CheckVirtualScreenStatusChanged, TestSize.Level2)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
     ScreenId id = mockScreenId_;
-    ASSERT_EQ(screenManagerImpl.CheckPSurfaceChanged(id), false);
+    ASSERT_EQ(screenManagerImpl.CheckVirtualScreenStatusChanged(id), false);
     auto screen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
     screen->isVirtual_ = true;
     screen->SetPSurfaceChange(true);
     screenManagerImpl.screens_[id] = std::move(screen);
-    ASSERT_EQ(true, screenManagerImpl.CheckPSurfaceChanged(id));
-    ASSERT_EQ(false, screenManagerImpl.CheckPSurfaceChanged(id));
+    ASSERT_EQ(true, screenManagerImpl.CheckVirtualScreenStatusChanged(id));
+    screen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    screen->isVirtual_ = true;
+    screen->SetVirtualScreenPlay(true);
+    screenManagerImpl.screens_[id] = std::move(screen);
+    ASSERT_EQ(true, screenManagerImpl.CheckVirtualScreenStatusChanged(id));
+    ASSERT_EQ(false, screenManagerImpl.CheckVirtualScreenStatusChanged(id));
 }
 
 /*
