@@ -29,6 +29,9 @@
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_hisysevent.h"
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+#include "xperf_service_client.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

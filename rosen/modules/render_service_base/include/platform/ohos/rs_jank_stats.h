@@ -28,9 +28,6 @@
 #include "nocopyable.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/common/rs_system_properties.h"
-#ifdef NOT_BUILD_FOR_OHOS_SDK
-#include "xperf_service_client.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
