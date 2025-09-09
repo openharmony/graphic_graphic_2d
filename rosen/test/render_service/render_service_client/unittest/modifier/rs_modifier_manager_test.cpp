@@ -248,4 +248,37 @@ HWTEST_F(RSModifierManagerTest, GetAnimationTest002, TestSize.Level1)
     rsModifierManager.AddAnimation(animation);
     ASSERT_TRUE(rsModifierManager.GetAnimation(animId));
 }
+
+/**
+ * @tc.name: GetAndResetFirstFrameAnimationStateTest001
+ * @tc.desc: test results of GetAndResetFirstFrameAnimationStateTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, GetAndResetFirstFrameAnimationStateTest001, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    ASSERT_FALSE(rsModifierManager.GetAndResetFirstFrameAnimationState());
+}
+
+/**
+ * @tc.name: GetFrameRateRangeTest001
+ * @tc.desc: test results of GetFrameRateRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, GetFrameRateRangeTest001, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    EXPECT_GE(rsModifierManager.GetFrameRateRange().type_, 0);
+}
+
+/**
+ * @tc.name: IsDisplaySyncEnabledTest001
+ * @tc.desc: test results of IsDisplaySyncEnabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, IsDisplaySyncEnabledTest001, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    EXPECT_FALSE(rsModifierManager.IsDisplaySyncEnabled());
+}
 } // namespace OHOS::Rosen
