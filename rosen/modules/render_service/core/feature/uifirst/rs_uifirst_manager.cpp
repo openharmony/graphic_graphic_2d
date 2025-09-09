@@ -1139,6 +1139,7 @@ void RSUifirstManager::PostUifistSubTasks()
 {
     // if screen is power-off, uifirst sub thread can be suspended.
     if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
+        UifirstCurStateClear();
         return;
     }
     PurgePendingPostNodes();
