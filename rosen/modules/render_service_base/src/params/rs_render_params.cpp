@@ -444,6 +444,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
+    target->instanceRootNodeId_ = instanceRootNodeId_;
+    target->instanceRootNodeName_ = instanceRootNodeName_;
     target->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
     target->cloneSourceDrawable_ = cloneSourceDrawable_;
     target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
@@ -507,6 +509,26 @@ bool RSRenderParams::SetUiFirstRootNode(NodeId uifirstRootNodeId)
         return false;
     }
     uifirstRootNodeId_ = uifirstRootNodeId;
+    needSync_ = true;
+    return true;
+}
+
+bool RSRenderParams::SetInstanceRootNodeId(NodeId instanceRootNodeId)
+{
+    if (instanceRootNodeId_ == instanceRootNodeId) {
+        return false;
+    }
+    instanceRootNodeId_ = instanceRootNodeId;
+    needSync_ = true;
+    return true;
+}
+
+bool RSRenderParams::SetInstanceRootNodeName(const std::string& instanceRootNodeName)
+{
+    if (instanceRootNodeName_ == instanceRootNodeName) {
+        return false;
+    }
+    instanceRootNodeName_ = instanceRootNodeName;
     needSync_ = true;
     return true;
 }

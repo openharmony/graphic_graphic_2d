@@ -1422,6 +1422,12 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
 #endif
+    // renderGroup memory tagTracer
+    auto instanceRootNode = GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (instanceRootNode && instanceRootNode->IsAppWindow()) {
+        stagingRenderParams_->SetInstanceRootNodeId(instanceRootNode->GetId());
+        stagingRenderParams_->SetInstanceRootNodeName(instanceRootNode->GetName());
+    }
 }
 
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)

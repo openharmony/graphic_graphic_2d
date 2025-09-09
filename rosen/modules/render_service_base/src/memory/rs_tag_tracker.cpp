@@ -97,6 +97,12 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_DRAW_SURFACENODE :
             tagType = "draw_surface_node";
             break;
+        case TAG_RENDER_GROUP :
+            tagType = "render_group";
+            break;
+        case TAG_OPINC :
+            tagType = "opinc";
+            break;
         case TAG_UNTAGGED :
             tagType = "untagged";
             break;

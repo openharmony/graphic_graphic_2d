@@ -348,6 +348,18 @@ public:
         return uifirstRootNodeId_;
     }
 
+    bool SetInstanceRootNodeId(NodeId instanceRootNodeId);
+    NodeId GetInstanceRootNodeId() const
+    {
+        return instanceRootNodeId_;
+    }
+
+    bool SetInstanceRootNodeName(const std::string& instanceRootNodeName);
+    std::string GetInstanceRootNodeName() const
+    {
+        return instanceRootNodeName_;
+    }
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -552,6 +564,8 @@ private:
     SurfaceParam surfaceParams_;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    NodeId instanceRootNodeId_ = INVALID_NODEID;
+    std::string instanceRootNodeName_ = "";
     bool isFirstLevelCrossNode_ = false;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
