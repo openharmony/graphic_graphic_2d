@@ -54,9 +54,10 @@ void RSShadowModifier::SetShadowAlpha(float alpha)
 {
     auto color = GetShadowColor();
     // Saving alpha value on the client side and ensure it is between 0 and 1
-    shadowAlpha_ = std::clamp(alpha, 0.0f, 1.0f);
-    color.SetAlpha(shadowAlpha_ * UINT8_MAX);
+    float validAlpha = std::clamp(alpha, 0.0f, 1.0f);
+    color.SetAlpha(validAlpha * UINT8_MAX);
     SetShadowColor(color);
+    shadowAlpha_ = validAlpha;
 }
 
 float RSShadowModifier::GetShadowAlpha() const

@@ -62,8 +62,8 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
     modifier->SetShadowOffsetY(1.0f);
     EXPECT_EQ(modifier->GetShadowOffsetY(), 1.0f);
 
-    modifier->SetShadowAlpha(1.0f);
-    EXPECT_EQ(modifier->GetShadowAlpha(), 1.0f);
+    modifier->SetShadowAlpha(0.5f);
+    EXPECT_EQ(modifier->GetShadowAlpha(), 0.5f);
 
     modifier->SetShadowElevation(1.0f);
     EXPECT_EQ(modifier->GetShadowElevation(), 1.0f);
@@ -89,8 +89,8 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
 
     //Shadow alpha combine test
     std::shared_ptr<ModifierNG::RSShadowModifier> modifierCom = std::make_shared<ModifierNG::RSShadowModifier>();
-    modifierCom->SetShadowAlpha(1.0f);
-    EXPECT_EQ(modifierCom->GetShadowAlpha(), 1.0f);
+    modifierCom->SetShadowAlpha(0.5f);
+    EXPECT_EQ(modifierCom->GetShadowAlpha(), 0.5f);
 
     modifierCom->SetShadowColor(shadowColor);
     EXPECT_EQ(modifierCom->GetShadowAlpha(), shadowColor.GetAlphaF());
