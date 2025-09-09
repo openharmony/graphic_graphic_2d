@@ -34,7 +34,7 @@ void RSLogicalDisplayRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
-        RS_LOGE("RSLogicalDisplayRenderNode::InitRenderParams failed");
+        HILOG_COMM_ERROR("RSLogicalDisplayRenderNode::InitRenderParams failed");
         return;
     }
 }
