@@ -57,6 +57,7 @@ ohos_unittest("RSAnimationTest1") {
   sources = [
     "rs_animation_base_test.cpp",
     "rs_animation_timing_curve_test.cpp",
+    "rs_animation_timing_protocol_test.cpp",
     "rs_curve_animation_test.cpp",
     "rs_implicit_animator_test.cpp",
     "rs_interactive_implict_animator_test.cpp",
@@ -125,6 +126,7 @@ ohos_unittest("RSAnimationTest3") {
     "rs_symbol_animation_test.cpp",
     "rs_transition_effect_test.cpp",
     "rs_time_protocol_test.cpp",
+    "rs_transition_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
