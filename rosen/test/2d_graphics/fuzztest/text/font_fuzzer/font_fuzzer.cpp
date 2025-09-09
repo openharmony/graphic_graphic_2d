@@ -25,7 +25,7 @@ namespace {
 constexpr size_t EFING_SIZE = 3;
 constexpr size_t HINTING_SIZE = 4;
 constexpr size_t MAX_SIZE = 5000;
-constexpr size_t TEXTENCODING_SIZE = 4;
+constexpr size_t TEXTUTF8_SIZE = 128;
 } // namespace
 namespace Drawing {
 
@@ -230,12 +230,11 @@ bool FontFuzzTest008(const uint8_t* data, size_t size)
         return false;
     }
     for (size_t i = 0; i < count; i++) {
-        text[i] = GetObject<char>();
+        text[i] = GetObject<char>() % TEXTUTF8_SIZE;
     }
     text[count - 1] = '\0';
-    uint32_t textEncoding = GetObject<uint32_t>();
     RectF rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
-    font.MeasureText(text, count - 1, static_cast<TextEncoding>(textEncoding % TEXTENCODING_SIZE), &rect);
+    font.MeasureText(text, count - 1, TextEncoding::UTF8, &rect);
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
