@@ -153,6 +153,9 @@ void RSGraphicTestProfiler::AnalysePlaybackInfo(
 
 cJSON* ParseFileConfig(const std::string& path)
 {
+    if (path.empty()) {
+        return nullptr;
+    }
     std::ifstream configFile;
     configFile.open(path);
     std::stringstream configStream;
