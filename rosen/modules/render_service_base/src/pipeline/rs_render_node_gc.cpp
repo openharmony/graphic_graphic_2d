@@ -335,11 +335,17 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<ui
     auto& subMap = toRemove.second;
     uint32_t count = 0;
     const size_t subMapSize = subMap.size();
-    uint64_t remainBucketSize = renderNodeNumsInBucketMap_ / OFF_TREE_BUCKET_MAX_SIZE +
-        (renderNodeNumsInBucketMap_ % OFF_TREE_BUCKET_MAX_SIZE == 0 ? 0 : 1);
+    const size_t rlsNodeNums = (subMapSize >= OFF_TREE_BUCKET_MAX_SIZE ? OFF_TREE_BUCKET_MAX_SIZE : subMapSize);
+    const uint64_t remainNodeNums = renderNodeNumsInBucketMap_ >= rlsNodeNums ?
+        renderNodeNumsInBucketMap_ - rlsNodeNums : renderNodeNumsInBucketMap_;
+    uint64_t remainBucketSize = remainNodeNums / OFF_TREE_BUCKET_MAX_SIZE +
+        (remainNodeNums % OFF_TREE_BUCKET_MAX_SIZE == 0 ? 0 : 1);
     offTreeBucketThrDetector_.Detect(remainBucketSize, callBack);
-    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucketMap %d, remain offTree buckets %u",
-        OFF_TREE_BUCKET_MAX_SIZE, subMapSize);
+#ifndef ROSEN_TRACE_DISABLE
+    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucketMap %d, remain offTree buckets %llu",
+        rlsNodeNums, remainBucketSize);
+#endif
+
     for (auto subIter = subMap.begin(); subIter != subMap.end();) {
         if (count++ >= OFF_TREE_BUCKET_MAX_SIZE) {
             break;
