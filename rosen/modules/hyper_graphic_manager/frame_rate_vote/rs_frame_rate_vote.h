@@ -62,6 +62,9 @@ private:
     std::shared_ptr<ffrt::queue> ffrtQueue_{ nullptr };
     ffrt::mutex ffrtMutex_;
     ffrt::task_handle taskHandler_{ nullptr };
+    static std::atomic<bool> isVideoApp_;
+
+    friend class HgmEnergyConsumptionPolicy;
 };
 } // namespace Rosen
 } // namespace OHOS

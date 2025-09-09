@@ -22,6 +22,7 @@ config("libhyper_graphic_manager_config") {
     "core/hgm_screen_manager",
     "core/soft_vsync_manager",
     "core/utils",
+    "frame_rate_vote",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/platform/ipc_core",
     "$graphic_2d_root/rosen/modules/render_service/core",

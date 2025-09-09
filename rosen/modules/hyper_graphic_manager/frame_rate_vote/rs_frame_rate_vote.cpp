@@ -31,6 +31,7 @@ const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
 constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
 constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 }
+std::atomic<bool> RSFrameRateVote::isVideoApp_ = {false};
 
 RSFrameRateVote::RSFrameRateVote()
 {
@@ -49,13 +50,16 @@ RSFrameRateVote::~RSFrameRateVote()
 
 void RSFrameRateVote::SetTransactionFlags(const std::string& transactionFlags)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    transactionFlags_ = transactionFlags;
+    if (isVideoApp_.load()) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        transactionFlags_ = transactionFlags;
+    }
 }
 
 void RSFrameRateVote::CheckSurfaceAndUi()
 {
-    if (!hasUiOrSurface) {
+    bool state = !isVideoApp_.load() || !hasUiOrSurface;
+    if (state) {
         return;
     }
     hasUiOrSurface = false;
