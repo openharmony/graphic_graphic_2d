@@ -816,6 +816,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     surfaceNode3->instanceRootNodeId_ = 1;
     surfaceNode3->shouldPaint_ = true;
     surfaceNode3->SetSubThreadAssignable(true);
+    uifirstManager_.SetCardUiFirstSwitch(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode3, false);
     ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::ARKTS_CARD);
 }
@@ -2866,12 +2867,18 @@ HWTEST_F(RSUifirstManagerTest, ProcessFirstFrameCache, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
 {
-    RSSurfaceRenderNode node(100);
-    RSDisplayNodeConfig displayConfig;
-    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(10, displayConfig);
-    node.SetAncestorScreenNode(displayNode);
+    NodeId id = 100;
+    RSSurfaceRenderNode node(id);
+    auto context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 0, context->weak_from_this());
+    node.SetAncestorScreenNode(screenNode);
 
-    // leash window doesn't
+    // card disable uifirst by ccm
+    uifirstManager_.SetCardUiFirstSwitch(false);
+    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
+
+    uifirstManager_.SetCardUiFirstSwitch(true);
+    // leash window doesn't match
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     node.nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     node.name_ = "ArkTSCardNode";
