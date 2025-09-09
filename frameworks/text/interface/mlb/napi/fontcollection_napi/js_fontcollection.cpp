@@ -304,7 +304,7 @@ std::shared_ptr<Global::Resource::ResourceManager> JsFontCollection::GetResource
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {
-        TEXT_LOGE("Failed to get module context, bundle: %{public}s, module: %{public}s",
+        TEXT_LOGW("Failed to get module context, bundle: %{public}s, module: %{public}s",
             context->GetBundleName().c_str(), moduleName.c_str());
         return context->GetResourceManager();
     }

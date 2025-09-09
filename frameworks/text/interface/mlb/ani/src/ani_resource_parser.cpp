@@ -88,7 +88,7 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
     if (moduleContext != nullptr) {
         resourceManager = moduleContext->GetResourceManager();
     } else {
-        TEXT_LOGE("Failed to get module context, bundle: %{public}s, module: %{public}s",
+        TEXT_LOGW("Failed to get module context, bundle: %{public}s, module: %{public}s",
             context->GetBundleName().c_str(), resource.moduleName.c_str());
         resourceManager = context->GetResourceManager();
     }
