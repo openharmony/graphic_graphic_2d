@@ -78,14 +78,20 @@ pid_t RSSubThread::Start()
 void RSSubThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (handler_) {
-        handler_->PostImmediateTask(task, name);
+        auto result = handler_->PostImmediateTask(task, name);
+        if (!result) {
+            RS_LOGE("subthread PostTask failed. name:%{public}s", name.c_str());
+        }
     }
 }
 
 void RSSubThread::PostSyncTask(const std::function<void()>& task)
 {
     if (handler_) {
-        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        auto result = handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        if (!result) {
+            RS_LOGE("subthread PostSyncTask failed");
+        }
     }
 }
 
@@ -175,6 +181,7 @@ bool RSSubThread::CheckValid(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDraw
 void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (!CheckValid(nodeDrawable)) {
+        RS_LOGE("DrawableCache nodeDrawable is invalid");
         return;
     }
 
@@ -186,6 +193,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     if (UNLIKELY(!surfaceParams)) {
+        RS_LOGE("DrawableCache surfaceParams is nullptr");
         return;
     }
 
