@@ -31,10 +31,9 @@
 #include "rs_surface_frame_ohos_vulkan.h"
 #include <surface.h>
 
-// 后续需移除
 typedef enum VkSemaphoreExtTypeHUAWEI {
-    VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
-    VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI = 0x80000001,
+    VK_SEMAPHORE_EXT_TYPE_HTS = 0x80000000,
+    VK_SEMAPHORE_EXT_TYPE_FFTS = 0x80000001,
 } VkSemaphoreExtTypeHUAWEI;
 
 typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
@@ -85,6 +84,7 @@ public:
 
     void MarkAsHpaeSurface();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
+    void CancelBufferForCurrentFrame();
 
 private:
     struct NativeWindow* mNativeWindow = nullptr;

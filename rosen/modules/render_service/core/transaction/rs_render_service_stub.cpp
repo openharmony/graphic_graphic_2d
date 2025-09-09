@@ -16,7 +16,7 @@
 #include "rs_render_service_stub.h"
 
 #include <iremote_proxy.h>
-
+#include "pipeline/main_thread/rs_render_service_connection.h"
 namespace OHOS {
 namespace Rosen {
 class RSConnectionTokenProxy : public IRemoteProxy<RSIConnectionToken> {
@@ -107,8 +107,14 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
 
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            bool isConnectionRemoved = RemoveConnection(token);
-            reply.WriteBool(isConnectionRemoved);
+            auto rsConn = GetConnection(token);
+            if (rsConn) {
+                auto connection = static_cast<RSRenderServiceConnection*>(rsConn.GetRefPtr());
+                connection->CleanAll(true);
+                reply.WriteBool(true);
+            } else {
+                reply.WriteBool(false);
+            }
             break;
         }
         default: {

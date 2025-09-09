@@ -188,6 +188,10 @@ ohos_source_set("render_service_base_src") {
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
 
+    #hdr_heterogeneous
+    "src/hetero_hdr/rs_hdr_pattern_manager.cpp",
+    "src/hetero_hdr/rs_hdr_vulkan_task.cpp",
+
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
@@ -247,8 +251,6 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_record_cmd_utils.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_display_sync.cpp",
-    "src/pipeline/rs_render_frame_rate_linker.cpp",
-    "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_allocator.cpp",
     "src/pipeline/rs_render_node_gc.cpp",
@@ -273,9 +275,6 @@ ohos_source_set("render_service_base_src") {
     "src/effect/rs_render_filter_base.cpp",
     "src/effect/rs_render_mask_base.cpp",
     "src/effect/rs_render_shader_base.cpp",
-
-    #hetero_hdr
-    "src/hetero_hdr/rs_hdr_pattern_manager.cpp",
 
     #hpae
     "src/hpae_base/rs_hpae_base_data.cpp",
@@ -376,6 +375,8 @@ ohos_source_set("render_service_base_src") {
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
+    "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
+    "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",
@@ -466,10 +467,6 @@ ohos_source_set("render_service_base_src") {
 
       #ipc_security
       "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
-
-      #memory
-      "src/memory/rs_memory_graphic.cpp",
-      "src/memory/rs_memory_track.cpp",
 
       #pipeline
       "src/pipeline/rs_occlusion_config.cpp",

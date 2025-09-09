@@ -198,6 +198,7 @@ void RSGraphicTest::TearDown()
 {
     if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
         GetRootNode()->ResetTestSurface();
+        nodes_.clear();
         return;
     }
 
@@ -237,6 +238,7 @@ void RSGraphicTest::TearDown()
     }
 
     GetRootNode()->ResetTestSurface();
+    nodes_.clear();
     RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);

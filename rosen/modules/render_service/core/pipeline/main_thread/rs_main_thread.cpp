@@ -156,10 +156,12 @@
 #include "rs_frame_blur_predict.h"
 #include "rs_frame_deadline_predict.h"
 #include "feature_cfg/feature_param/extend_feature/mem_param.h"
-#include "feature/hetero_hdr/rs_hdr_manager.h"
 
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature_cfg/feature_param/feature_param.h"
+
+// HDRHeterogeneous
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
@@ -815,14 +817,12 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         RS_LOGE("InitVulkanErrorCallback gpuContext is nullptr");
         return;
     }
-
     gpuContext->RegisterVulkanErrorCallback([this]() {
         RS_LOGE("FocusLeashWindowName:[%{public}s]", this->focusLeashWindowName_.c_str());
 
         char appWindowName[EVENT_NAME_MAX_LENGTH];
         char focusLeashWindowName[EVENT_NAME_MAX_LENGTH];
         char extinfodefault[EVENT_NAME_MAX_LENGTH] = "ext_info_default";
-
         auto cpyresult = strcpy_s(appWindowName, EVENT_NAME_MAX_LENGTH, appWindowName_.c_str());
         if (cpyresult != 0) {
             RS_LOGE("Copy appWindowName_ error, AppWindowName:%{public}s", appWindowName_.c_str());
@@ -833,30 +833,23 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         }
 
         HiSysEventParam pPID = { .name = "PID", .t = HISYSEVENT_UINT32, .v = { .ui32 = appPid_ }, .arraySize = 0 };
-
         HiSysEventParam pAppNodeId = {
             .name = "AppNodeId", .t = HISYSEVENT_UINT64, .v = { .ui64 = appWindowId_ }, .arraySize = 0
         };
-
         HiSysEventParam pAppNodeName = {
             .name = "AppNodeName", .t = HISYSEVENT_STRING, .v = { .s = appWindowName }, .arraySize = 0
         };
-
         HiSysEventParam pLeashWindowId = {
             .name = "LeashWindowId", .t = HISYSEVENT_UINT64, .v = { .ui64 = focusLeashWindowId_ }, .arraySize = 0
         };
-
         HiSysEventParam pLeashWindowName = {
             .name = "LeashWindowName", .t = HISYSEVENT_STRING, .v = { .s = focusLeashWindowName }, .arraySize = 0
         };
-
         HiSysEventParam pExtInfo = {
             .name = "ExtInfo", .t = HISYSEVENT_STRING, .v = { .s = extinfodefault }, .arraySize = 0
         };
-
         HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
             pExtInfo };
-
         int ret = OH_HiSysEvent_Write("GRAPHIC", "RS_VULKAN_ERROR", HISYSEVENT_FAULT, paramsHebcFault,
             sizeof(paramsHebcFault) / sizeof(paramsHebcFault[0]));
         if (ret == 0) {
@@ -864,6 +857,8 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         } else {
             RS_LOGE("Faild to upload rs_vulkan_error event, ret = %{public}d", ret);
         }
+
+        RSUniRenderThread::Instance().ProcessVulkanErrorTreeDump();
     });
 }
 
@@ -1715,10 +1710,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
                 surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
             }
-            RSHdrManager::Instance().UpdateHdrNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+            RSHeteroHDRManager::Instance().UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
         };
     }
-    RSJankStats::GetInstance().AvcodecVideoCollectBegin();
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
@@ -3946,10 +3940,19 @@ static std::string Data2String(std::string data, uint32_t tagetNumber)
     }
 }
 
-void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
+size_t RSMainThread::RenderNodeModifierDump(pid_t pid)
 {
-    std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
-    std::unordered_map<int, int> nullnode_info; // [pid, count]
+    size_t allModifySize = 0;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraversalNodesByPid(pid, [&allModifySize] (const std::shared_ptr<RSBaseRenderNode>& node) {
+        allModifySize += node->GetAllModifierSize();
+    });
+    return allModifySize / BYTE_CONVERT;
+}
+
+void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
+    std::unordered_map<int, int>& nullnode_info)
+{
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
         int pid = info.pid;
@@ -3969,16 +3972,39 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
             }
         }
     }
+}
+
+void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
+{
+    std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
+    std::unordered_map<int, int> nullnode_info; // [pid, count]
+
+    GetNodeInfo(node_info, nullnode_info);
     std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
-        Data2String("OnTree", NODE_DUMP_STRING_LEN);
+        Data2String("OnTree", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("NodeMemSize", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("DrawableMem", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String("ModifierMem", NODE_DUMP_STRING_LEN);
     log.AppendFormat("%s\n", log_str.c_str());
+    size_t totalNodeSize = 0;
     for (auto& [pid, info]: node_info) {
+        size_t renderNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_NODE);
+        size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid,
+            MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
+        size_t modifierNodeSize = RenderNodeModifierDump(pid);
         log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
-            Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
-            Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN);
+        Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(renderNodeSize), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(drawableNodeSize), NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(modifierNodeSize), NODE_DUMP_STRING_LEN);
         log.AppendFormat("%s\n", log_str.c_str());
+        totalNodeSize += renderNodeSize + drawableNodeSize + modifierNodeSize;
     }
+    log_str = Data2String("Total Node Size(RenderNode/Drawable/Modifier)", NODE_DUMP_STRING_LEN) + "\t" +
+        Data2String(std::to_string(totalNodeSize), NODE_DUMP_STRING_LEN);
+    log.AppendFormat("%s\n", log_str.c_str());
     if (!nullnode_info.empty()) {
         log_str = "Purgeable node: \n" +
             Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +

@@ -31,8 +31,6 @@ ohos_unittest("EffectTest") {
       "effect_filter_unittest.cpp",
       "egl_manager_test.cpp",
       "filter_common_unittest.cpp",
-      "sk_image_chain_unittest.cpp",
-      "sk_image_filter_factory_unittest.cpp",
       "effect_image_chain_unittest.cpp",
       "effect_image_render_unittest.cpp",
     ]

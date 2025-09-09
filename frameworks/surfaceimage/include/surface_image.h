@@ -79,7 +79,7 @@ public:
 
     SurfaceError AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd);
     SurfaceError ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd);
-    
+
     SurfaceError SetDefaultUsage(uint64_t usage);
     SurfaceError SetDefaultSize(int32_t width, int32_t height);
     SurfaceError SetDropBufferSwitch(bool isOpen);

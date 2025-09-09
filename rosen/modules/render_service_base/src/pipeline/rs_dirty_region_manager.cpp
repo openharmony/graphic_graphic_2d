@@ -543,5 +543,23 @@ void RSDirtyRegionManager::AlignHistory()
     }
 }
 
+void RSDirtyRegionManager::AccumulateVirtualExpandScreenDirtyRegions(const RectI& curFrameDirtyRegion)
+{
+    if (curFrameDirtyRegion.IsEmpty()) {
+        return;
+    }
+    RectI newRect = curFrameDirtyRegion;
+    virtualExpandScreenAccumulatedDirtyRegions_.emplace_back(newRect);
+}
+
+const std::vector<RectI>& RSDirtyRegionManager::GetVirtualExpandScreenAccumulatedDirtyRegions() const
+{
+    return virtualExpandScreenAccumulatedDirtyRegions_;
+}
+
+void RSDirtyRegionManager::ClearVirtualExpandScreenAccumulatedDirtyRegions()
+{
+    virtualExpandScreenAccumulatedDirtyRegions_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS

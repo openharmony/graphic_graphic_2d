@@ -22,6 +22,7 @@
 #include "text/typeface.h"
 #include "utils/text_log.h"
 #include "utils/text_trace.h"
+#include "utils/typeface_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,19 +60,10 @@ std::shared_ptr<txt::FontCollection> FontCollection::Get()
 
 FontCollection::~FontCollection()
 {
-    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
-        return;
-    }
-
-    std::unique_lock<std::shared_mutex> lock(mutex_);
-    for (const auto& ta : typefaceSet_) {
-        Drawing::Typeface::GetTypefaceUnRegisterCallBack()(ta.GetTypeface());
-    }
-    for (const auto& family : familyNames_) {
-        FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(family.second);
-    }
-    typefaceSet_.clear();
-    familyNames_.clear();
+    std::shared_lock lock(mutex_);
+    std::for_each(typefaceSet_.begin(), typefaceSet_.end(), [](const TypefaceWithAlias& ta) {
+        FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(ta.GetAlias());
+    });
 }
 
 void FontCollection::DisableFallback()
@@ -107,6 +99,7 @@ RegisterError FontCollection::RegisterTypeface(const TypefaceWithAlias& ta)
     TEXT_LOGI("Succeed in registering typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(),
         ta.GetHash());
     typefaceSet_.insert(ta);
+    TypefaceMap::InsertTypeface(ta.GetTypeface()->GetUniqueID(), ta.GetTypeface());
     return RegisterError::SUCCESS;
 }
 
@@ -127,7 +120,6 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         return nullptr;
     }
     FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, ta.GetAlias());
-    familyNames_.emplace(ta.GetHash(), ta.GetAlias());
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
@@ -209,11 +201,13 @@ void FontCollection::ClearThemeFont()
     std::unique_lock lock(mutex_);
     for (const auto& themeFamily : SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies()) {
         std::shared_ptr<Drawing::Typeface> face(dfmanager_->MatchFamilyStyle(themeFamily.c_str(), {}));
-        TypefaceWithAlias ta(themeFamily, face);
-        typefaceSet_.erase(ta);
+        if (face != nullptr) {
+            TypefaceWithAlias ta(themeFamily, face);
+            typefaceSet_.erase(ta);
+            fontCollection_->RemoveCacheByUniqueId(face->GetUniqueID());
+        }
         dfmanager_->LoadThemeFont("", themeFamily, nullptr, 0);
     }
-    fontCollection_->ClearFontFamilyCache();
     SPText::DefaultFamilyNameMgr::GetInstance().ModifyThemeFontFamilies(0);
 }
 
@@ -224,8 +218,7 @@ void FontCollection::ClearCaches()
 
 bool FontCollection::UnloadFont(const std::string& familyName)
 {
-    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr ||
-        SPText::DefaultFamilyNameMgr::IsThemeFontFamily(familyName) || familyName.empty()) {
+    if (SPText::DefaultFamilyNameMgr::IsThemeFontFamily(familyName) || familyName.empty()) {
         TEXT_LOGE("Failed to unload font: %{public}s", familyName.c_str());
         return false;
     }
@@ -244,9 +237,8 @@ bool FontCollection::UnloadFont(const std::string& familyName)
         if (it->GetAlias() == familyName) {
             dfmanager_->LoadDynamicFont(familyName, nullptr, 0);
             FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
-            ClearCaches();
-            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(it->GetTypeface());
-            familyNames_.erase(it->GetHash());
+            fontCollection_->RemoveCacheByUniqueId(it->GetTypeface()->GetUniqueID());
+            cb.AddTypefaceUniqueId(it->GetTypeface()->GetUniqueID());
             typefaceSet_.erase(it++);
         } else {
             ++it;
@@ -258,14 +250,19 @@ bool FontCollection::UnloadFont(const std::string& familyName)
 
 FontCollection::FontCallbackGuard::FontCallbackGuard(
     const FontCollection* fc, const std::string& familyName, const FontCallback& begin, const FontCallback& end)
-    : fc_(fc), familyName_(familyName), begin_(begin), end_(end)
+    : fc_(fc), info_(familyName), begin_(begin), end_(end)
 {
-    begin_.ExecuteCallback(fc_, familyName_);
+    begin_.ExecuteCallback(fc_, info_);
 }
 
 FontCollection::FontCallbackGuard::~FontCallbackGuard()
 {
-    end_.ExecuteCallback(fc_, familyName_);
+    end_.ExecuteCallback(fc_, info_);
+}
+
+void FontCollection::FontCallbackGuard::AddTypefaceUniqueId(uint32_t uniqueId)
+{
+    info_.uniqueIds.push_back(uniqueId);
 }
 
 TypefaceWithAlias::TypefaceWithAlias(const std::string& alias, const std::shared_ptr<Drawing::Typeface>& typeface)
@@ -339,11 +336,11 @@ void FontCollection::FontCallback::AddCallback(FontCallbackType cb)
     }
 }
 
-void FontCollection::FontCallback::ExecuteCallback(const FontCollection* fc, const std::string& family) const
+void FontCollection::FontCallback::ExecuteCallback(const FontCollection* fc, const FontEventInfo& info) const
 {
     std::lock_guard lock(mutex_);
     for (auto& cb : callback_) {
-        cb(fc, family);
+        cb(fc, info);
     }
 }
 } // namespace Rosen

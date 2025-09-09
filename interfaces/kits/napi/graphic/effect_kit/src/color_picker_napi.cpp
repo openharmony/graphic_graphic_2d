@@ -316,7 +316,7 @@ static bool GetRegionCoordinates(napi_env env, napi_value param, std::unique_ptr
     bool coordinatesValid = asyncContext->coordinatesBuffer[NUM_2] > asyncContext->coordinatesBuffer[NUM_0] &&
         asyncContext->coordinatesBuffer[NUM_3] > asyncContext->coordinatesBuffer[NUM_1];
     EFFECT_NAPI_CHECK_RET_D(coordinatesValid, false,
-        EFFECT_LOG_E("GetRegionCoordinates right must be greater than left, bottom must be greater than top"));
+        EFFECT_COMM_LOG_E("GetRegionCoordinates right must be greater than left, bottom must be greater than top"));
     return true;
 }
 
@@ -410,7 +410,6 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
 
 static void GetMainColorExecute(napi_env env, void* data)
 {
-    EFFECT_LOG_I("[ColorPicker]Get color execute");
     auto context = static_cast<ColorPickerAsyncContext*>(data);
     EFFECT_NAPI_CHECK_RET_VOID_D(context != nullptr,
         EFFECT_LOG_E("GetMainColorExecute empty context"));
@@ -432,7 +431,6 @@ static void GetMainColorExecute(napi_env env, void* data)
 
 static void GetMainColorComplete(napi_env env, napi_status status, void* data)
 {
-    EFFECT_LOG_I("[ColorPicker]Get color Complete");
     auto context = static_cast<ColorPickerAsyncContext*>(data);
     if (!context) {
         EFFECT_LOG_E("GetMainColorComplete empty context");
@@ -447,7 +445,6 @@ static void GetMainColorComplete(napi_env env, napi_status status, void* data)
     }
 
     if (context->status == SUCCESS) {
-        EFFECT_LOG_I("[ColorPicker]build color");
         result = BuildJsColor(env, context->color);
     }
     EFFECT_LOG_I("[ColorPicker]Get color[ARGB] %{public}f,%{public}f,%{public}f,%{public}f",
@@ -466,7 +463,6 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get MainColor");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetMainColor parsing input fail"));
@@ -509,7 +505,7 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
 
 napi_value BuildJsColor(napi_env env, ColorManager::Color& color)
 {
-    EFFECT_LOG_I("build color");
+    EFFECT_LOG_D("build color");
     napi_value result = nullptr;
     napi_value clrRed = nullptr;
     napi_value clrGreen = nullptr;
@@ -545,7 +541,6 @@ napi_value ColorPickerNapi::GetMainColorSync(napi_env env, napi_callback_info in
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get MainColor sync");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetMainColorSync parsing input fail"));
@@ -607,7 +602,6 @@ napi_value ColorPickerNapi::GetHighestSaturationColor(napi_env env, napi_callbac
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Highest Saturation Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetHighestSaturationColor parsing input fail"));
@@ -638,7 +632,6 @@ napi_value ColorPickerNapi::GetAverageColor(napi_env env, napi_callback_info inf
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Average Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetAverageColor parsing input fail"));
@@ -670,7 +663,6 @@ napi_value ColorPickerNapi::IsBlackOrWhiteOrGrayColor(napi_env env, napi_callbac
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
-    EFFECT_LOG_I("Is Black Or White Or Gray Color");
     EFFECT_JS_ARGS(env, info, status, realArgc, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         EFFECT_LOG_E("ColorPickerNapi IsBlackOrWhiteOrGrayColor parsing input fail"));
@@ -702,7 +694,6 @@ napi_value ColorPickerNapi::GetMorandiBackgroundColor(napi_env env, napi_callbac
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Morandi Background Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetMorandiBackgroundColor parsing input fail"));
@@ -733,7 +724,6 @@ napi_value ColorPickerNapi::GetMorandiShadowColor(napi_env env, napi_callback_in
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Morandi Shadow Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetMorandiShadowColor parsing input fail"));
@@ -764,7 +754,6 @@ napi_value ColorPickerNapi::GetDeepenImmersionColor(napi_env env, napi_callback_
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Deepen Immersion Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetDeepenImmersionColor parsing input fail"));
@@ -795,7 +784,6 @@ napi_value ColorPickerNapi::GetImmersiveBackgroundColor(napi_env env, napi_callb
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Immersive Background Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetImmersiveBackgroundColor parsing input fail"));
@@ -826,7 +814,6 @@ napi_value ColorPickerNapi::GetImmersiveForegroundColor(napi_env env, napi_callb
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("GetImmersiveForegroundColor, Get Immersive Foreground Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetImmersiveForegroundColor parsing input fail"));
@@ -857,7 +844,6 @@ napi_value ColorPickerNapi::DiscriminatePitureLightDegree(napi_env env, napi_cal
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Discriminate Piture Light Degree");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi DiscriminatePitureLightDegree parsing input fail"));
@@ -889,7 +875,6 @@ napi_value ColorPickerNapi::GetReverseColor(napi_env env, napi_callback_info inf
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Reverse Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetReverseColor parsing input fail"));
@@ -921,7 +906,6 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
-    EFFECT_LOG_I("Get Top Proportion Colors");
     EFFECT_JS_ARGS(env, info, status, realArgc, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors parsing input fail"));
@@ -968,7 +952,7 @@ ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
 
     ret = napi_instanceof(env, argv, constructor, &isInstance);
     if (ret == napi_ok && isInstance) {
-        EFFECT_LOG_I("This is ImageSourceNapi type!");
+        EFFECT_LOG_D("This is ImageSourceNapi type!");
         return ImageType::TYPE_IMAGE_SOURCE;
     }
 
@@ -983,7 +967,7 @@ ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
         return ImageType::TYPE_PIXEL_MAP;
     }
 
-    EFFECT_LOG_E("InValued type!");
+    EFFECT_COMM_LOG_E("InValued type!");
     return ImageType::TYPE_UNKOWN;
 }
 

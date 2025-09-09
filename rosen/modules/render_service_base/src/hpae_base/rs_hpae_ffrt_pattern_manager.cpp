@@ -91,6 +91,9 @@ RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
         g_GPTaskSubmit = nullptr;
         g_mhcHandle = nullptr;
     }
+#ifdef RS_ENABLE_VK
+    ClearSemaphoreMap();
+#endif
 }
 
 bool RSHpaeFfrtPatternManager::MHCDlOpen()
@@ -231,7 +234,9 @@ bool RSHpaeFfrtPatternManager::MHCReleaseEGraph(uint64_t frameId)
 
 void RSHpaeFfrtPatternManager::MHCReleaseAll()
 {
-    HPAE_LOGI("mhc_so MHCReleaseAll");
+#ifdef RS_ENABLE_VK
+    HPAE_LOGI("mhc_so MHCReleaseAll. semaphoreMapSize: %{public}zu", semaphoreMap_.size());
+#endif
     if (g_instance == nullptr) {
         HPAE_LOGE("mhc_so MHCReleaseAll g_instance == nullptr");
         return;
@@ -243,6 +248,9 @@ void RSHpaeFfrtPatternManager::MHCReleaseAll()
     }
     // return 1 is succ
     int ret = g_GPReleaseAll(g_instance);
+#ifdef RS_ENABLE_VK
+    ClearSemaphoreMap();
+#endif
     ROSEN_LOGI("mhc_so MHCReleaseAll, ret=%{public}d", ret);
 }
 
@@ -295,5 +303,24 @@ bool RSHpaeFfrtPatternManager::IsUpdated()
     return updated_ && IsThreadIdMatch();
 }
 
+#ifdef RS_ENABLE_VK
+void RSHpaeFfrtPatternManager::ClearSemaphoreMap()
+{
+    semaphoreMap_.clear();
+}
+
+void RSHpaeFfrtPatternManager::SetSemaphoreMap(uint16_t eventId, std::shared_ptr<VkSemaphore>& vkSemaphore)
+{
+    semaphoreMap_.insert_or_assign(eventId, vkSemaphore);
+}
+
+std::shared_ptr<VkSemaphore> RSHpaeFfrtPatternManager::GetSemaphoreMap(uint16_t eventId)
+{
+    if (semaphoreMap_.find(eventId) == semaphoreMap_.end()) {
+        return nullptr;
+    }
+    return semaphoreMap_[eventId];
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

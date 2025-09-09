@@ -32,6 +32,8 @@ namespace Rosen {
 #define EFFECT_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 
 #define EFFECT_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
+
+#define EFFECT_COMM_LOG_E(fmt, ...) HILOG_COMM_ERROR(fmt, ##__VA_ARGS__)
 } // namespace Rosen
 } // namespace OHOS
 #endif // EFFECT_UTILS_H

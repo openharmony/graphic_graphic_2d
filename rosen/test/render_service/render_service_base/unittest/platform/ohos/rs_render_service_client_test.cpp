@@ -1297,6 +1297,37 @@ HWTEST_F(RSClientTest, GetPidGpuMemoryInMBTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AvcodecVideoStart Test
+ * @tc.desc: AvcodecVideoStart
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, AvcodecVideoStartTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    uint64_t reportTime = 16;
+    rsClient->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop Test
+ * @tc.desc: AvcodecVideoStop
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, AvcodecVideoStopTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    rsClient->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
+
+/**
 * @tc.name: ProfilerIsSecureScreenTest
 * @tc.desc: ProfilerIsSecureScreenTest
 * @tc.type: FUNC

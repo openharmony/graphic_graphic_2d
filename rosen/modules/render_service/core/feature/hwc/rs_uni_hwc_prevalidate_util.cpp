@@ -273,11 +273,13 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
     std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
     uint32_t curFps, uint32_t &zOrder, const ScreenInfo& screenInfo)
 {
-    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
     for (auto it = surfaceNodes.rbegin(); it != surfaceNodes.rend(); it++) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (!surfaceNode) {
             continue;
+        }
+        if (RSUniHwcPrevalidateUtil::CheckHwcNode(surfaceNode)) {
+            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, surfaceNode, curFps, zOrder, screenInfo);
         }
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
         if (hwcNodes.empty()) {
@@ -285,14 +287,11 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
         }
         for (auto& hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            if (!RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNodePtr, pointerWindow)) {
+            if (!RSUniHwcPrevalidateUtil::CheckHwcNode(hwcNodePtr)) {
                 continue;
             }
             RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder, screenInfo);
         }
-    }
-    if (pointerWindow && pointerWindow->ShouldPaint()) {
-        RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, pointerWindow, curFps, zOrder, screenInfo);
     }
 }
 
@@ -302,26 +301,35 @@ void RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(
 {
     auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
     RequestLayerInfo surfaceLayer;
+    uint32_t appWindowZOrder = 0;
+    if (IsPointerWindow(node)) {
+        appWindowZOrder = node->GetAppWindowZOrder();
+    } else {
+        appWindowZOrder = zOrder++;
+    }
     if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
-        zOrder++, node, transform, curFps, surfaceLayer)) {
+        appWindowZOrder, node, transform, curFps, surfaceLayer)) {
         prevalidLayers.emplace_back(surfaceLayer);
     }
 }
 
-bool RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(
-    const RSSurfaceRenderNode::SharedPtr& node, RSSurfaceRenderNode::SharedPtr& pointerWindow)
+bool RSUniHwcPrevalidateUtil::CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node)
 {
     if (!node || !node->IsOnTheTree()) {
-        return false;
-    }
-    if (node->IsHardwareEnabledTopSurface()) {
-        pointerWindow = node;
         return false;
     }
     if (node->IsHardwareForcedDisabled() || node->GetAncoForceDoDirect()) {
         return false;
     }
     return true;
+}
+
+bool RSUniHwcPrevalidateUtil::IsPointerWindow(const RSSurfaceRenderNode::SharedPtr& node)
+{
+    if (!node || !node->IsOnTheTree()) {
+        return false;
+    }
+    return node->IsHardwareEnabledTopSurface();
 }
 
 void RSUniHwcPrevalidateUtil::LayerRotate(

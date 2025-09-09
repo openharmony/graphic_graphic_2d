@@ -709,8 +709,8 @@ private:
     bool arsrTag_ = true;
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
-    uint32_t ancoFlags_ = 0;
     bool isMaskLayer_ = false;
+    uint32_t ancoFlags_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

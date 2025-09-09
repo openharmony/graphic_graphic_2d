@@ -198,7 +198,7 @@ int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
         RS_TRACE_NAME_FMT("SetScreenVsyncEnabled Failed, screenId:%u, enabled:%d, ret:%d", screenId_, enabled, ret);
     }
     auto sampler = CreateVSyncSampler();
-    if (sampler != nullptr) {
+    if (sampler == nullptr) {
         return ret;
     }
     if (ret == HDF_SUCCESS) {

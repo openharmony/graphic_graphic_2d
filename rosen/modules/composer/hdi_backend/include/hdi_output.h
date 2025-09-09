@@ -113,7 +113,6 @@ public:
     {
         maskLayer_ = maskLayer;
     }
-    
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;

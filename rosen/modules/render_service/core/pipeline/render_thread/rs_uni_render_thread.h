@@ -136,7 +136,8 @@ public:
     {
         isPostedReclaimMemoryTask_.store(isPostedReclaimMemoryTask);
     }
-    void RenderServiceTreeDump(std::string& dumpString);
+    void RenderServiceTreeDump(std::string& dumpString, bool checkIsInUniRenderThread = false);
+    void ProcessVulkanErrorTreeDump();
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 

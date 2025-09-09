@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <fstream>
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
 
@@ -630,8 +631,10 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo001, testing::ext::TestSize.Level1)
     DfxString log;
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     std::vector<std::pair<NodeId, std::string>> nodeTags;
+    nodeTags.emplace_back(std::make_pair(1001, "testnode1"));
+    nodeTags.emplace_back(std::make_pair(1002, "testnode2"));
     MemoryManager::DumpAllGpuInfo(log, gpuContext, nodeTags);
-    ASSERT_TRUE(log.GetString().find("Total GPU memory usage:") == std::string::npos);
+    ASSERT_TRUE(log.GetString().find("Total GPU memory usage:") != std::string::npos);
 }
 
 /**
@@ -788,5 +791,64 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
     RSReclaimMemoryManager::Instance().InterruptReclaimTask("GESTURE_TO_RECENTS");
     ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
     RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+}
+
+/**
+ * @tc.name: MemoryOverReport
+ * @tc.desc: Test MemoryOverReport
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverReport, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 1434;
+    MemorySnapshotInfo info;
+    auto& instance = MemorySnapshot::Instance();
+    instance.GetMemorySnapshotInfoByPid(pid, info);
+    std::string hidumperReport = "report";
+    MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport);
+    std::string filePath = "/data/service/el0/render_service/renderservice_mem.txt";
+    ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
+ * @tc.name: WriteInfoToFile
+ * @tc.desc: Test WriteInfoToFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, WriteInfoToFile, testing::ext::TestSize.Level1)
+{
+    std::string filePath = "";
+    std::string gpuMemInfo = "info";
+    std::string hidumperReport = "";
+    MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+    filePath = "/data/service/el0/render_service/renderservice_mem.txt";
+    MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+    hidumperReport = "hidumper";
+    MemoryManager::WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+    ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
+ * @tc.name: DumpGpuCacheWithPidInfoTest00
+ * @tc.desc: DumpGpuCacheWithPidInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuCacheWithPidInfoTest00, testing::ext::TestSize.Level1)
+{
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext();
+    Drawing::GPUResourceTag tag(100, 0, 100000, 0, "DumpGpuCacheWithPidInfoTest");
+    DfxString log;
+    GpuPidInfo totalInfo;
+    std::string name = "DumpGpuCacheWithPidInfoTest";
+    MemoryManager::DumpGpuCacheWithPidInfo(log, gpuContext, &tag, name, totalInfo);
+    DfxString log1;
+    MemoryManager::DumpGpuCacheWithPidInfo(log1, nullptr, &tag, name, totalInfo);
+    ASSERT_TRUE(log1.GetString().find("gpuContext is nullptr") != std::string::npos);
+    DfxString log2;
+    MemoryManager::DumpGpuCacheWithPidInfo(log2, gpuContext, nullptr, name, totalInfo);
+    ASSERT_TRUE(log2.GetString().find("GPU Caches") != std::string::npos);
 }
 } // namespace OHOS::Rosen

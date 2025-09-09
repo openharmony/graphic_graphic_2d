@@ -228,7 +228,7 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     isVirtualDirtyDfxEnabled_ = RSSystemProperties::GetVirtualDirtyDebugEnabled();
     isVirtualDirtyEnabled_ = RSSystemProperties::GetVirtualDirtyEnabled() &&
         (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) && !isRegionDebugEnabled_;
-    isExpandScreenDirtyEnabled_ = RSSystemProperties::GetExpandScreenDirtyEnabled();
+    isVirtualExpandScreenDirtyEnabled_ = RSSystemProperties::GetVirtualExpandScreenDirtyEnabled();
     advancedDirtyType_ = isAdvancedDirtyRegionEnabled_ ?
         RSSystemProperties::GetAdvancedDirtyRegionEnabled() : AdvancedDirtyRegionType::DISABLED;
     isDirtyAlignEnabled_ &= RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
@@ -556,7 +556,8 @@ void RSUniRenderVisitor::DealWithSpecialLayer(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
 {
-    if (!hasMirrorDisplay_ || !screenManager_) {
+    bool hasVirtualDisplay = screenState_ == ScreenState::SOFTWARE_OUTPUT_ENABLE;
+    if ((!hasVirtualDisplay && !hasMirrorDisplay_) || !screenManager_) {
         return;
     }
     std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
@@ -1482,7 +1483,11 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
     needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged() ||
         node.IsBehindWindowOcclusionChanged();
     if (needRecalculateOcclusion_) {
-        Occlusion::Region subResult = selfDrawRegion.Sub(accumulatedOcclusionRegion_);
+        bool isSecVirtualExpandComposite =
+            curLogicalDisplayNode_->GetSecurityDisplay() &&
+            curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+        Occlusion::Region subResult = isSecVirtualExpandComposite ?
+            selfDrawRegion.Sub(occlusionRegionWithoutSkipLayer_) : selfDrawRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
         node.SetVisibleRegionBehindWindow(subResult.Sub(accumulatedOcclusionRegionBehindWindow_));
         Occlusion::Region subResultWithoutSkipLayer = selfDrawRegion.Sub(occlusionRegionWithoutSkipLayer_);
@@ -1918,6 +1923,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     allBlackList_ = screenManager_->GetAllBlackList();
     allWhiteList_ = screenManager_->GetAllWhiteList();
     screenWhiteList_ = screenManager_->GetScreenWhiteList();
+    screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
 
     // 3 init Occlusion info
@@ -3102,6 +3108,12 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode)) {
             UpdateRotationStatusForEffectNode(*effectNode);
         }
+#if defined(ROSEN_OHOS)
+        if (auto canvasNode = RSRenderNode::ReinterpretCast<RSCanvasRenderNode>(filterNode)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckSkipNode: %" PRId64 " ", filterNode->GetId());
+            RSHpaeManager::GetInstance().RegisterHpaeCallback(*filterNode, curScreenNode_);
+        }
+#endif
         filterNode->CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
         filterNode->MarkClearFilterCacheIfEffectChildrenChanged();
         if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
@@ -3349,7 +3361,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
     renderThreadParams->isVirtualDirtyEnabled_ = isVirtualDirtyEnabled_;
     renderThreadParams->isVirtualDirtyDfxEnabled_ = isVirtualDirtyDfxEnabled_;
-    renderThreadParams->isExpandScreenDirtyEnabled_ = isExpandScreenDirtyEnabled_;
+    renderThreadParams->isVirtualExpandScreenDirtyEnabled_ = isVirtualExpandScreenDirtyEnabled_;
     renderThreadParams->advancedDirtyType_ = advancedDirtyType_;
     renderThreadParams->hasDisplayHdrOn_ = hasDisplayHdrOn_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;

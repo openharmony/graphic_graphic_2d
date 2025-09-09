@@ -37,6 +37,7 @@
 #include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
+#include "rosen_text/font_collection.h"
 #include "rs_frame_report.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
@@ -105,11 +106,16 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
-    static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
-    [] (uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
-        return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
-    };
-    Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
+    FontCollection::RegisterUnloadFontFinishCallback([](const FontCollection*, const FontEventInfo& info) {
+        std::vector uniqueIds = info.uniqueIds;
+        auto task = [uniqueIds]() {
+            auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
+            for (size_t i = 0; i < uniqueIds.size() && context; i += 1) {
+                context->FreeCpuCache(uniqueIds[i]);
+            }
+        };
+        RSRenderThread::Instance().PostTask(task);
+    });
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
@@ -555,7 +561,7 @@ void RSRenderThread::Render()
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
-    // Need ClearResource of RSRenderNodeDrawableAdapter if RSCustomModifierDrawable release delayed.
+    DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

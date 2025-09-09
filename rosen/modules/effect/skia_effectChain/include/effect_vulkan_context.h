@@ -33,9 +33,6 @@ public:
         std::function<void()> destructCallback_;
     };
     static EffectVulkanContext& GetSingleton(const std::string& cacheDir = "");
-    explicit EffectVulkanContext(std::string cacheDir = "");
-    ~EffectVulkanContext();
-
     EffectVulkanContext(const EffectVulkanContext&) = delete;
     EffectVulkanContext &operator=(const EffectVulkanContext&) = delete;
     EffectVulkanContext(const EffectVulkanContext&&) = delete;
@@ -46,8 +43,9 @@ public:
 
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 private:
+    explicit EffectVulkanContext(std::string cacheDir = "");
+    ~EffectVulkanContext();
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
-    static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
     static std::mutex drawingContextMutex_;
 };
 }

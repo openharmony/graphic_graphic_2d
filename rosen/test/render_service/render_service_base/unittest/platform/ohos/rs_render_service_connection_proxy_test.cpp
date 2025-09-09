@@ -1597,5 +1597,36 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetOptimizeCanvasDirtyPidList, Test
     auto ret = proxy->SetOptimizeCanvasDirtyPidList(pidList);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
 }
+
+/**
+ * @tc.name: AvcodecVideoStart Test
+ * @tc.desc: AvcodecVideoStart Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, AvcodecVideoStartTest, TestSize.Level1)
+{
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    uint64_t reportTime = 16;
+    proxy->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: AvcodecVideoStop Test
+ * @tc.desc: AvcodecVideoStop Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Level1)
+{
+    std::vector<uint64_t> uniqueIdList = {1};
+    std::vector<std::string> surfaceNameList = {"surface1"};
+    uint32_t fps = 120;
+    proxy->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    ASSERT_TRUE(proxy);
+}
 } // namespace Rosen
 } // namespace OHOS

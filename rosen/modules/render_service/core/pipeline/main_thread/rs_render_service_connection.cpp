@@ -62,7 +62,7 @@
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
-#include "pipeline/rs_render_frame_rate_linker_map.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -102,7 +102,6 @@ const std::string REGISTER_NODE = "RegisterNode";
 const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
-constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
@@ -496,7 +495,7 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
         RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
         config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
     }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
@@ -2518,6 +2517,18 @@ bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 {
     RS_LOGW("uneg typeface: pid[%{public}d], uniqueid:%{public}u",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    auto typeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    if (typeface == nullptr) {
+        return true;
+    }
+    uint32_t uniqueId = typeface->GetUniqueID();
+    auto task = [uniqueId]() {
+        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (context) {
+            context->FreeCpuCache(uniqueId);
+        }
+    };
+    RSUniRenderThread::Instance().PostTask(task);
     RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
 }
@@ -3567,16 +3578,17 @@ bool RSRenderServiceConnection::GetHighContrastTextState()
     return RSBaseRenderEngine::IsHighContrastEnabled();
 }
 
-ErrCode RSRenderServiceConnection::AvcodecVideoStart(
-    uint64_t uniqueId, std::string& surfaceName, uint32_t fps, uint64_t reportTime)
+ErrCode RSRenderServiceConnection::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {
-    RSJankStats::GetInstance().AvcodecVideoStart(uniqueId, surfaceName, fps, reportTime);
+    RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnection::AvcodecVideoStop(uint64_t uniqueId, std::string& surfaceName, uint32_t fps)
+ErrCode RSRenderServiceConnection::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
+    const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
-    RSJankStats::GetInstance().AvcodecVideoStop(uniqueId, surfaceName, fps);
+    RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     return ERR_OK;
 }
 

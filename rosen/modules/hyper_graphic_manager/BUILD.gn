@@ -61,7 +61,7 @@ config("libhyper_graphic_manager_config") {
   ldflags = [
     "-flto",
     "-Wl,-z,relro",
-    "-Wl,--exclude-libs=All",
+    "-Wl,--exclude-libs=ALL",
     "-Wl,--gc-sections",
     "-Wl,--as-needed",
     "-Wl,--sort-common",

@@ -135,7 +135,6 @@ private:
     bool lastSecExemption_ = false;
     bool virtualDirtyNeedRefresh_ = false;
     bool enableVisibleRect_ = false;
-    bool isSkipDisplayInVirtual_ = false;
     Drawing::RectI curVisibleRect_;
     Drawing::RectI lastVisibleRect_;
     std::shared_ptr<RSSLRScaleFunction> scaleManager_ = nullptr;

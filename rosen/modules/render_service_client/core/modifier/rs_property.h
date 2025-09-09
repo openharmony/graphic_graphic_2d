@@ -278,7 +278,6 @@ private:
     friend class RSSpringAnimation;
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
-    friend class RSModifier;
     friend class ModifierNG::RSModifier;
     friend class RSNode;
     friend class RSKeyframeAnimation;
@@ -290,8 +289,6 @@ private:
     friend class RSImplicitCancelAnimationParam;
     friend class RSImplicitCurveAnimationParam;
     friend class RSImplicitAnimator;
-    friend class RSGeometryTransModifier;
-    friend class RSExtendedModifier;
     friend class RSCustomTransitionEffect;
     friend class RSCurveAnimation;
     friend class ModifierNG::RSForegroundFilterModifier;
@@ -454,8 +451,6 @@ protected:
 
     friend class RSPathAnimation;
     friend class RSImplicitAnimator;
-    friend class RSExtendedModifier;
-    friend class RSModifier;
     friend class ModifierNG::RSCustomModifier;
     friend class RSNGEffectUtils;
 };
@@ -510,7 +505,7 @@ public:
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
         auto rsUIContext = node->GetRSUIContext();
         auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+            RSImplicitAnimatorMap::Instance().GetAnimator();
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
             auto endValue = std::make_shared<RSAnimatableProperty<T>>(value);
@@ -558,7 +553,7 @@ public:
         }
         auto rsUIContext = node->GetRSUIContext();
         auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                            : RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+                                            : RSImplicitAnimatorMap::Instance().GetAnimator();
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             implicitAnimator->CancelImplicitAnimation(node, RSProperty<T>::shared_from_this());
         }
@@ -690,7 +685,7 @@ public:
         }
         auto rsUIContext = node->GetRSUIContext();
         const auto& implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+            RSImplicitAnimatorMap::Instance().GetAnimator();
         if (!implicitAnimator) {
             RSProperty<T>::stagingValue_ = endValue->Get();
             return {};
@@ -882,8 +877,6 @@ private:
 
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
-    friend class RSExtendedModifier;
-    friend class RSModifier;
     friend class RSNGEffectUtils;
 };
 

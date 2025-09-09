@@ -189,7 +189,7 @@ public:
     static bool GetAllSurfaceVisibleDebugEnabled();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
-    static bool GetExpandScreenDirtyEnabled();
+    static bool GetVirtualExpandScreenDirtyEnabled();
     static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
@@ -268,7 +268,7 @@ public:
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
-    static bool GetHeterogComputingHDREnabled();
+    static bool GetHeterogeneousHDREnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();
     static bool GetUIFirstBehindWindowEnabled();

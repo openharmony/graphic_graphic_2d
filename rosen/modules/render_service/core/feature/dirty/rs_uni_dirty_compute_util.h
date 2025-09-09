@@ -37,11 +37,17 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
-    static void UpdateVirtualExpandScreenAccumulatedParams(
-        RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+    static void UpdateVirtualExpandScreenAccumulatedParams(RSScreenRenderParams& params,
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const sptr<RSScreenManager>& screenManager);
     static bool CheckVirtualExpandScreenSkip(
         RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     static bool CheckCurrentFrameHasDirtyInVirtual(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+    static void AccumulateVirtualExpandScreenDirtyRegions(
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
+    static void MergeVirtualExpandScreenAccumulatedDirtyRegions(
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
+    static void ClearVirtualExpandScreenAccumulatedDirtyRegions(
+        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
 };
 
 class DirtyStatusAutoUpdate {
@@ -49,15 +55,19 @@ public:
     DirtyStatusAutoUpdate(RSRenderThreadParams& uniParams, bool isSingleLogicalDisplay) : uniParams_(uniParams)
     {
         isVirtualDirtyEnabled_ = uniParams_.IsVirtualDirtyEnabled();
+        isVirtualExpandScreenDirtyEnabled_ = uniParams_.IsVirtualExpandScreenDirtyEnabled();
         uniParams_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_ && isSingleLogicalDisplay);
+        uniParams_.SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled_ && isSingleLogicalDisplay);
     }
     ~DirtyStatusAutoUpdate()
     {
         uniParams_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_);
+        uniParams_.SetVirtualDirtyEnabled(isVirtualExpandScreenDirtyEnabled_);
     }
 private:
     RSRenderThreadParams& uniParams_;
     bool isVirtualDirtyEnabled_;
+    bool isVirtualExpandScreenDirtyEnabled_;
 };
 
 class RSUniFilterDirtyComputeUtil {

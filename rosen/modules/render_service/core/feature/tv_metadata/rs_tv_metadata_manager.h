@@ -20,6 +20,7 @@
 #include "metadata_helper.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "hdi_layer.h"
+#include "params/rs_surface_render_params.h"
 
 namespace OHOS::Rosen {
 class RSTvMetadataManager {
@@ -33,9 +34,18 @@ public:
     void Reset();
     void ResetDpPixelFormat();
     TvPQMetadata GetMetadata() const;
+    static void CombineMetadataForAllLayers(const std::vector<LayerInfoPtr>& layers);
+    void UpdateTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
+    void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
 
 private:
     static void CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata);
+    static void ClearVideoMetadata(TvPQMetadata& metadata);
+    void CollectTvMetadata(const RSSurfaceRenderParams& params,
+        const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
+    void CollectSurfaceSize(const RSSurfaceRenderParams& params, TvPQMetadata& metaData);
+    void CollectColorPrimaries(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
+    void CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
     RSTvMetadataManager() = default;
     ~RSTvMetadataManager() = default;
     RSTvMetadataManager(const RSTvMetadataManager&) = delete;

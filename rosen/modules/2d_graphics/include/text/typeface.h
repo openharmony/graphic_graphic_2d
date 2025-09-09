@@ -43,9 +43,10 @@ public:
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
-    static void UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
     static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceRegisterCallBack();
-    static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceUnRegisterCallBack();
+    static void RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb);
+    static void RegisterUniqueIdCallBack(std::function<std::shared_ptr<Typeface>(uint64_t)> cb);
+    static std::function<std::shared_ptr<Typeface>(uint64_t)> GetUniqueIdCallBack();
     static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
 
     /**
@@ -135,7 +136,7 @@ public:
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     static std::function<bool(std::shared_ptr<Typeface>)> registerTypefaceCallBack_;
-    static std::function<bool(std::shared_ptr<Typeface>)> unregisterTypefaceCallBack_;
+    static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_;
     uint32_t size_ = 0;
 };
 } // namespace Drawing

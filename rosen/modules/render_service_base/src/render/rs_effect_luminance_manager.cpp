@@ -136,6 +136,11 @@ bool GetEnableEDRShaderAIBarGlow(std::shared_ptr<RSNGRenderShaderBase> renderSha
            ROSEN_GNE(brightness, 1.0f);
 }
 
+bool GetEnableEDRContourDiagonalFlowLight(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    return renderShader != nullptr;
+}
+
 static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT = {
     {RSNGEffectType::EDGE_LIGHT, GetEnableEDREffectEdgeLight},
     {RSNGEffectType::COLOR_GRADIENT, GetEnableEDREffectColorGradient},
@@ -144,6 +149,7 @@ static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT 
  
 static std::unordered_map<RSNGEffectType, ShaderEDRChecker> edrShaderCheckerLUT = {
     {RSNGEffectType::COLOR_GRADIENT_EFFECT, GetEnableEDRShaderColorGradient},
+    {RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT, GetEnableEDRContourDiagonalFlowLight},
     {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, GetEnableEDRShaderRoundedRectFlowlight},
     {RSNGEffectType::AIBAR_GLOW, GetEnableEDRShaderAIBarGlow},
 };

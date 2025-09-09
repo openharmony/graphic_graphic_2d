@@ -65,12 +65,12 @@ public:
     static std::shared_ptr<RSModifierManagerMap>& Instance();
 
     /**
-     * @brief Gets the RSModifierManager associated with the given ID.
+     * @brief Gets the RSModifierManager associated with the current thread.
      *
      * @param id The unique identifier for the RSModifierManager.
-     * @return A shared pointer to the RSModifierManager associated with the given ID.
+     * @return A shared pointer to the RSModifierManager associated with the current thread.
      */
-    const std::shared_ptr<RSModifierManager>& GetModifierManager(const int32_t id);
+    const std::shared_ptr<RSModifierManager>& GetModifierManager();
 
 private:
     RSModifierManagerMap() = default;
@@ -79,8 +79,6 @@ private:
     RSModifierManagerMap& operator=(const RSModifierManagerMap&) = delete;
     RSModifierManagerMap& operator=(const RSModifierManagerMap&&) = delete;
 
-    std::mutex mutex_;
-    std::unordered_map<int32_t, std::shared_ptr<RSModifierManager>> managerMap_;
     static std::shared_ptr<RSModifierManagerMap> instance_;
 };
 } // namespace Rosen

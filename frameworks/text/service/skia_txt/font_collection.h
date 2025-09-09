@@ -83,10 +83,11 @@ private:
         FontCallbackGuard(const FontCollection* fc, const std::string& familyName, const FontCallback& begin,
             const FontCallback& end);
         ~FontCallbackGuard();
+        void AddTypefaceUniqueId(uint32_t uniqueId);
 
     private:
         const FontCollection* fc_;
-        const std::string& familyName_;
+        FontEventInfo info_;
         const FontCallback& begin_;
         const FontCallback& end_;
     };
@@ -95,7 +96,6 @@ private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
     std::unordered_set<TypefaceWithAlias, TypefaceWithAlias::Hasher> typefaceSet_;
-    std::unordered_map<uint32_t, std::string> familyNames_;
     std::shared_mutex mutex_;
 };
 } // namespace AdapterTxt

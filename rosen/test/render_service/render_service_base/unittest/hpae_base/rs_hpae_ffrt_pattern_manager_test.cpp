@@ -235,5 +235,38 @@ HWTEST_F(RSHpaeFfrtPatternManagerTest, MHCGraphPatternInitTest, TestSize.Level1)
     EXPECT_TRUE(ret);
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: SemaphoreMapTest001
+ * @tc.desc: Verify function SetSemaphoreMap/GetSemaphoreMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeFfrtPatternManagerTest, SemaphoreMapTest001, TestSize.Level1)
+{
+    RSHpaeFfrtPatternManager ffrtManager;
+    ffrtManager.ClearSemaphoreMap();
+
+    std::shared_ptr<VkSemaphore> notifySemaphore = std::make_shared<VkSemaphore>();
+    ffrtManager.SetSemaphoreMap(1, notifySemaphore);
+    auto getSemaphore = ffrtManager.GetSemaphoreMap(1);
+    EXPECT_EQ(notifySemaphore.get(), getSemaphore.get());
+}
+
+/**
+ * @tc.name: SemaphoreMapTest002
+ * @tc.desc: Verify function GetSemaphoreMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHpaeFfrtPatternManagerTest, SemaphoreMapTest002, TestSize.Level1)
+{
+    RSHpaeFfrtPatternManager ffrtManager;
+    ffrtManager.ClearSemaphoreMap();
+
+    auto getSemaphore = ffrtManager.GetSemaphoreMap(1);
+    EXPECT_EQ(getSemaphore.get(), nullptr);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

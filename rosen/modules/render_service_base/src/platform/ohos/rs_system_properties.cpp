@@ -242,13 +242,10 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
-    constexpr int DEFAULT_OPTIMIZE_STATUS = 1;
-    constexpr int DISABLED_STATUS = 0;
-
     static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, DEFAULT_OPTIMIZE_STATUS) != DISABLED_STATUS;
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
@@ -363,9 +360,9 @@ bool RSSystemProperties::GetVirtualDirtyEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
-bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+bool RSSystemProperties::GetVirtualExpandScreenDirtyEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.expandscreendirty.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualexpandscreendirty.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -931,15 +928,14 @@ bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
-
-bool RSSystemProperties::GetHeterogComputingHDREnabled()
+ 
+bool RSSystemProperties::GetHeterogeneousHDREnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.heterog.computing.hdr.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
+    static bool flag =
+        std::atoi((system::GetParameter("persist.rosen.heterogeneous.hdr.enabled", "1")).c_str()) == 1;
+    return flag;
 }
-
+ 
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");
@@ -1063,7 +1059,7 @@ bool RSSystemProperties::IsFoldScreenFlag()
 bool RSSystemProperties::IsSmallFoldDevice()
 {
     static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
-    return foldType == "2,0,0,0" || foldType == "4,2,0,0";
+    return foldType == "2,0,0,0" || foldType == "4,2,0,0" || foldType == "2,2,0,0";
 }
 
 bool RSSystemProperties::GetCacheCmdEnabled()

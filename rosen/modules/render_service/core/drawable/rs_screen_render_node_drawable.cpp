@@ -42,6 +42,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
@@ -488,21 +489,6 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
     }
 }
 
-void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusionFast()
-{
-    auto params = static_cast<RSScreenRenderParams*>(renderParams_.get());
-    ScreenId paramScreenId = params->GetScreenId();
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        SetDrawSkipType(DrawSkipType::SCREEN_MANAGER_NULL);
-        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw ScreenManager is nullptr");
-        return;
-    }
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
-    CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
-    filterCacheOcclusionUpdated_ = true;
-}
-
 void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
     RSScreenRenderParams& params, const ScreenInfo& screenInfo)
 {
@@ -673,7 +659,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool isVirtualExpandComposite =
         params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     if (isVirtualExpandComposite) {
-        RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *this);
+        RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *this, screenManager);
         if (RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *this)) {
             RS_TRACE_NAME("VirtualExpandScreenNode skip");
             return;
@@ -686,6 +672,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u, dirty:%d",
             paramScreenId, screenInfo.skipFrameStrategy, screenInfo.skipFrameInterval,
             screenInfo.expectedRefreshRate, accumulateDirtyInSkipFrame_);
+        if (isVirtualExpandComposite) {
+            RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(*this, *params);
+        }
         screenManager->PostForceRefreshTask();
         return;
     }
@@ -754,11 +743,17 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             curCanvas_ = virtualProcessor->GetCanvas();
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            if (virtualProcessor->GetDisplaySkipInMirror()) {
+                RS_TRACE_NAME("skip in virtual screen and cancelbuffer");
+                virtualProcessor->SetDisplaySkipInMirror(false);
+                virtualProcessor->CancelCurrentFrame();
+                return;
+            }
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
             bool isOpDropped = uniParam->IsOpDropped();
-            uniParam->SetOpDropped(false);
+            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
                 SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
@@ -767,23 +762,29 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
-            // disable expand screen dirty when isEqualVsyncPeriod is false, because the dirty history is incorrect
-            if (uniParam->IsExpandScreenDirtyEnabled() && uniParam->IsVirtualDirtyEnabled() &&
-                screenInfo.isEqualVsyncPeriod) {
-                int32_t bufferAge = expandProcessor->GetBufferAge();
-                damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
-                    *this, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
-                uniParam->Reset();
-                if (!uniParam->IsVirtualDirtyDfxEnabled()) {
-                    expandProcessor->SetDirtyInfo(damageRegionRects);
-                }
+            RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
+            int32_t bufferAge = expandProcessor->GetBufferAge();
+            damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
+                *this, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+            uniParam->Reset();
+            if (uniParam->IsVirtualExpandScreenDirtyEnabled() && !uniParam->IsVirtualDirtyDfxEnabled()) {
+                expandProcessor->SetDirtyInfo(damageRegionRects);
             } else {
                 std::vector<RectI> emptyRects = {};
                 expandProcessor->SetRoiRegionToCodec(emptyRects);
             }
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
             curCanvas_ = expandProcessor->GetCanvas();
+            curCanvas_->Save();
+            if (uniParam->IsVirtualExpandScreenDirtyEnabled()) {
+                UpdateSurfaceDrawRegion(curCanvas_, params);
+                curCanvas_->SetDrawnRegion(params->GetDrawnRegion());
+                Drawing::Region clipRegion = GetFlippedRegion(damageRegionRects, screenInfo);
+                uniParam->SetClipRegion(clipRegion);
+                ClipRegion(*curCanvas_, clipRegion);
+            }
             curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
             params->ResetVirtualExpandAccumulatedParams();
             auto targetSurfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
@@ -840,11 +841,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SetScreenNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 
-    if (filterCacheOcclusionUpdated_) {
-        filterCacheOcclusionUpdated_ = false;
-    } else {
-        CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
-    }
+    CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
     bool isRGBA1010108Enabled = RSHdrUtil::GetRGBA1010108Enabled();
     bool isNeed10bit = isHdrOn || (params->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_BT2020 && isRGBA1010108Enabled);
     if (isNeed10bit) {

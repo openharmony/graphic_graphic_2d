@@ -46,8 +46,9 @@ enum HdrStatus : uint32_t {
     NO_HDR = 0x0000,
     HDR_PHOTO = 0x0001,
     HDR_VIDEO = 0x0010,
-    AI_HDR_VIDEO = 0x0100,
+    AI_HDR_VIDEO_GTM = 0x0100,
     HDR_EFFECT = 0x1000,
+    AI_HDR_VIDEO_GAINMAP = 0x10000,
 };
 
 class RSLuminanceControlInterface {

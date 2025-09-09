@@ -2360,7 +2360,9 @@ bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belo
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!RSProperties::filterCacheEnabled_) {
+#ifndef ROSEN_ARKUI_X
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithBelowDirty filter cache is disabled.");
+#endif
         return false;
     }
     auto filterDrawable = GetFilterDrawable(isForeground);

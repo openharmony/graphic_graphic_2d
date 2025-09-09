@@ -25,7 +25,7 @@
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
-
+using GpuPidInfo = std::unordered_map<pid_t, std::tuple<float, std::vector<std::pair<std::string, float>>>>;
 class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, std::string& type);
@@ -66,6 +66,8 @@ private:
     static void DumpDrawingCpuMemory(DfxString& log);
     static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name);
+    static void DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
+        Drawing::GPUResourceTag* tag, std::string& name, GpuPidInfo& info);
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
@@ -75,8 +77,6 @@ private:
     static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
         const std::string& hidumperReport);
     static void WriteInfoToFile(std::string& filePath, std::string& gpuMemInfo, const std::string& hidumperReport);
-    static bool NeedCleanNow(std::vector<std::string>& needCleanFileName);
-    static void CleanFiles(std::vector<std::string>& needCleanFileName);
     static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
 

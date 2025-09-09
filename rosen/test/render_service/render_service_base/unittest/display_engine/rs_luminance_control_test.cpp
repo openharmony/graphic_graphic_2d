@@ -61,7 +61,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetSdrLuminance(screenId, level);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
-    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO_GTM);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
     luminCtrl.ForceCloseHdr(screenId, false);
 
@@ -78,7 +78,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetSdrLuminance(screenId, level);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
-    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO_GTM);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
     luminCtrl.ForceCloseHdr(screenId, true);
     

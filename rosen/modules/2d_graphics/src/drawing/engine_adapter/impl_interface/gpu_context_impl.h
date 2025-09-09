@@ -71,6 +71,8 @@ public:
 
     virtual void FreeGpuResources() = 0;
 
+    virtual void FreeCpuCache(uint32_t uniqueId = 0) = 0;
+
     virtual void ReclaimResources() = 0;
 
     virtual void DumpGpuStats(std::string& out) = 0;
@@ -91,7 +93,7 @@ public:
 
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
         const std::set<pid_t>& protectedPidSet) = 0;
-    
+
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 
     virtual void ReleaseByTag(const GPUResourceTag &tag) = 0;
@@ -129,7 +131,7 @@ public:
     virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority) = 0;
 
     virtual void FlushGpuMemoryInWaitQueue() = 0;
-    
+
     virtual void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) = 0;
 
     virtual void GetHpsEffectSupport(std::vector<const char*>& instanceExtensions) = 0;

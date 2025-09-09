@@ -15,11 +15,12 @@
 
 #ifndef RS_HDR_PATTERN_MANAGER_H
 #define RS_HDR_PATTERN_MANAGER_H
-#include <vector>
-#include <stdexcept>
+
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <utility>
+#include <vector>
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
@@ -28,7 +29,7 @@
 typedef enum {
     PATTERN_HDR,  // PatternType::HDR
     PATTERN_BLUR  // PatternType::BLUR
-} PatternType_C;
+} PatternType;
 
 typedef enum {
     MHC_PATTERN_TASK_HDR_HPAE = 0,
@@ -38,22 +39,43 @@ typedef enum {
     MHC_PATTERN_TASK_BLUR_HPAE,
     MHC_PATTERN_TASK_BLUR_GPU1,
     MHC_PATTERN_TASK_BLUR_MAX
-} MHC_PatternTaskName;
+} MHCPatternTaskName;
 
-namespace OHOS::Rosen {
-struct FunctionHeader {
-    void (*execute)(void *);  // Execute function pointer
-    void (*destroy)(void *);  // Destroy function pointer
-    void *data;               // User data (storing lambda)
+namespace OHOS {
+namespace Rosen {
+using GPInstanceGetFunc = void* (*)(PatternType, const char*);
+using GPInstanceInitFunc = bool (*)(void*, size_t);
+using GPInstanceDestroyFunc = void (*)(void*);
+using GPRequestEGraphFunc = bool (*)(void*, uint64_t);
+using GPReleaseEGraphFunc = bool (*)(void*, uint64_t);
+using GPReleaseAllFunc = bool (*)(void*);
+using GPHpaeTaskSubmitFunc = void (*)(void*, uint64_t, MHCPatternTaskName, void*, void**, void*);
+using GPWaitFunc = void (*)(void*, uint64_t, MHCPatternTaskName);
+using GPGPUTaskSubmitFunc = void (*)(void*, uint64_t, MHCPatternTaskName, void*, void*);
+using GPGetGPUWaitEventFunc = uint16_t (*)(void*, uint64_t, MHCPatternTaskName);
+using GPGetGPUNotifyEventFunc = uint16_t (*)(void*, uint64_t, MHCPatternTaskName);
+ 
+struct MHCDevice {
+    GPInstanceGetFunc getGraphPatternInstance = nullptr;
+    GPInstanceInitFunc graphPatternInit = nullptr;
+    GPInstanceDestroyFunc graphPatternDestroy = nullptr;
+    GPRequestEGraphFunc graphPatternRequestEGraph = nullptr;
+    GPReleaseEGraphFunc graphPatternReleaseEGraph = nullptr;
+    GPReleaseAllFunc graphPatternReleaseAll = nullptr;
+    GPHpaeTaskSubmitFunc graphPatternAnimationTaskSubmit = nullptr;
+    GPGPUTaskSubmitFunc graphPatternVulkanTaskSubmit = nullptr;
+    GPWaitFunc graphPatternWait = nullptr;
+    GPGetGPUWaitEventFunc graphPatternGetVulkanWaitEvent = nullptr;
+    GPGetGPUNotifyEventFunc graphPatternGetVulkanNotifyEvent = nullptr;
 };
 
-class RSB_EXPORT RSHDRPatternManager final {
+class RSB_EXPORT RSHDRPatternManager {
 public:
-    static RSHDRPatternManager &Instance();
-    RSHDRPatternManager(const RSHDRPatternManager &) = delete;
-    RSHDRPatternManager(RSHDRPatternManager &&) = delete;
-    RSHDRPatternManager &operator=(const RSHDRPatternManager &) = delete;
-    RSHDRPatternManager &operator=(RSHDRPatternManager &&) = delete;
+    static RSHDRPatternManager& Instance();
+    RSHDRPatternManager(const RSHDRPatternManager&) = delete;
+    RSHDRPatternManager(RSHDRPatternManager&&) = delete;
+    RSHDRPatternManager& operator=(const RSHDRPatternManager&) = delete;
+    RSHDRPatternManager& operator=(RSHDRPatternManager&&) = delete;
 
     void SetThreadId()
     {
@@ -62,8 +84,8 @@ public:
         if (processConsumed_) {
             return;
         }
-        if (flushedBuffer) {  // one HDR buffer can be consumed only once
-            flushedBuffer = false;
+        if (flushedBuffer_) {  // one HDR buffer can be consumed only once
+            flushedBuffer_ = false;
             processConsumed_ = true;
             tid_ = gettid();
         }
@@ -73,22 +95,24 @@ public:
     void SetBufferFlushed()
     {
         std::unique_lock<std::mutex> lock(frameIdMutex_);
-        flushedBuffer = true;
+        flushedBuffer_ = true;
     }
 
-    bool TryConsumeBuffer(std::function<void()> &&consumingFunc)
+    bool TryConsumeBuffer(std::function<void()>&& consumingFunc)
     {
         std::unique_lock<std::mutex> lock(frameIdMutex_);
-        if (flushedBuffer && lastFrameConsumed_) {
+        if (flushedBuffer_ && lastFrameConsumed_) {
             return false;
         }
-        if (flushedBuffer) {
+        if (flushedBuffer_) {
             consumingFunc();
-            flushedBuffer = false;
+            flushedBuffer_ = false;
             lastFrameConsumed_ = true;
         }
         return true;
     }
+
+    void MHCDlClose();
 
     bool MHCDlOpen();
 
@@ -96,25 +120,25 @@ public:
 
     bool MHCRequestEGraph(uint64_t frameId);
 
-    bool MHCSubmitHDRTask(uint64_t frameId, MHC_PatternTaskName taskName, std::function<void()> &&preFunc,
-        void **taskHandle, std::function<void()> &&afterFunc);
+    bool MHCSubmitHDRTask(uint64_t frameId, MHCPatternTaskName taskName, std::function<void()>&& preFunc,
+        void** taskHandle, std::function<void()>&& afterFunc);
 
-    bool MHCSubmitVulkanTask(uint64_t frameId, MHC_PatternTaskName taskName, std::function<void()> &&preFunc,
-        std::function<void()> &&afterFunc);
+    bool MHCSubmitVulkanTask(uint64_t frameId, MHCPatternTaskName taskName, std::function<void()>&& preFunc,
+        std::function<void()>&& afterFunc);
 
-    bool MHCWait(uint64_t frameId, MHC_PatternTaskName taskName);
+    bool MHCWait(uint64_t frameId, MHCPatternTaskName taskName);
 
-    uint16_t MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHC_PatternTaskName taskName);
+    uint16_t MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHCPatternTaskName taskName);
 
-    uint16_t MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHC_PatternTaskName taskName);
+    uint16_t MHCGetVulkanTaskNotifyEvent(uint64_t frameId, MHCPatternTaskName taskName);
 
     bool MHCReleaseEGraph(uint64_t frameId);
 
     bool MHCReleaseAll();
 
-    bool MHCCheck(const std::string logTag, uint64_t frameId);
+    bool MHCCheck(const std::string logTag);
 
-    std::vector<uint64_t> MHCGetFrameIdForGpuTask();
+    std::vector<uint64_t> MHCGetFrameIdForGPUTask();
 
     bool MHCSetCurFrameId(uint64_t frameId)
     {
@@ -129,7 +153,7 @@ public:
         return true;
     }
 
-    void MHCReSetCurFrameId()
+    void MHCResetCurFrameId()
     {
         std::unique_lock<std::mutex> lock(frameIdMutex_);
         curFrameId_ = lastFrameId_;
@@ -146,6 +170,8 @@ public:
 protected:
     RSHDRPatternManager();
     ~RSHDRPatternManager();
+
+    bool MHCDlsymInvalid();
 
     bool IsThreadIdMatch()
     {
@@ -166,10 +192,14 @@ protected:
         return lastFrameIdUsed_ == false;
     }
 
-    void *g_instance = nullptr;
+#ifdef ROSEN_OHOS
+    void* MHCLibFrameworkHandle_ = nullptr;
+#endif
+    std::shared_ptr<MHCDevice> MHCDevice_ = std::make_shared<MHCDevice>();
+    void* graphPatternInstance_ = nullptr;
     bool processConsumed_ = false;
     bool lastFrameConsumed_ = false;
-    bool flushedBuffer = false;
+    bool flushedBuffer_ = false;
     pid_t tid_ = -1;
     std::mutex frameIdMutex_;
     uint64_t curFrameId_ = 0;
@@ -179,6 +209,6 @@ protected:
     uint64_t vsyncId_ = 0;
     bool isFinishDLOpen_ = false;
 };
-
-}  // namespace OHOS::Rosen
-#endif  // RS_HDR_PATTERN_MANAGER_H
+} // namespace Rosen
+} // namespace OHOS
+#endif // RS_HDR_PATTERN_MANAGER_H

@@ -58,6 +58,7 @@ public:
         const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
+    static void RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb);
 #ifdef RS_ENABLE_GPU
 #ifdef RS_ENABLE_VK
     static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,

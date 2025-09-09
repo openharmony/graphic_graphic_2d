@@ -284,7 +284,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
 
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     auto nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
-    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
     nodeDrawable->GetRsSubThreadCache().isCacheCompletedValid_ = true;
 
     // test task done

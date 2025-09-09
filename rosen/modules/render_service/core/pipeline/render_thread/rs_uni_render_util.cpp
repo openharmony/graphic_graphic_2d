@@ -32,7 +32,9 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "hetero_hdr/rs_hdr_pattern_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -59,6 +61,7 @@
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
+#include "hetero_hdr/rs_hdr_vulkan_task.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_hdr_vulkan_task.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
@@ -68,7 +71,6 @@
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
 #endif
-#include "hetero_hdr/rs_hdr_pattern_manager.h"
 #include "render_frame_trace.h"
 
 namespace OHOS {
@@ -1066,21 +1068,20 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         DestroySemaphoreInfo* destroyInfo =
             new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
 
-        auto semphoreVec = PrepareHdrSemaphoreVector(backendSemaphore, surface);
-
+        std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
+ 
+        std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
+        RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
+ 
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
-        drawingFlushInfo.numSemaphores = semphoreVec.size();
-        drawingFlushInfo.backendSemaphore = static_cast<void*>(semphoreVec.data());
-        drawingFlushInfo.finishedProc = [](void *context) {
-            DestroySemaphoreInfo::DestroySemaphore(context);
-        };
+        drawingFlushInfo.numSemaphores = semaphoreVec.size();
+        drawingFlushInfo.backendSemaphore = static_cast<void*>(semaphoreVec.data());
+        drawingFlushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
         drawingFlushInfo.finishedContext = destroyInfo;
         surface->Flush(&drawingFlushInfo);
         grContext->Submit();
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
-        
-        std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGpuTask();
         for (auto frameId : frameIdVec) {
             RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
         }

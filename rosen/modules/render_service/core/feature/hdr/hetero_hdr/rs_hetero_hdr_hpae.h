@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef RS_HETERO_HDR_UTIL_H
-#define RS_HETERO_HDR_UTIL_H
+#ifndef RS_HETERO_HDR_HPAE_H
+#define RS_HETERO_HDR_HPAE_H
 
-#include <buffer_handle.h>
 #include <condition_variable>
 #include <cstdint>
 #include <dlfcn.h>
@@ -24,36 +23,39 @@
 #include <unordered_map>
 #include <vector>
 
+#include <buffer_handle.h>
+
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
-namespace OHOS::Rosen {
-#define DVFS_LEVEL_MIDDLE 3
-#define DVFS_LEVEL_HIGH 4
-
-// for scene id capbility bit0 ~ bit55
-constexpr uint64_t MDC_CAP_HEBCE = 1;
-constexpr uint64_t MDC_CAP_UVUP = 1 << 1;
-constexpr uint64_t MDC_CAP_SCALE = 1 << 2;
-constexpr uint64_t MDC_CAP_ROT = 1 << 3;
-constexpr uint64_t MDC_CAP_HDR = 1 << 4;
-
-constexpr uint64_t EFFECT_RESOURCE_HDR_BIT = 5;
-
+namespace OHOS {
+namespace Rosen {
 /* Rectangle */
-using MdcRectT = struct MdcRect {
+using MDCRectT = struct MDCRectT {
     int32_t left;
     int32_t top;
     int32_t right;
     int32_t bottom;
 };
 
-using MdcContentsT = struct MdcCopybitContents {
+/* Request MDC effect resources */
+enum EffectResourceRequest {
+    EFFECT_NONE,
+    EFFECT_ARSR = 1ULL << 0,
+    EFFECT_HDR = 1ULL << 1,
+    ROUNDED_CORNER = 1ULL << 2,
+    AIHDR_ENHANCE_MODE = 1ULL << 3,
+    AIHDR_HIGHLIGHT_MODE = 1ULL << 4,
+    AIHDR_ENHANCE_LUT = 1ULL << 5,
+    AIHDR_HIGHLIGHT_LUT = 1ULL << 6,
+};
+
+using MDCContentsT = struct MDCCopybitContents {
     /*
-     * Request Direct Mdc Channel
+     * Request Direct MDC Channel
      *
      * MDC_POWER_UP = 0x1,
      * MDC_POWER_DOWN = 0x2,
@@ -65,7 +67,7 @@ using MdcContentsT = struct MdcCopybitContents {
     };
 
     /*
-     * Request Direct Mdc Channel
+     * Request Direct MDC Channel
      *
      * MDC_VOLTAGE_LOW = 0x1,
      * MDC_VOLTAGE_NORMAL = 0x2,
@@ -96,7 +98,7 @@ using MdcContentsT = struct MdcCopybitContents {
      * Transformation to apply to the buffer during copybit.
      * Reference system/core/include/system/window.h defined
      * Set default value: 0
-     *        90 degrees: NATIVE_WINDOW_TRANSFORM_ROT_90
+     * 90 degrees: NATIVE_WINDOW_TRANSFORM_ROT_90
      */
     uint32_t transform;
 
@@ -106,9 +108,9 @@ using MdcContentsT = struct MdcCopybitContents {
      * The width, height and format have been set.
      */
     union {
-        BufferHandle *srcBufferHandle;
+        BufferHandle* srcBufferHandle;
 
-        BufferHandle *srcHandle;
+        BufferHandle* srcHandle;
 
         uint64_t srcHandlePadding;
     };
@@ -119,9 +121,9 @@ using MdcContentsT = struct MdcCopybitContents {
      * The width, height and format have been set.
      */
     union {
-        BufferHandle *dstBufferHandle;
+        BufferHandle* dstBufferHandle;
 
-        BufferHandle *dstHandle;
+        BufferHandle* dstHandle;
 
         uint64_t dstHandlePadding;
     };
@@ -130,12 +132,10 @@ using MdcContentsT = struct MdcCopybitContents {
      * Area of the source to consider, the origin is the top-left corner of
      * the buffer.
      */
-    MdcRectT srcRect;
+    MDCRectT srcRect;
 
-    /* where to copybit the source rect onto the display. The sourceCrop
-     * is scaled using linear filtering to the displayFrame. The origin is the
-     */
-    MdcRectT dstRect;
+    /* where to copybit the source rect onto the display. */
+    MDCRectT dstRect;
 
     /*
      * Sync fence object that will be signaled when the buffer's
@@ -154,15 +154,7 @@ using MdcContentsT = struct MdcCopybitContents {
      */
     int32_t releaseFenceFd;
 
-    /*
-     * Request MDC effect resources
-     *
-     * EFFECT_ARSR = 1ULL << 0,
-     * AIHDR_LUT = 1ULL << 1,
-     * ROUNDED_CORNER = 1ULL << 2,
-     * AIHDR_ENHANCE_MODE = 1ULL << 3,
-     * AIHDR_HIGHLIGHT_MODE = 1ULL << 4,
-     */
+    /* Refer to the definition of the EffectResourceRequest enumeration values. */
     uint64_t effectResourceRequest = 0;
 
     /*
@@ -173,12 +165,12 @@ using MdcContentsT = struct MdcCopybitContents {
     /*
     * taskId For async mode to destroy cmdlist
     */
-    uint32_t *taskId;
+    uint32_t* taskId;
 
     /*
     * taskPtr(cmdlistHeader) For async mode to submit task
     */
-    void **taskPtr;
+    void** taskPtr;
 
     int32_t expectRunTime = -1;
 
@@ -191,73 +183,79 @@ using MdcContentsT = struct MdcCopybitContents {
 
 /*
  * Support set more prelayers
- * for aihdr lut layer
+ * for AIHDR lut layer
  * for cld top bottom layers.
  */
-struct mdcLayerInfoT {
+struct MDCLayerInfoT {
     uint32_t transform = 0;
     uint64_t effectResourceRequest = 0;
-    MdcRectT srcRect;
-    MdcRectT dstRect;
-    BufferHandle *handle;
+    MDCRectT srcRect;
+    MDCRectT dstRect;
+    BufferHandle* handle;
 };
 
 /*
  * Every device data structure must begin with hw_device_t
  * followed by module specific public methods and attributes.
  */
-struct MdcDeviceT {
-    int (* copybit)(struct MdcDeviceT *dev, int channel, MdcContentsT *hwLayers);
-    int (* requestPowerMode) (struct MdcDeviceT *dev, int powerMode);
-    int (* requestVoltaLev) (struct MdcDeviceT *dev, int voltaLev);
-    int (* requestCoreClkLev) (struct MdcDeviceT *dev, int coreClkLev);
-    int (* requestChannel) (struct MdcDeviceT *dev);
-    int (* releaseChannel) (struct MdcDeviceT *dev, int channel);
-    int (* requestChannelByCap) (struct MdcDeviceT *dev, uint64_t needCaps);
-    void (* dump) (struct MdcDeviceT *dev);
-    int (* setMultiPreLayers) (std::vector<mdcLayerInfoT> &preLayers);
-    void (* destroyTask) (uint32_t taskId);
+struct MDCDeviceT {
+    int (*copybit)(struct MDCDeviceT* dev, int channel, MDCContentsT* hwLayers);
+    int (*requestPowerMode)(struct MDCDeviceT* dev, int powerMode);
+    int (*requestVoltaLev)(struct MDCDeviceT* dev, int voltaLev);
+    int (*requestCoreClkLev)(struct MDCDeviceT* dev, int coreClkLev);
+    int (*requestChannel)(struct MDCDeviceT* dev);
+    int (*releaseChannel)(struct MDCDeviceT* dev, int channel);
+    int (*requestChannelByCap)(struct MDCDeviceT* dev, uint64_t needCaps);
+    bool (*checkResourceConflict) (struct MDCDeviceT* dev, uint64_t needCaps);
+    void (*dump)(struct MDCDeviceT* dev);
+    int (*setMultiPreLayers)(std::vector<MDCLayerInfoT>& preLayers);
+    void (*destroyTask)(uint32_t taskId);
 };
 
-struct hapeTaskInfoT {
+struct HpaeTaskInfoT {
     void** taskPtr;
     uint32_t* taskId;
-    MdcRectT srcRect;
-    MdcRectT dstRect;
+    MDCRectT srcRect;
+    MDCRectT dstRect;
     int transform = 0;
     BufferHandle* srcHandle;
     BufferHandle* dstHandle;
     int32_t acquireFenceFd = -1;
     int32_t releaseFenceFd = -1;
-    float displaySDRNits = 500.0f;
-    float displayHDRNits = 500.0f;
+    float displaySdrNit = 500.0f; // default SDR 500 nit
+    float displayHdrNit = 500.0f; // default HDR 500 nit
+    HdrStatus curHandleStatus = HdrStatus::NO_HDR;
 };
 
-class RSHeteroHdrUtil  {
+class RSHeteroHDRHpae {
 public:
-    static RSHeteroHdrUtil  &GetInstance();
-    int32_t BuildHpaeHdrTask(hapeTaskInfoT& taskinfo);
-
-    int32_t RequestHpaeChannel();
-    void DestroyHpaeHdrTask(uint32_t taskId);
-    void ReleaseHpaeHdrChannel();
-
+    static RSHeteroHDRHpae& GetInstance();
+    bool IsHpaeAvailable() const;
+    int32_t BuildHpaeHDRTask(HpaeTaskInfoT& taskInfo);
+    int32_t RequestHpaeChannel(HdrStatus curHandleHdrStatus);
+    bool CheckHpaeAccessible(HdrStatus curHandleHdrStatus);
+    void DestroyHpaeHDRTask(uint32_t taskId);
+    void ReleaseHpaeHDRChannel();
 private:
-    RSHeteroHdrUtil();
-    ~RSHeteroHdrUtil();
-    RSHeteroHdrUtil(const RSHeteroHdrUtil  &);
-    RSHeteroHdrUtil(const RSHeteroHdrUtil  &&);
-    RSHeteroHdrUtil  &operator = (const RSHeteroHdrUtil  &);
-    RSHeteroHdrUtil  &operator = (const RSHeteroHdrUtil  &&);
+    RSHeteroHDRHpae();
+    ~RSHeteroHDRHpae();
+    RSHeteroHDRHpae(const RSHeteroHDRHpae&) = delete;
+    RSHeteroHDRHpae(const RSHeteroHDRHpae&&) = delete;
+    RSHeteroHDRHpae& operator=(const RSHeteroHDRHpae&) = delete;
+    RSHeteroHDRHpae& operator=(const RSHeteroHDRHpae&&) = delete;
+    void SetEffectResourceRequest(HdrStatus curHandleHdrStatus);
+    uint64_t GetChannelCaps(HdrStatus curHandleHdrStatus);
 
-    void* mdcHandle = nullptr;
-    const char* mdcLib = "/vendor/lib64/libmediacomm.z.so";
-    MdcDeviceT*(*getMdcDevice)() = nullptr;
-    MdcDeviceT* mdcDev = nullptr;
-    MdcContentsT mdcContent;
-    std::mutex mdcMtx_;
-    std::atomic<bool> mdcStatus_{false};
-    std::atomic<bool> mdcExistedStatus_{false};
+    void* mdcHandle_ = nullptr;
+    const char* mdcLib_ = "/vendor/lib64/libmediacomm.z.so";
+    MDCDeviceT* (*getMDCDevice)() = nullptr;
+    MDCDeviceT* mdcDev_ = nullptr;
+    MDCContentsT mdcContent_;
+    std::atomic<bool> mdcStatus_{ false };
+    std::atomic<bool> mdcExistedStatus_{ false };
+    std::atomic<HdrStatus> existedChannelStatus_{ HdrStatus::NO_HDR };
 };
-}
-#endif // RS_HETERO_HDR_UTIL_H
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // RS_HETERO_HDR_HPAE_H

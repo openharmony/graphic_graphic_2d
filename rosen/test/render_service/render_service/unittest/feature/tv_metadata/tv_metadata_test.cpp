@@ -23,6 +23,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 namespace OHOS::Rosen {
 class TvMetadataTest : public testing::Test {
@@ -213,5 +214,157 @@ HWTEST_F(TvMetadataTest, ResetDpPixelFormat_001, TestSize.Level1)
     ASSERT_EQ(1, outMetadata.sceneTag);
     ASSERT_EQ(60, outMetadata.uiFrameCnt);
     ASSERT_EQ(0, outMetadata.dpPixFmt);
+}
+
+/**
+ * @tc.name: UpdateTvMetadata_001
+ * @tc.desc: Test UpdateTvMetadata
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, UpdateTvMetadata_001, TestSize.Level1)
+{
+    auto rsSurface = CreateRsSurfaceOhos();
+    auto buffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(rsSurface, nullptr);
+    ASSERT_EQ(true, buffer != nullptr);
+ 
+    RectI screenRect(0, 0, 3840, 2160);
+    RSLayerInfo layerInfo;
+    layerInfo.dstRect.w = 3840;
+    layerInfo.dstRect.h = 2160;
+    RSSurfaceRenderParams params(0);
+    params.RecordScreenRect(screenRect);
+    params.SetLayerInfo(layerInfo);
+    CM_ColorSpaceInfo colorSpaceInfo;
+    colorSpaceInfo.primaries = COLORPRIMARIES_BT2020;
+    MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
+    CM_HDR_Metadata_Type hdrMetadataType = CM_VIDEO_HDR_VIVID;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetSceneTag(buffer, 1);
+    RSTvMetadataManager::Instance().UpdateTvMetadata(params, buffer);
+    TvPQMetadata tvMetadata = { 0 };
+    MetadataHelper::GetVideoTVMetadata(buffer, tvMetadata);
+    ASSERT_EQ(1, tvMetadata.sceneTag);
+    ASSERT_EQ(2, tvMetadata.vidWinSize);
+    ASSERT_EQ(4, tvMetadata.colorimetry);
+    ASSERT_EQ(3, tvMetadata.hdr);
+}
+
+/**
+ * @tc.name: RecordTvMetadata_001
+ * @tc.desc: Test RecordTvMetadata
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, RecordTvMetadata_001, TestSize.Level1)
+{
+    auto rsSurface = CreateRsSurfaceOhos();
+    auto buffer = rsSurface->GetCurrentBuffer();
+    ASSERT_NE(rsSurface, nullptr);
+    ASSERT_EQ(true, buffer != nullptr);
+ 
+    RectI screenRect(0, 0, 3840, 2160);
+    RSLayerInfo layerInfo;
+    layerInfo.dstRect.w = 3840;
+    layerInfo.dstRect.h = 2160;
+    RSSurfaceRenderParams params(0);
+    params.RecordScreenRect(screenRect);
+    params.SetLayerInfo(layerInfo);
+    CM_ColorSpaceInfo colorSpaceInfo;
+    colorSpaceInfo.primaries = COLORPRIMARIES_BT2020;
+    MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
+    CM_HDR_Metadata_Type hdrMetadataType = CM_VIDEO_HDR_VIVID;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetSceneTag(buffer, 1);
+    RSTvMetadataManager::Instance().RecordTvMetadata(params, buffer);
+    TvPQMetadata tvMetadata = RSTvMetadataManager::Instance().GetMetadata();
+    ASSERT_EQ(1, tvMetadata.sceneTag);
+    ASSERT_EQ(2, tvMetadata.vidWinSize);
+    ASSERT_EQ(4, tvMetadata.colorimetry);
+    ASSERT_EQ(3, tvMetadata.hdr);
+}
+ 
+/**
+ * @tc.name: CombineMetadataForAllLayers_001
+ * @tc.desc: Test CombineMetadataForAllLayers
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_001, TestSize.Level1)
+{
+    std::vector<LayerInfoPtr> layers;
+    auto uniRenderSurface = CreateRsSurfaceOhos();
+    ASSERT_NE(uniRenderSurface, nullptr);
+    auto unitRenderBuffer = uniRenderSurface->GetCurrentBuffer();
+    ASSERT_NE(unitRenderBuffer, nullptr);
+    TvPQMetadata uniRenderTvMetadata = { 0 };
+    uniRenderTvMetadata.sceneTag = 1;
+    uniRenderTvMetadata.uiFrameCnt = 60;
+    uniRenderTvMetadata.vidFrameCnt = 24;
+    uniRenderTvMetadata.dpPixFmt = 2;
+    MetadataHelper::SetVideoTVMetadata(unitRenderBuffer, uniRenderTvMetadata);
+    LayerInfoPtr uniRenderLayer = HdiLayerInfo::CreateHdiLayerInfo();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    uniRenderLayer->SetBuffer(unitRenderBuffer, acquireFence);
+    uniRenderLayer->SetUniRenderFlag(true);
+    layers.emplace_back(uniRenderLayer);
+    RSTvMetadataManager::Instance().CombineMetadataForAllLayers(layers);
+    TvPQMetadata tvMetadata = { 0 };
+    MetadataHelper::GetVideoTVMetadata(unitRenderBuffer, tvMetadata);
+    ASSERT_EQ(1, tvMetadata.sceneTag);
+    ASSERT_EQ(60, tvMetadata.uiFrameCnt);
+    ASSERT_EQ(24, tvMetadata.vidFrameCnt);
+    ASSERT_EQ(2, tvMetadata.dpPixFmt);
+}
+ 
+/**
+ * @tc.name: CombineMetadataForAllLayers_002
+ * @tc.desc: Test CombineMetadataForAllLayers
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
+{
+    std::vector<LayerInfoPtr> layers;
+    auto uniRenderSurface = CreateRsSurfaceOhos();
+    ASSERT_NE(uniRenderSurface, nullptr);
+    auto unitRenderBuffer = uniRenderSurface->GetCurrentBuffer();
+    ASSERT_NE(unitRenderBuffer, nullptr);
+    TvPQMetadata uniRenderTvMetadata = { 0 };
+    uniRenderTvMetadata.sceneTag = 0;
+    uniRenderTvMetadata.uiFrameCnt = 60;
+    uniRenderTvMetadata.vidFrameCnt = 24;
+    uniRenderTvMetadata.dpPixFmt = 2;
+    MetadataHelper::SetVideoTVMetadata(unitRenderBuffer, uniRenderTvMetadata);
+    LayerInfoPtr uniRenderLayer = HdiLayerInfo::CreateHdiLayerInfo();
+    sptr<SyncFence> acquireFence1 = SyncFence::INVALID_FENCE;
+    uniRenderLayer->SetBuffer(unitRenderBuffer, acquireFence1);
+    uniRenderLayer->SetUniRenderFlag(true);
+    layers.emplace_back(uniRenderLayer);
+ 
+    auto selfDrawSurface = CreateRsSurfaceOhos();
+    ASSERT_NE(selfDrawSurface, nullptr);
+    auto selfDrawBuffer = selfDrawSurface->GetCurrentBuffer();
+    ASSERT_NE(selfDrawBuffer, nullptr);
+    TvPQMetadata selfDrawTvMetadata = { 0 };
+    selfDrawTvMetadata.sceneTag = 1;
+    selfDrawTvMetadata.uiFrameCnt = 70;
+    selfDrawTvMetadata.vidFrameCnt = 25;
+    selfDrawTvMetadata.dpPixFmt = 0;
+    MetadataHelper::SetVideoTVMetadata(selfDrawBuffer, selfDrawTvMetadata);
+    LayerInfoPtr selfDrawLayer = HdiLayerInfo::CreateHdiLayerInfo();
+    sptr<SyncFence> acquireFence2 = SyncFence::INVALID_FENCE;
+    selfDrawLayer->SetBuffer(selfDrawBuffer, acquireFence2);
+    selfDrawLayer->SetUniRenderFlag(false);
+    layers.emplace_back(selfDrawLayer);
+    
+    RSTvMetadataManager::Instance().CombineMetadataForAllLayers(layers);
+    TvPQMetadata tvMetadata1 = { 0 };
+    MetadataHelper::GetVideoTVMetadata(selfDrawBuffer, tvMetadata1);
+    ASSERT_EQ(1, tvMetadata1.sceneTag);
+    ASSERT_EQ(60, tvMetadata1.uiFrameCnt);
+    ASSERT_EQ(25, tvMetadata1.vidFrameCnt);
+    ASSERT_EQ(2, tvMetadata1.dpPixFmt);
 }
 }

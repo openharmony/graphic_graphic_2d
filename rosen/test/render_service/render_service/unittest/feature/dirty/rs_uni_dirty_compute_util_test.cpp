@@ -181,7 +181,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     ASSERT_NE(params, nullptr);
     params->SetMainAndLeashSurfaceDirty(true);
     params->SetHDRStatusChanged(true);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, nullptr);
     ASSERT_TRUE(params->GetAccumulatedDirty());
     ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
 }

@@ -183,7 +183,7 @@ void DoSetScreenSkipFrameInterval()
 void DoGetScreenHDRStatus()
 {
     static std::vector<HdrStatus> statusVec = { HdrStatus::NO_HDR, HdrStatus::HDR_PHOTO, HdrStatus::HDR_VIDEO,
-        HdrStatus::AI_HDR_VIDEO, HdrStatus::HDR_EFFECT };
+        HdrStatus::AI_HDR_VIDEO_GTM, HdrStatus::HDR_EFFECT };
     ScreenId screenId = GetData<ScreenId>();
     HdrStatus hdrStatus = statusVec[GetData<uint8_t>() % statusVec.size()];
     auto& rsInterfaces = RSInterfaces::GetInstance();

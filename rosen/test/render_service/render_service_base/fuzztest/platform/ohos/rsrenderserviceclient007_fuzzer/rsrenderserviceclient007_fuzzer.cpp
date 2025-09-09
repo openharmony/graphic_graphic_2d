@@ -42,7 +42,9 @@ const uint8_t DO_REGISTER_TYPEFACE = 6;
 const uint8_t DO_REPORT_RS_SCENE_JANK = 7;
 const uint8_t DO_GET_HDR_ON_DURATION = 8;
 const uint8_t DO_SET_WINDOW_CONTAINER = 9;
-const uint8_t TARGET_SIZE = 10;
+const uint8_t DO_AVCODEC_VIDEO_START = 10;
+const uint8_t DO_AVCODEC_VIDEO_STOP = 11;
+const uint8_t TARGET_SIZE = 12;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -210,7 +212,11 @@ bool DoRegisterTypeface()
     client->GetBitmap(nodeId, bm);
     client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     client->RegisterTypeface(typeface);
-    client->UnRegisterTypeface(typeface);
+    if (typeface) {
+        client->UnRegisterTypeface(typeface->GetUniqueID());
+    } else {
+        client->UnRegisterTypeface(0);
+    }
     return true;
 }
 
@@ -255,6 +261,41 @@ bool DoSetWindowContainer()
     client->SetColorFollow(nodeIdStr, isColorFollow);
     return true;
 }
+
+bool DoAvcodecVideoStart()
+{
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+
+    std::vector<uint64_t> uniqueIdList;
+    std::vector<std::string> surfaceNameList;
+    uint8_t monitorListSize = GetData<int8_t>();
+    for (size_t i = 0; i < monitorListSize; i++) {
+        uniqueIdList.push_back(GetData<uint64_t>());
+        surfaceNameList.push_back(GetStringFromData(STR_LEN));
+    }
+    uint32_t fps = GetData<uint32_t>();
+    uint64_t reportTime = GetData<uint64_t>();
+
+    client->AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    return true;
+}
+
+bool DoAvcodecVideoStop()
+{
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+
+    std::vector<uint64_t> uniqueIdList;
+    std::vector<std::string> surfaceNameList;
+    uint8_t monitorListSize = GetData<int8_t>();
+    for (size_t i = 0; i < monitorListSize; i++) {
+        uniqueIdList.push_back(GetData<uint64_t>());
+        surfaceNameList.push_back(GetStringFromData(STR_LEN));
+    }
+    uint32_t fps = GetData<uint32_t>();
+
+    client->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -296,6 +337,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_WINDOW_CONTAINER:
             OHOS::Rosen::DoSetWindowContainer();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_START:
+            OHOS::Rosen::DoAvcodecVideoStart();
+            break;
+        case OHOS::Rosen::DO_AVCODEC_VIDEO_STOP:
+            OHOS::Rosen::DoAvcodecVideoStop();
             break;
         default:
             return -1;

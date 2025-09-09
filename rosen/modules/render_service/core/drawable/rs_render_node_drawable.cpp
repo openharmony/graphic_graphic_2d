@@ -21,6 +21,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
+#include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -63,6 +64,8 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
 {
     auto task = [this] { this->RSRenderNodeDrawable::ClearCachedSurface(); };
     RegisterClearSurfaceFunc(task);
+    MemoryInfo info = { sizeof(*this), ExtractPid(GetId()), GetId(), 0, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE };
+    MemoryTrack::Instance().AddNodeRecord(GetId(), info);
 }
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
@@ -70,6 +73,7 @@ RSRenderNodeDrawable::~RSRenderNodeDrawable()
     ClearDrawingCacheDataMap();
     ClearCachedSurface();
     ResetClearSurfaceFunc();
+    MemoryTrack::Instance().RemoveNodeRecord(GetId());
 }
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

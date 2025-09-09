@@ -33,11 +33,11 @@ void RSHDRVulkanTask::InsertHTSWaitSemaphore(std::shared_ptr<Drawing::Surface> s
     semaphoreInfo.flags = 0;
 
     VkSemaphoreExtTypeCreateInfoHUAWEI semaphoreExtTypeCreateInfoHUAWEI = {};
-    semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO;
     semaphoreExtTypeCreateInfoHUAWEI.pNext = NULL;
 
     VkSemaphore waitSemaphore = {};
-    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
     semaphoreExtTypeCreateInfoHUAWEI.eventId = mhcEventId;
     semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
     vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &waitSemaphore);
@@ -59,10 +59,10 @@ bool RSHDRVulkanTask::GetHTSNotifySemaphore(VkSemaphore &notifySemaphore, uint64
     semaphoreInfo.flags = 0;
 
     VkSemaphoreExtTypeCreateInfoHUAWEI semaphoreExtTypeCreateInfoHUAWEI = {};
-    semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO;
     semaphoreExtTypeCreateInfoHUAWEI.pNext = NULL;
 
-    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS_HUAWEI;
+    semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
     semaphoreExtTypeCreateInfoHUAWEI.eventId = notifyEvent;
     semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
     vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &notifySemaphore);
