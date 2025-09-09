@@ -190,6 +190,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Functi
     EventInfo eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = -1, .maxRefreshRate = 150, .eventStatus = true };
     std::unordered_map<WindowId, EventInfo> voters = {{ windowId1, eventInfo }};
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     InitHgmSoftVSyncManager(softVSyncManager);
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 0);
@@ -291,6 +292,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Functio
     EventInfo eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = -1, .maxRefreshRate = 150, .eventStatus = true };
     std::unordered_map<VsyncName, EventInfo> voters = {{ vsyncName1, eventInfo }};
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     InitHgmSoftVSyncManager(softVSyncManager);
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 0);
@@ -568,6 +570,10 @@ HWTEST_F(HgmSoftVSyncManagerTest, DeliverSoftVoteTest, Function | SmallTest | Le
 {
     HgmSoftVSyncManager mgr;
     VoteInfo voteInfo = { "VOTER_HIGH", OLED_120_HZ, OLED_60_HZ, 1, "" };
+    mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
+    EXPECT_EQ(mgr.appVoteData_.size(), 0);
+
+    voteInfo = { "VOTER_TEST", OLED_120_HZ, OLED_120_HZ, 1, "" };
     mgr.DeliverSoftVote(frameRateLinkerId1, voteInfo, true);
     EXPECT_EQ(mgr.appVoteData_.size(), 0);
 

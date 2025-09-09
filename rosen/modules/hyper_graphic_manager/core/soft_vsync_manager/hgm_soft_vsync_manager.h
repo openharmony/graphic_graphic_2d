@@ -91,7 +91,7 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<HgmVoter>> linkerVoteMap_;
     std::unordered_map<WindowId, FrameRateLinkerId> winLinkerMap_;
     std::unordered_map<VsyncName, std::vector<FrameRateLinkerId>> vsyncLinkerMap_;
-    std::unordered_map<FrameRateLinkerId, std::pair<int32_t, bool>> appVoteData_;
+    std::unordered_map<FrameRateLinkerId, std::pair<uint32_t, bool>> appVoteData_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
     std::weak_ptr<HgmVSyncGeneratorController> controller_;
     // linkerid is key, vrate is value
