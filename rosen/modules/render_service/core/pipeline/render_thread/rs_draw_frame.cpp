@@ -208,6 +208,24 @@ void RSDrawFrame::PostAndWait()
     }
 }
 
+void RSDrawFrame::ClearDrawableResource()
+{
+    switch (rsParallelType_) {
+        case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
+            unirenderInstance_.PostSyncTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
+            DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
+        default: {
+            unirenderInstance_.PostTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
+        }
+    }
+}
+
 void RSDrawFrame::PostDirectCompositionJankStats(const JankDurationParams& rsParams, bool optimizeLoad)
 {
     RS_TRACE_NAME_FMT("PostDirectCompositionJankStats, parallel type %d", static_cast<int>(rsParallelType_));
