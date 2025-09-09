@@ -31,6 +31,7 @@ class DrawCmdList;
 namespace ModifierNG {
 class RSModifierContext;
 }
+
 class RSCanvasRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSCanvasRenderNode>;

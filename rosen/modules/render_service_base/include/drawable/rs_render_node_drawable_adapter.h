@@ -301,7 +301,7 @@ protected:
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
-    int ClipHoleForCacheSize(const RSRenderParams& params) const;
+    int GetcountOfClipHoleForCache(const RSRenderParams& params) const;
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -343,7 +343,7 @@ protected:
         }
     };
 
-    const RSRenderNodeType nodeType_;
+    RSRenderNodeType nodeType_;
     // deprecated
     std::weak_ptr<const RSRenderNode> renderNode_;
     NodeId nodeId_;
@@ -367,6 +367,7 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
+
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
     bool hasChildInBlackList_ = false;
@@ -374,7 +375,7 @@ protected:
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
-                            std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
+                        std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
@@ -393,7 +394,6 @@ private:
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
     friend class RSUseEffectDrawable;
-    friend class RSRenderNodeDrawable;
     friend class OHOS::Rosen::RSDrawWindowCache;
     friend class ModifierNG::RSUseEffectRenderModifier;
     friend class OHOS::Rosen::RSRenderNodeGC;

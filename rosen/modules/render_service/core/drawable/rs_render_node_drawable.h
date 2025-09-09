@@ -184,7 +184,7 @@ private:
 
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
-    static inline std::mutex drawingCacheContiUpdateTimeMapMutex_;
+    static inline std::mutex drawingCacheContinuousUpdateTimeMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
@@ -207,7 +207,7 @@ private:
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
     void ClearDrawingCacheDataMap();
-    void ClearDrawingCacheContiUpdateTimeMap();
+    void ClearDrawingCacheContinuousUpdateTimeMap();
     friend class RsSubThreadCache;
     RSOpincDrawCache opincDrawCache_;
 };
