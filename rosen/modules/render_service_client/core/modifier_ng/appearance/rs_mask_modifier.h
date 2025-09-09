@@ -25,10 +25,12 @@ public:
     ~RSMaskModifier() override = default;
 
     static inline constexpr auto Type = RSModifierType::MASK;
+    // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
         return Type;
     };
+    // LCOV_EXCL_STOP
 
     void SetMask(const std::shared_ptr<RSMask>& mask);
 

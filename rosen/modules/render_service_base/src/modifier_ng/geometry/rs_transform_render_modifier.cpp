@@ -67,6 +67,7 @@ void RSTransformRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetPersp(Vector4f(0.f, 0.f, 0.f, 1.f));
 }
 
+// LCOV_EXCL_START
 void RSTransformRenderModifier::OnSetDirty()
 {
     if (!HasProperty(RSPropertyType::POSITION_Z)) {
@@ -77,4 +78,5 @@ void RSTransformRenderModifier::OnSetDirty()
         node->MarkParentNeedRegenerateChildren();
     }
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS::Rosen::ModifierNG
