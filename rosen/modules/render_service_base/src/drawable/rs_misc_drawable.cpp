@@ -25,10 +25,12 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/commmon/rs_system_properties.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 constexpr int TRACE_LEVEL_TWO = 2;
+const bool RSBeginBlenderDrawable::blenderEnabled_ = RSSystemProperties::GetFgBlenderEnabled();
 // ==================== RSChildrenDrawable =====================
 RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 {
@@ -321,6 +323,10 @@ void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
 
 bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
 {
+    if (!blenderEnabled_) {
+        ROSEN_LOGD("RSBeginBlenderDrawable::OnUpdate: blender is Disabled!");
+        return false;
+    }
     // the order of blender and blendMode cannot be considered currently
     const RSProperties& properties = node.GetRenderProperties();
     auto blendMode = properties.GetColorBlendMode();

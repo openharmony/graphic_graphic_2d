@@ -395,6 +395,11 @@ bool RSSystemProperties::GetBlurEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetFgBlenderEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetForegroundFilterEnabled()
 {
     return true;

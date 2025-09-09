@@ -807,6 +807,13 @@ bool RSSystemProperties::GetBlurEnabled()
     return blurEnabled;
 }
 
+bool RSSystemProperties::GetFgBlenderEnabled()
+{
+    static bool blenderEnabled_ =
+        std::atoi((system::GetParameter("persist.sys.graphic.blenderEnabled", "1")).c_str()) != 0;
+    return blenderEnabled_;
+}
+
 bool RSSystemProperties::GetForegroundFilterEnabled()
 {
     static bool foregroundFilterEnabled =

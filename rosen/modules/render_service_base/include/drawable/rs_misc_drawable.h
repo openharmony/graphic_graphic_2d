@@ -228,6 +228,7 @@ private:
     bool isDangerous_ = false;
     std::string propertyDescription_;
 
+    static const bool blenderEnabled_;
     std::shared_ptr<Drawing::Blender> stagingBlender_ = nullptr;
     int stagingBlendApplyType_ = 0;
     bool stagingIsDangerous_ = false;
