@@ -298,11 +298,11 @@ void RSModifier::OnAttach(RSNode& node)
 
 void RSModifier::OnDetach()
 {
-    node_.reset();
     for (auto& [_, property] : properties_) {
         property->Detach();
     }
     MarkNodeDirty();
+    node_.reset();
 }
 
 void RSModifier::SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager)
