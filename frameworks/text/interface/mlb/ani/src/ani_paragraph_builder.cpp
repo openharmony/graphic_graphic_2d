@@ -70,7 +70,7 @@ void AniParagraphBuilder::Constructor(
     AniParagraphBuilder* paragraphBuilder = new AniParagraphBuilder();
     paragraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
     ani_status ret = env->Object_CallMethodByName_Void(
-        object, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(paragraphBuilder));
+        object, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(paragraphBuilder));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani TypographyCreate obj");
         delete paragraphBuilder;
@@ -223,7 +223,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
     ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":V");
     AniLineTypeset* aniLineTypeSet = new AniLineTypeset(std::move(lineTypography));
     ani_status ret = env->Object_CallMethodByName_Void(
-        lineTypographyObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniLineTypeSet));
+        lineTypographyObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniLineTypeSet));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj, ret %{public}d", ret);
         delete aniLineTypeSet;
@@ -265,7 +265,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
         AniParagraphBuilder* aniParagraphBuilder = new AniParagraphBuilder();
         aniParagraphBuilder->typographyCreate_ = typographyCreatePtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraphBuilder));
+            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraphBuilder));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typographyCreate obj, ret %{public}d", ret);
             delete aniParagraphBuilder;

@@ -102,7 +102,7 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     aniRun->run_ = std::shared_ptr<Rosen::Run>(run);
     ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
     ani_status ret = env->Object_CallMethodByName_Void(
-        runObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
+        runObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
         delete aniRun;
@@ -325,7 +325,7 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
     Drawing::AniFont* aniFont = new Drawing::AniFont(aniRun->run_->GetFont());
     ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
     ani_status ret = env->Object_CallMethodByName_Void(
-        fontObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFont));
+        fontObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine");
         delete aniFont;
@@ -469,7 +469,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
         AniRun* aniRun = new AniRun();
         aniRun->run_ = runPtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
+            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
             delete aniRun;

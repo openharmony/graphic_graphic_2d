@@ -66,7 +66,7 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
     ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
     aniParagraph->typography_ = std::shared_ptr<OHOS::Rosen::Typography>(typography);
     ani_status ret = env->Object_CallMethodByName_Void(
-        paragraphObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
+        paragraphObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
         delete aniParagraph;
@@ -568,7 +568,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
         AniParagraph* aniParagraph = new AniParagraph();
         aniParagraph->typography_ = typographyPtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, REGISTER_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
+            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typography obj, ret %{public}d", ret);
             delete aniParagraph;
