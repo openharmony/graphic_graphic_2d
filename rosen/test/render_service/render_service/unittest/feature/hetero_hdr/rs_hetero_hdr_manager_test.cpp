@@ -1386,7 +1386,7 @@ HWTEST_F(RSHeteroHDRManagerTest, ProcessPendingNodeDrawableTest, TestSize.Level1
     RS_LOGI("************************RSHeteroHDRManagerTest ProcessPendingNodeDrawableTest************************");
     NodeId id = 4;
     RSSurfaceRenderNodeConfig surfaceConfig;
-    surfaceConfig.id = id; 
+    surfaceConfig.id = id;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     ASSERT_NE(surfaceNode, nullptr);
 
