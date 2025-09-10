@@ -516,6 +516,8 @@ RSB_EXPORT void RSRenderProperty<Vector2f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector3f>::Dump(std::string& out) const;
 template<>
+RSB_EXPORT void RSRenderProperty<Vector4f>::Dump(std::string& out) const;
+template<>
 RSB_EXPORT void RSRenderProperty<Color>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const;

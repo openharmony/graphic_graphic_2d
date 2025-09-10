@@ -2768,6 +2768,7 @@ void RSMainThread::OnUniRenderDraw()
         isNeedResetClearMemoryTask_ = false;
     }
 
+    drawFrame_.ClearDrawableResource();
     UpdateScreenNodeScreenId();
     RsFrameReport::GetInstance().RenderEnd();
 #endif

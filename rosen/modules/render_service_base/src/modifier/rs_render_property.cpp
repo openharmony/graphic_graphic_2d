@@ -311,6 +311,16 @@ void RSRenderProperty<Vector3f>::Dump(std::string& out) const
 }
 
 template<>
+void RSRenderProperty<Vector4f>::Dump(std::string& out) const
+{
+    Vector4f v4f = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << "[x:" << v4f.x_ << " y:" << v4f.y_ << " z:" << v4f.z_ << " w:" << v4f.w_
+       << "]";
+    out += ss.str();
+}
+
+template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
     Get().Dump(out);

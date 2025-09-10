@@ -168,4 +168,23 @@ HWTEST_F(RSDrawFrameTest, EndCheckTest, TestSize.Level1)
     }
     ASSERT_EQ(drawFrame_.longFrameCount_, 6);
 }
+
+/**
+ * @tc.name: ClearDrawableResource
+ * @tc.desc: test ClearDrawableResource
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, ClearDrawableResourceTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
+    drawFrame.ClearDrawableResource();
+    ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD;
+    drawFrame.ClearDrawableResource();
+    ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_ASYNC;
+    drawFrame.ClearDrawableResource();
+    ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
+}
 }

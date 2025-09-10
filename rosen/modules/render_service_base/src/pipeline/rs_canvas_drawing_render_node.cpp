@@ -566,6 +566,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
         return;
     }
     size_t originCmdListSize = drawCmdListsNG_[modifierType].size();
+    ReportOpCount(drawCmdListsNG_[modifierType]);
     for (const auto& modifier : contentModifiers) {
         auto cmd = modifier->Getter<Drawing::DrawCmdListPtr>(
             ModifierNG::ModifierTypeConvertor::GetPropertyType(modifierType), nullptr);
