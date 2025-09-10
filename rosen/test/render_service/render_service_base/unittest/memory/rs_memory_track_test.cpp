@@ -255,7 +255,7 @@ HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemTest003, testing::ext::TestSize.Lev
     size_t initialSize = 200;
     size_t unregisterSize = 100;
     MemoryTrack::Instance().RegisterNodeMem(testPid, initialSize, MEMORY_TYPE::MEM_RENDER_NODE);
-    MemoryTrack::Instance().UnRegisterNodeMem(testPid, unregisterSize, static<MEMORY_TYPE>(999));
+    MemoryTrack::Instance().UnRegisterNodeMem(testPid, unregisterSize, static_cast<MEMORY_TYPE>(999));
     auto& memData = MemoryTrack::Instance().nodeMemOfPid_[testPid];
     EXPECT_EQ(memData.first, initialSize);
     MemoryTrack::Instance().UnRegisterNodeMem(testPid, initialSize,
@@ -364,7 +364,6 @@ HWTEST_F(RSMemoryTrackTest, GetNodeMemoryOfPid003, testing::ext::TestSize.Level1
 {
     pid_t testPid = 20;
     size_t registeredSize = 1000;
-    size_t expectedSize = registeredSize / BYTE_CONVERT;
     MemoryTrack::Instance().RegisterNodeMem(testPid, registeredSize, MEMORY_TYPE::MEM_RENDER_NODE);
     size_t result = MemoryTrack::Instance().GetNodeMemoryOfPid(testPid, static_cast<MEMORY_TYPE>(999));
     EXPECT_EQ(result, 0);
