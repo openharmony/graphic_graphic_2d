@@ -70,10 +70,10 @@ RSHeteroHDRManager::RSHeteroHDRManager()
 
 RectI RSHeteroHDRManager::RectRound(RectI srcRect)
 {
-    int32_t srcWidth = srcRect.width_ & ~1;
-    int32_t srcHeight = srcRect.height_ & ~1;
-    int32_t srcTop = srcRect.top_ & ~1;
-    int32_t srcLeft = srcRect.left_ & ~1;
+    int32_t srcWidth = static_cast<int32_t>(static_cast<uint32_t>)(srcRect.width_ & ~1u);
+    int32_t srcHeight = static_cast<int32_t>(static_cast<uint32_t>)(srcRect.height_ & ~1u);
+    int32_t srcTop = static_cast<int32_t>(static_cast<uint32_t>)(srcRect.top_ & ~1u);
+    int32_t srcLeft = static_cast<int32_t>(static_cast<uint32_t>)(srcRect.left_ & ~1u);
 
     RectI dstRect = { srcLeft, srcTop, srcWidth, srcHeight };
     return dstRect;
@@ -207,6 +207,10 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
     curNodeId_ = surfaceNode->GetId();
     curHandleStatus_ = surfaceNode->GetVideoHdrStatus();
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(curNodeId_);
+    if (!drawable) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode drawable is nullptr");
+        return false;
+    }
     auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
     if (!nodeDrawable) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode nodeDrawable is nullptr");
@@ -573,7 +577,7 @@ void RSHeteroHDRManager::ProcessParamsUpdate(RSPaintFilterCanvas& canvas,
     drawableParams.buffer = hdrSurfaceHandler->GetBuffer();
     drawableParams.acquireFence = hdrSurfaceHandler->GetAcquireFence();
     drawableParams.hdrHeteroType = hdrHeteroType;
-    drawableParams.threadIndex = gettid();
+    drawableParams.threadIndex = static_cast<uint32_t>(gettid());
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeHDRHeadroomShader(float hdrRatio,
@@ -612,7 +616,9 @@ std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeHDRHeadroomShader
     size_t childCount = 1;
     auto data = std::make_shared<Drawing::Data>();
     data->BuildWithCopy(&hdrRatio, sizeof(hdrRatio));
-    return hdrHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
+    std::lock_guard<std::mutex> lock(shaderMutex_);
+    auto shader = hdrHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
+    return shader;
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeAIHDRGainmapHeadroomShader(float hdrRatio,
@@ -643,7 +649,8 @@ std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeAIHDRGainmapHeadr
     size_t childCount = 1;
     auto data = std::make_shared<Drawing::Data>();
     data->BuildWithCopy(&hdrRatio, sizeof(hdrRatio));
-    return AIHDRHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
+    auto shader = AIHDRHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
+    return shader;
 }
 
 void RSHeteroHDRManager::GenerateHDRHeteroShader(

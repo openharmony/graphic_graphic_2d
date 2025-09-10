@@ -53,9 +53,9 @@ public:
     {
         return curHandleStatus_;
     }
+    virtual ~RSHeteroHDRManager() = default;
 private:
     RSHeteroHDRManager();
-    ~RSHeteroHDRManager() = default;
     RSHeteroHDRManager(const RSHeteroHDRManager&) = delete;
     RSHeteroHDRManager(const RSHeteroHDRManager&&) = delete;
     RSHeteroHDRManager& operator=(const RSHeteroHDRManager&) = delete;
@@ -114,7 +114,7 @@ private:
     std::unordered_map<NodeId, bool> isCurrentFrameBufferConsumedMap_;
     void* taskPtr_ = nullptr;
     std::atomic<uint32_t> taskId_ = 0;
-    uint32_t buildHdrTaskStatus_ = 0;
+    int32_t buildHdrTaskStatus_ = 0;
     std::mutex shaderMutex_;
     std::atomic<bool> destroyedFlag_{ true };
     bool isFixedDstBuffer_ = false;

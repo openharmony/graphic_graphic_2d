@@ -83,10 +83,12 @@ bool RSHDRVulkanTask::GetHTSNotifySemaphore(std::shared_ptr<VkSemaphore>& notify
             RS_LOGE("[hdrHetero]:RSHDRVulkanTask GetHTSNotifySemaphore waitSemaphore create failed");
             return false;
         }
-        auto sharedSemaphore = std::make_shared<VkSemaphore>(new VkSemaphore(notifySemaphore),
+        VkSemaphore* vkInnerSemaphore = new VkSemaphore(notifySemaphore);
+        auto sharedSemaphore = std::make_shared<VkSemaphore>(vkInnerSemaphore,
             [vkDevice](VkSemaphore* semaphore) {
                 vkDestroySemaphore(vkDevice, *semaphore, nullptr);
                 delete semaphore;
+                semaphore = nullptr;
             });
         g_semaphoreMap.insert_or_assign(notifyEvent, sharedSemaphore);
     }
