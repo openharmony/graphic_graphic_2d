@@ -233,6 +233,100 @@ namespace drawing {
   }
 
   /**
+   * Enumerates the directions of a closed contour.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum PathDirection {
+    /**
+     * Adds a closed contour clockwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    CLOCKWISE = 0,
+
+    /**
+     * Adds a closed contour counterclockwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    COUNTER_CLOCKWISE = 1,
+  }
+
+  /**
+   * Enumerates the fill types of a path.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum PathFillType {
+    /**
+     * Specifies that "inside" is computed by a non-zero sum of signed edge crossings. Specifically, draws a point and emits a ray in any direction.
+     * A count is used to record the number of intersection points of the ray and path, and the initial count is 0.
+     * When encountering a clockwise intersection point (the path passes from the left to the right of the ray), the count increases by 1.
+     * When encountering a counterclockwise intersection point (the path passes from the right to the left of the ray), the count decreases by 1.
+     * If the final count is not 0, the point is inside the path and needs to be colored. If the final count is 0, the point is not colored.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    WINDING = 0,
+
+    /**
+     * Specifies that "inside" is computed by an odd number of edge crossings. Specifically, draws a point and emits a ray in any direction.
+     * If the number of intersection points of the ray and path is an odd number, the point is considered to be inside the path and needs to be colored.
+     * If the number is an even number, the point is not colored.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    EVEN_ODD = 1,
+
+    /**
+     * Same as WINDING, but draws outside of the path, rather than inside.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    INVERSE_WINDING = 2,
+
+    /**
+     * Same as EVEN_ODD, but draws outside of the path, rather than inside.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    INVERSE_EVEN_ODD = 3,
+  }
+
+  /**
+  * Enumerates the dimensions of matrix information in path measurement.
+  * It is often used in animation scenarios where objects move along a path.
+  * @enum { int }
+  * @syscap SystemCapability.Graphics.Drawing
+  * @since 20
+  */
+  export enum PathMeasureMatrixFlags {
+    /**
+     * Matrix corresponding to the position information.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    GET_POSITION_MATRIX = 0,
+
+    /**
+     * Matrix corresponding to the tangent information.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    GET_TANGENT_MATRIX = 1,
+
+    /**
+     * Matrix corresponding to the position and tangent information.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    GET_POSITION_AND_TANGENT_MATRIX = 2,
+  }
+
+  /**
    * Enumerates of operations when two paths are combined.
    * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
@@ -273,28 +367,6 @@ namespace drawing {
      * @since 12
      */
     REVERSE_DIFFERENCE = 4,
-  }
-
-  /**
-   * Enumerates storage filter mode.
-   * @enum { int }
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 12
-   */
-  export enum FilterMode {
-    /**
-     * Single sample point (nearest neighbor).
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
-     */
-    FILTER_MODE_NEAREST = 0,
-
-    /**
-     * Interpolate between 2x2 sample points (bilinear interpolation).
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
-     */
-    FILTER_MODE_LINEAR = 1,
   }
 
   /**
@@ -590,88 +662,6 @@ namespace drawing {
      * @since 12
      */
     INTERSECT = 1,
-  }
-
-  /**
-   * ColorFilters are optional objects in the drawing pipeline.
-   *
-   * @syscap SystemCapability.Graphics.Drawing
-   * @since 11
-   */
-  export class ColorFilter {
-    static { loadLibrary("drawing_ani_core"); }
-    private nativeObj : long = 0;
-    private cleaner: Cleaner | null = null;
-
-    registerCleaner(ptr: long): void {
-      this.cleaner = new Cleaner("ColorFilter", ptr);
-      destroyRegister.register(this, this.cleaner!, unregisterToken);
-    }
-
-    bindNativePtr(ptr: long): void {
-      if (this.nativeObj == 0) {
-        this.nativeObj = ptr;
-        this.registerCleaner(this.nativeObj);
-      }
-    }
-
-    static colorFilterTransferStatic(input: Any): Object {
-      return ColorFilter.colorFilterTransferStaticNative(ESValue.wrap(input));
-    }
-
-    private static native colorFilterTransferStaticNative(input: ESValue): Object;
-
-    static colorFilterTransferDynamic(input: Object): Any {
-      let colorFilter = input as ColorFilter;
-      if (!colorFilter) {
-        return null;
-      }
-      let addr = ColorFilter.getColorFilterAddr(colorFilter);
-      if (addr == 0) {
-        return null;
-      }
-      let module = ESValue.load("@ohos.graphics.drawing");
-      let hasProperty: boolean = module.hasProperty("ColorFilter");
-      if (!hasProperty) {
-        return null;
-      }
-      let cls = module.getProperty("ColorFilter");
-      hasProperty = cls.hasProperty("__createTransfer__");
-      if (hasProperty) {
-        let initFunc = cls.getProperty("__createTransfer__");
-        let obj = initFunc.invoke(ESObject.wrap(addr));
-        return obj.unwrap();
-      }
-      return null;
-    }
-
-    private static native getColorFilterAddr(input: ColorFilter): long;
-
-    /**
-     * Creates a ColorFilter object with a given color and blend mode.
-     * @param { common2D.Color } color - Color in ARGB format. The value of each color channel is an integer ranging from 0 to 255.
-     * @param { BlendMode } mode - Blend mode.
-     * @returns { ColorFilter } Colorfilter object.
-     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
-     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
-     * @static
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
-     */
-    static native createBlendModeColorFilter(color: common2D.Color, mode: BlendMode): ColorFilter;
-
-    /**
-     * Makes a color filter with the give n ARGB color of hexadecimal format and blend mode.
-     * @param { common2D.Color | int } color - Number must be ARGB color of hexadecimal format.
-     * @param { BlendMode } mode - BlendMode.
-     * @returns { ColorFilter } Colorfilter object.
-     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
-     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
-     * @static
-     * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
-     */
-    static native createBlendModeColorFilter(color: common2D.Color | int, mode: BlendMode): ColorFilter;
   }
 
   /**
@@ -1012,10 +1002,76 @@ namespace drawing {
      * @returns { Typeface } Typeface.
      * @static
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface;
+  }
+
+  /**
+   * Enumerates the font edging types.
+   *
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum FontEdging {
+    /**
+     * No anti-aliasing processing is used.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    ALIAS = 0,
+
+    /**
+     * Uses anti-aliasing to smooth the jagged edges.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    ANTI_ALIAS = 1,
+
+    /**
+     * Uses sub-pixel anti-aliasing to provide a smoother effect for jagged edges.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    SUBPIXEL_ANTI_ALIAS = 2,
+  }
+
+  /**
+   * Enumerates the font hinting types.
+   *
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum FontHinting {
+    /**
+     * No font hinting is used.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    NONE = 0,
+
+    /**
+     * Slight font hinting is used to improve contrast.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    SLIGHT = 1,
+
+    /**
+     * Normal font hinting is used to improve contrast.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    NORMAL = 2,
+
+    /**
+     * Full font hinting is used to improve contrast.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    FULL = 3,
   }
 
   /**
@@ -1125,12 +1181,63 @@ namespace drawing {
   }
 
   /**
+   * Enumerates the font measurement flags, which is used to specify whether a field in the font measurement information is valid.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum FontMetricsFlags {
+    /**
+     * The underlineThickness field in the FontMetrics struct is valid.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    UNDERLINE_THICKNESS_VALID = 1 << 0,
+
+    /**
+     * The underlinePosition field in the FontMetrics struct is valid.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    UNDERLINE_POSITION_VALID = 1 << 1,
+
+    /**
+     * The strikethroughThickness field in the FontMetrics struct is valid.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    STRIKETHROUGH_THICKNESS_VALID = 1 << 2,
+
+    /**
+     * The strikethroughPosition field in the FontMetrics struct is valid.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    STRIKETHROUGH_POSITION_VALID = 1 << 3,
+
+    /**
+     * The boundary metrics (such as top, bottom, xMin, and xMax) in the FontMetrics struct are invalid.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    BOUNDS_INVALID = 1 << 4,
+  }
+
+  /**
    * The metrics of an Font.
    * @typedef FontMetrics
    * @syscap SystemCapability.Graphics.Drawing
    * @since 11
    */
   export interface FontMetrics {
+    /**
+     * Font measurement flags that are valid.
+     * @type { ?FontMetricsFlags }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    flags?: FontMetricsFlags;
+
     /**
      * Maximum range above the glyph bounding box.
      * @type { double }
@@ -1170,15 +1277,105 @@ namespace drawing {
      * @since 11
      */
     leading: double;
+
+    /**
+     * Average character width.
+     * @type { ?double }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+     avgCharWidth?: double;
+
+     /**
+      * Maximum character width.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     maxCharWidth?: double;
+
+     /**
+      * Horizontal distance from the leftmost edge of any glyph bounding box to the origin.
+      * This value is usually less than 0, indicating the minimum horizontal coordinate across all glyph bounding boxes.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     xMin?: double;
+
+     /**
+      * Horizontal distance from the rightmost edge of any glyph bounding box to the origin.
+      * The value is a positive number, indicating the maximum horizontal coordinate across all glyph bounding boxes.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     xMax?: double;
+
+     /**
+      * Height of the lowercase letter x. The value is usually a negative value.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     xHeight?: double;
+
+     /**
+      * Height of a capital letter. The value is usually a negative value.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     capHeight?: double;
+
+     /**
+      * Thickness of the underline.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     underlineThickness?: double;
+
+     /**
+      * Vertical distance from the baseline to the top of the underline. The value is usually a positive number.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     underlinePosition?: double;
+
+     /**
+      * Thickness of the strikethrough.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     strikethroughThickness?: double;
+
+     /**
+      * Vertical distance from the baseline to the bottom of the strikethrough. The value is usually a negative value.
+      * @type { ?double }
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+     strikethroughPosition?: double;
   }
 
   /**
    * The metrics of an Font.
-   * @typedef FontMetrics
+   * @typedef FontMetricsInner
    * @syscap SystemCapability.Graphics.Drawing
    * @since 11
    */
   export class FontMetricsInner implements FontMetrics {
+    /**
+     * Font measurement flags that are valid.
+     * @type { ?FontMetricsFlags }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    flags?: FontMetricsFlags;
+
     /**
      * Maximum range above the glyph bounding box.
      * @type { double }
@@ -1219,6 +1416,7 @@ namespace drawing {
      */
     leading: double = 0;
     constructor() {}
+
     constructor(
       top: double,
       ascent: double,
@@ -1232,6 +1430,17 @@ namespace drawing {
       this.bottom = bottom;
       this.leading = leading;
     }
+
+     avgCharWidth?: double;
+     maxCharWidth?: double;
+     xMin?: double;
+     xMax?: double;
+     xHeight?: double;
+     capHeight?: double;
+     underlineThickness?: double;
+     underlinePosition?: double;
+     strikethroughThickness?: double;
+     strikethroughPosition?: double;
   }
 
   /**
@@ -1348,7 +1557,6 @@ namespace drawing {
      * Creates a deep copy of the specified matrix object.
      * @param { Matrix } matrix - The matrix object to copy.
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     native constructorNative(matrix: Matrix): void;
@@ -1386,11 +1594,32 @@ namespace drawing {
     private static native getMatrixAddr(input: Matrix): long;
 
     /**
-     * Resets this matrix to an identity matrix.
+     * Sets this matrix as an identity matrix and rotates it by a given degree around the rotation point (px, py).
+     * @param { double } degree - Angle to rotate, in degrees. A positive number indicates a clockwise rotation,
+     * and a negative number indicates a counterclockwise rotation. The value is a floating point number.
+     * @param { double } px - X coordinate of the rotation point. The value is a floating point number.
+     * @param { double } py - Y coordinate of the rotation point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
-    native reset(): void;
+    native setRotation(degree: double, px: double, py: double): void;
+
+    /**
+     * Sets this matrix as an identity matrix and scales it with the coefficients (sx, sy) at the scale point (px, py).
+     * @param { double } sx - Scale coefficient along the X axis. If a negative number is passed in,
+     * the matrix is mirrored around y = px before being scaled. The value is a floating point number.
+     * @param { double } sy - Scale coefficient along the Y axis. If a negative number is passed in,
+     * the matrix is mirrored around x = py before being scaled. The value is a floating point number.
+     * @param { double } px - X coordinate of the scale point. The value is a floating point number.
+     * @param { double } py - Y coordinate of the scale point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setScale(sx: double, sy: double, px: double, py: double): void;
 
     /**
      * Sets this matrix as an identity matrix and translates it by a given distance (dx, dy).
@@ -1401,9 +1630,69 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setTranslation(dx: double, dy: double): void;
+
+    /**
+     * Sets parameters for this matrix.
+     * @param { Array<double> } values - Each value in the array represents the following parameters:
+     * values[0] - horizontal scale factor to store.
+     * values[1] - horizontal skew factor to store.
+     * values[2] - horizontal translation to store.
+     * values[3] - vertical skew factor to store.
+     * values[4] - vertical scale factor to store.
+     * values[5] - vertical translation to store.
+     * values[6] - input x-axis values perspective factor to store.
+     * values[7] - input y-axis values perspective factor to store.
+     * values[8] - perspective scale factor to store.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setMatrix(values: Array<double>): void;
+
+    /**
+     * Preconcats the existing matrix with the passed-in matrix.
+     * @param { Matrix } matrix - Matrix object, which is on the right of a multiplication expression.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native preConcat(matrix: Matrix): void;
+
+    /**
+     * Checks whether this matrix is equal to another matrix.
+     * @param { Matrix } matrix - Matrix to compare.
+     * @returns { boolean } Returns true if the two matrices are equal; returns false otherwise.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native isEqual(matrix: Matrix): boolean;
+
+    /**
+     * Inverts this matrix and returns the result.
+     * @param { Matrix } matrix - Matrix object used to store the inverted matrix.
+     * @returns { boolean } Check result. The value true means that the matrix is revertible and the matrix object is set to its inverse,
+     * and false means that the matrix is not revertible and the matrix object remains unchanged.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native invert(matrix: Matrix): boolean;
+
+    /**
+     * Checks whether this matrix is an identity matrix.
+     * @returns { Boolean } Returns true if matrix is identity; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native isIdentity(): Boolean;
 
     /**
      * Obtains the value of a given index in this matrix. The index ranges from 0 to 8.
@@ -1412,9 +1701,751 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getValue(index: int): double;
+
+    /**
+     * Post multiplies this matrix by a matrix that is derived from an identity matrix after it has been rotated by a
+     * given degree around the rotation point (px, py).
+     * @param { double } degree - Angle to rotate, in degrees. A positive number indicates a clockwise rotation,
+     * and a negative number indicates a counterclockwise rotation. The value is a floating point number.
+     * @param { double } px - X coordinate of the rotation point. The value is a floating point number.
+     * @param { double } py - Y coordinate of the rotation point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native postRotate(degree: double, px: double, py: double): void;
+
+    /**
+     * Post multiplies this matrix by a matrix that is derived from an identity matrix after it has been
+     * scaled with the coefficient (sx, sy) at the scale point (px, py).
+     * @param { double } sx - Scale coefficient along the X axis. If a negative number is passed in,
+     * the matrix is mirrored around y = px before being scaled. The value is a floating point number.
+     * @param { double } sy - Scale coefficient along the Y axis. If a negative number is passed in,
+     * the matrix is mirrored around x = py before being scaled. The value is a floating point number.
+     * @param { double } px - X coordinate of the scale point. The value is a floating point number.
+     * @param { double } py - Y coordinate of the scale point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native postScale(sx: double, sy: double, px: double, py: double): void;
+
+    /**
+     * Post multiplies this matrix by a matrix that is derived from an identity matrix after it has been translated by a given distance (dx, dy).
+     * @param { double } dx - Horizontal distance to translate. A positive number indicates a translation towards the positive direction of the X axis,
+     * and a negative number indicates a translation towards the negative direction of the X axis. The value is a floating point number.
+     * @param { double } dy - Vertical distance to translate. A positive number indicates a translation towards the positive direction of the Y axis,
+     * and a negative number indicates a translation towards the negative direction of the Y axis. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native postTranslate(dx: double, dy: double): void;
+
+    /**
+     * Premultiplies this matrix by a matrix that is derived from an identity matrix after it has been rotated by a
+     * given degree around the rotation point (px, py).
+     * @param { double } degree - Angle to rotate, in degrees. A positive number indicates a clockwise rotation,
+     * and a negative number indicates a counterclockwise rotation. The value is a floating point number.
+     * @param { double } px - X coordinate of the rotation point. The value is a floating point number.
+     * @param { double } py - Y coordinate of the rotation point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native preRotate(degree: double, px: double, py: double): void;
+
+    /**
+     * Premultiplies this matrix by a matrix that is derived from an identity matrix after it has been scaled with the
+     * coefficient (sx, sy) at the scale point (px, py).
+     * @param { double } sx - Scale coefficient along the X axis. If a negative number is passed in,
+     * the matrix is mirrored around y = px before being scaled. The value is a floating point number.
+     * @param { double } sy - Scale coefficient along the Y axis. If a negative number is passed in,
+     * the matrix is mirrored around x = py before being scaled. The value is a floating point number.
+     * @param { double } px - X coordinate of the scale point. The value is a floating point number.
+     * @param { double } py - Y coordinate of the scale point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native preScale(sx: double, sy: double, px: double, py: double): void;
+
+    /**
+     * Premultiplies this matrix by a matrix that is derived from an identity matrix after it has been translated by a given distance (dx, dy).
+     * @param { double } dx - Horizontal distance to translate. A positive number indicates a translation towards the positive direction of the X axis,
+     * and a negative number indicates a translation towards the negative direction of the X axis. The value is a floating point number.
+     * @param { double } dy - Vertical distance to translate. A positive number indicates a translation towards the positive direction of the Y axis,
+     * and a negative number indicates a translation towards the negative direction of the Y axis. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native preTranslate(dx: double, dy: double): void;
+
+    /**
+     * Resets this matrix to an identity matrix.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native reset(): void;
+
+    /**
+     * Maps a source point array to a destination point array by means of matrix transformation.
+     * @param { Array<common2D.Point> } src - Array of source points.
+     * @returns { Array<common2D.Point> } Return mapped points array.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native mapPoints(src: Array<common2D.Point>): Array<common2D.Point>;
+
+    /**
+     * Obtains all element values of this matrix.
+     * @returns { Array<double> } nine scalar values contained by Matrix.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getAll(): Array<double>;
+
+    /**
+     * ets the destination rectangle to the bounding rectangle of the shape obtained after transforming the source rectangle
+     * with a matrix transformation. As shown in the figure below, the blue rectangle represents the source rectangle,
+     * and the yellow rectangle is the shape obtained after a matrix transformation is applied to the source rectangle.
+     * Since the edges of the yellow rectangle are not aligned with the coordinate axes, it cannot be represented by a rectangle object.
+     * To address this issue, a destination rectangle (black rectangle) is defined as the bounding rectangle.
+     * @param { common2D.Rect } dst - Rectangle object, which is used to store the bounding rectangle.
+     * @param { common2D.Rect } src - Source rectangle.
+     * @returns { boolean } Returns true if the mapped src is equal to the dst; returns false is not equal.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native mapRect(dst: common2D.Rect, src: common2D.Rect): boolean;
+
+    /**
+     * Sets this matrix to a transformation matrix that maps a source rectangle to a destination rectangle.
+     * @param { common2D.Rect } src - Source rectangle.
+     * @param { common2D.Rect } dst - Destination rectangle.
+     * @param { ScaleToFit } scaleToFit - Mapping mode from the source rectangle to the target rectangle.
+     * @returns { boolean } Check result. The value true means that the matrix can represent the mapping, and false means the opposite.
+     * If either the width or the height of the source rectangle is less than or equal to 0, the API returns false
+     * and sets the matrix to an identity matrix. If either the width or height of the destination rectangle is less than or equal to 0,
+     * the API returns true and sets the matrix to a matrix with all values 0, except for a perspective scaling coefficient of 1.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setRectToRect(src: common2D.Rect, dst: common2D.Rect, scaleToFit: ScaleToFit): boolean;
+
+    /**
+     * Sets this matrix to a transformation matrix that maps the source point array to the destination point array.
+     * Both the number of source points and that of destination points must be in the range [0, 4].
+     * @param { Array<common2D.Point> } src - Array of source points. The array length must be the same as the value of count.
+     * @param { Array<common2D.Point> } dst - Array of destination points. The array length must be the same as the value of count.
+     * @param { int } count - Number of points in each array. The value is an integer.
+     * @returns { boolean } Returns true if Matrix was constructed successfully
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20.
+     */
+    native setPolyToPoly(src: Array<common2D.Point>, dst: Array<common2D.Point>, count: int): boolean;
+  }
+
+  /**
+   * Enumerates the modes of scaling a source rectangle into a destination rectangle.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum ScaleToFit {
+    /**
+     * Scales the source rectangle to completely fill the destination rectangle, potentially changing the aspect ratio of the source rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    FILL_SCALE_TO_FIT = 0,
+
+    /**
+     * Scales the source rectangle, preserving its aspect ratio, to align it to the upper left corner of the destination rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    START_SCALE_TO_FIT = 1,
+
+    /**
+     * Scales the source rectangle, preserving its aspect ratio, to align it to the center of the destination rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    CENTER_SCALE_TO_FIT = 2,
+
+    /**
+     * Scales the source rectangle, preserving its aspect ratio, to align it to the lower right corner of the destination rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    END_SCALE_TO_FIT = 3
+  }
+
+  /**
+   * Implements a mask filter.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export class MaskFilter {
+    static { loadLibrary("drawing_ani_core"); }
+    private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("MaskFilter", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    /**
+     * Creates a mask filter with a blur effect.
+     * @param { BlurType } blurType - Blur type.
+     * @param { double } sigma - Standard deviation of the Gaussian blur to apply. The value must be a floating point number greater than 0.
+     * @returns { MaskFilter | undefined } MaskFilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createBlurMaskFilter(blurType: BlurType, sigma: double): MaskFilter | undefined;
+  }
+
+  /**
+   * Enumerates the styles of the dashed path effect.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+   export enum PathDashStyle {
+    /**
+     * Translates only, not rotating with the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    TRANSLATE = 0,
+
+    /**
+     * Rotates with the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    ROTATE = 1,
+
+    /**
+     * Rotates with the path and stretches or compresses at turns to enhance smoothness.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    MORPH = 2,
+  }
+
+  /**
+   * Implements a path effect.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export class PathEffect {
+    static { loadLibrary("drawing_ani_core"); }
+    private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("PathEffect", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    /**
+     * Creates a PathEffect object that converts a path into a dotted line.
+     * @param { Array<double> } intervals - Array of ON and OFF lengths of dotted lines.
+     * The number of arrays must be an even number and be greater than or equal to 2.
+     * @param { double } phase - Offset used during drawing. The value is a floating point number.
+     * @returns { PathEffect | undefined } PathEffect object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createDashPathEffect(intervals: Array<double>, phase: double): PathEffect | undefined;
+
+    /**
+     * Creates a path effect that transforms the sharp angle between line segments into a rounded corner with the specified radius.
+     * @param { double } radius - Radius of the rounded corner. The value must be greater than 0. The value is a floating point number.
+     * @returns { PathEffect | undefined } PathEffect object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createCornerPathEffect(radius: double): PathEffect | undefined;
+
+    /**
+     * Creates an effect that segments the path and scatters the segments in an irregular pattern along the path.
+     * @param { double } segLength - Distance along the path at which each segment is fragmented. The value is a floating point number.
+     * If a negative number or the value 0 is passed in, no effect is created.
+     * @param { double } dev - Maximum amount by which the end points of the segments can be randomly displaced during rendering.
+     * The value is a floating-point number.
+     * @param { int } seedAssist - Optional parameter to assist in generating a pseudo-random seed for the effect.
+     * The default value is 0, and the value is a 32-bit unsigned integer.
+     * @returns { PathEffect | undefined } PathEffect object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createDiscretePathEffect(segLength: double, dev: double, seedAssist?: int): PathEffect | undefined;
+
+     /**
+      * Creates a path effect by sequentially applying the inner effect and then the outer effect.
+      * @param { PathEffect } outer - Path effect that is applied second, overlaying the first effect.
+      * @param { PathEffect } inner - Inner path effect that is applied first.
+      * @returns { PathEffect | undefined } PathEffect object.
+      * @static
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+    static native createComposePathEffect(outer: PathEffect, inner: PathEffect): PathEffect | undefined;
+
+     /**
+     * Creates a dashed path effect based on the shape described by a path.
+     * @param { Path } path - Path that defines the shape to be used for filling each dash in the pattern.
+     * @param { double } advance - Distance between two consecutive dashes. The value is a floating point number greater than 0.
+     * Otherwise, an error code is thrown.
+     * @param { double } phase - Starting offset of the dash pattern. The value is a floating point number.
+     * The actual offset used is the absolute value of this value modulo the value of advance.
+     * @param { PathDashStyle } style - Style of the dashed path effect.
+     * @returns { PathEffect | undefined } PathEffect object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createPathDashEffect(path: Path, advance: double, phase: double, style: PathDashStyle): PathEffect | undefined;
+
+     /**
+      * Creates an overlay path effect based on two distinct path effects.
+      * Different from createComposePathEffect, this API applies each effect separately and then displays them as a simple overlay.
+      * @param { PathEffect } firstPathEffect - First path effect.
+      * @param { PathEffect } secondPathEffect - Second path effect.
+      * @returns { PathEffect | undefined } PathEffect object.
+      * @static
+      * @syscap SystemCapability.Graphics.Drawing
+      * @since 20
+      */
+    static native createSumPathEffect(firstPathEffect: PathEffect, secondPathEffect: PathEffect): PathEffect | undefined;
+  }
+
+  /**
+   * Enumerates the tile modes of the shader effect.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum TileMode {
+    /**
+     * Replicates the edge color if the shader effect draws outside of its original boundary.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    CLAMP = 0,
+
+    /**
+     * Repeats the shader effect in both horizontal and vertical directions.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    REPEAT = 1,
+
+    /**
+     * Repeats the shader effect in both horizontal and vertical directions, alternating mirror images.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    MIRROR = 2,
+
+    /**
+     * Renders the shader effect only within the original boundary.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    DECAL = 3,
+  }
+
+  /**
+   * Defines a color filter.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export class ColorFilter {
+    static { loadLibrary("drawing_ani_core"); }
+    private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("ColorFilter", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    static colorFilterTransferStatic(input: Any): Object {
+      return ColorFilter.colorFilterTransferStaticNative(ESValue.wrap(input));
+    }
+
+    private static native colorFilterTransferStaticNative(input: ESValue): Object;
+
+    static colorFilterTransferDynamic(input: Object): Any {
+      let colorFilter = input as ColorFilter;
+      if (!colorFilter) {
+        return null;
+      }
+      let addr = ColorFilter.getColorFilterAddr(colorFilter);
+      if (addr == 0) {
+        return null;
+      }
+      let module = ESValue.load("@ohos.graphics.drawing");
+      let hasProperty: boolean = module.hasProperty("ColorFilter");
+      if (!hasProperty) {
+        return null;
+      }
+      let cls = module.getProperty("ColorFilter");
+      hasProperty = cls.hasProperty("__createTransfer__");
+      if (hasProperty) {
+        let initFunc = cls.getProperty("__createTransfer__");
+        let obj = initFunc.invoke(ESObject.wrap(addr));
+        return obj.unwrap();
+      }
+      return null;
+    }
+
+    private static native getColorFilterAddr(input: ColorFilter): long;
+
+    /**
+     * Creates a ColorFilter object with a given color and blend mode.
+     * @param { common2D.Color } color - Color in ARGB format. The value of each color channel is an integer ranging from 0 to 255.
+     * @param { BlendMode } mode - Blend mode.
+     * @returns { ColorFilter } Colorfilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createBlendModeColorFilter(color: common2D.Color, mode: BlendMode): ColorFilter;
+
+    /**
+     * Creates a ColorFilter object with a given color and blend mode.
+     * @param { common2D.Color | int } color - Color, represented by an unsigned integer in hexadecimal ARGB format.
+     * @param { BlendMode } mode - Blend mode.
+     * @returns { ColorFilter } Colorfilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createBlendModeColorFilter(color: common2D.Color | int, mode: BlendMode): ColorFilter;
+
+    /**
+     * Creates a ColorFilter object by combining another two color filters.
+     * @param { ColorFilter } outer - Color filter that takes effect later in the new filter.
+     * @param { ColorFilter } inner - Color filter that takes effect first in the new filter.
+     * @returns { ColorFilter | undefined } Colorfilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createComposeColorFilter(outer: ColorFilter, inner: ColorFilter): ColorFilter | undefined;
+
+    /**
+     * Creates a ColorFilter object that applies the sRGB gamma curve to the RGB channels.
+     * @returns { ColorFilter | undefined } Colorfilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createLinearToSRGBGamma(): ColorFilter | undefined;
+
+    /**
+     * Creates a ColorFilter object that applies the RGB channels to the sRGB gamma curve.
+     * @returns { ColorFilter | undefined } Colorfilter object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createSRGBGammaToLinear(): ColorFilter | undefined;
+
+    /**
+     * Creates a ColorFilter object that multiplies the luma into the alpha channel and sets the RGB channels to zero.
+     * @returns {  | undefined } Colorfilter.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createLumaColorFilter(): ColorFilter | undefined;
+
+    /**
+     * Creates a color filter object with a 4*5 color matrix.
+     * @param { Array<double> } matrix - An array of 20 numbers, indicating the 4*5 matrix.
+     * @returns { ColorFilter | undefined } Colorfilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createMatrixColorFilter(matrix: Array<double>): ColorFilter | undefined;
+  }
+
+  /**
+   * Implements an image filter.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export class ImageFilter {
+    static { loadLibrary("drawing_ani_core"); }
+    private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("ImageFilter", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    /**
+     * Creates an image filter with a given blur effect.
+     * @param { double } sigmaX - Standard deviation of the Gaussian blur along the X axis. The value must be a floating point number greater than 0.
+     * @param { double } sigmaY - Standard deviation of the Gaussian blur along the Y axis. The value must be a floating point number greater than 0.
+     * @param { TileMode } tileMode - Tile mode to apply to the edges.
+     * @param { ImageFilter | null } imageFilter - Filter to which the image filter will be applied.
+     * The default value is null, indicating that the image filter is directly applied to the original image.
+     * @returns { ImageFilter } ImageFilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createBlurImageFilter(sigmaX: double, sigmaY: double,
+      tileMode: TileMode, imageFilter?: ImageFilter | null): ImageFilter;
+
+    /**
+     * Creates an image filter object with a given color filter effect.
+     * @param { ColorFilter } colorFilter - Color filter.
+     * @param { ImageFilter | null } imageFilter - Filter to which the image filter will be applied.
+     *     The default value is null,
+     * indicating that the image filter is directly applied to the original image.
+     * @returns { ImageFilter | undefined } ImageFilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    static native createFromColorFilter(colorFilter: ColorFilter,
+      imageFilter?: ImageFilter | null): ImageFilter | undefined;
+  }
+
+  /**
+   * Enumerates the join styles of a pen. The join style defines the shape of the joints of a polyline segment drawn by the pen.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum JoinStyle {
+    /**
+     * Mitered corner. If the angle of a polyline is small, its miter length may be inappropriate.
+     * In this case, you need to use the miter limit to limit the miter length.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    MITER_JOIN = 0,
+
+    /**
+     * Round corner.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    ROUND_JOIN = 1,
+
+    /**
+     * Bevel corner.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    BEVEL_JOIN = 2
+  }
+
+  /**
+   * Enumerates the cap styles of a pen. The cap style defines the style of both ends of a line segment drawn by the pen.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum CapStyle {
+    /**
+     * There is no cap style. Both ends of the line segment are cut off square.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    FLAT_CAP = 0,
+
+    /**
+     * Square cap style. Both ends have a square, the height of which is half of the width of the line segment, with the same width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    SQUARE_CAP = 1,
+
+    /**
+     * Round cap style. Both ends have a semicircle centered, the diameter of which is the same as the width of the line segment.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    ROUND_CAP = 2
+  }
+
+  /**
+   * Enumerates the blur types of a mask filter.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum BlurType {
+    /**
+     * Both the outer edges and the inner solid parts are blurred.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    NORMAL = 0,
+
+    /**
+     * The inner solid part remains unchanged, while only the outer edges are blurred.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    SOLID = 1,
+
+    /**
+     * Only the outer edges are blurred, with the inner solid part being fully transparent.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    OUTER = 2,
+
+    /**
+     * Only the inner solid part is blurred, while the outer edges remain sharp.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    INNER = 3
+  }
+
+  /**
+   * Enumerates the path operation types contained in an iterator. It is used to read path operation instructions.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum PathIteratorVerb {
+    /**
+     * Sets the start point.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    MOVE = 0,
+
+    /**
+     * Adds a line segment.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    LINE = 1,
+
+    /**
+     * Adds a quadratic Bezier curve for smooth transitions.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    QUAD = 2,
+
+    /**
+     * Adds a conic curve.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    CONIC = 3,
+
+    /**
+     * Adds a cubic Bezier curve for smooth transitions.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    CUBIC = 4,
+
+    /**
+     * Closes a path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    CLOSE = 5,
+
+    /**
+     * The path setting is complete.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    DONE = CLOSE + 1,
   }
 
   /**
@@ -1445,6 +2476,34 @@ namespace drawing {
      * @since 18
      */
     native constructorNative(path: Path): void;
+
+    /**
+     * Retrieves the next operation in this path and moves the iterator to that operation.
+     * @param { Array<common2D.Point> } points - Indicates the point array.
+     * @param { int } offset - Indicates the offset into the array where entries should be placed. The default value is 0.
+     * @returns { PathIteratorVerb | undefined } Returns the next verb in this iterator's path.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native next(points: Array<common2D.Point>, offset?: int): PathIteratorVerb | undefined;
+
+    /**
+     * Retrieves the next operation in this path, without moving the iterator.
+     * @returns { PathIteratorVerb | undefined } Returns the next verb in the iteration.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native peek(): PathIteratorVerb | undefined;
+
+    /**
+     * Checks whether there is a next operation in the path operation iterator.
+     * @returns { boolean } Returns true if there are more elements to be iterated through, false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native hasNext(): boolean;
   }
 
   /**
@@ -1522,6 +2581,28 @@ namespace drawing {
     private static native getPathAddr(input: Path): long;
 
     /**
+     * Sets the start point of this path.
+     * @param { double } x - X coordinate of the start point. The value is a floating point number.
+     * @param { double } y - Y coordinate of the start point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native moveTo(x: double, y: double): void;
+
+    /**
+     * Draws a line segment from the last point of this path to the target point. If the path is empty, the start point (0, 0) is used.
+     * @param { double } x - X coordinate of the target point. The value is a floating point number.
+     * @param { double } y - Y coordinate of the target point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native lineTo(x: double, y: double): void;
+
+    /**
      * Draws an arc to this path using angle arc mode. This mode first defines a rectangle and takes its inscribed ellipse.
      * Then, it specifies a start angle and a sweep angle. The arc is the portion of the ellipse's circumference defined by the start angle
      * and the sweep angle. By default, a line segment from the last point of the path to the start point of the arc is also added.
@@ -1540,11 +2621,443 @@ namespace drawing {
     native arcTo(x1: double, y1: double, x2: double, y2: double, startDeg: double, sweepDeg: double): void;
 
     /**
+     * Draws a quadratic Bezier curve from the last point of this path to the target point. If the path is empty, the start point (0, 0) is used.
+     * @param { double } ctrlX - X coordinate of the control point. The value is a floating point number.
+     * @param { double } ctrlY - Y coordinate of the control point. The value is a floating point number.
+     * @param { double } endX - X coordinate of the target point. The value is a floating point number.
+     * @param { double } endY - Y coordinate of the target point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native quadTo(ctrlX: double, ctrlY: double, endX: double, endY: double): void;
+
+    /**
+     * Draws a conic curve from the last point of this path to the target point. If the path is empty, the start point (0, 0) is used.
+     * @param { double } ctrlX - X coordinate of the control point. The value is a floating point number.
+     * @param { double } ctrlY - Y coordinate of the control point. The value is a floating point number.
+     * @param { double } endX - X coordinate of the target point. The value is a floating point number.
+     * @param { double } endY - Y coordinate of the target point. The value is a floating point number.
+     * @param { double } weight - Weight of the curve, which determines its shape. The larger the value,
+     * the closer of the curve to the control point. If the value is less than or equal to 0,
+     * this API has the same effect as lineTo. If the value is 1, it has the same effect as quadTo. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native conicTo(ctrlX: double, ctrlY: double, endX: double, endY: double, weight: double): void;
+
+    /**
+     * Draws a cubic Bezier curve from the last point of this path to the target point. If the path is empty, the start point (0, 0) is used.
+     * @param { double } ctrlX1 - X coordinate of the first control point. The value is a floating point number.
+     * @param { double } ctrlY1 - Y coordinate of the first control point. The value is a floating point number.
+     * @param { double } ctrlX2 - X coordinate of the second control point. The value is a floating point number.
+     * @param { double } ctrlY2 - Y coordinate of the second control point. The value is a floating point number.
+     * @param { double } endX - X coordinate of the target point. The value is a floating point number.
+     * @param { double } endY - Y coordinate of the target point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native cubicTo(ctrlX1: double, ctrlY1: double, ctrlX2: double, ctrlY2: double, endX: double, endY: double): void;
+
+    /**
+     * Sets the start position relative to the last point of this path. If the path is empty, the start point (0, 0) is used.
+     * @param { double } dx - X offset of the start point relative to the last point. A positive number indicates a rightward shift from the last point,
+     * and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } dy - Y offset of the start point relative to the last point. A positive number indicates an upward shift from the last point,
+     * and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native rMoveTo(dx: double, dy: double): void;
+
+    /**
+     * Draws a line segment from the last point of this path to a point relative to the last point. If the path is empty, the start point (0, 0) is used.
+     * @param { double } dx - X offset of the target point relative to the last point. A positive number indicates a rightward shift from the last point,
+     * and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } dy - Y offset of the target point relative to the last point. A positive number indicates an upward shift from the last point,
+     * and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native rLineTo(dx: double, dy: double): void;
+
+    /**
+     * Draws a quadratic Bezier curve from the last point of this path to a point relative to the last point.
+     * If the path is empty, the start point (0, 0) is used.
+     * @param { double } dx1 - X offset of the control point relative to the last point. A positive number indicates a rightward shift from the last point,
+     * and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } dy1 - Y offset of the control point relative to the last point. A positive number indicates an upward shift from the last point,
+     * and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @param { double } dx2 - X offset of the target point relative to the last point. A positive number indicates a rightward shift from the last point,
+     * and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } dy2 - Y offset of the target point relative to the last point. A positive number indicates an upward shift from the last point,
+     * and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native rQuadTo(dx1: double, dy1: double, dx2: double, dy2: double): void;
+
+    /**
+     * Draws a conic curve from the last point of this path to a point relative to the last point. If the path is empty, the start point (0, 0) is used.
+     * @param { double } ctrlX - X offset of the control point relative to the last point. A positive number indicates a rightward shift from the last point,
+     * and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } ctrlY - Y offset of the control point relative to the last point. A positive number indicates an upward shift from the last point,
+     * and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @param { double } endX - X offset of the target point relative to the last point. A positive number indicates a rightward shift from the last point,
+     * and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } endY - Y offset of the target point relative to the last point. A positive number indicates an upward shift from the last point,
+     * and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @param { double } weight - Weight of the curve, which determines its shape. The larger the value, the closer of the curve to the control point.
+     * If the value is less than or equal to 0, this API is equivalent to rLineTo, that is, adding a line segment from the last point of the path
+     * to the target point. If the value is 1, this API is equivalent to rQuadTo. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native rConicTo(ctrlX: double, ctrlY: double, endX: double, endY: double, weight: double): void;
+  
+      /**
+     * Draws a cubic Bezier curve from the last point of this path to a point relative to the last point.
+     * If the path is empty, the start point (0, 0) is used.
+     * @param { double } ctrlX1 - X offset of the first control point relative to the last point. A positive number indicates a rightward shift
+     * from the last point, and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } ctrlY1 - Y offset of the first control point relative to the last point. A positive number indicates an upward shift
+     * from the last point, and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @param { double } ctrlX2 - X offset of the second control point relative to the last point. A positive number indicates a rightward shift
+     * from the last point, and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } ctrlY2 - Y offset of the second control point relative to the last point. A positive number indicates an upward shift
+     * from the last point, and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @param { double } endX - X offset of the target point relative to the last point. A positive number indicates a rightward shift
+     * from the last point, and a negative number indicates a leftward shift from the last point. The value is a floating point number.
+     * @param { double } endY - Y offset of the target point relative to the last point. A positive number indicates an upward shift
+     * from the last point, and a negative number indicates a downward shift from the last point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native rCubicTo(ctrlX1: double, ctrlY1: double, ctrlX2: double, ctrlY2: double, endX: double, endY: double): void;
+
+    /**
+     * Adds a polygon to this path.
+     * @param { Array<common2D.Point> } points - Array that holds the vertex coordinates of the polygon.
+     * @param { boolean } close - Whether to close the path, that is, whether to add a line segment from the start point
+     * to the end point of the path. The value true means to close the path, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addPolygon(points: Array<common2D.Point>, close: boolean): void;
+
+    /**
+     * Combines this path with the passed-in path based on the specified operation mode.
+     * @param { Path } path - Path object, which will be combined with the current path.
+     * @param { PathOp } pathOp - Operation mode.
+     * @returns { boolean } boolean - Result of the path combination result. The value true means that the path combination is successful,
+     * and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native op(path: Path, pathOp: PathOp): boolean;
+
+    /**
+     * Adds an arc to this path.
+     *
+     * When startAngle and sweepAngle meet the following conditions, an oval instead of an arc is added:
+     *
+     * The result of startAngle modulo 90 is close to 0.
+     * The value of sweepAngle is not in the range of (-360, 360).
+     *
+     * In other cases, this API adds an arc by applying the result of sweepAngle modulo 360 to the path.
+     * @param { common2D.Rect } rect - Rectangular boundary that encapsulates the oval including the arc.
+     * @param { double } startAngle - Start angle of the arc, in degrees. The value 0 indicates the positive direction of the X axis.
+     * The value is a floating point number.
+     * @param { double } sweepAngle - Angle to sweep, in degrees. A positive number indicates a clockwise sweep,
+     * and a negative number indicates a counterclockwise sweep. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addArc(rect: common2D.Rect, startAngle: double, sweepAngle: double): void;
+
+    /**
+     * Adds a circle to this path in the specified direction. The start point of the circle is (x + radius, y).
+     * @param { double } x - X coordinate of the center of the circle. The value is a floating point number.
+     * @param { double } y - Y coordinate of the center of the circle. The value is a floating point number.
+     * @param { double } radius - Radius of the circle. The value is a floating point number.
+     * If the value is less than or equal to 0, there is no effect.
+     * @param { PathDirection } pathDirection - Direction of the path. The default direction is clockwise.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addCircle(x: double, y: double, radius: double, pathDirection?: PathDirection): void;
+
+    /**
+     * Adds the inscribed ellipse of a rectangle to this path in the specified direction.
+     * @param { common2D.Rect } rect - Rectangular boundary of the oval.
+     * @param { int } start - Start point of the oval, where 0, 1, 2, and 3 correspond to the upper, right, lower, and left points, respectively.
+     * The value is an integer greater than or equal to 0. If the value is greater than or equal to 4, the remainder of 4 is used.
+     * @param { PathDirection } pathDirection - Direction of the path. The default direction is clockwise.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addOval(rect: common2D.Rect, start: int, pathDirection?: PathDirection): void;
+
+    /**
+     * Adds a rectangle to this path in the specified direction. The start point is the upper left corner of the rectangle.
+     * @param { common2D.Rect } rect - Rectangle.
+     * @param { PathDirection } pathDirection - Direction of the path. The default direction is clockwise.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addRect(rect: common2D.Rect, pathDirection?: PathDirection): void;
+
+    /**
+     * Adds a rounded rectangle to this path in the specified direction. When the path direction is clockwise,
+     * the start point is at the intersection of the rounded rectangle's left boundary and its lower left corner.
+     * When the path direction is counterclockwise, the start point is at the intersection point
+     * between the left boundary and the upper left corner.
+     * @param { RoundRect } roundRect - Rounded rectangle.
+     * @param { PathDirection } pathDirection - The default value is CLOCKWISE.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addRoundRect(roundRect: RoundRect, pathDirection?: PathDirection): void;
+
+    /**
+     * Transforms the points in a path by a matrix and stores the resulting path in the current Path object.
+     * @param { Path } path - Source Path object.
+     * @param { Matrix | null } matrix - Matrix object. The default value is an identity matrix.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addPath(path: Path, matrix?: Matrix | null): void;
+
+    /**
+     * Transforms the points in this path by a matrix.
+     * @param { Matrix } matrix - Matrix object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native transform(matrix: Matrix): void;
+
+    /**
+     * Checks whether a coordinate point is included in this path. For details, see PathFillType.
+     * @param { double } x - X coordinate. The value is a floating point number.
+     * @param { double } y - Y coordinate. The value is a floating point number.
+     * @returns { boolean } Check result. The value true means that the coordinate point is included in the path, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native contains(x: double, y: double): boolean;
+
+    /**
+     * Sets the fill type of this path. The fill type determines how "inside" of the path is drawn.
+     * For example, when the fill type Winding is used, "inside" of the path is determined by a non-zero sum of signed edge crossings.
+     * When EvenOdd is used, "inside" of the path is determined by an odd number of edge crossings.
+     * @param { PathFillType } pathFillType - Fill type of the path.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setFillType(pathFillType: PathFillType): void;
+
+    /**
+     * Obtains the minimum bounding rectangle that encloses this path.
+     * @returns { common2D.Rect | undefined } Rect object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getBounds(): common2D.Rect | undefined;
+
+    /**
+     * Closes this path by adding a line segment from the start point to the last point of the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native close(): void;
+
+    /**
+     * Offsets this path by specified distances along the X axis and Y axis and stores the resulting path in the Path object returned.
+     * @param { double } dx - X offset. A positive number indicates an offset towards the positive direction of the X axis,
+     * and a negative number indicates an offset towards the negative direction of the X axis. The value is a floating point number.
+     * @param { double } dy - Y offset. A positive number indicates an offset towards the positive direction of the Y axis,
+     * and a negative number indicates an offset towards the negative direction of the Y axis. The value is a floating point number.
+     * @returns { Path } New path generated.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native offset(dx: double, dy: double): Path | undefined;
+
+    /**
      * Resets the path data.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
     native reset(): void;
+
+    /**
+     * Obtains the path length.
+     * @param { boolean } forceClosed - Whether the path is measured as a closed path.
+     * The value true means that the path is considered closed during measurement,
+     * and false means that the path is measured based on the actual closed status.
+     * @returns { double } Return path length.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getLength(forceClosed: boolean): double;
+
+    /**
+     * Obtains the coordinates and tangent at a distance from the start point of this path.
+     *
+     * @param { boolean } forceClosed - Whether the path is measured as a closed path.
+     * The value true means that the path is considered closed during measurement,
+     * and false means that the path is measured based on the actual closed status.
+     * @param { double } distance - Distance from the start point. If a negative number is passed in,
+     *     the value 0 is used. If a value greater than the path length is passed in, the path length is used.
+     *     The value is a floating point number.
+     * @param { common2D.Point } position - Coordinates obtained.
+     * @param { common2D.Point } tangent - Tangent obtained, where tangent.x and tangent.y represent the cosine
+     * and sine of the tangent of the point, respectively.
+     * @returns { boolean } - Check result. The value true means that they are obtained, and false means the opposite.
+     * The values of position and tangent are not changed.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getPositionAndTangent(forceClosed: boolean, distance: double, position: common2D.Point, tangent: common2D.Point): boolean;
+
+    /**
+     * Extracts a segment of this path and appends it to a destination path.
+     *
+     * @param { boolean } forceClosed - Whether the path is measured as a closed path.
+     *     The value true means that the path is considered closed
+     *     during measurement, and false means that the path is measured based on the actual closed status.
+     * @param { double } start - Distance from the start point of the path to the start point of the segment.
+     *     If it is less than 0, it defaults to 0.
+     *     If it is greater than or equal to stop, the extraction fails. The value is a floating point number.
+     * @param { double } stop - Distance from the start point of the path to the end point of the segment.
+     *     If it is less than or equal to start,
+     *     the extraction fails. If it is greater than the path length, it defaults to the path length.
+     *     The value is a floating point number.
+     * @param { boolean } startWithMoveTo - Whether to execute moveto in
+     *     the destination path to move to its start point.
+     *     The value true means to move to the start point, and false means the opposite.
+     * @param { Path } dst - Destination path. If the extraction succeeds,
+     *     the segment is appended to the path. If the extraction fails, nothing changes.
+     * @returns { boolean } - Extraction result.
+     *     The value **true** means that the extraction is successful, and **false** means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getSegment(forceClosed: boolean, start: double, stop: double, startWithMoveTo: boolean, dst: Path): boolean;
+
+    /**
+     * Checks whether a path is closed.
+     * 
+     * @returns { boolean } - Check result. The value true means that the path is closed, and false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native isClosed(): boolean;
+
+    /**
+     * Obtains a transformation matrix at a specific position along the path, which represents the coordinates and orientation of that point.
+     * 
+     * @param { boolean } forceClosed - Whether the path is measured as a closed path.
+     *     The value true means that the path is considered closed
+     *     during measurement, and false means that the path is measured based on the actual closed status.
+     * @param { double } distance - Distance from the start point.
+     *     If a negative number is passed in, the value 0 is used.
+     *     If a value greater than the path length is passed in, the path length is used.
+     *     The value is a floating point number.
+     * @param { Matrix } matrix - Matrix object used to store the matrix obtained.
+     * @param { PathMeasureMatrixFlags } flags - Type of the matrix information obtained.
+     * @returns { boolean } - Result indicating whether the transformation matrix is obtained.
+     *     The value true means that the operation is successful, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: Mandatory parameters are left unspecified.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getMatrix(forceClosed: boolean, distance: double, matrix: Matrix, flags: PathMeasureMatrixFlags): boolean;
+
+    /**
+     * Parses the path represented by an SVG string.
+     *
+     * @param { string } str - String in SVG format, which is used to describe the path.
+     * @returns { boolean } Result of the parsing operation.
+     *     The value true means that the operation is successful, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: Mandatory parameters are left unspecified.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native buildFromSvgString(str: string): boolean;
+
+    /**
+     * Obtains the operation iterator of this path.
+     *
+     * @returns { PathIterator | undefined } Indicates the pointer to an pathIterator object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native getPathIterator(): PathIterator | undefined;
+  }
+
+  /**
+   * Enumerates the filter modes.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum FilterMode {
+
+    /**
+     * Nearest filter mode.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    FILTER_MODE_NEAREST = 0,
+
+    /**
+     * Linear filter mode.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    FILTER_MODE_LINEAR = 1,
   }
 
   /**
@@ -1580,7 +3093,6 @@ namespace drawing {
     /**
      * Creates an empty region.
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     native constructorNative(): void;
@@ -1589,7 +3101,6 @@ namespace drawing {
      * Creates a deep copy of the specified region object.
      * @param { Region } region - The region object to copy.
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     native constructorNative(region: Region): void;
@@ -1601,7 +3112,6 @@ namespace drawing {
      * @param { int } right - Indicates the right edge of the rectangle.
      * @param { int } bottom - Indicates the bottom edge of the rectangle.
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     native constructorNative(left: int, top: int, right: int, bottom: int): void;
@@ -1670,7 +3180,6 @@ namespace drawing {
      * Creates a deep copy of the specified round rect object.
      * @param { RoundRect } roundRect - The round rect object to copy.
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     native constructorNative(roundRect: RoundRect): void;
@@ -1723,7 +3232,6 @@ namespace drawing {
   /**
    * Provides an interface to the drawing, and describe the arguments for a font.
    * @syscap SystemCapability.Graphics.Drawing
-   * @crossplatform
    * @since 20
    */
   export class TypefaceArguments {
@@ -1744,10 +3252,19 @@ namespace drawing {
     /**
      * Constructor for the TypefaceArguments.
      * @syscap SystemCapability.Graphics.Drawing
-     * @crossplatform
      * @since 20
      */
     native constructorNative(): void;
+
+    /**
+     * Adds variation axis for the TypefaceArguments.
+     * @param { string } axis  - Indicates the axis tag, which must contain four ASCII characters.
+     * @param { double } value  - Indicates the value of the axis field.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native addVariation(axis: string, value: double): void;
   }
 
   /**
@@ -1828,6 +3345,43 @@ namespace drawing {
      * @since 12
      */
     REPLACE = 5
+  }
+
+  /**
+   * Enumerates the corner positions of a rounded rectangle.
+   *
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export enum CornerPos {
+    /**
+     * Top left corner of the rounded rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    TOP_LEFT_POS = 0,
+
+    /**
+     * Top right corner of the rounded rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    TOP_RIGHT_POS = 1,
+
+    /**
+     * Bottom right corner of the rounded rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    BOTTOM_RIGHT_POS = 2,
+
+    /**
+     * Bottom left corner of the rounded rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    BOTTOM_LEFT_POS = 3
   }
 }
 
