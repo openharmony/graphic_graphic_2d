@@ -55,7 +55,7 @@ namespace text {
       this.constructorNative();
     };
     native constructorNative(): void;
-    registerNative(ptr: long): void {
+    bindNative(ptr: long): void {
       this.nativeObj = ptr;
       this.cleaner = new Cleaner("FontCollection", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
@@ -110,7 +110,7 @@ namespace text {
       this.constructorNative(paragraphStyle, fontCollection);
     };
     native constructorNative(paragraphStyle: ParagraphStyle, fontCollection: FontCollection): void;
-    registerNative(ptr: long): void {
+    bindNative(ptr: long): void {
       this.nativeObj = ptr;
       this.cleaner = new Cleaner("ParagraphBuilder", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
@@ -151,7 +151,7 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-    registerNative(ptr: long): void {
+    bindNative(ptr: long): void {
       this.nativeObj = ptr;
       this.cleaner = new Cleaner("Paragraph", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
@@ -677,7 +677,7 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-    registerNative(ptr: long): void {
+    bindNative(ptr: long): void {
       this.nativeObj = ptr;
       this.cleaner = new Cleaner("TextLine", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
@@ -723,7 +723,7 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-    registerNative(ptr: long): void {
+    bindNative(ptr: long): void {
       this.nativeObj = ptr;
       this.cleaner = new Cleaner("Run", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
@@ -792,7 +792,7 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-    registerNative(ptr: long): void {
+    bindNative(ptr: long): void {
       this.nativeObj = ptr;
       this.cleaner = new Cleaner("LineTypeset", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
