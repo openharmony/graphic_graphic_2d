@@ -230,8 +230,8 @@ ErrCode RSRenderServiceConnectionProxy::CreateNode(const RSDisplayNodeConfig& di
         success = false;
         return ERR_INVALID_VALUE;
     }
-    if (!data.WriteUint_32(static_cast<uint32_t>(displayNodeConfig.mirrorSourceRotation))) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint_32 Config.MirrorSourceRotation err.");
+    if (!data.WriteUint32(static_cast<uint32_t>(displayNodeConfig.mirrorSourceRotation))) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint32 Config.MirrorSourceRotation err.");
         success = false;
         return ERR_INVALID_VALUE;
     }
