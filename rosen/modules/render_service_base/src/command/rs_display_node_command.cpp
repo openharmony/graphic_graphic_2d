@@ -192,9 +192,8 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
         }
         node->SetMirrorSource(mirrorSourceNode);
         node->SetMirrorSourceRotation(static_cast<ScreenRotation>(config.mirrorSourceRotation));
-        RS_LOGI("DisplayNodeCommandHelper::%{public}s displayNodeId: %{public}" PRIu64
-            "mirrorSource:[%{public}" PRIu64 "mirrorSourceRotation: %{public}u", __func__, id, mirroredNodeId,
-            config.mirrorSourceRotation);
+        RS_LOGI("DisplayNodeCommandHelper::%{public}s displayNodeId: %{public}" PRIu64 "mirrorSource:[%{public}" PRIu64
+            "mirrorSourceRotation: %{public}" PRIu32, __func__, id, mirroredNodeId, config.mirrorSourceRotation);
     } else {
         node->ResetMirrorSource();
     }
