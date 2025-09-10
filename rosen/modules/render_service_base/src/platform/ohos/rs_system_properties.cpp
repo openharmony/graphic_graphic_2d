@@ -809,8 +809,8 @@ bool RSSystemProperties::GetBlurEnabled()
 
 bool RSSystemProperties::GetFgBlenderEnabled()
 {
-    static bool blenderEnabled_ =
-        std::atoi((system::GetParameter("persist.sys.graphic.blenderEnabled", "1")).c_str()) != 0;
+    bool blenderEnabled_ =
+        std::atoi((system::GetParameter("rosen.graphic.blenderEnabled", "1")).c_str()) != 0;
     return blenderEnabled_;
 }
 
