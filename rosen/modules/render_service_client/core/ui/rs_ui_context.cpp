@@ -40,7 +40,7 @@ const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
     if (it != rsImplicitAnimators_.end()) {
         return it->second;
     } else {
-        if (rsImplicitAnimators_.size() > 0) {
+        if (!rsImplicitAnimators_.empty()) {
             RS_LOGI_LIMIT("Too many threads are using the same animator");
         }
         auto rsImplicitAnimator = std::make_shared<RSImplicitAnimator>();
