@@ -31,7 +31,6 @@
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 constexpr int TRACE_LEVEL_TWO = 2;
-const bool RSBeginBlenderDrawable::blenderEnabled_ = RSSystemProperties::GetFgBlenderEnabled();
 // ==================== RSChildrenDrawable =====================
 RSDrawable::Ptr RSChildrenDrawable::OnGenerate(const RSRenderNode& node)
 {
@@ -324,7 +323,7 @@ void RSBeginBlenderDrawable::PostUpdate(const RSRenderNode& node)
 
 bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
 {
-    if (!blenderEnabled_) {
+    if (!RSSystemProperties::GetFgBlenderEnabled()) {
         ROSEN_LOGD("RSBeginBlenderDrawable::OnUpdate: blender is Disabled!");
         return false;
     }
