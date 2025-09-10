@@ -2802,6 +2802,12 @@ bool DrawCmdFuzzTest080(const uint8_t* data, size_t size)
         &constructorHandle);
     std::string out;
     clipAdaptiveRoundRectOpItem.Dump(out);
+
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    Canvas canvas = Canvas(width, height);
+    Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    clipAdaptiveRoundRectOpItem.Playback(&canvas, &rect);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;

@@ -2682,7 +2682,17 @@ void ClipAdaptiveRoundRectOpItem::Marshalling(DrawCmdList& cmdList)
 
 void ClipAdaptiveRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas->ClipRoundRect(*rect, radiusData_, true);
+    bool isRoundRect = false;
+    for (auto point : radiusData_) {
+        if (!(point.Getx() <= 0 && point.GetY() <= 0)) {
+            isRoundRect = true;
+        }
+    }
+    if (isRoundRect) {
+        canvas->ClipRoundRect(*rect, radiusData_, true);
+    } else {
+        canvas->ClipRect(*rect, ClipOp::INTERSECT, false);
+    }
 }
 
 void ClipAdaptiveRoundRectOpItem::Dump(std::string& out) const
