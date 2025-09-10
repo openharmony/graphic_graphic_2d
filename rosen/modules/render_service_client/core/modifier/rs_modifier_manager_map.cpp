@@ -27,10 +27,9 @@ std::shared_ptr<RSModifierManagerMap>& RSModifierManagerMap::Instance()
     return instance_;
 }
 
-const std::shared_ptr<RSModifierManager>& RSModifierManagerMap::GetModifierManager(const int32_t id)
+const std::shared_ptr<RSModifierManager>& RSModifierManagerMap::GetModifierManager()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    auto& manager = managerMap_[id];
+    thread_local std::shared_ptr<RSModifierManager> manager = nullptr;
     if (manager == nullptr) {
         manager = std::make_shared<RSModifierManager>();
     }

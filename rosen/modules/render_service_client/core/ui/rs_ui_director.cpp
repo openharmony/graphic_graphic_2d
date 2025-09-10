@@ -460,7 +460,7 @@ bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
 {
     auto rsUIContext = rsUIContext_;
     auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager != nullptr) {
         modifierManager->SetDisplaySyncEnable(true);
         modifierManager->SetFrameRateGetFunc(
@@ -477,7 +477,7 @@ bool RSUIDirector::HasFirstFrameAnimation()
 {
     auto rsUIContext = rsUIContext_;
     auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager != nullptr) {
         return modifierManager->GetAndResetFirstFrameAnimationState();
     }
@@ -488,7 +488,7 @@ void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
 {
     auto rsUIContext = rsUIContext_;
     auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager != nullptr) {
         modifierManager->FlushStartAnimation(timeStamp);
     }
@@ -498,7 +498,7 @@ void RSUIDirector::FlushModifier()
 {
     std::shared_ptr<RSModifierManager> modifierManager = nullptr;
     if (rsUIContext_ == nullptr) {
-        modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+        modifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
     } else {
         modifierManager = rsUIContext_->GetRSModifierManager();
     }
@@ -515,7 +515,7 @@ bool RSUIDirector::HasUIRunningAnimation()
 {
     auto rsUIContext = rsUIContext_;
     auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager != nullptr) {
         return modifierManager->HasUIRunningAnimation();
     }
@@ -856,7 +856,7 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
 {
     int32_t animateRate = 0;
     auto modifierManager = rsUIContext_ ? rsUIContext_->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     if (modifierManager != nullptr) {
         auto& range = modifierManager->GetFrameRateRange();
         if (range.IsValid()) {

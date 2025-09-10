@@ -515,7 +515,7 @@ public:
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
         auto rsUIContext = node->GetRSUIContext();
         auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+            RSImplicitAnimatorMap::Instance().GetAnimator();
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
             auto endValue = std::make_shared<RSAnimatableProperty<T>>(value);
@@ -563,7 +563,7 @@ public:
         }
         auto rsUIContext = node->GetRSUIContext();
         auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                            : RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+                                            : RSImplicitAnimatorMap::Instance().GetAnimator();
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
             implicitAnimator->CancelImplicitAnimation(node, RSProperty<T>::shared_from_this());
         }
@@ -695,7 +695,7 @@ public:
         }
         auto rsUIContext = node->GetRSUIContext();
         const auto& implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-            RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+            RSImplicitAnimatorMap::Instance().GetAnimator();
         if (!implicitAnimator) {
             RSProperty<T>::stagingValue_ = endValue->Get();
             return {};
