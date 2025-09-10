@@ -101,7 +101,8 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     AniRun* aniRun = new AniRun();
     aniRun->run_ = std::shared_ptr<Rosen::Run>(run);
     ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
-    ani_status ret = env->Object_SetFieldByName_Long(runObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniRun));
+    ani_status ret = env->Object_CallMethodByName_Void(
+        runObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
         delete aniRun;
@@ -168,7 +169,11 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    
     std::vector<uint16_t> glyphs = aniRun->run_->GetGlyphs(rectRange.start, rectRange.end);
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
     ani_boolean isUndefined;
@@ -180,7 +185,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniDoubleObj(env, glpyh));
+            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -238,6 +243,10 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
     if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
         TEXT_LOGE("Failed to parse range");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
         return AniTextUtils::CreateAniUndefined(env);
     }
 
@@ -321,7 +330,8 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
 
     Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
     ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
-    ani_status ret = env->Object_SetFieldByName_Long(fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
+    ani_status ret = env->Object_CallMethodByName_Void(
+        fontObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine");
         delete aniFont;
@@ -360,6 +370,10 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
         TEXT_LOGE("Failed to parse range");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
         return AniTextUtils::CreateAniUndefined(env);
     }
 
@@ -460,7 +474,8 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
         }
         AniRun* aniRun = new AniRun();
         aniRun->run_ = runPtr;
-        ani_status ret = env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniRun));
+        ani_status ret = env->Object_CallMethodByName_Void(
+            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
             delete aniRun;

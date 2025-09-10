@@ -30,6 +30,7 @@
 #include "canvas_ani/ani_canvas.h"
 #include "font_collection.h"
 #include "paragraph_napi/js_paragraph.h"
+#include "path_ani/ani_path.h"
 #include "text/font_metrics.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -63,8 +64,8 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
     AniParagraph* aniParagraph = new AniParagraph();
     ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
     aniParagraph->typography_ = std::shared_ptr<OHOS::Rosen::Typography>(typography);
-    ani_status ret =
-        env->Object_SetFieldByName_Long(paragraphObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniParagraph));
+    ani_status ret = env->Object_CallMethodByName_Void(
+        paragraphObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
         delete aniParagraph;
@@ -180,13 +181,13 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
-    Drawing::Path* pathInternal = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, path);
-    if (pathInternal == nullptr) {
+    Drawing::AniPath* aniPath = AniTextUtils::GetNativeFromObj<Drawing::AniPath>(env, path);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         TEXT_LOGE("Path is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
-    aniParagraph->typography_->Paint(aniCanvas->GetCanvas(), pathInternal, hOffset, vOffset);
+    aniParagraph->typography_->Paint(aniCanvas->GetCanvas(), aniPath->GetPath().get(), hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetMaxWidth(ani_env* env, ani_object object)
@@ -565,8 +566,8 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
         }
         AniParagraph* aniParagraph = new AniParagraph();
         aniParagraph->typography_ = typographyPtr;
-        ani_status ret =
-            env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniParagraph));
+        ani_status ret = env->Object_CallMethodByName_Void(
+            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typography obj, ret %{public}d", ret);
             delete aniParagraph;

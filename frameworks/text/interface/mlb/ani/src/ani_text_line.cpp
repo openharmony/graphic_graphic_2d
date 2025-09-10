@@ -105,7 +105,8 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     AniTextLine* aniTextLine = new AniTextLine();
     aniTextLine->textLine_ = std::shared_ptr<Rosen::TextLineBase>(textLine);
     ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":V");
-    ani_status ret = env->Object_SetFieldByName_Long(textLineObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTextLine));
+    ani_status ret = env->Object_CallMethodByName_Void(
+        textLineObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniTextLine));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine, ani_status %{public}d", ret);
         delete aniTextLine;
@@ -416,8 +417,8 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
         }
         AniTextLine* aniTextLine = new AniTextLine();
         aniTextLine->textLine_ = textLineBase;
-        ani_status ret =
-            env->Object_SetFieldByName_Long(staticObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTextLine));
+        ani_status ret = env->Object_CallMethodByName_Void(
+            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniTextLine));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani textLineBase obj, ret %{public}d", ret);
             delete aniTextLine;
