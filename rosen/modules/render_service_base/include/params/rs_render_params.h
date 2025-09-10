@@ -60,13 +60,14 @@ class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id)
     {
-        MemoryInfo info = { sizeof(*this), ExtractPid(GetId()), GetId(), 0, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE };
-        MemoryTrack::Instance().AddNodeRecord(GetId(), info);
+        MemoryTrack::Instance().RegisterNodeMem(ExtractPid(GetId()),
+            sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     }
 
     virtual ~RSRenderParams()
     {
-        MemoryTrack::Instance().RemoveNodeRecord(GetId());
+        MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),
+            sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     }
 
     struct SurfaceParam {

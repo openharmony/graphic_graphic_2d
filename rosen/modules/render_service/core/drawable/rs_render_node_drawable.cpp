@@ -64,8 +64,10 @@ RSRenderNodeDrawable::RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&&
 {
     auto task = [this] { this->RSRenderNodeDrawable::ClearCachedSurface(); };
     RegisterClearSurfaceFunc(task);
-    MemoryInfo info = { sizeof(*this), ExtractPid(GetId()), GetId(), 0, MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE };
-    MemoryTrack::Instance().AddNodeRecord(GetId(), info);
+#ifndef ROSEN_ARKUI_X
+    MemoryTrack::Instance().RegisterNodeMem(ExtractPid(GetId()),
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
+#endif
 }
 
 RSRenderNodeDrawable::~RSRenderNodeDrawable()
@@ -73,7 +75,10 @@ RSRenderNodeDrawable::~RSRenderNodeDrawable()
     ClearDrawingCacheDataMap();
     ClearCachedSurface();
     ResetClearSurfaceFunc();
-    MemoryTrack::Instance().RemoveNodeRecord(GetId());
+#ifndef ROSEN_ARKUI_X
+    MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
+#endif
 }
 
 RSRenderNodeDrawable::Ptr RSRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

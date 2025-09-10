@@ -5445,21 +5445,6 @@ HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodesNotOnTree, TestSize.Level2)
 }
 
 /**
- * @tc.name: RenderNodeModifierDump001
- * @tc.desc: RenderNodeModifierDump001 Test
- * @tc.type: FUNC
- * @tc.require: ICVK6I
- */
-HWTEST_F(RSMainThreadTest, RenderNodeModifierDump001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    pid_t pid = 0;
-    size_t modifierSize = mainThread->RenderNodeModifierDump(pid);
-    ASSERT_GE(modifierSize, 0);
-}
-
-/**
  * @tc.name: GetNodeInfo001
  * @tc.desc: GetNodeInfo001 Test
  * @tc.type: FUNC
@@ -5471,7 +5456,8 @@ HWTEST_F(RSMainThreadTest, GetNodeInfo001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     std::unordered_map<int, std::pair<int, int>> nodeInfo;
     std::unordered_map<int, int> nullNodeInfo;
-    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo);
+    std::unordered_map<pid_t, size_t> modifierSize;
+    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
 }
 
 /**
