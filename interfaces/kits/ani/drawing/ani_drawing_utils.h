@@ -24,6 +24,7 @@
 #include "effect/color_filter.h"
 #include "utils/point.h"
 #include "utils/rect.h"
+#include "utils/point.h"
 
 #ifdef ROSEN_OHOS
 
@@ -58,6 +59,17 @@ enum class DrawingErrorCode : int32_t {
 };
 
 constexpr char NATIVE_OBJ[] = "nativeObj";
+constexpr size_t ARGC_ZERO = 0;
+constexpr size_t ARGC_ONE = 1;
+constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_THREE = 3;
+constexpr size_t ARGC_FOUR = 4;
+constexpr size_t ARGC_FIVE = 5;
+constexpr size_t ARGC_SIX = 6;
+constexpr size_t ARGC_SEVEN = 7;
+constexpr size_t ARGC_EIGHT = 8;
+constexpr size_t ARGC_NINE = 9;
+constexpr int MAX_PAIRS_PATHVERB = 4;
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
@@ -102,6 +114,10 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
 ani_object CreateAniUndefined(ani_env* env);
 
 ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ...);
+
+ani_object CreateAniNull(ani_env* env);
+
+bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
 
 template<typename T>
 ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
@@ -154,6 +170,8 @@ ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& ob
 ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
 
 ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj);
+
+bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {
