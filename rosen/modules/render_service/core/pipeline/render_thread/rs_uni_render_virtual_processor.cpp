@@ -226,7 +226,7 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSLogicalDisplayRenderN
             RS_LOGI("RSUniRenderVirtualProcessor::FirstInit, id: %{public}" PRIu64 ", "
                 "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
                 "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d, "
-                "autoBufferRotation: %{public}d, mirrorSourceRotation: %{public}d", virtualScreenId_,
+                "autoBufferRotation: %{public}d, mirrorSourceRotation: %{public}" PRIu32, virtualScreenId_,
                 virtualScreenWidth_, virtualScreenHeight_, mirroredScreenWidth_, mirroredScreenHeight_, screenRotation_,
                 screenCorrection_, canvasRotation_, scaleMode_, autoBufferRotation_, mirrorSourceRotation_);
         }
