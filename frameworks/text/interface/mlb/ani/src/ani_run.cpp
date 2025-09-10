@@ -169,7 +169,11 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    
     std::vector<uint16_t> glyphs = aniRun->run_->GetGlyphs(rectRange.start, rectRange.end);
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
     ani_boolean isUndefined;
@@ -239,6 +243,10 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
     if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
         TEXT_LOGE("Failed to parse range");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
         return AniTextUtils::CreateAniUndefined(env);
     }
 
@@ -356,6 +364,10 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
         TEXT_LOGE("Failed to parse range");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
         return AniTextUtils::CreateAniUndefined(env);
     }
 

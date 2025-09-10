@@ -76,13 +76,13 @@ static void Clean(ani_env* env, ani_object object)
     ani_ref stringRef = nullptr;
     ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get className, ptrAddr %{public}" PRId64, ptrAddr);
+        TEXT_LOGE("Failed to get className");
         return;
     }
     std::string className;
     ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(stringRef), className);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to convert className to string, ptrAddr %{public}" PRId64, ptrAddr);
+        TEXT_LOGE("Failed to convert className to string");
         return;
     }
 
