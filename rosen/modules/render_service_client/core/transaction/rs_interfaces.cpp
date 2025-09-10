@@ -291,7 +291,7 @@ bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> nod
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
-bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
     bool checkDrmAndSurfaceLock)
 {
@@ -299,7 +299,7 @@ bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNod
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    return renderServiceClient_->TaskSurfaceCaptureWithAllWindows(
+    return renderServiceClient_->TakeSurfaceCaptureWithAllWindows(
         node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
 }
 

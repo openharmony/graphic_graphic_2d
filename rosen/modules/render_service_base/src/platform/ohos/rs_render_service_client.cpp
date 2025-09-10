@@ -416,7 +416,7 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return true;
 }
 
-bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
+bool RSRenderServiceClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock)
 {
@@ -446,7 +446,7 @@ bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
         }
     }
 
-    auto ret = renderService->TaskSurfaceCaptureWithAllWindows(
+    auto ret = renderService->TakeSurfaceCaptureWithAllWindows(
         id, surfaceCaptureCbDirector_, captureConfig, checkDrmAndSurfaceLock);
     if (ret != ERR_OK) {
         ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);

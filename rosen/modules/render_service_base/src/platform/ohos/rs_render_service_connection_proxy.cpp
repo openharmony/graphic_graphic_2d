@@ -1938,7 +1938,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bo
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnectionProxy::TaskSurfaceCaptureWithAllWindows(NodeId id,
+ErrCode RSRenderServiceConnectionProxy::TakeSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions /*permissions*/)
 {

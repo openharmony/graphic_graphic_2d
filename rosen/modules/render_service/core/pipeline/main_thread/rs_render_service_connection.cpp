@@ -1503,7 +1503,7 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
     mainThread_->PostTask(selfCaptureTask);
 }
 
-ErrCode RSRenderServiceConnection::TaskSurfaceCaptureWithAllWindows(NodeId id,
+ErrCode RSRenderServiceConnection::TakeSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions permissions)
 {

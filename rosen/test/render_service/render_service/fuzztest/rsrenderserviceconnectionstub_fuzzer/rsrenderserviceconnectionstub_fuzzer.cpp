@@ -3493,7 +3493,7 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -3802,7 +3802,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerIsSecureScreen(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
-    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoTakeSurfaceCaptureWithAllWindows(data, size);
     OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

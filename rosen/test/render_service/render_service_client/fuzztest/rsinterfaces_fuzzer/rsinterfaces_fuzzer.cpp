@@ -368,7 +368,7 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
     // get data
     auto callback = std::make_shared<SurfaceCaptureFuture>();
@@ -380,7 +380,7 @@ bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.TaskSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    rsInterfaces.TakeSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
     return true;
 }
 
@@ -431,7 +431,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoSetVirtualScreenAutoRotation(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
-    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoTakeSurfaceCaptureWithAllWindows(data, size);
     OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

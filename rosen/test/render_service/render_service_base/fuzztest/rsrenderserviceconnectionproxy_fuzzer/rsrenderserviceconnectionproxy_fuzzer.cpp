@@ -574,7 +574,7 @@ bool DoGetScreenHDRStatus(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -590,7 +590,7 @@ bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
-    rsRenderServiceConnectionProxy.TaskSurfaceCaptureWithAllWindows(
+    rsRenderServiceConnectionProxy.TakeSurfaceCaptureWithAllWindows(
         nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
     return true;
 }
@@ -641,7 +641,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerServiceFuzzTest(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
-    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoTakeSurfaceCaptureWithAllWindows(data, size);
     OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

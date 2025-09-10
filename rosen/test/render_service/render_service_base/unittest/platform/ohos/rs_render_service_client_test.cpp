@@ -1392,27 +1392,27 @@ HWTEST_F(RSClientTest, ClearUifirstCacheTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest, TestSize.Level1)
+HWTEST_F(RSClientTest, TakeSurfaceCaptureWithAllWindowsTest, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     bool checkDrmAndSurfaceLock = false;
     std::shared_ptr<TestSurfaceCaptureCallback> cb;
     RSSurfaceCaptureConfig captureConfig;
-    bool ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
+    bool ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, false);
 
     cb = std::make_shared<TestSurfaceCaptureCallback>();
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
     rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(TEST_ID, captureConfig), callbackVector);
-    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
+    ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, true);
 
     rsClient->surfaceCaptureCbDirector_ = nullptr;
     rsClient->surfaceCaptureCbMap_.clear();
-    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
+    ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, true);
 
-    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
+    ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, checkDrmAndSurfaceLock);
     ASSERT_EQ(ret, true);
 }
 
@@ -1422,12 +1422,12 @@ HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueICS2J8
  */
-HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest002, TestSize.Level1)
+HWTEST_F(RSClientTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize.Level1)
 {
     class MockRenderServiceConnection : public RSRenderServiceConnectionProxy {
     public:
         explicit MockRenderServiceConnection(const sptr<IRemoteObject>& impl) : RSRenderServiceConnectionProxy(impl) {};
-        ErrCode TaskSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        ErrCode TakeSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
             const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
             RSSurfaceCapturePermissions permissions) override
         {
@@ -1439,18 +1439,18 @@ HWTEST_F(RSClientTest, TaskSurfaceCaptureWithAllWindowsTest002, TestSize.Level1)
     RSRenderServiceConnectHub::instance_ = nullptr;
     std::shared_ptr<TestSurfaceCaptureCallback> cb;
     RSSurfaceCaptureConfig captureConfig;
-    bool ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
+    bool ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
     ASSERT_EQ(ret, false);
 
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
     ASSERT_NE(RSRenderServiceConnectHub::GetInstance(), nullptr);
-    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
+    ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
     ASSERT_EQ(ret, false);
 
     cb = std::make_shared<TestSurfaceCaptureCallback>();
     auto conn = RSRenderServiceConnectHub::GetInstance()->conn_;
     RSRenderServiceConnectHub::instance_->conn_ = new MockRenderServiceConnection(nullptr);
-    ret = rsClient->TaskSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
+    ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
     ASSERT_EQ(ret, false);
     RSRenderServiceConnectHub::instance_->conn_ = conn;
 }

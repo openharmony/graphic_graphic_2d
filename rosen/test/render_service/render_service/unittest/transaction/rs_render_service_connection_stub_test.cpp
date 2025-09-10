@@ -1804,12 +1804,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenCorrectionTest004, TestSize
 }
 
 /**
- * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for success
+ * @tc.name: TakeSurfaceCaptureWithAllWindowsTest001
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for success
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest001, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest001, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
 
@@ -1852,12 +1852,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
 }
 
 /**
- * @tc.name: TaskSurfaceCaptureWithAllWindowsTest002
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for task execution
+ * @tc.name: TakeSurfaceCaptureWithAllWindowsTest002
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for task execution
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
     auto runner = RSMainThread::Instance()->runner_;
@@ -1873,30 +1873,30 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     connection->mainThread_ = nullptr;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCapturePermissions permissions;
-    auto ret = connection->TaskSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
+    auto ret = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_NE(callback, nullptr);
-    ret = connection->TaskSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
     ASSERT_NE(mainThread, nullptr);
     connection->mainThread_ = mainThread;
     permissions.screenCapturePermission = false;
     permissions.isSystemCalling = false;
-    ret = connection->TaskSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     permissions.screenCapturePermission = true;
     permissions.isSystemCalling = false;
-    ret = connection->TaskSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
     permissions.screenCapturePermission = true;
     permissions.isSystemCalling = true;
-    ret = connection->TaskSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(0, nullptr, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = connection->TaskSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(0, callback, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
@@ -1908,13 +1908,13 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     ASSERT_NE(displayNode, nullptr);
     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
-    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
@@ -1923,12 +1923,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
 }
 
 /**
- * @tc.name: TaskSurfaceCaptureWithAllWindowsTest003
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for failures
+ * @tc.name: TakeSurfaceCaptureWithAllWindowsTest003
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for failures
  * @tc.type: FUNC
  * @tc.require: issueICQ74B
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest003, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest003, TestSize.Level2)
 {
     ASSERT_NE(connectionStub_, nullptr);
     MessageParcel data1;
@@ -2095,12 +2095,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, FreezeScreenTest002, TestSize.Level2
 }
 
 /**
- * @tc.name: TaskSurfaceCaptureWithAllWindowsTest004
- * @tc.desc: Test TaskSurfaceCaptureWithAllWindows for drm/surfacelock
+ * @tc.name: TakeSurfaceCaptureWithAllWindowsTest004
+ * @tc.desc: Test TakeSurfaceCaptureWithAllWindows for drm/surfacelock
  * @tc.type: FUNC
  * @tc.require: issueICUQ08
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest004, TestSize.Level2)
+HWTEST_F(RSRenderServiceConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest004, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
     auto runner = RSMainThread::Instance()->runner_;
@@ -2124,23 +2124,23 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TaskSurfaceCaptureWithAllWindowsTest
     ASSERT_NE(displayNode, nullptr);
     auto& nodeMap = connection->mainThread_->GetContext().GetMutableNodeMap();
     EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
-    auto ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
+    auto ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, false, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
     RSMainThread::Instance()->SetHasSurfaceLockLayer(false);
     RSMainThread::Instance()->hasProtectedLayer_ = false;
     RSMainThread::Instance()->hasSurfaceLockLayer_ = false;
     EXPECT_FALSE(RSMainThread::Instance()->HasDRMOrSurfaceLockLayer());
-    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, true, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, true, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
     RSMainThread::Instance()->hasProtectedLayer_ = true;
     RSMainThread::Instance()->hasSurfaceLockLayer_ = true;
-    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, true, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, nullptr, captureConfig, true, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-    ret = connection->TaskSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, true, permissions);
+    ret = connection->TakeSurfaceCaptureWithAllWindows(displayNodeId, callback, captureConfig, true, permissions);
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 

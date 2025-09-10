@@ -175,7 +175,7 @@ public:
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
-    bool TaskSurfaceCaptureWithAllWindows(NodeId id,
+    bool TakeSurfaceCaptureWithAllWindows(NodeId id,
         std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         bool checkDrmAndSurfaceLock);
 
