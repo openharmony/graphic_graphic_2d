@@ -1294,7 +1294,7 @@ int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::ve
 }
 
 void RSScreenManager::PrintVirtualScreenBlackList(
-    const std::string& funcName, ScreenId id, const std::unordered_set<uint64_t>& set) const
+    std::string funcName, ScreenId id, std::unordered_set<uint64_t> set) const
 {
     std::string out = "[";
     for (const auto& nodeId : set) {

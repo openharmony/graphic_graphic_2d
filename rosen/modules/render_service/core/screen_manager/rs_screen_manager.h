@@ -200,7 +200,7 @@ public:
 
     // print screenBlackList when changed
     virtual void PrintVirtualScreenBlackList(
-        const std::string funcName, ScreenId id, const std::unordered_set<uint64_t> set) const = 0;
+        std::string funcName, ScreenId id, std::unordered_set<uint64_t> set) const = 0;
 
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) = 0;
@@ -388,7 +388,7 @@ public:
 
     // print screenBlackList when changed
     void PrintVirtualScreenBlackList(
-        const std::string funcName, ScreenId id, const std::unordered_set<uint64_t> set) const override;
+        std::string funcName, ScreenId id, std::unordered_set<uint64_t> set) const override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) override;
