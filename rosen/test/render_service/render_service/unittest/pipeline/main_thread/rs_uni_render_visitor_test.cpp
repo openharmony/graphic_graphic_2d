@@ -5232,22 +5232,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSelfDrawingNodeRectInfoTest, TestSize.Le
 }
 
 /*
- * @tc.name: UpdateDisplayRcdRenderNodeTest
- * @tc.desc: Test UpdateDisplayRcdRenderNodeTest
- * @tc.type: FUNC
- * @tc.require: issueIBF9OU
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayRcdRenderNodeTest, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-}
-
-/*
  * @tc.name: UpdateAncoPrepareClip
  * @tc.desc: Test UpdateAncoPrepareClip001, clipToBounds_ & clipToFrame_ = true;
  * @tc.type: FUNC

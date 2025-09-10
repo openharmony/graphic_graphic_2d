@@ -24,7 +24,6 @@
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_trace.h"
-#include "sandbox_utils.h"
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
@@ -3941,21 +3940,6 @@ void RSRenderNode::ResetDirtyStatus()
     // The return of GetBoundsGeometry function must not be nullptr
     oldMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
     cmdlistDrawRegion_.Clear();
-}
-
-NodeId RSRenderNode::GenerateId()
-{
-    static pid_t pid_ = GetRealPid();
-    static std::atomic<uint32_t> currentId_ = 0; // surfaceNode is seted correctly during boot when currentId is 1
-
-    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
-    if (currentId == UINT32_MAX) {
-        // [PLANNING]:process the overflow situations
-        ROSEN_LOGE("Node Id overflow");
-    }
-
-    // concat two 32-bit numbers to one 64-bit number
-    return ((NodeId)pid_ << 32) | currentId;
 }
 
 bool RSRenderNode::IsRenderUpdateIgnored() const

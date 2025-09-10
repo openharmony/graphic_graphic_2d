@@ -40,9 +40,6 @@ class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSLogicalDisplayRenderNodeDrawable;
-class RSRcdSurfaceRenderNodeDrawable;
-
-// remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() = default;

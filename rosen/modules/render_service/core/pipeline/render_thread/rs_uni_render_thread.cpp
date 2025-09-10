@@ -37,6 +37,7 @@
 #include "mem_param.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"

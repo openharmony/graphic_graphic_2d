@@ -24,7 +24,6 @@
 #include "metadata_helper.h"
 #include "params/rs_screen_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
@@ -220,12 +219,9 @@ HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
         auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
         RCDSurfaceType type = RCDSurfaceType::INVALID;
-        auto node = std::make_shared<RSRcdSurfaceRenderNode>(nodeId, type);
-        renderProcessor->ProcessRcdSurface(*node);
-        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(*node));
-        DrawableV2::RSRcdSurfaceRenderNodeDrawable drawable(node);
-        renderProcessor->ProcessRcdSurfaceForRenderThread(drawable);
-        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(drawable));
+        RSRcdSurfaceRenderNode node(nodeId, type);
+        renderProcessor->ProcessRcdSurface(node);
+        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
     }
 }
 

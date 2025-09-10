@@ -34,7 +34,6 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "platform/common/rs_log.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
@@ -493,18 +492,6 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessRcdSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
             node.GetId());
-        return;
-    }
-    layers_.emplace_back(layer);
-}
-
-void RSUniRenderProcessor::ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSurfaceRenderNodeDrawable &rcdDrawable)
-{
-    auto layer = uniComposerAdapter_->CreateLayer(rcdDrawable);
-    if (layer == nullptr) {
-        RS_LOGE("RSUniRenderProcessor::ProcessRcdSurfaceForRenderThread: failed to createLayer for node(id: "
-                "%{public}" PRIu64 ")",
-            rcdDrawable.GetId());
         return;
     }
     layers_.emplace_back(layer);

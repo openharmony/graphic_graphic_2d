@@ -118,7 +118,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -277,31 +277,25 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 }
 
 #ifdef RS_ENABLE_GPU
-// rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
-void DoScreenRcdTask(RSScreenRenderNode& screenNode, std::shared_ptr<RSProcessor> &processor)
+void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    const ScreenInfo& screenInfo)
 {
-    if (processor == nullptr) {
-        RS_LOGD("DoScreenRcdTask has no processor");
+    if (rcdInfo == nullptr || processor == nullptr) {
+        RS_LOGD("DoScreenRcdTask has nullptr processor or rcdInfo");
         return;
     }
-    auto screenInfo =
-        static_cast<RSScreenRenderParams *>(screenNode.GetStagingRenderParams().get())->GetScreenInfo();
-    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
+    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(screenNode.GetId());
-        auto rcdNodeTop = std::static_pointer_cast<RSRcdSurfaceRenderNode>(screenNode.GetRcdSurfaceNodeTop());
-    if (rcdNodeTop) {
-        rcdNodeTop->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
-    } else {
-        RS_LOGD("Top rcdnode is null");
-    }
-    auto rcdNodeBottom = std::static_pointer_cast<RSRcdSurfaceRenderNode>(screenNode.GetRcdSurfaceNodeBottom());
-    if (rcdNodeBottom) {
-        rcdNodeBottom->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
-    } else {
-        RS_LOGD("Bottom rcdnode is null");
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
+            [id, &processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(id, rcdInfo->processInfo);
+            });
     }
 }
 #endif
@@ -676,6 +670,9 @@ void RSMainThread::Init()
     RS_LOGI("InitRenderContext");
     /* move to render thread ? */
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#endif
+#ifdef RS_ENABLE_GPU
+    RSRcdRenderManager::InitInstance();
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
@@ -2595,7 +2592,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #endif
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
-    DoScreenRcdTask(*screenNode, processor);
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenInfo);
 #endif
     if (waitForRT) {
 #ifdef RS_ENABLE_GPU
