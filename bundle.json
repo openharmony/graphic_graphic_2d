@@ -184,12 +184,12 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text:text_napi_impl",
+            "name": "//foundation/graphic/graphic_2d/frameworks/text/interface/mlb/napi:text_napi_impl",
             "header": {
               "header_files": [
                 "paragraph_napi/js_paragraph.h"
               ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/text"
+              "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/mlb/napi"
             }
           },
           {

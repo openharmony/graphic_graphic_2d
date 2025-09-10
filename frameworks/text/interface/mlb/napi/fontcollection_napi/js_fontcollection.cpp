@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-#include <fstream>
 #include "js_fontcollection.h"
 
 #include "ability.h"
+#include "file_ex.h"
 #include "napi_async_work.h"
 
 namespace OHOS::Rosen {
 namespace {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
 const std::string CLASS_NAME = "FontCollection";
-const int32_t GLOBAL_ERROR = 10000;
 struct FontArgumentsConcreteContext : public ContextBase {
     std::string familyName;
     std::string filePath;
@@ -296,160 +295,88 @@ bool JsFontCollection::ParseResourceType(napi_env env, napi_value value, Resourc
     return true;
 }
 
-std::shared_ptr<Global::Resource::ResourceManager> JsFontCollection::GetResourceManager() const
+std::shared_ptr<Global::Resource::ResourceManager> JsFontCollection::GetResourceManager(const std::string& moduleName)
 {
     std::shared_ptr<AbilityRuntime::ApplicationContext> context =
         AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
-    auto resourceManager = context->GetResourceManager();
-    TEXT_ERROR_CHECK(resourceManager != nullptr, return nullptr, "Failed to get resource manager");
-    return resourceManager;
+    auto moduleContext = context->CreateModuleContext(moduleName);
+    if (moduleContext != nullptr) {
+        return moduleContext->GetResourceManager();
+    } else {
+        TEXT_LOGW("Failed to get module context, bundle: %{public}s, module: %{public}s",
+            context->GetBundleName().c_str(), moduleName.c_str());
+        return context->GetResourceManager();
+    }
 }
 
-bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceInfo& info)
+bool JsFontCollection::LoadFontFromResource(const std::string familyName, ResourceInfo& info)
 {
-    int32_t state = 0;
-    auto resourceManager = GetResourceManager();
+    auto resourceManager = GetResourceManager(info.moduleName);
     TEXT_ERROR_CHECK(resourceManager != nullptr, return false,
         "Failed to get resourceManager, resourceManager is nullptr");
 
     if (info.type == static_cast<int32_t>(ResourceType::STRING)) {
         std::string rPath;
-        if (info.resId < 0 && !info.params.empty() && info.params[0].size() > 0) {
-            rPath = info.params[0];
-        } else {
-            state = resourceManager->GetStringById(info.resId, rPath);
-            if (state >= GLOBAL_ERROR || state < 0) {
-                return false;
-            }
-            if (!SplitAbsoluteFontPath(rPath) || !GetFontFileProperties(rPath, familyName)) {
-                return false;
-            }
-        }
+        TEXT_ERROR_CHECK(resourceManager->GetStringById(info.resId, rPath) == Global::Resource::RState::SUCCESS,
+            return false, "Failed to get string by id");
+        return SplitAbsoluteFontPath(rPath) && LoadFontFromPath(rPath, familyName);
     } else if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
         size_t dataLen = 0;
         std::unique_ptr<uint8_t[]> rawData;
-
-        if (info.params.empty()) {
-            return false;
-        }
-
-        state = resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData);
-        if (state >= GLOBAL_ERROR || state < 0) {
-            return false;
-        }
-        if (!fontcollection_->LoadFont(familyName.c_str(), rawData.get(), dataLen)) {
-            return false;
-        }
-        return true;
-    } else {
-        TEXT_LOGE("Invalid resource type %{public}d", info.type);
-        return false;
+        TEXT_ERROR_CHECK(!info.params.empty(), return false, "Failed to get info params");
+        TEXT_ERROR_CHECK(
+            resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData) == Global::Resource::RState::SUCCESS,
+            return false, "Failed to get raw file");
+        return fontcollection_->LoadFont(familyName.c_str(), rawData.get(), dataLen) != nullptr;
     }
-    return true;
+    TEXT_LOGE("Invalid resource type %{public}d", info.type);
+    return false;
 }
 
-bool JsFontCollection::GetFontFileProperties(const std::string path, const std::string familyName)
+bool JsFontCollection::LoadFontFromPath(const std::string path, const std::string familyName)
 {
     if (fontcollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return false;
     }
 
-    char tmpPath[PATH_MAX] = {0};
-    if (realpath(path.c_str(), tmpPath) == nullptr) {
-        TEXT_LOGE("Invalid path %{public}s", path.c_str());
-        return false;
-    }
-
-    std::ifstream f(tmpPath);
-    if (!f.good()) {
-        TEXT_LOGE("Failed to access %{public}s, %{public}s", tmpPath, strerror(errno));
-        return false;
-    }
-
-    std::ifstream ifs(tmpPath, std::ios_base::in);
-    if (!ifs.is_open()) {
-        return false;
-    }
-
-    ifs.seekg(0, ifs.end);
-    if (!ifs.good()) {
-        ifs.close();
-        return false;
-    }
-
-    size_t datalen = static_cast<size_t>(ifs.tellg());
-    if (ifs.fail()) {
-        ifs.close();
-        return false;
-    }
-
-    ifs.seekg(ifs.beg);
-    if (!ifs.good()) {
-        ifs.close();
-        return false;
-    }
-
-    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(datalen);
-    ifs.read(buffer.get(), datalen);
-    if (!ifs.good()) {
-        TEXT_LOGE("Failed to read %{public}s, data len %{public}zu, %{public}s",
-            tmpPath, datalen, strerror(errno));
-        ifs.close();
-        return false;
-    }
-    ifs.close();
-    const uint8_t* rawData = reinterpret_cast<uint8_t*>(buffer.get());
-    if (!fontcollection_->LoadFont(familyName.c_str(), rawData, datalen)) {
-        TEXT_LOGE("Failed to load font %{public}s", familyName.c_str());
-        return false;
-    }
-    return true;
+    std::vector<char> content;
+    TEXT_ERROR_CHECK(LoadBufferFromFile(path, content), return false, "Failed to load buffer from file");
+    const uint8_t* buffer = reinterpret_cast<const uint8_t*>(content.data());
+    return fontcollection_->LoadFont(familyName.c_str(), buffer, content.size()) != nullptr;
 }
 
 napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = {nullptr};
-    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok ||
-        argc < ARGC_TWO) {
+    napi_value argv[ARGC_TWO] = { nullptr };
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_TWO) {
         TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
         return nullptr;
     }
-    if (argv[0] == nullptr) {
-        TEXT_LOGE("Null argv[0]");
+    if (argv[0] == nullptr || argv[1] == nullptr) {
+        TEXT_LOGE("Invalid argument");
         return nullptr;
     }
     std::string familyName;
     std::string familySrc;
     if (!ConvertFromJsValue(env, argv[0], familyName)) {
-        TEXT_LOGE("Failed to convert argv[0]");
+        TEXT_LOGE("Failed to convert family name");
         return nullptr;
     }
-    napi_valuetype valueType = napi_undefined;
-    if (argv[1] == nullptr) {
-        TEXT_LOGE("Null arv[1]");
-        return nullptr;
+    if (ConvertFromJsValue(env, argv[1], familySrc) && SplitAbsoluteFontPath(familySrc)) {
+        TEXT_ERROR_CHECK(LoadFontFromPath(familySrc, familyName), return nullptr, "Failed to load font from path");
+        return NapiGetUndefined(env);
     }
-    napi_typeof(env, argv[1], &valueType);
-    if (valueType != napi_object) {
-        if (!ConvertFromJsValue(env, argv[1], familySrc)) {
-            TEXT_LOGE("Failed to convert argv[1]");
-            return nullptr;
-        }
-        if (!SplitAbsoluteFontPath(familySrc) || !GetFontFileProperties(familySrc, familyName)) {
-            return nullptr;
-        }
+    ResourceInfo resourceInfo;
+    if (ParseResourceType(env, argv[1], resourceInfo)) {
+        TEXT_ERROR_CHECK(LoadFontFromResource(familyName, resourceInfo), return nullptr,
+            "Failed to load font from resource");
         return NapiGetUndefined(env);
     }
 
-    ResourceInfo resourceInfo;
-    if (!ParseResourceType(env, argv[1], resourceInfo) || !ParseResourcePath(familyName, resourceInfo)) {
-        return nullptr;
-    }
-
-    return NapiGetUndefined(env);
+    return nullptr;
 }
 
 napi_value JsFontCollection::ClearCaches(napi_env env, napi_callback_info info)
@@ -513,11 +440,11 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
             NAPI_CHECK_ARGS(context, fontCollection->SplitAbsoluteFontPath(context->filePath),
                 napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to split absolute font path");
 
-            NAPI_CHECK_ARGS(context, fontCollection->GetFontFileProperties(context->filePath,
+            NAPI_CHECK_ARGS(context, fontCollection->LoadFontFromPath(context->filePath,
                 context->familyName), napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
                 "Failed to get font file properties");
         } else {
-            NAPI_CHECK_ARGS(context, fontCollection->ParseResourcePath(context->familyName, context->info),
+            NAPI_CHECK_ARGS(context, fontCollection->LoadFontFromResource(context->familyName, context->info),
                 napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
                 "Failed to execute function, path is invalid");
         }

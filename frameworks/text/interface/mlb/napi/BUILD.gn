@@ -23,16 +23,17 @@ group("textnapi") {
 }
 
 config("text_config") {
-  include_dirs = [ "../text" ]
+  include_dirs = [ "." ]
 }
 
 config("local_text") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "../text",
-    "../text/fontdescriptor_napi/include",
-    "../drawing",
+    ".",
+    "utils",
+    "fontdescriptor_napi/include",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing",
     "$rosen_text_root/interface/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
@@ -45,10 +46,7 @@ config("local_text") {
 
 ohos_shared_library("text_napi") {
   sources = [ "text_module.cpp" ]
-  configs = [
-    ":local_text",
-    ":text_config",
-  ]
+  configs = [ ":local_text" ]
 
   sanitize = {
     cfi = true
@@ -86,14 +84,8 @@ ohos_shared_library("text_napi_impl") {
     "utils/napi_common.cpp",
   ]
 
-  configs = [
-    ":local_text",
-    ":text_config",
-  ]
-
-  public_configs = [
-    ":text_config"
-  ]
+  configs = [ ":local_text" ]
+  public_configs = [ ":text_config" ]
 
   sanitize = {
     cfi = true
@@ -112,6 +104,7 @@ ohos_shared_library("text_napi_impl") {
   external_deps = [
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -119,11 +112,9 @@ ohos_shared_library("text_napi_impl") {
     "resource_management:global_resmgr",
   ]
 
-  if (!defined(defines)) {
-    defines = []
-  }
+  defines = []
 
-  if (current_os == "ohos" || current_os == "ohos_ng") {
+  if (platform_is_ohos) {
     external_deps += [ "init:libbegetutil" ]
     defines += [ "ENABLE_OHOS_ENHANCE" ]
   }
