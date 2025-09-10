@@ -510,12 +510,12 @@ HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheDataMapTest, TestSize.Level1
 }
 
 /**
- * @tc.name: ClearDrawingCacheContiUpdateTimeMapTest
- * @tc.desc: Test If ClearDrawingCacheContiUpdateTimeMap Can Run
+ * @tc.name: ClearDrawingCacheContinuousUpdateTimeMapTest
+ * @tc.desc: Test If ClearDrawingCacheContinuousUpdateTimeMap Can Run
  * @tc.type: FUNC
  * @tc.require: issueIAVPAJ
  */
-HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContiUpdateTimeMapTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContinuousUpdateTimeMapTest, TestSize.Level1)
 {
     auto renderNode1 = std::make_shared<RSRenderNode>(1);
     auto renderNode2 = std::make_shared<RSRenderNode>(2);
@@ -532,7 +532,7 @@ HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContiUpdateTimeMapTest, Test
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable1->GetId()], 1);
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable2->GetId()], 1);
 
-    drawable1->ClearDrawingCacheContiUpdateTimeMap();
+    drawable1->ClearDrawingCacheContinuousUpdateTimeMap();
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(id), 0);
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(drawable2->GetId()), 1);
 }

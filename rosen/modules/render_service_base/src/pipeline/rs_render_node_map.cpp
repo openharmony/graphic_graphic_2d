@@ -177,7 +177,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
         auto logicalDisplayNode = nodePtr->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
-        logicalDisplayNodeMap_.emplace(id, logicalDisplayNode);
+        logicaldisplayNodeMap_.emplace(id, logicalDisplayNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::SCREEN_NODE) {
         auto screenNode = nodePtr->ReinterpretCastTo<RSScreenRenderNode>();
         screenNodeMap_.emplace(id, screenNode);
@@ -220,7 +220,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     }
     residentSurfaceNodeMap_.erase(id);
     screenNodeMap_.erase(id);
-    logicalDisplayNodeMap_.erase(id);
+    logicaldisplayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
 }
 
@@ -303,7 +303,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         return pair.first == pid;
     });
 
-    EraseIf(logicalDisplayNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(logicaldisplayNodeMap_, [pid](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid && pair.second) {
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
                 (unsigned long long)pid);
@@ -383,7 +383,7 @@ void RSRenderNodeMap::TraverseScreenNodes(std::function<void (const std::shared_
 void RSRenderNodeMap::TraverseLogicalDisplayNodes(
     std::function<void (const std::shared_ptr<RSLogicalDisplayRenderNode>&)> func) const
 {
-    for (const auto& [_, node] : logicalDisplayNodeMap_) {
+    for (const auto& [_, node] : logicaldisplayNodeMap_) {
         func(node);
     }
 }

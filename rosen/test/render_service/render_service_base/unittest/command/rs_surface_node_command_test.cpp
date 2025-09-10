@@ -441,30 +441,30 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
     context.nodeMap.renderNodeMap_[0][0] = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
     context.nodeMap.screenNodeMap_.emplace(0, screenNode);
-    context.nodeMap.logicalDisplayNodeMap_.clear();
-    EXPECT_TRUE(context.nodeMap.logicalDisplayNodeMap_.empty());
+    context.nodeMap.logicaldisplayNodeMap_.clear();
+    EXPECT_TRUE(context.nodeMap.logicaldisplayNodeMap_.empty());
 
     auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(0, RSDisplayNodeConfig());
     logicalDisplayNode.reset();
-    context.nodeMap.logicalDisplayNodeMap_[0] = logicalDisplayNode;
+    context.nodeMap.logicaldisplayNodeMap_[0] = logicalDisplayNode;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
     logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(0, RSDisplayNodeConfig());
     logicalDisplayNode->SetScreenId(2);
-    context.nodeMap.logicalDisplayNodeMap_[0] = logicalDisplayNode;
+    context.nodeMap.logicaldisplayNodeMap_[0] = logicalDisplayNode;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->SetScreenId(1);
-    context.nodeMap.logicalDisplayNodeMap_[0]->isBootAnimation_ = true;
+    context.nodeMap.logicaldisplayNodeMap_[0]->SetScreenId(1);
+    context.nodeMap.logicaldisplayNodeMap_[0]->isBootAnimation_ = true;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->isBootAnimation_ = false;
-    context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = false;
+    context.nodeMap.logicaldisplayNodeMap_[0]->isBootAnimation_ = false;
+    context.nodeMap.logicaldisplayNodeMap_[0]->isOnTheTree_ = false;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = false;
+    context.nodeMap.logicaldisplayNodeMap_[0]->isOnTheTree_ = false;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
-    EXPECT_EQ(context.nodeMap.logicalDisplayNodeMap_[0]->children_.size(), 0);
+    EXPECT_EQ(context.nodeMap.logicaldisplayNodeMap_[0]->children_.size(), 0);
 }
 
 /**
@@ -480,26 +480,26 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
     context.nodeMap.renderNodeMap_[0][0] = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
     context.nodeMap.screenNodeMap_.emplace(0, screenNode);
-    context.nodeMap.logicalDisplayNodeMap_.clear();
-    EXPECT_TRUE(context.nodeMap.logicalDisplayNodeMap_.empty());
+    context.nodeMap.logicaldisplayNodeMap_.clear();
+    EXPECT_TRUE(context.nodeMap.logicaldisplayNodeMap_.empty());
 
     auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(0, RSDisplayNodeConfig());
     logicalDisplayNode.reset();
-    context.nodeMap.logicalDisplayNodeMap_[0] = logicalDisplayNode;
+    context.nodeMap.logicaldisplayNodeMap_[0] = logicalDisplayNode;
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
 
     logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(0, RSDisplayNodeConfig());
     logicalDisplayNode->SetScreenId(2);
-    context.nodeMap.logicalDisplayNodeMap_[0] = logicalDisplayNode;
+    context.nodeMap.logicaldisplayNodeMap_[0] = logicalDisplayNode;
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->SetScreenId(1);
-    context.nodeMap.logicalDisplayNodeMap_[0]->isBootAnimation_ = true;
+    context.nodeMap.logicaldisplayNodeMap_[0]->SetScreenId(1);
+    context.nodeMap.logicaldisplayNodeMap_[0]->isBootAnimation_ = true;
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->isBootAnimation_ = false;
+    context.nodeMap.logicaldisplayNodeMap_[0]->isBootAnimation_ = false;
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
-    EXPECT_EQ(context.nodeMap.logicalDisplayNodeMap_[0]->children_.size(), 0);
+    EXPECT_EQ(context.nodeMap.logicaldisplayNodeMap_[0]->children_.size(), 0);
 }
 
 /**
@@ -787,37 +787,37 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer002, TestSize.Level1
     context.nodeMap.renderNodeMap_[0][0] = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
     context.nodeMap.screenNodeMap_.emplace(0, screenNode);
-    context.nodeMap.logicalDisplayNodeMap_.clear();
-    EXPECT_TRUE(context.nodeMap.logicalDisplayNodeMap_.empty());
+    context.nodeMap.logicaldisplayNodeMap_.clear();
+    EXPECT_TRUE(context.nodeMap.logicaldisplayNodeMap_.empty());
 
     auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(0, RSDisplayNodeConfig());
     logicalDisplayNode.reset();
-    context.nodeMap.logicalDisplayNodeMap_[0] = logicalDisplayNode;
+    context.nodeMap.logicaldisplayNodeMap_[0] = logicalDisplayNode;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
 
     logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(0, RSDisplayNodeConfig());
     logicalDisplayNode->SetScreenId(2);
-    context.nodeMap.logicalDisplayNodeMap_[0] = logicalDisplayNode;
+    context.nodeMap.logicaldisplayNodeMap_[0] = logicalDisplayNode;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->SetScreenId(1);
-    context.nodeMap.logicalDisplayNodeMap_[0]->isBootAnimation_ = true;
+    context.nodeMap.logicaldisplayNodeMap_[0]->SetScreenId(1);
+    context.nodeMap.logicaldisplayNodeMap_[0]->isBootAnimation_ = true;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->isBootAnimation_ = false;
+    context.nodeMap.logicaldisplayNodeMap_[0]->isBootAnimation_ = false;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
 
     std::shared_ptr<RSSurfaceRenderNode> surfaceNodeInWindow = nullptr;
-    context.nodeMap.logicalDisplayNodeMap_[0]->windowContainer_ = surfaceNodeInWindow;
+    context.nodeMap.logicaldisplayNodeMap_[0]->windowContainer_ = surfaceNodeInWindow;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
 
     surfaceNodeInWindow = std::make_shared<RSSurfaceRenderNode>(1);
-    context.nodeMap.logicalDisplayNodeMap_[0]->windowContainer_->isOnTheTree_ = false;
+    context.nodeMap.logicaldisplayNodeMap_[0]->windowContainer_->isOnTheTree_ = false;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->windowContainer_->isOnTheTree_ = true;
+    context.nodeMap.logicaldisplayNodeMap_[0]->windowContainer_->isOnTheTree_ = true;
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, 0, 1);
-    EXPECT_EQ(context.nodeMap.logicalDisplayNodeMap_[0]->children_.size(), 0);
+    EXPECT_EQ(context.nodeMap.logicaldisplayNodeMap_[0]->children_.size(), 0);
 }
 
 /**

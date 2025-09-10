@@ -171,7 +171,7 @@ RSRenderThread::RSRenderThread()
 #endif
     RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVsync = []() {
+        .requestNextVSync = []() {
             RSRenderThread::Instance().RequestNextVSync();
         },
         .isRequestedNextVSync = [this]() {

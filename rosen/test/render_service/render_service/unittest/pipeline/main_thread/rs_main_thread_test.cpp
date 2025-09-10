@@ -5733,11 +5733,11 @@ HWTEST_F(RSMainThreadTest, OnScreenConnectTest, TestSize.Level2)
     uint64_t screenId = 1;
     displayNode1->SetScreenId(screenId);
     displayNode1->waitToSetOnTree_ = true;
-    mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId1, displayNode1});
+    mainThread1->context_->nodeMap.logicaldisplayNodeMap_.insert({displayNodeId1, displayNode1});
 
     NodeId displayNodeId2 = 2;
     auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
-    mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId2, displayNode2});
+    mainThread1->context_->nodeMap.logicaldisplayNodeMap_.insert({displayNodeId2, displayNode2});
 
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());

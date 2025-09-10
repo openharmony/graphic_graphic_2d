@@ -109,12 +109,12 @@ int main()
     RSTransaction::FlushImplicitTransaction();
     sleep(2);
 
-    std::cout << "Local Magnification Case5: abnormal case2" << std::endl;
+    std::cout << "Local Magnification Case6: abnormal case2" << std::endl;
     surfaceNode->SetPositionZ(MAX_ZORDER);
     surfaceNode->SetAbilityBGAlpha(254);
     surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT);
-    surfaceNode->SetRegionToBeMagnified({ 1300, 500, 400, 250 });
-    surfaceNode->SetFrame({ 500, 500, BOUNDS_WIDTH, BOUNDS_HEIGHT });
+    surfaceNode->SetRegionToBeMagnified({1300, 500, 400, 250});
+    surfaceNode->SetFrame({500, 500, BOUNDS_WIDTH, BOUNDS_HEIGHT});
     RSTransaction::FlushImplicitTransaction();
     sleep(2);
 
