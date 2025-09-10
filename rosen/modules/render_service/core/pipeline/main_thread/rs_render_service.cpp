@@ -35,10 +35,13 @@
 #include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_RDO
 #include "feature/rdo/rs_rdo.h"
 #endif
 #ifdef RS_ENABLE_GPU
+#include "feature/round_corner_display/rs_message_bus.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
@@ -127,7 +130,7 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
 #ifdef RS_ENABLE_GPU
         RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
-        RSSingleton<RoundCornerDisplayManager>::GetInstance().RegisterRcdMsg();
+        RegisterRcdMsg();
 #endif
     }
 
@@ -222,6 +225,36 @@ void RSRenderService::Run()
     }
     RS_LOGE("Run");
     mainThread_->Start();
+}
+
+void RSRenderService::RegisterRcdMsg()
+{
+#ifdef RS_ENABLE_GPU
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
+        if (!isRcdServiceRegister_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+            auto& rcdHardManager = RSRcdRenderManager::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateDisplayParameter);
+            msgBus.RegisterTopic<NodeId, ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateOrientationStatus);
+            msgBus.RegisterTopic<NodeId, int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateNotchStatus);
+            msgBus.RegisterTopic<NodeId, bool>(
+                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
+            isRcdServiceRegister_ = true;
+            RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
+            return;
+        }
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
+    }
+#endif
 }
 
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
