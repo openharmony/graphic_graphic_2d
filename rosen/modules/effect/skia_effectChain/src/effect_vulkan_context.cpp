@@ -16,7 +16,6 @@
 #include "effect_vulkan_context.h"
 
 namespace OHOS::Rosen {
-std::mutex EffectVulkanContext::drawingContextMutex_;
 
 EffectVulkanContext::EffectVulkanContext(std::string cacheDir)
 {
@@ -24,29 +23,10 @@ EffectVulkanContext::EffectVulkanContext(std::string cacheDir)
     vulkanInterface_->Init(VulkanInterfaceType::BASIC_RENDER, false);
 }
 
-EffectVulkanContext::~EffectVulkanContext()
-{
-    std::lock_guard<std::mutex> lock(drawingContextMutex_);
-}
-
 EffectVulkanContext& EffectVulkanContext::GetSingleton(const std::string& cacheDir)
 {
     static EffectVulkanContext singleton = EffectVulkanContext(cacheDir);
     return singleton;
-}
-
-void EffectVulkanContext::ReleaseDrawingContextForThread(int tid)
-{
-    std::lock_guard<std::mutex> lock(drawingContextMutex_);
-}
-
-void EffectVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext)
-{
-    std::lock_guard<std::mutex> lock(drawingContextMutex_);
-    static thread_local auto func = [tid]() {
-        EffectVulkanContext::ReleaseDrawingContextForThread(tid);
-    };
-    static thread_local auto drawContextHolder = std::make_shared<DrawContextHolder>(func);
 }
 
 std::shared_ptr<Drawing::GPUContext> EffectVulkanContext::CreateDrawingContext()

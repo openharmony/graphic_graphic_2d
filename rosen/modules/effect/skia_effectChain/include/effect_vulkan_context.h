@@ -44,9 +44,8 @@ public:
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 private:
     explicit EffectVulkanContext(std::string cacheDir = "");
-    ~EffectVulkanContext();
+    ~EffectVulkanContext() = default;
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
-    static std::mutex drawingContextMutex_;
 };
 }
 
