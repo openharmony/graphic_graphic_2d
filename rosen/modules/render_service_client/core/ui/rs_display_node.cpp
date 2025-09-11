@@ -59,9 +59,10 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
         }
     }
     HILOG_COMM_INFO("RSDisplayNode::Create, id:%{public}" PRIu64 " config[screenId=%{public}" PRIu64
-        ", isMirror=%{public}d, mirroredNodeId=%{public}" PRIu64 ", isSync=%{public}d]",
-        node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored,
-        displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync);
+        ", isMirror=%{public}d, mirroredNodeId=%{public}" PRIu64 ", isSync=%{public}d, "
+        "mirrorSourceRotation: %{public}" PRIu32 "]", node->GetId(), displayNodeConfig.screenId,
+        displayNodeConfig.isMirrored, displayNodeConfig.mirrorNodeId, displayNodeConfig.isSync,
+        displayNodeConfig.mirrorSourceRotation);
     node->SetUIContextToken();
     return node;
 }
