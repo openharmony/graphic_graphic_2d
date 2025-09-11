@@ -2459,14 +2459,14 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
 bool RSMainThread::IfStatusBarDirtyOnly()
 {
-    RS_TRACE_NAME_FMT("checkIfStatusBarDirtyOnly");
     if (RSSystemProperties::GetAceTestMode()) {
         return false;
     }
+    RS_TRACE_NAME_FMT("checkIfStatusBarDirtyOnly");
     if (renderThreadParams_->GetImplicitAnimationEnd()) {
         return false;
     }
-    auto& activeNodesInRoot = RSMainThread::Instance()->GetContext().activeNodesInRoot_;
+    const auto& activeNodesInRoot = context_->GetActiveNodes();
     for (const auto& rootPair : activeNodesInRoot) {
         NodeId rootId = rootPair.first;
         auto rootNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(

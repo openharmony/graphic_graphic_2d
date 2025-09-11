@@ -115,6 +115,7 @@ public:
     // add node info after cmd data process
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
+    std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> GetActiveNodes();
 
     void AddPendingSyncNode(const std::shared_ptr<RSRenderNode> node);
 

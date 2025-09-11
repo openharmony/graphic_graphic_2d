@@ -43,6 +43,12 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
 }
 
+std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> RSContext::GetActiveNodes()
+{
+    std::lock_guard<std::mutex> lock(activeNodesInRootMutex_);
+    return activeNodesInRoot_;
+}
+
 bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
 {
     if (node == nullptr || node->GetId() == INVALID_NODEID) {
