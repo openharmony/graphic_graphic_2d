@@ -371,7 +371,8 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
 HWTEST_F(HgmEnergyConsumptionPolicyTest, EnergyConsumptionAssureanceTest, TestSize.Level0)
 {
     SetConfigEnable("true");
-    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DRAG_SCENE_FRAME_RATE_TYPE };
+    FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS,
+        SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE };
     EventInfo eventInfo = { .eventName = "ENERGY_CONSUMPTION_ASSURANCE", .eventStatus = false,
         .description = "DRAG_SCENE:1000" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
@@ -597,7 +598,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, HgmFrameRateManager, TestSize.Level1)
         .description = "DRAG_SCENE:1000" };
     HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
     linker->SetExpectedRange(FrameRateRange(0, 0, 0,
-        DRAG_SCENE_FRAME_RATE_TYPE));
+        SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE));
     mgr.UpdateSoftVSync(true);
     HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
     linker->SetExpectedRange(FrameRateRange(0, 0, 0,

@@ -32,7 +32,6 @@ const std::string VOTER_NAME[] = {
     "VOTER_MID",
     "VOTER_LOW",
 };
-constexpr uint32_t SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE = 6;
 const std::string VRATE_CONTROL_MINIFPS = "minifps";
 }
 
@@ -207,7 +206,7 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         }
     }
     auto appFrameRate =
-        isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE ?
+        isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
         OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
         appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
@@ -288,8 +287,8 @@ bool HgmSoftVSyncManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
     int32_t& appFrameRate = finalRange.preferred_;
     // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
-    if (appFrameRate != 0 && (finalRange.type_ != DRAG_SCENE_FRAME_RATE_TYPE ||
-        (finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE && /* ArkUI Vote */
+    if (appFrameRate != 0 && ((finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE) == 0 ||
+        ((finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE) != 0 && /*ArkUI Vote*/
         iter->second != std::numeric_limits<int>::max()))) { /* invisible window */
         RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return because "
             "appFrameRate[%d] changed by self, not arkui vote[%u], not invisble window", ExtractPid(linkerId),

@@ -16,22 +16,36 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_FRAME_RATE_RANGE_H
 #define ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_FRAME_RATE_RANGE_H
 #include <string>
+#include <unordered_map>
 
 #define RANGE_MAX_REFRESHRATE 144
 
 namespace OHOS {
 namespace Rosen {
-// different ltpo frame rate vote type
-constexpr uint32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
-constexpr uint32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
-constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
-constexpr uint32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
-constexpr uint32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
-constexpr uint32_t DRAG_SCENE_FRAME_RATE_TYPE = 6;
-constexpr uint32_t NATIVE_VSYNC_FRAME_RATE_TYPE = 7;
-// extent info of ltpo frame rate vote: it indicates the frame contains the first frame of animation,
-// its value should be independent from above types
-constexpr uint32_t ANIMATION_STATE_FIRST_FRAME = 0x1000;
+constexpr uint32_t UNKNOWN_FRAME_RATE_TYPE = 0;
+// ace scene
+constexpr uint32_t REFRESH_DRAG_FRAME_RATE_TYPE = (1 << 0);
+constexpr uint32_t SWIPER_DRAG_FRAME_RATE_TYPE = (1 << 1);
+constexpr uint32_t SCROLLABLE_DRAG_FRAME_RATE_TYPE = (1 << 2);
+constexpr uint32_t SCROLLBAR_DRAG_FRAME_RATE_TYPE = (1 << 3);
+constexpr uint32_t SPLIT_DRAG_FRAME_RATE_TYPE = (1 << 4);
+constexpr uint32_t PICKER_DRAG_FRAME_RATE_TYPE = (1 << 5);
+constexpr uint32_t SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE = (1 << 6);
+constexpr uint32_t ACE_COMPONENT_FRAME_RATE_TYPE = 0b1111111;
+// animator
+constexpr uint32_t ANIMATION_STATE_FIRST_FRAME = (1 << 12);
+constexpr uint32_t RS_ANIMATION_FRAME_RATE_TYPE = (1 << 13);
+constexpr uint32_t UI_ANIMATION_FRAME_RATE_TYPE = (1 << 14);
+constexpr uint32_t ANIMATION_FRAME_RATE_TYPE = (0b111 << 12);
+// developer's voter
+constexpr uint32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = (1 << 20);
+constexpr uint32_t NATIVE_VSYNC_FRAME_RATE_TYPE = (1 << 21);
+constexpr uint32_t XCOMPONENT_FRAME_RATE_TYPE = (1 << 22);
+constexpr uint32_t ANIMATOR_DISPLAY_SYNC_FRAME_RATE_TYPE = (1 << 23);
+constexpr uint32_t OTHER_DISPLAY_SYNC_FRAME_RATE_TYPE = (1 << 24);
+constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = (0b111 << 22);
+
+constexpr uint32_t FRAME_RATE_TYPE_MAX_BIT = 32;
 
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
@@ -72,7 +86,7 @@ public:
         this->min_ = 0;
         this->max_ = 0;
         this->preferred_ = 0;
-        this->type_ = 0;
+        this->type_ = UNKNOWN_FRAME_RATE_TYPE;
         this->isEnergyAssurance_ = false;
         this->componentScene_ = ComponentScene::UNKNOWN_SCENE;
     }
@@ -94,8 +108,11 @@ public:
 
     bool Merge(const FrameRateRange& other)
     {
+        if (other.IsValid()) {
+            type_ |= other.type_;
+        }
         if (this->preferred_ < other.preferred_) {
-            this->Set(other.min_, other.max_, other.preferred_, other.type_);
+            this->Set(other.min_, other.max_, other.preferred_);
             this->isEnergyAssurance_ = other.isEnergyAssurance_;
             this->componentScene_ = other.componentScene_;
             return true;
@@ -110,29 +127,58 @@ public:
             return std::string("COMPONENT_") + componentName + "_ASSURANCE";
         }
         std::string extInfo = "";
-        switch (type_ & ~ANIMATION_STATE_FIRST_FRAME) {
-            case RS_ANIMATION_FRAME_RATE_TYPE:
-                extInfo = "RS_ANIMATION";
-                break;
-            case UI_ANIMATION_FRAME_RATE_TYPE:
-                extInfo = "UI_ANIMATION";
-                break;
-            case DISPLAY_SYNC_FRAME_RATE_TYPE:
-                extInfo = "DISPLAY_SYNC";
-                break;
-            case ACE_COMPONENT_FRAME_RATE_TYPE:
-                extInfo = "ACE_COMPONENT";
-                break;
-            case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
-                extInfo = "DISPLAY_SOLOIST";
-                break;
-            default:
-                return "";
+        if (type_ & RS_ANIMATION_FRAME_RATE_TYPE) {
+            extInfo = "RS_ANIMATION";
+        } else if (type_ & UI_ANIMATION_FRAME_RATE_TYPE) {
+            extInfo = "UI_ANIMATION";
+        } else if (type_ & DISPLAY_SYNC_FRAME_RATE_TYPE) {
+            extInfo = "DISPLAY_SYNC";
+        } else if (type_ & ACE_COMPONENT_FRAME_RATE_TYPE) {
+            extInfo = "ACE_COMPONENT";
+        } else if (type_ & DISPLAY_SOLOIST_FRAME_RATE_TYPE) {
+            extInfo = "DISPLAY_SOLOIST";
         }
         if ((type_ & ANIMATION_STATE_FIRST_FRAME) != 0) {
             extInfo += "_FIRST_UI_ANIMATION_FRAME";
         }
         return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+    }
+
+    static std::string FrameRateType2Str(uint32_t frameRateType)
+    {
+        static const std::unordered_map<uint32_t, std::string> frameRateTypesMap = {
+            { REFRESH_DRAG_FRAME_RATE_TYPE, "REFRESH_DRAG" },
+            { SWIPER_DRAG_FRAME_RATE_TYPE, "SWIPER_DRAG" },
+            { SCROLLABLE_DRAG_FRAME_RATE_TYPE, "SCROLLABLE_DRAG" },
+            { SCROLLBAR_DRAG_FRAME_RATE_TYPE, "SCROLLBAR_DRAG_FRAME_RATE_TYPE" },
+            { SPLIT_DRAG_FRAME_RATE_TYPE, "SPLIT_DRAG" },
+            { PICKER_DRAG_FRAME_RATE_TYPE, "PICKER_DRAG" },
+            { SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE, "SCROLLABLE_MULTI_TASK" },
+            { ANIMATION_STATE_FIRST_FRAME, "ANIMATION_STATE_FIRST_FRAME" },
+            { RS_ANIMATION_FRAME_RATE_TYPE, "RS_ANIMATION" },
+            { UI_ANIMATION_FRAME_RATE_TYPE, "UI_ANIMATION" },
+            { DISPLAY_SOLOIST_FRAME_RATE_TYPE, "DISPLAY_SOLOIST" },
+            { NATIVE_VSYNC_FRAME_RATE_TYPE, "NATIVE_VSYNC" },
+            { XCOMPONENT_FRAME_RATE_TYPE, "XCOMPONENT" },
+            { ANIMATOR_DISPLAY_SYNC_FRAME_RATE_TYPE, "ANIMATOR_DISPLAY_SYNC" },
+            { OTHER_DISPLAY_SYNC_FRAME_RATE_TYPE, "OTHER_DISPLAY_SYNC" },
+        };
+
+        if (auto iter = frameRateTypesMap.find(frameRateType); iter != frameRateTypesMap.end()) {
+            return iter->second;
+        }
+        return "";
+    }
+
+    std::string GetAllTypeDescription() const
+    {
+        std::string allTypeDescription("[" + std::to_string(type_) + "] ");
+        for (int32_t i = 0; i < FRAME_RATE_TYPE_MAX_BIT; i++) {
+            if (auto typeDescription = FrameRateType2Str(type_ & (1 << i)); !typeDescription.empty()) {
+                allTypeDescription += typeDescription + ";";
+            }
+        }
+        return allTypeDescription;
     }
 
     std::string GetComponentName() const
@@ -159,7 +205,7 @@ public:
     int min_ = 0;
     int max_ = 0;
     int preferred_ = 0;
-    uint32_t type_ = 0;
+    uint32_t type_ = UNKNOWN_FRAME_RATE_TYPE;
     bool isEnergyAssurance_ = false;
     ComponentScene componentScene_ = ComponentScene::UNKNOWN_SCENE;
 };
