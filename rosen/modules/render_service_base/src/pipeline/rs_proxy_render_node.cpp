@@ -30,7 +30,7 @@ RSProxyRenderNode::RSProxyRenderNode(
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemoryTrack::Instance().RegisterNodeMem(ExtractPid(GetId()),
-        sizeof(*this), MEMORY_TYPE::MEM_RENDER_NODE); 
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_NODE);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
