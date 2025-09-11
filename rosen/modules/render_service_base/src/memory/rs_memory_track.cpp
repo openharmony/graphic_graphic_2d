@@ -96,8 +96,7 @@ void MemoryTrack::UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE ty
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = nodeMemOfPid_.find(pid);
-    if (it != nodeMemOfPid_.end())
-    {
+    if (it != nodeMemOfPid_.end()) {
         auto& memData = it->second;
         switch (type) {
             case MEMORY_TYPE::MEM_RENDER_NODE:
