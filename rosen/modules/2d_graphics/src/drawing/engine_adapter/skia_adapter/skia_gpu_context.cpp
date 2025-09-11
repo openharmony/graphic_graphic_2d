@@ -108,7 +108,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
 #ifdef SKIA_OHOS
-#ifdef TODO_M133_SKIA
+#ifndef TODO_M133_SKIA
     grOptions.clearSmallTexture = options.GetIsUniRender();
 #endif
 #endif
