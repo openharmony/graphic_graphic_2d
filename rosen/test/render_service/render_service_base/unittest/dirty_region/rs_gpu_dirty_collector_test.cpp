@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "dirty_region/rs_gpu_dirty_collector.h"
+#include "iconsumer_surface.h"
 #include "surface_buffer.h"
 
 using namespace testing;
@@ -267,5 +268,30 @@ HWTEST_F(RSGpuDirtyCollectorTest, IsGpuDirtyEnable001, TestSize.Level1)
 
     RSGpuDirtyCollector::GetInstance().SetSelfDrawingGpuDirtyPidList({ExtractPid(id)});
     ASSERT_TRUE(RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(id));
+}
+
+/**
+ * @tc.name: SetSelfDrawingBufferQueueId001
+ * @tc.desc: Test SetSelfDrawingBufferQueueId while buffer is nullptr or normal
+ * @tc.type: FUNC
+ * @tc.require: issueICSVLG
+ */
+HWTEST_F(RSGpuDirtyCollectorTest, SetSelfDrawingBufferQueueId002, TestSize.Level1)
+{
+    auto buffer = SurfaceBuffer::Create();
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create();
+    ASSERT_NE(consumer, nullptr);
+    auto id = consumer->GetUniqueId();
+ 
+    auto config = requestConfig;
+    config.usage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+    auto ret = buffer->Alloc(config);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(nullptr, id);
+    RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(buffer, id);
+    auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
+    ASSERT_NE(src, nullptr);
+    ASSERT_EQ(src->bufferQueueId, id);
 }
 } // namespace OHOS::Rosen
