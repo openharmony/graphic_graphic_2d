@@ -34,7 +34,7 @@
 namespace OHOS {
 namespace Rosen {
 /* Rectangle */
-struct MdcRect {
+struct MDCRectT {
     int32_t left = 0;
     int32_t top = 0;
     int32_t right = 0;
