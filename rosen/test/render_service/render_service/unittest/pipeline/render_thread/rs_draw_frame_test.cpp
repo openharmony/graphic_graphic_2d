@@ -186,5 +186,8 @@ HWTEST_F(RSDrawFrameTest, ClearDrawableResourceTest, TestSize.Level1)
     drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_ASYNC;
     drawFrame.ClearDrawableResource();
     ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
+    drawFrame.rsParallelType_ = static_cast<RsParallelType>(100);
+    drawFrame.ClearDrawableResource();
+    ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
 }
 }
