@@ -31,7 +31,7 @@ import { Resource } from 'global.resource';
  */
 namespace text {
   class Cleaner {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     private ptr: long = 0;
     private className: string;
     constructor(className: string, ptr: long) {
@@ -52,7 +52,7 @@ namespace text {
    * @since 12
    */
   export class FontCollection {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -121,7 +121,7 @@ namespace text {
    * @since 12
    */
   export class ParagraphBuilder {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -180,7 +180,7 @@ namespace text {
    * @since 12
    */
   export class Paragraph {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
