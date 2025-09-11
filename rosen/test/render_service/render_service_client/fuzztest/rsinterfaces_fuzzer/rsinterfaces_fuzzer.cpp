@@ -386,15 +386,6 @@ bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 
 bool DoFreezeScreen(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     // get data
     RSDisplayNodeConfig displayConfig = {
         static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
