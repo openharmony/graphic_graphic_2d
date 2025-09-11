@@ -212,7 +212,6 @@ public:
             case RSPropertyType::SHADOW_COLOR: return "ShadowColor";
             case RSPropertyType::SHADOW_OFFSET_X: return "ShadowOffsetX";
             case RSPropertyType::SHADOW_OFFSET_Y: return "ShadowOffsetY";
-            case RSPropertyType::SHADOW_ALPHA: return "ShadowAlpha";
             case RSPropertyType::SHADOW_ELEVATION: return "ShadowElevation";
             case RSPropertyType::SHADOW_RADIUS: return "ShadowRadius";
             case RSPropertyType::SHADOW_PATH: return "ShadowPath";

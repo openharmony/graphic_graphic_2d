@@ -363,6 +363,8 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetShadowTest start";
     auto canvasNode = RSCanvasNode::Create();
+    auto result = canvasNode->GetShowingProperties().GetShadowAlpha();
+    ASSERT_TRUE(result == std::nullopt);
     canvasNode->SetShadowColor(SK_ColorRED);
     auto result1 = canvasNode->GetShowingProperties().GetShadowColor();
     ASSERT_TRUE(result1.has_value());
@@ -381,7 +383,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
     canvasNode->SetShadowAlpha(SHOWING_FLOAT_NUM);
     auto result4 = canvasNode->GetShowingProperties().GetShadowAlpha();
     ASSERT_TRUE(result4.has_value());
-    EXPECT_FLOAT_EQ(result4.value(), SHOWING_FLOAT_NUM);
+    EXPECT_FLOAT_EQ(result4.value(), 1.f);
 
     canvasNode->SetShadowElevation(SHOWING_FLOAT_NUM);
     auto result5 = canvasNode->GetShowingProperties().GetShadowElevation();

@@ -279,7 +279,6 @@ public:
             case RSModifierType::SHADOW_COLOR: return "ShadowColor";
             case RSModifierType::SHADOW_OFFSET_X: return "ShadowOffsetX";
             case RSModifierType::SHADOW_OFFSET_Y: return "ShadowOffsetY";
-            case RSModifierType::SHADOW_ALPHA: return "ShadowAlpha";
             case RSModifierType::SHADOW_ELEVATION: return "ShadowElevation";
             case RSModifierType::SHADOW_RADIUS: return "ShadowRadius";
             case RSModifierType::SHADOW_PATH: return "ShadowPath";
