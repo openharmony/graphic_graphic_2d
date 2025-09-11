@@ -45,6 +45,7 @@ struct BlobDataType {
 };
 
 struct BufferSelfDrawingData {
+    uint64_t bufferQueueId;
     unsigned int left;
     unsigned int top;
     unsigned int right;
@@ -62,6 +63,7 @@ public:
     static BufferSelfDrawingData *GetBufferSelfDrawingData(const sptr<SurfaceBuffer> &buffer);
     static bool DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, Rect &rect);
     static void SetGpuDirtyEnabled(const sptr<SurfaceBuffer> &buffer, bool gpuDirtyEnable);
+    static void SetSelfDrawingBufferQueueId(const sptr<SurfaceBuffer> &buffer, const uint64_t bufferQueueId);
 #endif
 private:
     RSGpuDirtyCollector() = default;
