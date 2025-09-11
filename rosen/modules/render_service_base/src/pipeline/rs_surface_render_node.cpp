@@ -2294,22 +2294,24 @@ Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI&
 void RSSurfaceRenderNode::SetCornerRadiusOpaqueRegion(
     const RectI& absRect, const Vector4<int>& cornerRadius)
 {
-    Occlusion::Rect opaqueRect0{ absRect.GetLeft(), absRect.GetTop(),
+    Occlusion::Rect rect0{absRect.GetLeft(), absRect.GetTop(),
         absRect.GetRight(), absRect.GetBottom()};
-    Occlusion::Rect opaqueRect1{ absRect.GetLeft(), absRect.GetTop(),
-        absRect.GetLeft() + cornerRadius.x_, absRect.GetTop() + cornerRadius.x_};
-    Occlusion::Rect opaqueRect2{ absRect.GetRight() - cornerRadius.y_, absRect.GetTop(),
-        absRect.GetRight(), absRect.GetTop() + cornerRadius.y_};
-    Occlusion::Rect opaqueRect3{ absRect.GetRight() - cornerRadius.z_, absRect.GetBottom() - cornerRadius.z_,
-        absRect.GetRight(), absRect.GetBottom()};
-    Occlusion::Rect opaqueRect4{ absRect.GetLeft(), absRect.GetBottom() - cornerRadius.w_,
-        absRect.GetLeft() + cornerRadius.w_, absRect.GetBottom()};
 
-    Occlusion::Region r0{opaqueRect0};
-    Occlusion::Region r1{opaqueRect1};
-    Occlusion::Region r2{opaqueRect2};
-    Occlusion::Region r3{opaqueRect3};
-    Occlusion::Region r4{opaqueRect4};
+    const auto& cornerRect = GetGlobalCornerRect();
+    Occlusion::Rect rect1{cornerRect.GetLeft(), cornerRect.GetTop(),
+        cornerRect.GetLeft() + cornerRadius.x_, cornerRect.GetTop() + cornerRadius.x_};
+    Occlusion::Rect rect2{cornerRect.GetRight() - cornerRadius.y_, cornerRect.GetTop(),
+        cornerRect.GetRight(), cornerRect.GetTop() + cornerRadius.y_};
+    Occlusion::Rect rect3{cornerRect.GetRight() - cornerRadius.z_, cornerRect.GetBottom() - cornerRadius.z_,
+        cornerRect.GetRight(), cornerRect.GetBottom()};
+    Occlusion::Rect rect4{cornerRect.GetLeft(), cornerRect.GetBottom() - cornerRadius.w_,
+        cornerRect.GetLeft() + cornerRadius.w_, cornerRect.GetBottom()};
+
+    Occlusion::Region r0{rect0};
+    Occlusion::Region r1{rect1};
+    Occlusion::Region r2{rect2};
+    Occlusion::Region r3{rect3};
+    Occlusion::Region r4{rect4};
     roundedCornerRegion_ = r1.Or(r2).Or(r3).Or(r4);
     opaqueRegion_ = r0.Sub(r1).Sub(r2).Sub(r3).Sub(r4);
 }
@@ -2508,6 +2510,7 @@ bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, con
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         // 5. Round corner changed.
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
+        opaqueRegionBaseInfo_.cornerRect_ == GetGlobalCornerRect() &&
         // 6. Container window changed.
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow() &&
         opaqueRegionBaseInfo_.containerConfig_ == containerConfig_ &&
@@ -2526,6 +2529,7 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
     opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
     opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
     opaqueRegionBaseInfo_.cornerRadius_ = cornerRadius;
+    opaqueRegionBaseInfo_.cornerRect_ = GetGlobalCornerRect();
     opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
     opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
     opaqueRegionBaseInfo_.containerConfig_ = containerConfig_;

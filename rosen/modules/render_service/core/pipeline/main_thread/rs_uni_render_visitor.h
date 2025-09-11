@@ -397,6 +397,7 @@ private:
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
+    RectI curCornerRect_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
     bool isSwitchToSourceCrossNodePrepare_ = false;
     // visible filter in transparent surface or display must prepare

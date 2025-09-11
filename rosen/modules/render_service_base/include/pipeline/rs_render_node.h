@@ -419,7 +419,7 @@ public:
     void ResetChildRelevantFlags();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
-    void UpdateCurCornerRadius(Vector4f& curCornerRadius);
+    void UpdateCurCornerInfo(Vector4f& curCornerRadius, RectI& curCornerRect);
     void SetDirty(bool forceAddToActiveList = false);
 
     void ResetDirtyFlag()
@@ -789,9 +789,14 @@ public:
     }
     virtual void OnAlphaChanged() {}
 
-    inline const Vector4f& GetGlobalCornerRadius() noexcept
+    inline const Vector4f& GetGlobalCornerRadius() const noexcept
     {
         return globalCornerRadius_;
+    }
+
+    inline const RectI& GetGlobalCornerRect() const noexcept
+    {
+        return globalCornerRect_;
     }
 
     inline void SetGlobalCornerRadius(const Vector4f& globalCornerRadius) noexcept
@@ -1315,9 +1320,9 @@ private:
     // aim to record current frame clipped children dirty region, in abs coords
     RectI subTreeDirtyRegion_;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
+    RectI globalCornerRect_;
     RectF selfDrawingNodeDirtyRect_;
     RectI selfDrawingNodeAbsDirtyRect_;
-    RectF selfDrawingNodeAbsDirtyRectF_;
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache

@@ -2077,6 +2077,7 @@ private:
         bool isTransparent_ = false;
         bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
+        RectI cornerRect_;
         ContainerConfig containerConfig_;
         bool needDrawBehindWindow_ = false;
         RectI absDrawBehindWindowRegion_ = RectI();

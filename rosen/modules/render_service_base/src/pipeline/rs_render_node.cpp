@@ -1785,9 +1785,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             absCmdlistDrawRect_ = GetNeedUseCmdlistDrawRegion() ?
                 geoPtr->MapRect(cmdlistDrawRegion_, geoPtr->GetAbsMatrix()) : RectI(0, 0, 0, 0);
             if (isSelfDrawingNode_) {
-                selfDrawingNodeAbsDirtyRectF_ = geoPtr->MapRectWithoutRounding(
-                    selfDrawingNodeDirtyRect_, geoPtr->GetAbsMatrix());
-                selfDrawingNodeAbsDirtyRect_ = geoPtr->InflateToRectI(selfDrawingNodeAbsDirtyRectF_);
+                selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
             }
             UpdateSrcOrClipedAbsDrawRectChangeState(clipRect);
         }
@@ -4384,9 +4382,16 @@ void RSRenderNode::UpdateAbsDrawRect()
     stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
-void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
+void RSRenderNode::UpdateCurCornerInfo(Vector4f& curCornerRadius, RectI& curCornerRect)
 {
-    Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
+    const auto& selfCornerRadius = GetRenderProperties().GetCornerRadius();
+    if (!selfCornerRadius.IsZero()) {
+        const auto& selfCornerRect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        curCornerRect = curCornerRadius.IsZero() ? selfCornerRect : curCornerRect.IntersectRect(selfCornerRect);
+    }
+    globalCornerRect_ = curCornerRect;
+
+    Vector4f::Max(selfCornerRadius, curCornerRadius, curCornerRadius);
     globalCornerRadius_ = curCornerRadius;
 }
 
