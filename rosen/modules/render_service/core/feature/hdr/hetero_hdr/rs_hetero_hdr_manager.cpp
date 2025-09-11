@@ -68,12 +68,18 @@ RSHeteroHDRManager::RSHeteroHDRManager()
     }
 }
 
+int32_t RSHeteroHDRManager::RoundDownToEven(int32_t value)
+{
+    int32_t result = (value % 2 == 0) ? value : value - 1;
+    return (value > 0) ? result : 0;
+}
+
 RectI RSHeteroHDRManager::RectRound(RectI srcRect)
 {
-    int32_t srcWidth = srcRect.width_ & ~1;
-    int32_t srcHeight = srcRect.height_ & ~1;
-    int32_t srcTop = srcRect.top_ & ~1;
-    int32_t srcLeft = srcRect.left_ & ~1;
+    int32_t srcWidth = RoundDownToEven(srcRect.width_);
+    int32_t srcHeight = RoundDownToEven(srcRect.height_);
+    int32_t srcTop = RoundDownToEven(srcRect.top_);
+    int32_t srcLeft = RoundDownToEven(srcRect.left_);
 
     RectI dstRect = { srcLeft, srcTop, srcWidth, srcHeight };
     return dstRect;
@@ -207,6 +213,10 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
     curNodeId_ = surfaceNode->GetId();
     curHandleStatus_ = surfaceNode->GetVideoHdrStatus();
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(curNodeId_);
+    if (!drawable) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode drawable is nullptr");
+        return false;
+    }
     auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
     if (!nodeDrawable) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode nodeDrawable is nullptr");
@@ -573,7 +583,7 @@ void RSHeteroHDRManager::ProcessParamsUpdate(RSPaintFilterCanvas& canvas,
     drawableParams.buffer = hdrSurfaceHandler->GetBuffer();
     drawableParams.acquireFence = hdrSurfaceHandler->GetAcquireFence();
     drawableParams.hdrHeteroType = hdrHeteroType;
-    drawableParams.threadIndex = gettid();
+    drawableParams.threadIndex = static_cast<uint32_t>(gettid());
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeHDRHeadroomShader(float hdrRatio,
@@ -599,13 +609,10 @@ std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeHDRHeadroomShader
     static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect;
 
     if (hdrHeadroomShaderEffect == nullptr) {
-        std::lock_guard<std::mutex> lock(shaderMutex_);
+        hdrHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
         if (hdrHeadroomShaderEffect == nullptr) {
-            hdrHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
-            if (hdrHeadroomShaderEffect == nullptr) {
-                RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeHDRHeadroomShader CreateForShader failed");
-                return nullptr;
-            }
+            RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeHDRHeadroomShader CreateForShader failed");
+            return nullptr;
         }
     }
     std::shared_ptr<Drawing::ShaderEffect> children[] = { imageShader };
@@ -630,13 +637,10 @@ std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeAIHDRGainmapHeadr
     )";
     static std::shared_ptr<Drawing::RuntimeEffect> AIHDRHeadroomShaderEffect;
     if (AIHDRHeadroomShaderEffect == nullptr) {
-        std::lock_guard<std::mutex> lock(shaderMutex_);
+        AIHDRHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
         if (AIHDRHeadroomShaderEffect == nullptr) {
-            AIHDRHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
-            if (AIHDRHeadroomShaderEffect == nullptr) {
-                RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeAIHDRGainmapHeadroomShader CreateForShader failed");
-                return nullptr;
-            }
+            RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeAIHDRGainmapHeadroomShader CreateForShader failed");
+            return nullptr;
         }
     }
     std::shared_ptr<Drawing::ShaderEffect> children[] = { imageShader };

@@ -34,11 +34,11 @@
 namespace OHOS {
 namespace Rosen {
 /* Rectangle */
-using MDCRectT = struct MDCRectT {
-    int32_t left;
-    int32_t top;
-    int32_t right;
-    int32_t bottom;
+struct MDCRectT {
+    int32_t left = 0;
+    int32_t top = 0;
+    int32_t right = 0;
+    int32_t bottom = 0;
 };
 
 /* Request MDC effect resources */
@@ -92,7 +92,7 @@ using MDCContentsT = struct MDCCopybitContents {
      * input param: 1 is secure.
      * default 0 is non-secure
      */
-    uint32_t secure;
+    uint32_t secure = 0;
 
     /*
      * Transformation to apply to the buffer during copybit.
@@ -100,7 +100,7 @@ using MDCContentsT = struct MDCCopybitContents {
      * Set default value: 0
      * 90 degrees: NATIVE_WINDOW_TRANSFORM_ROT_90
      */
-    uint32_t transform;
+    uint32_t transform = 0;
 
     /*
      * This is the information of the source buffer to copybit. This handle
@@ -132,10 +132,10 @@ using MDCContentsT = struct MDCCopybitContents {
      * Area of the source to consider, the origin is the top-left corner of
      * the buffer.
      */
-    MDCRectT srcRect;
+    MDCRectT srcRect = {0, 0, 0, 0 };
 
     /* where to copybit the source rect onto the display. */
-    MDCRectT dstRect;
+    MDCRectT dstRect = {0, 0, 0, 0 };
 
     /*
      * Sync fence object that will be signaled when the buffer's
@@ -143,7 +143,7 @@ using MDCContentsT = struct MDCCopybitContents {
      * available. but the MDC must wait for the source buffer
      * to be signaled before reading from them.
      */
-    int32_t acquireFenceFd;
+    int32_t acquireFenceFd = -1;
 
     /*
      * Sync fence object that will be signaled when the buffer's
@@ -152,7 +152,7 @@ using MDCContentsT = struct MDCCopybitContents {
      * to be signaled before reading from them. The destination buffer will
      * be signaled when MDC copybit operation had been finished.
      */
-    int32_t releaseFenceFd;
+    int32_t releaseFenceFd = -1;
 
     /* Refer to the definition of the EffectResourceRequest enumeration values. */
     uint64_t effectResourceRequest = 0;
@@ -165,20 +165,20 @@ using MDCContentsT = struct MDCCopybitContents {
     /*
     * taskId For async mode to destroy cmdlist
     */
-    uint32_t* taskId;
+    uint32_t* taskId = nullptr;
 
     /*
     * taskPtr(cmdlistHeader) For async mode to submit task
     */
-    void** taskPtr;
+    void** taskPtr = nullptr;
 
     int32_t expectRunTime = -1;
 
     /*
     * accept nit from rs
     */
-    float displaySdrNit;
-    float displayHdrNit;
+    float displaySdrNit = 500.0f;
+    float displayHdrNit = 500.0f;
 };
 
 /*
@@ -213,13 +213,13 @@ struct MDCDeviceT {
 };
 
 struct HpaeTaskInfoT {
-    void** taskPtr;
-    uint32_t* taskId;
-    MDCRectT srcRect;
-    MDCRectT dstRect;
-    int transform = 0;
-    BufferHandle* srcHandle;
-    BufferHandle* dstHandle;
+    void** taskPtr = nullptr;
+    uint32_t* taskId = nullptr;
+    MDCRectT srcRect = { 0, 0, 0, 0 };
+    MDCRectT dstRect = { 0, 0, 0, 0 };
+    uint32_t transform = 0;
+    BufferHandle* srcHandle = nullptr;
+    BufferHandle* dstHandle = nullptr;
     int32_t acquireFenceFd = -1;
     int32_t releaseFenceFd = -1;
     float displaySdrNit = 500.0f; // default SDR 500 nit

@@ -126,7 +126,7 @@ int32_t RSHeteroHDRHpae::BuildHpaeHDRTask(HpaeTaskInfoT& taskInfo)
 
     int ret = mdcDev_->copybit(mdcDev_, 0, &mdcContent_);
 
-    RS_LOGD("[hdrHetero]:RSHeteroHDRHpae BuildHpaeHDRTask compose ret:%{public}d copybit taskId:%{public}d",
+    RS_LOGD("[hdrHetero]:RSHeteroHDRHpae BuildHpaeHDRTask compose ret:%{public}d copybit taskId:%{public}" PRIu32,
         ret, *mdcContent_.taskId);
 
     if (ret != 0) {
