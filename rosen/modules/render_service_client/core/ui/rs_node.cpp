@@ -3889,15 +3889,17 @@ void RSNode::DumpModifiers(std::string& out) const
         if (modifier == nullptr) {
             continue;
         }
-        if (modifier->IsCustom()) {
-            std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
+        auto customModifier =
+            modifier->IsCustom() ? std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier) : nullptr;
+        if (customModifier != nullptr) {
+            customModifier->UpdateDrawCmdList();
         }
         auto renderModifier = modifier->CreateRenderModifier();
         if (renderModifier != nullptr) {
             renderModifier->Dump(modifierInfo, ",");
         }
-        if (modifier->IsCustom()) {
-            std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
+        if (customModifier != nullptr) {
+            customModifier->ClearDrawCmdList();
         }
     }
     if (!modifierInfo.empty()) {
