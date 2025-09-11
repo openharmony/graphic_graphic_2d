@@ -581,4 +581,37 @@ HWTEST_F(RSNodeTest2, DoFlushModifier, TestSize.Level1)
     rsNode->DoFlushModifier();
     EXPECT_EQ(rsNode->modifiersNG_.size(), 2);
 }
+
+/**
+ * @tc.name: GetLocalGeometry
+ * @tc.desc: test results of GetLocalGeometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, GetLocalGeometry, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    boundsModifier->SetBounds({ 10.f, 10.f, 100.f, 100.f });
+    rsNode->AddModifier(boundsModifier);
+    rsNode->UpdateLocalGeometry();
+    auto localGeometry = rsNode->GetLocalGeometry();
+    rsNode->MarkDirty(NodeDirtyType::GEOMETRY, false);
+    EXPECT_NE(localGeometry, nullptr);
+    EXPECT_NE(localGeometry, nullptr);
+    EXPECT_EQ(localGeometry->x_, 10.f);
+    EXPECT_EQ(localGeometry->y_, 10.f);
+    EXPECT_EQ(localGeometry->width_, 100.f);
+    EXPECT_EQ(localGeometry->height_, 100.f);
+    auto property = boundsModifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS);
+    EXPECT_NE(property, nullptr);
+    rsNode->UnregisterProperty(property->GetId());
+    rsNode->RemoveModifier(boundsModifier);
+    rsNode->UpdateLocalGeometry();
+    localGeometry = rsNode->GetLocalGeometry();
+    EXPECT_NE(localGeometry, nullptr);
+    EXPECT_EQ(localGeometry->x_, -INFINITE);
+    EXPECT_EQ(localGeometry->y_, -INFINITE);
+    EXPECT_EQ(localGeometry->width_, -INFINITE);
+    EXPECT_EQ(localGeometry->height_, -INFINITE);
+}
 } // namespace OHOS::Rosen
