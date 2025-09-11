@@ -219,17 +219,17 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSLogicalDisplayRenderN
 {
     // Save the initial canvas state
     canvas_->Save();
+    if (displayDrawable.IsFirstTimeToProcessor()) {
+        RS_LOGI("RSUniRenderVirtualProcessor::FirstInit, id: %{public}" PRIu64 ", "
+            "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
+            "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d, "
+            "autoBufferRotation: %{public}d, mirrorSourceRotation: %{public}" PRIu32, virtualScreenId_,
+            virtualScreenWidth_, virtualScreenHeight_, mirroredScreenWidth_, mirroredScreenHeight_, screenRotation_,
+            screenCorrection_, canvasRotation_, scaleMode_, autoBufferRotation_, mirrorSourceRotation_);
+    }
     if (mirrorSourceRotation_ != ScreenRotation::INVALID_SCREEN_ROTATION) {
         displayDrawable.SetOriginScreenRotation(mirrorSourceRotation_);
     } else if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_ || autoBufferRotation_) {
-        if (displayDrawable.IsFirstTimeToProcessor()) {
-            RS_LOGI("RSUniRenderVirtualProcessor::FirstInit, id: %{public}" PRIu64 ", "
-                "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
-                "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d, "
-                "autoBufferRotation: %{public}d, mirrorSourceRotation: %{public}" PRIu32, virtualScreenId_,
-                virtualScreenWidth_, virtualScreenHeight_, mirroredScreenWidth_, mirroredScreenHeight_, screenRotation_,
-                screenCorrection_, canvasRotation_, scaleMode_, autoBufferRotation_, mirrorSourceRotation_);
-        }
         displayDrawable.SetOriginScreenRotation(screenRotation_);
     }
     auto rotationDiff =
