@@ -102,9 +102,10 @@ public:
     NODE_ON_TREE_STATUS GetNodeOnTreeStatus(const void* addr);
     void SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFlag, bool isOnTree);
 #endif
+    void RegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type);
+    void UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type);
     size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
-    MemoryNodeOfPid* FindNodeById(std::vector<MemoryNodeOfPid>& nodeVec, NodeId id) const;
-    void SetDrawableNodeInfo(const NodeId id, const MemoryInfo& info);
+
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;
@@ -130,6 +131,8 @@ private:
 
     // Data to statistic information of Pid
     std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
+    // RS Node Size [pid, RenderNodeMemSize, DrawableNodeMemSize]
+    std::unordered_map<pid_t, std::pair<size_t, size_t>> nodeMemOfPid_;
 
 #ifdef RS_MEMORY_INFO_MANAGER
     std::atomic<bool> globalRootNodeStatusChangeFlag{false};

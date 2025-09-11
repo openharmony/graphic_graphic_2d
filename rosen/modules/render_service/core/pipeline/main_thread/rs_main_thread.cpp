@@ -3941,18 +3941,8 @@ static std::string Data2String(std::string data, uint32_t tagetNumber)
     }
 }
 
-size_t RSMainThread::RenderNodeModifierDump(pid_t pid)
-{
-    size_t allModifySize = 0;
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraversalNodesByPid(pid, [&allModifySize] (const std::shared_ptr<RSBaseRenderNode>& node) {
-        allModifySize += node->GetAllModifierSize();
-    });
-    return allModifySize / BYTE_CONVERT;
-}
-
 void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-    std::unordered_map<int, int>& nullnode_info)
+    std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
 {
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
@@ -3965,6 +3955,7 @@ void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& nod
                 node_info[pid].first = 1;
                 node_info[pid].second = node->IsOnTheTree() ? 1 : 0;
             }
+            modifierSize[pid] += node->GetAllModifierSize();
         } else {
             if (nullnode_info.count(pid)) {
                 nullnode_info[pid]++;
@@ -3979,8 +3970,9 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
 {
     std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
     std::unordered_map<int, int> nullnode_info; // [pid, count]
+    std::unordered_map<pid_t, size_t> modifierSize; //[pid, modifiersize]
 
-    GetNodeInfo(node_info, nullnode_info);
+    GetNodeInfo(node_info, nullnode_info, modifierSize);
     std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("OnTree", NODE_DUMP_STRING_LEN) + "\t" +
@@ -3993,7 +3985,7 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
         size_t renderNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_NODE);
         size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid,
             MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
-        size_t modifierNodeSize = RenderNodeModifierDump(pid);
+        size_t modifierNodeSize = modifierNodeSize = modifierSize[pid] / BYTE_CONVERT;
         log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
         Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
         Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN) + "\t" +
