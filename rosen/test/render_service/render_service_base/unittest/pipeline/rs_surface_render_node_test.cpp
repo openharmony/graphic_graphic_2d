@@ -2447,6 +2447,26 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAncoFlags
+ * @tc.desc: test results of SetAncoFlags
+ * @tc.type: FUNC
+ * @tc.require: issueIARZ3Q
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetAncoFlags, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id);
+    NodeId idTop = 1;
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idTop);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(testNode->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+ 
+    testNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    EXPECT_EQ(surfaceParams->isForceRefresh_, false);
+    testNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE));
+    EXPECT_EQ(surfaceParams->isForceRefresh_, true);
+}
+
+/**
  * @tc.name: SetTunnelLayerId
  * @tc.desc: test results of SetTunnelLayerId
  * @tc.type: FUNC
