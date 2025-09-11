@@ -277,9 +277,8 @@ bool RSSymbolAnimation::SetReplaceAnimation(
             SetReplaceDisappear(disappearConfig, rsNode);
         }
     }
-    SetReplaceAppear(symbolAnimationConfig, rsNode,
-        !rsNode->replaceNodesSwapArr_[INVALID_STATUS].empty());
-    return true;
+
+    return SetReplaceAppear(symbolAnimationConfig, rsNode, symbolAnimationConfig->animationStart);
 }
 
 bool RSSymbolAnimation::SetReplaceDisappear(

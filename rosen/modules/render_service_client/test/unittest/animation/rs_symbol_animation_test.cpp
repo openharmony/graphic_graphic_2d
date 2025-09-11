@@ -123,7 +123,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
     symbolAnimationConfig->symbolSpanId++;
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_APPEAR;
     bool flag2 = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
-    EXPECT_TRUE(flag2 == true);
+    EXPECT_FALSE(flag2);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetSymbolAnimation002 end";
 }
