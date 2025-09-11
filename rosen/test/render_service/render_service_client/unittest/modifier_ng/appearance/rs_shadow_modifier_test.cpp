@@ -39,8 +39,8 @@ public:
 };
 
 /**
- * @tc.name: RSBorderModifierTest
- * @tc.desc: Test Set/Get functions of RSBorderModifier
+ * @tc.name: RSShadowModifierTest
+ * @tc.desc: Test Set/Get functions of RSShadowModifier
  * @tc.type: FUNC
  */
 HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
@@ -49,11 +49,12 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
 
     EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::SHADOW);
 
-    EXPECT_EQ(modifier->GetShadowAlpha(), -1.f);
+    EXPECT_EQ(modifier->GetShadowAlpha(), 0.f);
 
     Color shadowColor(15, 11, 15, 16);
     modifier->SetShadowColor(shadowColor);
     EXPECT_EQ(modifier->GetShadowColor(), shadowColor);
+    EXPECT_EQ(modifier->GetShadowAlpha(), shadowColor.GetAlphaF());
 
     modifier->SetShadowOffsetX(1.0f);
     EXPECT_EQ(modifier->GetShadowOffsetX(), 1.0f);
@@ -61,8 +62,8 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
     modifier->SetShadowOffsetY(1.0f);
     EXPECT_EQ(modifier->GetShadowOffsetY(), 1.0f);
 
-    modifier->SetShadowAlpha(1.0f);
-    EXPECT_EQ(modifier->GetShadowAlpha(), 1.0f);
+    modifier->SetShadowAlpha(0.5f);
+    EXPECT_EQ(modifier->GetShadowAlpha(), 0.5f);
 
     modifier->SetShadowElevation(1.0f);
     EXPECT_EQ(modifier->GetShadowElevation(), 1.0f);
@@ -85,5 +86,13 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
 
     modifier->SetUseShadowBatching(true);
     EXPECT_EQ(modifier->GetUseShadowBatching(), true);
+
+    //Shadow alpha combine test
+    std::shared_ptr<ModifierNG::RSShadowModifier> modifierCom = std::make_shared<ModifierNG::RSShadowModifier>();
+    modifierCom->SetShadowAlpha(0.5f);
+    EXPECT_EQ(modifierCom->GetShadowAlpha(), 0.5f);
+
+    modifierCom->SetShadowColor(shadowColor);
+    EXPECT_EQ(modifierCom->GetShadowAlpha(), shadowColor.GetAlphaF());
 }
 } // namespace OHOS::Rosen
