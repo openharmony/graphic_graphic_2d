@@ -99,6 +99,7 @@ public:
     ScreenId CreateVirtualScreen(sptr<RSScreenManager> screenManager);
     static void InitTestSurfaceNodeAndScreenInfo(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSUniRenderVisitor>& rSUniRenderVisitor);
+    std::shared_ptr<RSUniRenderVisitor> InitRSUniRenderVisitor();
 };
 
 class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
@@ -184,6 +185,21 @@ void RSUniRenderVisitorTest::InitTestSurfaceNodeAndScreenInfo(
     screenInfo.width = SCREEN_WIDTH;
     screenInfo.height = SCREEN_HEIGHT;
     rsUniRenderVisitor->curScreenNode_->screenInfo_ = screenInfo;
+}
+
+std::shared_ptr<RSUniRenderVisitor> RSUniRenderVisitorTest::InitRSUniRenderVisitor()
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ScreenId screenId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = displayNode;
+    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
+    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    return rsUniRenderVisitor;
 }
 
 /**
@@ -4134,13 +4150,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
+    auto rsUniRenderVisitor = InitRSUniRenderVisitor();
     rsUniRenderVisitor->needRecalculateOcclusion_ = true;
     // test: if node is non-cross-display, its visibility will be cropped by screen.
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
@@ -4165,14 +4175,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion003, TestSize.Level2)
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
-    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    auto rsUniRenderVisitor = InitRSUniRenderVisitor();
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
     rsSurfaceRenderNode->behindWindowOcclusionChanged_ = true;
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
@@ -4194,14 +4197,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion004, TestSize.Level2)
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
-    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    auto rsUniRenderVisitor = InitRSUniRenderVisitor();
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
     rsSurfaceRenderNode->behindWindowOcclusionChanged_ = false;
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
