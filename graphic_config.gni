@@ -396,7 +396,8 @@ if (defined(global_parts_info) &&
 }
 
 if (defined(global_parts_info) &&
-    defined(global_parts_info.multimedia_video_processing_engine)) {
+    defined(global_parts_info.multimedia_video_processing_engine) &&
+    defined(global_parts_info.multimedia_video_processing_engine_ext)) {
   use_video_processing_engine = true
 }
 
