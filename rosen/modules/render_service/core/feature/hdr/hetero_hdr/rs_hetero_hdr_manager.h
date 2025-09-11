@@ -116,7 +116,6 @@ private:
     void* taskPtr_ = nullptr;
     std::atomic<uint32_t> taskId_ = 0;
     int32_t buildHdrTaskStatus_ = 0;
-    std::mutex shaderMutex_;
     std::atomic<bool> destroyedFlag_{ true };
     bool isFixedDstBuffer_ = false;
     RectI dst_ = { 0, 0, 0, 0 };

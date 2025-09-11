@@ -609,22 +609,17 @@ std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeHDRHeadroomShader
     static std::shared_ptr<Drawing::RuntimeEffect> hdrHeadroomShaderEffect;
 
     if (hdrHeadroomShaderEffect == nullptr) {
-        std::lock_guard<std::mutex> lock(shaderMutex_);
+        hdrHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
         if (hdrHeadroomShaderEffect == nullptr) {
-            hdrHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
-            if (hdrHeadroomShaderEffect == nullptr) {
-                RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeHDRHeadroomShader CreateForShader failed");
-                return nullptr;
-            }
+            RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeHDRHeadroomShader CreateForShader failed");
+            return nullptr;
         }
     }
     std::shared_ptr<Drawing::ShaderEffect> children[] = { imageShader };
     size_t childCount = 1;
     auto data = std::make_shared<Drawing::Data>();
     data->BuildWithCopy(&hdrRatio, sizeof(hdrRatio));
-    std::lock_guard<std::mutex> lock(shaderMutex_);
-    auto shader = hdrHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
-    return shader;
+    return hdrHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeAIHDRGainmapHeadroomShader(float hdrRatio,
@@ -642,22 +637,17 @@ std::shared_ptr<Drawing::ShaderEffect> RSHeteroHDRManager::MakeAIHDRGainmapHeadr
     )";
     static std::shared_ptr<Drawing::RuntimeEffect> AIHDRHeadroomShaderEffect;
     if (AIHDRHeadroomShaderEffect == nullptr) {
-        std::lock_guard<std::mutex> lock(shaderMutex_);
+        AIHDRHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
         if (AIHDRHeadroomShaderEffect == nullptr) {
-            AIHDRHeadroomShaderEffect = Drawing::RuntimeEffect::CreateForShader(prog);
-            if (AIHDRHeadroomShaderEffect == nullptr) {
-                RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeAIHDRGainmapHeadroomShader CreateForShader failed");
-                return nullptr;
-            }
+            RS_LOGE("[hdrHetero]:RSHeteroHDRManager MakeAIHDRGainmapHeadroomShader CreateForShader failed");
+            return nullptr;
         }
     }
     std::shared_ptr<Drawing::ShaderEffect> children[] = { imageShader };
     size_t childCount = 1;
     auto data = std::make_shared<Drawing::Data>();
     data->BuildWithCopy(&hdrRatio, sizeof(hdrRatio));
-    std::lock_guard<std::mutex> lock(shaderMutex_);
-    auto shader = AIHDRHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
-    return shader;
+    return AIHDRHeadroomShaderEffect->MakeShader(data, children, childCount, nullptr, false);
 }
 
 void RSHeteroHDRManager::GenerateHDRHeteroShader(
