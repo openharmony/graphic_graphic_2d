@@ -165,7 +165,7 @@ using MDCContentsT = struct MDCCopybitContents {
     /*
     * taskId For async mode to destroy cmdlist
     */
-    uint32_t* taskId = 0;
+    uint32_t* taskId = nullptr;
 
     /*
     * taskPtr(cmdlistHeader) For async mode to submit task
@@ -214,7 +214,7 @@ struct MDCDeviceT {
 
 struct HpaeTaskInfoT {
     void** taskPtr = nullptr;
-    uint32_t* taskId = 0;
+    uint32_t* taskId = nullptr;
     MDCRectT srcRect = { 0, 0, 0, 0 };
     MDCRectT dstRect = { 0, 0, 0, 0 };
     uint32_t transform = 0;
