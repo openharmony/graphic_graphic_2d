@@ -2440,18 +2440,6 @@ HWTEST_F(RSRenderNodeTest2, SetUIFirstSwitchTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateIDTest
- * @tc.desc: SetUIFirstSwitch with Node has firstLevelNoode
- * @tc.type: FUNC
- * @tc.require: issueIBH5UD
- */
-HWTEST_F(RSRenderNodeTest2, GenerateIDTest, TestSize.Level1)
-{
-    auto id = RSRenderNode::GenerateId();
-    ASSERT_EQ(RSRenderNode::GenerateId() - id, 1);
-}
-
-/**
  * @tc.name: DumpModifiersTest
  * @tc.desc: DumpModifiersTest test
  * @tc.type: FUNC

@@ -507,8 +507,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessRcdSurfaceTest, TestSize.Level2
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RCDSurfaceType type = RCDSurfaceType::INVALID;
-    auto node = RSRcdSurfaceRenderNode::Create(nodeId, type);
-    processor->ProcessRcdSurface(*node);
+    RSRcdSurfaceRenderNode node(nodeId, type);
+    processor->ProcessRcdSurface(node);
     EXPECT_FALSE(processor->forceCPU_);
 }
 
