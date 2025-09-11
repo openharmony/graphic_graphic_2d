@@ -60,7 +60,7 @@ class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id)
     {
-        MemoryTrack::Instance().RegisterNodeMem(ExtractPid(GetId()),
+        MemoryTrack::Instance().RegisterNodeMem(ExtractPid(id),
             sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     }
 
