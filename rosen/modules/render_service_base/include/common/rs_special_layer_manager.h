@@ -15,10 +15,12 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMON_RS_SPECIAL_LAYER_MANAGER_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_SPECIAL_LAYER_MANAGER_H
 
+#include <map>
+#include <set>
+#include <stack>
+
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "map"
-#include "set"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,6 +54,10 @@ enum SpecialLayerType : uint32_t {
 
 class RSB_EXPORT RSSpecialLayerManager {
 public:
+    static void SetWhiteListRootId(LeashPersistentId id);
+    static LeashPersistentId GetCurWhiteListRootId();
+    static void ResetWhiteListRootId(LeashPersistentId id);
+
     RSSpecialLayerManager() = default;
     ~RSSpecialLayerManager() = default;
 
@@ -66,11 +72,39 @@ public:
     void ClearScreenSpecialLayer();
 
 private:
+    static std::stack<LeashPersistentId> whiteListRootIds_;
+
     uint32_t specialLayerType_ = SpecialLayerType::NONE;
     // key:SpecialLayerType value:std::set<NodeId>
     std::map<uint32_t, std::set<NodeId>> specialLayerIds_;
     // key:ScreenId value:SpecialLayerType
     std::map<uint64_t, uint32_t> screenSpecialLayer_;
+};
+
+class AutoSpecialLayerStateRecover {
+public:
+    /** Preserve specialLayer state and recover. Used for whiteListRootId currently.
+        @param LeashPersistentId whiteListRootId
+        @return utility to special layer state recovery on destructor
+    */
+    AutoSpecialLayerStateRecover(LeashPersistentId id)
+        : currentRootId_(id)
+    {
+        RSSpecialLayerManager::SetWhiteListRootId(id);
+    }
+
+    AutoSpecialLayerStateRecover(AutoSpecialLayerStateRecover&&) = delete;
+    AutoSpecialLayerStateRecover(const AutoSpecialLayerStateRecover&) = delete;
+    AutoSpecialLayerStateRecover& operator=(AutoSpecialLayerStateRecover&&) = delete;
+    AutoSpecialLayerStateRecover& operator=(const AutoSpecialLayerStateRecover&) = delete;
+
+    ~AutoSpecialLayerStateRecover()
+    {
+        RSSpecialLayerManager::ResetWhiteListRootId(currentRootId_);
+    }
+
+private:
+    LeashPersistentId currentRootId_ = INVALID_LEASH_PERSISTENTID;
 };
 } // namespace Rosen
 } // namespace OHOS
