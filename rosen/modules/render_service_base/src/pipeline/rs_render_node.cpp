@@ -932,6 +932,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         if (surfaceNode->HasSubSurfaceNodes()) {
             out += surfaceNode->SubSurfaceNodesDump();
         }
+        if (surfaceNode->IsSubSurfaceNode()) {
+            out += ", isSubSurfaceId[" + std::to_string(GetId()) + "]";
+        }
         out += ", abilityState: " +
             std::string(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ?
             "foreground" : "background");

@@ -1937,6 +1937,21 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSRenderNodeDumpTest004
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test, node is subSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest004, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->isSubSurfaceNode_ = true;
+    surfaceNode->DumpTree(0, outTest);
+    ASSERT_TRUE(outTest.find("isSubSurfaceId") != string::npos);
+}
+
+/**
  * @tc.name: RSSurfaceRenderNodeDumpTest
  * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
  * @tc.type: FUNC

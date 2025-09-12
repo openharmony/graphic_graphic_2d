@@ -446,7 +446,12 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
             surfaceParams.GetIsRotating(), surfaceParams.GetAttractionAnimation());
         return;
     }
-    bool dirtyBelowContainsFilterNode = false;
+    if (surfaceParams.IsSubSurfaceNode()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], Name[%s], "
+            "subSurface's filter cache not participate in occlusion",
+            surfaceParams.GetId(), surfaceParams.GetName().c_str());
+        return;
+    }
     for (auto& filterNodeId : surfaceParams.GetVisibleFilterChild()) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(filterNodeId);
         if (drawableAdapter == nullptr) {
@@ -466,10 +471,10 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
         }
         // Filter cache occlusion need satisfy:
         // 1.The filter node global alpha equals 1;
-        // 2.There is no invalid filter cache node below, which should take snapshot;
+        // 2.The node type is not EFFECT_NODE;
         // 3.The filter node has no global corner;
-        // 4.The node type is not EFFECT_NODE;
-        if (ROSEN_EQ(filterParams->GetGlobalAlpha(), 1.f) && !dirtyBelowContainsFilterNode &&
+        // 4.There is no invalid filter cache node below, which should take snapshot;
+        if (ROSEN_EQ(filterParams->GetGlobalAlpha(), 1.f) &&
             !filterParams->HasGlobalCorner() && filterParams->GetType() != RSRenderNodeType::EFFECT_NODE) {
             bool cacheValid = filterNodeDrawable->IsFilterCacheValidForOcclusion();
             RectI filterCachedRect = filterNodeDrawable->GetFilterCachedRegion();
@@ -478,13 +483,15 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
                 surfaceParams.IsMainWindowType() && cacheValid && screenRect.IsInsideOf(filterCachedRect));
         }
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], globalAlpha: %f, "
-            "hasInvalidFilterCacheBefore: %d, hasNoCorner: %d, isNodeTypeCorrect: %d, isCacheValid: %d, "
-            "cacheRect: %s", filterNodeId, filterParams->GetGlobalAlpha(), !dirtyBelowContainsFilterNode,
-            !filterParams->HasGlobalCorner(), filterParams->GetType() != RSRenderNodeType::EFFECT_NODE,
+            "hasNoCorner: %d, isNodeTypeCorrect: %d, isCacheValid: %d, cacheRect: %s",
+            filterNodeId, filterParams->GetGlobalAlpha(), !filterParams->HasGlobalCorner(),
+            filterParams->GetType() != RSRenderNodeType::EFFECT_NODE,
             filterNodeDrawable->IsFilterCacheValidForOcclusion(),
             filterNodeDrawable->GetFilterCachedRegion().ToString().c_str());
         if (filterParams->GetEffectNodeShouldPaint() && !filterNodeDrawable->IsFilterCacheValidForOcclusion()) {
-            dirtyBelowContainsFilterNode = true;
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], Name[%s], "
+                "Has invalid filter cache before", surfaceParams.GetId(), surfaceParams.GetName().c_str());
+            break;
         }
     }
 }
