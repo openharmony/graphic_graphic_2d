@@ -722,6 +722,7 @@ HWTEST_F(RSHdrUtilTest, IsHDRCastTest, TestSize.Level2)
     EXPECT_EQ(ret, true);
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: SetColorSpaceConverterDisplayParameter
  * @tc.desc: test SetColorSpaceConverterDisplayParameter with different screenshotType
@@ -767,5 +768,6 @@ HWTEST_F(RSHdrUtilTest, SetColorSpaceConverterDisplayParameter, TestSize.Level1)
     EXPECT_EQ(parameter.tmoNits, RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS);
     EXPECT_EQ(ret, true);
 }
+#endif
 
 } // namespace OHOS::Rosen
