@@ -155,6 +155,8 @@ std::string VisibleDataToString(const VisibleData& val)
 
 } // namespace
 
+std::unordered_set<NodeId> RSUniRenderVisitor::allBlackList_;
+std::unordered_set<NodeId> RSUniRenderVisitor::allWhiteList_;
 bool RSUniRenderVisitor::isLastFrameRotating_ = false;
 
 RSUniRenderVisitor::RSUniRenderVisitor()
@@ -1928,14 +1930,20 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
         curScreenNode_->GetScreenInfo().width, curScreenNode_->GetScreenInfo().height);
     curScreenDirtyManager_->SetActiveSurfaceRect(curScreenNode_->GetScreenInfo().activeRect);
     screenManager_->SetScreenHasProtectedLayer(node.GetScreenId(), false);
-    allBlackList_ = screenManager_->GetAllBlackList();
-    allWhiteList_ = screenManager_->GetAllWhiteList();
+    auto allBlackList = screenManager_->GetAllBlackList();
+    auto allWhiteList = screenManager_->GetAllWhiteList();
+    if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
+        allBlackList_ = std::move(allBlackList);
+        allWhiteList_ = std::move(allWhiteList);
+        needRecalculateOcclusion_ = true;
+    } else {
+        needRecalculateOcclusion_ = false;
+    }
     screenWhiteList_ = screenManager_->GetScreenWhiteList();
     screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
 
     // 3 init Occlusion info
-    needRecalculateOcclusion_ = false;
     accumulatedOcclusionRegion_.Reset();
     accumulatedOcclusionRegionBehindWindow_.Reset();
     occlusionRegionWithoutSkipLayer_.Reset();

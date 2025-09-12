@@ -2578,6 +2578,44 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty001, TestSize.L
     screenManager->RemoveVirtualScreen(screenId);
 }
 
+/*
+ * @tc.name: InitScreenInfo001
+ * @tc.desc: Verify that the InitScreenInfo method correctly sets the needRecalculateOcclusion_ flag
+ *           under different blacklist and whitelist configurations.
+ * @tc.type: FUNC
+ * @tc.require: issueICXRGY
+ */
+HWTEST_F(RSUniRenderVisitorTest, InitScreenInfo001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    constexpr NodeId defaultNodeId{1};
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(defaultNodeId, 0, rsContext->weak_from_this());
+    rsScreenRenderNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
+    ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
+
+    rsUniRenderVisitor->allBlackList_ = rsUniRenderVisitor->screenManager_->GetAllBlackList();
+    rsUniRenderVisitor->allWhiteList_ = rsUniRenderVisitor->screenManager_->GetAllWhiteList();
+    rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
+    EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, false);
+
+    constexpr NodeId nodeId{std::numeric_limits<NodeId>::max()};
+    rsUniRenderVisitor->allBlackList_.emplace(nodeId);
+    rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
+    EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
+
+    rsUniRenderVisitor->allBlackList_ = rsUniRenderVisitor->screenManager_->GetAllBlackList();
+    rsUniRenderVisitor->allWhiteList_.emplace(nodeId);
+    rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
+    rsUniRenderVisitor->allBlackList_.clear();
+    rsUniRenderVisitor->allWhiteList_.clear();
+    EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
+}
+
 /**
  * @tc.name: BeforeUpdateSurfaceDirtyCalc001
  * @tc.desc: Test BeforeUpdateSurfaceDirtyCalc with empty node

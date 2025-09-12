@@ -369,8 +369,8 @@ private:
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     int16_t occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
     sptr<RSScreenManager> screenManager_;
-    std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
-    std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
+    static std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
+    static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     // The info of whitelist contains screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
 
