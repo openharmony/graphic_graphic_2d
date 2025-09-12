@@ -984,8 +984,37 @@ HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest001, TestSize.Level1)
     layerInfo.dstRect.w = 400;
     layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(100, 100);
     ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
     EXPECT_EQ(ret, true);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(0, 100);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, true);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(0, 0);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, true);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(100, 0);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, true);
+
 
     layerInfo.srcRect.w = 0;
     layerInfo.srcRect.h = 400;
@@ -1112,6 +1141,7 @@ HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest002, TestSize.Level1)
     layerInfo.dstRect.w = 400;
     layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(100, 100);
 
     sptr<BufferExtraData> extraData = surfaceParams->buffer_->GetExtraData();
     ASSERT_NE(extraData, nullptr);
