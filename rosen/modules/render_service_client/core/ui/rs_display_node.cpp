@@ -225,7 +225,7 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetScreenRotation>(GetId(), screenRotation);
     AddCommand(command, true);
     ROSEN_LOGI("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
-               " screenRotation:[%{public}d]", GetId(), rotation);
+               " screenRotation:[%{public}u]", GetId(), rotation);
 }
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext)

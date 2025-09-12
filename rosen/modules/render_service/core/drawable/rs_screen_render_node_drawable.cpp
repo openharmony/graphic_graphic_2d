@@ -373,7 +373,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
     bool hardCursorNeedCommit = (hasHardCursor != hardCursorLastCommitSuccess_);
     auto forceCommitReason = uniParam->GetForceCommitReason();
     bool layersNeedCommit = IsForceCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
-    RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %d, forceUpdateByHwcNodes %d, "
+    RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %u, forceUpdateByHwcNodes %d, "
         "byHardCursor: %d", forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hardCursorNeedCommit);
     if (!layersNeedCommit && !hardCursorNeedCommit) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
@@ -408,7 +408,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
     }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
+                " TaskNum:[%{public}u]", RSHardwareThread::Instance().GetunExecuteTaskNum());
         RSHardwareThread::Instance().DumpEventQueue();
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);

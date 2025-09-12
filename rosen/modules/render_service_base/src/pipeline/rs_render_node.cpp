@@ -1373,7 +1373,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     if (ChildHasVisibleFilter()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
+        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%lu] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
     // if clean without filter skip subtree
@@ -1417,7 +1417,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     }
     SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty() || IsAccessibilityConfigChanged()));
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "SetDrawingCacheChanged id:%llu nodeGroupType:%d contentDirty:%d propertyDirty:%d subTreeDirty:%d "
+        "SetDrawingCacheChanged id:%llu nodeGroupType:%u contentDirty:%d propertyDirty:%d subTreeDirty:%d "
         "AccessibilityConfigChanged:%d",
         GetId(), nodeGroupType_, isContentDirty_, GetRenderProperties().IsContentDirty(), IsSubTreeDirty(),
         IsAccessibilityConfigChanged());
@@ -4494,7 +4494,7 @@ void RSRenderNode::OnSync()
 
         // copy newest for uifirst root node, now force sync done nodes
         if (uifirstNeedSync_) {
-            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lu", GetId());
             renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
                                                         renderDrawable_->drawCmdList_.end());
             renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
@@ -4502,7 +4502,7 @@ void RSRenderNode::OnSync()
             uifirstNeedSync_ = false;
         }
     } else {
-        RS_TRACE_NAME_FMT("partial_sync %lld", GetId());
+        RS_TRACE_NAME_FMT("partial_sync %lu", GetId());
         std::vector<RSDrawableSlot> todele;
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
@@ -4629,7 +4629,7 @@ void RSRenderNode::SetStartingWindowFlag(bool startingFlag)
 
 void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isUifirstNode:%d", GetId(), isUifirstNode);
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isUifirstNode:%d", GetId(), isUifirstNode);
     isUifirstNode_ = isUifirstNode;
     isUifirstDelay_ = 0;
 }
@@ -4637,7 +4637,7 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
 
 void RSRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
-    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isForceFlag:%d, isUifirstEnable:%d",
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
         GetId(), isForceFlag, isUifirstEnable);
     ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
         GetId(), isForceFlag, isUifirstEnable);

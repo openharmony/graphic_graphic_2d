@@ -100,7 +100,7 @@ void RSLogicalDisplayRenderNodeDrawable::ClearCanvasStencil(RSPaintFilterCanvas&
     if (topSurfaceOpaqueRects.empty()) {
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("ClearStencil, rect(0, 0, %d, %d), stencilVal: 0",
+    RS_OPTIONAL_TRACE_NAME_FMT("ClearStencil, rect(0, 0, %u, %u), stencilVal: 0",
         screenInfo.width, screenInfo.height);
     canvas.ClearStencil({0, 0, screenInfo.width, screenInfo.height}, 0);
     std::reverse(topSurfaceOpaqueRects.begin(), topSurfaceOpaqueRects.end());
