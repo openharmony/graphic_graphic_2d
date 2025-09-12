@@ -1245,7 +1245,6 @@ HWTEST_F(RSTransactionHandlerTest, TestPostTask, TestSize.Level1)
     transaction->PostDelayTask(task, 0);
 
     transaction->taskRunner_ = nullptr;
-    ASSERT_EQ(transaction->taskRunner_, nullptr);
     transaction->PostDelayTask(task, 0);
 }
 
