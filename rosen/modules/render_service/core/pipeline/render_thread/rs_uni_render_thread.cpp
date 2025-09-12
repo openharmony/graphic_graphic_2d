@@ -949,6 +949,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         }
         this->isTimeToReclaim_.store(false);
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
+        SetIsPostedReclaimMemoryTask(false);
     };
 
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
@@ -969,11 +970,15 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
             DefaultClearMemoryCache();
         }
     }
-    bool ifStatusBarDirtyOnly = RSMainThread::Instance()->GetIfStatusBarDirtyOnly();
-    if (isTimeToReclaim_.load() && !ifStatusBarDirtyOnly) {
+    if (isTimeToReclaim_.load()) {
+        bool ifStatusBarDirtyOnly = RSMainThread::Instance()->GetIfStatusBarDirtyOnly();
+        bool ifInterrupt = RSReclaimMemoryManager::Instance().IsReclaimInterrupt();
+        if (ifStatusBarDirtyOnly && !ifInterrupt) {
+            return;
+        }
         RemoveTask(RECLAIM_MEMORY);
         SetIsPostedReclaimMemoryTask(false);
-        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+        if (ifInterrupt) {
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
         } else if (!isDoDirectComposition) {

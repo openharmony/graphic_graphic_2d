@@ -2122,6 +2122,39 @@ HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IfStatusBarDirtyOnly005
+ * @tc.desc: Test IfStatusBarDirtyOnly when isImplicitAnimationEnd_
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& context = mainThread->GetContext();
+    context.activeNodesInRoot_.clear();
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    mainThread->renderThreadParams_->SetImplicitAnimationEnd(true);
+    EXPECT_FALSE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
+
+/**
+ * @tc.name: IfStatusBarDirtyOnly006
+ * @tc.desc: Test IfStatusBarDirtyOnly when persist.ace.testmode.enabled
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+    EXPECT_FALSE(mainThread->IfStatusBarDirtyOnly());
+}
+
+/**
  * @tc.name: IsFirstFrameOfOverdrawSwitch
  * @tc.desc: test IsFirstFrameOfOverdrawSwitch
  * @tc.type: FUNC

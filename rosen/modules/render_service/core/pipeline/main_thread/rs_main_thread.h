@@ -404,6 +404,11 @@ public:
         return ifStatusBarDirtyOnly_.load();
     }
 
+    void SetIfStatusBarDirtyOnly(bool ifStatusBarDirtyOnly)
+    {
+        ifStatusBarDirtyOnly_.store(ifStatusBarDirtyOnly);
+    }
+
     void StartGPUDraw();
 
     void EndGPUDraw();
