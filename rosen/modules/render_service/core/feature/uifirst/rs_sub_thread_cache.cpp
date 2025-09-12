@@ -1097,7 +1097,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
             surfaceDrawable->nodeId_);
     }
     surfaceDrawable->DrawForeground(canvas, bounds);
-    surfaceDrawable->DrawWatermark(canvas, surfaceParams);
+    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

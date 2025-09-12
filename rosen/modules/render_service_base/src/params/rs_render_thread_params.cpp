@@ -16,19 +16,19 @@
 #include "params/rs_render_thread_params.h"
 
 namespace OHOS::Rosen {
-std::shared_ptr<Media::PixelMap> RSRenderThreadParams::GetWatermark(pid_t pid, const std::string& name) const
+std::shared_ptr<Drawing::Image> RSRenderThreadParams::GetWatermark(const std::string& name) const
 {
-    auto iter = surfaceNodeWatermarks_.find({pid, name});
-    if (iter != surfaceNodeWatermarks_.end()) {
-        return iter->second;
+    auto iter = surfaceWatermarks_.find(name);
+    if (iter == surfaceWatermarks_.end()) {
+        return nullptr;
     }
-    return nullptr;
+    return iter->second.first;
 }
 
-void RSRenderThreadParams::SetWatermarks(std::map<std::pair<pid_t, std::string>,
-    std::shared_ptr<Media::PixelMap>>& watermarks)
+void RSRenderThreadParams::SetWatermarks(std::unordered_map<std::string,
+    std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks)
 {
-    surfaceNodeWatermarks_ = watermarks;
+    surfaceWatermarks_ = watermarks;
 }
 
 void RSRenderThreadParams::SetSecurityDisplay(bool isSecurityDisplay)

@@ -24,7 +24,10 @@ namespace Rosen {
 namespace {
 const uint8_t DO_SHOW_WATERMARK = 0;
 const uint8_t DO_SET_WATERMARK = 1;
-const uint8_t TARGET_SIZE = 2;
+const uint8_t DO_SET_SURFACE_WATERMARK = 2;
+const uint8_t DO_CLEAR_SURFACE_WATERMARK_FOR_NODES = 3;
+const uint8_t DO_CLEAR_SURFACE_WATERMARK = 4;
+const uint8_t TARGET_SIZE = 5;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -114,6 +117,40 @@ void DoSetWatermark()
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetWatermark(name, watermark);
 }
+
+void DoSetSurfaceWatermark()
+{
+    std::string name = GetStringFromData(STR_LEN);
+    opts.size.width = GetData<int32_t>();
+    opts.size.height = GetData<int32_t>();
+    opts.srcPixelFormat = static_cast<Media::PixelFormat>(GetData<int32_t>());
+    opts.pixelFormat = static_cast<Media::PixelFormat>(GetData<int32_t>());
+    opts.alphaType = static_cast<Media::AlphaType>(GetData<int32_t>());
+    opts.scaleMode = static_cast<Media::ScaleMode>(GetData<int32_t>());
+    opts.editable = GetData<bool>();
+    opts.useSourceIfMatch = GetData<bool>();
+    std::shared_ptr<Media::PixelMap>  watermark = Media::PixelMap::Create(opts);
+
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    auto watermarkType = GetData<uint8_t>() % static_cast<uint8_t>(SurfaceWatermarkType::INVALID_WATER_MARK);
+    rsInterface.SetSurfaceWatermark(0, name, watermark, {GetData<uint64_t>(), GetData<uint64_t>()},
+        static_cast<SurfaceCaptureType>(watermarkType));
+}
+
+void DoClearSurfaceWatermarkForNodes()
+{
+    std::string name = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterface.ClearSurfaceWatermarkForNodes(0, name, {GetData<uint64_t>(), GetData<uint64_t>()});
+}
+
+void DoClearSurfaceWatermark()
+{
+    std::string name = GetStringFromData(STR_LEN);
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterface.ClearSurfaceWatermarkForNodes(0, name);
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -132,6 +169,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_SET_WATERMARK:
             OHOS::Rosen::DoSetWatermark();
             break;
+        case OHOS::Rosen::DO_SET_SURFACE_WATERMARK:
+            OHOS::Rosen::DoSetSurfaceWatermark();
+        case OHOS::Rosen::DO_CLEAR_SURFACE_WATERMARK:
+            OHOS::Rosen::DoClearSurfaceWatermarkForNodes();
+        case OHOS::Rosen::DO_CLEAR_SURFACE_WATERMARK:
+            OHOS::Rosen::DoClearSurfaceWatermark();
         default:
             return -1;
     }

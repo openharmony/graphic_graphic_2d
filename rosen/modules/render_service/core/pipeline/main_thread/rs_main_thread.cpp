@@ -2706,7 +2706,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
         {
             std::lock_guard<std::mutex> lock(watermarkMutex_);
-            renderThreadParams_->SetWatermarks(surfaceNodeWatermarks_);
+            renderThreadParams_->SetWatermarks(surfaceWatermarkHelper_.GetSurfaceWatermarks());
         }
 
         renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
@@ -4848,32 +4848,49 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
 void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    static constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
-    auto iter = surfaceNodeWatermarks_.find({pid, name});
-    if (iter == std::end(surfaceNodeWatermarks_)) {
-        if (registerSurfaceWaterMaskCount_[pid] >= REGISTER_SURFACE_WATER_MASK_LIMIT) {
-            RS_LOGE("RSMainThread::SetWatermark surfaceNodeWatermark:"
-                "[Pid:%{public}s] limit", std::to_string(pid).c_str());
-            return;
-        }
-        registerSurfaceWaterMaskCount_[pid]++;
-        surfaceNodeWatermarks_.insert({{pid, name}, watermark});
-    } else {
-        iter->second = watermark;
-    }
+    (void)surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, {}, SYSTEM_WATER_MARK, GetContext(), true);
+    SetDirtyFlag();
+    RequestNextVSync();
 }
 
-void RSMainThread::ClearWatermark(pid_t pid)
+uint32_t RSMainThread::SetSurfaceWatermark(pid_t pid, const std::string& name,
+    std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
+    SurfaceWatermarkType watermarkType, bool isSystemCalling)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    registerSurfaceWaterMaskCount_.erase(pid);
-    if (surfaceNodeWatermarks_.size() > 0) {
-        RS_TRACE_NAME_FMT("RSMainThread::ClearWatermark %d", pid);
-        EraseIf(surfaceNodeWatermarks_, [pid](const auto& pair) {
-            return pair.first.first == pid;
-        });
-    }
+    auto res = surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, nodeIdList,
+        watermarkType, GetContext(), isSystemCalling);
+    SetDirtyFlag(true);
+    RequestNextVSync();
+    return res;
 }
+
+
+void RSMainThread::ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, name, GetContext(), isSystemCalling);
+    SetDirtyFlag(true);
+    RequestNextVSync();
+}
+
+void RSMainThread::ClearSurfaceWatermark(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, GetContext());
+    SetDirtyFlag(true);
+    RequestNextVSync();
+}
+
+void RSMainThread::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId>& nodeIdList, bool isSystemCalling)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    surfaceWatermarkHelper_.ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, GetContext(), isSystemCalling);
+    SetDirtyFlag(true);
+    RequestNextVSync();
+}
+
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
 {

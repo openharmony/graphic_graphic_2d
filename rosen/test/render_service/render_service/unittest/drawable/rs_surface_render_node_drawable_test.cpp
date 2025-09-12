@@ -1898,6 +1898,72 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawBufferForRotationFixedTest, TestSi
     surfaceDrawable_->DrawBufferForRotationFixed(*canvas_, *surfaceParams);
     ASSERT_TRUE(canvas_->envStack_.top().hasOffscreenLayer_);
 }
+
+/**
+ * @tc.name: DrawWatermark01
+ * @tc.desc: Test DrawWatermark01
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
+{
+    ASSERT_TRUE(surfaceDrawable_ != nullptr);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParam*>(surfaceDrawable_->GetRenderParams().get());
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+
+    surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", false);
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    surfaceDrawable_->ClearSystemWatermarkEnabled("watermask1");
+
+    surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", false);
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+
+    surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", true);
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->GetWatermark("watermask11111");
+
+    int width = 50;
+    int height = 50;
+    Media::InitializationOptions opts;
+    opts.size.width = 0;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    
+    // Test 1
+    std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> watermarks;
+    auto tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    watermarks["watermask1"] = {tmpImagePtr, 0};
+    uniParams->SetWatermarks(watermarks);
+    RSUniRenderThread::Instance.Sync(std::move(uniParams));
+    surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", false);
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", true);
+
+    // Test 2
+    opts.size.width = width;
+    opts.size.height = 0;
+    pixelMap = Media::PixelMap::Create(opts);
+    uniParams = std::make_unique<RSRenderThreadParams>();
+    tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    watermarks["watermask1"] = {tmpImagePtr, 0};
+    uniParams->SetWatermarks(watermarks);
+    RSUniRenderThread::Instance.Sync(std::move(uniParams));
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+
+    // Tewt 3
+    opts.size.width = width;
+    opts.size.height = height;
+    pixelMap = Media::PixelMap::Create(opts);
+    uniParams = std::make_unique<RSRenderThreadParams>();
+    tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    watermarks["watermask1"] = {tmpImagePtr, 0};
+    uniParams->SetWatermarks(watermarks);
+    RSUniRenderThread::Instance.Sync(std::move(uniParams));
+    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+}
 #endif
 
 /**

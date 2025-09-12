@@ -395,9 +395,15 @@ public:
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
     
-    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
-    bool IsWatermarkEmpty() const;
+    void SetSystemWatermarkEnabled(const std::string& name, bool isEnabled);
+    void SetCustomWatermarkEnabled(const std::string& name, bool isEnabled);
+    void ClearSystemWatermarkEnabled(const std::string& name);
+    void ClearCustomWatermarkEnabled(const std::string& name);
+    const std::unordered_map<std::string, bool>& GetSurfaceWatermarkEnabledMap(
+        SurfaceWatermarkType watermarkType) const;
+
+    bool IsSystemWatermarkEmpty() const;
+    bool IsCustomWatermarkEmpty() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
@@ -844,7 +850,8 @@ private:
     int32_t layerSource_ = 0;
     uint64_t tunnelLayerId_ = 0;
     int64_t stencilVal_ = -1;
-    std::unordered_map<std::string, bool> watermarkHandles_ = {};
+    std::unordered_map<std::string, bool> systemWatermarkHandles_ = {};
+    std::unordered_map<std::string, bool> customWatermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
 

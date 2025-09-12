@@ -281,7 +281,7 @@ public:
         return watermarkFlag_;
     }
 
-    std::shared_ptr<Media::PixelMap> GetWatermark(pid_t pid, const std::string& name) const;
+    std::shared_ptr<Drawing::Image> GetWatermark(const std::string& name) const;
 
     std::shared_ptr<Drawing::Image> GetWatermarkImg() const
     {
@@ -294,7 +294,7 @@ public:
         watermarkImg_ = watermarkImg;
     }
 
-    void SetWatermarks(std::map<std::pair<pid_t, std::string>, std::shared_ptr<Media::PixelMap>>& watermarks);
+    void SetWatermarks(std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks);
 
     void SetOcclusionEnabled(bool isOcclusionEnabled)
     {
@@ -567,7 +567,7 @@ private:
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
-    std::map<std::pair<pid_t, std::string>, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
+    std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
 
     bool isOverDrawEnabled_ = false;

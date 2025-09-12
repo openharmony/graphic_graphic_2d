@@ -765,4 +765,87 @@ HWTEST_F(RSInterfacesTest, FreezeScreenTest001, TestSize.Level1)
     ret = instance.FreezeScreen(displayNode, isFreeze);
     EXPECT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: SurfaceWatermarkTest01
+ * @tc.desc: SurfaceWatermarkTest01
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SurfaceWatermarkTest001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    // Test name
+    std::string name1(129, 't');
+    auto res = instance.SetSurfaceWatermark(0, name1, pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
+    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR, res);
+
+    std::string name2 = "";
+    res = instance.SetSurfaceWatermark(0, name2, pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
+    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR, res);
+
+    // Test pixelMap
+    pixelmap->SetAstc(true);
+    res = instance.SetSurfaceWatermark(0, "name", pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
+    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR, res);
+
+    pixelmap->SetAstc(false);
+    res = instance.SetSurfaceWatermark(0, "name", pixelmap, {}, SurfaceWatermarkType::CUSTOM_WATER_MARK);
+
+    pixelmap->SetAstc(false);
+    res = instance.SetSurfaceWatermark(0, "name", pixelmap, {}, SurfaceWatermarkType::INVALID_WATER_MARK);
+    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE, res);
+    instance.ClearSurfaceWatermark(0, "name");
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermark001
+ * @tc.desc: ClearSurfaceWatermark001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, ClearSurfaceWatermark001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
+    ASSERT_NE(pixelmap, nullptr);
+    // Test name
+    std::string name1(129, 't');
+    instance.ClearSurfaceWatermark(0, name1);
+
+    std::string name2 = "";
+    instance.ClearSurfaceWatermark(0, name2);
+
+    instance.ClearSurfaceWatermark(0, "name");
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodes001
+ * @tc.desc: ClearSurfaceWatermarkForNodes001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, ClearSurfaceWatermarkForNodes001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
+    ASSERT_NE(pixelmap, nullptr);
+    // Test name
+    std::string name1(129, 't');
+    instance.ClearSurfaceWatermarkForNodes(0, name1, {});
+
+    std::string name2 = "";
+    instance.ClearSurfaceWatermarkForNodes(0, name2, {});
+
+    instance.ClearSurfaceWatermarkForNodes(0, "name", {});
+}
 } // namespace OHOS::Rosen

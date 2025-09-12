@@ -1570,9 +1570,12 @@ public:
         containerDirty = false;
     }
 
-    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled,
+        SurfaceWatermarkType watermarkType = SYSTEM_WATER_MARK);
+    void ClearWatermarkEnabled(const std::string& name, SurfaceWatermarkType watermarkType);
+    std::unordered_map<std::string, bool> GetSurfaceWatermarkEnabledMap(
+        SurfaceWatermarkType watermarkType);
     const std::unordered_map<std::string, bool>& GetWatermark() const;
-    bool IsWatermarkEmpty() const;
 
     template<class... Args>
     void SetIntersectedRoundCornerAABBs(Args&& ...args)

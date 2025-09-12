@@ -3339,11 +3339,6 @@ const std::unordered_map<std::string, bool>& RSSurfaceRenderNode::GetWatermark()
     return watermarkHandles_;
 }
 
-bool RSSurfaceRenderNode::IsWatermarkEmpty() const
-{
-    return watermarkHandles_.empty();
-}
-
 void RSSurfaceRenderNode::SetSdrNit(float sdrNit)
 {
 #ifdef RS_ENABLE_GPU
@@ -3432,18 +3427,50 @@ bool RSSurfaceRenderNode::GetSdrHasMetadata() const
 #endif
 }
 
-void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled,
+    SurfaceWatermarkType watermarkType)
 {
+    SetDirty();
     if (isEnabled) {
         RS_LOGI("RSSurfaceRenderNode::SetWatermarkEnabled[%{public}d], Name:%{public}s", isEnabled, name.c_str());
     }
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams) {
-        surfaceParams->SetWatermarkEnabled(name, isEnabled);
+        if (watermarkType == CUSTOM_WATER_MARK) {
+            surfaceParams->SetCustomWatermarkEnabled(name, isEnabled);
+        } else {
+            surfaceParams->SetSystemWatermarkEnabled(name, isEnabled);
+        }
     }
 #endif
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::ClearWatermarkEnabled(const std::string& name, SurfaceWatermarkType watermarkType)
+{
+    SetDirty();
+#ifdef RS_ENABLE_GPU
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        if (watermarkType == CUSTOM_WATER_MARK) {
+            surfaceParams->ClearCustomWatermarkEnabled(name);
+        } else {
+            surfaceParams->ClearSystemWatermarkEnabled(name);
+        }
+    }
+#endif
+    AddToPendingSyncList();
+}
+
+std::unordered_map<std::string, bool> RSSurfaceRenderNode::GetSurfaceWatermarkEnabledMap(
+    SurfaceWatermarkType watermarkType)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        return surfaceParams->GetSurfaceWatermarkEnabledMap(watermarkType);
+    }
+    return {};
 }
 
 void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)

@@ -6641,36 +6641,6 @@ HWTEST_F(RSMainThreadTest, SetForceRsDVsync001, TestSize.Level1)
 }
 
 /**
- * @tc.name: surfaceNodeWatermarksLimit001
- * @tc.desc: Test surfaceNodeWatermarksLimit001
- * @tc.type: FUNC
- * @tc.require:ICS7WS
- */
-HWTEST_F(RSMainThreadTest, surfaceNodeWatermarksLimit001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
-    pid_t pid = 100;
-    // Test normal add waterMask
-    mainThread->SetWatermark(pid, "watermask", nullptr);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 1);
-    // Test add same waterMask Name
-    mainThread->SetWatermark(pid, "watermask", nullptr);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 1);
-    // Test Limit condition
-    mainThread->registerSurfaceWaterMaskCount_[pid] = REGISTER_SURFACE_WATER_MASK_LIMIT;
-    mainThread->SetWatermark(pid, "watermask1", nullptr);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], REGISTER_SURFACE_WATER_MASK_LIMIT);
-    // Test Clear WaterMask
-    mainThread->ClearWatermark(pid);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 0);
-    // Try again
-    mainThread->ClearWatermark(pid);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 0);
-}
-
-/**
  * @tc.name: CreateNodeAndSurfaceTest001
  * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
  * @tc.type: FUNC

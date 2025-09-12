@@ -2413,4 +2413,135 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetVirtualScreenStatusTest004, TestS
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_OK);
 }
+
+/**
+ * @tc.name: SetSurfaceWatermarkSub001
+ * @tc.desc: Test SetSurfaceWatermarkSub001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetSurfaceWatermarkSub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name = "watermark";
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    std::vector<NodeId> nodeList;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data0;
+    data0.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data0.WriteInt32(2);
+    res = connectionStub_->OnRemoteRequest(code, data0, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data20;
+    data20.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data20.WriteInt32(2);
+    data20.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data20, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data2.WriteInt32(2);
+    data2.WriteString(name);
+    data2.WriteBool(false);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data3.WriteInt32(2);
+    data3.WriteString(name);
+    data3.WriteBool(true);
+    data3.WriteParcelable(pixelmap.get());
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data4.WriteInt32(2);
+    data4.WriteString(name);
+    data4.WriteBool(true);
+    data4.WriteParcelable(pixelmap.get());
+    data4.WriteUInt64Vector(nodeList);
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data5.WriteInt32(2);
+    data5.WriteString(name);
+    data5.WriteBool(true);
+    data5.WriteParcelable(pixelmap.get());
+    data5.WriteUInt64Vector(nodeList);
+    data5.WriteUint8(static_cast<uint8_t>(0));
+    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodesStub001
+ * @tc.desc: Test ClearSurfaceWatermarkForNodesStub001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, ClearSurfaceWatermarkForNodesStub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name = "watermark";
+    std::vector<NodeId> nodeList;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data2.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data3.WriteString(name);
+    data3.WriteUInt64Vector(nodeList);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+}
+/**
+ * @tc.name: ClearSurfaceWatermarkStub001
+ * @tc.desc: Test ClearSurfaceWatermarkStub001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, ClearSurfaceWatermarkStub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name = "watermark";
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data2.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+}
+
 } // namespace OHOS::Rosen

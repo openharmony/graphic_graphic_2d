@@ -94,7 +94,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetWatermarkEnabledTest, TestSize.Level1)
     ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    EXPECT_EQ(surfaceParams->GetWatermarksEnabled().at("test"), true);
 }
 
 /**

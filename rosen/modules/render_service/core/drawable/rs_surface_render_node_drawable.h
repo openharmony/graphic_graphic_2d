@@ -150,7 +150,9 @@ private:
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     // Watermark
-    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
+    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
+        const SurfaceWatermarkType& watermarkType);
 
     /* draw local magnification region */
     void DrawMagnificationRegion(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);

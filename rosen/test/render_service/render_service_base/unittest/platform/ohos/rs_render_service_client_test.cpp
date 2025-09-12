@@ -1473,5 +1473,21 @@ HWTEST_F(RSClientTest, FreezeScreen, TestSize.Level1)
     ret = rsClient->FreezeScreen(TEST_ID, false);
     ASSERT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: SurfaceWatermarkTest01
+ * @tc.desc: SurfaceWatermarkTest01
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, SurfaceWatermarkTest01, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetSurfaceWatermark(0, "WATERMARK", nullptr, {},
+        SurfaceWatermarkType::CUSTOM_WATER_MARK), SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL);
+    rsClient->ClearSurfaceWatermark(0, "WATERMARK");
+    rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
+    RSRenderServiceConnectHub::Init();
+}
 } // namespace Rosen
 } // namespace OHOS

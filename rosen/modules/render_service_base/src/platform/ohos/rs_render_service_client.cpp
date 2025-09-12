@@ -632,6 +632,36 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
     return success;
 }
 
+uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return WATER_MARK_RENDER_SERVICE_NULL;
+    }
+    return renderService->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId> &nodeIdList)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->ClearSurfaceWatermark(pid, name);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)

@@ -141,6 +141,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC),
@@ -2763,6 +2766,90 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (SetWatermark(name, watermark, success) != ERR_OK || !success) {
                 RS_LOGE("RSRenderServiceConnectionStub::SetWatermark failed");
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK): {
+            std::string name;
+            uint8_t watermarkType{0};
+            std::vector<NodeId> nodeIdList;
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SURFACE_WATERMARK: Read pid err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SURFACE_WATERMARK Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool hasPixelMap = false;
+            std::shared_ptr<Media::PixelMap> watermark = nullptr;
+            if (!data.ReadBool(hasPixelMap)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SURFACE_WATERMARK Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (hasPixelMap) {
+                watermark = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            }
+
+            if (!data.ReadUInt64Vector(&nodeIdList)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SURFACE_WATERMARK Read nodeIdList failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool invalidWatermarkType = (!data.ReadUint8(watermarkType) || watermarkType >=
+                static_cast<uint8_t>(SurfaceWatermarkType::INVALID_WATER_MARK));
+            if (!invalidWatermarkType) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SURFACE_WATERMARK Read watermarkType failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto errCode = SetSurfaceWatermark(pid, name, watermark, nodeIdList,
+                static_cast<SurfaceWatermarkType>(watermarkType));
+            if (!reply.WriteUint32(errCode)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SURFACE_WATERMARK write errCode failed!");
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES): {
+            std::string name;
+            std::vector<NodeId> nodeIdList;
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES: Read pid err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUInt64Vector(&nodeIdList)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES Read nodeIdList failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK): {
+            std::string name;
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_SURFACE_WATERMARK: Read pid err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSRenderServiceConnectionStub::CLEAR_SURFACE_WATERMARK Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ClearSurfaceWatermark(pid, name);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK): {

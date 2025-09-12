@@ -220,6 +220,15 @@ public:
 
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+        
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList);
+        
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+
     void RemoveVirtualScreen(ScreenId id);
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
