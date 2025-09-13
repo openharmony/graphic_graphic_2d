@@ -142,6 +142,11 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  defines = []
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
+    && defined(graphic_2d_subtree_configs.subtree_root)) {
+      defines += ["SUBTREE_PARALLEL_ENABLE"]
+    }
 }
 
 ## Build RSRenderNodeDrawableTest

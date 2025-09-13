@@ -275,8 +275,7 @@ void RSRenderNodeDrawableAdapter::DrawQuickImpl(
     }
 
     // BG_START
-    if (drawCmdIndex_.bgSaveBoundsIndex_ == - 1 ||
-        (drawCmdIndex_.bgSaveBoundsIndex_ != -1 && drawCmdIndex_.bgRestoreBoundsIndex_ == -1)) {
+    if (drawCmdIndex_.bgSaveBoundsIndex_ == - 1 || drawCmdIndex_.bgRestoreBoundsIndex_ == -1) {
         if (drawCmdIndex_.clipToBoundsIndex_ != -1) {
             drawCmdList_[drawCmdIndex_.clipToBoundsIndex_](&canvas, &rect);
         }
