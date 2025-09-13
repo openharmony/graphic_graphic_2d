@@ -80,6 +80,8 @@ constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
 constexpr uint32_t DELAY_TIME_OFFSET = 100; // 100ms
+constexpr uint32_t MAX_TOTAL_SURFACE_NAME_LENGTH = 320;
+constexpr uint32_t MAX_SINGLE_SURFACE_NAME_LENGTH = 20;
 }
 
 static int64_t SystemTime()
@@ -264,9 +266,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %u, now: %" PRIu64 ", " \
             "vsyncId: %" PRIu64 ", size: %zu, %s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             surfaceName.c_str());
-        RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
-            "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
-            currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
+        RS_LOGI_LIMIT("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", " \
+            "size:%{public}zu, %{public}s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
+            GetSurfaceNameInLayersForTrace(layers).c_str());
         ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount(output);
@@ -409,6 +411,38 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
         surfaceName += ", " + layer->GetSurface()->GetName();
     }
     surfaceName += "]";
+    return surfaceName;
+}
+
+std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers)
+{
+    uint32_t count = layers.size();
+    uint32_t maxZorder = 0;
+    for (const auto& layer : layers) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
+            continue;
+        }
+        count += layer->GetSurface()->GetName().length();
+        if (maxZorder < layer->GetZorder()) {
+            maxZorder = layer->GetZorder();
+        }
+    }
+    bool exceedLimit = count > MAX_TOTAL_SURFACE_NAME_LENGTH;
+    std::string surfaceName = "Names:";
+    for (const auto& layer : layers) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
+            continue;
+        }
+        surfaceName += (exceedLimit ? layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH) :
+                                      layer->GetSurface()->GetName()) + ",";
+        surfaceName.append("zorder: ");
+        surfaceName.append(std::to_string(layer->GetZorder()));
+        surfaceName.append(",");
+        if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR && layer->GetZorder() < maxZorder) {
+            RS_LOGE("RSHardcursor is not on the top, hardcursor zorder:%{public}d", layer->GetZorder());
+        }
+    }
+
     return surfaceName;
 }
 
