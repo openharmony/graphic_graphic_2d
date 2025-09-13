@@ -632,7 +632,6 @@ public:
     bool IsFilterRectsInCache() const;
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
-    void ResetDrawingCacheNeedUpdate();
     void SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes);
     const std::unordered_set<NodeId>& GetVisitedCacheRootIds() const;
     // manage cache root nodeid
@@ -1215,7 +1214,6 @@ private:
     bool isContainBootAnimation_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
-    bool drawingCacheNeedUpdate_ = false;
     bool isMainThreadNode_ = true;
     bool isScale_ = false;
     bool isScaleInPreFrame_ = false;
