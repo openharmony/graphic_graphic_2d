@@ -23,7 +23,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TYPEFACE_NAME = "L@ohos/graphics/drawing/drawing/Typeface;";
+const char* ANI_CLASS_TYPEFACE_NAME = "@ohos.graphics.drawing.drawing.Typeface}";
 
 ani_status AniTypeface::AniInit(ani_env *env)
 {
@@ -35,16 +35,16 @@ ani_status AniTypeface::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "getFamilyName", ":Lstd/core/String;",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "getFamilyName", ":C{std.core.String}",
             reinterpret_cast<void*>(GetFamilyName) },
     };
 
     std::array statitMethods = {
-        ani_native_function { "makeFromFile", "Lstd/core/String;:L@ohos/graphics/drawing/drawing/Typeface;",
+        ani_native_function { "makeFromFile", "C{std.core.String}:C{@ohos.graphics.drawing.drawing.Typeface}",
             reinterpret_cast<void*>(MakeFromFile) },
-        ani_native_function { "makeFromFileWithArguments", "Lstd/core/String;"
-            "L@ohos/graphics/drawing/drawing/TypefaceArguments;:L@ohos/graphics/drawing/drawing/Typeface;",
+        ani_native_function { "makeFromFileWithArguments", "C{std.core.String}"
+            "C{@ohos.graphics.drawing.drawing.TypefaceArguments}:C{@ohos.graphics.drawing.drawing.Typeface}",
             reinterpret_cast<void*>(MakeFromFileWithArguments) },
         ani_native_function { "typefaceTransferStaticNative", nullptr,
             reinterpret_cast<void*>(TypefaceTransferStatic) },
@@ -97,7 +97,7 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
     std::string filePath = CreateStdString(env, aniFilePath);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObjectStatic(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
+    ani_object aniObj = CreateAniObjectStatic(env, "@ohos.graphics.drawing.drawing.Typeface", aniTypeface);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -120,7 +120,7 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObjectStatic(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
+    ani_object aniObj = CreateAniObjectStatic(env, "@ohos.graphics.drawing.drawing.Typeface", aniTypeface);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -164,7 +164,7 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
     }
 
     auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
-    ani_object aniTypefaceObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
+    ani_object aniTypefaceObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.Typeface", nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniTypefaceObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
         ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");

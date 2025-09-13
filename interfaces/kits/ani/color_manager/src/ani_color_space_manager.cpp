@@ -22,9 +22,9 @@
 namespace OHOS {
 namespace ColorManager {
 static const std::string COLOR_SPACE_MANAGER_CLS_NAME =
-    "L@ohos/graphics/colorSpaceManager/colorSpaceManager/ColorSpaceManagerInner;";
-static const std::string DOUBLE_CLS_NAME = "Lstd/core/Double;";
-static const std::string ERROR_CLS_NAME = "Lescompat/Error;";
+    "@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpaceManagerInner";
+static const std::string DOUBLE_CLS_NAME = "std.core.Double";
+static const std::string ERROR_CLS_NAME = "escompat.Error";
 
 static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
 {
@@ -35,7 +35,7 @@ static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
         return nullptr;
     }
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "Lstd/core/String;:V", &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "C{std.core.String}:", &ctor)) {
         ACMLOGE("Not found ctor '%{public}s'.", className);
         return nullptr;
     }
@@ -57,7 +57,7 @@ static ani_object DoubleToObject(ani_env *env, double value)
         return aniObject;
     }
     ani_method ctorMethod;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "D:V", &ctorMethod)) {
+    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "d:", &ctorMethod)) {
         ACMLOGE("Class_GetMethod Failed '%{public}s <ctor>.'", className);
         return aniObject;
     }
@@ -114,7 +114,7 @@ ani_object AniColorSpaceManager::Wrap(ani_env *env, AniColorSpaceManager *native
     }
 
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "J:V", &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "l:", &ctor)) {
         ACMLOGE("%{public}s Failed to find method!", __func__);
         return nullptr;
     }
@@ -152,7 +152,7 @@ ani_object AniColorSpaceManager::CreateByColorSpace(ani_env* env, ani_enum_item 
     }
 
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "J:V", &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "l:", &ctor)) {
         ACMLOGI("Failed to find method: %{public}s", "ctor");
         return result;
     }
@@ -186,7 +186,7 @@ ani_object AniColorSpaceManager::CreateByColorSpacePrimaries(ani_env* env, ani_o
     }
 
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "J:V", &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "l:", &ctor)) {
         ACMLOGI("Failed to find method: %{public}s", "ctor");
         return result;
     }
@@ -286,7 +286,7 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
         ACMLOGI("[ANI]get color space name %{public}u, api type %{public}u", csName, iter->second);
         ani_enum enumType;
         std::string inputEnumNameStr = JS_TO_STRING_MAP.find(iter->second)->second;
-        if (ANI_OK != env->FindEnum("L@ohos/graphics/colorSpaceManager/colorSpaceManager/ColorSpace;", &enumType)) {
+        if (ANI_OK != env->FindEnum("@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpace", &enumType)) {
             ACMLOGE("[ANI]Find Enum Faild");
             return value;
         }
@@ -315,11 +315,11 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
     std::array<float, DIMES_2> wp = colorSpaceToken_->GetWhitePoint();
 
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("Lescompat/Array;", &arrayCls)) {
+    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
         ACMLOGE("[ANI]FindClass Lescompat/Array; Failed");
     }
     ani_method arrayCtor;
-    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)) {
+    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) {
         ACMLOGE("[ANI]Class_FindMethod <ctor> Failed");
     }
 
@@ -333,7 +333,7 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
     for (auto item : wp) {
         ACMLOGE("[ANI]item = %{public}f ", item);
         ani_object aniValue = DoubleToObject(env, item);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
             ACMLOGE("[ANI]Object_CallMethodByName_Void  $_set Faild ");
             break;
         }

@@ -145,7 +145,7 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
     }
 
     ani_method innerMethod;
-    if (env->Class_FindMethod(aniClass, "bindNativePtr", "J:V", &innerMethod) != ANI_OK) {
+    if (env->Class_FindMethod(aniClass, "bindNativePtr", "l:", &innerMethod) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod bindNativePtr failed");
         return CreateAniUndefined(env);
     }

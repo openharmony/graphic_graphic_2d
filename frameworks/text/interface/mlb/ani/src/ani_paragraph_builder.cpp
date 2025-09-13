@@ -97,25 +97,25 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::string ctorSignature =
-        std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + std::string(ANI_CLASS_FONT_COLLECTION) + ":V";
-    std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":V";
+        std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + std::string(ANI_CLASS_FONT_COLLECTION) + ":";
+    std::string pushStyleSignature = std::string(ANI_INTERFACE_TEXT_STYLE) + ":";
     std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
-    std::string addPlaceholderSignature = std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + ":V";
+    std::string addPlaceholderSignature = std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + ":";
     std::string buildLineTypesetSignature = ":" + std::string(ANI_CLASS_LINE_TYPESET);
     std::array methods = {
         ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
         ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
-        ani_native_function{"popStyle", ":V", reinterpret_cast<void*>(PopStyle)},
-        ani_native_function{"addText", "Lstd/core/String;:V", reinterpret_cast<void*>(AddText)},
+        ani_native_function{"popStyle", ":", reinterpret_cast<void*>(PopStyle)},
+        ani_native_function{"addText", "C{std.core.String}:", reinterpret_cast<void*>(AddText)},
         ani_native_function{"addPlaceholder", addPlaceholderSignature.c_str(), reinterpret_cast<void*>(AddPlaceholder)},
         ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(Build)},
         ani_native_function{
             "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
-        ani_native_function{"addSymbol", "I:V", reinterpret_cast<void*>(AddSymbol)},
-        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function{"addSymbol", "i:", reinterpret_cast<void*>(AddSymbol)},
+        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
-            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
+            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -220,7 +220,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":V");
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":");
     AniLineTypeset* aniLineTypeSet = new AniLineTypeset(std::move(lineTypography));
     ani_status ret = env->Object_CallMethodByName_Void(
         lineTypographyObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniLineTypeSet));

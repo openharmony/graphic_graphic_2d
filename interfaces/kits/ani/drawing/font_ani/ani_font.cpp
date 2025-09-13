@@ -24,11 +24,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_FONT_NAME = "L@ohos/graphics/drawing/drawing/Font;";
+const char* ANI_CLASS_FONT_NAME = "@ohos.graphics.drawing.drawing.Font";
 
 ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
 {
-    ani_object aniFontMetrics = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/FontMetricsInner;", "DDDDD:V",
+    ani_object aniFontMetrics = CreateAniObject(env, "@ohos.graphics.drawing.drawing.FontMetricsInner", "ddddd:",
         ani_double(fontMetrics.fTop),
         ani_double(fontMetrics.fAscent),
         ani_double(fontMetrics.fDescent),
@@ -47,17 +47,17 @@ ani_status AniFont::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V",
+        ani_native_function { "constructorNative", ":",
             reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "getMetrics", ":L@ohos/graphics/drawing/drawing/FontMetrics;",
+        ani_native_function { "getMetrics", ":C{@ohos.graphics.drawing.drawing.FontMetrics}",
             reinterpret_cast<void*>(GetMetrics) },
-        ani_native_function { "getSize", ":D",
+        ani_native_function { "getSize", ":d",
             reinterpret_cast<void*>(GetSize) },
-        ani_native_function { "getTypeface", ":L@ohos/graphics/drawing/drawing/Typeface;",
+        ani_native_function { "getTypeface", ":C{@ohos.graphics.drawing.drawing.Typeface}",
             reinterpret_cast<void*>(GetTypeface) },
-        ani_native_function { "setSize", "D:V",
+        ani_native_function { "setSize", "d:",
             reinterpret_cast<void*>(SetSize) },
-        ani_native_function { "setTypeface", "L@ohos/graphics/drawing/drawing/Typeface;:V",
+        ani_native_function { "setTypeface", "C{@ohos.graphics.drawing.drawing.Typeface}:",
             reinterpret_cast<void*>(SetTypeface) },
     };
 
@@ -125,7 +125,7 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 
     std::shared_ptr<Typeface> typeface = aniFont->GetFont()->GetTypeface();
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
+    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.Typeface", nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
         ROSEN_LOGE("AniFont::GetTypeface failed cause by Object_SetFieldByName_Long");

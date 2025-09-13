@@ -19,7 +19,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_PATH_ITERATOR_NAME = "L@ohos/graphics/drawing/drawing/PathIterator;";
+const char* ANI_CLASS_PATH_ITERATOR_NAME = "@ohos.graphics.drawing.drawing.PathIterator";
 
 ani_status AniPathIterator::AniInit(ani_env *env)
 {
@@ -31,7 +31,7 @@ ani_status AniPathIterator::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Path;:V",
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Path}:",
             reinterpret_cast<void*>(ConstructorWithPath) },
     };
 

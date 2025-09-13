@@ -17,7 +17,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TYPEFACE_ARGUMENTS_NAME = "L@ohos/graphics/drawing/drawing/TypefaceArguments;";
+const char* ANI_CLASS_TYPEFACE_ARGUMENTS_NAME = "@ohos.graphics.drawing.drawing.TypefaceArguments";
 
 ani_status AniTypefaceArguments::AniInit(ani_env *env)
 {
@@ -29,7 +29,7 @@ ani_status AniTypefaceArguments::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

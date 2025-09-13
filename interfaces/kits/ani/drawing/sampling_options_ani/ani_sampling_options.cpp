@@ -23,7 +23,7 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_SAMPLING_OPTIONS_NAME = "L@ohos/graphics/drawing/drawing/SamplingOptions;";
+const char* ANI_CLASS_SAMPLING_OPTIONS_NAME = "@ohos.graphics.drawing.drawing.SamplingOptions";
 
 ani_status AniSamplingOptions::AniInit(ani_env *env)
 {
@@ -35,8 +35,8 @@ ani_status AniSamplingOptions::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/FilterMode;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.FilterMode}:",
             reinterpret_cast<void*>(ConstructorWithFilterMode) },
     };
 

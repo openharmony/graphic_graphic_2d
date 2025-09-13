@@ -26,7 +26,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         return ANI_ERROR;
     }
 
-    static const char *staticNsName = "L@ohos/graphics/colorSpaceManager/colorSpaceManager;";
+    static const char *staticNsName = "@ohos.graphics.colorSpaceManager.colorSpaceManager";
     ani_namespace kitNs;
     if (ANI_OK != env->FindNamespace(staticNsName, &kitNs)) {
         ACMLOGE("FindNamespace err");

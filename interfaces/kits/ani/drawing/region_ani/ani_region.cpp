@@ -22,7 +22,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_REGION_NAME = "L@ohos/graphics/drawing/drawing/Region;";
+const char* ANI_CLASS_REGION_NAME = "@ohos.graphics.drawing.drawing.Region";
 
 ani_status AniRegion::AniInit(ani_env *env)
 {
@@ -34,10 +34,10 @@ ani_status AniRegion::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Region;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Region}:",
             reinterpret_cast<void*>(ConstructorWithRegion) },
-        ani_native_function { "constructorNative", "IIII:V", reinterpret_cast<void*>(ConstructorWithRect) },
+        ani_native_function { "constructorNative", "iiii:", reinterpret_cast<void*>(ConstructorWithRect) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

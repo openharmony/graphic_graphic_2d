@@ -22,7 +22,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_PATH_NAME = "L@ohos/graphics/drawing/drawing/Path;";
+const char* ANI_CLASS_PATH_NAME = "@ohos.graphics.drawing.drawing.Path";
 
 ani_status AniPath::AniInit(ani_env *env)
 {
@@ -34,11 +34,11 @@ ani_status AniPath::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Path;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Path}:",
             reinterpret_cast<void*>(ConstructorWithPath) },
-        ani_native_function { "arcTo", "DDDDDD:V", reinterpret_cast<void*>(ArcTo) },
-        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "arcTo", "dddddd:", reinterpret_cast<void*>(ArcTo) },
+        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
