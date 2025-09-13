@@ -109,15 +109,13 @@ struct PixelMapReleaseContext {
 
     ~PixelMapReleaseContext()
     {
-#ifdef ROSEN_OHOS
         if (pixelMap_) {
+#ifdef ROSEN_OHOS
             pixelMap_->DecreaseUseCount();
-            if (pixelMap_->GetUseCount() == 0) {
-                std::lock_guard<std::mutex> lock(g_cacheMapMutex);
-                g_cacheMap.erase(pixelMap_->GetUniqueId());
-            }
-        }
 #endif
+            std::lock_guard<std::mutex> lock(g_cacheMapMutex);
+            g_cacheMap.erase(pixelMap_->GetUniqueId());
+        }
         pixelMap_ = nullptr;
     }
 
