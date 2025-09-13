@@ -270,6 +270,14 @@ void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& 
     }
 }
 
+void RSTransactionData::MoveAllCommand(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    for (auto& elem : payload_) {
+        transactionData->AddCommand(std::move(std::get<2>(elem)), std::get<0>(elem), std::get<1>(elem));
+    }
+    payload_.clear();
+}
+
 bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
 {
     Clear();

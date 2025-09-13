@@ -85,7 +85,7 @@ public:
 
     bool IsEmpty() const;
 
-    void StartCloseSyncTransactionFallbackTask(std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen);
+    void StartCloseSyncTransactionFallbackTask(bool isOpen);
 
 private:
     RSTransactionProxy();
@@ -120,6 +120,7 @@ private:
     static RSTransactionProxy* instance_;
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
     CommitTransactionCallback commitTransactionCallback_ = nullptr;
     std::atomic<uint32_t> uiSkipCount_ = 0;

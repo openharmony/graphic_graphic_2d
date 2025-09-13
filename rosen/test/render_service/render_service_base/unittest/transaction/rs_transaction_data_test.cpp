@@ -444,5 +444,47 @@ HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdTest003, TestSize.Level1)
     ASSERT_FALSE(preTransactionData->IsEmpty());
     ASSERT_TRUE(curTransactionData->IsEmpty());
 }
+
+/**
+ * @tc.name: MoveAllCommandTest001
+ * @tc.desc: Test MoveAllCommandTest
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSTransactionDataTest, MoveAllCommandTest001, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+    preTransactionData->MoveAllCommand(curTransactionData);
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    ASSERT_FALSE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveAllCommandTest002
+ * @tc.desc: Test MoveAllCommandTest
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSTransactionDataTest, MoveAllCommandTest002, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = nullptr;
+    preTransactionData->payload_.emplace_back(nodeId, FollowType::FOLLOW_TO_PARENT, std::move(command));
+    ASSERT_FALSE(preTransactionData->IsEmpty());
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+    preTransactionData->MoveAllCommand(curTransactionData);
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    ASSERT_TRUE(curTransactionData->IsEmpty());
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -245,48 +245,28 @@ void RSTransactionHandler::CloseSyncTransaction()
     needSync_ = false;
 }
 
-void RSTransactionHandler::StartCloseSyncTransactionFallbackTask(
-    std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen)
+void RSTransactionHandler::Begin(uint64_t syncId)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
-    static uint32_t num = 0;
-    const std::string name = "CloseSyncTransactionFallbackTask";
-    const int timeOutDelay = 5000;
-    if (!handler) {
-        ROSEN_LOGD("StartCloseSyncTransactionFallbackTask handler is null");
+    // The begin commit called by the window does not have the input parameter syncId, which is considered as a
+    // non-synchronous transaction.
+    if (!implicitRemoteTransactionDataStack_.empty() &&
+        ((syncId == 0 && implicitRemoteTransactionDataStack_.top()->IsNeedSync()) || syncId > 0)) {
+        RS_TRACE_NAME_FMT("RSTransactionHandler::Begin not add dataStack, syncId:%" PRIu64 ", transactionHandler:%zu",
+            syncId, std::hash<RSTransactionHandler*>()(this));
+        RS_LOGI("RSTransactionHandler::Begin not add dataStack syncId:%{public}" PRIu64 ", "
+            "transactionHandler:%{public}zu", syncId, std::hash<RSTransactionHandler*>()(this));
         return;
     }
-    if (isOpen) {
-        num++;
-        auto taskName = name + std::to_string(num);
-        taskNames_.push(taskName);
-        auto task = [this]() {
-            RS_TRACE_NAME("CloseSyncTransaction timeout");
-            ROSEN_LOGE("CloseSyncTransaction timeout");
-            auto transactionProxy = RSTransactionProxy::GetInstance(); // planning
-            if (transactionProxy != nullptr) {
-                transactionProxy->CommitSyncTransaction();
-                transactionProxy->CloseSyncTransaction();
-            }
-            if (!taskNames_.empty()) {
-                taskNames_.pop();
-            }
-        };
-        handler->PostTask(task, taskName, timeOutDelay);
-    } else {
-        if (!taskNames_.empty()) {
-            handler->RemoveTask(taskNames_.front());
-            taskNames_.pop();
-        }
-    }
-}
-
-void RSTransactionHandler::Begin()
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
+    RS_TRACE_NAME_FMT("RSTransactionHandler::Begin syncId:%" PRIu64 ", transactionHandler:%zu, "
+        "remoteTransactionDataStack.size:%zu",
+        syncId, std::hash<RSTransactionHandler*>()(this), implicitRemoteTransactionDataStack_.size());
+    RS_LOGI("RSTransactionHandler::Begin syncId:%{public}" PRIu64 ", transactionHandler:%{public}zu, "
+        "remoteTransactionDataStack.size:%{public}zu", syncId, std::hash<RSTransactionHandler*>()(this),
+        implicitRemoteTransactionDataStack_.size());
     implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-    if (needSync_) {
+    if (needSync_ && syncId > 0) {
         implicitCommonTransactionDataStack_.top()->MarkNeedSync();
         implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
     }
@@ -295,6 +275,15 @@ void RSTransactionHandler::Begin()
 void RSTransactionHandler::Commit(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    RS_TRACE_NAME_FMT("RSTransactionHandler::Commit transactionHandler:%zu", std::hash<RSTransactionHandler*>()(this));
+    RS_LOGI("RSTransactionHandler::Commit transactionHandler:%{public}zu", std::hash<RSTransactionHandler*>()(this));
+    if (!implicitRemoteTransactionDataStack_.empty() && implicitRemoteTransactionDataStack_.top()->IsNeedSync()) {
+        RS_TRACE_NAME_FMT("RSTransactionHandler::Commit not pop dataStack, transactionHandler:%zu",
+            std::hash<RSTransactionHandler*>()(this));
+        RS_LOGI("RSTransactionHandler::Commit not pop dataStack, transactionHandler:%{public}zu",
+            std::hash<RSTransactionHandler*>()(this));
+        return;
+    }
     if (!implicitCommonTransactionDataStack_.empty()) {
         implicitCommonTransactionDataStack_.pop();
     }
@@ -310,8 +299,12 @@ void RSTransactionHandler::Commit(uint64_t timestamp)
     }
 }
 
-void RSTransactionHandler::CommitSyncTransaction(uint64_t timestamp, const std::string& abilityName)
+void RSTransactionHandler::CommitSyncTransaction(uint64_t syncId, uint64_t timestamp, const std::string& abilityName)
 {
+    RS_TRACE_NAME_FMT("RSTransactionHandler::CommitSyncTransaction syncId:%" PRIu64 ", transactionHandler:%zu", syncId,
+        std::hash<RSTransactionHandler*>()(this));
+    RS_LOGI("RSTransactionHandler::CommitSyncTransaction syncId:%{public}" PRIu64 ", transactionHandler:%{public}zu",
+        syncId, std::hash<RSTransactionHandler*>()(this));
     std::unique_lock<std::mutex> cmdLock(mutex_);
     timestamp_ = std::max(timestamp, timestamp_);
     thread_local pid_t tid = gettid();
@@ -321,7 +314,7 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t timestamp, const std::
             implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
             implicitCommonTransactionDataStack_.top()->tid_ = tid;
             implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
-            implicitCommonTransactionDataStack_.top()->SetSyncId(syncId_);
+            implicitCommonTransactionDataStack_.top()->SetSyncId(syncId);
             renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
         }
         implicitCommonTransactionDataStack_.pop();
@@ -332,11 +325,67 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t timestamp, const std::
                                                    implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
             implicitRemoteTransactionDataStack_.top()->tid_ = tid;
-            implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId_);
+            implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId);
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
     }
+}
+
+void RSTransactionHandler::MergeSyncTransaction(std::shared_ptr<RSTransactionHandler> transactionHandler)
+{
+    RS_TRACE_NAME_FMT(
+        "RSTransactionHandler::MergeSyncTransaction transactionHandler:%zu", std::hash<RSTransactionHandler*>()(this));
+    RS_LOGI("RSTransactionHandler::MergeSyncTransaction transactionHandler:%{public}zu",
+        std::hash<RSTransactionHandler*>()(this));
+    if (transactionHandler == nullptr) {
+        RS_LOGE("RSTransactionHandler::MergeSyncTransaction is nullptr");
+        return;
+    }
+    if (transactionHandler.get() == this) {
+        RS_LOGI("RSTransactionHandler::MergeSyncTransaction transactionHandler is same, no need merge");
+        return;
+    }
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (implicitCommonTransactionDataStack_.empty()) {
+        RS_LOGE("RSTransactionHandler::MergeSyncTransaction implicitCommonTransactionDataStack is empty");
+    } else {
+        auto commonTransactionData = transactionHandler->GetCommonTransactionData();
+        if (commonTransactionData && !commonTransactionData->IsEmpty()) {
+            commonTransactionData->MoveAllCommand(implicitCommonTransactionDataStack_.top());
+        }
+    }
+
+    if (implicitRemoteTransactionDataStack_.empty()) {
+        RS_LOGE("RSTransactionHandler::MergeSyncTransaction implicitRemoteTransactionDataStack is empty");
+    } else {
+        auto remoteTransactionData = transactionHandler->GetRemoteTransactionData();
+        if (remoteTransactionData && !remoteTransactionData->IsEmpty()) {
+            remoteTransactionData->MoveAllCommand(implicitRemoteTransactionDataStack_.top());
+        }
+    }
+}
+
+std::unique_ptr<RSTransactionData> RSTransactionHandler::GetCommonTransactionData()
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (implicitCommonTransactionDataStack_.empty()) {
+        return nullptr;
+    }
+    auto commonTransactionData = std::move(implicitCommonTransactionDataStack_.top());
+    implicitCommonTransactionDataStack_.pop();
+    return commonTransactionData;
+}
+
+std::unique_ptr<RSTransactionData> RSTransactionHandler::GetRemoteTransactionData()
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (implicitRemoteTransactionDataStack_.empty()) {
+        return nullptr;
+    }
+    auto remoteTransactionData = std::move(implicitRemoteTransactionDataStack_.top());
+    implicitRemoteTransactionDataStack_.pop();
+    return remoteTransactionData;
 }
 
 void RSTransactionHandler::MarkTransactionNeedSync()

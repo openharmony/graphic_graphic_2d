@@ -42,7 +42,7 @@ public:
      * @param handler Event handle, used to handle events related to the transaction, if it is empty
      * then no events will be processed.
      */
-    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
+    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr, bool isInnerProcess = false);
     /**
      * @brief Close a synchronous transaction.
      * @details This function is used to close a synchronous transaction, and commit it to the server.

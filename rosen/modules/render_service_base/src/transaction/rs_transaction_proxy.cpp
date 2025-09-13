@@ -54,6 +54,7 @@ RSTransactionProxy* RSTransactionProxy::GetInstance()
 
 RSTransactionProxy::RSTransactionProxy()
 {
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
 }
 
 RSTransactionProxy::~RSTransactionProxy()
@@ -264,17 +265,12 @@ void RSTransactionProxy::CloseSyncTransaction()
     needSync_ = false;
 }
 
-void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(
-    std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen)
+void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(bool isOpen)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     static uint32_t num = 0;
     const std::string name = "CloseSyncTransactionFallbackTask";
     const int timeOutDelay = 5000;
-    if (!handler) {
-        ROSEN_LOGD("StartCloseSyncTransactionFallbackTask handler is null");
-        return;
-    }
     if (isOpen) {
         num++;
         auto taskName = name + std::to_string(num);
@@ -291,10 +287,10 @@ void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(
                 taskNames_.pop();
             }
         };
-        handler->PostTask(task, taskName, timeOutDelay);
+        handler_->PostTask(task, taskName, timeOutDelay);
     } else {
         if (!taskNames_.empty()) {
-            handler->RemoveTask(taskNames_.front());
+            handler_->RemoveTask(taskNames_.front());
             taskNames_.pop();
         }
     }

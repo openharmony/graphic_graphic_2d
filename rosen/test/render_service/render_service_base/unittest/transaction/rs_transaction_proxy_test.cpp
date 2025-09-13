@@ -912,16 +912,17 @@ HWTEST_F(RSTransactionProxyTest, StartCloseSyncTransactionFallbackTaskTest, Test
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
 
     RSTransactionProxy* instance = RSTransactionProxy::GetInstance();
+    instance->handler_ = handler;
 
-    instance->StartCloseSyncTransactionFallbackTask(nullptr, true);
-    instance->StartCloseSyncTransactionFallbackTask(nullptr, false);
+    instance->StartCloseSyncTransactionFallbackTask(true);
+    instance->StartCloseSyncTransactionFallbackTask(false);
     ASSERT_TRUE(instance->taskNames_.empty());
 
-    instance->StartCloseSyncTransactionFallbackTask(handler, true);
-    instance->StartCloseSyncTransactionFallbackTask(handler, false);
+    instance->StartCloseSyncTransactionFallbackTask(true);
+    instance->StartCloseSyncTransactionFallbackTask(false);
     ASSERT_TRUE(instance->taskNames_.empty());
 
-    instance->StartCloseSyncTransactionFallbackTask(handler, true);
+    instance->StartCloseSyncTransactionFallbackTask(true);
     sleep(8);
     ASSERT_TRUE(instance->taskNames_.empty());
 }

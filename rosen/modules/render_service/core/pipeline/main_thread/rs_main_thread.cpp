@@ -1519,6 +1519,11 @@ void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData
             subSyncTransactionCounts_.erase(parentPid);
         }
     }
+    RS_TRACE_NAME_FMT("ProcessSyncTransactionCount isNeedCloseSync:%d syncId:%" PRIu64 " parentPid:%d syncNum:%d "
+        "subSyncTransactionCounts_.size:%zd",
+        rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
+        rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
+
     ROSEN_LOGI("ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
                " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
         rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
@@ -1551,9 +1556,11 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
     ProcessSyncTransactionCount(rsTransactionData);
+    auto syncId = rsTransactionData->GetSyncId();
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
     if (subSyncTransactionCounts_.empty()) {
-        ROSEN_LOGI("SyncTxn suc");
+        ROSEN_LOGI("Sync success, syncId:%{public}" PRIu64 "", syncId);
+        RS_TRACE_NAME_FMT("Sync success, syncId:" PRIu64 "", syncId);
         ProcessAllSyncTransactionData();
     }
 }

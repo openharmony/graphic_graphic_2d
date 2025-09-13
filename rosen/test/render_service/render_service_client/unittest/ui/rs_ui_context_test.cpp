@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 
+#include "transaction/rs_transaction.h"
+
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
@@ -127,5 +129,87 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest003, TestSize.Level1)
         ASSERT_TRUE(out.find("transactionFlags") == std::string::npos);
         ASSERT_TRUE(out.find("UIContext") == std::string::npos);
     }
+}
+
+/**
+ * @tc.name: StartCloseSyncTransactionFallbackTaskTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, StartCloseSyncTransactionFallbackTaskTest001, TestSize.Level1)
+{
+    const uint64_t syncId = 123;
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("runner");
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    RSUIContextManager::MutableInstance().handler_ = handler;
+
+    ASSERT_TRUE(RSUIContextManager::MutableInstance().taskNames_.empty());
+    RSUIContextManager::MutableInstance().StartCloseSyncTransactionFallbackTask(true, syncId);
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().taskNames_.empty());
+    RSUIContextManager::MutableInstance().StartCloseSyncTransactionFallbackTask(false, syncId);
+    ASSERT_TRUE(RSUIContextManager::MutableInstance().taskNames_.empty());
+
+    ASSERT_TRUE(RSUIContextManager::MutableInstance().taskNames_.empty());
+    RSUIContextManager::MutableInstance().StartCloseSyncTransactionFallbackTask(true, syncId);
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().taskNames_.empty());
+    std::queue<std::string>().swap(RSUIContextManager::MutableInstance().taskNames_);
+    RSUIContextManager::MutableInstance().StartCloseSyncTransactionFallbackTask(false, syncId);
+
+    RSUIContextManager::MutableInstance().StartCloseSyncTransactionFallbackTask(true, syncId);
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().taskNames_.empty());
+    sleep(8);
+
+    RSUIContextManager::MutableInstance().StartCloseSyncTransactionFallbackTask(true, syncId);
+    std::queue<std::string>().swap(RSUIContextManager::MutableInstance().taskNames_);
+    ASSERT_TRUE(RSUIContextManager::MutableInstance().taskNames_.empty());
+    sleep(8);
+}
+
+/**
+ * @tc.name: CloseAllSyncTransactionTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
+{
+    const uint64_t syncId = 123;
+
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = false;
+    RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
+    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
+    ASSERT_TRUE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
+    RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+
+    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
+    RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
+    RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
+    auto it = RSUIContextManager::MutableInstance().rsUIContextMap_.begin();
+    it->second->rsSyncTransactionHandler_ = nullptr;
+    RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
+    RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
+    auto syncHandler =
+        RSUIContextManager::MutableInstance().rsUIContextMap_.begin()->second->GetSyncTransactionHandler();
+    ASSERT_FALSE(syncHandler == nullptr);
+    syncHandler->rsTransaction_ = nullptr;
+    RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+
+    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
+    RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
+    auto syncHandler1 =
+        RSUIContextManager::MutableInstance().rsUIContextMap_.begin()->second->GetSyncTransactionHandler();
+    ASSERT_FALSE(syncHandler1 == nullptr);
+    auto transaction = syncHandler1->GetCommonRSTransaction();
+    ASSERT_FALSE(transaction == nullptr);
+    transaction->rsTransactionHandler_ = nullptr;
+    RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
 }
 } // namespace OHOS::Rosen
