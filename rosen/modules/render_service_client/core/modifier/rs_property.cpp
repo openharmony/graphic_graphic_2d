@@ -65,7 +65,7 @@ void RSPropertyBase::MarkCustomModifierDirty()
         if (node && node->GetRSUIContext()) {
             modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
         } else {
-            modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager(gettid()));
+            modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager());
         }
     }
 }
