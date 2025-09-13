@@ -497,10 +497,13 @@ HWTEST_F(RSSurfaceOhosVulkanTest, CancelBufferForCurrentFrame, TestSize.Level1)
     NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
     ASSERT_NE(nativeWindowBuffer, nullptr);
     RSSurfaceOhosVulkan rsSurface(pSurface);
+    rsSurface.mSurfaceList.emplace_back(nullptr);
     rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
     rsSurface.CancelBufferForCurrentFrame();
+    ASSERT_EQ(rsSurface.mSurfaceList.size(), 1);
     rsSurface.mSurfaceList.clear();
     rsSurface.CancelBufferForCurrentFrame();
+    ASSERT_TRUE(rsSurface.mSurfaceList.empty());
 }
 } // namespace Rosen
 } // namespace OHOS
