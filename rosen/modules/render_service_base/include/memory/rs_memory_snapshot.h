@@ -36,7 +36,7 @@ struct MemorySnapshotInfo {
     }
 };
 
-using MemoryOverflowCalllback = std::function<void(pid_t, uint64_t, bool)>;
+using MemoryOverflowCalllback = std::function<bool(pid_t, uint64_t, bool)>;
 class RSB_EXPORT MemorySnapshot {
 public:
     static MemorySnapshot& Instance();

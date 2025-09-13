@@ -55,4 +55,14 @@ void MEMParam::SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable)
 {
     isDeeplyRelGpuResEnable_ = isDeeplyRelGpuResEnable;
 }
+
+bool MEMParam::IsKillScbEnabled()
+{
+    return isKillScbEnabled_;
+}
+
+void MEMParam::SetKillScbEnabled(bool isEnabled)
+{
+    isKillScbEnabled_ = isEnabled;
+}
 } // namespace OHOS::Rosen

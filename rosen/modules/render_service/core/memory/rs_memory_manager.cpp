@@ -82,6 +82,7 @@ const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.js
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
+const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
 constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
@@ -819,16 +820,23 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
 #endif
 }
 
-void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
+bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 {
     if (pid == 0) {
         RS_LOGD("MemoryManager::MemoryOverflow pid = 0");
-        return;
+        return false;
     }
     MemorySnapshotInfo info;
     MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     if (isGpu) {
         info.gpuMemory = overflowMemory;
+    }
+    if (info.bundleName.empty()) {
+        auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+        appMgrClient.GetBundleNameByPid(pid, info.bundleName, info.uid);
+    }
+    if (info.bundleName == SCB_BUNDLE_NAME && !MEMParam::IsKillScbEnabled()) {
+        return false;
     }
     if (IS_BETA) {
         RSMainThread::Instance()->PostTask([pid, info]() mutable {
@@ -846,12 +854,9 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
         + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
         + std::to_string(info.TotalMemory()) + "]";
 
-    if (info.bundleName.empty()) {
-        auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-        appMgrClient.GetBundleNameByPid(pid, info.bundleName, info.uid);
-    }
     KillProcessByPid(pid, info, reason);
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
+    return true;
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,

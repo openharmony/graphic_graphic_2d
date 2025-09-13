@@ -28,18 +28,21 @@ public:
     static bool IsReclaimEnabled();
     static int GetRSCacheLimitsResourceSize();
     static bool IsDeeplyRelGpuResEnable();
+    static bool IsKillScbEnabled();
 
 protected:
     static void SetRSWatchPoint(std::string rsWatchPoint);
     static void SetReclaimEnabled(bool isEnabled);
     static void SetRSCacheLimitsResourceSize(int rsCacheLimitsResourceSize);
     static void SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable);
+    static void SetKillScbEnabled(bool isEnabled);
 
 private:
     inline static std::string rsWatchPoint_ = "";
     inline static bool isReclaimEnabled_ = false;
     inline static int rsCacheLimitsResourceSize_ = 0;
     inline static bool isDeeplyRelGpuResEnable_ = false;
+    inline static bool isKillScbEnabled_ = true;
 
     friend class MEMParamParse;
 };

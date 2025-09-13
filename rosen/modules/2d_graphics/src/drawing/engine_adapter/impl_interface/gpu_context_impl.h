@@ -34,7 +34,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 using pid_t = int;
-using MemoryOverflowCalllback = std::function<void(pid_t, uint64_t, bool)>;
+using MemoryOverflowCalllback = std::function<bool(pid_t, uint64_t, bool)>;
 struct GPUResourceTag;
 struct HpsBlurParameter;
 class GPUContext;
