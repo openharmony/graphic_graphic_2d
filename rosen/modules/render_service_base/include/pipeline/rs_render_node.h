@@ -87,7 +87,6 @@ public:
     using ModifierNGContainer = std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>;
     using ModifiersNGContainer = std::array<ModifierNGContainer, ModifierNG::MODIFIER_TYPE_COUNT>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
-    std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
     {
         return Type;
@@ -225,7 +224,6 @@ public:
     {
         return id_ == firstLevelNodeId_;
     }
-    void UpdateChildSubSurfaceNode();
     bool GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix);
 
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
@@ -751,7 +749,6 @@ public:
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
-    bool HasCacheableAnim() const { return hasCacheableAnim_; }
     enum NodeGroupType : uint8_t {
         NONE = 0,
         GROUPED_BY_ANIM = 1,
@@ -1130,7 +1127,6 @@ protected:
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
     bool IsSelfDrawingNode() const;
-    bool lastFrameHasAnimation_ = false;
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffect_ = false;
@@ -1148,7 +1144,6 @@ protected:
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
-    bool flagIntersectWithDRM_ = false;
     std::atomic<bool> isStaticCached_ = false;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
@@ -1229,10 +1224,8 @@ private:
     bool isAncestorDirty_ = false;
     bool isParentLeashWindow_ = false;
     bool isParentScbScreen_ = false;
-    bool hasCacheableAnim_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
     bool lastIsNeedAssignToSubThread_ = false;
-    uint8_t drawableVecStatusV1_ = 0;
     bool uifirstNeedSync_ = false; // both cmdlist&param
     bool uifirstSkipPartialSync_ = false;
     bool forceUpdateByUifirst_ = false;
@@ -1250,7 +1243,6 @@ private:
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::atomic<bool> commandExecuted_ = false;
     std::atomic_bool isUsedBySubThread_ = false;
-    int32_t crossScreenNum_ = 0;
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
@@ -1316,7 +1308,6 @@ private:
     RectI removedChildrenRect_;
     RectI oldClipRect_;
     // aim to record children rect in abs coords, without considering clip
-    RectI absChildrenRect_;
     // aim to record current frame clipped children dirty region, in abs coords
     RectI subTreeDirtyRegion_;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
