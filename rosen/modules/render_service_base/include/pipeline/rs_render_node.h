@@ -224,7 +224,6 @@ public:
     {
         return id_ == firstLevelNodeId_;
     }
-    void UpdateChildSubSurfaceNode();
     bool GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix);
 
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
