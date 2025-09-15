@@ -99,7 +99,7 @@ private:
     
     // DISPLAY ENGINE
     std::string pkgName_{};
-    mutable std::mutex setMutex_{};
+    mutable std::mutex mutexLock_{};
     std::unordered_set<pid_t> imageEnhancePidList_{};
 };
 } // namespace OHOS::Rosen

@@ -111,13 +111,13 @@ std::string RsCommonHook::GetCurrentPkgName() const
 
 void RsCommonHook::SetImageEnhancePidList(const std::unordered_set<pid_t>& imageEnhancePidList)
 {
-    std::lock_guard<std::mutex> setMutex(setMutex_);
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
     imageEnhancePidList_ = imageEnhancePidList;
 }
 
 std::unordered_set<pid_t> RsCommonHook::GetImageEnhancePidList() const
 {
-    std::lock_guard<std::mutex> setMutex(setMutex_);
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
     return imageEnhancePidList_;
 }
 

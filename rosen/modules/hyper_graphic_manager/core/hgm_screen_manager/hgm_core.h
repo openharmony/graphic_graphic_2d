@@ -72,6 +72,11 @@ public:
         return mPolicyConfigVisitor_;
     }
 
+    const std::unordered_set<std::string>& GetImageEnhanceScene() const
+    {
+        return mImageEnhanceScene_;
+    }
+
     // called by RSMainThread
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
@@ -205,6 +210,11 @@ public:
     void SetLtpoEnabled(bool ltpoEnabled)
     {
         ltpoEnabled_ = ltpoEnabled;
+    }
+
+    void SetImageEnhanceScene(const std::unordered_set<std::string>& imageEnhanceScene)
+    {
+        mImageEnhanceScene_ = imageEnhanceScene;
     }
 
     uint32_t GetAlignRate() const
@@ -362,6 +372,7 @@ private:
 
     std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
+    std::unordered_set<std::string> mImageEnhanceScene_{};
 
     // for LTPO
     std::atomic<uint32_t> pendingScreenRefreshRate_{ 0 };

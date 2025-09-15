@@ -149,9 +149,19 @@ HWTEST_F(RsCommonHookTest, SetAndGetOverlappedHwcNodeInAppEnabledConfig, TestSiz
  */
 HWTEST_F(RsCommonHookTest, SetAndGetImageEnhancePidListTest, TestSize.Level1)
 {
-    const std::unordered_set<pid_t> testImageEnhancePidList = {};
+    std::unordered_set<pid_t> testImageEnhancePidList = {};
     RsCommonHook::Instance().SetImageEnhancePidList(testImageEnhancePidList);
-    auto result = RsCommonHook::Instance().GetImageEnhancePidList();
-    EXPECT_EQ(result, testImageEnhancePidList);
+    auto result1 = RsCommonHook::Instance().GetImageEnhancePidList();
+    EXPECT_EQ(result1, testImageEnhancePidList);
+    pid_t pid1 = 1;
+    testImageEnhancePidList.insert(pid1);
+    RsCommonHook::Instance().SetImageEnhancePidList(testImageEnhancePidList);
+    auto result2 = RsCommonHook::Instance().GetImageEnhancePidList();
+    EXPECT_EQ(result2, testImageEnhancePidList);
+    pid_t pid2 = 2;
+    testImageEnhancePidList.insert(pid2);
+    RsCommonHook::Instance().SetImageEnhancePidList(testImageEnhancePidList);
+    auto result3 = RsCommonHook::Instance().GetImageEnhancePidList();
+    EXPECT_EQ(result3, testImageEnhancePidList);
 }
 } // namespace OHOS::Rosen

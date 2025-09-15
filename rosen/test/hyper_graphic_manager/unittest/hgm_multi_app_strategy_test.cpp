@@ -610,9 +610,20 @@ HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest |
  */
 HWTEST_F(HgmMultiAppStrategyTest, CheckImageEnhanceListTest, Function | SmallTest | Level0)
 {
-    const std::string appName = "";
-    bool result = multiAppStrategy_->CheckImageEnhanceList(appName);
-    ASSERT_FALSE(result);
+    auto& hgmCore = HgmCore::Instance();
+    std::unordered_set<pid_t> imageEnhancePidList;
+    const pid_t pid = 1234;
+    std::string pkgName = "com.other.app";
+    hgmCore.mImageEnhanceScene_.clear();
+    multiAppStrategy_->CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
+    EXPECT_TRUE(imageEnhancePidList.empty());
+    hgmCore.mImageEnhanceScene_.insert("com.example.app");
+    multiAppStrategy_->CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
+    EXPECT_TRUE(imageEnhancePidList.empty());
+    pkgName = "com.example.app";
+    multiAppStrategy_->CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
+    EXPECT_FALSE(imageEnhancePidList.empty());
+    EXPECT_NE(imageEnhancePidList.find(pid), imageEnhancePidList.end());
 }
 
 /**

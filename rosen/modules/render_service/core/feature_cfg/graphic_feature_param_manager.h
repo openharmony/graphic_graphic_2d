@@ -65,6 +65,8 @@
 #include "surface_capture_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
+#include "image_enhance_param_parse.h"
+#include "image_enhance_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -115,6 +117,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<RotateOffScreenParam>(); }},
     {FEATURE_CONFIGS[SUBTREEPARALLEL], [] { return std::make_unique<SubtreeParallelParamParse>(); },
         [] { return std::make_unique<SubtreeParallelParam>(); }},
+    {FEATURE_CONFIGS[IMAGE_ENHANCE], [] { return std::make_unique<ImageEnhanceParamParse>(); },
+        [] { return std::make_unique<ImageEnhanceParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {
