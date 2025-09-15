@@ -33,6 +33,23 @@ public:
     static ani_object CreateBlendModeColorFilterWithNumber(ani_env* env,
         ani_object obj, ani_object objColor, ani_enum_item aniBlendMode);
 
+    static ani_object CreateLightingColorFilterWithColor(
+        ani_env* env, ani_object obj, ani_object aniMultiplyColorObj, ani_object aniAddColorObj);
+
+    static ani_object CreateLightingColorFilter(
+        ani_env* env, ani_object obj, ani_double aniMultiplyColor, ani_double addColor);
+
+    static ani_object CreateMatrixColorFilter(ani_env* env, ani_object obj, ani_object aniMatrixArrayObj);
+
+    static ani_object CreateComposeColorFilter(
+    ani_env* env, ani_object obj, ani_object aniOuterColorFilterObj, ani_object aniInnerColorFilterObj);
+
+    static ani_object CreateLinearToSRGBGamma(ani_env* env, ani_object obj);
+
+    static ani_object CreateLumaColorFilter(ani_env* env, ani_object obj);
+
+    static ani_object CreateSRGBGammaToLinear(ani_env* env, ani_object obj);
+
     DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
 private:
     static ani_object ColorFilterTransferStatic(ani_env*  env, ani_object obj, ani_object input);
