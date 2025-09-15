@@ -45,6 +45,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "AccessibilityConfig",
     "RotateOffScreenConfig",
     "SubtreeConfig",
+    "ImageEnhanceConfig",
 };
 
 enum FeatureModule {
@@ -69,6 +70,7 @@ enum FeatureModule {
     ACCESSIBILITY,
     ROTATEOFFSCREEN,
     SUBTREEPARALLEL,
+    IMAGE_ENHANCE,
     // Do not change it.
     ENUM_LENGTH,
 };

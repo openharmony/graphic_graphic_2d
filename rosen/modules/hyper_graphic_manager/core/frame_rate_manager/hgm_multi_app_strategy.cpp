@@ -61,9 +61,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
         // DISPLAY ENGINE
         RsCommonHook::Instance().SetCurrentPkgName(pkgName);
-        if (CheckImageEnhanceList(pkgName)) {
-            imageEnhancePidList.insert(pid);
-        }
+        CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
 
         pidAppTypeMap_[pkgName] = { pid, appType };
         if (pid > DEFAULT_PID) {
@@ -434,9 +432,16 @@ void HgmMultiAppStrategy::OnStrategyChange()
     }
 }
 
-bool HgmMultiAppStrategy::CheckImageEnhanceList(const std::string& appName) const
+void HgmMultiAppStrategy::CheckImageEnhanceList(
+    const std::string& pkgName, const pid_t pid, std::unordered_set<pid_t>& imageEnhancePidList) const
 {
-    return imageEnhanceScene_.find(appName) != imageEnhanceScene_.end();
+    const std::unordered_set<std::string>& imageEnhanceScene = HgmCore::Instance().GetImageEnhanceScene();
+    if (imageEnhanceScene.empty()) {
+        return;
+    }
+    if (imageEnhanceScene.find(pkgName) != imageEnhanceScene.end()) {
+        imageEnhancePidList.insert(pid);
+    }
 }
 
 // use in temporary scheme to check package name
