@@ -236,7 +236,7 @@ private:
     uint64_t vsyncId_ = 0;
     bool isFinishDLOpen_ = false;
     std::set<uint64_t> waitSemaphoreSet_{};
-    std::mutex = funcMutex_;
+    std::mutex funcMutex_;
     std::unordered_map<void*, std::function<void()>> submitFuncs_{};
 };
 } // namespace Rosen
