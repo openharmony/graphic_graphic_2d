@@ -1482,6 +1482,9 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
             renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
         }
     } else {
+        if (surfaceParams.GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
+            params.useBilinearInterpolation = true;
+        }
         renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     }
 }
