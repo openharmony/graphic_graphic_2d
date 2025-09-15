@@ -1440,7 +1440,6 @@ HWTEST_F(RSRenderServiceConnectionStubTest, AvcodecVideoStopTest004, TestSize.Le
     std::vector<uint64_t> uniqueIdList = {1};
     std::vector<std::string> surfaceNameList = {"surface1"};
     uint32_t fps = 120;
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
     data.WriteUInt64Vector(uniqueIdList);
     data.WriteStringVector(surfaceNameList);
     data.WriteUint32(fps);

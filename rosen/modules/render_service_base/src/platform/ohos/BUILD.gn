@@ -53,6 +53,7 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_event_manager.cpp",
     "rs_hisysevent.cpp",
     "rs_innovation.cpp",
+    "rs_jank_report_thread.cpp",
     "rs_jank_stats.cpp",
     "rs_jank_stats_helper.cpp",
     "rs_log.cpp",

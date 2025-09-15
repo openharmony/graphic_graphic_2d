@@ -29,6 +29,7 @@
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_hisysevent.h"
+#include "platform/ohos/rs_jank_report_thread.h"
 #ifdef NOT_BUILD_FOR_OHOS_SDK
 #include "xperf_service_client.h"
 #endif
@@ -1234,8 +1235,8 @@ void RSJankStats::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
         uint64_t avgFps = (duration > 0) ? (it->second.decodeCount * DELAY_TIME_MS / duration) : 0;
         uint64_t happenTime = it->second.startTime;
-        std::thread thread([uniqueId, duration, avgFps, happenTime]() {
-            RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG"
+        auto task = [uniqueId, duration, avgFps, happenTime]() {
+            RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoStop RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG "
                 "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
                 uniqueId, duration, avgFps, happenTime);
             int32_t domainId = 5;
@@ -1244,13 +1245,12 @@ void RSJankStats::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
             // RS_NOTIFY_XPERF_VIDEO_FRAME_STATS_MSG
             s << "#UNIQUEID:" << uniqueId <<
                 "#DURATION:" << duration <<
-                "#AVG_FPS:" << avgFps <<
-                "#HAPPEN_TIME:" << happenTime;
+                "#AVG_FPS:" << avgFps;
 #ifdef NOT_BUILD_FOR_OHOS_SDK
             OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
 #endif
-        });
-        thread.detach();
+        };
+        RSJankReportThread::Instance().PostTask(task);
 
         avcodecVideoMap_.erase(it);
     }
@@ -1269,8 +1269,8 @@ void RSJankStats::AvcodecVideoExpectionStop(const uint64_t uniqueId)
     uint64_t duration = static_cast<uint64_t>(GetCurrentSystimeMs()) - it->second.startTime;
     uint64_t avgFps = (duration > 0) ? (it->second.decodeCount * DELAY_TIME_MS / duration) : 0;
     uint64_t happenTime = it->second.startTime;
-    std::thread thread([uniqueId, duration, avgFps, happenTime]() {
-        RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoExpectionStop RS_NOTIFY_XPERF_VIDEO_EXPECTION_STOP_MSG"
+    auto task = [uniqueId, duration, avgFps, happenTime]() {
+        RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoExpectionStop RS_NOTIFY_XPERF_VIDEO_EXPECTION_STOP_MSG "
             "uniqueId: %" PRIu64 ", duration: %" PRIu64 ", avgFps: %" PRIu64 ", happenTime: %" PRIu64 "",
             uniqueId, duration, avgFps, happenTime);
         int32_t domainId = 5;
@@ -1278,14 +1278,12 @@ void RSJankStats::AvcodecVideoExpectionStop(const uint64_t uniqueId)
         std::stringstream s;
         // RS_NOTIFY_XPERF_VIDEO_EXPECTION_STOP_MSG
         s << "#UNIQUEID:" << uniqueId <<
-            "#DURATION:" << duration <<
-            "#AVG_FPS:" << avgFps <<
             "#HAPPEN_TIME:" << happenTime;
 #ifdef NOT_BUILD_FOR_OHOS_SDK
         OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
 #endif
-    });
-    thread.detach();
+    };
+    RSJankReportThread::Instance().PostTask(task);
 
     avcodecVideoMap_.erase(it);
 
@@ -1335,26 +1333,30 @@ void RSJankStats::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t se
         if (now - it->second.previousNotifyTime < ACVIDEO_NOTIFY_TIME_MS) {
             RS_LOGD("RSJankStats::AvcodecVideoCollect previousNotifyTime not exceeding threshold."
                 "uniqueId: %{public}" PRIu64 ", frameTime: %{public}" PRIu64 "", uniqueId, frameTime);
+            it->second.decodeCount++;
+            it->second.previousSequence = sequence;
+            it->second.previousFrameTime = now;
             return;
         }
         if (frameTime > it->second.reportTime) {
             it->second.previousNotifyTime = now;
-            std::thread thread([uniqueId, frameTime]() {
-                RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoCollect RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG"
-                    "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 "", uniqueId, frameTime);
+            auto task = [uniqueId, frameTime, now]() {
+                RS_TRACE_NAME_FMT("RSJankStats::AvcodecVideoCollect RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG "
+                    "uniqueId: %" PRIu64 ", frameTime: %" PRIu64 ", now: %" PRIu64 "", uniqueId, frameTime, now);
                 int32_t domainId = 5;
                 int32_t eventId = 0;
                 std::stringstream s;
                 // RS_NOTIFY_XPERF_VIDEO_JANK_FRAME_MSG
                 s << "#UNIQUEID:" << uniqueId <<
-                    "#FAULT_ID:" << 0 <<
+                    "#FAULT_ID:" << domainId <<
                     "#FAULT_CODE:" << 0 <<
-                    "#MAX_FRAME_TIME:" << frameTime;
+                    "#MAX_FRAME_TIME:" << frameTime <<
+                    "#HAPPEN_TIME:" << now;
 #ifdef NOT_BUILD_FOR_OHOS_SDK
                 OHOS::HiviewDFX::XperfServiceClient::GetInstance().NotifyToXperf(domainId, eventId, s.str());
 #endif
-            });
-            thread.detach();
+            };
+            RSJankReportThread::Instance().PostTask(task);
         }
         it->second.decodeCount++;
         it->second.previousSequence = sequence;
