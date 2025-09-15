@@ -221,13 +221,13 @@ private:
 
 #ifdef ROSEN_OHOS
     void* MHCLibFrameworkHandle_ = nullptr;
+    bool processConsumed_ = false;
+    pid_t tid_ = -1;
 #endif
     std::shared_ptr<MHCDevice> MHCDevice_ = std::make_shared<MHCDevice>();
     void* graphPatternInstance_ = nullptr;
-    bool processConsumed_ = false;
     bool lastFrameConsumed_ = false;
     bool flushedBuffer_ = false;
-    pid_t tid_ = -1;
     std::mutex frameIdMutex_;
     uint64_t curFrameId_ = 0;
     uint64_t lastFrameId_ = 0;
