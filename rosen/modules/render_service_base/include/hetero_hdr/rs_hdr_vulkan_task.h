@@ -32,12 +32,12 @@ namespace Rosen {
 
 class RSB_EXPORT RSHDRVulkanTask {
 public:
-    static void InsertHTSWaitSemaphore(std::shared_ptr<Drawing::Surface>& surfaceDrawing, uint64_t frameId);
+    static void InsertHTSWaitSemaphore(Drawing::Surface* surfaceDrawing, uint64_t frameId);
     static bool GetHTSNotifySemaphore(std::shared_ptr<VkSemaphore>& notifySemaphore, uint64_t frameId);
     static void SubmitWaitEventToGPU(uint64_t frameId);
     static void PrepareHDRSemaphoreVector(std::vector<GrBackendSemaphore>& semaphoreVec,
         std::shared_ptr<Drawing::Surface>& surface, std::vector<uint64_t>& frameIdVec);
-
+    static std::vector<void*> GetWaitSemaphoreKeys(VkSubmitInfo* pSubmits);
 private:
     RSHDRVulkanTask() = default;
     ~RSHDRVulkanTask() = default;

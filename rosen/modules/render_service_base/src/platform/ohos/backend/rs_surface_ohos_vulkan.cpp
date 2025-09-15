@@ -563,9 +563,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         mSkContext->Submit();
         mSkContext->EndFrame();
     }
-    for (auto frameId : frameIdVec) {
-        RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
-    }
+    RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
 
     int fenceFd = -1;
     if (mReservedFlushFd != -1) {

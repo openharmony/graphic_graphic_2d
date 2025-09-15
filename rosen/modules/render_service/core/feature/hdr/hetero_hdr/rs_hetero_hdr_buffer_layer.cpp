@@ -37,7 +37,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint32_t BUFFER_SIZE = 2;
+const uint32_t BUFFER_SIZE = 3;
 const uint32_t STRIDE_ALIGNMENT = 0x8;
 const std::string HPAE_HETERO_BUFFER_TAG = "hpae_memory_hdrhetero";
 }
@@ -118,13 +118,13 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
 
 void RSHeteroHDRBufferLayer::ConsumeAndUpdateBuffer()
 {
+    // The log information related to the failure has been printed within the function.
+    ReleaseBuffer();
     if (surfaceHandler_ == nullptr) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ConsumeAndUpdateBuffer surfaceHandler is nullptr");
         return;
     }
     RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler_);
-    // The log information related to the failure has been printed within the function.
-    ReleaseBuffer();
 }
 
 sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::RequestSurfaceBuffer(
@@ -209,9 +209,6 @@ bool RSHeteroHDRBufferLayer::ReleaseBuffer()
             RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ReleaseBuffer surfaceHandler ReleaseBuffer failed");
             return false;
         }
-        // reset prevBuffer if we release it successfully,
-        // to avoid releasing the same buffer next frame in some situations.
-        surfaceHandler_->ResetPreBuffer(!RSSystemProperties::GetVKImageUseEnabled());
     }
     return true;
 }

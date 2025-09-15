@@ -266,6 +266,28 @@ bool RSHDRPatternManager::MHCReleaseAll()
     return true;
 }
 
+void SetThreadId(RSPaintFilterCanvas& canvas);
+{
+#ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_VK
+    std::unique_lock<std::mutex> lock(frameIdMutex_);
+    if (processConsumed_) {
+        return;
+    }
+    if (flushedBuffer_ && !curFrameIdUsed_) { // one HDR buffer can be consumed only once
+        flushedBuffer_ = false;
+        processConsumed_ = true;
+        tid_ = gettid();
+        if (curFrameId_ != 0) {
+            auto drawingSurface = canvas.GetSurface();
+            RSHDRVulkanTask::InsertHTSWaitSemaphore(drawingSurface, curFrameId_);
+            waitSemaphoreSet_.insert(curFrameId_);
+        }
+    }
+#endif // RS_ENABLE_VK
+#endif // ROSEN_OHOS
+}
+
 std::vector<uint64_t> RSHDRPatternManager::MHCGetFrameIdForGPUTask()
 {
     std::vector<uint64_t> frameIdVec{};

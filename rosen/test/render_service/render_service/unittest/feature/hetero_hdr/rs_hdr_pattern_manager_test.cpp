@@ -380,6 +380,58 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlsymInvalidTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetThreadIdTest
+ * @tc.desc: etThreadId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+ HWTEST_F(RSHDRPatternManagerTest, SetThreadIdTest, TestSize.Level1)
+ {
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    MHCDevice_->graphPatternRequestEGraph = nullptr;
+    auto tempSet = SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_;
+    SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.clear();
+
+    // test 1
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().SetThreadId(canvas);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.size(), 0);
+
+    // test 2
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().flushedBuffer_ = false;
+    SingletonMockRSHDRPatternManager::Instance().SetThreadId(canvas);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.size(), 0);
+
+    // test 3
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().flushedBuffer_ = true;
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().curFrameId_ = 0;
+    SingletonMockRSHDRPatternManager::Instance().SetThreadId(canvas);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.size(), 0);
+
+    // test 4
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().flushedBuffer_ = true;
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = true;
+    SingletonMockRSHDRPatternManager::Instance().curFrameId_ = 0;
+    SingletonMockRSHDRPatternManager::Instance().SetThreadId(canvas);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.size(), 0);
+
+    // test 5
+    SingletonMockRSHDRPatternManager::Instance().processConsumed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().flushedBuffer_ = true;
+    SingletonMockRSHDRPatternManager::Instance().curFrameIdUsed_ = false;
+    SingletonMockRSHDRPatternManager::Instance().curFrameId_ = 1;
+    SingletonMockRSHDRPatternManager::Instance().SetThreadId(canvas);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.size(), 1);
+
+    SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_ = tempSet;
+ }
+
+/**
  * @tc.name: MHCGetFrameIdForGPUTaskTest_Branch1
  * @tc.desc: Test MHCGetFrameIdForGPUTask branch 1 scenarios
  * @tc.type: FUNC
@@ -512,8 +564,38 @@ HWTEST_F(RSHDRPatternManagerTest, PrepareHDRSemaphoreVectorTest, TestSize.Level1
     std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 
+    auto waitSemaphoreSetTemp = RSHDRPatternManager::Instance().waitSemaphoreSet_;
+    RSHDRPatternManager::Instance().waitSemaphoreSet_.clear();
+    // MHCCheckWaitSemaphoreSet false
+    std::vector<GrBackendSemaphore> semaphoreVec2 = {backendSemaphore};
+    RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec2, surface, frameIdVec);
+    // MHCCheckWaitSemaphoreSet true
+    uint64_t frameId1 = 1;
+    std::vector<GrBackendSemaphore> semaphoreVec3 = {backendSemaphore};
+    RSHDRPatternManager::Instance().waitSemaphoreSet_.insert(frameId1);
+    RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec3, surface, frameIdVec);
+    RSHDRPatternManager::Instance().waitSemaphoreSet_. = waitSemaphoreSetTemp;
+
     uint64_t frameId = 0;
     RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
 }
 
+/**
+ * @tc.name: GetWaitSemaphoreKeysTest
+ * @tc.desc: Test GetWaitSemaphoreKeys
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHDRPatternManagerTest, GetWaitSemaphoreKeysTest, TestSize.Level1)
+{
+    VkSubmitInfo* submitInfo = nullptr;
+    auto ret = RSHDRVulkanTask::GetWaitSemaphoreKeys(submitInfo);
+    EXPECT_EQ(ret.size(), 0);
+
+    VkSubmitInfo* submitInfo1 = new VkSubmitInfo();
+    submitInfo1->waitSemaphoreCount = 1;
+    submitInfo1->pWaitSemaphores = nullptr;
+    auto ret1 = RSHDRVulkanTask::GetWaitSemaphoreKeys(submitInfo1);
+    EXPECT_EQ(ret1.size(), 0);
+}
 } // namespace OHOS::Rosen

@@ -23,6 +23,8 @@
 #include <vector>
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "hetero_hdr/rs_hdr_vulkan_task.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
@@ -77,20 +79,7 @@ public:
     RSHDRPatternManager& operator=(const RSHDRPatternManager&) = delete;
     RSHDRPatternManager& operator=(RSHDRPatternManager&&) = delete;
 
-    void SetThreadId()
-    {
-#ifdef ROSEN_OHOS
-        std::unique_lock<std::mutex> lock(frameIdMutex_);
-        if (processConsumed_) {
-            return;
-        }
-        if (flushedBuffer_) {  // one HDR buffer can be consumed only once
-            flushedBuffer_ = false;
-            processConsumed_ = true;
-            tid_ = gettid();
-        }
-#endif
-    }
+    void SetThreadId(RSPaintFilterCanvas& canvas);
 
     void SetBufferFlushed()
     {
@@ -138,8 +127,6 @@ public:
 
     bool MHCCheck(const std::string logTag);
 
-    std::vector<uint64_t> MHCGetFrameIdForGPUTask();
-
     bool MHCSetCurFrameId(uint64_t frameId)
     {
         std::unique_lock<std::mutex> lock(frameIdMutex_);
@@ -167,7 +154,57 @@ public:
         std::unique_lock<std::mutex> lock(frameIdMutex_);
         vsyncId_ = frameId;
     }
-protected:
+
+    bool MHCCheckWaitSemaphoreSet(uint64_t frameId)
+    {
+        std::unique_lock<std::mutex> lock(frameIdMutex_);
+        auto it = waitSemaphoreSet_.find(frameId);
+        if (it != waitSemaphoreSet_.end()) {
+            waitSemaphoreSet_.erase(it);
+            return true;
+        }
+        return false;
+    }
+
+    std::vector<uint64_t> MHCGetFrameIdForGPUTask();
+
+    void MHCRegisterSubmitGPUFunc(void* key, std::function<void()> func)
+    {
+        std::unique_lock<std::mutex> lock(funcMutex_);
+        submitFuncs_[key] = func;
+    }
+
+    void MHCSubmitGPUTask(std::vector<void *> keys)
+    {
+        std::unique_lock<std::mutex> lock(funcMutex_);
+        for (auto key : keys) {
+            auto it = submitFuncs_.find(key);
+            if (it != submitFuncs_.end()) {
+                auto func = it->second;
+                func();
+                submitFuncs_.erase(it);
+            }
+        }
+    }
+
+    void MHCClearGPUTaskFunc(std::vector<uint64_t> frameIdVec)
+    {
+        if (frameIdVec.size() == 0) {
+            RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCClearGPUTaskFunc no need clear");
+            return;
+        }
+        std::unique_lock<std::mutex> lock(funcMutex_);
+        if (!submitFuncs_.empty) {
+            for (auto it = submitFuncs_.begin; it != submitFuncs_.end; it++) {
+                auto func = it->second;
+                func();
+            }
+            RS_LOGW("[hdrHetero]:RSHDRPatternManager MHCClearGPUTaskFunc submitFuncs_ is not empty");
+            submitFuncs_.clear();
+        }
+    }
+
+private:
     RSHDRPatternManager();
     ~RSHDRPatternManager();
 
@@ -180,16 +217,6 @@ protected:
 #else
         return false;
 #endif
-    }
-
-    bool MHCCheckIsFirstFrame()
-    {
-        return (curFrameIdUsed_ == false) && (lastFrameIdUsed_ == true);
-    }
-
-    bool MHCCheckIsNextFrame()
-    {
-        return lastFrameIdUsed_ == false;
     }
 
 #ifdef ROSEN_OHOS
@@ -208,6 +235,9 @@ protected:
     bool lastFrameIdUsed_ = true;
     uint64_t vsyncId_ = 0;
     bool isFinishDLOpen_ = false;
+    std::set<uint64_t> waitSemaphoreSet_{};
+    std::mutex = funcMutex_;
+    std::unordered_map<void*, std::function<void()>> submitFuncs_{};
 };
 } // namespace Rosen
 } // namespace OHOS

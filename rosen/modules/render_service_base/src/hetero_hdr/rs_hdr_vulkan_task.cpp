@@ -27,7 +27,7 @@ std::unordered_map<uint16_t, std::shared_ptr<VkSemaphore>> g_semaphoreMap{};
 std::mutex g_vulkanTaskMutex;
 }
 
-void RSHDRVulkanTask::InsertHTSWaitSemaphore(std::shared_ptr<Drawing::Surface>& surfaceDrawing, uint64_t frameId)
+void RSHDRVulkanTask::InsertHTSWaitSemaphore(Drawing::Surface* surfaceDrawing, uint64_t frameId)
 {
     auto MHCEventId = RSHDRPatternManager::Instance().MHCGetVulkanTaskWaitEvent(frameId, MHC_PATTERN_TASK_HDR_GPU);
     if (MHCEventId == 0) {
@@ -53,7 +53,10 @@ void RSHDRVulkanTask::InsertHTSWaitSemaphore(std::shared_ptr<Drawing::Surface>& 
         RS_LOGE("[hdrHetero]:RSHDRVulkanTask InsertHTSWaitSemaphore waitSemaphore create failed");
         return;
     }
+    void* key = (void*)waitSemaphore;
     surfaceDrawing->Wait(1, waitSemaphore); // 2D Engine will destroy semaphore
+    std::function<void()> func = [frameId]() { RSHDRVulkanTask::SubmitWaitEventToGPU(frameId); };
+    RSHDRPatternManager::Instance().MHCRegisterSubmitGPUFunc(key, func);
 }
 
 bool RSHDRVulkanTask::GetHTSNotifySemaphore(std::shared_ptr<VkSemaphore>& notifySemaphore, uint64_t frameId)
@@ -117,8 +120,23 @@ void RSHDRVulkanTask::PrepareHDRSemaphoreVector(std::vector<GrBackendSemaphore>&
 #endif
             semaphoreVec.emplace_back(std::move(htsSemaphore));
         }
-        RSHDRVulkanTask::InsertHTSWaitSemaphore(surface, frameId);
+        if (!RSHDRPatternManager.Instance().MHCCheckWaitSemaphoreSet(frameId)) {
+            RSHDRVulkanTask::InsertHTSWaitSemaphore(surface.get(), frameId);
+        }
     }
+}
+
+std::vector<void*> RSHDRVulkanTask::GetWaitSemaphoreKeys(VkSubmitInfo* pSubmits)
+{
+    std::vector<void*> keys{};
+    if (!pSubmits || pSubmits->waitSemaphoreCount == 0 || !pSubmits->pWaitSemaphores) {
+        RS_LOGE("[hdrHetero]:RSHDRVulkanTask GetWaitSemaphoreKeys invalid parameters");
+        return keys;
+    }
+    for (uint32_t i = 0; i < pSubmits->waitSemaphoreCount; i++) {
+        keys.push_back(pSubmits->pWaitSemaphores[i]);
+    }
+    return keys;
 }
 } // namespace Rosen
 } // namespace OHOS

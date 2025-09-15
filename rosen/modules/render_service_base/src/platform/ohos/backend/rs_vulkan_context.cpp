@@ -879,7 +879,10 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
         RS_LOGD("%{public}s queue", __func__);
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
-        return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        std::vector<void*> keys = RSHDRVulkanTask::GetWaitSemaphoreKeys(pSubmits);
+        RSHDRPatternManager::Instance().MHCSubmitGPUTask(keys);
+        return ret;
     }
     RS_LOGE("%{public}s abnormal queue occured", __func__);
     return VK_ERROR_UNKNOWN;

@@ -1082,9 +1082,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         surface->Flush(&drawingFlushInfo);
         grContext->Submit();
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
-        for (auto frameId : frameIdVec) {
-            RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
-        }
+        RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
     } else {
         surface->FlushAndSubmit(true);
     }
