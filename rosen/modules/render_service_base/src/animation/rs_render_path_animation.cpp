@@ -246,7 +246,7 @@ void RSRenderPathAnimation::SetRotation(const float tangent)
 {
     auto target = GetTarget();
     if (target == nullptr) {
-        ROSEN_LOGE("Failed to set rotation value, target is null!");
+        ROSEN_LOGD("Failed to set rotation value, target is null!");
         return;
     }
 
