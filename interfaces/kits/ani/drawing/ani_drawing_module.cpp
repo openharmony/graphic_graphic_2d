@@ -29,6 +29,9 @@
 #include "typeface_ani/ani_typeface.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
 #include "rect_utils_ani/ani_rect_utils.h"
+#include "image_filter_ani/ani_image_filter.h"
+#include "path_effect_ani/ani_path_effect.h"
+#include "mask_filter_ani/ani_mask_filter.h"
 
 const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/drawing/Cleaner;";
 
@@ -77,7 +80,11 @@ static void Clean(ani_env* env, ani_object object)
         {"SamplingOptions", SafeDelete<OHOS::Rosen::Drawing::AniSamplingOptions>},
         {"Typeface", SafeDelete<OHOS::Rosen::Drawing::AniTypeface>},
         {"TypefaceArguments", SafeDelete<OHOS::Rosen::Drawing::AniTypefaceArguments>},
-        {"RectUtils", SafeDelete<OHOS::Rosen::Drawing::AniRectUtils>}};
+        {"RectUtils", SafeDelete<OHOS::Rosen::Drawing::AniRectUtils>},
+        {"ImageFilter", SafeDelete<OHOS::Rosen::Drawing::AniImageFilter>},
+        {"MaskFilter", SafeDelete<OHOS::Rosen::Drawing::AniMaskFilter>},
+        {"PathEffect", SafeDelete<OHOS::Rosen::Drawing::AniPathEffect>},
+    };
 
     auto it = deleteMap.find(className);
     if (it != deleteMap.end()) {
@@ -133,7 +140,10 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniRegion::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniRoundRect::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTypefaceArguments::AniInit(env) != ANI_OK ||
-        OHOS::Rosen::Drawing::AniRectUtils::AniInit(env) != ANI_OK) {
+        OHOS::Rosen::Drawing::AniRectUtils::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniImageFilter::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniMaskFilter::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniPathEffect::AniInit(env) != ANI_OK) {
         ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }

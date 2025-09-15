@@ -23,7 +23,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniColorFilter final {
 public:
-    explicit AniColorFilter(std::shared_ptr<ColorFilter> colorFilter = nullptr) : m_ColorFilter(colorFilter) {}
+    explicit AniColorFilter(std::shared_ptr<ColorFilter> colorFilter = nullptr) : colorFilter_(colorFilter) {}
     ~AniColorFilter();
 
     static ani_status AniInit(ani_env *env);
@@ -52,7 +52,10 @@ public:
 
     DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
 private:
-    std::shared_ptr<ColorFilter> m_ColorFilter = nullptr;
+    static ani_object ColorFilterTransferStatic(ani_env*  env, ani_object obj, ani_object input);
+    static ani_long GetColorFilterAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<ColorFilter>* GetColorFilterPtrAddr();
+    std::shared_ptr<ColorFilter> colorFilter_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

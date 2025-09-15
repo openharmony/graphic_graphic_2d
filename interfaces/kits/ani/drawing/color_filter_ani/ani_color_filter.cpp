@@ -15,6 +15,11 @@
 
 #include "ani_color_filter.h"
 #include "draw/color.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/color_filter_napi/js_color_filter.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -58,7 +63,7 @@ ani_status AniColorFilter::AniInit(ani_env *env)
 
 AniColorFilter::~AniColorFilter()
 {
-    m_ColorFilter = nullptr;
+    colorFilter_ = nullptr;
 }
 
 ani_object AniColorFilter::CreateBlendModeColorFilter(
@@ -136,7 +141,7 @@ ani_object AniColorFilter::ColorFilterTransferStatic(ani_env* env, [[maybe_unuse
     }
 
     auto aniColorFilter = new AniColorFilter(jsColorFilter->GetColorFilterPtr());
-    ani_object aniColorFilterObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
+    ani_object aniColorFilterObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniColorFilterObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniColorFilter))) {
         ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed create aniColorFilter");
@@ -212,7 +217,7 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param matrix.");
         return CreateAniUndefined(env);
     }
-    uint32_t arraySize = aniLength;
+    uint32_t arraySize = static_cast<uint32_t>(aniLength);
     if (arraySize != ColorMatrix::MATRIX_SIZE) {
         ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter aniMatrixArrayObj size is invalid %{public}u.", arraySize);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array size.");
@@ -222,7 +227,7 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
     for (uint32_t i = 0; i < arraySize; i++) {
         ani_double value;
         ani_ref valueRef;
-        ret = env->Object_CallMethodByName_Ref(aniMatrixArrayObj, "$_get", "i:C{std.core.Object}", &valueRef,
+        ret = env->Object_CallMethodByName_Ref(aniMatrixArrayObj, "$_get", "i:Y", &valueRef,
             static_cast<ani_int>(i));
         if (ret != ANI_OK) {
             ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter get matrix array element failed %{public}d", ret);
@@ -230,7 +235,7 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
             return CreateAniUndefined(env);
         }
 
-        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(valueRef), "unboxed", ":d", &value);
+        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(valueRef), "toDouble", ":d", &value);
         if (ret != ANI_OK) {
             ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter get matrix array element failed %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array element.");
@@ -260,7 +265,7 @@ ani_object AniColorFilter::CreateComposeColorFilter(
         return CreateAniUndefined(env);
     }
     auto aniInnerColorFilter = GetNativeFromObj<AniColorFilter>(env, aniInnerColorFilterObj);
-    if (aniOuterColorFilter == nullptr) {
+    if (aniInnerColorFilter == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param inner.");
         return CreateAniUndefined(env);
     }
@@ -297,7 +302,7 @@ ani_object AniColorFilter::CreateLumaColorFilter(ani_env* env, [[maybe_unused]] 
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete colorFilter;
-        ROSEN_LOGE("AniColorFilter::CreateLinearToSRGBGamma failed cause aniObj is undefined");
+        ROSEN_LOGE("AniColorFilter::CreateLumaColorFilter failed cause aniObj is undefined");
     }
     return aniObj;
 }
@@ -317,7 +322,7 @@ ani_object AniColorFilter::CreateSRGBGammaToLinear(ani_env* env, [[maybe_unused]
 
 std::shared_ptr<ColorFilter> AniColorFilter::GetColorFilter()
 {
-    return m_ColorFilter;
+    return colorFilter_;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen
