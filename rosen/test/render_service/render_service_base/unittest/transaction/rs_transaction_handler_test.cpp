@@ -1398,7 +1398,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction002, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto transactionHandler = std::make_shared<RSTransactionHandler>();
 
-    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     transactionHandler->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     ASSERT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     EXPECT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
@@ -1416,7 +1416,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction003, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto transactionHandler = std::make_shared<RSTransactionHandler>();
 
-    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     auto preTransactionData = std::make_unique<RSTransactionData>();
     ASSERT_TRUE(preTransactionData->IsEmpty());
     NodeId nodeId = 1;
@@ -1442,7 +1442,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction004, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto transactionHandler = std::make_shared<RSTransactionHandler>();
 
-    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     auto preTransactionData = std::make_unique<RSTransactionData>();
     ASSERT_TRUE(preTransactionData->IsEmpty());
     NodeId nodeId = 1;
@@ -1470,7 +1470,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction005, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto transactionHandler = std::make_shared<RSTransactionHandler>();
 
-    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     transactionHandler->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     ASSERT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
     EXPECT_TRUE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
@@ -1488,7 +1488,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction006, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto transactionHandler = std::make_shared<RSTransactionHandler>();
 
-    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     auto preTransactionData = std::make_unique<RSTransactionData>();
     ASSERT_TRUE(preTransactionData->IsEmpty());
     NodeId nodeId = 1;
@@ -1514,7 +1514,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction007, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto transactionHandler = std::make_shared<RSTransactionHandler>();
 
-    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     auto preTransactionData = std::make_unique<RSTransactionData>();
     ASSERT_TRUE(preTransactionData->IsEmpty());
     NodeId nodeId = 1;
@@ -1545,7 +1545,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction008, TestSize.Level1)
     EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
     transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     EXPECT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
-    ASSERT_EQ(transactionHandler->GetRemoteTransactionData(), nullptr);
+    ASSERT_TRUE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
     transaction->MergeSyncTransaction(transactionHandler);
 }
 
@@ -1563,7 +1563,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction009, TestSize.Level1)
     EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
     transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
-    ASSERT_EQ(transactionHandler->GetCommonTransactionData(), nullptr);
+    ASSERT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.empty());
     transaction->MergeSyncTransaction(transactionHandler);
 }
 
@@ -1580,7 +1580,7 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction010, TestSize.Level1)
 
     transactionHandler->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     ASSERT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
-    EXPECT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    EXPECT_TRUE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
 
     EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
     transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
@@ -1601,44 +1601,12 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction011, TestSize.Level1)
 
     transactionHandler->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     ASSERT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.empty());
-    EXPECT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    EXPECT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
 
     EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
     transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
     EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
     transaction->MergeSyncTransaction(transactionHandler);
-}
-
-/**
- * @tc.name: GetCommonTransactionData001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionHandlerTest, GetCommonTransactionData001, TestSize.Level1)
-{
-    auto transaction = std::make_shared<RSTransactionHandler>();
-
-    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
-    EXPECT_EQ(transaction->GetCommonTransactionData(), nullptr);
-    transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-    EXPECT_NE(transaction->GetCommonTransactionData(), nullptr);
-}
-
-/**
- * @tc.name: GetRemoteTransactionData001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionHandlerTest, GetRemoteTransactionData001, TestSize.Level1)
-{
-    auto transaction = std::make_shared<RSTransactionHandler>();
-
-    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
-    EXPECT_EQ(transaction->GetRemoteTransactionData(), nullptr);
-    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-    EXPECT_NE(transaction->GetRemoteTransactionData(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

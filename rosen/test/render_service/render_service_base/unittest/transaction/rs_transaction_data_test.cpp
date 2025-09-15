@@ -484,7 +484,7 @@ HWTEST_F(RSTransactionDataTest, MoveAllCommandTest002, TestSize.Level1)
     ASSERT_TRUE(curTransactionData->IsEmpty());
     preTransactionData->MoveAllCommand(curTransactionData);
     ASSERT_TRUE(preTransactionData->IsEmpty());
-    ASSERT_TRUE(curTransactionData->IsEmpty());
+    ASSERT_FALSE(curTransactionData->IsEmpty());
 }
 } // namespace Rosen
 } // namespace OHOS

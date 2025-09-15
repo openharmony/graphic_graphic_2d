@@ -104,8 +104,6 @@ private:
     void MoveCommonCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     void AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void MoveRemoteCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
-    std::unique_ptr<RSTransactionData> GetCommonTransactionData();
-    std::unique_ptr<RSTransactionData> GetRemoteTransactionData();
     // Command Transaction Triggered by UI Thread.
     mutable std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_ { std::make_unique<RSTransactionData>() };
