@@ -116,6 +116,8 @@ private:
         rsUIContext_ = rsUIContext;
     }
 
+    bool CheckImplicitAnimationConditions();
+
     std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve,
         const std::shared_ptr<AnimationFinishCallback>, std::shared_ptr<AnimationRepeatCallback>>>
         globalImplicitParams_;

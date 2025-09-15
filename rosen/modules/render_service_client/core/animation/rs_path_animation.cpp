@@ -274,7 +274,8 @@ void RSPathAnimation::SetRotation(const std::shared_ptr<RSNode>& node, const flo
         return;
     }
     auto modifier = node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM);
-    if (modifier) {
+    if (!modifier) {
+        ROSEN_LOGE("RSPathAnimation::SetRotation failed modifier is nullptr");
         return;
     }
     auto propertyRotation = modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION);

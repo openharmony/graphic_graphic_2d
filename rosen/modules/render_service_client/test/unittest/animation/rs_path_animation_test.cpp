@@ -17,6 +17,7 @@
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_path_animation.h"
+#include "modifier_ng/appearance/rs_background_filter_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -412,5 +413,26 @@ HWTEST_F(RSPathAnimationTest, StartNonNormalTest002, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSPathAnimationTest StartNonNormalTest002 end";
 }
 #endif
+
+/**
+ * @tc.name: SetRotationTest001
+ * @tc.desc: Verify the SetRotation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPathAnimationTest, SetRotationTest001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
+    auto pathAnimation = std::make_shared<RSPathAnimation>(property, ANIMATION_PATH, startProperty, endProperty);
+    auto node = RSCanvasNode::Create();
+    EXPECT_EQ(node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM), nullptr);
+    pathAnimation->SetRotation(node, 1.0f);
+
+    node->modifiersNGCreatedBySetter_.emplace(
+        ModifierNG::RSModifierType::TRANSFORM, std::make_shared<ModifierNG::RSBackgroundFilterModifier>());
+    EXPECT_NE(node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM), nullptr);
+    pathAnimation->SetRotation(node, 1.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

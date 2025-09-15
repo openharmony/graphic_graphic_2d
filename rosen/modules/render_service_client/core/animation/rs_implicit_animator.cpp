@@ -148,7 +148,7 @@ void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationF
 
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
 {
-    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+    if (!CheckImplicitAnimationConditions()) {
         ROSEN_LOGD("Failed to close implicit animation, need to open implicit animation firstly!");
         return {};
     }
@@ -258,7 +258,7 @@ void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
 
 CancelAnimationStatus RSImplicitAnimator::CloseImplicitCancelAnimation()
 {
-    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+    if (!CheckImplicitAnimationConditions()) {
         ROSEN_LOGD("Failed to close cancel implicit animation, need to open implicit animation firstly!");
         return CancelAnimationStatus::NO_OPEN_CLOSURE;
     }
@@ -294,8 +294,9 @@ std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> RSImplicitAnimator:
         return {};
     }
     if (isAddImplictAnimation) {
-        if (globalImplicitParams_.empty()) {
-            ROSEN_LOGD("Failed to close interactive implicit animation, globalImplicitParams is empty!");
+        if (globalImplicitParams_.empty() || implicitAnimations_.empty()) {
+            ROSEN_LOGD(
+                "Failed to close interactive implicit animation, globalImplicitParams or implicitAnimations is empty!");
             return {};
         }
 
@@ -534,9 +535,19 @@ void RSImplicitAnimator::PopImplicitParam()
     implicitAnimationParams_.pop();
 }
 
+bool RSImplicitAnimator::CheckImplicitAnimationConditions()
+{
+    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty() ||
+        implicitAnimationParams_.empty()) {
+        ROSEN_LOGE("CheckImplicitAnimationConditions failed, need to open implicit transition firstly!");
+        return false;
+    }
+    return true;
+}
+
 void RSImplicitAnimator::CreateImplicitTransition(RSNode& target)
 {
-    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+    if (!CheckImplicitAnimationConditions()) {
         ROSEN_LOGE("Failed to create implicit transition, need to open implicit transition firstly!");
         return;
     }
@@ -584,7 +595,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
     std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue)
 {
-    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+    if (!CheckImplicitAnimationConditions()) {
         ROSEN_LOGE("Failed to create implicit animation, need to open implicit animation firstly!");
         return;
     }
@@ -732,7 +743,7 @@ void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::s
     const std::shared_ptr<RSPropertyBase>& property, const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue, const std::shared_ptr<RSPropertyBase>& velocity)
 {
-    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+    if (!CheckImplicitAnimationConditions()) {
         ROSEN_LOGE("RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity:Failed to create implicit "
                    "animation, need to open implicit animation firstly!");
         return;

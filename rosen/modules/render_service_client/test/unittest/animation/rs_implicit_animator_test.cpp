@@ -453,5 +453,118 @@ HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
     t2.join();
     EXPECT_EQ(rsUIContext->rsImplicitAnimators_.size(), threadCount);
 }
+
+/**
+ * @tc.name: CheckImplicitAnimationConditionsTest001
+ * @tc.desc: Verify the CheckImplicitAnimationConditions
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CheckImplicitAnimationConditionsTest001, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    // globalImplicitParams_ is empty true
+    EXPECT_TRUE(implicitAnimator->globalImplicitParams_.empty());
+    implicitAnimator->CheckImplicitAnimationConditions();
+
+    // globalImplicitParams_ is empty false
+    RSAnimationTimingProtocol timingProtocol(0);
+    auto timingCurve = RSAnimationTimingCurve::DEFAULT;
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
+    EXPECT_FALSE(implicitAnimator->globalImplicitParams_.empty());
+    implicitAnimator->CheckImplicitAnimationConditions();
+
+    // implicitAnimations_ is empty true
+    std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>>().swap(
+        implicitAnimator->implicitAnimations_);
+    EXPECT_TRUE(implicitAnimator->implicitAnimations_.empty());
+}
+
+/**
+ * @tc.name: CheckImplicitAnimationConditionsTest002
+ * @tc.desc: Verify the CheckImplicitAnimationConditions
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CheckImplicitAnimationConditionsTest002, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+
+    RSAnimationTimingProtocol timingProtocol(0);
+    auto timingCurve = RSAnimationTimingCurve::DEFAULT;
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
+    EXPECT_FALSE(implicitAnimator->globalImplicitParams_.empty());
+    EXPECT_FALSE(implicitAnimator->implicitAnimations_.empty());
+
+    // keyframeAnimations_ is empty true
+    std::stack<std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSAnimation>>>().swap(
+        implicitAnimator->keyframeAnimations_);
+    EXPECT_TRUE(implicitAnimator->keyframeAnimations_.empty());
+    implicitAnimator->CheckImplicitAnimationConditions();
+}
+
+/**
+ * @tc.name: CheckImplicitAnimationConditionsTest003
+ * @tc.desc: Verify the CheckImplicitAnimationConditions
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CheckImplicitAnimationConditionsTest003, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+
+    RSAnimationTimingProtocol timingProtocol(0);
+    auto timingCurve = RSAnimationTimingCurve::DEFAULT;
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
+    EXPECT_FALSE(implicitAnimator->globalImplicitParams_.empty());
+    EXPECT_FALSE(implicitAnimator->implicitAnimations_.empty());
+    EXPECT_FALSE(implicitAnimator->keyframeAnimations_.empty());
+
+    // implicitAnimationParams_ is empty true
+    std::stack<std::shared_ptr<RSImplicitAnimationParam>>().swap(implicitAnimator->implicitAnimationParams_);
+    EXPECT_TRUE(implicitAnimator->implicitAnimationParams_.empty());
+    implicitAnimator->CheckImplicitAnimationConditions();
+}
+using globalStack = std::stack<std::tuple<RSAnimationTimingProtocol, RSAnimationTimingCurve,
+    const std::shared_ptr<AnimationFinishCallback>, std::shared_ptr<AnimationRepeatCallback>>>;
+
+/**
+ * @tc.name: CloseInterActiveImplicitAnimationTest001
+ * @tc.desc: Verify the CloseInterActiveImplicitAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseInterActiveImplicitAnimationTest001, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    implicitAnimator->interactiveImplicitAnimations_.push({});
+    globalStack().swap(implicitAnimator->globalImplicitParams_);
+    EXPECT_TRUE(implicitAnimator->globalImplicitParams_.empty());
+    implicitAnimator->CloseInterActiveImplicitAnimation(true);
+
+    RSAnimationTimingProtocol timingProtocol(0);
+    auto timingCurve = RSAnimationTimingCurve::DEFAULT;
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
+    EXPECT_FALSE(implicitAnimator->globalImplicitParams_.empty());
+    EXPECT_FALSE(implicitAnimator->implicitAnimations_.empty());
+    implicitAnimator->CloseInterActiveImplicitAnimation(true);
+}
+
+/**
+ * @tc.name: CloseInterActiveImplicitAnimationTest002
+ * @tc.desc: Verify the CloseInterActiveImplicitAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseInterActiveImplicitAnimationTest002, TestSize.Level1)
+{
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    implicitAnimator->interactiveImplicitAnimations_.push({});
+    globalStack().swap(implicitAnimator->globalImplicitParams_);
+
+    RSAnimationTimingProtocol timingProtocol(0);
+    auto timingCurve = RSAnimationTimingCurve::DEFAULT;
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
+    EXPECT_FALSE(implicitAnimator->globalImplicitParams_.empty());
+    std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>>().swap(
+        implicitAnimator->implicitAnimations_);
+    EXPECT_TRUE(implicitAnimator->implicitAnimations_.empty());
+    implicitAnimator->CloseInterActiveImplicitAnimation(true);
+}
 } // namespace Rosen
 } // namespace OHOS
