@@ -31,6 +31,7 @@ config("text_config") {
     "$rosen_text_root/interface/mlb/ani/include",
     "$rosen_text_root/interface/export/rosen_text",
     "$rosen_text_root/service/texgine/src",
+    "$rosen_text_root/service/global_config",
     "$graphic_2d_root/interfaces/kits/ani/drawing",
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",

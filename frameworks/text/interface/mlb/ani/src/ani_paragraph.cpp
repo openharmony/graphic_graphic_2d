@@ -566,7 +566,8 @@ void AniParagraph::UpdateColor(ani_env* env, ani_object object, ani_object color
         textStyleTemplate.color = Drawing::Color(colorQuad);
     } else {
         TEXT_LOGE("Failed to parse color");
-        return ThrowErrorAndReturnUndefined(env);
+        ThrowErrorAndReturnUndefined(env);
+        return;
     }
     textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
     aniParagraph->typography_->UpdateAllTextStyles(textStyleTemplate);

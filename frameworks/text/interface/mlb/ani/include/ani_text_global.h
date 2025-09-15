@@ -17,6 +17,7 @@
 #define OHOS_TEXT_ANI_TEXT_GLOBAL_H
 
 #include <ani.h>
+#include <vector>
 
 namespace OHOS::Text::ANI {
 class AniTextGlobal final {

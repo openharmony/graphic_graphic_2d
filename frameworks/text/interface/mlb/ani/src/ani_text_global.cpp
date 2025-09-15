@@ -22,6 +22,7 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+using namespace OHOS::Rosen::SrvText;
 namespace {
     const std::string SET_TEXT_HIGH_CONTRAST_SIGN = std::string(ANI_ENUM_TEXT_HIGH_CONTRAST) + ":V";
     const std::string SET_TEXT_UNDEFINED_GLYPH_DISPLAY_SIGN =
@@ -65,33 +66,30 @@ ani_status AniTextGlobal::AniInit(ani_vm* vm, uint32_t* result)
 
 void AniTextGlobal::SetTextHighContrast(ani_env* env, ani_enum_item action)
 {
-    uint32_t textHighContrast = 0;
-
+    ani_size textHighContrast = 0;
     ani_status status = env->EnumItem_GetIndex(action, &textHighContrast);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to get text high contrast index, ret %{public}d", status);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Argv convert failed");
         return;
     }
-
-    auto result = TextGlobalConfig::SetTextHighContrast(textHighContrast);
+    auto result = TextGlobalConfig::SetTextHighContrast(static_cast<uint32_t>(textHighContrast));
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text high contrast, high contrast value: %{public}u", textHighContrast);
+        TEXT_LOGE("Failed to set text high contrast, high contrast value: %{public}zu", textHighContrast);
     }
 }
 void AniTextGlobal::SetTextUndefinedGlyphDisplay(ani_env* env, ani_enum_item noGlyphShow)
 {
-    uint32_t textUndefinedGlyphDisplay = 0;
+    ani_size textUndefinedGlyphDisplay = 0;
     ani_status status = env->EnumItem_GetIndex(noGlyphShow, &textUndefinedGlyphDisplay);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to get text undefined glyph display index, ret %{public}d", status);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Argv convert failed");
         return;
     }
-
-    auto result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(textUndefinedGlyphDisplay);
+    auto result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(static_cast<uint32_t>(textUndefinedGlyphDisplay));
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text undefined glyph display, undefined glyph display: %{public}u",
+        TEXT_LOGE("Failed to set text undefined glyph display, undefined glyph display: %{public}zu",
             textUndefinedGlyphDisplay);
     }
 }

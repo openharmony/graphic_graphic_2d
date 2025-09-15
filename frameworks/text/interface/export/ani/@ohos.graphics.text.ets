@@ -321,6 +321,7 @@ namespace text {
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
+    badgeType?: TextBadgeType;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
