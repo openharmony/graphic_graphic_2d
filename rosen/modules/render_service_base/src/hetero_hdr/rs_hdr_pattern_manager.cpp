@@ -266,7 +266,7 @@ bool RSHDRPatternManager::MHCReleaseAll()
     return true;
 }
 
-void SetThreadId(RSPaintFilterCanvas& canvas)
+void RSHDRPatternManager::SetThreadId(RSPaintFilterCanvas& canvas)
 {
 #ifdef ROSEN_OHOS
 #ifdef RS_ENABLE_VK
