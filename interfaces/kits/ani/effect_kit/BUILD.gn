@@ -34,6 +34,7 @@ config("graphic_ani_effect_kit_config") {
 }
 
 ohos_shared_library("effectKit_ani") {
+  shlib_type = "ani"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -45,6 +46,7 @@ ohos_shared_library("effectKit_ani") {
 
   include_dirs = [
     "./include",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/include",
     "$graphic_2d_root/rosen/modules/effect/effectChain/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
@@ -58,13 +60,18 @@ ohos_shared_library("effectKit_ani") {
 
   sources = [
     "./src/ani_effect_kit_module.cpp",
-    "./src/ani_effect_kit_utils.cpp",
     "./src/ani_filter.cpp",
+    "./src/ani_color_picker.cpp",
+    "./src/ani_effect_kit_utils.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/color_picker_napi.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/filter_napi.cpp",
   ]
 
   deps = [
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit:effectkit",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
   ]
 
   external_deps = [
@@ -72,7 +79,9 @@ ohos_shared_library("effectKit_ani") {
     "hilog:libhilog",
     "image_framework:image",
     "image_framework:image_taihe",
+    "napi:ace_napi",
     "runtime_core:ani",
+    "runtime_core:ani_helpers",
     "runtime_core:libarkruntime",
   ]
 
@@ -84,14 +93,19 @@ ohos_shared_library("effectKit_ani") {
 ## Build effectKit_ani.so
 
 generate_static_abc("effectKit") {
-  base_url = "./ets"  # base_url需配置到导出接口文件的所在目录
-  files = [
-    "./ets/@ohos.effectKit.ets",
-    "./ets/effectKit_entry.ets",
-  ]
+  base_url = "./ets"
+  files = [ "./ets/@ohos.effectKit.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/effectKit.abc"
 }
+
+generate_static_abc("effectKit_entry") {
+  base_url = "./ets"
+  files = [ "./ets/effectKit_entry.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/effectKit_entry.abc"
+}
+
 ohos_prebuilt_etc("effectKit_etc") {
   source = "$target_out_dir/effectKit.abc"
   module_install_dir = "framework"

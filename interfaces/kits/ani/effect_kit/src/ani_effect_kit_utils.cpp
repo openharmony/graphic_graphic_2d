@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,6 +61,18 @@ AniFilter* AniEffectKitUtils::GetFilterFromEnv([[maybe_unused]] ani_env* env, [[
         return nullptr;
     }
     return aniFilter;
+}
+
+AniColorPicker* AniEffectKitUtils::GetColorPickerFromEnv([[maybe_unused]] ani_env* env, [[maybe_unused]] ani_object obj)
+{
+    ani_status ret;
+    ani_long nativeObj {};
+    if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
+        EFFECT_LOG_E("Object_GetField_Long fetch failed, %{public}d", ret);
+        return nullptr;
+    }
+    AniColorPicker* colorPicker = reinterpret_cast<AniColorPicker*>(nativeObj);
+    return colorPicker;
 }
 } // namespace Rosen
 } // namespace OHOS

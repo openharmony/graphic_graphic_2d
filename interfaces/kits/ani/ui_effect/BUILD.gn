@@ -33,6 +33,7 @@ config("graphic_ani_ui_effect_config") {
 }
 
 ohos_shared_library("uiEffect_ani") {
+  shlib_type = "ani"
   branch_protector_ret = "pac_ret"
 
   sanitize = {
@@ -61,6 +62,8 @@ ohos_shared_library("uiEffect_ani") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hilog:libhilog",
     "runtime_core:ani",
@@ -78,6 +81,14 @@ generate_static_abc("uiEffect") {
   is_boot_abc = "True"
   device_dst_file = "/system/framework/uiEffect.abc"
 }
+
+generate_static_abc("uiEffect_entry") {
+  base_url = "./ets"
+  files = [ "./ets/uiEffect_entry.ets"]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/uiEffect_entry.abc"
+}
+
 ohos_prebuilt_etc("uiEffect_etc") {
   source = "$target_out_dir/uiEffect.abc"
   module_install_dir = "framework"
