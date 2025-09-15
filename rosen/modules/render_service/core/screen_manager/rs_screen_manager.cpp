@@ -2659,6 +2659,8 @@ void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenCha
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr) {
         mainThread->PostTask(task);
+    } else {
+        RS_LOGW("%{public}s: mainThread is nullptr!", __func__);
     }
 }
 
