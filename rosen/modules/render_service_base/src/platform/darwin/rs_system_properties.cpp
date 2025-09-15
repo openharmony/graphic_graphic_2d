@@ -340,6 +340,11 @@ bool RSSystemProperties::IsSmallFoldDevice()
     return false;
 }
 
+bool RSSystemProperties::IsFoldDeviceOfOldDss()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;

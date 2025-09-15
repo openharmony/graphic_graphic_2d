@@ -289,14 +289,18 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
             size:%{public}zu, %{public}s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             GetSurfaceNameInLayersForTrace(layers).c_str());
+        bool isScreenPowerOff = false;
         bool isScreenPoweringOff = false;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager) {
+            isScreenPowerOff = RSSystemProperties::IsFoldDeviceOfOldDss() &&
+                screenManager->IsScreenPowerOff(output->GetScreenId());
             isScreenPoweringOff = RSSystemProperties::IsSmallFoldDevice() &&
                 screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers, output->GetScreenId());
+        bool shouldDropFrame = isScreenPowerOff || isScreenPoweringOff ||
+                               IsDropDirtyFrame(layers, output->GetScreenId());
         if (!shouldDropFrame) {
             hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, param.rate);
             hgmHardwareUtils_.PerformSetActiveMode(

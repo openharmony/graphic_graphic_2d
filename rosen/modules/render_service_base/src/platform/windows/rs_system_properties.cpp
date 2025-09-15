@@ -334,6 +334,11 @@ bool RSSystemProperties::IsSmallFoldDevice()
     return false;
 }
 
+bool RSSystemProperties::IsFoldDeviceOfOldDss()
+{
+    return false;
+}
+
 int RSSystemProperties::GetFilterCacheSizeThreshold()
 {
     return 0;

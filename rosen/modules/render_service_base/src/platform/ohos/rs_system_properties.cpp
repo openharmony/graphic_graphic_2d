@@ -1062,6 +1062,13 @@ bool RSSystemProperties::IsSmallFoldDevice()
     return foldType == "2,0,0,0" || foldType == "4,2,0,0" || foldType == "2,2,0,0";
 }
 
+bool RSSystemProperties::IsFoldDeviceOfOldDss()
+{
+    static bool isFoldDeviceOfOldDss =
+        system::GetParameter("const.window.foldscreen.type", "0,0,0,0") == "2,2,0,0";
+    return isFoldDeviceOfOldDss;
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");
