@@ -89,8 +89,8 @@ public:
 
 private:
     GCLevel JudgeGCLevel(uint32_t remainBucketSize);
-    void ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack &callBack);
-    void ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack &callBack);
+    void ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
+    void ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
