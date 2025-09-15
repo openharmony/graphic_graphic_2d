@@ -32,6 +32,7 @@
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_hdr_para.h"
 #include "ui_effect/filter/include/filter_para.h"
@@ -86,6 +87,13 @@ struct BezierWarpParams {
     static constexpr size_t bezierControlPointsCount = 12;
     std::array<Vector2f, bezierControlPointsCount> points; // range: [-1, 1]
 };
+struct DirectionLightParams {
+    Vector3f lightDirection;
+    Vector4f lightColor;
+    float lightIntensity;
+    float maskFactor;
+    std::shared_ptr<MaskPara> maskPara;
+};
 struct DispersionParams {
     float opacity;
     Vector2f redOffset;
@@ -111,6 +119,7 @@ using FilterParams = std::variant<
     ColorGradientParams,
     EdgeLightParams,
     BezierWarpParams,
+    DirectionLightParams,
     DispersionParams,
     HdrParams,
     ContentLightParams

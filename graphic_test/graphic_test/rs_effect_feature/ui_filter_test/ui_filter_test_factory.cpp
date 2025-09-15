@@ -111,6 +111,18 @@ void AddBezierWarpPara(std::unique_ptr<Filter>& filter, FilterParams& params)
     filter->AddPara(para);
 }
 
+void AddDirectionLightPara(std::unique_ptr<Filter>& filter, FilterParams& params)
+{
+    auto para = std::make_shared<DirectionLightPara>();
+    auto& directionParams = std::get<DirectionLightParams>(params);
+    para->SetMaskFactor(directionParams.maskFactor);
+    para->SetLightDirection(directionParams.lightDirection);
+    para->SetLightColor(directionParams.lightColor);
+    para->SetLightIntensity(directionParams.lightIntensity);
+    para->SetMask(directionParams.maskPara);
+    filter->AddPara(para);
+}
+
 void AddDispersionPara(std::unique_ptr<Filter>& filter, FilterParams& params)
 {
     auto para = std::make_shared<DispersionPara>();
@@ -183,6 +195,9 @@ void FilterTestFactory::AddFilterPara(std::unique_ptr<Filter>& filter, FilterTes
             break;
         case FilterPara::ParaType::BEZIER_WARP:
             AddBezierWarpPara(filter, data.params);
+            break;
+        case FilterPara::ParaType::DIRECTION_LIGHT:
+            AddDirectionLightPara(filter, data.params);
             break;
         case FilterPara::ParaType::DISPERSION:
             AddDispersionPara(filter, data.params);

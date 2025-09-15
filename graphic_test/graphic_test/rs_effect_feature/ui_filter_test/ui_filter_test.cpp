@@ -398,6 +398,36 @@ GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Bezier_Warp_Test)
     }
 }
 
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Direction_Light_Test)
+{
+    int columnCount = 3;
+    int rowCount = static_cast<int>(TestDataGroupType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (0 % columnCount) * sizeX;
+        int y = i * sizeY;
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto filterObj = UIFilterTestDataManager::GetFilter(FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<TestDataGroupType>(i));
+        foregroundTestNode->SetUIForegroundFilter(filterObj);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = (1 % columnCount) * sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(filterObj);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = (2 % columnCount) * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(filterObj);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
 GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Dispersion_Test)
 {
     int columnCount = 3;
@@ -956,6 +986,212 @@ GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Bezier_Warp_Two_T
             static_cast<FilterPara::ParaType>(i + 1)
         };
         auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(testParaVec, TestDataGroupType::VALID_DATA2);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Direction_Light_Two_Test_MIN)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+
+        vector<FilterPara::ParaType> testParaVec = {
+            FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(
+            testParaVec, TestDataGroupType::INVALID_DATA_MIN);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Direction_Light_Two_Test_ONE)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+        
+        vector<FilterPara::ParaType> testParaVec = {
+            FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(testParaVec, TestDataGroupType::VALID_DATA1);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Direction_Light_Two_Test_TWO)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+        
+        vector<FilterPara::ParaType> testParaVec = {
+            FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(testParaVec, TestDataGroupType::VALID_DATA2);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Direction_Light_Two_Test_THREE)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+        
+        vector<FilterPara::ParaType> testParaVec = {
+            FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(testParaVec, TestDataGroupType::VALID_DATA3);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Direction_Light_Two_Test_FOUR)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+        
+        vector<FilterPara::ParaType> testParaVec = {
+            FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(testParaVec, TestDataGroupType::VALID_DATA4);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Direction_Light_Two_Test_MAX)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+        
+        vector<FilterPara::ParaType> testParaVec = {
+            FilterPara::ParaType::DIRECTION_LIGHT,
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(
+            testParaVec, TestDataGroupType::INVALID_DATA_MAX);
         auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
         foregroundTestNode->SetUIForegroundFilter(combinedFilter);
         GetRootNode()->AddChild(foregroundTestNode);
