@@ -29,7 +29,7 @@ public:
     RSModifierType GetType() const override
     {
         return Type;
-    };
+    }
     // LCOV_EXCL_STOP
 
     static void ResetProperties(RSProperties& properties);

@@ -140,6 +140,13 @@ public:
         return id_;
     }
 
+    // deprecated
+    void Attach(std::weak_ptr<RSRenderNode> node)
+    {
+        node_ = node;
+        OnChange();
+    }
+
     // Planning: move to protected
     void Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier = {});
     void Detach();
@@ -200,7 +207,7 @@ protected:
     }
 
     PropertyId id_;
-    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set
+    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderEffectBase>>::Set
     // refactor this to remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
 

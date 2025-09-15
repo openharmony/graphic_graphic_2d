@@ -62,8 +62,7 @@ private:
 class RSCustomModifierDrawable : public RSDrawable {
 public:
     RSCustomModifierDrawable(ModifierNG::RSModifierType modifierType) : modifierTypeNG_(modifierType)
-    {
-    }
+    {}
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& content, ModifierNG::RSModifierType type);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;

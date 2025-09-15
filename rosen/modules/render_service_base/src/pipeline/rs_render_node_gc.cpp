@@ -62,6 +62,9 @@ void RSRenderNodeGC::NodeDestructor(RSRenderNode* ptr)
 
 void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
 {
+    if (ptr == nullptr) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(nodeMutex_);
     if (nodeBucket_.size() > 0) {
         auto& bucket = nodeBucket_.back();
@@ -73,9 +76,7 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     } else {
         nodeBucket_.push({ptr});
     }
-    if (ptr != nullptr) {
-        DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
-    }
+    DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
 
 bool RSRenderNodeGC::IsBucketQueueEmpty()
