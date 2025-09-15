@@ -655,20 +655,20 @@ HWTEST_F(RSDrawingFilterTest, GetFilterTypeString, TestSize.Level1)
 HWTEST_F(RSDrawingFilterTest, ApplyImageEffect001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
-    std::shared_ptr<Drawing::Image> nullImage;
-    auto image = std::make_shared<Drawing::Image>();
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     RSDrawingFilter::DrawImageRectAttributes attr;
 
     auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     RSDrawingFilter drawingFilter(shaderFilter);
+    drawingFilter.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
 
     /* image is null */
-    nullImage = nullptr;
+    std::shared_ptr<Drawing::Image> nullImage = nullptr;
     drawingFilter.ApplyImageEffect(canvas, nullImage, visualEffectContainer, attr);
 
     /* go to hps branch */
     int radius = 4;
+    auto image = std::make_shared<Drawing::Image>();
     auto kawaseShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
     drawingFilter.InsertShaderFilter(kawaseShaderFilter);
     drawingFilter.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
@@ -677,6 +677,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffect001, TestSize.Level1)
     int radius0 = 0;
     auto lightBlurShaderFilter = std::make_shared<RSLightBlurShaderFilter>(radius0);
     RSDrawingFilter drawingFilter1(lightBlurShaderFilter);
+    drawingFilter1.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     lightBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
     drawingFilter1.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
 
@@ -709,6 +710,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
     auto visualEffectContainer1 = std::make_shared<Drawing::GEVisualEffectContainer>();
     auto kawaseShaderFilter2 = std::make_shared<RSKawaseBlurShaderFilter>(radius0);
     RSDrawingFilter drawingFilter2(kawaseShaderFilter2);
+    drawingFilter2.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     kawaseShaderFilter2->GenerateGEVisualEffect(visualEffectContainer1);
     auto waterRippleFilter = std::make_shared<RSWaterRippleShaderFilter>(
         progress, waveCount, rippleCenterX, rippleCenterY, rippleMode);
@@ -720,6 +722,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
     auto visualEffectContainer3 = std::make_shared<Drawing::GEVisualEffectContainer>();
     RSDrawingFilter drawingFilter3(kawaseShaderFilter);
     drawingFilter3.InsertShaderFilter(waterRippleFilter);
+    drawingFilter3.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     waterRippleFilter->GenerateGEVisualEffect(visualEffectContainer3);
     drawingFilter3.ApplyImageEffect(canvas, image, visualEffectContainer3, attr);
     /* go to ge kawase branch */
@@ -731,6 +734,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffect002, TestSize.Level1)
     auto visualEffectContainer4 = std::make_shared<Drawing::GEVisualEffectContainer>();
     rsAIBarShaderFilter->GenerateGEVisualEffect(visualEffectContainer4);
     RSDrawingFilter drawingFilter4(rsAIBarShaderFilter);
+    drawingFilter4.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     drawingFilter4.ApplyImageEffect(canvas, image, visualEffectContainer4, attr);
 
     EXPECT_FALSE(kawaseShaderFilter == nullptr);
@@ -752,6 +756,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyHpsImageEffect001, TestSize.Level1)
 
     auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     RSDrawingFilter drawingFilter(shaderFilter);
+    drawingFilter.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
 
     /* normal case */
     drawingFilter.ApplyHpsImageEffect(canvas, image, outImage, attr, brush);
