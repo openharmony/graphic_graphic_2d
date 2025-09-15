@@ -73,7 +73,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("approximate", JsPath::Approximate),
     DECLARE_NAPI_FUNCTION("interpolate", JsPath::Interpolate),
     DECLARE_NAPI_FUNCTION("isInterpolate", JsPath::IsInterpolate),
-    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsPath::PathTransferDynamic),
 };
 
 napi_value JsPath::Init(napi_env env, napi_value exportObj)
@@ -113,7 +112,7 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (argc == ARGC_ZERO) {
-        std::shared_ptr<Path> path = std::make_shared<Path>();
+        Path* path = new Path();
         jsPath = new JsPath(path);
     } else if (argc == ARGC_ONE) {
         napi_valuetype valueType = napi_undefined;
@@ -123,8 +122,7 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         }
         JsPath* path = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, path);
-        std::shared_ptr<Path> other = path->GetPathPtr();
-        std::shared_ptr<Path> p = other == nullptr ? std::make_shared<Path>() : std::make_shared<Path>(*other);
+        Path* p = new Path(*path->GetPath());
         jsPath = new JsPath(p);
     } else {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
@@ -152,17 +150,19 @@ void JsPath::Destructor(napi_env env, void *nativeObject, void *finalize)
     }
 }
 
-napi_value JsPath::CreateJsPath(napi_env env, std::shared_ptr<Path> path)
+napi_value JsPath::CreateJsPath(napi_env env, Path* path)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status != napi_ok) {
+        delete path;
         ROSEN_LOGE("JsPath::CreateJsPath failed to get reference value!");
         return nullptr;
     }
     napi_value result = nullptr;
     napi_create_object(env, &result);
     if (result == nullptr) {
+        delete path;
         ROSEN_LOGE("JsPath::CreateJsPath create object failed!");
         return nullptr;
     }
@@ -180,6 +180,7 @@ napi_value JsPath::CreateJsPath(napi_env env, std::shared_ptr<Path> path)
 JsPath::~JsPath()
 {
     if (m_path != nullptr) {
+        delete m_path;
         m_path = nullptr;
     }
 }
@@ -786,8 +787,8 @@ napi_value JsPath::OnOffset(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ZERO, dx);
     double dy = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, dy);
-    std::shared_ptr<Path> path = std::make_shared<Path>();
-    m_path->Offset(path.get(), dx, dy);
+    Path* path = new Path();
+    m_path->Offset(path, dx, dy);
     return CreateJsPath(env, path);
 }
 
@@ -1398,55 +1399,9 @@ napi_value JsPath::OnIsInterpolate(napi_env env, napi_callback_info info)
     bool result = m_path->IsInterpolate(*other->GetPath());
     return CreateJsValue(env, result);
 }
-
-napi_value JsPath::CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path)
-{
-    napi_value result = nullptr;
-    napi_value constructor = nullptr;
-    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
-        ROSEN_LOGE("Failed to get the representation of constructor object");
-        return nullptr;
-    }
-    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
-        ROSEN_LOGE("Failed to instantiate JavaScript brush instance");
-        return nullptr;
-    }
-    JsPath* jsPath = new JsPath(path);
-    napi_status status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete jsPath;
-        ROSEN_LOGE("Failed to wrap native instance");
-        return nullptr;
-    }
-    return result;
-}
-
-napi_value JsPath::PathTransferDynamic(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value argv;
-    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
-        return nullptr;
-    }
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv, &valueType);
-    if (valueType != napi_number) {
-        return nullptr;
-    }
-
-    int64_t addr = 0;
-    napi_get_value_int64(env, argv, &addr);
-    std::shared_ptr<Path> path = *reinterpret_cast<std::shared_ptr<Path>*>(addr);
-    if (path == nullptr) {
-        return nullptr;
-    }
-    return CreateJsPathDynamic(env, path);
-}
-
 Path* JsPath::GetPath()
 {
-    return m_path.get();
+    return m_path;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

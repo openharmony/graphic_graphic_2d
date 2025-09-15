@@ -47,12 +47,12 @@ ani_status AniPathIterator::AniInit(ani_env *env)
 void AniPathIterator::ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPathObj)
 {
     auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj);
-    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    if (aniPath == nullptr) {
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
-    AniPathIterator* newAniPathIterator = new AniPathIterator(*aniPath->GetPath());
+    AniPathIterator* newAniPathIterator = new AniPathIterator(aniPath->GetPath());
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPathIterator))) {
         ROSEN_LOGE("AniPathIterator::Constructor failed create AniPathIterator");
         delete newAniPathIterator;

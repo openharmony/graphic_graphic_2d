@@ -33,6 +33,7 @@
 #include "image_filter_ani/ani_image_filter.h"
 #include "path_effect_ani/ani_path_effect.h"
 #include "mask_filter_ani/ani_mask_filter.h"
+#include "shadow_layer_ani/ani_shadow_layer.h"
 
 const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/drawing/Cleaner;";
 
@@ -85,6 +86,7 @@ static void Clean(ani_env* env, ani_object object)
         {"RectUtils", SafeDelete<OHOS::Rosen::Drawing::AniRectUtils>},
         {"ImageFilter", SafeDelete<OHOS::Rosen::Drawing::AniImageFilter>},
         {"MaskFilter", SafeDelete<OHOS::Rosen::Drawing::AniMaskFilter>},
+        {"ShadowLayer", SafeDelete<OHOS::Rosen::Drawing::AniShadowLayer>},
         {"PathEffect", SafeDelete<OHOS::Rosen::Drawing::AniPathEffect>},
     };
 

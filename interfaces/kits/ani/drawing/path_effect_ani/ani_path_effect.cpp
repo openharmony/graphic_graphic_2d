@@ -118,7 +118,7 @@ ani_object AniPathEffect::CreatePathDashEffect(ani_env* env, [[maybe_unused]]ani
         return CreateAniUndefined(env);
     }
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreatePathDashEffect(
-        *aniPath->GetPath(), aniAdvance, aniPhase, static_cast<PathDashStyle>(aniStyle)));
+        aniPath->GetPath(), aniAdvance, aniPhase, static_cast<PathDashStyle>(aniStyle)));
     ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);

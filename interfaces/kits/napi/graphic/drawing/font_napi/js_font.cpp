@@ -1041,10 +1041,15 @@ napi_value JsFont::OnCreatePathForGlyph(napi_env env, napi_callback_info info)
     uint32_t id = 0;
     GET_UINT32_PARAM(ARGC_ZERO, id);
 
-    std::shared_ptr<Path> path = std::make_shared<Path>();
+    Path* path = new Path();
+    if (path == nullptr) {
+        ROSEN_LOGE("JsFont::OnCreatePathForGlyph Failed to create Path");
+        return nullptr;
+    }
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
-    if  (!realFont->GetPathForGlyph(static_cast<uint16_t>(id), path.get())) {
+    if  (!realFont->GetPathForGlyph(static_cast<uint16_t>(id), path)) {
+        delete path;
         return nullptr;
     }
     return JsPath::CreateJsPath(env, path);
@@ -1089,10 +1094,10 @@ napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the fourth parameter");
     }
 
-    std::shared_ptr<Path> path = std::make_shared<Path>();
+    Path* path = new Path();
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
-    realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
+    realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path);
     return JsPath::CreateJsPath(env, path);
 }
 

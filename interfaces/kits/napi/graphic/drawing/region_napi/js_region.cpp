@@ -132,8 +132,8 @@ napi_value JsRegion::OnGetBoundaryPath(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    std::shared_ptr<Path> path = std::make_shared<Path>();
-    m_region->GetBoundaryPath(path.get());
+    Path* path = new Path();
+    m_region->GetBoundaryPath(path);
     return JsPath::CreateJsPath(env, path);
 }
 

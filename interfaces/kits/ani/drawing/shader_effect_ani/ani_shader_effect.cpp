@@ -55,14 +55,14 @@ bool GetColorsArray(ani_env* env, ani_object corlorsArray, std::vector<ColorQuad
         ROSEN_LOGE("colors are invalid");
         return false;
     }
-    uint32_t colorsSize = aniLength;
+    uint32_t colorsSize = static_cast<uint32_t>(aniLength);
     colors.reserve(colorsSize);
     for (uint32_t i = 0; i < colorsSize; i++) {
         ani_int color;
         ani_ref colorRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(corlorsArray,
-            "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "unboxed", ":I", &color)) {
+            "$_get", "i:Y", &colorRef, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "toInt", ":i", &color)) {
             ROSEN_LOGE("get color ref failed.");
             return false;
         }
@@ -78,14 +78,14 @@ bool GetPosArray(ani_env* env, ani_object posArray, std::vector<float>& pos)
         ROSEN_LOGE("pos are invalid");
         return false;
     }
-    uint32_t size = aniLength;
+    uint32_t size = static_cast<uint32_t>(aniLength);
     pos.reserve(size);
     for (uint32_t i = 0; i < size; i++) {
         ani_double value;
         ani_ref posRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            posArray, "$_get", "i:C{std.core.Object}", &posRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(posRef), "unboxed", ":d", &value)) {
+            posArray, "$_get", "i:Y", &posRef, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(posRef), "toDouble", ":d", &value)) {
             ROSEN_LOGE("get pos ref failed.");
             return false;
         }
