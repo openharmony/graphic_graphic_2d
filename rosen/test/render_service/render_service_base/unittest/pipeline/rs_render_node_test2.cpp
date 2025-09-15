@@ -254,6 +254,49 @@ HWTEST_F(RSRenderNodeTest2, GetStagingRenderParams, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CollectAndUpdateRenderFitRect
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueI9V3BK
+ */
+HWTEST_F(RSRenderNodeTest2, CollectAndUpdateRenderFitRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.CollectAndUpdateRenderFitRect();
+    ASSERT_TRUE(true);
+
+    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
+    node.CollectAndUpdateRenderFitRect();
+    ASSERT_TRUE(true);
+
+    std::shared_ptr<RectF> rect = std::make_shared<RectF>();
+    rect->SetAll(0, 0, 1000, 1000);
+    node.GetMutableRenderProperties().SetDrawRegion(rect);
+    node.CollectAndUpdateRenderFitRect();
+    ASSERT_TRUE(true);
+
+    auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)].emplace_back(modifier);
+
+    auto modifierCmdList =
+        std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    auto ptr = std::make_shared<Drawing::DrawCmdList>(1000, 1000);
+    PropertyId id = 1;
+    auto propertyCmdList = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(ptr, id);
+    modifierCmdList->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, propertyCmdList);
+    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)].emplace_back(modifierCmdList);
+
+    auto modifierAlpha = std::make_shared<ModifierNG::RSAlphaRenderModifier>();
+    auto propertyAlpha = std::make_shared<RSRenderProperty<float>>();
+    modifierAlpha->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
+    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ALPHA)].emplace_back(modifierAlpha);
+    node.CollectAndUpdateRenderFitRect();
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: CollectAndUpdateLocalShadowRect
  * @tc.desc: test
  * @tc.type: FUNC

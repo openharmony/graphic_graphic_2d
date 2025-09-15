@@ -1390,6 +1390,8 @@ private:
     void FilterModifiersByPid(pid_t pid);
 
     bool UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRegion);
+    RectI GetDrawCmdListRect() const;
+    void CollectAndUpdateRenderFitRect();
     void CollectAndUpdateLocalShadowRect();
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();

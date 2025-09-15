@@ -1600,6 +1600,53 @@ const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
     return renderDrawable_->renderParams_;
 }
 #endif
+
+RectI RSRenderNode::GetDrawCmdListRect() const
+{
+    for (auto& slot : modifiersNG_) {
+        for (auto& modifier : slot) {
+            if (!modifier->IsCustom()) {
+                continue;
+            }
+            auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
+            auto propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
+                modifier->GetProperty(propertyType));
+            auto drawCmdListPtr = propertyPtr ? propertyPtr->Get() : nullptr;
+            if (drawCmdListPtr == nullptr) {
+                continue;
+            }
+            return RectI(0, 0, drawCmdListPtr->GetWidth(), drawCmdListPtr->GetHeight());
+        }
+    }
+    return RectI();
+}
+
+void RSRenderNode::CollectAndUpdateRenderFitRect()
+{
+    const auto& properties = GetRenderProperties();
+    if (properties.GetFrameGravity() == Gravity::TOP_LEFT) {
+        return;
+    }
+    auto drawRegion = properties.GetDrawRegion();
+    if (drawRegion == nullptr) {
+        return;
+    }
+    auto drawCmdListRect = GetDrawCmdListRect();
+    if (drawCmdListRect.IsEmpty()) {
+        return;
+    }
+    Drawing::Matrix mat;
+    RSPropertiesPainter::GetGravityMatrix(properties.GetFrameGravity(),
+        properties.GetFrameRect(), drawCmdListRect.GetWidth(), drawCmdListRect.GetHeight(), mat);
+    Drawing::Rect srcRegion(
+        drawRegion->GetLeft(), drawRegion->GetTop(), drawRegion->GetRight(), drawRegion->GetBottom());
+    Drawing::Rect dstRegion;
+    if (mat.MapRect(dstRegion, srcRegion)) {
+        selfDrawRect_ = selfDrawRect_.JoinRect(
+            RectF(dstRegion.GetLeft(), dstRegion.GetTop(), dstRegion.GetWidth(), dstRegion.GetHeight()));
+    }
+}
+
 void RSRenderNode::CollectAndUpdateLocalShadowRect()
 {
     // update shadow if shadow changes
@@ -1707,6 +1754,7 @@ bool RSRenderNode::UpdateSelfDrawRect()
     if (auto drawRegion = properties.GetDrawRegion()) {
         selfDrawRect_ = selfDrawRect_.JoinRect(*drawRegion);
     }
+    CollectAndUpdateRenderFitRect();
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
