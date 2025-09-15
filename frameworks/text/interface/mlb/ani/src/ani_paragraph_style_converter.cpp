@@ -71,6 +71,10 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
 
+    AniTextUtils::ReadOptionalBoolField(env, obj, "trailingSpaceOptimized", paragraphStyle->isTrailingSpaceOptimized);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "autoSpace", paragraphStyle->enableAutoSpace);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "verticalAlign", paragraphStyle->verticalAlignment);
+
     return paragraphStyle;
 }
 

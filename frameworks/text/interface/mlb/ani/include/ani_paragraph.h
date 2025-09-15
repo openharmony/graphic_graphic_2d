@@ -56,6 +56,8 @@ private:
         ani_env* env, ani_object object, ani_int lineNumber, ani_boolean includeSpaces);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_int lineNumber);
+    static void UpdateColor(ani_env* env, ani_object object, ani_object color);
+    static void UpdateDecoration(ani_env* env, ani_object object, ani_object decoration);
 
     std::shared_ptr<OHOS::Rosen::Typography> typography_{nullptr};
 };

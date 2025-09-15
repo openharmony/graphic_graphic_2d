@@ -76,6 +76,20 @@ namespace text {
         }
       });
     }
+    native unloadFontSync(name: string): void;
+    async unloadFont(name: string): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          taskpool.execute((): void => {
+            this.unloadFontSync(name);
+          }).then(() => {
+            resolve(undefined);
+          })
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
+    }
     native clearCaches(): void;
   }
 
@@ -150,6 +164,8 @@ namespace text {
     };
 
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
+    native updateColor(color: common2D.Color): void;
+    native updateDecoration(decoration: Decoration): void;
   }
 
   enum FontWidth {
@@ -178,6 +194,13 @@ namespace text {
     JUSTIFY = 3,
     START = 4,
     END = 5,
+  }
+
+  enum TextVerticalAlign {
+    BASELINE = 0,
+    BOTTOM = 1,
+    CENTER = 2,
+    TOP = 3
   }
 
   enum TextDirection {
@@ -227,6 +250,9 @@ namespace text {
     strutStyle?: StrutStyle;
     textHeightBehavior?: TextHeightBehavior;
     tab?: TextTab;
+    trailingSpaceOptimized?: boolean;
+    autoSpace?: boolean;
+    verticalAlign?: TextVerticalAlign;
   }
 
   interface TextShadow {
@@ -271,6 +297,7 @@ namespace text {
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
+    badgeType?: TextBadgeType;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -654,6 +681,8 @@ namespace text {
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
+    native getTextDirection(): TextDirection;
+    native getAdvances(range: Range): Array<common2D.Point>;
   }
 
   export interface PlaceholderSpan {
@@ -671,6 +700,7 @@ namespace text {
     TOP_OF_ROW_BOX,
     BOTTOM_OF_ROW_BOX,
     CENTER_OF_ROW_BOX,
+    FOLLOW_PARAGRAPH,
   }
 
   export class LineTypeset {
@@ -815,4 +845,25 @@ namespace text {
       this.symbolic = symbolic;
     }
   }
+
+  enum TextBadgeType {
+    TEXT_BADGE_NONE,
+    TEXT_SUPERSCRIPT,
+    TEXT_SUBSCRIPT,
+  }
+
+  enum TextHighContrast {
+    TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST,
+    TEXT_APP_DISABLE_HIGH_CONTRAST,
+    TEXT_APP_ENABLE_HIGH_CONTRAST,
+  }
+
+  native function setTextHighContrast(action: TextHighContrast): void;
+
+  enum TextUndefinedGlyphDisplay {
+    USE_DEFAULT,
+    USE_TOFU,
+  }
+
+  native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
 }

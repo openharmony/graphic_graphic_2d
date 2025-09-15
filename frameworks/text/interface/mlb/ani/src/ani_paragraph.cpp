@@ -25,6 +25,7 @@
 #include "ani_text_line.h"
 #include "ani_line_metrics_converter.h"
 #include "ani_text_rect_converter.h"
+#include "ani_text_style_converter.h"
 #include "ani_text_utils.h"
 #include "canvas_ani/ani_canvas.h"
 #include "font_collection.h"
@@ -48,6 +49,8 @@ const std::string GET_GLYPH_POSITION_AT_COORDINATE_SIGN =
 const std::string GET_WORD_BOUNDARY_SIGN = "i:C{" + std::string(ANI_INTERFACE_RANGE) + "}";
 const std::string GET_TEXT_LINES_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
 const std::string GET_ACTUAL_TEXT_RANGE_SIGN = "iz:C{" + std::string(ANI_INTERFACE_RANGE) + "}";
+const std::string UPDATE_COLOR_SIGN = "C{" + std::string(ANI_INTERFACE_COLOR) + "}:";
+const std::string UPDATE_DECORATION_SIGN = "C{" + std::string(ANI_INTERFACE_DECORATION) + "}:";
 } // namespace
 
 ani_object ThrowErrorAndReturnUndefined(ani_env* env)
@@ -107,6 +110,8 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
         ani_native_function{"getLineMetrics", ":C{escompat.Array}", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
             reinterpret_cast<void*>(GetLineMetricsAt)},
+        ani_native_function{"updateColor", UPDATE_COLOR_SIGN.c_str(), reinterpret_cast<void*>(UpdateColor)},
+        ani_native_function{"updateDecoration", UPDATE_DECORATION_SIGN.c_str(), reinterpret_cast<void*>(UpdateDecoration)},
     };
     return methods;
 }
@@ -545,5 +550,37 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_i
         return AniTextUtils::CreateAniUndefined(env);
     }
     return AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
+}
+
+void AniParagraph::UpdateColor(ani_env* env, ani_object object, ani_object color)
+{
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
+    if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
+        TEXT_LOGE("Paragraph is null");
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    Drawing::ColorQuad colorQuad;
+    if (OHOS::Rosen::Drawing::GetColorQuadFromColorObj(env, color, colorQuad)) {
+        textStyleTemplate.color = Drawing::Color(colorQuad);
+    } else {
+        TEXT_LOGE("Failed to parse color");
+        return ThrowErrorAndReturnUndefined(env);
+    }
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    aniParagraph->typography_->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void AniParagraph::UpdateDecoration(ani_env* env, ani_object object, ani_object decoration)
+{
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
+    if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
+        TEXT_LOGE("Paragraph is null");
+        return;
+    }
+    TextStyle textStyleTemplate;
+    AniTextStyleConverter::ParseDecorationToNative(env, decoration, textStyleTemplate);
+    aniParagraph->typography_->UpdateAllTextStyles(textStyleTemplate);
 }
 } // namespace OHOS::Text::ANI
