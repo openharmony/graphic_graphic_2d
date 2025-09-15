@@ -429,7 +429,7 @@ HWTEST_F(RSHDRPatternManagerTest, MHCDlsymInvalidTest, TestSize.Level1)
     EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.size(), 1);
 
     SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_ = tempSet;
- }
+}
 
 /**
  * @tc.name: MHCGetFrameIdForGPUTaskTest_Branch1
