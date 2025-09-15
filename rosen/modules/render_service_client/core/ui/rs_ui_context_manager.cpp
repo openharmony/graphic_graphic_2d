@@ -121,12 +121,12 @@ std::shared_ptr<RSUIContext> RSUIContextManager::GetRandomUITaskRunnerCtx() cons
 
 void RSUIContextManager::CloseAllSyncTransaction(const uint64_t syncId) const
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     if (!isMultiInstanceOpen_ || !g_instanceValid.load() || rsUIContextMap_.empty()) {
         ROSEN_LOGE("RSUIContextManager::CloseAllSyncTransaction isMultiInstanceOpen_, g_instanceValid, rsUIContextMap_ "
             "is not match syncId:%{public}" PRIu64 "", syncId);
         return;
     }
-    std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [_, ctx] : rsUIContextMap_) {
         auto syncHandler = ctx->GetSyncTransactionHandler();
         if (syncHandler == nullptr) {

@@ -346,46 +346,24 @@ void RSTransactionHandler::MergeSyncTransaction(std::shared_ptr<RSTransactionHan
         RS_LOGI("RSTransactionHandler::MergeSyncTransaction transactionHandler is same, no need merge");
         return;
     }
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (implicitCommonTransactionDataStack_.empty()) {
+    std::unique_lock<std::mutex> selfLock(mutex_, std::defer_lock);
+    std::unique_lock<std::mutex> otherLock(transactionHandler->mutex_, std::defer_lock);
+    std::lock(selfLock, otherLock);
+    if (implicitCommonTransactionDataStack_.empty() ||
+        transactionHandler->implicitCommonTransactionDataStack_.empty()) {
         RS_LOGE("RSTransactionHandler::MergeSyncTransaction implicitCommonTransactionDataStack is empty");
     } else {
-        auto commonTransactionData = transactionHandler->GetCommonTransactionData();
-        if (commonTransactionData && !commonTransactionData->IsEmpty()) {
-            commonTransactionData->MoveAllCommand(implicitCommonTransactionDataStack_.top());
-        }
+        transactionHandler->implicitCommonTransactionDataStack_.top()->MoveAllCommand(
+            implicitCommonTransactionDataStack_.top());
     }
 
-    if (implicitRemoteTransactionDataStack_.empty()) {
+    if (implicitRemoteTransactionDataStack_.empty() ||
+        transactionHandler->implicitRemoteTransactionDataStack_.empty()) {
         RS_LOGE("RSTransactionHandler::MergeSyncTransaction implicitRemoteTransactionDataStack is empty");
     } else {
-        auto remoteTransactionData = transactionHandler->GetRemoteTransactionData();
-        if (remoteTransactionData && !remoteTransactionData->IsEmpty()) {
-            remoteTransactionData->MoveAllCommand(implicitRemoteTransactionDataStack_.top());
-        }
+        transactionHandler->implicitRemoteTransactionDataStack_.top()->MoveAllCommand(
+            implicitRemoteTransactionDataStack_.top());
     }
-}
-
-std::unique_ptr<RSTransactionData> RSTransactionHandler::GetCommonTransactionData()
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (implicitCommonTransactionDataStack_.empty()) {
-        return nullptr;
-    }
-    auto commonTransactionData = std::move(implicitCommonTransactionDataStack_.top());
-    implicitCommonTransactionDataStack_.pop();
-    return commonTransactionData;
-}
-
-std::unique_ptr<RSTransactionData> RSTransactionHandler::GetRemoteTransactionData()
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (implicitRemoteTransactionDataStack_.empty()) {
-        return nullptr;
-    }
-    auto remoteTransactionData = std::move(implicitRemoteTransactionDataStack_.top());
-    implicitRemoteTransactionDataStack_.pop();
-    return remoteTransactionData;
 }
 
 void RSTransactionHandler::MarkTransactionNeedSync()
