@@ -41,10 +41,10 @@
 #include "params/rs_surface_render_params.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
-#include "feature/round_corner_display/rs_message_bus.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -122,32 +122,25 @@ Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& sc
 }
 }
 
-// Rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
-void DoScreenRcdTask(RSScreenRenderParams& params, std::shared_ptr<RSProcessor> &processor)
+void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    const ScreenInfo& screenInfo)
 {
-    if (processor == nullptr) {
-        RS_LOGD("DoScreenRcdTask has no processor");
+    if (rcdInfo == nullptr || processor == nullptr) {
+        RS_LOGD("DoScreenRcdTask has nullptr processor or rcdInfo");
         return;
     }
-    const auto &screenInfo = params.GetScreenInfo();
-    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
+    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-
-    bool res = true;
-    bool resourceChanged = false;
-    auto drawables = params.GetRoundCornerDrawables();
-    for (auto drawable : drawables) {
-        auto rcdDrawable = std::static_pointer_cast<DrawableV2::RSRcdSurfaceRenderNodeDrawable>(drawable);
-        if (rcdDrawable) {
-            resourceChanged |= rcdDrawable->IsResourceChanged();
-            res &= rcdDrawable->DoProcessRenderTask(processor);
-        }
-    }
-    if (resourceChanged && res) {
-        RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(
-            TOPIC_RCD_DISPLAY_HWRESOURCE, params.GetId(), true);
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
+            [id, &processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id, true);
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(id, rcdInfo->processInfo);
+            });
     }
 }
 
@@ -380,7 +373,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
     bool hardCursorNeedCommit = (hasHardCursor != hardCursorLastCommitSuccess_);
     auto forceCommitReason = uniParam->GetForceCommitReason();
     bool layersNeedCommit = IsForceCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
-    RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %d, forceUpdateByHwcNodes %d, "
+    RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %u, forceUpdateByHwcNodes %d, "
         "byHardCursor: %d", forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hardCursorNeedCommit);
     if (!layersNeedCommit && !hardCursorNeedCommit) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
@@ -415,14 +408,15 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
     }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
+                " TaskNum:[%{public}u]", RSHardwareThread::Instance().GetunExecuteTaskNum());
         RSHardwareThread::Instance().DumpEventQueue();
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);
 
     // commit RCD layers
-
-    DoScreenRcdTask(params, processor);
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    const auto& screenInfo = params.GetScreenInfo();
+    DoScreenRcdTask(params.GetId(), processor, rcdInfo, screenInfo);
     processor->PostProcess();
     return true;
 }
@@ -452,7 +446,12 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
             surfaceParams.GetIsRotating(), surfaceParams.GetAttractionAnimation());
         return;
     }
-    bool dirtyBelowContainsFilterNode = false;
+    if (surfaceParams.IsSubSurfaceNode()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], Name[%s], "
+            "subSurface's filter cache not participate in occlusion",
+            surfaceParams.GetId(), surfaceParams.GetName().c_str());
+        return;
+    }
     for (auto& filterNodeId : surfaceParams.GetVisibleFilterChild()) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(filterNodeId);
         if (drawableAdapter == nullptr) {
@@ -472,10 +471,10 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
         }
         // Filter cache occlusion need satisfy:
         // 1.The filter node global alpha equals 1;
-        // 2.There is no invalid filter cache node below, which should take snapshot;
+        // 2.The node type is not EFFECT_NODE;
         // 3.The filter node has no global corner;
-        // 4.The node type is not EFFECT_NODE;
-        if (ROSEN_EQ(filterParams->GetGlobalAlpha(), 1.f) && !dirtyBelowContainsFilterNode &&
+        // 4.There is no invalid filter cache node below, which should take snapshot;
+        if (ROSEN_EQ(filterParams->GetGlobalAlpha(), 1.f) &&
             !filterParams->HasGlobalCorner() && filterParams->GetType() != RSRenderNodeType::EFFECT_NODE) {
             bool cacheValid = filterNodeDrawable->IsFilterCacheValidForOcclusion();
             RectI filterCachedRect = filterNodeDrawable->GetFilterCachedRegion();
@@ -484,13 +483,15 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
                 surfaceParams.IsMainWindowType() && cacheValid && screenRect.IsInsideOf(filterCachedRect));
         }
         RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], globalAlpha: %f, "
-            "hasInvalidFilterCacheBefore: %d, hasNoCorner: %d, isNodeTypeCorrect: %d, isCacheValid: %d, "
-            "cacheRect: %s", filterNodeId, filterParams->GetGlobalAlpha(), !dirtyBelowContainsFilterNode,
-            !filterParams->HasGlobalCorner(), filterParams->GetType() != RSRenderNodeType::EFFECT_NODE,
+            "hasNoCorner: %d, isNodeTypeCorrect: %d, isCacheValid: %d, cacheRect: %s",
+            filterNodeId, filterParams->GetGlobalAlpha(), !filterParams->HasGlobalCorner(),
+            filterParams->GetType() != RSRenderNodeType::EFFECT_NODE,
             filterNodeDrawable->IsFilterCacheValidForOcclusion(),
             filterNodeDrawable->GetFilterCachedRegion().ToString().c_str());
         if (filterParams->GetEffectNodeShouldPaint() && !filterNodeDrawable->IsFilterCacheValidForOcclusion()) {
-            dirtyBelowContainsFilterNode = true;
+            RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], Name[%s], "
+                "Has invalid filter cache before", surfaceParams.GetId(), surfaceParams.GetName().c_str());
+            break;
         }
     }
 }
@@ -1004,7 +1005,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // process round corner display
-    DoScreenRcdTask(*params, processor);
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute"

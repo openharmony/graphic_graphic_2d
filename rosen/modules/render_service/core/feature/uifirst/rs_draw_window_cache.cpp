@@ -175,7 +175,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
-    surfaceDrawable->DrawWatermark(canvas, surfaceParams);
+    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
     if (surfaceParams.IsCrossNode() &&
         uniParam.GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
         // rgba: Alpha 128, red 255, green 128, blue 128

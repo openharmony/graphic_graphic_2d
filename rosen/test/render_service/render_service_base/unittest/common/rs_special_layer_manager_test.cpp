@@ -125,4 +125,23 @@ HWTEST_F(RSSpecialLayerManagerTest, SetWithScreen001, TestSize.Level1)
     ASSERT_TRUE(slManager.SetWithScreen(screenId2, SpecialLayerType::IS_BLACK_LIST, false));
     slManager.ClearScreenSpecialLayer();
 }
+
+/**
+ * @tc.name: AutoSpecialLayerStateRecover
+ * @tc.desc: test class AutoSpecialLayerStateRecover RAII
+ * @tc.type: FUNC
+ * @tc.require: issueICWXJS
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AutoSpecialLayerStateRecover, TestSize.Level1)
+{
+    LeashPersistentId id1 = 1;
+    LeashPersistentId id2 = 2;
+    {
+        AutoSpecialLayerStateRecover aslsr1(id1);
+        ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), id1);
+        AutoSpecialLayerStateRecover aslsr2(id2);
+        ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), id2);
+    }
+    ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), INVALID_LEASH_PERSISTENTID);
+}
 } // namespace OHOS::Rosen

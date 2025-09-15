@@ -25,5 +25,6 @@ static napi_module g_drawingModule = {
 
 extern "C" __attribute__((constructor)) void NAPI_drawing_AutoRegister()
 {
+    ROSEN_LOGI("Drawing module registration start");
     napi_module_register(&g_drawingModule);
 }

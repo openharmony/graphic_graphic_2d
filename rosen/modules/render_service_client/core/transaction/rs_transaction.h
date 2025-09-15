@@ -57,7 +57,7 @@ public:
      * @param handler Event handler, used to handle events related to the transaction, if it is empty
      * then no events will be processed.
      */
-    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
+    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr, bool isInnerProcess = false);
     /**
      * @brief Close a synchronous transaction.
      * @details This function is used to close a synchronous transaction, and commit it to the server.
@@ -104,10 +104,27 @@ public:
         rsTransactionHandler_ = rsTransactionHandler;
     }
 
+    std::shared_ptr<RSTransactionHandler> GetTransactionHandler() const
+    {
+        return rsTransactionHandler_;
+    }
+
+    void AddSubSyncTransaction(
+        std::shared_ptr<RSTransaction> subRSTransaction, const uint64_t token, const uint64_t syncId);
+
+    void RemoveSubSyncTransaction(const uint64_t token, const uint64_t syncId);
+
+    bool GetInnerProcessFlag() const
+    {
+        return isInnerProcess_;
+    }
 private:
     uint64_t GenerateSyncId();
     void ResetSyncTransactionInfo();
     bool UnmarshallingParam(Parcel& parcel);
+    void InnerCloseSyncTransaction();
+    void StartSubTransaction(const uint64_t syncId);
+    void ProcessAllSyncTransaction();
 
     uint64_t syncId_ { 0 };
     std::mutex mutex_;
@@ -115,7 +132,12 @@ private:
     int32_t duration_ = 0;
     int32_t parentPid_ { -1 };
     bool isOpenSyncTransaction_ = false;
+    bool isNeedCloseSyncTransaction_ = false;
+    std::recursive_mutex subSyncTransactionsMutex_;
+    std::unordered_map<uint64_t, int> subSyncTransactions_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_ = nullptr;
+    // Determine if synchronization is only within a single process and does not involve other processes
+    bool isInnerProcess_ { false };
 
     friend class RSSyncTransactionController;
     friend class RSSyncTransactionHandler;

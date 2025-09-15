@@ -440,11 +440,17 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual003, TestSize.Level1)
  */
 HWTEST_F(RSRenderPropertyTest, dumptest, TestSize.Level1)
 {
-    auto prop = std::make_shared<RSRenderProperty<Vector3f>>();
-    prop->Set(Vector3f(1.f, 1.f, 1.f)); // 1.f for test
-    std::string dumpOut;
-    prop->Dump(dumpOut);
-    EXPECT_EQ(dumpOut, std::string("[x:1.0 y:1.0 z:1.0]"));
+    auto prop1 = std::make_shared<RSRenderProperty<Vector3f>>();
+    prop1->Set(Vector3f(1.f, 1.f, 1.f)); // 1.f for test
+    std::string dumpOut1;
+    prop1->Dump(dumpOut1);
+    EXPECT_EQ(dumpOut1, std::string("[x:1.0 y:1.0 z:1.0]"));
+
+    auto prop2 = std::make_shared<RSRenderProperty<Vector4f>>();
+    prop2->Set(Vector4f(1.5f, 1.5f, 10.2f, 10.2f)); // 1.5f and 10.2f for test
+    std::string dumpOut2;
+    prop2->Dump(dumpOut2);
+    EXPECT_EQ(dumpOut2, std::string("[x:1.5 y:1.5 z:10.2 w:10.2]"));
 }
 
 /**

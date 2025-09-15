@@ -44,6 +44,8 @@ public:
     void PostAndWait();
     void PostDirectCompositionJankStats(const JankDurationParams& rsParams, bool optimizeLoad);
 
+    void ClearDrawableResource();
+
 private:
     void RenderFrame();
     void SetEarlyZEnabled(Drawing::GPUContext* gpuContext);

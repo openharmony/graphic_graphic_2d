@@ -86,6 +86,11 @@ public:
         screenRotation_ = screenRotation;
     }
 
+    void SetMirrorSourceRotation(ScreenRotation mirrorSourceRotation)
+    {
+        mirrorSourceRotation_ = mirrorSourceRotation;
+    }
+
     ScreenRotation GetScreenRotation() const
     {
         return screenRotation_;
@@ -197,6 +202,7 @@ private:
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
     
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
+    ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
 
     bool isSecurityDisplay_ = false;
     bool isMirrorDisplay_ = false;

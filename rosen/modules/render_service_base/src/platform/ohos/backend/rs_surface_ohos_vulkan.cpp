@@ -486,8 +486,8 @@ void RSSurfaceOhosVulkan::CancelBufferForCurrentFrame()
         RS_LOGE("CancelBuffer failed: mSurfaceList is empty");
         return ;
     }
-    auto buffer = mSurfaceList.front();
-    mSurfaceList.pop_front();
+    auto buffer = mSurfaceList.back();
+    mSurfaceList.pop_back();
     NativeWindowCancelBuffer(mNativeWindow, buffer);
     mSurfaceMap.erase(buffer);
 }

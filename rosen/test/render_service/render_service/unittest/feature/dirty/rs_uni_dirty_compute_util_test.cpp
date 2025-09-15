@@ -564,4 +564,122 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
     testFunc(true, false, true, false);
     testFunc(true, true, true, false);
 }
+
+/**
+ * @tc.name: CheckCurrentFrameHasDirtyInVirtual001
+ * @tc.desc: test CheckCurrentFrameHasDirtyInVirtual
+ * @tc.type: FUNC
+ * @tc.require: issueICWRWD
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestSize.Level1)
+{
+    NodeId defaultScreenNodeId = 0;
+    NodeId mirroredScreenNodeId = 1;
+    NodeId logicalScreenNodeId = 2;
+    ScreenId screenId = 1;
+    RectI defaultDirtyRect = { 0, 0, 100, 100};
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode =
+        std::make_shared<RSScreenRenderNode>(defaultScreenNodeId, screenId, context);
+    screenNode->InitRenderParams();
+
+    RSScreenRenderNodeDrawable* mirroredScreenDrawable = GenerateScreenDrawableById(
+        mirroredScreenNodeId, screenId + 1, context);
+    ASSERT_NE(mirroredScreenDrawable, nullptr);
+    auto screenDrawable = static_cast<RSScreenRenderNodeDrawable*>(screenNode->renderDrawable_.get());
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    mirroredScreenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(mirroredScreenNodeId);
+    auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable->GetRenderParams().get());
+    mirroredScreenParams->mirrorSourceDrawable_ = screenNode->GetRenderDrawable();;
+    screenDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(screenDrawable->syncDirtyManager_, nullptr);
+    screenDrawable->syncDirtyManager_->SetCurrentFrameDirtyRect(defaultDirtyRect);
+    EXPECT_TRUE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+
+    screenDrawable->syncDirtyManager_->currentFrameDirtyRegion_.Clear();
+    screenDrawable->syncDirtyManager_->hwcDirtyRegion_ = defaultDirtyRect;
+    EXPECT_TRUE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+    screenDrawable->syncDirtyManager_->hwcDirtyRegion_.Clear();
+
+    RSLogicalDisplayRenderNodeDrawable* displayDrawable =
+        GenerateLogicalscreenDrawableById(logicalScreenNodeId, context);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(logicalScreenNodeId);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+    mirroredScreenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
+    
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    NodeType cursorType = 12;
+    std::vector<NodeType> typeBlackList = {cursorType};
+    screenManager->SetVirtualScreenTypeBlackList(logicalScreenNodeId, typeBlackList);
+
+    screenDrawable->syncDirtyManager_->typeHwcDirtyRegion_ =
+        {{RSSurfaceNodeType::CURSOR_NODE, defaultDirtyRect}};
+    EXPECT_TRUE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+
+    screenDrawable->syncDirtyManager_->typeHwcDirtyRegion_ =
+        {{RSSurfaceNodeType::APP_WINDOW_NODE, defaultDirtyRect}};
+    EXPECT_TRUE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+    
+    screenDrawable->syncDirtyManager_->typeHwcDirtyRegion_ =
+        {{RSSurfaceNodeType::APP_WINDOW_NODE, RectI()}};
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    
+    NodeId defaultSurfaceId = 10;
+    auto createDrawableWithDirtyManager = [](NodeId id, bool flag,
+        RSSpecialLayerManager specialLayerManager) -> RSRenderNodeDrawable::Ptr {
+        std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(id);
+        auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+        auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+        if (surfaceDrawable == nullptr) {
+            return nullptr;
+        }
+        surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+        surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+        if (surfaceDrawable->syncDirtyManager_ == nullptr || surfaceDrawable->renderParams_ == nullptr) {
+            return nullptr;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+        if (flag) {
+            RectI rect = {0, 0, 100, 100};
+            surfaceDrawable->syncDirtyManager_->SetCurrentFrameDirtyRect(rect);
+            Occlusion::Region region = Occlusion::Region(rect);
+            surfaceParams->SetVisibleRegionInVirtual(region);
+        }
+        surfaceParams->SetWindowInfo(true, true, true);
+        surfaceParams->specialLayerManager_ = specialLayerManager;
+        return surfaceDrawable;
+    };
+    RSSpecialLayerManager specialLayerManager1;
+    specialLayerManager1.SetWithScreen(displayParams->GetScreenId(), SpecialLayerType::IS_BLACK_LIST, true);
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, specialLayerManager1));
+
+    RSSpecialLayerManager specialLayerManager2;
+    specialLayerManager2.Set(SpecialLayerType::SKIP, true);
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, specialLayerManager2));
+
+    RSSpecialLayerManager specialLayerManager3;
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, specialLayerManager3));
+
+    screenParams->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    EXPECT_FALSE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+
+    surfaceAdapters.clear();
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(++defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    RSSpecialLayerManager specialLayerManager4;
+    surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, false, specialLayerManager4));
+
+    screenParams->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    EXPECT_FALSE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+    
+    screenDrawable = nullptr;
+    mirroredScreenDrawable = nullptr;
+    displayDrawable = nullptr;
+}
 } // namespace OHOS::Rosen

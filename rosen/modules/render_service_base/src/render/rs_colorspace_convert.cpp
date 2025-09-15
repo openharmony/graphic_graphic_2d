@@ -197,8 +197,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         scaler = hdrProperties.hdrBrightness * (scaler - 1.0f) + 1.0f;
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
-        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel,
-            ret == GSERROR_OK ? parameter.dynamicMetadata : std::vector<uint8_t>{}, hdrProperties.hdrBrightness);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ?
+            parameter.dynamicMetadata : std::vector<uint8_t>{}, hdrProperties.hdrBrightness, HdrStatus::HDR_PHOTO);
     }
 
     if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {

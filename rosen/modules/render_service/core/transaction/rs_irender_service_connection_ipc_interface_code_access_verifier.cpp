@@ -203,6 +203,18 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WATERMARK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SURFACE_WATERMARK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SURFACE_WATERMARK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CLEAR_SURFACE_WATERMARK_FOR_NODES): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CLEAR_SURFACE_WATERMARK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CLEAR_SURFACE_WATERMARK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT_MAP): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT_MAP");
             break;

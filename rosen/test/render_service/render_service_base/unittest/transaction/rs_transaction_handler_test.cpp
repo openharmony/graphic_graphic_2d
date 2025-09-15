@@ -437,6 +437,30 @@ HWTEST_F(RSTransactionHandlerTest, Commit004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Commit005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, Commit005, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    uint64_t timestamp = 1;
+    ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->Commit(timestamp);
+
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->Commit(timestamp);
+
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    transaction->implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.top()->IsNeedSync());
+    transaction->Commit(timestamp);
+}
+
+/**
  * @tc.name: CommitSyncTransaction001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -447,7 +471,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction001, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     uint64_t timestamp = 1;
     transaction->Begin();
-    transaction->CommitSyncTransaction(timestamp, "abilityName");
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
     EXPECT_EQ(transaction->timestamp_, timestamp);
 }
 
@@ -468,7 +492,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction002, TestSize.Level1)
     transaction->SetRenderThreadClient(renderThreadClient);
     transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
-    transaction->CommitSyncTransaction(timestamp, "abilityName");
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
 }
 
 /**
@@ -491,7 +515,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction003, TestSize.Level1)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     transaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
-    transaction->CommitSyncTransaction(timestamp, "abilityName");
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
 }
 
 /**
@@ -514,7 +538,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction004, TestSize.Level1)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     transaction->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
-    transaction->CommitSyncTransaction(timestamp, "abilityName");
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
 }
 
 /**
@@ -538,7 +562,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction005, TestSize.Level1)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     transaction->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
-    transaction->CommitSyncTransaction(timestamp, "abilityName");
+    transaction->CommitSyncTransaction(0, timestamp, "abilityName");
 }
 
 /**
@@ -1245,33 +1269,7 @@ HWTEST_F(RSTransactionHandlerTest, TestPostTask, TestSize.Level1)
     transaction->PostDelayTask(task, 0);
 
     transaction->taskRunner_ = nullptr;
-    ASSERT_EQ(transaction->taskRunner_, nullptr);
     transaction->PostDelayTask(task, 0);
-}
-
-/**
- * @tc.name: StartCloseSyncTransactionFallbackTaskTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionHandlerTest, StartCloseSyncTransactionFallbackTaskTest, TestSize.Level1)
-{
-    auto transaction = std::make_shared<RSTransactionHandler>();
-    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("runner");
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-
-    transaction->StartCloseSyncTransactionFallbackTask(nullptr, true);
-    transaction->StartCloseSyncTransactionFallbackTask(nullptr, false);
-    ASSERT_TRUE(transaction->taskNames_.empty());
-
-    transaction->StartCloseSyncTransactionFallbackTask(handler, true);
-    transaction->StartCloseSyncTransactionFallbackTask(handler, false);
-    ASSERT_TRUE(transaction->taskNames_.empty());
-
-    transaction->StartCloseSyncTransactionFallbackTask(handler, true);
-    sleep(8);
-    ASSERT_TRUE(transaction->taskNames_.empty());
 }
 
 /**
@@ -1310,6 +1308,337 @@ HWTEST_F(RSTransactionHandlerTest, DumpCommandTest, TestSize.Level1)
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionData") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionDataStack") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionDataStack") == std::string::npos);
+}
+
+/**
+ * @tc.name: Begin001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, Begin001, TestSize.Level1)
+{
+    uint64_t syncId = 123;
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->Begin();
+
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->Begin();
+    transaction->Begin(syncId);
+
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.top()->IsNeedSync());
+    transaction->Begin();
+
+    transaction->implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
+    ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.top()->IsNeedSync());
+    transaction->Begin();
+}
+
+/**
+ * @tc.name: Begin002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, Begin002, TestSize.Level1)
+{
+    uint64_t syncId = 123;
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->needSync_ = false;
+    transaction->Begin(syncId);
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+}
+
+/**
+ * @tc.name: Begin003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, Begin003, TestSize.Level1)
+{
+    uint64_t syncId = 123;
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    ASSERT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->needSync_ = true;
+    transaction->Begin(syncId);
+    ASSERT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+}
+
+/**
+ * @tc.name: MergeSyncTransaction001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler1 = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler2 = transaction;
+    transaction->MergeSyncTransaction(nullptr);
+    transaction->MergeSyncTransaction(transactionHandler1);
+
+    EXPECT_EQ(transactionHandler2.get(), transaction.get());
+    transaction->MergeSyncTransaction(transactionHandler2);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction002, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    transactionHandler->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    ASSERT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.empty());
+    EXPECT_TRUE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction003, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    transactionHandler->implicitCommonTransactionDataStack_.emplace(std::move(preTransactionData));
+    ASSERT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.empty());
+    EXPECT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
+
+    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction004
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction004, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    transactionHandler->implicitCommonTransactionDataStack_.emplace(std::move(preTransactionData));
+    ASSERT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.empty());
+    EXPECT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
+
+    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
+    transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction005
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction005, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    transactionHandler->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    ASSERT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
+    EXPECT_TRUE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction006
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction006, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    transactionHandler->implicitRemoteTransactionDataStack_.emplace(std::move(preTransactionData));
+    ASSERT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
+    EXPECT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+
+    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction007
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction007, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    ASSERT_TRUE(transactionHandler->GetCommonTransactionData() == nullptr);
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(preTransactionData->IsEmpty());
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    transactionHandler->implicitRemoteTransactionDataStack_.emplace(std::move(preTransactionData));
+    ASSERT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
+    EXPECT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+
+    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction008
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction008, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    ASSERT_EQ(transactionHandler->GetRemoteTransactionData(), nullptr);
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction009
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction009, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
+    transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
+    ASSERT_EQ(transactionHandler->GetCommonTransactionData(), nullptr);
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction010
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction010, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    transactionHandler->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    ASSERT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.empty());
+    EXPECT_FALSE(transactionHandler->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+
+    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: MergeSyncTransaction011
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction011, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto transactionHandler = std::make_shared<RSTransactionHandler>();
+
+    transactionHandler->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    ASSERT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.empty());
+    EXPECT_FALSE(transactionHandler->implicitCommonTransactionDataStack_.top()->IsEmpty());
+
+    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
+    transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
+    transaction->MergeSyncTransaction(transactionHandler);
+}
+
+/**
+ * @tc.name: GetCommonTransactionData001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, GetCommonTransactionData001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+
+    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
+    EXPECT_EQ(transaction->GetCommonTransactionData(), nullptr);
+    transaction->implicitCommonTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_NE(transaction->GetCommonTransactionData(), nullptr);
+}
+
+/**
+ * @tc.name: GetRemoteTransactionData001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionHandlerTest, GetRemoteTransactionData001, TestSize.Level1)
+{
+    auto transaction = std::make_shared<RSTransactionHandler>();
+
+    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
+    EXPECT_EQ(transaction->GetRemoteTransactionData(), nullptr);
+    transaction->implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
+    EXPECT_NE(transaction->GetRemoteTransactionData(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -2016,6 +2016,8 @@ void RSProperties::SetVisible(bool visible)
         SetDirty();
         contentDirty_ = true;
     }
+    // The visible value of parent node affects all child node
+    subTreeAllDirty_ = true;
 }
 
 const RRect& RSProperties::GetRRect() const

@@ -172,18 +172,50 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 
 uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType type)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
 {
+#ifdef ROSEN_OHOS
+    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
+        ROSEN_LOGE("SetSurfaceWatermark failed, name[%{public}s] is error.", name.c_str());
+        return SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR;
+    }
+    if (watermark && watermark->IsAstc()) {
+        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}d] is error",
+            watermark->IsAstc(), watermark->GetCapacity());
+        return SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR;
+    }
+
+    if (watermarkType >= SurfaceWatermarkType::INVALID_WATER_MARK) {
+        return SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE;
+    }
+    return renderServiceClient_->SetSurfaceWatermark(pid, name, watermark,
+        nodeIdList, watermarkType);
+#else
     return 0 ;
+#endif
 }
 
 void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid,
-    const std::string &name, const std::vector<NodeId> &nodeIdList)
+    const std::string& name, const std::vector<NodeId>& nodeIdList)
 {
+#ifdef ROSEN_OHOS
+    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
+        ROSEN_LOGE("ClearSurfaceWatermarkForNodes failed, name[%{public}s] is error.", name.c_str());
+        return;
+    }
+    return renderServiceClient_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+#endif
 }
 
 void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
+#ifdef ROSEN_OHOS
+    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
+        ROSEN_LOGE("ClearSurfaceWatermark failed, name[%{public}s] is error.", name.c_str());
+        return;
+    }
+    return renderServiceClient_->ClearSurfaceWatermark(pid, name);
+#endif
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -291,7 +323,7 @@ bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> nod
         node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
-bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
     bool checkDrmAndSurfaceLock)
 {
@@ -299,7 +331,7 @@ bool RSInterfaces::TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNod
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    return renderServiceClient_->TaskSurfaceCaptureWithAllWindows(
+    return renderServiceClient_->TakeSurfaceCaptureWithAllWindows(
         node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
 }
 

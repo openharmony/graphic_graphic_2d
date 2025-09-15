@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -23,7 +24,6 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -469,38 +469,27 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter =
         std::dynamic_pointer_cast<RSRenderNodeDrawableAdapter>(std::make_shared<RSRenderNodeDrawable>(std::move(node)));
-
     auto rSSurfaceRenderNode = std::make_shared<const RSSurfaceRenderNode>(id);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(rSSurfaceRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
-
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto rSDisplayRenderNode = std::make_shared<const RSScreenRenderNode>(id, screenId, context);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(rSDisplayRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
-
     auto rSEffectRenderNode = std::make_shared<const RSEffectRenderNode>(id);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(rSEffectRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
-
     auto rSCanvasDrawingRenderNode = std::make_shared<const RSCanvasDrawingRenderNode>(id);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(rSCanvasDrawingRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
-
-    auto rSRcdSurfaceRenderNode = std::make_shared<const RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
-    EXPECT_TRUE(adapter->renderParams_ == nullptr);
-    RSRenderNodeDrawableAdapter::InitRenderParams(rSRcdSurfaceRenderNode, adapter);
-    EXPECT_TRUE(adapter->renderParams_ != nullptr);
-    adapter->renderParams_.reset(nullptr);
-
     auto defaultRenderNode = std::make_shared<const RSRenderNode>(id);
     EXPECT_TRUE(adapter->renderParams_ == nullptr);
     RSRenderNodeDrawableAdapter::InitRenderParams(defaultRenderNode, adapter);

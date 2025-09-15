@@ -511,8 +511,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessRcdSurfaceTest, TestSize.Level2
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RCDSurfaceType type = RCDSurfaceType::INVALID;
-    auto node = RSRcdSurfaceRenderNode::Create(nodeId, type);
-    processor->ProcessRcdSurface(*node);
+    RSRcdSurfaceRenderNode node(nodeId, type);
+    processor->ProcessRcdSurface(node);
     EXPECT_FALSE(processor->forceCPU_);
 }
 
@@ -605,6 +605,24 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_003, TestSize.Level2)
     virtualProcessor_->autoBufferRotation_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
     ASSERT_EQ(virtualProcessor_->screenRotation_, displayDrawable_->originScreenRotation_);
+}
+
+/**
+ * @tc.name: CanvasInit_004
+ * @tc.desc: CanvasInit Test, mirrorSourceRotation_ != ScreenRotation::INVALID_SCREEN_ROTATION
+ * @tc.type:FUNC
+ * @tc.require:issueICGA54
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_004, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(virtualProcessor_, nullptr);
+    virtualProcessor_->mirrorSourceRotation_ = ScreenRotation::ROTATION_0;
+    virtualProcessor_->CanvasInit(*displayDrawable_);
+
+    virtualProcessor_->mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    virtualProcessor_->CanvasInit(*displayDrawable_);
+    ASSERT_EQ(virtualProcessor_->mirrorSourceRotation_, ScreenRotation::INVALID_SCREEN_ROTATION);
 }
 
 /**
@@ -1027,4 +1045,29 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessScreenSurfaceForRenderThread002
     virtualProcessor_->ProcessScreenSurfaceForRenderThread(*screenDrawable);
     ASSERT_EQ(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr, true);
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: CancelCurrentFrame
+ * @tc.desc: Test CancelCurrentFrame
+ * @tc.type: FUNC
+ * @tc.require: issueICWRWD
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CancelCurrentFrame, TestSize.Level1)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    virtualProcessor->CancelCurrentFrame();
+    ASSERT_EQ(virtualProcessor->renderFrame_, nullptr);
+
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    ASSERT_NE(nullptr, rsSurface);
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface, nullptr);
+    virtualProcessor->renderFrame_->CancelCurrentFrame();
+    ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
+}
+#endif // RS_ENABLE_VK
 } // namespace OHOS::Rosen

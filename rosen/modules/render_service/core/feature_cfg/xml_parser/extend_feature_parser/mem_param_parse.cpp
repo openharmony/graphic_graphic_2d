@@ -72,6 +72,9 @@ int32_t MEMParamParse::ParseMemInternal(xmlNode &node)
             MEMParam::SetDeeplyRelGpuResEnable(isEnabled);
             RS_LOGI("MEMParamParse parse DeeplyReleaseGpuResourceEnabled %{public}d",
                 MEMParam::IsDeeplyRelGpuResEnable());
+        } else if (name == "KillScbEnabled") {
+            MEMParam::SetKillScbEnabled(isEnabled);
+            RS_LOGI("MEMParamParse parse KillScbEnabled %{public}d", MEMParam::IsKillScbEnabled());
         }
     }
 

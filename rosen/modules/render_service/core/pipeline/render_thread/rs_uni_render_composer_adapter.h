@@ -36,7 +36,6 @@ namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
 class RSLogicalDisplayRenderNodeDrawable;
-class RSRcdSurfaceRenderNodeDrawable;
 }
 class RSUniRenderComposerAdapter {
 public:
@@ -48,7 +47,6 @@ public:
     bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
     LayerInfoPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
-    LayerInfoPtr CreateLayer(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
@@ -66,7 +64,6 @@ private:
     ComposeInfo BuildComposeInfo(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         const std::vector<RectI>& dirtyRegion);
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
-    ComposeInfo BuildComposeInfo(DrawableV2::RSRcdSurfaceRenderNodeDrawable& rcdDrawable) const;
 
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,

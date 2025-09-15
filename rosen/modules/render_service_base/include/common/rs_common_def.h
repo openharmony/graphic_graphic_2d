@@ -63,16 +63,15 @@ constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
  * childFlags = ParentFlags | AdditionalBits
  */
 enum class RSUINodeType : uint32_t {
-    UNKNOW              = 0x0000u,
-    RS_NODE             = 0x0001u,
-    DISPLAY_NODE        = 0x0011u,
-    SURFACE_NODE        = 0x0021u,
-    PROXY_NODE          = 0x0041u,
-    CANVAS_NODE         = 0x0081u,
-    EFFECT_NODE         = 0x0101u,
-    ROUND_CORNER_NODE   = 0x0201u,
-    ROOT_NODE           = 0x1081u,
-    CANVAS_DRAWING_NODE = 0x2081u,
+    UNKNOW               = 0x0000u,
+    RS_NODE              = 0x0001u,
+    DISPLAY_NODE         = 0x0011u,
+    SURFACE_NODE         = 0x0021u,
+    PROXY_NODE           = 0x0041u,
+    CANVAS_NODE          = 0x0081u,
+    EFFECT_NODE          = 0x0101u,
+    ROOT_NODE            = 0x1081u,
+    CANVAS_DRAWING_NODE  = 0x2081u,
 };
 
 enum class FollowType : uint8_t {
@@ -529,6 +528,7 @@ struct RSDisplayNodeConfig {
     bool isMirrored = false;
     NodeId mirrorNodeId = 0;
     bool isSync = false;
+    uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
 };
 
 // ability state of surface node

@@ -591,6 +591,42 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
   subsystem_name = "graphic"
 }
 
+ohos_executable("rs_surface_watermark_demo") {
+  sources = [ "rs_surface_watermark_demo.cpp" ]
+  
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "window_manager:libwm",
+  ]
+
+  defines = []
+  if (graphic_2d_support_access_token) {
+    external_deps += [
+      "access_token:libnativetoken",
+      "access_token:libtoken_setproc",
+    ]
+    defines += [ "SUPPORT_ACCESS_TOKEN" ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 ohos_executable("rs_uni_render_fix_rotation_demo") {
   sources = [ "rs_uni_render_fix_rotation_demo.cpp" ]
 

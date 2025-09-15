@@ -312,7 +312,7 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint3
     offTreeBucket_.pop();
     uint32_t remainBucketSize = offTreeBucket_.size();
     offTreeBucketThrDetector_.Detect(remainBucketSize, callBack);
-    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucket %d, remain offTree buckets %u", toRemove.size(), remainBucketSize);
+    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucket %lu, remain offTree buckets %u", toRemove.size(), remainBucketSize);
     for (const auto& node : toRemove) {
         if (!node) {
             continue;

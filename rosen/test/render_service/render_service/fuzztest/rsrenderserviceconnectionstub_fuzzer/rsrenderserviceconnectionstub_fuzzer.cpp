@@ -3059,15 +3059,6 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
 
 bool DoSetScreenSwitchingNotifyCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
     auto newPid = getpid();
@@ -3493,17 +3484,8 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
+bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto newPid = getpid();
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
@@ -3575,10 +3557,6 @@ bool DoTaskSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 
 bool DoFreezeScreen(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
     auto newPid = getpid();
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
@@ -3802,7 +3780,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProfilerIsSecureScreen(data, size);
     OHOS::Rosen::DoClearUifirstCache(data, size);
     OHOS::Rosen::DoGetScreenHDRStatus(data, size);
-    OHOS::Rosen::DoTaskSurfaceCaptureWithAllWindows(data, size);
+    OHOS::Rosen::DoTakeSurfaceCaptureWithAllWindows(data, size);
     OHOS::Rosen::DoFreezeScreen(data, size);
     return 0;
 }

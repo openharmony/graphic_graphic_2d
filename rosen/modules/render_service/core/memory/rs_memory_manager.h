@@ -51,7 +51,7 @@ public:
     static void InitMemoryLimit();
     static void SetGpuMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
-    static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
+    static bool MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
     static void CheckIsClearApp();
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);

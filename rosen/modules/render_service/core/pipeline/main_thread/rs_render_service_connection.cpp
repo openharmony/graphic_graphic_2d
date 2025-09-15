@@ -264,7 +264,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
-            connection->mainThread_->ClearWatermark(connection->remotePid_);
+            connection->mainThread_->ClearSurfaceWatermark(connection->remotePid_);
         }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         mainThread_->ScheduleTask(
@@ -699,9 +699,79 @@ ErrCode RSRenderServiceConnection::SetWatermark(const std::string& name, std::sh
         return ERR_INVALID_VALUE;
     }
     pid_t callingPid = GetCallingPid();
-    mainThread_->SetWatermark(callingPid, name, watermark);
+    std::function<void()> task = [weakThis = wptr<RSRenderServiceConnection>(this),
+        callingPid, name, watermark]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->mainThread_->SetWatermark(callingPid, name, watermark);
+    };
+    mainThread_->PostTask(task);
     success = true;
     return ERR_OK;
+}
+
+uint32_t RSRenderServiceConnection::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    if (!mainThread_) {
+        return WATER_MARK_IPC_ERROR;
+    }
+    auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+        "::SET_SURFACE_WATERMARK");
+    uint32_t res =  SurfaceWatermarkStatusCode::WATER_MARK_RS_CONNECTION_ERROR;
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), &name, &nodeIdList, &watermark, &watermarkType,
+        pid, isSystemCalling, &res]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        res = connection->mainThread_->SetSurfaceWatermark(pid, name, watermark,
+            nodeIdList, watermarkType, isSystemCalling);
+    };
+    mainThread_->PostSyncTask(task);
+    return res;
+}
+    
+void RSRenderServiceConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+        "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), &name, pid,
+        &nodeIdList, isSystemCalling]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->mainThread_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, isSystemCalling);
+    };
+    mainThread_->PostTask(task);
+}
+    
+void RSRenderServiceConnection::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+        "::CLEAR_SURFACE_WATERMARK");
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), &name, pid, isSystemCalling]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->mainThread_->ClearSurfaceWatermark(pid, name, isSystemCalling);
+    };
+    mainThread_->PostTask(task);
 }
 
 ErrCode RSRenderServiceConnection::GetDefaultScreenId(uint64_t& screenId)
@@ -1503,7 +1573,7 @@ void RSRenderServiceConnection::TakeSelfSurfaceCapture(
     mainThread_->PostTask(selfCaptureTask);
 }
 
-ErrCode RSRenderServiceConnection::TaskSurfaceCaptureWithAllWindows(NodeId id,
+ErrCode RSRenderServiceConnection::TakeSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions permissions)
 {

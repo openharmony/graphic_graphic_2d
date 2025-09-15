@@ -44,6 +44,28 @@ template <class TYPE_T> inline bool HasType(TYPE_T x, TYPE_T y)
 
 namespace OHOS {
 namespace Rosen {
+std::stack<LeashPersistentId> RSSpecialLayerManager::whiteListRootIds_ = {};
+
+void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
+{
+    whiteListRootIds_.push(id);
+}
+
+LeashPersistentId RSSpecialLayerManager::GetCurWhiteListRootId()
+{
+    if (whiteListRootIds_.empty()) {
+        return INVALID_LEASH_PERSISTENTID;
+    }
+    return whiteListRootIds_.top();
+}
+
+void RSSpecialLayerManager::ResetWhiteListRootId(LeashPersistentId id)
+{
+    if (!whiteListRootIds_.empty() && whiteListRootIds_.top() == id) {
+        whiteListRootIds_.pop();
+    }
+}
+
 bool RSSpecialLayerManager::Set(uint32_t type, bool is)
 {
     if (HasType(specialLayerType_, type) == is) {

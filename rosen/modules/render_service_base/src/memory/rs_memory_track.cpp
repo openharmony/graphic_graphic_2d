@@ -67,64 +67,93 @@ MemoryTrack& MemoryTrack::Instance()
     return instance;
 }
 
-MemoryNodeOfPid* MemoryTrack::FindNodeById(std::vector<MemoryNodeOfPid>& nodesVec,
-    NodeId id) const
+void MemoryTrack::RegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type)
 {
-    auto it = std::find_if(nodesVec.begin(), nodesVec.end(), [id](MemoryNodeOfPid& node) {
-        return node.GetNodeId() == id;
-    });
-    if (it != nodesVec.end()) {
-        return &(*it);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pid == 0) {
+        return;
     }
-    return nullptr;
+
+    RS_LOGD("MemoryTrack::RegisterNodeMem: nodeMemOfPid_ map size = %s",
+        std::to_string(nodeMemOfPid_.size()).c_str());
+    auto& memData = nodeMemOfPid_[pid];
+    switch (type) {
+        case MEMORY_TYPE::MEM_RENDER_NODE:
+            memData.first += size;
+            break;
+        case MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE:
+            memData.second += size;
+            break;
+        case MEMORY_TYPE::MEM_PIXELMAP:
+        case MEMORY_TYPE::MEM_SKIMAGE:
+        default:
+            RS_LOGE("MemoryTrack::RegisterNodeMem: invalid memory type");
+            break;
+    }
 }
 
-void MemoryTrack::SetDrawableNodeInfo(const NodeId id, const MemoryInfo& info)
+void MemoryTrack::UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type)
 {
-    if (memNodeOfPidMap_.find(info.pid) != memNodeOfPidMap_.end()) {
-        auto it = memNodeOfPidMap_.find(info.pid);
-        MemoryNodeOfPid* nodeInfoOfPid = FindNodeById(it->second, id);
-        if (nodeInfoOfPid == nullptr) {
-            return;
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = nodeMemOfPid_.find(pid);
+    if (it != nodeMemOfPid_.end()) {
+        auto& memData = it->second;
+        switch (type) {
+            case MEMORY_TYPE::MEM_RENDER_NODE:
+                if (memData.first >= size) {
+                    memData.first -= size;
+                } else {
+                    RS_LOGE("MemoryTrack::UnRegisterNodeMem: MEM_RENDER_NODE size exceeds current value");
+                    memData.first = 0;
+                }
+                break;
+            case MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE:
+                if (memData.second >= size) {
+                    memData.second -= size;
+                } else {
+                    RS_LOGE("MemoryTrack::UnRegisterNodeMem: MEM_RENDER_DRAWABLE_NODE size exceeds current value");
+                    memData.second = 0;
+                }
+                break;
+            case MEMORY_TYPE::MEM_PIXELMAP:
+            case MEMORY_TYPE::MEM_SKIMAGE:
+            default:
+                RS_LOGE("MemoryTrack::UnRegisterNodeMem: invalid memory type");
+                break;
         }
-        nodeInfoOfPid->SetDrawableMemSize(info.size);
+        // remove no exist pid
+        if (memData.first == 0 && memData.second == 0) {
+            nodeMemOfPid_.erase(it);
+        }
     }
-    return;
 }
 
 size_t MemoryTrack::GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto itr = memNodeOfPidMap_.find(pid);
-    if (itr == memNodeOfPidMap_.end()) {
+    auto itr = nodeMemOfPid_.find(pid);
+    if (itr == nodeMemOfPid_.end()) {
         return 0;
     }
-    uint64_t allTotalMemSizeOfPid = 0;
-    auto nodeInfoOfPid = memNodeOfPidMap_[pid];
-    if (nodeInfoOfPid.empty()) {
-        memNodeOfPidMap_.erase(pid);
-    } else {
-        std::for_each(nodeInfoOfPid.begin(), nodeInfoOfPid.end(),
-            [&allTotalMemSizeOfPid, &type](MemoryNodeOfPid& info) {
-            if (type == MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE) {
-                allTotalMemSizeOfPid += static_cast<uint64_t>(info.GetDrawableMemSize());
-            } else {
-                allTotalMemSizeOfPid += static_cast<uint64_t>(info.GetMemSize());
-            }
-        });
+    switch (type) {
+        case MEMORY_TYPE::MEM_RENDER_NODE:
+            return itr->second.first / BYTE_CONVERT;
+            break;
+        case MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE:
+            return itr->second.second / BYTE_CONVERT;
+            break;
+        case MEMORY_TYPE::MEM_PIXELMAP:
+        case MEMORY_TYPE::MEM_SKIMAGE:
+        default:
+            RS_LOGE("MemoryTrack::GetNodeMemoryOfPid: invalid memory type");
+            break;
     }
-    return allTotalMemSizeOfPid / BYTE_CONVERT;
+    return 0;
 }
 
 void MemoryTrack::AddNodeRecord(const NodeId id, const MemoryInfo& info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-
-    if (info.type == MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE) {
-        SetDrawableNodeInfo(id, info);
-        return;
-    }
-
     MemoryNodeOfPid nodeInfoOfPid(info.size, id);
     auto itr = memNodeMap_.find(id);
     if (itr == memNodeMap_.end()) {

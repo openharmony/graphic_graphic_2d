@@ -1310,6 +1310,28 @@ HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectOpItem_Marshalling001, TestSize.Level
 }
 
 /**
+ * @tc.name: ClipAdaptiveRoundRectOpItem_PlayBack001
+ * @tc.desc: Test ClipAdaptiveRoundRectOpItem_PlayBac
+ * @tc.type: FUNC
+ * @tc.require: IAKWZL
+ */
+HWTEST_F(DrawCmdTest, ClipAdaptiveRoundRectOpItem_PlayBack001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle { { 0, 0 } };
+    ClipAdaptiveRoundRectOpItem::ConstructorHandle handle1 { { 1, 1 } };
+    ASSERT_TRUE(drawCmdList != nullptr);
+    ClipAdaptiveRoundRectOpItem opItem { *drawCmdList, &handle };
+    ClipAdaptiveRoundRectOpItem opItem1 { *drawCmdList, &handle1 };
+    int32_t width = 500;
+    int32_t height = 500;
+    Canvas canvas = Canvas(width, height);
+    Rect rect { 0, 0, 100, 100 };
+    opItem.Playback(&canvas, &rect);
+    opItem1.Playback(&canvas, &rect);
+}
+
+/**
  * @tc.name: DiscardOpItem_Marshalling001
  * @tc.desc: Test DiscardOpItem_Marshalling
  * @tc.type: FUNC

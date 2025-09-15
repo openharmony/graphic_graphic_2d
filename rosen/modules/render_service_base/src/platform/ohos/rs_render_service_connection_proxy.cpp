@@ -230,6 +230,11 @@ ErrCode RSRenderServiceConnectionProxy::CreateNode(const RSDisplayNodeConfig& di
         success = false;
         return ERR_INVALID_VALUE;
     }
+    if (!data.WriteUint32(static_cast<uint32_t>(displayNodeConfig.mirrorSourceRotation))) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint32 Config.MirrorSourceRotation err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE);
     int32_t err = SendRequest(code, data, reply, option);
@@ -1938,7 +1943,7 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bo
     return ERR_OK;
 }
 
-ErrCode RSRenderServiceConnectionProxy::TaskSurfaceCaptureWithAllWindows(NodeId id,
+ErrCode RSRenderServiceConnectionProxy::TakeSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions /*permissions*/)
 {
@@ -4071,6 +4076,123 @@ ErrCode RSRenderServiceConnectionProxy::SetWatermark(const std::string& name,
     }
     success = true;
     return ERR_OK;
+}
+
+uint32_t RSRenderServiceConnectionProxy::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: WriteInterfaceToken GetDescriptor err.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInt32(pid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: WriteInt32 pid err.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteString(name)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: WriteString name err.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+
+    if (watermark != nullptr) {
+        if (!data.WriteBool(true)) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: pixelMap is not nullptr flag err.");
+            return WATER_MARK_WRITE_PARCEL_ERR;
+        }
+        if (!data.WriteParcelable(watermark.get())) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: WriteParcelable watermark.get() err.");
+            return WATER_MARK_WRITE_PARCEL_ERR;
+        }
+    } else if (!data.WriteBool(false)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: pixelMap is not nullptr flag err.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+
+    if (!data.WriteUInt64Vector(nodeIdList)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: write nodeIdList error.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint8(static_cast<uint8_t>(watermarkType))) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark: write watermarkType error.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWatermark: Send Request err.");
+        return WATER_MARK_IPC_ERROR;
+    }
+    uint32_t status{0};
+    if (!reply.ReadUint32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetSurfaceWatermark Read status failed");
+        return WATER_MARK_READ_PARCEL_ERR;
+    }
+    return status;
+}
+    
+void RSRenderServiceConnectionProxy::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId> &nodeIdList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("ClearSurfaceWatermarkForNodes: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInt32(pid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermarkForNodes: WriteInt32 pid err.");
+        return;
+    }
+    if (!data.WriteString(name)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermarkForNodes name err.");
+        return;
+    }
+    if (!data.WriteUInt64Vector(nodeIdList)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermarkForNodes: write nodeIdList error.");
+        return;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermarkForNodes: Send Request err.");
+        return;
+    }
+}
+    
+void RSRenderServiceConnectionProxy::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermark: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInt32(pid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermark: WriteInt32 pid err.");
+        return;
+    }
+    if (!data.WriteString(name)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermark name err.");
+        return;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ClearSurfaceWatermark: Send Request err.");
+        return;
+    }
 }
 
 void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

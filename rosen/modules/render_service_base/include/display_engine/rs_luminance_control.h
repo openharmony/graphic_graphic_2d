@@ -55,6 +55,7 @@ class RSLuminanceControlInterface {
 public:
     virtual ~RSLuminanceControlInterface() = default;
     virtual bool Init() = 0;
+    virtual void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus) = 0;
     virtual bool SetHdrStatus(ScreenId screenId, HdrStatus hdrStatus) = 0;
     virtual bool IsHdrOn(ScreenId screenId) const = 0;
     virtual bool IsDimmingOn(ScreenId screenId) = 0;
@@ -67,13 +68,14 @@ public:
     virtual float GetDisplayNits(ScreenId screenId) = 0;
     virtual double GetNonlinearRatio(ScreenId screenId, uint32_t mode) = 0;
     virtual float CalScaler(const float& maxContentLightLevel,
-        const std::vector<uint8_t>& dynamicMetadata, const float& ratio) = 0;
+        const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) = 0;
     virtual bool IsHdrPictureOn() = 0;
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
     virtual bool IsCloseHardwareHdr() const = 0;
     virtual bool IsScreenNoHeadroom(ScreenId) const = 0;
     virtual bool IsEnableImageDetailEnhance() = 0;
+    virtual double GetMaxScaler(ScreenId screenId) const = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -86,6 +88,7 @@ public:
     RSB_EXPORT static RSLuminanceControl& Get();
     RSB_EXPORT void Init();
 
+    RSB_EXPORT void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus);
     RSB_EXPORT bool SetHdrStatus(ScreenId screenId, HdrStatus displayHdrstatus);
     RSB_EXPORT bool IsHdrOn(ScreenId screenId);
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
@@ -99,14 +102,15 @@ public:
     RSB_EXPORT float GetSdrDisplayNits(ScreenId screenId);
     RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, uint32_t mode);
-    RSB_EXPORT float CalScaler(const float& maxContentLightLevel,
-        const std::vector<uint8_t>& dynamicMetadata, const float& ratio = 1.0f);
+    RSB_EXPORT float CalScaler(const float& maxContentLightLevel, const std::vector<uint8_t>& dynamicMetadata,
+        const float& ratio = 1.0f, HdrStatus hdrStatus = HdrStatus::NO_HDR);
     RSB_EXPORT bool IsHdrPictureOn();
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
     RSB_EXPORT bool IsCloseHardwareHdr();
     RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId) const;
     RSB_EXPORT bool IsEnableImageDetailEnhance();
+    RSB_EXPORT double GetMaxScaler(ScreenId screenId) const;
 
 private:
     RSLuminanceControl() = default;

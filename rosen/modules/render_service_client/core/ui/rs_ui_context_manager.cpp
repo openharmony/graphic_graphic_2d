@@ -18,6 +18,8 @@
 #include <atomic>
 
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
+#include "transaction/rs_transaction.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,6 +32,7 @@ RSUIContextManager::RSUIContextManager()
 {
     g_instanceValid.store(true);
     isMultiInstanceOpen_ = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
     RS_LOGI("multi-instance, create RSUIContextManager, isMultiInstanceOpen_ %{public}d", isMultiInstanceOpen_);
 }
 
@@ -114,6 +117,66 @@ std::shared_ptr<RSUIContext> RSUIContextManager::GetRandomUITaskRunnerCtx() cons
         }
     }
     return nullptr;
+}
+
+void RSUIContextManager::CloseAllSyncTransaction(const uint64_t syncId) const
+{
+    if (!isMultiInstanceOpen_ || !g_instanceValid.load() || rsUIContextMap_.empty()) {
+        ROSEN_LOGE("RSUIContextManager::CloseAllSyncTransaction isMultiInstanceOpen_, g_instanceValid, rsUIContextMap_ "
+            "is not match syncId:%{public}" PRIu64 "", syncId);
+        return;
+    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (const auto& [_, ctx] : rsUIContextMap_) {
+        auto syncHandler = ctx->GetSyncTransactionHandler();
+        if (syncHandler == nullptr) {
+            ROSEN_LOGE("RSUIContextManager::CloseAllSyncTransaction syncHandler is nullptr syncId:%{public}" PRIu64 "",
+                syncId);
+            continue;
+        }
+        auto transaction = syncHandler->GetCommonRSTransaction();
+        if (transaction == nullptr) {
+            ROSEN_LOGE("RSUIContextManager::CloseAllSyncTransaction transaction is nullptr syncId:%{public}" PRIu64 "",
+                syncId);
+            continue;
+        }
+        auto transactionHandler = transaction->GetTransactionHandler();
+        if (transactionHandler == nullptr) {
+            ROSEN_LOGE(
+                "RSUIContextManager::CloseAllSyncTransaction transactionHandler is nullptr syncId:%{public}" PRIu64 "",
+                syncId);
+            continue;
+        }
+        transactionHandler->CommitSyncTransaction(syncId);
+        transactionHandler->CloseSyncTransaction();
+    }
+}
+
+void RSUIContextManager::StartCloseSyncTransactionFallbackTask(bool isOpen, const uint64_t syncId)
+{
+    std::unique_lock<std::mutex> lock(closeSyncFallBackMutex_);
+    static uint32_t num = 0;
+    const std::string name = "CloseSyncTransactionFallbackTask";
+    const int timeOutDelay = 5000;
+    if (isOpen) {
+        num++;
+        auto taskName = name + std::to_string(num);
+        taskNames_.push(taskName);
+        auto task = [this, syncId, taskName]() {
+            RS_TRACE_NAME_FMT("CloseSyncTransaction timeout syncId:%" PRIu64 "", syncId);
+            ROSEN_LOGE("CloseSyncTransaction timeout syncId:%{public}" PRIu64 "", syncId);
+            CloseAllSyncTransaction(syncId);
+            if (!taskNames_.empty() && taskNames_.front() == taskName) {
+                taskNames_.pop();
+            }
+        };
+        handler_->PostTask(task, taskName, timeOutDelay);
+    } else {
+        if (!taskNames_.empty()) {
+            handler_->RemoveTask(taskNames_.front());
+            taskNames_.pop();
+        }
+    }
 }
 
 } // namespace Rosen

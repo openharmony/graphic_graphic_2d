@@ -19,6 +19,8 @@
 
 namespace OHOS::Text::ANI {
 namespace {
+constexpr int32_t RESOURCE_STRING = 10003;
+constexpr int32_t RESOURCE_RAWFILE = 30000;
 std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
 {
     std::vector<std::string> result;
@@ -81,36 +83,31 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
 {
     auto context = AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return false, "Failed to get application context");
-    auto resourceManager = context->GetResourceManager();
+    auto moduleContext = context->CreateModuleContext(resource.moduleName);
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager;
+    if (moduleContext != nullptr) {
+        resourceManager = moduleContext->GetResourceManager();
+    } else {
+        TEXT_LOGW("Failed to get module context, bundle: %{public}s, module: %{public}s",
+            context->GetBundleName().c_str(), resource.moduleName.c_str());
+        resourceManager = context->GetResourceManager();
+    }
     TEXT_ERROR_CHECK(resourceManager != nullptr, return false, "Failed to get resource manager");
 
-    if (resource.type == static_cast<int32_t>(Global::Resource::ResType::STRING)) {
+    if (resource.type == RESOURCE_STRING) {
         std::string rPath;
-        if (resource.id < 0 && !resource.params.empty() && !resource.params[0].empty()) {
-            rPath = resource.params[0];
-        } else {
-            uint32_t state =
-                static_cast<uint32_t>(resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath));
-            if (state >= static_cast<uint32_t>(Global::Resource::RState::ERROR)) {
-                return false;
-            }
-            if (!AniTextUtils::SplitAbsoluteFontPath(rPath) || !AniTextUtils::ReadFile(rPath, dataLen, data)) {
-                return false;
-            }
-        }
-    } else if (resource.type == static_cast<int32_t>(Global::Resource::ResType::RAW)) {
-        if (resource.params.empty()) {
+        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath) !=
+            Global::Resource::RState::SUCCESS) {
             return false;
         }
-
-        uint32_t state = resourceManager->GetRawFileFromHap(resource.params[0], dataLen, data);
-        if (state >= static_cast<uint32_t>(Global::Resource::RState::ERROR)) {
-            return false;
-        }
-    } else {
-        TEXT_LOGE("Unsupported resource type");
+        return AniTextUtils::SplitAbsoluteFontPath(rPath) && AniTextUtils::ReadFile(rPath, dataLen, data);
+    } else if (resource.type == RESOURCE_RAWFILE) {
+        TEXT_ERROR_CHECK(!resource.params.empty(), return false, "Failed to get raw file path");
+        return resourceManager->GetRawFileFromHap(resource.params[0], dataLen, data) ==
+               Global::Resource::RState::SUCCESS;
     }
 
-    return true;
+    TEXT_LOGE("Unsupported resource type");
+    return false;
 }
 } // namespace OHOS::Text::ANI

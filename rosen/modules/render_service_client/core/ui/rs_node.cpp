@@ -3883,16 +3883,28 @@ void RSNode::DumpTree(int depth, std::string& out) const
 
 void RSNode::DumpModifiers(std::string& out) const
 {
+    std::string modifierInfo;
     const auto& modifiers = modifiersNG_;
     for (const auto& [id, modifier] : modifiers) {
         if (modifier == nullptr) {
             continue;
         }
-        auto renderModifier = modifier->CreateRenderModifier();
-        if (renderModifier == nullptr) {
-            continue;
+        auto customModifier =
+            modifier->IsCustom() ? std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier) : nullptr;
+        if (customModifier != nullptr) {
+            customModifier->UpdateDrawCmdList();
         }
-        renderModifier->Dump(out, ",");
+        auto renderModifier = modifier->CreateRenderModifier();
+        if (renderModifier != nullptr) {
+            renderModifier->Dump(modifierInfo, ",");
+        }
+        if (customModifier != nullptr) {
+            customModifier->ClearDrawCmdList();
+        }
+    }
+    if (!modifierInfo.empty()) {
+        modifierInfo.pop_back();
+        out += modifierInfo;
     }
 }
 

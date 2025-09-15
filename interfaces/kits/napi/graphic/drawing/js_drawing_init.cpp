@@ -43,6 +43,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 napi_value DrawingInit(napi_env env, napi_value exportObj)
 {
+    ROSEN_LOGI("DrawingInit start");
     JsFont::Init(env, exportObj);
     JsPath::Init(env, exportObj);
     JsTypeface::Init(env, exportObj);
@@ -66,6 +67,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsShadowLayer::Init(env, exportObj);
     JsMatrix::Init(env, exportObj);
     JsTool::Init(env, exportObj);
+    ROSEN_LOGI("DrawingInit end");
     return exportObj;
 }
 } // namespace Drawing

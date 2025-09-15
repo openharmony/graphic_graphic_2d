@@ -984,6 +984,34 @@ HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest001, TestSize.Level1)
     layerInfo.dstRect.w = 400;
     layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(100, 100);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, true);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(0, 100);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, true);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(0, 0);
+    ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
+    EXPECT_EQ(ret, true);
+
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(100, 0);
     ret = RSHeteroHDRUtil::ValidateSurface(surfaceParams);
     EXPECT_EQ(ret, true);
 
@@ -1112,6 +1140,7 @@ HWTEST_F(RSHeteroHDRManagerTest, ValidateSurfaceTest002, TestSize.Level1)
     layerInfo.dstRect.w = 400;
     layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->SetCacheSize(100, 100);
 
     sptr<BufferExtraData> extraData = surfaceParams->buffer_->GetExtraData();
     ASSERT_NE(extraData, nullptr);
@@ -1373,6 +1402,35 @@ HWTEST_F(RSHeteroHDRManagerTest, ProcessPendingNodeTest, TestSize.Level1)
     MockRSHeteroHDRManager mockRSHeteroHDRManager;
     bool ret = mockRSHeteroHDRManager.ProcessPendingNode(surfaceNode, 0);
     EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ProcessPendingNodeDrawableTest
+ * @tc.desc: Test ProcessPendingNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, ProcessPendingNodeDrawableTest, TestSize.Level1)
+{
+    RS_LOGI("************************RSHeteroHDRManagerTest ProcessPendingNodeDrawableTest************************");
+    NodeId id = 4;
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = id;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId id3 = 3;
+    std::shared_ptr<const RSRenderNode> node = std::make_shared<const RSRenderNode>(id3);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    std::weak_ptr<RSRenderNodeDrawable> drawableAdapter = adapter;
+    auto drawableCache = DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.insert(std::make_pair(id3, drawableAdapter));
+
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
+    bool ret = mockRSHeteroHDRManager.ProcessPendingNode(surfaceNode, 0);
+    EXPECT_EQ(ret, false);
+    DrawableV2::RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_ = drawableCache;
 }
 
 /**

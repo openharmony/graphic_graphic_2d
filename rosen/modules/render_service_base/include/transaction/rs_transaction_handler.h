@@ -58,9 +58,9 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask = false);
 
-    void Begin();
+    void Begin(uint64_t syncId = 0);
     void Commit(uint64_t timestamp = 0);
-    void CommitSyncTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
+    void CommitSyncTransaction(uint64_t syncId, uint64_t timestamp = 0, const std::string& abilityName = "");
     void MarkTransactionNeedSync();
     void MarkTransactionNeedCloseSync(const int32_t transactionCount);
     void SetSyncTransactionNum(const int32_t transactionCount);
@@ -85,13 +85,13 @@ public:
 
     bool IsEmpty() const;
 
-    void StartCloseSyncTransactionFallbackTask(std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen);
-
     void PostTask(const std::function<void()>& task);
 
     void PostDelayTask(const std::function<void()>& task, uint32_t delay);
 
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);
+
+    void MergeSyncTransaction(std::shared_ptr<RSTransactionHandler> transactionHandler);
 
     void DumpCommand(std::string& out);
 
@@ -104,6 +104,8 @@ private:
     void MoveCommonCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     void AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void MoveRemoteCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
+    std::unique_ptr<RSTransactionData> GetCommonTransactionData();
+    std::unique_ptr<RSTransactionData> GetRemoteTransactionData();
     // Command Transaction Triggered by UI Thread.
     mutable std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_ { std::make_unique<RSTransactionData>() };
@@ -126,7 +128,6 @@ private:
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
     static CommitTransactionCallback commitTransactionCallback_;
     uint32_t transactionDataIndex_ = 0;
-    std::queue<std::string> taskNames_ {};
     TaskRunner taskRunner_ = TaskRunner();
 };
 

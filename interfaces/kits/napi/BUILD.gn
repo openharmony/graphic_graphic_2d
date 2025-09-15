@@ -10,9 +10,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 
 group("napi_packages") {
   deps = [
+    "$rosen_text_root/interface/mlb/napi:textnapi",
     "graphic/animation/window_animation_manager:windowanimationmanager_napi",
     "graphic/color_manager:colorspacemanager_napi",
     "graphic/color_manager:sendablecolorspacemanager_napi",
@@ -20,7 +22,6 @@ group("napi_packages") {
     "graphic/effect_kit:effectkit",
     "graphic/hdr_capability:hdrcapability_napi",
     "graphic/hyper_graphic_manager:libhgmnapi",
-    "graphic/text:textnapi",
     "graphic/ui_effect:uieffect_napi",
     "graphic/webgl:libwebglnapi",
   ]

@@ -503,6 +503,32 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor001, TestSize.Level1)
 #endif
 
 /**
+ * @tc.name: CancelCurrentFrame
+ * @tc.desc: Test CancelCurrentFrame with surface targetSurface_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICWRWD
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, CancelCurrentFrame, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface1 = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    auto tmpSurface = std::make_shared<Drawing::Surface>();
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 10);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface1, nullptr);
+    renderFrame->targetSurface_ = nullptr;
+    renderFrame->CancelCurrentFrame();
+    ASSERT_EQ(renderFrame->GetSurface(), nullptr);
+
+    renderFrame->targetSurface_ = std::make_unique<RSSurfaceOhosVulkan>(pSurface);
+    renderFrame->CancelCurrentFrame();
+    ASSERT_NE(renderFrame->GetSurface(), nullptr);
+#endif
+}
+
+/**
  * @tc.name: NeedBilinearInterpolation
  * @tc.desc: Test NeedBilinearInterpolation
  * @tc.type: FUNC

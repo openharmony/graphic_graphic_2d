@@ -524,12 +524,16 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeHwcDirtyRect, TestSize.Level1)
 {
     RSDirtyRegionManager fun;
     RectI rect = DEFAULT_RECT;
-    fun.MergeHwcDirtyRect(rect);
+    fun.MergeHwcDirtyRect(rect, RSSurfaceNodeType::DEFAULT);
     EXPECT_FALSE(fun.hwcDirtyRegion_.IsEmpty());
 
     fun.MergeHwcDirtyRect(RectI());
     fun.MergeHwcDirtyRect(rect);
     EXPECT_FALSE(fun.hwcDirtyRegion_.IsEmpty());
+
+    fun.typeHwcDirtyRegion_.clear();
+    fun.MergeHwcDirtyRect(rect, RSSurfaceNodeType::CURSOR_NODE);
+    ASSERT_EQ(fun.typeHwcDirtyRegion_[RSSurfaceNodeType::CURSOR_NODE], rect);
 }
 
 /**

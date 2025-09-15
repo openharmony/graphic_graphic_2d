@@ -99,6 +99,7 @@ public:
     ScreenId CreateVirtualScreen(sptr<RSScreenManager> screenManager);
     static void InitTestSurfaceNodeAndScreenInfo(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSUniRenderVisitor>& rSUniRenderVisitor);
+    std::shared_ptr<RSUniRenderVisitor> InitRSUniRenderVisitor();
 };
 
 class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
@@ -184,6 +185,21 @@ void RSUniRenderVisitorTest::InitTestSurfaceNodeAndScreenInfo(
     screenInfo.width = SCREEN_WIDTH;
     screenInfo.height = SCREEN_HEIGHT;
     rsUniRenderVisitor->curScreenNode_->screenInfo_ = screenInfo;
+}
+
+std::shared_ptr<RSUniRenderVisitor> RSUniRenderVisitorTest::InitRSUniRenderVisitor()
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ScreenId screenId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = displayNode;
+    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
+    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    return rsUniRenderVisitor;
 }
 
 /**
@@ -2562,6 +2578,44 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty001, TestSize.L
     screenManager->RemoveVirtualScreen(screenId);
 }
 
+/*
+ * @tc.name: InitScreenInfo001
+ * @tc.desc: Verify that the InitScreenInfo method correctly sets the needRecalculateOcclusion_ flag
+ *           under different blacklist and whitelist configurations.
+ * @tc.type: FUNC
+ * @tc.require: issueICXRGY
+ */
+HWTEST_F(RSUniRenderVisitorTest, InitScreenInfo001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    constexpr NodeId defaultNodeId{1};
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(defaultNodeId, 0, rsContext->weak_from_this());
+    rsScreenRenderNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
+    ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
+
+    rsUniRenderVisitor->allBlackList_ = rsUniRenderVisitor->screenManager_->GetAllBlackList();
+    rsUniRenderVisitor->allWhiteList_ = rsUniRenderVisitor->screenManager_->GetAllWhiteList();
+    rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
+    EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, false);
+
+    constexpr NodeId nodeId{std::numeric_limits<NodeId>::max()};
+    rsUniRenderVisitor->allBlackList_.emplace(nodeId);
+    rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
+    EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
+
+    rsUniRenderVisitor->allBlackList_ = rsUniRenderVisitor->screenManager_->GetAllBlackList();
+    rsUniRenderVisitor->allWhiteList_.emplace(nodeId);
+    rsUniRenderVisitor->InitScreenInfo(*rsScreenRenderNode);
+    rsUniRenderVisitor->allBlackList_.clear();
+    rsUniRenderVisitor->allWhiteList_.clear();
+    EXPECT_EQ(rsUniRenderVisitor->needRecalculateOcclusion_, true);
+}
+
 /**
  * @tc.name: BeforeUpdateSurfaceDirtyCalc001
  * @tc.desc: Test BeforeUpdateSurfaceDirtyCalc with empty node
@@ -4134,13 +4188,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
+    auto rsUniRenderVisitor = InitRSUniRenderVisitor();
     rsUniRenderVisitor->needRecalculateOcclusion_ = true;
     // test: if node is non-cross-display, its visibility will be cropped by screen.
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
@@ -4165,14 +4213,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion003, TestSize.Level2)
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
-    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    auto rsUniRenderVisitor = InitRSUniRenderVisitor();
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
     rsSurfaceRenderNode->behindWindowOcclusionChanged_ = true;
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
@@ -4194,14 +4235,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion004, TestSize.Level2)
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    ScreenId screenId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
-    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    auto rsUniRenderVisitor = InitRSUniRenderVisitor();
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
     rsSurfaceRenderNode->behindWindowOcclusionChanged_ = false;
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
@@ -5229,22 +5263,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSelfDrawingNodeRectInfoTest, TestSize.Le
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->CollectSelfDrawingNodeRectInfo(node);
     ASSERT_EQ(SelfDrawingNodeMonitor::GetInstance().curRect_.size(), 0);
-}
-
-/*
- * @tc.name: UpdateDisplayRcdRenderNodeTest
- * @tc.desc: Test UpdateDisplayRcdRenderNodeTest
- * @tc.type: FUNC
- * @tc.require: issueIBF9OU
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayRcdRenderNodeTest, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
 }
 
 /*

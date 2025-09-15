@@ -1522,7 +1522,7 @@ bool DoClearUifirstCache()
     return true;
 }
 
-bool DoTaskSurfaceCaptureWithAllWindows()
+bool DoTakeSurfaceCaptureWithAllWindows()
 {
     if (rsConn_ == nullptr) {
         return false;
@@ -1531,7 +1531,7 @@ bool DoTaskSurfaceCaptureWithAllWindows()
     bool checkDrmAndSurfaceLock = GetData<bool>();
     sptr<RSISurfaceCaptureCallback> callback = nullptr;
     RSSurfaceCaptureConfig captureConfig;
-    rsConn_->TaskSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
+    rsConn_->TakeSurfaceCaptureWithAllWindows(nodeId, callback, captureConfig, checkDrmAndSurfaceLock);
     return true;
 }
 
@@ -1670,7 +1670,7 @@ void DoFuzzerTest3()
     DoProfilerServicePopulateFiles();
     DoProfilerIsSecureScreen();
     DoClearUifirstCache();
-    DoTaskSurfaceCaptureWithAllWindows();
+    DoTakeSurfaceCaptureWithAllWindows();
     DoFreezeScreen();
 }
 } // namespace Rosen

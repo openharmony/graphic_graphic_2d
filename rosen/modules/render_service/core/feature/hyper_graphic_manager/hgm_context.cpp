@@ -88,6 +88,10 @@ void HgmContext::ProcessHgmFrameRate(
         }
     });
 
+    if (frameRateMgr->AdaptiveStatus() == SupportASStatus::SUPPORT_AS) {
+        frameRateMgr->HandleGameNode(RSMainThread::Instance()->GetContext().GetNodeMap());
+    }
+    
     // Check and processing refresh rate task.
     frameRateMgr->ProcessPendingRefreshRate(
         timestamp, vsyncId, rsVSyncDistributor->GetRefreshRate(), isUiDvsyncOn);

@@ -957,7 +957,10 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     NodeId screenNodeId = 2;
     auto rsContext = std::make_shared<RSContext>();
     visitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
-
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    visitor->curLogicalDisplayNode_ = displayNode;
     // case01: shouldpaint of parent node is false
     rsCanvasRenderNode->shouldPaint_ = false;
     leashWindowNode->shouldPaint_ = true;

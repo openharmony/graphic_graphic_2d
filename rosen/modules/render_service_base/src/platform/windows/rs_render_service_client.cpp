@@ -53,6 +53,22 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
     return false;
 }
 
+uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string& name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    return 0;
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId> &nodeIdList)
+{
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string& name)
+{
+}
+
 bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     return {};
@@ -160,7 +176,7 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return false;
 }
 
-bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
+bool RSRenderServiceClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock)
 {

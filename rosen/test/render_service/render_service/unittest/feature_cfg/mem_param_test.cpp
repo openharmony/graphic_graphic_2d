@@ -75,5 +75,19 @@ HWTEST_F(MEMParamTest, SetRSCacheLimitsResourceSize, Function | SmallTest | Leve
     memParam.SetRSCacheLimitsResourceSize(cacheLimitResourceSize);
     EXPECT_EQ(memParam.GetRSCacheLimitsResourceSize(), cacheLimitResourceSize);
 }
+
+/**
+ * @tc.name: SetKillScbEnabled
+ * @tc.desc: Verify the SetKillScbEnabled function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(MEMParamTest, v, Function | SmallTest | Level1)
+{
+    bool isKillScbEnabled = false;
+    MEMParam memParam;
+    memParam.SetKillScbEnabled(isKillScbEnabled);
+    EXPECT_EQ(memParam.IsKillScbEnabled(), isKillScbEnabled);
+}
 } // namespace Rosen
 } // namespace OHOS

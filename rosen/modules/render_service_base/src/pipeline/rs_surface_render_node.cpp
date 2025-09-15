@@ -160,6 +160,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
+    MemoryTrack::Instance().RegisterNodeMem(ExtractPid(config.id),
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_NODE);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
@@ -178,6 +180,8 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #endif
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_NODE);
 #endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
@@ -493,7 +497,7 @@ void RSSurfaceRenderNode::OnSubSurfaceChanged()
         return;
     }
     std::shared_ptr<RSSurfaceRenderNode> parentSurfaceNode = parentNode->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (!parentSurfaceNode || !parentSurfaceNode->IsMainWindowType()) {
+    if (!parentSurfaceNode || !parentSurfaceNode->IsLeashOrMainWindow()) {
         if (auto instanceRootNode = parentNode->GetInstanceRootNode()) {
             parentSurfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
         }
@@ -1286,6 +1290,10 @@ void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
         return;
     }
     surfaceParams->SetAncoFlags(flags);
+    if (static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE) ==
+        (flags & static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE))) {
+        surfaceParams->SetForceRefresh(true);
+    }
 }
 
 void RSSurfaceRenderNode::SetAncoSrcCrop(const Rect& srcCrop)
@@ -2290,22 +2298,24 @@ Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI&
 void RSSurfaceRenderNode::SetCornerRadiusOpaqueRegion(
     const RectI& absRect, const Vector4<int>& cornerRadius)
 {
-    Occlusion::Rect opaqueRect0{ absRect.GetLeft(), absRect.GetTop(),
+    Occlusion::Rect rect0{absRect.GetLeft(), absRect.GetTop(),
         absRect.GetRight(), absRect.GetBottom()};
-    Occlusion::Rect opaqueRect1{ absRect.GetLeft(), absRect.GetTop(),
-        absRect.GetLeft() + cornerRadius.x_, absRect.GetTop() + cornerRadius.x_};
-    Occlusion::Rect opaqueRect2{ absRect.GetRight() - cornerRadius.y_, absRect.GetTop(),
-        absRect.GetRight(), absRect.GetTop() + cornerRadius.y_};
-    Occlusion::Rect opaqueRect3{ absRect.GetRight() - cornerRadius.z_, absRect.GetBottom() - cornerRadius.z_,
-        absRect.GetRight(), absRect.GetBottom()};
-    Occlusion::Rect opaqueRect4{ absRect.GetLeft(), absRect.GetBottom() - cornerRadius.w_,
-        absRect.GetLeft() + cornerRadius.w_, absRect.GetBottom()};
 
-    Occlusion::Region r0{opaqueRect0};
-    Occlusion::Region r1{opaqueRect1};
-    Occlusion::Region r2{opaqueRect2};
-    Occlusion::Region r3{opaqueRect3};
-    Occlusion::Region r4{opaqueRect4};
+    const auto& cornerRect = GetGlobalCornerRect();
+    Occlusion::Rect rect1{cornerRect.GetLeft(), cornerRect.GetTop(),
+        cornerRect.GetLeft() + cornerRadius.x_, cornerRect.GetTop() + cornerRadius.x_};
+    Occlusion::Rect rect2{cornerRect.GetRight() - cornerRadius.y_, cornerRect.GetTop(),
+        cornerRect.GetRight(), cornerRect.GetTop() + cornerRadius.y_};
+    Occlusion::Rect rect3{cornerRect.GetRight() - cornerRadius.z_, cornerRect.GetBottom() - cornerRadius.z_,
+        cornerRect.GetRight(), cornerRect.GetBottom()};
+    Occlusion::Rect rect4{cornerRect.GetLeft(), cornerRect.GetBottom() - cornerRadius.w_,
+        cornerRect.GetLeft() + cornerRadius.w_, cornerRect.GetBottom()};
+
+    Occlusion::Region r0{rect0};
+    Occlusion::Region r1{rect1};
+    Occlusion::Region r2{rect2};
+    Occlusion::Region r3{rect3};
+    Occlusion::Region r4{rect4};
     roundedCornerRegion_ = r1.Or(r2).Or(r3).Or(r4);
     opaqueRegion_ = r0.Sub(r1).Sub(r2).Sub(r3).Sub(r4);
 }
@@ -2504,6 +2514,7 @@ bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, con
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         // 5. Round corner changed.
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
+        opaqueRegionBaseInfo_.cornerRect_ == GetGlobalCornerRect() &&
         // 6. Container window changed.
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow() &&
         opaqueRegionBaseInfo_.containerConfig_ == containerConfig_ &&
@@ -2522,6 +2533,7 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
     opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
     opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
     opaqueRegionBaseInfo_.cornerRadius_ = cornerRadius;
+    opaqueRegionBaseInfo_.cornerRect_ = GetGlobalCornerRect();
     opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
     opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
     opaqueRegionBaseInfo_.containerConfig_ = containerConfig_;
@@ -3331,11 +3343,6 @@ const std::unordered_map<std::string, bool>& RSSurfaceRenderNode::GetWatermark()
     return watermarkHandles_;
 }
 
-bool RSSurfaceRenderNode::IsWatermarkEmpty() const
-{
-    return watermarkHandles_.empty();
-}
-
 void RSSurfaceRenderNode::SetSdrNit(float sdrNit)
 {
 #ifdef RS_ENABLE_GPU
@@ -3424,18 +3431,50 @@ bool RSSurfaceRenderNode::GetSdrHasMetadata() const
 #endif
 }
 
-void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled,
+    SurfaceWatermarkType watermarkType)
 {
+    SetDirty();
     if (isEnabled) {
         RS_LOGI("RSSurfaceRenderNode::SetWatermarkEnabled[%{public}d], Name:%{public}s", isEnabled, name.c_str());
     }
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams) {
-        surfaceParams->SetWatermarkEnabled(name, isEnabled);
+        if (watermarkType == CUSTOM_WATER_MARK) {
+            surfaceParams->SetCustomWatermarkEnabled(name, isEnabled);
+        } else {
+            surfaceParams->SetSystemWatermarkEnabled(name, isEnabled);
+        }
     }
 #endif
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::ClearWatermarkEnabled(const std::string& name, SurfaceWatermarkType watermarkType)
+{
+    SetDirty();
+#ifdef RS_ENABLE_GPU
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        if (watermarkType == CUSTOM_WATER_MARK) {
+            surfaceParams->ClearCustomWatermarkEnabled(name);
+        } else {
+            surfaceParams->ClearSystemWatermarkEnabled(name);
+        }
+    }
+#endif
+    AddToPendingSyncList();
+}
+
+std::unordered_map<std::string, bool> RSSurfaceRenderNode::GetSurfaceWatermarkEnabledMap(
+    SurfaceWatermarkType watermarkType)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        return surfaceParams->GetSurfaceWatermarkEnabledMap(watermarkType);
+    }
+    return {};
 }
 
 void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)

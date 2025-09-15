@@ -1739,6 +1739,7 @@ void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus sta
 
         RS_LOGI("[UL_POWER] %{public}s: PowerStatus %{public}d, request a frame", __func__, status);
     }
+    RSLuminanceControl::Get().UpdateScreenStatus(id, status);
     RSColorTemperature::Get().UpdateScreenStatus(id, status);
     std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
     screenPowerStatus_[id] = status;

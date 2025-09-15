@@ -54,7 +54,8 @@ std::shared_ptr<RSTransaction> RSSyncTransactionController::GetRSTransaction()
     return rsTransaction_;
 }
 
-void RSSyncTransactionController::OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
+void RSSyncTransactionController::OpenSyncTransaction(
+    std::shared_ptr<AppExecFwk::EventHandler> handler, bool isInnerProcess)
 {
     if (!RSSystemProperties::GetSyncTransactionEnabled()) {
         return;
@@ -69,7 +70,7 @@ void RSSyncTransactionController::OpenSyncTransaction(std::shared_ptr<AppExecFwk
     }
     ROSEN_LOGD("RS sync transaction controller OpenSyncTransaction");
     if (rsTransaction_) {
-        rsTransaction_->OpenSyncTransaction(handler);
+        rsTransaction_->OpenSyncTransaction(handler, isInnerProcess);
     }
 }
 

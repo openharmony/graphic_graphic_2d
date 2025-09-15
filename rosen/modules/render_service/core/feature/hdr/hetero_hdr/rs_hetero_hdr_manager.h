@@ -53,13 +53,14 @@ public:
     {
         return curHandleStatus_;
     }
+    virtual ~RSHeteroHDRManager() = default;
 private:
     RSHeteroHDRManager();
-    ~RSHeteroHDRManager() = default;
     RSHeteroHDRManager(const RSHeteroHDRManager&) = delete;
     RSHeteroHDRManager(const RSHeteroHDRManager&&) = delete;
     RSHeteroHDRManager& operator=(const RSHeteroHDRManager&) = delete;
     RSHeteroHDRManager& operator=(const RSHeteroHDRManager&&) = delete;
+    int32_t RoundDownToEven(int32_t value);
     RectI RectRound(RectI src);
 
     bool GetCurFrameHeteroHandleCanBeUsed(NodeId nodeId) const
@@ -114,8 +115,7 @@ private:
     std::unordered_map<NodeId, bool> isCurrentFrameBufferConsumedMap_;
     void* taskPtr_ = nullptr;
     std::atomic<uint32_t> taskId_ = 0;
-    uint32_t buildHdrTaskStatus_ = 0;
-    std::mutex shaderMutex_;
+    int32_t buildHdrTaskStatus_ = 0;
     std::atomic<bool> destroyedFlag_{ true };
     bool isFixedDstBuffer_ = false;
     RectI dst_ = { 0, 0, 0, 0 };

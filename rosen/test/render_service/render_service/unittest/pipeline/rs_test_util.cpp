@@ -70,10 +70,10 @@ std::shared_ptr<RSRcdSurfaceRenderNode> RSTestUtil::CreateRcdNodeWithBuffer()
     if (csurf == nullptr) {
         return nullptr;
     }
-    rcdNode->GetRSSurfaceHandler()->SetConsumer(csurf);
-    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(rcdNode->GetRSSurfaceHandler());
+    rcdNode->SetConsumer(csurf);
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(rcdNode);
     csurf->RegisterConsumerListener(listener);
-    const auto& surfaceConsumer = rcdNode->GetRSSurfaceHandler()->GetConsumer();
+    const auto& surfaceConsumer = rcdNode->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
     if (psurf == nullptr) {
@@ -90,8 +90,7 @@ std::shared_ptr<RSRcdSurfaceRenderNode> RSTestUtil::CreateRcdNodeWithBuffer()
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-    auto& surfaceHandler = *rcdNode->GetRSSurfaceHandler();
-    surfaceHandler.SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    rcdNode->SetBuffer(cbuffer, acquireFence, damage, timestamp);
     return rcdNode;
 }
 

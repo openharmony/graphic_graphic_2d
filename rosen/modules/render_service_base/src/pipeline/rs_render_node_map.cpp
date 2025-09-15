@@ -255,7 +255,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
     auto iter = renderNodeMap_.find(pid);
     if (iter != renderNodeMap_.end()) {
         auto& subMap = iter->second;
-        RS_TRACE_NAME_FMT("process renderNodeMap:pid=%u, immediate=%d, useBatchRemoving=%d, optMode=%d, subMapSize=%u,"
+        RS_TRACE_NAME_FMT("process renderNodeMap:pid=%d, immediate=%d, useBatchRemoving=%d, optMode=%d, subMapSize=%u,"
             " renderNodeMapSize=%u", pid, immediate, useBatchRemoving, optMode, subMap.size(), renderNodeMap_.size());
         for (auto subIter = subMap.begin(); subIter != subMap.end();) {
             if (subIter->second == nullptr) {

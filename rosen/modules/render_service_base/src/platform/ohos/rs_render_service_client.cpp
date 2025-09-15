@@ -416,7 +416,7 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return true;
 }
 
-bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
+bool RSRenderServiceClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock)
 {
@@ -446,7 +446,7 @@ bool RSRenderServiceClient::TaskSurfaceCaptureWithAllWindows(NodeId id,
         }
     }
 
-    auto ret = renderService->TaskSurfaceCaptureWithAllWindows(
+    auto ret = renderService->TakeSurfaceCaptureWithAllWindows(
         id, surfaceCaptureCbDirector_, captureConfig, checkDrmAndSurfaceLock);
     if (ret != ERR_OK) {
         ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
@@ -630,6 +630,36 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
     bool success;
     renderService->SetWatermark(name, watermark, success);
     return success;
+}
+
+uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return WATER_MARK_RENDER_SERVICE_NULL;
+    }
+    return renderService->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId> &nodeIdList)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->ClearSurfaceWatermark(pid, name);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(

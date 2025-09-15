@@ -25,7 +25,6 @@ group("unittest") {
     ":RSDirtyRectsDFXTest",
     ":RSScreenRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
-    ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
@@ -129,28 +128,6 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
   }
 }
 
-## Build RSRcdSurfaceRenderNodeDrawableTest
-ohos_unittest("RSRcdSurfaceRenderNodeDrawableTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_rcd_surface_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-    "skia:skia_canvaskit",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-}
-
 ## Build RSRenderNodeDrawableAdapterTest
 ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   module_out_path = module_output_path
@@ -165,6 +142,11 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  defines = []
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
+    && defined(graphic_2d_subtree_configs.subtree_root)) {
+      defines += ["SUBTREE_PARALLEL_ENABLE"]
+    }
 }
 
 ## Build RSRenderNodeDrawableTest

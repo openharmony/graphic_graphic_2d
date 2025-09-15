@@ -40,9 +40,6 @@ class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSLogicalDisplayRenderNodeDrawable;
-class RSRcdSurfaceRenderNodeDrawable;
-
-// remove this when rcd node is replaced by common hardware composer node in OH 6.0 rcd refactoring
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSSurfaceRenderNodeDrawable() = default;
@@ -153,7 +150,9 @@ private:
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     // Watermark
-    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
+    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
+        const SurfaceWatermarkType& watermarkType);
 
     /* draw local magnification region */
     void DrawMagnificationRegion(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);

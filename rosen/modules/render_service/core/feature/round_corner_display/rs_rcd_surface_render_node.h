@@ -34,31 +34,6 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSRcdSurfaceRenderNode;
-class RSProcessor;
-
-struct RcdPrepareInfo {
-    std::shared_ptr<RSRcdSurfaceRenderNode> bottomNode = nullptr;
-    std::shared_ptr<RSRcdSurfaceRenderNode> topNode = nullptr;
-    bool hasInvalidScene = false;
-};
-
-struct RcdProcessInfo {
-    std::shared_ptr<RSProcessor> uniProcessor = nullptr;
-    std::shared_ptr<rs_rcd::RoundCornerLayer> topLayer = nullptr;
-    std::shared_ptr<rs_rcd::RoundCornerLayer> bottomLayer = nullptr;
-    bool resourceChanged = false;
-};
-
-struct RoundCornerDisplayInfo {
-    RcdPrepareInfo prepareInfo;
-    RcdProcessInfo processInfo;
-};
-
-enum class RCDNodeId : NodeId {
-    TOP_RCD_NODE_ID = 1,
-    BACKGROUND_RCD_NODE_ID = 2
-};
 
 enum class RCDSurfaceType : uint32_t {
     BOTTOM,
@@ -102,91 +77,86 @@ struct RcdSourceInfo {
 };
 
 struct HardwareLayerInfo {
-    std::string pathBin;
+    std::filesystem::path pathBin;
     int bufferSize = 0;
     int cldWidth = 0;
     int cldHeight = 0;
 };
 
-struct CldInfo;
+struct CldInfo {
+    uint32_t cldDataOffset = 0;
+    uint32_t cldSize = 0;
+    uint32_t cldWidth = 0;
+    uint32_t cldHeight = 0;
+    uint32_t cldStride = 0;
+    uint32_t exWidth = 0;
+    uint32_t exHeight = 0;
+    uint32_t baseColor = 0;
+};
 
-// use normal hardware composer node instead if it supports rcd feature in OH 6.0 rcd refactoring
-class RSRcdSurfaceRenderNode : public RSRenderNode {
+class RSRcdSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSRcdSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSRcdSurfaceRenderNode>;
 
-    static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROUND_CORNER_NODE;
-    RSRenderNodeType GetType() const override
-    {
-        return Type;
-    }
-
-    RSRcdSurfaceRenderNode(RCDSurfaceType type, const std::weak_ptr<RSContext>& context);
     RSRcdSurfaceRenderNode(NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context = {});
-    static SharedPtr Create(NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context = {});
+    static SharedPtr Create(NodeId id, RCDSurfaceType type);
     ~RSRcdSurfaceRenderNode() override;
-
-    void InitRenderParams() override;
-
-    const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
-    {
-        return surfaceHandler_;
-    }
-
-    std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandler()
-    {
-        return surfaceHandler_;
-    }
 
     const RectI& GetSrcRect() const;
     const RectI& GetDstRect() const;
 
+    bool CreateSurface(sptr<IBufferConsumerListener> listener);
+    bool IsSurfaceCreated() const;
+    std::shared_ptr<RSSurface> GetRSSurface() const;
+    sptr<IBufferConsumerListener> GetConsumerListener() const;
     RcdSourceInfo rcdSourceInfo;
     void SetRcdBufferWidth(uint32_t width);
     void SetRcdBufferHeight(uint32_t height);
     void SetRcdBufferSize(uint32_t bufferSize);
+    void ClearBufferCache();
     void ResetCurrFrameState();
     void Reset();
+    bool SetHardwareResourceToBuffer();
+    BufferRequestConfig GetHardenBufferRequestConfig() const;
     bool PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
-    bool IsTopSurface() const;
     bool IsBottomSurface() const;
+    bool IsTopSurface() const;
     bool IsInvalidSurface() const;
 
-    const CldInfo GetCldInfo() const;
+    float GetFrameOffsetX() const;
+    float GetFrameOffsetY() const;
+
+    const CldInfo& GetCldInfo() const;
+
+    void SetRenderTargetId(NodeId id);
 
     void SetRenderDisplayRect(const RectT<uint32_t>& rect)
     {
         displayRect_ = rect;
     }
 
-    void PrepareHardwareResource(std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
-
-    void UpdateRcdRenderParams(bool resourceChanged, const std::shared_ptr<Drawing::Bitmap> curBitmap);
-
-    void DoProcessRenderMainThreadTask(bool resourceChanged, std::shared_ptr<RSProcessor> processor);
-
     void PrintRcdNodeInfo();
-    
-protected:
-    void OnSync() override;
-
 private:
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
-
-    HardwareLayerInfo cldLayerInfo_;
-    Drawing::Bitmap layerBitmap_;
+    float GetSurfaceWidth() const;
+    float GetSurfaceHeight() const;
+    bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width);
+    HardwareLayerInfo cldLayerInfo;
+    Drawing::Bitmap layerBitmap;
 
     uint32_t GetRcdBufferWidth() const;
     uint32_t GetRcdBufferHeight() const;
     uint32_t GetRcdBufferSize() const;
 
+    std::shared_ptr<RSSurface> surface_ = nullptr;
+    sptr<IBufferConsumerListener> consumerListener_;
     RectT<uint32_t> displayRect_;
+
     RcdExtInfo rcdExtInfo_;
 
-    NodeId renderTargetId_ = 0;
+    CldInfo cldInfo_;
 
-    void OnRegister(const std::weak_ptr<RSContext>& context) = delete;
+    NodeId renerTargetId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

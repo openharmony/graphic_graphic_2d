@@ -117,7 +117,7 @@ void RSDumpManager::DoDump(RSDumpID rsDumpId, const std::u16string &cmd, std::un
                            std::string &out)
 {
     RS_TRACE_NAME_FMT("RSDumpManager::DoDump rsDumpId [%d]", rsDumpId);
-    RS_LOGI("RSDumpManager::DoDump, rsDumpId is '%{public}d'.", static_cast<uint8_t>(rsDumpId));
+    RS_LOGI("RSDumpManager::DoDump, rsDumpId is '%{public}u'.", static_cast<uint8_t>(rsDumpId));
     auto it = rsDumpHanderMap_.find(rsDumpId);
     if (it != rsDumpHanderMap_.end()) {
         RSDumpHander hander = it->second;

@@ -37,6 +37,7 @@
 #include "mem_param.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -948,6 +949,7 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         }
         this->isTimeToReclaim_.store(false);
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
+        SetIsPostedReclaimMemoryTask(false);
     };
 
     PostTask(task, RECLAIM_MEMORY, TIME_OF_RECLAIM_MEMORY);
@@ -968,11 +970,15 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
             DefaultClearMemoryCache();
         }
     }
-    bool ifStatusBarDirtyOnly = RSMainThread::Instance()->GetIfStatusBarDirtyOnly();
-    if (isTimeToReclaim_.load() && !ifStatusBarDirtyOnly) {
+    if (isTimeToReclaim_.load()) {
+        bool ifStatusBarDirtyOnly = RSMainThread::Instance()->GetIfStatusBarDirtyOnly();
+        bool ifInterrupt = RSReclaimMemoryManager::Instance().IsReclaimInterrupt();
+        if (ifStatusBarDirtyOnly && !ifInterrupt) {
+            return;
+        }
         RemoveTask(RECLAIM_MEMORY);
         SetIsPostedReclaimMemoryTask(false);
-        if (RSReclaimMemoryManager::Instance().IsReclaimInterrupt()) {
+        if (ifInterrupt) {
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
         } else if (!isDoDirectComposition) {

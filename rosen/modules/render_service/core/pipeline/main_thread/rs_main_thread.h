@@ -48,6 +48,7 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
 #include "screen_manager/rs_screen_node_listener.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -123,9 +124,8 @@ public:
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
     void SetForceRsDVsync(const std::string& sceneId);
-    size_t RenderNodeModifierDump(pid_t pid);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-        std::unordered_map<int, int>& nullnode_info);
+        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -233,7 +233,13 @@ public:
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
     void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
-    void ClearWatermark(pid_t pid);
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
+        std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
+    void ClearSurfaceWatermark(pid_t pid);
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+        const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     // Save marks, and use it for ScreenNode later.
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
@@ -403,6 +409,11 @@ public:
     bool GetIfStatusBarDirtyOnly() const
     {
         return ifStatusBarDirtyOnly_.load();
+    }
+
+    void SetIfStatusBarDirtyOnly(bool ifStatusBarDirtyOnly)
+    {
+        ifStatusBarDirtyOnly_.store(ifStatusBarDirtyOnly);
     }
 
     void StartGPUDraw();
@@ -800,7 +811,6 @@ private:
     std::condition_variable nodeTreeDumpCondVar_;
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
-    std::map<std::pair<pid_t, std::string>, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
     std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
 
     // UIFirst
@@ -848,6 +858,7 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
+    RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;

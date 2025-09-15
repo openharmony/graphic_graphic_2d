@@ -865,9 +865,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest005, T
 
 /**
  * @tc.name: CalculateVirtualDirtyTest006
- * @tc.desc: Test CalculateVirtualDirty when hwcRect is not empty
+ * @tc.desc: Test CalculateVirtualDirty when hwcRect and typeHwcRect is not empty
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #issueICWRWD
  */
 HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest006, TestSize.Level1)
 {
@@ -881,10 +881,18 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest006, T
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     mirroredScreenDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
-    mirroredScreenDrawable_->syncDirtyManager_->hwcDirtyRegion_ = {1, 1, 1, 1};
+    RectI rect(1, 1, 1, 1);
+    mirroredScreenDrawable_->syncDirtyManager_->hwcDirtyRegion_ = rect;
+    mirroredScreenDrawable_->syncDirtyManager_->typeHwcDirtyRegion_ = {{RSSurfaceNodeType::CURSOR_NODE, rect}};
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;
     displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
+    NodeType cursorType = 12;
+    std::unordered_set<NodeType> typeBlackList = {cursorType};
+    displayDrawable_->currentTypeBlackList_ = typeBlackList;
+    auto damageRects =
+        displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
+    EXPECT_NE(damageRects.size(), 0);
 }
 
 /**
@@ -2885,6 +2893,64 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest006, TestSize.Lev
 
     displayDrawable_->DrawMirror(
         *renderParams, virtualProcesser, &RSLogicalDisplayRenderNodeDrawable::OnCapture, uniParam);
+}
+
+/**
+ * @tc.name: DrawMirror007
+ * @tc.desc: Test DrawMirror with skipdisplay
+ * @tc.type: FUNC
+ * @tc.require: issueICWRWD
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirror007, TestSize.Level1)
+{
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder::testingTriggering_ = true;
+    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::ON_CAPTURE);
+#endif
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
+    mirroredScreenDrawable_->SetAccumulateDirtyInSkipFrame(false);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    Drawing::Canvas drawingCanvas;
+    virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+    ASSERT_NE(virtualProcesser->GetCanvas(), nullptr);
+
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    uint32_t width = 480;
+    uint32_t height = 320;
+    auto id = screenManager->CreateVirtualScreen("virtualScreen01", width, height, psurface);
+    params->screenId_ = id;
+    ASSERT_EQ(params->GetScreenId(), id);
+    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
+    ASSERT_EQ(virtualSecLayerOption, 0);
+
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
+    ASSERT_NE(drawable, nullptr);
+    params->mirrorSourceDrawable_ = drawable;
+    auto mirroredParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
+    ASSERT_NE(mirroredParams, nullptr);
+
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsVirtualDirtyEnabled());
+    displayDrawable_->enableVisibleRect_ = true;
+    displayDrawable_->DrawMirror(*params, virtualProcesser, *uniParams);
+
+#ifdef RS_PROFILER_ENABLED
+    RSCaptureRecorder::testingTriggering_ = false;
+#endif
 }
 
 /**

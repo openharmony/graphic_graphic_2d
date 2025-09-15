@@ -24,7 +24,6 @@
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_trace.h"
-#include "sandbox_utils.h"
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
@@ -933,6 +932,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         if (surfaceNode->HasSubSurfaceNodes()) {
             out += surfaceNode->SubSurfaceNodesDump();
         }
+        if (surfaceNode->IsSubSurfaceNode()) {
+            out += ", isSubSurfaceId[" + std::to_string(GetId()) + "]";
+        }
         out += ", abilityState: " +
             std::string(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ?
             "foreground" : "background");
@@ -1371,7 +1373,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     if (ChildHasVisibleFilter()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%d] filterInGlobal_[%d]",
+        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%lu] filterInGlobal_[%d]",
             GetId(), filterInGlobal);
     }
     // if clean without filter skip subtree
@@ -1415,7 +1417,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     }
     SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty() || IsAccessibilityConfigChanged()));
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "SetDrawingCacheChanged id:%llu nodeGroupType:%d contentDirty:%d propertyDirty:%d subTreeDirty:%d "
+        "SetDrawingCacheChanged id:%llu nodeGroupType:%u contentDirty:%d propertyDirty:%d subTreeDirty:%d "
         "AccessibilityConfigChanged:%d",
         GetId(), nodeGroupType_, isContentDirty_, GetRenderProperties().IsContentDirty(), IsSubTreeDirty(),
         IsAccessibilityConfigChanged());
@@ -1786,9 +1788,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             absCmdlistDrawRect_ = GetNeedUseCmdlistDrawRegion() ?
                 geoPtr->MapRect(cmdlistDrawRegion_, geoPtr->GetAbsMatrix()) : RectI(0, 0, 0, 0);
             if (isSelfDrawingNode_) {
-                selfDrawingNodeAbsDirtyRectF_ = geoPtr->MapRectWithoutRounding(
-                    selfDrawingNodeDirtyRect_, geoPtr->GetAbsMatrix());
-                selfDrawingNodeAbsDirtyRect_ = geoPtr->InflateToRectI(selfDrawingNodeAbsDirtyRectF_);
+                selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
             }
             UpdateSrcOrClipedAbsDrawRectChangeState(clipRect);
         }
@@ -3558,6 +3558,8 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     RS_TRACE_NAME_FMT("mark opinc %" PRIu64 ", isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
     opincCache_.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
     if (stagingRenderParams_) {
+        stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), GetLastFrameSync());
+        stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
         stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
     }
     SetDirty();
@@ -3941,21 +3943,6 @@ void RSRenderNode::ResetDirtyStatus()
     // The return of GetBoundsGeometry function must not be nullptr
     oldMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
     cmdlistDrawRegion_.Clear();
-}
-
-NodeId RSRenderNode::GenerateId()
-{
-    static pid_t pid_ = GetRealPid();
-    static std::atomic<uint32_t> currentId_ = 0; // surfaceNode is seted correctly during boot when currentId is 1
-
-    auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
-    if (currentId == UINT32_MAX) {
-        // [PLANNING]:process the overflow situations
-        ROSEN_LOGE("Node Id overflow");
-    }
-
-    // concat two 32-bit numbers to one 64-bit number
-    return ((NodeId)pid_ << 32) | currentId;
 }
 
 bool RSRenderNode::IsRenderUpdateIgnored() const
@@ -4400,9 +4387,16 @@ void RSRenderNode::UpdateAbsDrawRect()
     stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
-void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
+void RSRenderNode::UpdateCurCornerInfo(Vector4f& curCornerRadius, RectI& curCornerRect)
 {
-    Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
+    const auto& selfCornerRadius = GetRenderProperties().GetCornerRadius();
+    if (!selfCornerRadius.IsZero()) {
+        const auto& selfCornerRect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        curCornerRect = curCornerRadius.IsZero() ? selfCornerRect : curCornerRect.IntersectRect(selfCornerRect);
+    }
+    globalCornerRect_ = curCornerRect;
+
+    Vector4f::Max(selfCornerRadius, curCornerRadius, curCornerRadius);
     globalCornerRadius_ = curCornerRadius;
 }
 
@@ -4502,7 +4496,7 @@ void RSRenderNode::OnSync()
 
         // copy newest for uifirst root node, now force sync done nodes
         if (uifirstNeedSync_) {
-            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lu", GetId());
             renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
                                                         renderDrawable_->drawCmdList_.end());
             renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
@@ -4510,7 +4504,7 @@ void RSRenderNode::OnSync()
             uifirstNeedSync_ = false;
         }
     } else {
-        RS_TRACE_NAME_FMT("partial_sync %lld", GetId());
+        RS_TRACE_NAME_FMT("partial_sync %lu", GetId());
         std::vector<RSDrawableSlot> todele;
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
@@ -4637,7 +4631,7 @@ void RSRenderNode::SetStartingWindowFlag(bool startingFlag)
 
 void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isUifirstNode:%d", GetId(), isUifirstNode);
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isUifirstNode:%d", GetId(), isUifirstNode);
     isUifirstNode_ = isUifirstNode;
     isUifirstDelay_ = 0;
 }
@@ -4645,7 +4639,7 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
 
 void RSRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
-    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isForceFlag:%d, isUifirstEnable:%d",
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
         GetId(), isForceFlag, isUifirstEnable);
     ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
         GetId(), isForceFlag, isUifirstEnable);

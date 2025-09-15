@@ -98,4 +98,22 @@ HWTEST_F(RSSyncTransactionHandlerTest, CloseSyncTransaction001, TestSize.Level1)
     EXPECT_TRUE(syncTransaction->rsTransaction_ != nullptr);
     EXPECT_TRUE(!syncTransaction->needCloseSync_);
 }
+
+/**
+ * @tc.name: GetCommonRSTransaction001
+ * @tc.desc: test results of GetCommonRSTransaction
+ * @tc.type: FUNC
+ * @tc.require: issueIBRL62
+ */
+HWTEST_F(RSSyncTransactionHandlerTest, GetCommonRSTransaction001, TestSize.Level1)
+{
+    auto syncTransaction = std::make_shared<RSSyncTransactionHandler>();
+    std::shared_ptr<RSTransaction> ptr = syncTransaction->GetCommonRSTransaction();
+    EXPECT_TRUE(ptr == nullptr);
+
+    auto transation = std::make_shared<RSTransactionHandler>();
+    syncTransaction->SetTransactionHandler(transation);
+    ptr = syncTransaction->GetCommonRSTransaction();
+    EXPECT_TRUE(ptr != nullptr);
+}
 } // namespace OHOS::Rosen

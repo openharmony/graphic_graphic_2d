@@ -118,7 +118,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -277,31 +277,25 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 }
 
 #ifdef RS_ENABLE_GPU
-// rcd node will be handled by RS tree in OH 6.0 rcd refactoring, should remove this later
-void DoScreenRcdTask(RSScreenRenderNode& screenNode, std::shared_ptr<RSProcessor> &processor)
+void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    const ScreenInfo& screenInfo)
 {
-    if (processor == nullptr) {
-        RS_LOGD("DoScreenRcdTask has no processor");
+    if (rcdInfo == nullptr || processor == nullptr) {
+        RS_LOGD("DoScreenRcdTask has nullptr processor or rcdInfo");
         return;
     }
-    auto screenInfo =
-        static_cast<RSScreenRenderParams *>(screenNode.GetStagingRenderParams().get())->GetScreenInfo();
-    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
+    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(screenNode.GetId());
-        auto rcdNodeTop = std::static_pointer_cast<RSRcdSurfaceRenderNode>(screenNode.GetRcdSurfaceNodeTop());
-    if (rcdNodeTop) {
-        rcdNodeTop->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
-    } else {
-        RS_LOGD("Top rcdnode is null");
-    }
-    auto rcdNodeBottom = std::static_pointer_cast<RSRcdSurfaceRenderNode>(screenNode.GetRcdSurfaceNodeBottom());
-    if (rcdNodeBottom) {
-        rcdNodeBottom->DoProcessRenderMainThreadTask(hardInfo.resourceChanged, processor);
-    } else {
-        RS_LOGD("Bottom rcdnode is null");
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
+            [id, &processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer, hardInfo.displayRect,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(id, rcdInfo->processInfo);
+            });
     }
 }
 #endif
@@ -676,6 +670,9 @@ void RSMainThread::Init()
     RS_LOGI("InitRenderContext");
     /* move to render thread ? */
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#endif
+#ifdef RS_ENABLE_GPU
+    RSRcdRenderManager::InitInstance();
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
@@ -1522,6 +1519,11 @@ void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData
             subSyncTransactionCounts_.erase(parentPid);
         }
     }
+    RS_TRACE_NAME_FMT("ProcessSyncTransactionCount isNeedCloseSync:%d syncId:%" PRIu64 " parentPid:%d syncNum:%d "
+        "subSyncTransactionCounts_.size:%zd",
+        rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
+        rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
+
     ROSEN_LOGI("ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
                " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
         rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
@@ -1554,9 +1556,11 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
         syncTransactionData_.insert({ pid, std::vector<std::unique_ptr<RSTransactionData>>() });
     }
     ProcessSyncTransactionCount(rsTransactionData);
+    auto syncId = rsTransactionData->GetSyncId();
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
     if (subSyncTransactionCounts_.empty()) {
-        ROSEN_LOGI("SyncTxn suc");
+        ROSEN_LOGI("Sync success, syncId:%{public}" PRIu64 "", syncId);
+        RS_TRACE_NAME_FMT("Sync success, syncId:" PRIu64 "", syncId);
         ProcessAllSyncTransactionData();
     }
 }
@@ -2462,14 +2466,14 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
 bool RSMainThread::IfStatusBarDirtyOnly()
 {
-    RS_TRACE_NAME_FMT("checkIfStatusBarDirtyOnly");
     if (RSSystemProperties::GetAceTestMode()) {
         return false;
     }
+    RS_TRACE_NAME_FMT("checkIfStatusBarDirtyOnly");
     if (renderThreadParams_->GetImplicitAnimationEnd()) {
         return false;
     }
-    auto& activeNodesInRoot = RSMainThread::Instance()->GetContext().activeNodesInRoot_;
+    const auto& activeNodesInRoot = context_->GetActiveNodes();
     for (const auto& rootPair : activeNodesInRoot) {
         NodeId rootId = rootPair.first;
         auto rootNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
@@ -2595,7 +2599,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #endif
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
-    DoScreenRcdTask(*screenNode, processor);
+    auto rcdInfo = std::make_unique<RcdInfo>();
+    DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenInfo);
 #endif
     if (waitForRT) {
 #ifdef RS_ENABLE_GPU
@@ -2708,7 +2713,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
         {
             std::lock_guard<std::mutex> lock(watermarkMutex_);
-            renderThreadParams_->SetWatermarks(surfaceNodeWatermarks_);
+            renderThreadParams_->SetWatermarks(surfaceWatermarkHelper_.GetSurfaceWatermarks());
         }
 
         renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
@@ -2770,6 +2775,7 @@ void RSMainThread::OnUniRenderDraw()
         isNeedResetClearMemoryTask_ = false;
     }
 
+    drawFrame_.ClearDrawableResource();
     UpdateScreenNodeScreenId();
     RsFrameReport::GetInstance().RenderEnd();
 #endif
@@ -3942,18 +3948,8 @@ static std::string Data2String(std::string data, uint32_t tagetNumber)
     }
 }
 
-size_t RSMainThread::RenderNodeModifierDump(pid_t pid)
-{
-    size_t allModifySize = 0;
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraversalNodesByPid(pid, [&allModifySize] (const std::shared_ptr<RSBaseRenderNode>& node) {
-        allModifySize += node->GetAllModifierSize();
-    });
-    return allModifySize / BYTE_CONVERT;
-}
-
 void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-    std::unordered_map<int, int>& nullnode_info)
+    std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
 {
     for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
         auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
@@ -3966,6 +3962,7 @@ void RSMainThread::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& nod
                 node_info[pid].first = 1;
                 node_info[pid].second = node->IsOnTheTree() ? 1 : 0;
             }
+            modifierSize[pid] += node->GetAllModifierSize();
         } else {
             if (nullnode_info.count(pid)) {
                 nullnode_info[pid]++;
@@ -3980,8 +3977,9 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
 {
     std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
     std::unordered_map<int, int> nullnode_info; // [pid, count]
+    std::unordered_map<pid_t, size_t> modifierSize; //[pid, modifiersize]
 
-    GetNodeInfo(node_info, nullnode_info);
+    GetNodeInfo(node_info, nullnode_info, modifierSize);
     std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("OnTree", NODE_DUMP_STRING_LEN) + "\t" +
@@ -3994,7 +3992,7 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
         size_t renderNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid, MEMORY_TYPE::MEM_RENDER_NODE);
         size_t drawableNodeSize = MemoryTrack::Instance().GetNodeMemoryOfPid(pid,
             MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
-        size_t modifierNodeSize = RenderNodeModifierDump(pid);
+        size_t modifierNodeSize = modifierNodeSize = modifierSize[pid] / BYTE_CONVERT;
         log_str = Data2String(std::to_string(pid), NODE_DUMP_STRING_LEN) + "\t" +
         Data2String(std::to_string(info.first), NODE_DUMP_STRING_LEN) + "\t" +
         Data2String(std::to_string(info.second), NODE_DUMP_STRING_LEN) + "\t" +
@@ -4505,7 +4503,7 @@ bool RSMainThread::CheckAdaptiveCompose()
     if (adaptiveStatus != SupportASStatus::SUPPORT_AS) {
         return false;
     }
-    bool onlyGameNodeOnTree = frameRateMgr->HandleGameNode(GetContext().GetNodeMap());
+    bool onlyGameNodeOnTree = frameRateMgr->IsGameNodeOnTree();
     bool isNeedAdaptiveCompose = onlyGameNodeOnTree &&
         context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
@@ -4857,32 +4855,49 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
 void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    static constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
-    auto iter = surfaceNodeWatermarks_.find({pid, name});
-    if (iter == std::end(surfaceNodeWatermarks_)) {
-        if (registerSurfaceWaterMaskCount_[pid] >= REGISTER_SURFACE_WATER_MASK_LIMIT) {
-            RS_LOGE("RSMainThread::SetWatermark surfaceNodeWatermark:"
-                "[Pid:%{public}s] limit", std::to_string(pid).c_str());
-            return;
-        }
-        registerSurfaceWaterMaskCount_[pid]++;
-        surfaceNodeWatermarks_.insert({{pid, name}, watermark});
-    } else {
-        iter->second = watermark;
-    }
+    (void)surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, {}, SYSTEM_WATER_MARK, GetContext(), true);
+    SetDirtyFlag();
+    RequestNextVSync();
 }
 
-void RSMainThread::ClearWatermark(pid_t pid)
+uint32_t RSMainThread::SetSurfaceWatermark(pid_t pid, const std::string& name,
+    std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
+    SurfaceWatermarkType watermarkType, bool isSystemCalling)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    registerSurfaceWaterMaskCount_.erase(pid);
-    if (surfaceNodeWatermarks_.size() > 0) {
-        RS_TRACE_NAME_FMT("RSMainThread::ClearWatermark %d", pid);
-        EraseIf(surfaceNodeWatermarks_, [pid](const auto& pair) {
-            return pair.first.first == pid;
-        });
-    }
+    auto res = surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, nodeIdList,
+        watermarkType, GetContext(), isSystemCalling);
+    SetDirtyFlag(true);
+    RequestNextVSync();
+    return res;
 }
+
+
+void RSMainThread::ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, name, GetContext(), isSystemCalling);
+    SetDirtyFlag(true);
+    RequestNextVSync();
+}
+
+void RSMainThread::ClearSurfaceWatermark(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    surfaceWatermarkHelper_.ClearSurfaceWatermark(pid, GetContext());
+    SetDirtyFlag(true);
+    RequestNextVSync();
+}
+
+void RSMainThread::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId>& nodeIdList, bool isSystemCalling)
+{
+    std::lock_guard<std::mutex> lock(watermarkMutex_);
+    surfaceWatermarkHelper_.ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, GetContext(), isSystemCalling);
+    SetDirtyFlag(true);
+    RequestNextVSync();
+}
+
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
 {

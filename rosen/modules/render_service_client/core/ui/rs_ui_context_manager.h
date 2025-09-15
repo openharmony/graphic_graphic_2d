@@ -81,6 +81,7 @@ public:
      */
     void DestroyContext(uint64_t token);
 
+    void StartCloseSyncTransactionFallbackTask(bool isOpen, const uint64_t syncId);
 private:
     RSUIContextManager();
     ~RSUIContextManager() noexcept;
@@ -104,10 +105,15 @@ private:
      */
     std::shared_ptr<RSUIContext> GetRandomUITaskRunnerCtx() const;
 
+    void CloseAllSyncTransaction(const uint64_t syncId) const;
+
     mutable std::mutex mutex_;
     std::unordered_map<uint64_t, std::shared_ptr<RSUIContext>> rsUIContextMap_;
     uint32_t instanceIdCounter_ = 0;
     bool isMultiInstanceOpen_ = false;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
+    std::queue<std::string> taskNames_{};
+    std::mutex closeSyncFallBackMutex_;
 
     friend class RSUIDirector;
     friend class RSUIContext;

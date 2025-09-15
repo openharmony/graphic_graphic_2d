@@ -353,7 +353,7 @@ public:
      * @param checkDrmAndSurfaceLock Indicates the flag to check existing drm or surface lock window.
      * @return return true if snaphot success, else return false.
      */
-    bool TaskSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
+    bool TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
         bool checkDrmAndSurfaceLock);
 

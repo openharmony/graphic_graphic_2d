@@ -502,20 +502,44 @@ bool RSSurfaceRenderParams::IsForceRefresh() const
     return isForceRefresh_;
 }
 
-void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+void RSSurfaceRenderParams::SetSystemWatermarkEnabled(const std::string& name, bool isEnabled)
 {
-    watermarkHandles_[name] = isEnabled;
+    systemWatermarkHandles_[name] = isEnabled;
     needSync_ = true;
 }
 
-const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetWatermarksEnabled() const
+void RSSurfaceRenderParams::SetCustomWatermarkEnabled(const std::string& name, bool isEnabled)
 {
-    return watermarkHandles_;
+    customWatermarkHandles_[name] = isEnabled;
+    needSync_ = true;
 }
 
-bool RSSurfaceRenderParams::IsWatermarkEmpty() const
+void RSSurfaceRenderParams::ClearSystemWatermarkEnabled(const std::string& name)
 {
-    return watermarkHandles_.empty();
+    systemWatermarkHandles_.erase(name);
+    needSync_ = true;
+}
+
+void RSSurfaceRenderParams::ClearCustomWatermarkEnabled(const std::string& name)
+{
+    customWatermarkHandles_.erase(name);
+    needSync_ = true;
+}
+
+const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetSurfaceWatermarkEnabledMap(
+    SurfaceWatermarkType watermarkType) const
+{
+    return (watermarkType == CUSTOM_WATER_MARK) ? customWatermarkHandles_ : systemWatermarkHandles_;
+}
+
+bool RSSurfaceRenderParams::IsSystemWatermarkEmpty() const
+{
+    return systemWatermarkHandles_.empty();
+}
+
+bool RSSurfaceRenderParams::IsCustomWatermarkEmpty() const
+{
+    return customWatermarkHandles_.empty();
 }
 
 RectI RSSurfaceRenderParams::GetScreenRect() const
@@ -645,13 +669,13 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->IsUnobscuredUIExtension_ = IsUnobscuredUIExtension_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
-    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->sdrNit_ = sdrNit_;
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
     targetSurfaceParams->layerLinearMatrix_ = layerLinearMatrix_;
     targetSurfaceParams->hasMetadata_ = hasMetadata_;
-    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
+    targetSurfaceParams->systemWatermarkHandles_ = systemWatermarkHandles_;
+    targetSurfaceParams->customWatermarkHandles_ = customWatermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
     targetSurfaceParams->solidLayerColor_ = solidLayerColor_;

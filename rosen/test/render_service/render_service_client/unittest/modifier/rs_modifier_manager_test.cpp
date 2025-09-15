@@ -165,6 +165,29 @@ HWTEST_F(RSModifierManagerTest, DrawTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawTest002
+ * @tc.desc: test results of Draw
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, DrawTest002, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    rsModifierManager.Draw();
+    ASSERT_TRUE(rsModifierManager.modifiers_.empty());
+}
+
+/**
+ * @tc.name: HasUIRunningAnimationTest
+ * @tc.desc: test results of HasUIRunningAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierManagerTest, HasUIRunningAnimationTest, TestSize.Level1)
+{
+    RSModifierManager rsModifierManager;
+    ASSERT_FALSE(rsModifierManager.HasUIRunningAnimation());
+}
+
+/**
  * @tc.name: AddAnimationTest002
  * @tc.desc: test results of AddAnimation
  * @tc.type: FUNC

@@ -155,6 +155,8 @@ std::string VisibleDataToString(const VisibleData& val)
 
 } // namespace
 
+std::unordered_set<NodeId> RSUniRenderVisitor::allBlackList_;
+std::unordered_set<NodeId> RSUniRenderVisitor::allWhiteList_;
 bool RSUniRenderVisitor::isLastFrameRotating_ = false;
 
 RSUniRenderVisitor::RSUniRenderVisitor()
@@ -951,6 +953,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     dirtyFlag_ |= displayNodeRotationChanged_;
     auto prevAlpha = curAlpha_;
     auto curCornerRadius = curCornerRadius_;
+    auto curCornerRect = curCornerRect_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     auto preGlobalShouldPaint = globalShouldPaint_;
     globalShouldPaint_ &= node.ShouldPaint();
@@ -959,7 +962,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.UpdateCurCornerRadius(curCornerRadius_);
+    node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     node.UpdateRotation();
     RSUifirstManager::Instance().PreStatusProcess(displayNodeRotationChanged_ || isScreenRotationAnimating_);
 
@@ -972,6 +975,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
+    curCornerRect_ = curCornerRect;
     globalShouldPaint_ = preGlobalShouldPaint;
     node.UpdateOffscreenRenderParams(node.IsRotationChanged());
     node.RenderTraceDebug();
@@ -1122,6 +1126,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     // 0. init curSurface info and check node info
     auto curCornerRadius = curCornerRadius_;
+    auto curCornerRect = curCornerRect_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     if (!BeforeUpdateSurfaceDirtyCalc(node)) {
         RS_LOGE("QuickPrepareSurfaceRenderNode BeforeUpdateSurfaceDirtyCalc fail");
@@ -1248,6 +1253,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
+    curCornerRect_ = curCornerRect;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
 
     // [Attention] Only used in PC window resize scene now
@@ -1621,6 +1627,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
     auto curCornerRadius = curCornerRadius_;
+    auto curCornerRect = curCornerRect_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     UpdateRotationStatusForEffectNode(node);
     CheckFilterCacheNeedForceClearOrSave(node);
@@ -1629,7 +1636,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
-    node.UpdateCurCornerRadius(curCornerRadius_);
+    node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
@@ -1642,6 +1649,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
+    curCornerRect_ = curCornerRect;
     node.RenderTraceDebug();
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
@@ -1678,6 +1686,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
     auto curCornerRadius = curCornerRadius_;
+    auto curCornerRect = curCornerRect_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     auto preGlobalShouldPaint = globalShouldPaint_;
     auto preOffscreenCanvasNodeId = offscreenCanvasNodeId_;
@@ -1705,7 +1714,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
     // update prepare clip before children
     hwcVisitor_->UpdatePrepareClip(node);
-    node.UpdateCurCornerRadius(curCornerRadius_);
+    node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
 
     bool isCurrOffscreen = hwcVisitor_->UpdateIsOffscreen(node);
     hwcVisitor_->UpdateForegroundColorValid(node);
@@ -1729,6 +1738,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
+    curCornerRect_ = curCornerRect;
     RSOpincManager::Instance().UpdateRootFlag(node, unchangeMarkEnable_);
     offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -1920,14 +1930,20 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
         curScreenNode_->GetScreenInfo().width, curScreenNode_->GetScreenInfo().height);
     curScreenDirtyManager_->SetActiveSurfaceRect(curScreenNode_->GetScreenInfo().activeRect);
     screenManager_->SetScreenHasProtectedLayer(node.GetScreenId(), false);
-    allBlackList_ = screenManager_->GetAllBlackList();
-    allWhiteList_ = screenManager_->GetAllWhiteList();
+    auto allBlackList = screenManager_->GetAllBlackList();
+    auto allWhiteList = screenManager_->GetAllWhiteList();
+    if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
+        allBlackList_ = std::move(allBlackList);
+        allWhiteList_ = std::move(allWhiteList);
+        needRecalculateOcclusion_ = true;
+    } else {
+        needRecalculateOcclusion_ = false;
+    }
     screenWhiteList_ = screenManager_->GetScreenWhiteList();
     screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
 
     // 3 init Occlusion info
-    needRecalculateOcclusion_ = false;
     accumulatedOcclusionRegion_.Reset();
     accumulatedOcclusionRegionBehindWindow_.Reset();
     occlusionRegionWithoutSkipLayer_.Reset();
@@ -1970,8 +1986,8 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
         node.SetAttractionAnimation(firstLevelNode != nullptr &&
             firstLevelNode->GetRenderProperties().IsAttractionValid());
         node.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
-        // UpdateCurCornerRadius must process before curSurfaceNode_ update
-        node.UpdateCurCornerRadius(curCornerRadius_);
+        // UpdateCurCornerInfo must process before curSurfaceNode_ update
+        node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         // dirty manager should not be overrode by cross node in expand screen
         curSurfaceDirtyManager_ = (!curScreenNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) ?
@@ -2149,12 +2165,12 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     // add rcd layer
     RequestLayerInfo rcdLayer;
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        auto rcdSurface = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curScreenNode_->GetRcdSurfaceNodeTop());
+        auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(curScreenNode_->GetId());
         if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
             rcdSurface, curScreenNode_->GetScreenInfo(), curFps, rcdLayer)) {
             prevalidLayers.emplace_back(rcdLayer);
         }
-        rcdSurface = std::static_pointer_cast<RSRcdSurfaceRenderNode>(curScreenNode_->GetRcdSurfaceNodeBottom());
+        rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(curScreenNode_->GetId());
         if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
             rcdSurface, curScreenNode_->GetScreenInfo(), curFps, rcdLayer)) {
             prevalidLayers.emplace_back(rcdLayer);
@@ -3513,12 +3529,11 @@ void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
         RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay get screen type failed.");
         return;
     }
-    if (screenType != EXTERNAL_TYPE_SCREEN) {
-        RectI dirtyRectTop;
-        RectI dirtyRectBottom;
+    if (screenType == EXTERNAL_TYPE_SCREEN) {
+        RectI dirtyRectTop, dirtyRectBottom;
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curScreenNode_->GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay global merge topRcdNode dirty "
+            RS_LOGD("CheckMergeScreenDirtyByRoundCornerDisplay global merge topRcdNode dirty "
                     "%{public}s, global dirty %{public}s, add rect %{public}s",
                 std::to_string(curScreenNode_->GetScreenId()).c_str(),
                 curScreenDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
@@ -3527,7 +3542,7 @@ void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
         }
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curScreenNode_->GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
+            RS_LOGD("CheckMergeScreenDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
                     "%{public}s, global dirty %{public}s, add rect %{public}s",
                 std::to_string(curScreenNode_->GetScreenId()).c_str(),
                 curScreenDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),

@@ -2122,6 +2122,39 @@ HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IfStatusBarDirtyOnly005
+ * @tc.desc: Test IfStatusBarDirtyOnly when isImplicitAnimationEnd_
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& context = mainThread->GetContext();
+    context.activeNodesInRoot_.clear();
+    system::SetParameter("persist.ace.testmode.enabled", "1");
+    mainThread->renderThreadParams_->SetImplicitAnimationEnd(true);
+    EXPECT_FALSE(mainThread->IfStatusBarDirtyOnly());
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+}
+
+/**
+ * @tc.name: IfStatusBarDirtyOnly006
+ * @tc.desc: Test IfStatusBarDirtyOnly when persist.ace.testmode.enabled
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    system::SetParameter("persist.ace.testmode.enabled", "0");
+    EXPECT_FALSE(mainThread->IfStatusBarDirtyOnly());
+}
+
+/**
  * @tc.name: IsFirstFrameOfOverdrawSwitch
  * @tc.desc: test IsFirstFrameOfOverdrawSwitch
  * @tc.type: FUNC
@@ -5445,21 +5478,6 @@ HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodesNotOnTree, TestSize.Level2)
 }
 
 /**
- * @tc.name: RenderNodeModifierDump001
- * @tc.desc: RenderNodeModifierDump001 Test
- * @tc.type: FUNC
- * @tc.require: ICVK6I
- */
-HWTEST_F(RSMainThreadTest, RenderNodeModifierDump001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    pid_t pid = 0;
-    size_t modifierSize = mainThread->RenderNodeModifierDump(pid);
-    ASSERT_GE(modifierSize, 0);
-}
-
-/**
  * @tc.name: GetNodeInfo001
  * @tc.desc: GetNodeInfo001 Test
  * @tc.type: FUNC
@@ -5471,7 +5489,8 @@ HWTEST_F(RSMainThreadTest, GetNodeInfo001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     std::unordered_map<int, std::pair<int, int>> nodeInfo;
     std::unordered_map<int, int> nullNodeInfo;
-    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo);
+    std::unordered_map<pid_t, size_t> modifierSize;
+    mainThread->GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
 }
 
 /**
@@ -6619,36 +6638,6 @@ HWTEST_F(RSMainThreadTest, SetForceRsDVsync001, TestSize.Level1)
         mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
     }
     mainThread->SetForceRsDVsync(sceneId);
-}
-
-/**
- * @tc.name: surfaceNodeWatermarksLimit001
- * @tc.desc: Test surfaceNodeWatermarksLimit001
- * @tc.type: FUNC
- * @tc.require:ICS7WS
- */
-HWTEST_F(RSMainThreadTest, surfaceNodeWatermarksLimit001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    constexpr uint32_t REGISTER_SURFACE_WATER_MASK_LIMIT = 100;
-    pid_t pid = 100;
-    // Test normal add waterMask
-    mainThread->SetWatermark(pid, "watermask", nullptr);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 1);
-    // Test add same waterMask Name
-    mainThread->SetWatermark(pid, "watermask", nullptr);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 1);
-    // Test Limit condition
-    mainThread->registerSurfaceWaterMaskCount_[pid] = REGISTER_SURFACE_WATER_MASK_LIMIT;
-    mainThread->SetWatermark(pid, "watermask1", nullptr);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], REGISTER_SURFACE_WATER_MASK_LIMIT);
-    // Test Clear WaterMask
-    mainThread->ClearWatermark(pid);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 0);
-    // Try again
-    mainThread->ClearWatermark(pid);
-    EXPECT_EQ(mainThread->registerSurfaceWaterMaskCount_[pid], 0);
 }
 
 /**

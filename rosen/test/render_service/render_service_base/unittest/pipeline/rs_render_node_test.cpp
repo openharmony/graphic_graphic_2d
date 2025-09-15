@@ -1214,20 +1214,27 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderParamsTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateCurCornerRadiusTest
- * @tc.desc:
+ * @tc.name: UpdateCurCornerInfoTest
+ * @tc.desc: Verify the boundary value handling when updating corner radius information,
+ *           including max/min float values and empty radius scenarios.
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueICVCOG
  */
-HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateCurCornerInfoTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto maxFloatData = std::numeric_limits<float>::max();
     auto minFloatData = std::numeric_limits<float>::min();
     Vector4f curCornerRadius(floatData[0], floatData[1], floatData[2], minFloatData);
     Vector4f cornerRadius(floatData[0], floatData[1], floatData[2], maxFloatData);
+    RectI curCornerRect;
+    Vector4f emptyCornerRadius;
+    node->UpdateCurCornerInfo(curCornerRadius, curCornerRect);
+    EXPECT_TRUE(curCornerRadius[3] == minFloatData);
     node->GetMutableRenderProperties().SetCornerRadius(cornerRadius);
-    node->UpdateCurCornerRadius(curCornerRadius);
+    node->UpdateCurCornerInfo(emptyCornerRadius, curCornerRect);
+    EXPECT_TRUE(emptyCornerRadius[3] == maxFloatData);
+    node->UpdateCurCornerInfo(curCornerRadius, curCornerRect);
     EXPECT_TRUE(curCornerRadius[3] == maxFloatData);
 }
 
@@ -1927,6 +1934,21 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
     surfaceNode->isRepaintBoundary_ = true;
     surfaceNode->DumpTree(0, outTest);
     ASSERT_TRUE(outTest.find("RB: true") != string::npos);
+}
+
+/**
+ * @tc.name: RSRenderNodeDumpTest004
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test, node is subSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest004, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->isSubSurfaceNode_ = true;
+    surfaceNode->DumpTree(0, outTest);
+    ASSERT_TRUE(outTest.find("isSubSurfaceId") != string::npos);
 }
 
 /**

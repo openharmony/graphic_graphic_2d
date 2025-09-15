@@ -536,7 +536,7 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierTyp
         if (overflow != lastOverflowStatus_) {
             RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
                     " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d], originCmdListSize[%{public}zu],"
-                    " CmdCount:[%{public}d]", GetId(), type, drawCmdListsNG_[type].size(), IsOnTheTree(),
+                    " CmdCount:[%{public}u]", GetId(), type, drawCmdListsNG_[type].size(), IsOnTheTree(),
                     originCmdListSize, cmdCount_);
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
@@ -547,7 +547,7 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierTyp
         if (drawCmdListsNG_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGE("AddDirtyType Cmdlist Protect Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
                     " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d], originCmdListSize[%{public}zu],"
-                    " CmdCount:[%{public}d]", GetId(), type, drawCmdListsNG_[type].size(), IsOnTheTree(),
+                    " CmdCount:[%{public}u]", GetId(), type, drawCmdListsNG_[type].size(), IsOnTheTree(),
                     originCmdListSize, cmdCount_);
         }
     }
@@ -566,6 +566,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
         return;
     }
     size_t originCmdListSize = drawCmdListsNG_[modifierType].size();
+    ReportOpCount(drawCmdListsNG_[modifierType]);
     for (const auto& modifier : contentModifiers) {
         auto cmd = modifier->Getter<Drawing::DrawCmdListPtr>(
             ModifierNG::ModifierTypeConvertor::GetPropertyType(modifierType), nullptr);

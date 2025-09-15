@@ -26,6 +26,7 @@
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
@@ -368,8 +369,8 @@ private:
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     int16_t occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
     sptr<RSScreenManager> screenManager_;
-    std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
-    std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
+    static std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
+    static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     // The info of whitelist contains screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
 
@@ -396,6 +397,7 @@ private:
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
+    RectI curCornerRect_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
     bool isSwitchToSourceCrossNodePrepare_ = false;
     // visible filter in transparent surface or display must prepare

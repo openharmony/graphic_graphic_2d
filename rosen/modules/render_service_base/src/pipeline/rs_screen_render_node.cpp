@@ -39,6 +39,8 @@ RSScreenRenderNode::RSScreenRenderNode(
         id, screenId_);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemoryTrack::Instance().RegisterNodeMem(ExtractPid(id),
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_NODE);
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
@@ -46,6 +48,8 @@ RSScreenRenderNode::~RSScreenRenderNode()
 {
     RS_LOGI("RSScreen RSScreenRenderNode dtor id:%{public}" PRIu64 ", screenId:%{public}" PRIu64, GetId(), screenId_);
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),
+        sizeof(*this), MEMORY_TYPE::MEM_RENDER_NODE);
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 

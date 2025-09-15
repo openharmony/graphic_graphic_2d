@@ -28,7 +28,6 @@
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "params/rs_rcd_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -52,7 +51,7 @@ RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ =
 #endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
-    : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
+    : nodeType_(node->GetType()), renderNode_(std::move(node)), nodeId_(node->GetId()) {}
 
 RSRenderNodeDrawableAdapter::~RSRenderNodeDrawableAdapter() = default;
 
@@ -123,7 +122,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     auto ptr = it->second(node);
     auto sharedPtr = std::shared_ptr<RSRenderNodeDrawableAdapter>(ptr, Destructor);
     node->renderDrawable_ = sharedPtr;
-    sharedPtr->nodeId_ = id;
     InitRenderParams(node, sharedPtr);
 
     {
@@ -149,10 +147,6 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->renderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             break;
-        case RSRenderNodeType::ROUND_CORNER_NODE:
-            sharedPtr->renderParams_ = std::make_unique<RSRcdRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = nullptr; // rcd node does not need uifirst params
-            break;
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
@@ -167,9 +161,7 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             break;
     }
     sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
-    if (sharedPtr->uifirstRenderParams_) {
-        sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
-    }
+    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
@@ -283,8 +275,7 @@ void RSRenderNodeDrawableAdapter::DrawQuickImpl(
     }
 
     // BG_START
-    if (drawCmdIndex_.bgSaveBoundsIndex_ == - 1 ||
-        (drawCmdIndex_.bgSaveBoundsIndex_ != -1 && drawCmdIndex_.bgRestoreBoundsIndex_ == -1)) {
+    if (drawCmdIndex_.bgSaveBoundsIndex_ == - 1 || drawCmdIndex_.bgRestoreBoundsIndex_ == -1) {
         if (drawCmdIndex_.clipToBoundsIndex_ != -1) {
             drawCmdList_[drawCmdIndex_.clipToBoundsIndex_](&canvas, &rect);
         }
