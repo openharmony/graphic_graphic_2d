@@ -1186,8 +1186,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
         out += ", Name [" + surfaceNode->GetName() + "]";
         out += ", hasConsumer: " + std::to_string(surfaceNode->GetRSSurfaceHandler()->HasConsumer());
-        std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
-        out += ", Alpha: " + propertyAlpha;
+        out += ", Alpha: " + std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
         if (surfaceNode->contextAlpha_ < 1.0f) {
             std::string contextAlpha = std::to_string(surfaceNode->contextAlpha_);
             out += " (ContextAlpha: " + contextAlpha + ")";
