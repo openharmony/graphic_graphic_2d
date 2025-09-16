@@ -438,6 +438,8 @@ void RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, 
     IntersectRect(newDstRect, dstRectWithoutScaling);
     Drawing::Rect bounds = node.GetDstRectWithoutRenderFit();
     IntersectRect(newDstRect, bounds);
+    // We first multiply by 100, round it, and then divide by 100 to address the precision issue
+    // caused by converting float to int
     node.SetDstRect({std::floor(std::round(newDstRect.GetLeft() * 100) / 100),
         std::floor(std::round(newDstRect.GetTop() * 100) / 100),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
