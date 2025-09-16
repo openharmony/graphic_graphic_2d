@@ -33,6 +33,11 @@ ani_status AniRoundRect::AniInit(ani_env *env)
             reinterpret_cast<void*>(ConstructorWithRect) },
         ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/RoundRect;:V",
             reinterpret_cast<void*>(ConstructorWithRoundRect) },
+        ani_native_function { "setCorner", "C{@ohos.graphics.drawing.drawing.CornerPos}dd:",
+            reinterpret_cast<void*>(SetCorner) },
+        ani_native_function { "getCorner", "C{@ohos.graphics.drawing.drawing.CornerPos}:"
+            "C{@ohos.graphics.common2D.common2D.Point}", reinterpret_cast<void*>(GetCorner) },
+        ani_native_function { "offset", "dd:", reinterpret_cast<void*>(Offset) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -76,7 +81,100 @@ void AniRoundRect::ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_ob
     }
 }
 
-RoundRect& AniRoundRect::GetRoundRect()
+void AniRoundRect::SetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos, ani_double x, ani_double y)
+{
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj);
+    if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRoundRect::SetCorner aniRoundRect is nullptr.");
+        return;
+    }
+    ani_int pos;
+    if (ANI_OK != env->EnumItem_GetValue_Int(aniPos, &pos)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRoundRect::SetCorner get CornerPos enum failed.");
+        return;
+    }
+    aniRoundRect->GetRoundRect()->SetCornerRadius(static_cast<RoundRect::CornerPos>(pos), x, y);
+}
+
+ani_object AniRoundRect::GetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos)
+{
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj);
+    if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRoundRect::GetCorner aniRoundRect is nullptr.");
+        return CreateAniUndefined(env);
+    }
+    ani_int pos;
+    if (ANI_OK != env->EnumItem_GetValue_Int(aniPos, &pos)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRoundRect::GetCorner get CornerPos enum failed.");
+        return CreateAniUndefined(env);
+    }
+    auto point = aniRoundRect->GetRoundRect()->GetCornerRadius(static_cast<RoundRect::CornerPos>(pos));
+    ani_object aniObj = nullptr;
+    if (CreatePointObj(env, point, aniObj) != ANI_OK) {
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+}
+
+void AniRoundRect::Offset(ani_env* env, ani_object obj, ani_double x, ani_double y)
+{
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, obj);
+    if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniRoundRect::Offset aniRoundRect is nullptr.");
+        return;
+    }
+    aniRoundRect->GetRoundRect()->Offset(x, y);
+}
+
+ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsRoundRect = reinterpret_cast<JsRoundRect*>(unwrapResult);
+    if (jsRoundRect->GetRoundRectPtr() == nullptr) {
+        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic jsRoundRect is null");
+        return nullptr;
+    }
+
+    auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
+    ani_object aniRoundRectObj = CreateAniObject(env, ANI_CLASS_ROUND_RECT_NAME, ":V");
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniRoundRectObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniRoundRect))) {
+        ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");
+        delete aniRoundRect;
+        return nullptr;
+    }
+    return aniRoundRectObj;
+}
+
+ani_long AniRoundRect::GetRoundRectAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, input);
+    if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
+        ROSEN_LOGE("AniRoundRect::GetRoundRectAddr aniRoundRect is null");
+        return 0;
+    }
+    return reinterpret_cast<ani_long>(aniRoundRect->GetRoundRectPtrAddr());
+}
+
+std::shared_ptr<RoundRect>* AniRoundRect::GetRoundRectPtrAddr()
+{
+    return &roundRect_;
+}
+
+std::shared_ptr<RoundRect> AniRoundRect::GetRoundRect()
 {
     return roundRect_;
 }

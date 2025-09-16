@@ -31,6 +31,9 @@ public:
     static void ConstructorWithRect(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double xRadii,
         ani_double yRadii);
     static void ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_object aniRoundRectObj);
+    static void SetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos, ani_double x, ani_double y);
+    static ani_object GetCorner(ani_env* env, ani_object obj, ani_enum_item aniPos);
+    static void Offset(ani_env* env, ani_object obj, ani_double x, ani_double y);
 
     RoundRect& GetRoundRect();
 
