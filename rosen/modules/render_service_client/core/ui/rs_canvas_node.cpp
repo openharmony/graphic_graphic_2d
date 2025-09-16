@@ -307,12 +307,9 @@ NodeId RSCanvasNode::GetLinkedRootNodeId()
 
 bool RSCanvasNode::Marshalling(Parcel& parcel) const
 {
-    bool success =
-        parcel.WriteUint64(GetId()) && parcel.WriteBool(IsRenderServiceNode()) && parcel.WriteUint64(linkedRootNodeId_);
-    if (!success) {
-        ROSEN_LOGE("RSCanvasNode::Marshalling, read parcel failed");
-    }
-    return success;
+    return parcel.WriteUint64(GetId()) &&
+        parcel.WriteBool(IsRenderServiceNode()) &&
+        parcel.WriteUint64(linkedRootNodeId_);
 }
 
 RSCanvasNode::SharedPtr RSCanvasNode::Unmarshalling(Parcel& parcel)

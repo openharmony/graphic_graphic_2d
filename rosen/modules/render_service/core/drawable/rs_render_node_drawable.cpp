@@ -319,7 +319,7 @@ bool RSRenderNodeDrawable::DealWithWhiteListNodes(Drawing::Canvas& canvas)
     const auto& params = GetRenderParams();
     if (!params) {
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture params is nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DealWithWhiteListNodes params is nullptr");
         return true;
     }
     auto info = params->GetVirtualScreenWhiteListInfo();
@@ -404,7 +404,7 @@ void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
 void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
 #ifdef RS_ENABLE_PREFETCH
-            __builtin_prefetch(&cachedImage_, 0, 1);
+    __builtin_prefetch(&cachedImage_, 0, 1);
 #endif
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     RS_LOGD("RSRenderNodeDrawable::CheckCacheTAD drawingCacheIncludeProperty is %{public}d",
@@ -416,7 +416,7 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     if (uniParam && uniParam->IsMirrorScreen() && hasChildInBlackList_) {
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSRenderNodeDrawable::DrawWithNodeGroupCache skip DrawCachedImage on mirror screen if node is in "
-            "wireless screen mirroring blacklist");
+            "blacklist");
         RSRenderNodeDrawable::OnDraw(canvas);
         return;
     }
@@ -574,7 +574,7 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
         drawingCacheInfos_.clear();
         cacheUpdatedNodeMap_.clear();
     }
-
+ 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
     autoCacheRenderNodeInfos_.clear();
@@ -586,6 +586,7 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(
     RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
+        auto screenParams = static_cast<RSScreenRenderParams*>(params.get());
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(cacheInfo.second);
@@ -914,7 +915,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     RSParallelMisc::AdaptSubTreeThreadId(canvas, threadId);
 #endif
 
-    bool isHdrOn = false;
+    bool isHdrOn = false; // todo: temporary set false, fix in future
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;
@@ -1031,12 +1032,12 @@ int RSRenderNodeDrawable::GetProcessedNodeCount()
 {
     return processedNodeCount_;
 }
-
+ 
 void RSRenderNodeDrawable::ProcessedNodeCountInc()
 {
     ++processedNodeCount_;
 }
-
+ 
 void RSRenderNodeDrawable::ClearProcessedNodeCount()
 {
     processedNodeCount_ = 0;
@@ -1074,7 +1075,7 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
     }
     auto& unionRect = opincDrawCache_.GetOpListUnionArea();
     AppendFormat(ret, "%" PRIu64 ", rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d,"
-        " isOpincDropNodeExt:%d", params->GetId(), params->OpincGetRootFlag(),
+        "isOpincDropNodeExt:%d", params->GetId(), params->OpincGetRootFlag(),
         opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
         opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), isOpincDropNodeExt_);
     auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();

@@ -27,6 +27,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr int EDGE_WIDTH_LIMIT = 1000;
+}
 RSCanvasDrawingNode::RSCanvasDrawingNode(
     bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSCanvasNode(isRenderServiceNode, isTextureExportNode, rsUIContext)
@@ -53,6 +56,10 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
 
 bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 {
+    if (width > EDGE_WIDTH_LIMIT) {
+        ROSEN_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 "width:%{public}d height:%{public}d",
+            GetId(), width, height);
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId(), width, height);
     if (AddCommand(command, IsRenderServiceNode())) {
         return true;
@@ -113,16 +120,6 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     return true;
 }
 
-void RSCanvasDrawingNode::RegisterNodeMap()
-{
-    auto rsContext = GetRSUIContext();
-    if (rsContext == nullptr) {
-        return;
-    }
-    auto& nodeMap = rsContext->GetMutableNodeMap();
-    nodeMap.RegisterNode(shared_from_this());
-}
-
 bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
@@ -164,5 +161,16 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     }
     return true;
 }
+
+void RSCanvasDrawingNode::RegisterNodeMap()
+{
+    auto rsContext = GetRSUIContext();
+    if (rsContext == nullptr) {
+        return;
+    }
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.RegisterNode(shared_from_this());
+}
+
 } // namespace Rosen
 } // namespace OHOS

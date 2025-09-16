@@ -17,7 +17,7 @@
 
 #include "rs_trace.h"
 #ifdef ROSEN_OHOS
-#include "hisysevent.h"
+#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 #include "sandbox_utils.h"
 #endif
 #include "command/rs_display_node_command.h"
@@ -280,9 +280,6 @@ void RSDisplayNode::OnBoundsSizeChanged() const
                __func__, screenId_, GetId(), bounds.x_, bounds.y_, bounds.z_, bounds.w_);
 }
 
-RSDisplayNode::~RSDisplayNode()
-{
-    RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
-}
+RSDisplayNode::~RSDisplayNode() = default;
 } // namespace Rosen
 } // namespace OHOS
