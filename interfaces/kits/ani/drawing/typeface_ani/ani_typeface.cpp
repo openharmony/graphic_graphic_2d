@@ -23,7 +23,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TYPEFACE_NAME = "@ohos.graphics.drawing.drawing.Typeface}";
+const char* ANI_CLASS_TYPEFACE_NAME = "@ohos.graphics.drawing.drawing.Typeface";
 
 ani_status AniTypeface::AniInit(ani_env *env)
 {
