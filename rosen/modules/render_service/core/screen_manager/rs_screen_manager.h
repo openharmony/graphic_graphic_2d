@@ -422,7 +422,7 @@ private:
     void OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns);
 
     void PrintScreenBlackList(
-        std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const override;
+        std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;
 
     // physical screen
     void ProcessScreenConnected(std::shared_ptr<HdiOutput>& output);
