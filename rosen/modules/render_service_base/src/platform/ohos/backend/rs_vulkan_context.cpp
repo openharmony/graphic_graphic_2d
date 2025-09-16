@@ -21,6 +21,8 @@
 #include <dlfcn.h>
 #include <vector>
 #include "common/rs_optional_trace.h"
+#include "hetero_hdr/rs_hdr_pattern_manager.h"
+#include "hetero_hdr/rs_hdr_vulkan_task.h"
 #include "platform/common/rs_log.h"
 #include "render_context/memory_handler.h"
 #ifdef USE_M133_SKIA
@@ -879,7 +881,10 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
         RS_LOGD("%{public}s queue", __func__);
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
-        return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        std::vector<void*> keys = RSHDRVulkanTask::GetWaitSemaphoreKeys(pSubmits);
+        RSHDRPatternManager::Instance().MHCSubmitGPUTask(keys);
+        return ret;
     }
     RS_LOGE("%{public}s abnormal queue occured", __func__);
     return VK_ERROR_UNKNOWN;
