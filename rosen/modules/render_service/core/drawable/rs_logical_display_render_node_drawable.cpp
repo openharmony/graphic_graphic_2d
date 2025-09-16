@@ -711,12 +711,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSLogicalDisplayRen
     std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(*curScreenDrawable, matrix);
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, curScreenParams->GetScreenInfo());
 
-    auto width = mirroredParams->GetBounds().GetWidth();
-    auto height = mirroredParams->GetBounds().GetHeight();
-    if (mirroredParams->GetNodeRotation() == ScreenRotation::ROTATION_90 ||
-        mirroredParams->GetNodeRotation() == ScreenRotation::ROTATION_270) {
-        std::swap(width, height);
-    }
+    auto width = mirroredParams->GetFixedWidth();
+    auto height = mirroredParams->GetFixedWidth();
 
     auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
@@ -834,12 +830,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(RSLogicalDisplayR
     auto screenInfo = mirroredScreenParams->GetScreenInfo();
     uniParam->SetScreenInfo(screenInfo);
 
-    auto width = mirroredParams->GetBounds().GetWidth();
-    auto height = mirroredParams->GetBounds().GetHeight();
-    if (mirroredParams->GetNodeRotation() == ScreenRotation::ROTATION_90 ||
-        mirroredParams->GetNodeRotation() == ScreenRotation::ROTATION_270) {
-        std::swap(width, height);
-    }
+    auto width = mirroredParams->GetFixedWidth();
+    auto height = mirroredParams->GetFixedHeight();
     Drawing::Rect rect(0, 0, width, height);
     curCanvas_->ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
     curCanvas_->Translate(-mirroredParams->GetOffsetX(), -mirroredParams->GetOffsetY());
