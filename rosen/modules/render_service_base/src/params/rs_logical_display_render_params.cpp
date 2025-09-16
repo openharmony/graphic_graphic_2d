@@ -50,6 +50,8 @@ void RSLogicalDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>&
     targetLogicalDisplayRenderParam->hasCaptureWindow_ = hasCaptureWindow_;
     targetLogicalDisplayRenderParam->offsetX_ = offsetX_;
     targetLogicalDisplayRenderParam->offsetY_ = offsetY_;
+    targetLogicalDisplayRenderParam->fixedWidth_ = fixedWidth_;
+    targetLogicalDisplayRenderParam->fixedHeight_ = fixedHeight_;
 
     RSRenderParams::OnSync(target);
 }

@@ -1232,17 +1232,10 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
         return;
     }
 
-    auto mainWidth = enableVisibleRect_ ? curVisibleRect_.GetWidth() : mirroredParams->GetBounds().GetWidth();
-    auto mainHeight = enableVisibleRect_ ? curVisibleRect_.GetHeight() : mirroredParams->GetBounds().GetHeight();
+    auto mainWidth = enableVisibleRect_ ? curVisibleRect_.GetWidth() : mirroredParams->GetFixedWidth();
+    auto mainHeight = enableVisibleRect_ ? curVisibleRect_.GetHeight() : mirroredParams->GetFixedHeight();
     auto mirrorWidth = screenParam->GetBounds().GetWidth();
     auto mirrorHeight = screenParam->GetBounds().GetHeight();
-
-    auto nodeRotation = mirroredParams->GetNodeRotation();
-    bool needRotate = (nodeRotation == ScreenRotation::ROTATION_90 || nodeRotation == ScreenRotation::ROTATION_270) &&
-        !enableVisibleRect_;
-    if (needRotate) {
-        std::swap(mainWidth, mainHeight);
-    }
 
     auto rotation = mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();

@@ -132,7 +132,6 @@ private:
     float mirroredScreenHeight_ = 0.f;
     bool canvasRotation_ = false;
     bool autoBufferRotation_ = false; // whether buffer rotation is automatically adjusted based on the screen rotation
-    bool isMirroredDisplayRotating_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;

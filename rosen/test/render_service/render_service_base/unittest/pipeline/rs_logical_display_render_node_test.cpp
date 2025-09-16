@@ -470,4 +470,31 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, GetCompositeTypeTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     EXPECT_EQ(renderNode->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
 }
+
+/**
+ * @tc.name: UpdateDimensionsTest
+ * @tc.desc: test results of UpdateDimensions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateDimensionsTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    renderNode->InitRenderParams();
+    auto& geo = renderNode->GetRenderProperties().GetBoundsGeometry();
+    geo->SetRotation(90);
+    renderNode->UpdateRotation();
+    renderNode->UpdateFixedSize();
+
+    renderNode->UpdateRotation();
+    renderNode->UpdateFixedSize();
+
+    geo->SetRotation(270);
+    renderNode->UpdateRotation();
+    renderNode->UpdateRotation();
+    renderNode->UpdateFixedSize();
+    EXPECT_EQ(renderNode->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
+}
 } // namespace OHOS::Rosen

@@ -197,19 +197,14 @@ bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayR
         if (mirroredParams) {
             auto mirroredDisplayParams = static_cast<RSLogicalDisplayRenderParams*>(mirroredParams.get());
             auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredDisplayParams->GetScreenId());
-            mirroredScreenWidth_ = mirroredDisplayParams->GetBounds().GetWidth();
-            mirroredScreenHeight_ = mirroredDisplayParams->GetBounds().GetHeight();
-            if (mirroredDisplayParams->GetNodeRotation() == ScreenRotation::ROTATION_90 ||
-                mirroredDisplayParams->GetNodeRotation() == ScreenRotation::ROTATION_270) {
-                std::swap(mirroredScreenWidth_, mirroredScreenHeight_);
-            }
+            mirroredScreenWidth_ = mirroredDisplayParams->GetFixedWidth();
+            mirroredScreenHeight_ = mirroredDisplayParams->GetFixedHeight();
             if (mainScreenInfo.isSamplingOn) {
                 mirroredScreenWidth_ *= mainScreenInfo.samplingScale;
                 mirroredScreenHeight_ *= mainScreenInfo.samplingScale;
             }
             mirroredTranslateX_ = mirroredDisplayParams->GetOffsetX();
             mirroredTranslateY_ = mirroredDisplayParams->GetOffsetY();
-            isMirroredDisplayRotating_ = mirroredDisplayParams->IsRotationChanged();
         }
     }
     return true;
@@ -553,7 +548,7 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         startY = (mirrorHeight / mirrorScaleY_ - mainHeight) / 2; // 2 for calc Y
     }
 
-    if (EnableSlrScale() && !isMirroredDisplayRotating_) {
+    if (EnableSlrScale()) {
         if (slrManager_ == nullptr) {
             slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
                 mirroredScreenWidth_, mirroredScreenHeight_);
