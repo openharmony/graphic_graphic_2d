@@ -456,6 +456,15 @@ void RSSurfaceOhosVulkan::PrepareHdrSemaphoreVector(
     }
 }
 
+void RSSurfaceOhosVulkan::CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface)
+{
+    surface.fence.reset();
+    auto& buffer = mSurfaceList.front();
+    mSurfaceList.pop_front();
+    NativeWindowCancelBuffer(mNativeWindow, buffer);
+    mSurfaceMap.erase(buffer);
+}
+
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
     if (mSurfaceList.empty()) {
@@ -544,6 +553,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         if (err == VK_ERROR_DEVICE_LOST) {
             vkContext.DestroyAllSemaphoreFence();
         }
+        CancelBuffer(surface);
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
@@ -562,6 +572,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
+        CancelBuffer(surface);
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
