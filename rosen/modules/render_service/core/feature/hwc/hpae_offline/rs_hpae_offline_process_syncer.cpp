@@ -64,7 +64,7 @@ std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::GetTaskFuture(
 bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(uint64_t taskId,
     std::chrono::milliseconds timeout, ProcessOfflineResult& processOfflineResult)
 {
-    RS_TRACE_NAME_FMT("Wait for offline task.", __func__);
+    RS_TRACE_NAME_FMT("Wait for offline task.");
     auto future = GetTaskFuture(taskId);
     if (!future) {
         RS_OFFLINE_LOGE("%{public}s, task is null.", __func__);
