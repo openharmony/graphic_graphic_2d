@@ -106,6 +106,7 @@ private:
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
         surfaceBufferCallbacks_;
     std::map<std::pair<pid_t, uint64_t>, BufferQueueData> stagingSurfaceBufferIds_;
+    std::map<pid_t, uint64_t> processCallbackCount_;
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
     std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {

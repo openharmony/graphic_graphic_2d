@@ -301,7 +301,7 @@ protected:
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
-    int GetcountOfClipHoleForCache(const RSRenderParams& params) const;
+    int GetCountOfClipHoleForCache(const RSRenderParams& params) const;
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
