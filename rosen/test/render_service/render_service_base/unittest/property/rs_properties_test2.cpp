@@ -1277,5 +1277,20 @@ HWTEST_F(PropertiesTest,  UpdateForegroundFilterTest_RenderFilter001, TestSize.L
     properties.UpdateForegroundFilter();
     EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
 }
+
+/**
+ * @tc.name: PixelStretchUpdateFilterFlag001
+ * @tc.desc: test update filter flag with pixel stretch enable
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, PixelStretchUpdateFilterFlag001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetPixelStretch(Vector4f(10.0, 10.0, 10.0, 10.0));
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.NeedFilter());
+    EXPECT_TRUE(properties.NeedHwcFilter());
+    EXPECT_TRUE(properties.DisableHWCForFilter());
+}
 } // namespace Rosen
 } // namespace OHOS

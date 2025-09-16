@@ -4401,6 +4401,7 @@ void RSProperties::OnApplyModifiers()
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
+        filterNeedUpdate_ = true;
     }
 
     if (bgShaderNeedUpdate_) {
@@ -4443,12 +4444,13 @@ void RSProperties::UpdateFilter()
                   GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ || mask_ ||
-                  colorFilter_ != nullptr || localMagnificationCap_;
+                  colorFilter_ != nullptr || localMagnificationCap_ || pixelStretch_.has_value();
 
     needHwcFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
-                     needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_;
+                     needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_ ||
+                     pixelStretch_.has_value();
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(filter_) ||
@@ -4468,7 +4470,8 @@ bool RSProperties::DisableHWCForFilter() const
         (foregroundFilter_ != nullptr && foregroundFilter_->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsFgBrightnessValid() || IsBgBrightnessValid() ||
         (foregroundFilterCache_ != nullptr && foregroundFilterCache_->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
-        IsWaterRippleValid() || needDrawBehindWindow_ || mask_ || colorFilter_ != nullptr || localMagnificationCap_;
+        IsWaterRippleValid() || needDrawBehindWindow_ || mask_ || colorFilter_ != nullptr || localMagnificationCap_ ||
+        pixelStretch_.has_value();
 }
 
 void RSProperties::UpdateForegroundFilter()
