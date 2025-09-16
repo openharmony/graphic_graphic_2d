@@ -14,7 +14,7 @@
  */
 
 namespace colorSpaceManager {
-  loadLibrary("colorspacemanager_ani");
+  loadLibraryWithPermissionCheck("colorspacemanager_ani", "@ohos.graphics.colorSpaceManager");
   export enum ColorSpace {
     UNKNOWN = 0,
     ADOBE_RGB_1998 = 1,
@@ -67,7 +67,7 @@ namespace colorSpaceManager {
   }
 
   class ColorSpaceManagerInner implements ColorSpaceManager {
-    static { loadLibrary("colorspacemanager_ani"); }
+    static { loadLibraryWithPermissionCheck("colorspacemanager_ani", "@ohos.graphics.colorSpaceManager"); }
     private nativePtr: long = 0;
 
     constructor(nativePtr: long) {
