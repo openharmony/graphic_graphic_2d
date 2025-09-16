@@ -48,6 +48,9 @@ private:
     bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
     bool ReadSurfaceCaptureAreaRect(Drawing::Rect& specifiedAreaRect, MessageParcel& data);
     void SetQos();
+
+    virtual std::string GetBundleName(pid_t pid) { return {}; }
+
     RSRenderServiceSecurityUtils securityUtils_;
     std::unordered_set<int> tids_;
     std::mutex mutex_;

@@ -275,4 +275,45 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest001, TestSize.Level1
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(uniqueId));
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(0));
 }
+
+/**
+ * @tc.name: GetBundleNameTest001
+ * @tc.desc: GetBundleName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    constexpr pid_t testPid = 1234;
+    const std::string expectedBundleName = "com.example.app";
+    rsRenderServiceConnection->pidToBundleName_[testPid] = expectedBundleName;
+
+    std::string actualBundleName = rsRenderServiceConnection->GetBundleName(testPid);
+    EXPECT_EQ(actualBundleName, expectedBundleName);
+}
+
+/**
+ * @tc.name: GetBundleNameTest002
+ * @tc.desc: GetBundleName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    constexpr pid_t testPid = -1;
+    const std::string bundleName = rsRenderServiceConnection->GetBundleName(testPid);
+    EXPECT_TRUE(bundleName.empty());
+}
 } // namespace OHOS::Rosen

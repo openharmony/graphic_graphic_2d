@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "hgm_config_callback_manager.h"
 #include "ipc_callbacks/buffer_available_callback.h"
@@ -469,6 +470,8 @@ private:
 
     void ClearUifirstCache(NodeId id) override;
 
+    std::string GetBundleName(pid_t pid) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
@@ -477,6 +480,9 @@ private:
 #endif
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
+
+    std::unordered_map<pid_t, std::string> pidToBundleName_;
+    mutable std::mutex pidToBundleMutex_;
 
     class RSConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

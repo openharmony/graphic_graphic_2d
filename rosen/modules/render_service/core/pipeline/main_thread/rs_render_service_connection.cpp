@@ -94,6 +94,8 @@
 #undef LOG_TAG
 #define LOG_TAG "RSRenderServiceConnection"
 
+#include "app_mgr_client.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -300,6 +302,12 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_LOGW("CleanAll() RenderService is dead.");
         }
     }
+
+    {
+        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+        pidToBundleName_.clear();
+    }
+
     RS_LOGD("CleanAll() end.");
     RS_TRACE_NAME("RSRenderServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
 }
@@ -3766,6 +3774,31 @@ void RSRenderServiceConnection::ClearUifirstCache(NodeId id)
         RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
     };
     mainThread_->PostTask(task);
+}
+
+std::string RSRenderServiceConnection::GetBundleName(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+    if (auto it = pidToBundleName_.find(pid); it != pidToBundleName_.end()) {
+        return it->second;
+    }
+
+    static const auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        RS_LOGE("GetBundleName get appMgrClient fail.");
+        return {};
+    }
+
+    std::string bundleName{};
+    int32_t uid{0};
+    int32_t ret = appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+    if ((ret != ERR_OK) || bundleName.empty()) {
+        RS_LOGE("GetBundleName failed, ret=%{public}d.", ret);
+        return {};
+    }
+
+    pidToBundleName_.emplace(pid, bundleName);
+    return bundleName;
 }
 } // namespace Rosen
 } // namespace OHOS
