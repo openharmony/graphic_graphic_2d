@@ -286,7 +286,7 @@ public:
 
     bool NeedBilinearInterpolation() const
     {
-        return nodeType_ == (RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
+        return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
             nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
