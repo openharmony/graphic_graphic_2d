@@ -53,7 +53,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
 enum class DrawingErrorCode : int32_t {
     OK = 0,
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
@@ -100,6 +99,8 @@ inline std::string CreateStdString(ani_env* env, ani_string aniStr)
     buffer[byteSize] = '\0';
     return std::string(buffer.get());
 }
+
+ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str);
 
 template<typename T>
 T* GetNativeFromObj(ani_env* env, ani_object obj)

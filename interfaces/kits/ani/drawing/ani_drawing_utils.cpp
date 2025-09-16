@@ -63,6 +63,30 @@ ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const ch
     return ANI_OK;
 }
 
+ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str)
+{
+    ani_size strSize;
+    ani_status status = env->String_GetUTF16Size(str, &strSize);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to get utf16 str size");
+        return status;
+    }
+
+    strSize++;
+    std::vector<uint16_t> buffer(strSize);
+    uint16_t* utf16Buffer = buffer.data();
+
+    ani_size bytesWritten = 0;
+    status = env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to get utf16 str");
+        return status;
+    }
+    utf16Buffer[bytesWritten] = '\0';
+    utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize - 1);
+    return ANI_OK;
+}
+
 ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
 {
     ani_class aniClass;
