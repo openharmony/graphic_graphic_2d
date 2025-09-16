@@ -32,6 +32,14 @@ public:
     static void ConstructorWithRegion(ani_env* env, ani_object obj, ani_object aniRegionObj);
     static void ConstructorWithRect(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
         ani_int bottom);
+    static ani_boolean QuickReject(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+        ani_int bottom);
+    static ani_boolean SetRect(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+        ani_int bottom);
+    static ani_boolean IsRegionContained(ani_env* env, ani_object obj, ani_object aniRegionObj);
+    static ani_boolean Op(ani_env* env, ani_object obj, ani_object aniRegionObj, ani_enum_item aniRegionOp);
+    static ani_boolean SetPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_enum_item aniClipRegion);
+    static ani_boolean IsPointContained(ani_env* env, ani_object obj, ani_int dx, ani_int dy);
 
     std::shared_ptr<Region> GetRegion();
 
