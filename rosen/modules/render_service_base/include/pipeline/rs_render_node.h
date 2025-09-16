@@ -296,7 +296,6 @@ public:
     std::list<WeakPtr> GetChildrenList() const;
 
     void DumpTree(int32_t depth, std::string& out) const;
-    void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 
@@ -563,8 +562,8 @@ public:
     const std::string& GetNodeName() const;
     bool HasSubSurface() const;
 
-    bool NeedInitCacheSurface();
-    bool NeedInitCacheCompletedSurface();
+    bool NeedInitCacheSurface() const;
+    bool NeedInitCacheCompletedSurface() const;
     bool IsPureContainer() const;
     bool IsContentNode() const;
     bool IsPureBackgroundColor() const;
@@ -1347,7 +1346,6 @@ private:
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
-    std::mutex childrenMutex_;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

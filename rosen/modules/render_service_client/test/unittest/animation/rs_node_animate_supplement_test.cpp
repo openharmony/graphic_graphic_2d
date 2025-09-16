@@ -48,11 +48,6 @@ public:
     {
         RSNode::OnRemoveChildren();
     };
-
-    std::vector<PropertyId> GetModifierIds()
-    {
-        return RSNode::GetModifierIds();
-    };
 };
 
 /**
@@ -607,8 +602,6 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest021, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto modifier = std::make_shared<RSAlphaModifier>(property);
     node->AddModifier(modifier);
-    auto ids = node->GetModifierIds();
-    EXPECT_TRUE(!ids.empty());
     node->DumpNode(10);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 end";
 }

@@ -44,7 +44,6 @@
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 #include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
-
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_motion_path_option.h"
@@ -91,6 +90,7 @@ class RSForegroundFilterModifier;
 class RSBackgroundFilterModifier;
 enum class RSModifierType : uint16_t;
 }
+
 /**
  * @class RSNode
  *
@@ -121,10 +121,18 @@ public:
      */
     virtual ~RSNode();
 
-    /*
-    * <important>
+    /**
+    * @brief Sets the drawing type of RSnode
+    *
+    *
     * If you want to add a draw interface to RSNode, decide whether to set the draw node type, otherwise,
     * RSNode will be removed because there is no draw properties.
+    * This function is used to set the corresponding draw type when
+    * adding draw properties to RSnode, so that it is easy to identify
+    * which draw nodes are really needed.
+    *
+    * @param nodeType the type of node that needs to be set.
+    *
     */
     void SetDrawNodeType(DrawNodeType nodeType);
 
@@ -161,9 +169,6 @@ public:
     virtual void RemoveChild(SharedPtr child);
     void RemoveChildByNodeSelf(WeakPtr child);
 
-    /**
-     * @brief Removes the current node from the node tree
-     */
     void RemoveFromTree();
 
     /**
@@ -174,7 +179,7 @@ public:
     {
         return children_;
     }
-    // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
+    // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullptr
     RSNode::SharedPtr GetChildByIndex(int index) const;
 
     /**
@@ -188,11 +193,6 @@ public:
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, SharedPtr newParent);
 
-    /**
-     * @brief Sets whether the node is a cross-screen node.
-     *
-     * @param isCrossNode Indicates whether the node is a cross-screen node.
-     */
     void SetIsCrossNode(bool isCrossNode);
 
     // PC extend screen use this
@@ -260,7 +260,7 @@ public:
     /**
      * @brief Casts this object to a shared pointer of the specified type T.
      *
-     * @return std::shared_ptr<const T> A shared pointer to the object as type T if the cast is valid, nullptr otherwise.
+     * @return std::shared_ptr<const T> A shared pointer to the object if the cast is valid, nullptr otherwise.
      */
     template<typename T>
     std::shared_ptr<const T> ReinterpretCastTo() const
@@ -356,6 +356,7 @@ public:
         const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
         const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
+
     static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
         const std::shared_ptr<RSUIContext> rsUIContext, const PropertyCallback& callback,
         const std::function<void()>& finishCallback, bool timingSensitive = true);
@@ -377,12 +378,12 @@ public:
     static CancelAnimationStatus CloseImplicitCancelAnimationReturnStatus(
         const std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
-    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
-    static void AddKeyFrame(
-        const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& callback);
-    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+    static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        float fraction, const PropertyCallback& callback);
+    static void AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
+        int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
     void NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
 
     void AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool isStartAnimation = true);
@@ -572,10 +573,10 @@ public:
     /**
      * @brief Sets the corner radius of the node.
      *
-     * @param cornerRadius A Vector4f representing the corner radius for each corner (top-left, top-right, bottom-right, bottom-left).
+     * @param cornerRadius A Vector4f representing the corner radius for each corner.
      */
     void SetCornerRadius(const Vector4f& cornerRadius);
-
+    
     /**
      * @brief Sets the rotation of the node.
      *
@@ -650,7 +651,7 @@ public:
      * @param translate The translation distance along the Z-axis.
      */
     void SetTranslateZ(float translate);
-
+    
     /**
      * @brief Sets the scale factor for the node.
      *
@@ -872,13 +873,7 @@ public:
      * @param colorValue The color value to set.
      */
     void SetBackgroundColor(uint32_t colorValue);
-
-    /**
-     * @brief Sets the background color of the node, support color with different color space.
-     *
-     * @param color The color to set.
-     */
-    void SetBackgroundColor(RSColor color);
+    void SetBackgroundColor(const RSColor& color);
 
     /**
      * @brief Sets the background shader for this node.
@@ -951,7 +946,7 @@ public:
      * @param positionY The Y coordinate of the background image position.
      */
     void SetBgImagePositionY(float positionY);
-
+    
     /**
      * @brief Sets the border color of the node.
      *
@@ -1072,7 +1067,7 @@ public:
      * @param color Indicates outline color,each color contains rgb and alpha.
      */
     void SetOutlineColor(const Vector4<Color>& color);
-
+    
     /**
      * @brief Sets the outline width of the node.
      *
@@ -1086,7 +1081,7 @@ public:
      * @param style Indicates values to be used as the outline style.
      */
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
-
+    
     /**
      * @brief Sets the dash width for the outline of the node.
      *
@@ -1166,18 +1161,18 @@ public:
     void SetForegroundNGFilter(const std::shared_ptr<RSNGFilterBase>& foregroundFilter);
 
     /**
-     * @brief Sets the background shader.
-     *
-     * @param backgroundShader Indicates the background shader to be applied.
-     */
-    void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
-
-    /**
      * @brief Sets the foreground shader.
      *
      * @param foregroundShader Indicates the foreground shader to be applied.
      */
     void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
+
+    /**
+     * @brief Sets the background shader.
+     *
+     * @param backgroundShader Indicates the background shader to be applied.
+     */
+    void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
 
     /**
      * @brief Sets the filter.
@@ -1420,8 +1415,8 @@ public:
     /**
      * @brief Sets a rounded rectangle clipping region for the node.
      *
-     * @param clipRect The bounds of the clipping rectangle,represented as (x, y, width, height).
-     * @param clipRadius The radii for the rectangle's corners,represented as (topLeft, topRight, bottomRight, bottomLeft).
+     * @param clipRect The bounds of the clipping rectangle.
+     * @param clipRadius The radius for the rectangle's corners.
      */
     void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
 
@@ -1467,11 +1462,6 @@ public:
      */
     void SetHDRBrightness(const float& hdrBrightness);
 
-    /**
-     * @brief Sets the HDR brightness factor to display node.
-     *
-     * @param factor The HDR brightness factor to set.
-     */
     void SetHDRBrightnessFactor(float factor);
 
     /**
@@ -1489,11 +1479,6 @@ public:
      */
     void SetSpherizeDegree(float spherizeDegree);
 
-    /**
-     * @brief Sets the brightness ratio of HDR UI component.
-     *
-     * @param hdrUIBrightness The HDR UI component brightness ratio.
-     */
     void SetHDRUIBrightness(float hdrUIBrightness);
 
     /**
@@ -1663,12 +1648,12 @@ public:
     {
         return isTextureExportNode_;
     }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
 
     size_t GetAnimationsCount() const
     {
         return animations_.size();
     }
-    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
 
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
@@ -1716,6 +1701,37 @@ public:
         return nodeName_;
     }
 
+    
+    /**
+     * @brief Gets the context for the RSUI.
+     *
+     * @return A shared pointer to the RSUIContext object.
+     */
+    std::shared_ptr<RSUIContext> GetRSUIContext()
+    {
+        return rsUIContext_.lock();
+    }
+    void SetUIContextToken();
+
+    /**
+     * @brief Sets the context for the RSUI.
+     *
+     * @param rsUIContext A shared pointer to the RSUIContext object.
+     */
+    void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
+
+    /**
+     * @brief Sets whether to skip check in multi-instance.
+     *
+     * @param isSkipCheckInMultiInstance true to skip check; false otherwise.
+     */
+    void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
+
+    bool GetIsOnTheTree()
+    {
+        return isOnTheTree_;
+    }
+
     static DrawNodeChangeCallback drawNodeChangeCallback_;
     static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
     static PropertyNodeChangeCallback propertyNodeChangeCallback_;
@@ -1742,31 +1758,6 @@ public:
         const ModifierNG::RSModifierType& modifierType, const ModifierNG::RSPropertyType& propertyType);
 
     /**
-     * @brief Gets the context for the RSUI.
-     *
-     * @return A shared pointer to the RSUIContext object.
-     */
-    std::shared_ptr<RSUIContext> GetRSUIContext()
-    {
-        return rsUIContext_.lock();
-    }
-    void SetUIContextToken();
-
-    /**
-     * @brief Sets the context for the RSUI.
-     *
-     * @param rsUIContext A shared pointer to the RSUIContext object.
-     */
-    void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
-
-    /**
-     * @brief Sets whether to skip check in multi-instance.
-     *
-     * @param isSkipCheckInMultiInstance true to skip check; false otherwise.
-     */
-    void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
-
-    /**
      * @brief Gets whether the canvas enables hybrid rendering.
      *
      * @return true if hybrid rendering is enabled; false otherwise.
@@ -1782,16 +1773,6 @@ public:
      * @param hybridRenderCanvas true to enable hybrid rendering; false otherwise.
      */
     virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
-
-    /**
-     * @brief Gets whether the node is on the tree.
-     *
-     * @return true if the node is on the tree; false otherwise.
-     */
-    bool GetIsOnTheTree()
-    {
-        return isOnTheTree_;
-    }
 
     /**
      * @brief Enables/disables control-level occlusion culling for the node's subtree
@@ -1816,8 +1797,6 @@ protected:
         bool isOnTheTree = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
-
-    void DumpModifiers(std::string& out) const;
 
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
@@ -1847,9 +1826,10 @@ protected:
         return false;
     }
 
+    void DumpModifiers(std::string& out) const;
+
     void DoFlushModifier();
 
-    std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
     bool isCustomTypeface_ = false;
 
@@ -1893,7 +1873,7 @@ protected:
      * @return true if the command was successfully added; false otherwise.
      */
     bool AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
-        FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
+                    FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
 
     /**
      * @brief Sets whether the node is on the tree.
@@ -1982,18 +1962,9 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id, const bool needForceSync = false);
 
-
-    /**
-     * @brief Retrieves the modifier associated with the specified property ID.
-     *
-     * @param propertyId The identifier of the property whose modifier is to be retrieved.
-     * @return The shared pointer to the corresponding RSModifier,or nullptr if not found.
-     */
-    const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
     const std::shared_ptr<RSPropertyBase> GetProperty(const PropertyId& propertyId);
     void RegisterProperty(std::shared_ptr<RSPropertyBase> property);
     void UnregisterProperty(const PropertyId& propertyId);
-
 
     /**
      * @brief Called when the bounds size of the node has changed.
@@ -2043,9 +2014,7 @@ private:
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
-    std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
     std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
-    std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
 
     std::shared_ptr<RectF> drawRegion_;
@@ -2072,8 +2041,6 @@ private:
     friend class RSModifierExtractor;
     friend class ModifierNG::RSModifier;
     friend class ModifierNG::RSCustomModifier;
-    friend class RSBackgroundUIFilterModifier;
-    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;

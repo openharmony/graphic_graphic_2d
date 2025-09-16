@@ -2253,7 +2253,7 @@ bool RSProperties::IsHDRUIBrightnessValid() const
 void RSProperties::CreateHDRUIBrightnessFilter()
 {
     auto hdrUIBrightnessFilter = std::make_shared<RSHDRUIBrightnessFilter>(hdrUIBrightness_);
-    if (IS_UNI_RENDER) {
+    if (NeedGenerateForegroundFilterCache()) {
         foregroundFilterCache_ = hdrUIBrightnessFilter;
     } else {
         foregroundFilter_ = hdrUIBrightnessFilter;
@@ -2291,7 +2291,7 @@ void RSProperties::CreateFlyOutShaderFilter()
 void RSProperties::CreateSphereEffectFilter()
 {
     auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-    if (IS_UNI_RENDER) {
+    if (NeedGenerateForegroundFilterCache()) {
         foregroundFilterCache_ = spherizeEffectFilter;
     } else {
         foregroundFilter_ = spherizeEffectFilter;
@@ -4457,14 +4457,14 @@ void RSProperties::UpdateForegroundFilter()
     foregroundFilterCache_.reset();
     if (motionBlurPara_ && ROSEN_GNE(motionBlurPara_->radius, 0.0)) {
         auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
-        if (IS_UNI_RENDER) {
+        if (NeedGenerateForegroundFilterCache()) {
             foregroundFilterCache_ = motionBlurFilter;
         } else {
             foregroundFilter_ = motionBlurFilter;
         }
     } else if (IsForegroundEffectRadiusValid()) {
         auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(foregroundEffectRadius_);
-        if (IS_UNI_RENDER) {
+        if (NeedGenerateForegroundFilterCache()) {
             foregroundFilterCache_ = foregroundEffectFilter;
         } else {
             foregroundFilter_ = foregroundEffectFilter;
@@ -4484,7 +4484,7 @@ void RSProperties::UpdateForegroundFilter()
         if (GetShadowMask() == SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR) {
             colorfulShadowFilter->SetShadowColorMask(GetShadowColor());
         }
-        if (IS_UNI_RENDER) {
+        if (NeedGenerateForegroundFilterCache()) {
             foregroundFilterCache_ = colorfulShadowFilter;
         } else {
             foregroundFilter_ = colorfulShadowFilter;
@@ -4621,6 +4621,16 @@ void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
     }
 #endif
     haveEffectRegion_ = haveEffectRegion;
+}
+
+void RSProperties::SetIsTextureExportNode(bool isTextureExportNode)
+{
+    isTextureExportNode_ = isTextureExportNode;
+}
+
+bool RSProperties::NeedGenerateForegroundFilterCache() const
+{
+    return IS_UNI_RENDER && !isTextureExportNode_;
 }
 
 void RSProperties::ResetBorder(bool isOutline)

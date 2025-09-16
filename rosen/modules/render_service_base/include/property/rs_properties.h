@@ -792,6 +792,7 @@ public:
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
 
+    void SetIsTextureExportNode(bool isTextureExportNode);
 private:
     inline float DecreasePrecision(float value)
     {
@@ -830,6 +831,7 @@ private:
     bool NeedClip() const;
     bool NeedBlurFuzed();
     bool NeedLightBlur(bool disableSystemAdaptation);
+    bool NeedGenerateForegroundFilterCache() const;
 
     void GenerateRRect();
     RectI GetDirtyRect() const;
@@ -874,6 +876,7 @@ private:
     bool bgBlurDisableSystemAdaptation = true;
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
+    bool isTextureExportNode_ = false;
     bool localMagnificationCap_ = false;
     float hdrBrightnessFactor_ = 1.0f; // for displayNode
     float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
