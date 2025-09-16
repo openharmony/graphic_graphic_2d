@@ -104,6 +104,7 @@ private:
         GrBackendSemaphore& backendSemaphore, NativeBufferUtils::NativeSurfaceInfo& surface,
         std::vector<uint64_t> &frameIdVec,
         std::vector<GrBackendSemaphore> &semphoreVec);
+    void CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface);
 };
 
 } // namespace Rosen
