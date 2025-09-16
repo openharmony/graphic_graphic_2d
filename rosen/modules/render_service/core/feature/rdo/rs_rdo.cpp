@@ -112,7 +112,7 @@ static void RDOInstallSignalHandler(void (*SigHandler)(int, siginfo_t *, void *)
 
 static void ProcessPipeMessage(int pipe_fd)
 {
-    char msg_buf[MSG_LEN];
+    char msg_buf[MSG_LEN + 1];
     memset_s(msg_buf, sizeof(msg_buf), 0, sizeof(msg_buf));
     if (read(pipe_fd, msg_buf, MSG_LEN) > 0) {
         RS_LOGI("[RDO] child process received message %{public}s", msg_buf);
