@@ -238,6 +238,8 @@ public:
      */
     bool GetFrameGravityNewVersionEnabled() const;
 
+    SharedPtr CreateShadowSurfaceNode();
+
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
 #endif
@@ -360,6 +362,7 @@ private:
     BufferAvailableCallback callback_;
     bool bufferAvailable_ = false;
     BoundsChangedCallback boundsChangedCallback_;
+    bool isShadowNode_ = false;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
