@@ -414,9 +414,8 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     }
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParam && uniParam->IsMirrorScreen() && hasChildInBlackList_) {
-        RS_OPTIONAL_TRACE_NAME_FMT(
-            "RSRenderNodeDrawable::DrawWithNodeGroupCache skip DrawCachedImage on mirror screen if node is in "
-            "blacklist");
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::DrawWithNodeGroupCache "
+            "skip DrawCachedImage on mirror screen if node is in blacklist");
         RSRenderNodeDrawable::OnDraw(canvas);
         return;
     }
@@ -574,7 +573,7 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
         drawingCacheInfos_.clear();
         cacheUpdatedNodeMap_.clear();
     }
- 
+
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
     autoCacheRenderNodeInfos_.clear();
@@ -586,7 +585,6 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(
     RSPaintFilterCanvas& canvas, const std::unique_ptr<RSRenderParams>& params)
 {
     if (isDrawingCacheEnabled_ && isDrawingCacheDfxEnabled_) {
-        auto screenParams = static_cast<RSScreenRenderParams*>(params.get());
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         for (const auto& [id, cacheInfo] : drawingCacheInfos_) {
             std::string extraInfo = ", updateTimes:" + std::to_string(cacheInfo.second);
@@ -1032,12 +1030,12 @@ int RSRenderNodeDrawable::GetProcessedNodeCount()
 {
     return processedNodeCount_;
 }
- 
+
 void RSRenderNodeDrawable::ProcessedNodeCountInc()
 {
     ++processedNodeCount_;
 }
- 
+
 void RSRenderNodeDrawable::ClearProcessedNodeCount()
 {
     processedNodeCount_ = 0;

@@ -299,6 +299,11 @@ public:
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+
+    /**
+     * @brief Sets the API compatible version for the surface node.
+     * @param version The API version to set for compatibility.
+     */
     void SetApiCompatibleVersion(uint32_t version);
     // Specifying hardware enable is only a 'hint' to RS that
     // the self-drawing node use hardware composer in some condition,

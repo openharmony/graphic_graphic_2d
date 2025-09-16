@@ -141,13 +141,6 @@ public:
         return id_;
     }
 
-    // deprecated
-    void Attach(std::weak_ptr<RSRenderNode> node)
-    {
-        node_ = node;
-        OnChange();
-    }
-
     // Planning: move to protected
     void Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier = {});
     void Detach();
