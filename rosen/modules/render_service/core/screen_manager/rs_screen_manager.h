@@ -278,6 +278,8 @@ public:
     virtual bool IsScreenSwitching() const = 0;
 
     virtual int32_t SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix) = 0;
+
+    virtual bool CheckVirtualScreenStatusChanged(ScreenId id) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -539,6 +541,8 @@ public:
     int32_t SetScreenLinearMatrix(ScreenId id, const std::vector<float>& matrix) override;
     // Get all whiteList and their screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> GetScreenWhiteList() const override;
+
+    bool CheckVirtualScreenStatusChanged(ScreenId id) override;
 
 private:
     RSScreenManager();

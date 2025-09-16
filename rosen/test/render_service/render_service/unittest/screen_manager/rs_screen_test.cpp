@@ -1834,6 +1834,21 @@ HWTEST_F(RSScreenTest, SetVirtualScreenStatus_002, testing::ext::TestSize.Level1
 }
 
 /*
+ * @tc.name: SetVirtualScreenStatus_003
+ * @tc.desc: SetVirtualScreenStatus Test, IsVirtual true and diffrent virtual screen status
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetVirtualScreenStatus_003, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ASSERT_TRUE(rsScreen->SetVirtualScreenStatus(VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE));
+}
+
+/*
  * @tc.name: GetVirtualScreenStatus_001
  * @tc.desc: GetVirtualScreenStatus Test
  * @tc.type: FUNC

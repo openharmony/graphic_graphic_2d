@@ -144,6 +144,10 @@ public:
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
     virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
     virtual int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
+    virtual bool GetAndResetPSurfaceChange() = 0;
+    virtual void SetPSurfaceChange(bool pSurfaceChange) = 0;
+    virtual bool GetAndResetVirtualScreenPlay() = 0;
+    virtual void SetVirtualScreenPlay(bool virtualScreenPlay) = 0;
 };
 
 namespace impl {
@@ -257,6 +261,10 @@ public:
     void SetVisibleRectSupportRotation(bool supportRotation) override;
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
     int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) override;
+    bool GetAndResetPSurfaceChange() override;
+    void SetPSurfaceChange(bool pSurfaceChange) override;
+    bool GetAndResetVirtualScreenPlay() override;
+    void SetVirtualScreenPlay(bool virtualScreenPlay) override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -351,6 +359,10 @@ private:
 
     std::shared_mutex linearMatrixMutex_;
     std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    // status for full screen dirty region update
+    std::atomic<bool> pSurfaceChange_ = false;
+    std::atomic<bool> virtualScreenPlay_ = false;
 };
 } // namespace impl
 } // namespace Rosen
