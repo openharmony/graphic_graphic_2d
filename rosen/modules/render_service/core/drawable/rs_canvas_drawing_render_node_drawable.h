@@ -87,7 +87,7 @@ private:
     Drawing::TextureOrigin GetTextureOrigin();
     void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
 #ifdef RS_ENABLE_VK
-    bool ReleaseSurfaceVK(int width, int height);
+    bool ReleaseSurfaceVk(int width, int height);
 #endif
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
