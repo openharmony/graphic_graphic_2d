@@ -274,7 +274,7 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
     using namespace HDI::Display::Graphic::Common::V1_0;
     auto iter = COLORSPACE_TYPE.find(colorSpace);
     if (iter == COLORSPACE_TYPE.end()) {
-        return GSERROR_OK;
+        return GSERROR_INVALID_ARGUMENTS;
     }
     CM_ColorSpaceInfo colorSpaceInfo;
     GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(iter->second, colorSpaceInfo);
