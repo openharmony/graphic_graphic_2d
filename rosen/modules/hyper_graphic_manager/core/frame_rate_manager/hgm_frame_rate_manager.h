@@ -176,6 +176,7 @@ public:
     void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
     HgmFrameVoter& FrameVoterRef() { return frameVoter_; }
+    void UpdateSoftVSync(bool followRs);
 private:
     friend class HgmUserDefineImpl;
 
@@ -190,7 +191,6 @@ private:
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool isNeedDvsyncDelay);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime,
         std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData, int64_t controllerRate);
-    void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;

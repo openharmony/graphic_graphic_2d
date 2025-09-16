@@ -609,5 +609,33 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, HgmFrameRateManager, TestSize.Level1)
     mgr.UpdateSoftVSync(true);
     EXPECT_EQ(mgr.currRefreshRate_, DEFAULT_MAX_FPS);
 }
+
+/**
+ * @tc.name: VoterVideoCallFrameRate
+ * @tc.desc: test results of VoterVideoCallFrameRate
+ * @tc.type: FUNC
+ * @tc.require:issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, VoterVideoCallFrameRate001, TestSize.Level1)
+{
+    auto& hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+
+    // frameRateMgr != nullptr
+    hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.store(false);
+    hgmEnergyConsumptionPolicy.VoterVideoCallFrameRate();
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.load(), true);
+
+    // frameRateMgr == nullptr
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.store(false);
+    hgmEnergyConsumptionPolicy.VoterVideoCallFrameRate();
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.isVideoCallVsyncChange_.load(), false);
+
+    HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
+    ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS
