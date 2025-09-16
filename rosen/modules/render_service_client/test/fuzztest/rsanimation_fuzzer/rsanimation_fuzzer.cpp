@@ -347,6 +347,7 @@ namespace OHOS {
         float first = GetData<float>();
         float second = GetData<float>();
         float third = GetData<float>();
+        float multiplier = GetData<float>();
         auto path = GetStringFromData(STR_LEN);
         auto canvasNode = RSCanvasNode::Create();
         auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
@@ -367,6 +368,7 @@ namespace OHOS {
         implicitAnimator->EndImplicitPathAnimation();
         implicitAnimator->NeedImplicitAnimation();
         implicitAnimator->CreateImplicitAnimation(canvasNode, firstProperty, secondProperty, thirdProperty);
+        implicitAnimator->ApplyAnimationSpeedMultiplier(multiplier);
     }
 
     void RsImplicitAnimatorParamFuzzTest()

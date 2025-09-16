@@ -92,6 +92,8 @@ public:
     void CreateImplicitTransition(RSNode& target);
     void CancelImplicitAnimation(
         const std::shared_ptr<RSNode>& target, const std::shared_ptr<RSPropertyBase>& property);
+    
+    void ApplyAnimationSpeedMultiplier(float multiplier = 1.0f);
 
 private:
     void EndImplicitAnimation();
@@ -131,6 +133,7 @@ private:
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
     bool isAddInteractiveAnimator_ { false };
     std::weak_ptr<RSUIContext> rsUIContext_;
+    float speedMultiplier_ = 1.0f;
     friend class RSImplicitAnimatorMap;
     friend class RSNode;
     friend class RSUIContext;

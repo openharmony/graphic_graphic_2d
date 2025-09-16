@@ -47,6 +47,7 @@ class RSImplicitAnimationParam {
 public:
     virtual ~RSImplicitAnimationParam() = default;
     ImplicitAnimationParamType GetType() const;
+    friend class RSImplicitAnimator;
 
 protected:
     explicit RSImplicitAnimationParam(const RSAnimationTimingProtocol& timingProtocol, ImplicitAnimationParamType type);

@@ -30,6 +30,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr float MIN_SPEED = 1e-3f;
+
 int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback,
     std::shared_ptr<AnimationRepeatCallback>&& repeatCallback)
@@ -520,8 +522,19 @@ void RSImplicitAnimator::EndImplicitTransition()
     PopImplicitParam();
 }
 
+void RSImplicitAnimator::ApplyAnimationSpeedMultiplier(float multiplier)
+{
+    if (multiplier < MIN_SPEED) {
+        RS_LOGW("RSImplicitAnimator::ApplyAnimationSpeedMultiplier, invalid multiplier %{public}f", multiplier);
+        speedMultiplier_ = 1.f;
+        return;
+    }
+    speedMultiplier_ = multiplier;
+}
+
 void RSImplicitAnimator::PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam)
 {
+    implicitParam->timingProtocol_.SetSpeed(implicitParam->timingProtocol_.GetSpeed() * speedMultiplier_);
     implicitAnimationParams_.emplace(implicitParam);
 }
 
