@@ -94,6 +94,22 @@ bool RSHpaeOfflineProcessor::LoadPreProcessHandle()
         preProcessHandle_ = nullptr;
         return false;
     }
+    initOfflineFunc_ = reinterpret_cast<InitOfflineResourceFunc>(dlsym(preProcessHandle_, "InitOfflineResource"));
+    if (initOfflineFunc_ == nullptr) {
+        RS_OFFLINE_LOGW("[%{public}s]: load InitOfflineResource failed, reason: %{public}s",
+            __func__, dlerror());
+        dlclose(preProcessHandle_);
+        preProcessHandle_ = nullptr;
+        return false;
+    }
+    deInitOfflineFunc_ = reinterpret_cast<DeInitOfflineResourceFunc>(dlsym(preProcessHandle_, "DeInitOfflineResource"));
+    if (deInitOfflineFunc_ == nullptr) {
+        RS_OFFLINE_LOGW("[%{public}s]: load DeInitOfflineResource failed, reason: %{public}s",
+            __func__, dlerror());
+        dlclose(preProcessHandle_);
+        preProcessHandle_ = nullptr;
+        return false;
+    }
     RS_OFFLINE_LOGI("[%{public}s]: load success", __func__);
     loadSuccess_ = true;
     return true;
@@ -140,7 +156,7 @@ bool RSHpaeOfflineProcessor::IsRSHpaeOfflineProcessorReady()
     }
 
     if (timeout_) {
-        RS_OFFLINE_LOGE("This scene has experienced a timeout event!!! banned hpae offline");
+        RS_OFFLINE_LOGI("This scene has experienced a timeout event!!! banned hpae offline");
         return false;
     }
 
@@ -166,6 +182,16 @@ void RSHpaeOfflineProcessor::CheckAndPostPreAllocBuffersTask()
             RS_TRACE_NAME_FMT("hpae_offline: PreAllocBuffer.");
             std::lock_guard<std::mutex> localLock(offlineConfigMutex_);
             isBusy_ = true;
+            if (!initOfflineFunc_) {
+                RS_OFFLINE_LOGW("initOfflineFunc_ is nullptr, disable offline.");
+                isBusy_ = false;
+                return;
+            }
+            if (initOfflineFunc_() != 0) {
+                RS_OFFLINE_LOGW("initOfflineFunc_ failed, disable offline.");
+                isBusy_ = false;
+                return;
+            }
             bool ret = offlineLayer_.PreAllocBuffers(layerConfig_);
             preAllocBufferSucc_ = ret;
             isBusy_ = false;
@@ -251,9 +277,20 @@ void RSHpaeOfflineProcessor::CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessO
     std::lock_guard<std::mutex> lock(futurePtr->mtx);
     if (futurePtr->timeout) {
         // to self-recovery from HPAE failed, once timeout, offline will be disabled until scene changed
-        RS_OFFLINE_LOGE("hpae timeout! disable offline in this scene");
+        RS_OFFLINE_LOGW("hpae timeout! disable offline in this scene");
         timeout_ = true;
     }
+}
+
+static void WaitFence(const sptr<OHOS::SyncFence> &srcAcquireFence, int32_t releaseFenceFd)
+{
+    // wait acquire fence of source buffer and release fence of offline buffer
+    RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Wait Offline Acquire & Release Fence.");
+    RS_OFFLINE_LOGD("start to wait fence.");
+    sptr<OHOS::SyncFence> dstReleaseFence = new OHOS::SyncFence(releaseFenceFd);
+    dstReleaseFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    RS_OFFLINE_LOGD("wait fence done.");
 }
 
 bool RSHpaeOfflineProcessor::DoProcessOffline(
@@ -272,14 +309,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
         return false;
     }
 
-    // wait acquire fence of source buffer and release fence of offline buffer
-    {
-        RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Wait Offline Acquire & Release Fence.");
-        sptr<OHOS::SyncFence> releaseSyncFence = new OHOS::SyncFence(releaseFence);
-        releaseSyncFence->Wait(WAIT_FENCE_TIMEOUT_MS);
-        sptr<OHOS::SyncFence> acquireSyncFence = params.GetAcquireFence();
-        acquireSyncFence->Wait(WAIT_FENCE_TIMEOUT_MS);
-    }
+    WaitFence(params.GetAcquireFence(), releaseFence);
 
     // hpae offline process
     int32_t ret = -1;
@@ -341,7 +371,7 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
     }
     // while doing direct composition, there is no IsRSHpaeOfflineProcessorReady to check status
     if (timeout_) {
-        RS_OFFLINE_LOGE("This scene has experienced a timeout event!!! banned hpae offline");
+        RS_OFFLINE_LOGI("This scene has experienced a timeout event!!! banned hpae offline");
         return false;
     }
     auto futurePtr = offlineResultSync_.RegisterPostedTask(taskId);
@@ -349,9 +379,10 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
         RS_OFFLINE_LOGE("register post task failed!");
         return false;
     }
+    RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "] by node", taskId);
     offlineThreadManager_.PostTask([node, futurePtr, this]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
-        RS_OFFLINE_LOGD("start to proces offline surface (by node)");
+        RS_OFFLINE_LOGD("start to proces offline surface (by node), task[%{public}" PRIu64 "]", taskId);
         OfflineTaskFunc(node->GetStagingRenderParams().get(), futurePtr);
     });
     return true;
@@ -370,9 +401,10 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
         RS_OFFLINE_LOGE("register post task failed!");
         return false;
     }
+    RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "] by drawable", taskId);
     offlineThreadManager_.PostTask([surfaceDrawable, futurePtr, this]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
-        RS_OFFLINE_LOGD("start to proces offline surface (by drawable)");
+        RS_OFFLINE_LOGD("start to proces offline surface (by drawable), task[%{public}" PRIu64 "]", taskId);
         OfflineTaskFunc(surfaceDrawable->GetRenderParams().get(), futurePtr);
     });
     return true;
@@ -396,6 +428,9 @@ void RSHpaeOfflineProcessor::CheckAndPostClearOfflineResourceTask()
             offlineLayer_.CleanCache(true);
             offlineResultSync_.ClearResultPool();
             invalidFrames_ = 0;
+            if (deInitOfflineFunc_) {
+                deInitOfflineFunc_();
+            }
             preAllocBufferSucc_ = false;
             isBusy_ = false;
             timeout_ = false;
@@ -411,6 +446,7 @@ bool RSHpaeOfflineProcessor::WaitForProcessOfflineResult(uint64_t taskId,
         return false;
     }
     RS_TRACE_NAME("hpae_offline: Wait for node offline process");
+    RS_OFFLINE_LOGD("start to wait for offline result, task[%{public}" PRIu64 "]", taskId);
     return offlineResultSync_.WaitForTaskAndGetResult(taskId, timeout, processOfflineResult);
 }
 } // namespace Rosen
