@@ -35,6 +35,7 @@ public:
     static void Constructor(ani_env* env, ani_object obj);
     static ani_string GetFamilyName(ani_env* env, ani_object obj);
     static ani_object MakeFromFile(ani_env* env, ani_object obj, ani_string filePath);
+    static ani_object MakeFromRawFile(ani_env* env, ani_object obj, ani_object resource);
     static ani_object MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string filePath,
         ani_object argumentsObj);
 
