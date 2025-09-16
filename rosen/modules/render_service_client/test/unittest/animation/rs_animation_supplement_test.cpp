@@ -611,6 +611,24 @@ HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSTransitionTest001
+ * @tc.desc: Verify the RSTransition
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, RSTransitionTest002, TestSize.Level1)
+{
+    auto transitionInEffect = RSTransitionEffect::Create();
+    auto transitionOutEffect = RSTransitionEffect::Create();
+    auto effect = std::make_shared<RSTransitionEffect>(transitionInEffect, transitionOutEffect);
+
+    auto animation = std::make_shared<RSTransitionMock>(effect, true);
+    ASSERT_NE(animation, nullptr);
+    animation->SetIsCustom(true);
+    EXPECT_TRUE(animation->isCustom_);
+    animation->OnStart();
+}
+
+/**
  * @tc.name: AnimationSupplementTest010
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
