@@ -168,6 +168,9 @@ ohos_shared_library("drawing_ani") {
     "sampling_options_ani/ani_sampling_options.cpp",
     "typeface_ani/ani_typeface.cpp",
     "typeface_arguments_ani/ani_typeface_arguments.cpp",
+    "image_filter_ani/ani_image_filter.cpp",
+    "path_effect_ani/ani_path_effect.cpp",
+    "mask_filter_ani/ani_mask_filter.cpp"
   ]
 
   deps = [
