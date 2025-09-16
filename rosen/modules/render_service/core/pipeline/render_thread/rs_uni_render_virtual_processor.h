@@ -127,6 +127,7 @@ private:
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
+    ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     float mirrorScaleX_ = 1.0f;
     float mirrorScaleY_ = 1.0f;
     float mirroredTranslateX_ = 0.f;

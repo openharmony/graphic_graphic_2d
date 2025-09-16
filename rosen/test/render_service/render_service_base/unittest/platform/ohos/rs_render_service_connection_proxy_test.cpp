@@ -132,6 +132,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, FillParcelWithTransactionData002, T
 }
 
 /**
+ * @tc.name: CreateNode Test
+ * @tc.desc: CreateNode Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, CreateNodeTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig rsDisplayNodeConfig;
+    NodeId nodeId = 100;
+    bool success = false;
+    ASSERT_EQ(proxy->CreateNode(rsDisplayNodeConfig, nodeId, success), ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: CreateNodeAndSurface Test
  * @tc.desc: CreateNodeAndSurface Test
  * @tc.type:FUNC

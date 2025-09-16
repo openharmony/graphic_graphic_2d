@@ -230,6 +230,11 @@ ErrCode RSRenderServiceConnectionProxy::CreateNode(const RSDisplayNodeConfig& di
         success = false;
         return ERR_INVALID_VALUE;
     }
+    if (!data.WriteUint32(static_cast<uint32_t>(displayNodeConfig.mirrorSourceRotation))) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint32 Config.MirrorSourceRotation err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE);
     int32_t err = SendRequest(code, data, reply, option);

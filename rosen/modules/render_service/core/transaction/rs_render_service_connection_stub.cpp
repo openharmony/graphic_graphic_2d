@@ -3556,9 +3556,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint64_t mirroredId{0};
             uint64_t screenId{0};
             bool isMirror{false};
+            uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
             if (!data.ReadUint64(mirroredId) ||
                 !data.ReadUint64(screenId) ||
-                !data.ReadBool(isMirror)) {
+                !data.ReadBool(isMirror) ||
+                !data.ReadUint32(mirrorSourceRotation)) {
                 RS_LOGE("RSRenderServiceConnectionStub::CREATE_DISPLAY_NODE Read config failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -3568,6 +3570,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .isMirrored = isMirror,
                 .mirrorNodeId = mirroredId,
                 .isSync = true,
+                .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
             if (CreateNode(config, id, success) != ERR_OK || reply.WriteBool(success)) {
