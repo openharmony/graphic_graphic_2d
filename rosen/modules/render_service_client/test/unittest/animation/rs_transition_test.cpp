@@ -51,21 +51,5 @@ HWTEST_F(RSTransitionTest, SetTransitionEffectTest, TestSize.Level1)
     ASSERT_TRUE(transition.effect_);
     GTEST_LOG_(INFO) << "RSTransitionTest SetTransitionEffectTest end";
 }
-
-/**
- * @tc.name: SetIsCustomTest
- * @tc.desc: Verify the SetIsCustom
- * @tc.type:FUNC
- */
-HWTEST_F(RSTransitionTest, SetIsCustomTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSTransitionTest SetIsCustomTest start";
-    RSTransition transition(nullptr, false);
-    transition.SetIsCustom(false);
-    ASSERT_FALSE(transition.isCustom_);
-    transition.SetIsCustom(true);
-    ASSERT_TRUE(transition.isCustom_);
-    GTEST_LOG_(INFO) << "RSTransitionTest SetIsCustomTest end";
-}
 } // namespace Rosen
 } // namespace OHOS

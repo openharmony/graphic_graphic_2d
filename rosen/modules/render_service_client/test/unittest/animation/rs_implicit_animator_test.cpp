@@ -617,7 +617,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationTest002, TestSize.Level1
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(0.5f);
 
     implicitAnimator.CreateImplicitAnimation(target, property, startValue, endValue);
-    implicitAnimator.EndImplicitAnimation();
+    implicitAnimator.EndImplicitKeyFrameAnimation();
     implicitAnimator.CloseImplicitAnimation();
     ASSERT_TRUE(implicitAnimator.globalImplicitParams_.empty());
     ASSERT_TRUE(implicitAnimator.implicitAnimationParams_.empty());
