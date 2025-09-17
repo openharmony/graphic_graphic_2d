@@ -14,6 +14,9 @@
  */
 
 #include "ani_drawing_utils.h"
+#include "typeface_ani/ani_typeface.h"
+#include "rosen_text/font_collection.h"
+#include "txt/platform.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -128,15 +131,15 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
 
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
-    ani_class doubleClass;
-    env->FindClass("std.core.Double", &doubleClass);
+    ani_class intClass;
+    env->FindClass("Lstd/core/Int;", &intClass);
     
-    ani_boolean isNumber;
-    env->Object_InstanceOf(obj, doubleClass, &isNumber);
-    if (isNumber) {
-        ani_double aniColor;
-        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "unboxed", nullptr, &aniColor)) {
-            ROSEN_LOGE("GetColorQuadFromParam failed by double vaule");
+    ani_boolean isInt;
+    env->Object_InstanceOf(obj, intClass, &isInt);
+    if (isInt) {
+        ani_int aniColor;
+        if (ANI_OK != env->Object_CallMethodByName_Int(obj, "unboxed", nullptr, &aniColor)) {
+            ROSEN_LOGE("GetColorQuadFromParam failed by int value");
             return false;
         }
         color = static_cast<ColorQuad>(aniColor);
@@ -239,6 +242,42 @@ bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_objec
     return !isUndefined;
 }
 
+bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d)
+{
+    ani_class point3dClass;
+    env->FindClass("L@ohos/graphics/common2D/common2D/Point3d;", &point3dClass);
+    ani_boolean isPoint3dClass;
+    env->Object_InstanceOf(obj, point3dClass, &isPoint3dClass);
+    if (!isPoint3dClass) {
+        ROSEN_LOGE("Get point3d object failed");
+        return false;
+    }
+
+    ani_double x = 0;
+    ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param x is invalid, ret %{public}d", ret);
+        return false;
+    }
+
+    ani_double y = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "y", &y);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param y is invalid, ret %{public}d", ret);
+        return false;
+    }
+
+    ani_double z = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "z", &z);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param z is invalid, ret %{public}d", ret);
+        return false;
+    }
+
+    point3d = Point3(x, y, z);
+    return true;
+}
+
 ani_object CreateAniUndefined(ani_env* env)
 {
     ani_ref aniRef;
@@ -302,6 +341,59 @@ bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point
     point.SetY(y);
     return true;
 }
+
+std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font)
+{
+    std::shared_ptr<FontMgr> fontMgr = GetFontMgr(font);
+    if (fontMgr == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Typeface> themeTypeface =
+        std::shared_ptr<Typeface>(fontMgr->MatchFamilyStyle(SPText::OHOS_THEME_FONT, FontStyle()));
+    if (themeTypeface == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = std::make_shared<Font>(*font);
+    themeFont->SetTypeface(themeTypeface);
+    return themeFont;
+}
+
+std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode)
+{
+    std::shared_ptr<FontMgr> fontMgr = GetFontMgr(font);
+    if (fontMgr == nullptr) {
+        return nullptr;
+    }
+    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
+    std::shared_ptr<Drawing::Font> themeFont = std::make_shared<Drawing::Font>(*font);
+    for (const auto& family : themeFamilies) {
+        std::shared_ptr<Drawing::Typeface> themeTypeface =
+            std::shared_ptr<Drawing::Typeface>(fontMgr->MatchFamilyStyle(family.c_str(), FontStyle()));
+        themeFont->SetTypeface(themeTypeface);
+        if (themeFont->UnicharToGlyph(unicode)) {
+            return themeFont;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font)
+{
+    if (!font->IsThemeFontFollowed() || font->GetTypeface() != AniTypeface::GetZhCnTypeface()) {
+        return nullptr;
+    }
+
+    std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
+    if (fontCollection == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<FontMgr> fontMgr = fontCollection->GetFontMgr();
+    if (fontMgr == nullptr) {
+        return nullptr;
+    }
+    return fontMgr;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

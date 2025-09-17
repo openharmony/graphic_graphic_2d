@@ -83,6 +83,7 @@ ani_status AniFont::AniInit(ani_env *env)
 void AniFont::Constructor(ani_env* env, ani_object obj)
 {
     std::shared_ptr<Font> font = std::make_shared<Font>();
+    font->SetTypeface(AniTypeface::GetZhCnTypeface());
     AniFont* aniFont = new AniFont(font);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont))) {
         ROSEN_LOGE("AniFont::Constructor failed create aniFont");
