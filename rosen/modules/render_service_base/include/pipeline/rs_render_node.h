@@ -884,6 +884,11 @@ protected:
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
+    void ExpandDirtyRegionWithFilterRegion(RSDirtyRegionManager& dirtyManager)
+    {
+        dirtyManager.MergeDirtyRect(filterRegion_);
+        isDirtyRegionUpdated_ = true;
+    }
     std::atomic<bool> isStaticCached_ = false;
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;

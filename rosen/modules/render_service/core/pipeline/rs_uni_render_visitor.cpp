@@ -2327,7 +2327,9 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
             if (filterNode == nullptr) {
                 continue;
             }
-            auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
+            RectI expandFilterRect =
+                filterNode->IsInstanceOf<RSEffectRenderNode>() ? filterNode->GetFilterRect() : it->second;
+            auto filterRegion = Occlusion::Region{ Occlusion::Rect{ expandFilterRect } };
             auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
             if (!filterDirtyRegion.IsEmpty()) {
                 if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
@@ -2338,8 +2340,8 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
                 RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter global merge filterRegion "
                     "%{public}s: global dirty %{public}s, add rect %{public}s", surfaceNode->GetName().c_str(),
                     curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
-                    it->second.ToString().c_str());
-                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(it->second);
+                    expandFilterRect.ToString().c_str());
+                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(expandFilterRect);
                 if (filterNode->GetRenderProperties().GetFilter()) {
                     // foregroundfilter affected by below dirty
                     filterNode->MarkFilterStatusChanged(true, false);
@@ -2911,6 +2913,12 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
 {
     bool isNodeAddedToTransparentCleanFilters = false;
     if (curSurfaceNode_) {
+        // if effect render node has (background in app or node self) dirty, expand dirty region with node filter rect
+        if (node.IsInstanceOf<RSEffectRenderNode>() && node.IsBackgroundInAppOrNodeSelfDirty() &&
+            (node.GetRenderProperties().GetBackgroundFilter() ||
+            node.GetRenderProperties().GetNeedDrawBehindWindow())) {
+            dirtyManager.MergeDirtyRect(node.GetFilterRect());
+        }
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
         if (isIntersect) {
             dirtyManager.MergeDirtyRect(globalFilterRect);
