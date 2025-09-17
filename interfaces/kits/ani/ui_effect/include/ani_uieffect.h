@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,9 +23,10 @@
 #define UIEFFECT_LOG_I(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define UIEFFECT_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 
+#include <ani.h>
+#include <hilog/log.h>
 #include <iostream>
 
-#include "ani.h"
 #include "effect/include/background_color_effect_para.h"
 #include "effect/include/blender.h"
 #include "effect/include/brightness_blender.h"
@@ -34,7 +35,9 @@
 #include "filter/include/filter.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_blur_para.h"
-#include "hilog/log.h"
+#include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_water_ripple_para.h"
+#include "filter/include/filter_distort_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +50,7 @@ class AniEffect {
 public:
     AniEffect();
     ~AniEffect();
+    static bool IsSystemApp();
     static ani_status BindVisualEffectMethod(ani_env* env);
     static ani_status BindFilterMethod(ani_env* env);
     static ani_object CreateEffect(ani_env* env);
@@ -56,6 +60,9 @@ public:
     static ani_object CreateFilter(ani_env* env);
     static ani_object PixelStretch(ani_env* env, ani_object obj, ani_object arrayObj, ani_enum_item enumItem);
     static ani_object Blur(ani_env* env, ani_object obj, ani_double radius);
+    static ani_object FlyInFlyOutEffect(ani_env* env, ani_object obj, ani_double degree, ani_enum_item flyMode);
+    static ani_object WaterRipple(ani_env* env, ani_object obj, ani_object waterPara);
+    static ani_object Distort(ani_env* env, ani_object obj, ani_double distortionK);
 
 private:
     static ani_object CreateAniObject(ani_env* env, std::string name, const char* signature, ani_long addr);
