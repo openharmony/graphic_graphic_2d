@@ -525,7 +525,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
 
 void RSUniHwcVisitor::UpdateHwcNodeEnable()
 {
-    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
     int inputHwclayers = 3;
     auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
@@ -571,7 +571,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             UpdateHwcNodeEnableByRotate(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcNodePtr, hwcRects);
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
-                ancoNodes.insert(hwcNodePtr);
+                ancoNodes.push_back(hwcNodePtr);
             }
         }
     });
