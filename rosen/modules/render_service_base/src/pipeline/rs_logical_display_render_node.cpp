@@ -108,6 +108,8 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
     auto screenNode = GetParent().lock();
     auto screenDrawable = screenNode ? screenNode->GetRenderDrawable() : nullptr;
     logicalDisplayRenderParam->SetAncestorScreenDrawable(screenDrawable);
+    logicalDisplayRenderParam->fixedWidth_ = fixedWidth_;
+    logicalDisplayRenderParam->fixedHeight_ = fixedHeight_;
     auto& boundGeo = GetRenderProperties().GetBoundsGeometry();
     if (boundGeo) {
         logicalDisplayRenderParam->offsetX_ = boundGeo->GetX();
@@ -412,6 +414,33 @@ CompositeType RSLogicalDisplayRenderNode::GetCompositeType() const
 void RSLogicalDisplayRenderNode::SetCompositeType(CompositeType type)
 {
     compositeType_ = type;
+}
+
+void RSLogicalDisplayRenderNode::UpdateFixedSize()
+{
+    if (IsRotationChanged()) {
+        // to get fixed size during rotation, use the width and height before rotation.
+        return;
+    }
+
+    auto& boundGeo = GetRenderProperties().GetBoundsGeometry();
+    fixedWidth_ = boundGeo->GetWidth();
+    fixedHeight_ = boundGeo->GetHeight();
+    auto rotation = GetRotation();
+    if (rotation == ScreenRotation::ROTATION_90 ||
+        rotation == ScreenRotation::ROTATION_270) {
+        std::swap(fixedWidth_, fixedHeight_);
+    }
+}
+
+uint32_t RSLogicalDisplayRenderNode::GetFixedWidth() const
+{
+    return fixedWidth_;
+}
+
+uint32_t RSLogicalDisplayRenderNode::GetFixedHeight() const
+{
+    return fixedHeight_;
 }
 
 } // namespace OHOS::Rosen
