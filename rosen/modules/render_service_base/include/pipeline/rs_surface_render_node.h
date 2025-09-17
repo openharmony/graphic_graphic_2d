@@ -157,6 +157,12 @@ public:
         return nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE;
     }
 
+    bool IsLeashOrMainWindow() const
+    {
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
+               nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    }
+
     bool IsRosenWeb() const
     {
         return GetName().find("RosenWeb") != std::string::npos;
@@ -165,11 +171,6 @@ public:
     bool IsSubHighPriorityType() const
     {
         return GetName().find("hipreview") != std::string::npos;
-    }
-
-    bool IsScbScreen() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SCB_SCREEN_NODE;
     }
 
     void SetNodeDirty(bool isNodeDirty)
@@ -181,6 +182,11 @@ public:
     bool IsNodeDirty() const
     {
         return isNodeDirty_;
+    }
+
+    bool IsScbScreen() const
+    {
+        return nodeType_ == RSSurfaceNodeType::SCB_SCREEN_NODE;
     }
 
     bool IsHardwareEnabledTopSurface() const;
@@ -425,12 +431,6 @@ public:
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
         return isHardwareForcedDisabled_;
-    }
-
-    bool IsLeashOrMainWindow() const
-    {
-        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
-               nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
     bool IsMainWindowType() const

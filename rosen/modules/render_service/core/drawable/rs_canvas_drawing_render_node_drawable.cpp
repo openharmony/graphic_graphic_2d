@@ -288,6 +288,8 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 
         auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
         if (!surface_ || !canvas_) {
+            RS_LOGE("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "], Surface[%{public}d],"
+                    " Canvas[%{public}d]", nodeId, surface_ == nullptr, canvas_ == nullptr);
             if (!ResetSurfaceforPlayback(surfaceParams.width, surfaceParams.height)) {
                 RS_LOGE("PostPlaybackInCorrespondThread Reset Surface Error NodeId[%{public}" PRIu64
                     "], width[%{public}d], height[%{public}d]", nodeId, surfaceParams.width, surfaceParams.height);
@@ -682,7 +684,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 }
 
 #ifdef RS_ENABLE_VK
-bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
+bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVk(int width, int height)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
         backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_));
@@ -725,7 +727,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
-        if (!ReleaseSurfaceVK(width, height)) {
+        if (!ReleaseSurfaceVk(width, height)) {
             return false;
         }
         auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
@@ -856,8 +858,8 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
     bool isNewCreate = false;
-#if defined(RS_ENABLE_VK)
-    if (!ReleaseSurfaceVK(width, height)) {
+#ifdef RS_ENABLE_VK
+    if (!ReleaseSurfaceVk(width, height)) {
         return false;
     }
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
@@ -884,7 +886,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
         canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
         return true;
     }
-    return true;
 #else
     surface_ = Drawing::Surface::MakeRaster(info);
 #endif
