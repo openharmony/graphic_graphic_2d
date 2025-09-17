@@ -2297,6 +2297,39 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags08, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsPixelStretchValid
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueICTJLI
+ */
+HWTEST_F(RSRenderNodeTest2, IsPixelStretchValid, TestSize.Level1)
+{
+    auto testFunc = [](bool propValid, bool drawableValid, bool paramValid, bool expectation) {
+        RSRenderNode node(id, context);
+        // mock pixel stretch in rs property.
+        node.GetMutableRenderProperties().SetPixelStretch(
+            propValid ? std::make_optional<Vector4f>(1.f, 1.f, 1.f, 1.f) : std::nullopt);
+        // mock pixel stretch in drawable vec.
+        RSDrawableSlot slot = RSDrawableSlot::PIXEL_STRETCH;
+        auto pixelStretchDrawable = std::make_shared<DrawableV2::RSPixelStretchDrawable>();
+        node.drawableVec_[static_cast<uint32_t>(slot)] = drawableValid ? pixelStretchDrawable : nullptr;
+        // mock pixel stretch param in  drawable.
+        pixelStretchDrawable->SetPixelStretch(
+            paramValid ? std::make_optional<Vector4f>(1.f, 1.f, 1.f, 1.f) : std::nullopt);
+        ASSERT_EQ(node.IsPixelStretchValid(), expectation);
+    };
+
+    for (bool propValid : {true, false}) {
+        for (bool drawableValid : {true, false}) {
+            for (bool paramValid : {true, false}) {
+                bool expectation = propValid && drawableValid && paramValid;
+                testFunc(propValid, drawableValid, paramValid, expectation);
+            }
+        }
+    }
+}
+
+/**
  * @tc.name: InitCacheSurfaceTest02
  * @tc.desc: InitCacheSurface test
  * @tc.type: FUNC

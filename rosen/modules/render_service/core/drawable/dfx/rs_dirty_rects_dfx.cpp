@@ -89,7 +89,9 @@ void RSDirtyRectsDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
         DrawHwcRegionForDFX(canvas);
     }
-
+    if (UNLIKELY(RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::CURRENT_FRAME_VIS_DIRTY)) {
+        DrawCurrentFrameVisibleDirtyRects(canvas);
+    }
     DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(canvas, screenParams_);
 }
 
@@ -404,4 +406,16 @@ void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX(RSPaintFilterCanvas& 
 #endif
 }
 
+void RSDirtyRectsDfx::DrawCurrentFrameVisibleDirtyRects(RSPaintFilterCanvas& canvas) const
+{
+    Occlusion::Region curVisDirtyRegion;
+    std::for_each(
+        currentFrameVisibleDirtyRects_.begin(),
+        currentFrameVisibleDirtyRects_.end(),
+        [&curVisDirtyRegion](const RectI& rect) { curVisDirtyRegion.OrSelf(Occlusion::Rect(rect)); }
+    );
+    for (const auto& subRect : curVisDirtyRegion.GetRegionRectIs()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::FILL);
+    }
+}
 } // namespace OHOS::Rosen
