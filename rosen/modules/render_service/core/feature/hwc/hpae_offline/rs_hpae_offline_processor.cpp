@@ -380,7 +380,7 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
         return false;
     }
     RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "] by node", taskId);
-    offlineThreadManager_.PostTask([node, futurePtr, this]() mutable {
+    offlineThreadManager_.PostTask([node, futurePtr, taskId, this]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
         RS_OFFLINE_LOGD("start to proces offline surface (by node), task[%{public}" PRIu64 "]", taskId);
         OfflineTaskFunc(node->GetStagingRenderParams().get(), futurePtr);
@@ -402,7 +402,7 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
         return false;
     }
     RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "] by drawable", taskId);
-    offlineThreadManager_.PostTask([surfaceDrawable, futurePtr, this]() mutable {
+    offlineThreadManager_.PostTask([surfaceDrawable, futurePtr, taskId, this]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
         RS_OFFLINE_LOGD("start to proces offline surface (by drawable), task[%{public}" PRIu64 "]", taskId);
         OfflineTaskFunc(surfaceDrawable->GetRenderParams().get(), futurePtr);
