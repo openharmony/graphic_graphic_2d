@@ -88,7 +88,7 @@ public:
     static inline constexpr RSUINodeType Type = RSUINodeType::SURFACE_NODE;
     /**
      * @brief Get the type of the RSNode.
-     * 
+     *
      * @return The type of the RSNode.
      */
     RSUINodeType GetType() const override
@@ -103,7 +103,7 @@ public:
 
     /**
      * @brief Creates a new instance of RSSurfaceNode with the specified configuration.
-     * 
+     *
      * @param surfaceNodeConfig The configuration settings for the surface node.
      * @param isWindow Indicates whether the surface node is a window. Defaults to true.
      * @param rsUIContext An optional shared pointer to an RSUIContext object. Defaults to nullptr.
@@ -136,7 +136,7 @@ public:
      * @brief Adds a child node to the current node at the specified index.
      *
      * @param child The shared pointer to the child node to be added.
-     * @param index The position at which the child node should be inserted. 
+     * @param index The position at which the child node should be inserted.
      *              If the index is -1 (default), the child is added to the end.
      */
     void AddChild(std::shared_ptr<RSBaseNode> child, int index) override;
@@ -295,12 +295,16 @@ public:
     void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
-
-    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+
+    /**
+     * @brief Sets the API compatible version for the surface node.
+     * @param version The API version to set for compatibility.
+     */
+    void SetApiCompatibleVersion(uint32_t version);
     // Specifying hardware enable is only a 'hint' to RS that
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
@@ -308,26 +312,20 @@ public:
 
     /**
      * @brief Determines whether the surfaceNode is a selfDrawing node.
-     * 
+     *
      * @return True if the surfaceNode is a selfDrawing node, otherwise false.
      */
     bool IsSelfDrawingNode() const;
 
     /**
      * @brief Sets the surfaceNode and its subtree to generate a topLayer.
-     * 
+     *
      * @param zOrder: zOrder of topLayer
-     * 
+     *
      * @return True if the setting is successful, otherwise false.
      */
     bool SetCompositeLayer(TopLayerZOrder zOrder);
     std::shared_ptr<RSCompositeLayerUtils> GetCompositeLayerUtils() const;
-    
-    /**
-     * @brief Sets the API compatible version for the surface node.
-     * @param version The API version to set for compatibility.
-     */
-    void SetApiCompatibleVersion(uint32_t version);
 
     void SetSourceVirtualDisplayId(ScreenId screenId);
     void AttachToWindowContainer(ScreenId screenId);
@@ -377,8 +375,8 @@ private:
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
-    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isGlobalPositionEnabled_ = false;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isFrameGravityNewVersionEnabled_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;

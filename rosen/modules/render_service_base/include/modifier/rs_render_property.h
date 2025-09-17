@@ -201,7 +201,7 @@ protected:
     }
 
     PropertyId id_;
-    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::Set
+    // Only used in RSRenderProperty<std::shared_ptr<RSNGRenderEffectBase>>::Set
     // refactor this to remove the node_ member
     std::weak_ptr<RSRenderNode> node_;
 

@@ -28,7 +28,7 @@ public:
     RSModifierType GetType() const override
     {
         return Type;
-    };
+    }
 
     static void ResetProperties(RSProperties& properties);
 
