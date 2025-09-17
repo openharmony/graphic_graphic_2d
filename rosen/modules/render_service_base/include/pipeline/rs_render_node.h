@@ -567,7 +567,6 @@ public:
     bool NeedInitCacheCompletedSurface();
     bool IsPureContainer() const;
     bool IsContentNode() const;
-    bool IsPureBackgroundColor() const;
     void SetDrawNodeType(DrawNodeType nodeType);
     DrawNodeType GetDrawNodeType() const;
 
