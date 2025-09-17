@@ -355,6 +355,7 @@ void RSTransactionHandler::MergeSyncTransaction(std::shared_ptr<RSTransactionHan
     } else {
         transactionHandler->implicitCommonTransactionDataStack_.top()->MoveAllCommand(
             implicitCommonTransactionDataStack_.top());
+        transactionHandler->implicitCommonTransactionDataStack_.pop();
     }
 
     if (implicitRemoteTransactionDataStack_.empty() ||
@@ -363,6 +364,7 @@ void RSTransactionHandler::MergeSyncTransaction(std::shared_ptr<RSTransactionHan
     } else {
         transactionHandler->implicitRemoteTransactionDataStack_.top()->MoveAllCommand(
             implicitRemoteTransactionDataStack_.top());
+        transactionHandler->implicitRemoteTransactionDataStack_.pop();
     }
 }
 
