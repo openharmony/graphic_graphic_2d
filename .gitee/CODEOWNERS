@@ -21,6 +21,8 @@ rosen/modules/render_service_client/core/ui/rs_ui_context.h @gaoshuai3011
 rosen/modules/render_service_client/core/ui/rs_ui_context.cpp @gaoshuai3011
 rosen/modules/render_service_client/core/ui/rs_ui_director.cpp @gaoshuai3011
 rosen/modules/render_service_client/core/ui/rs_ui_director.h @gaoshuai3011
+rosen/modules/render_service_client/core/transaction/rs_interfaces.h @liuchao-huawei
+rosen/modules/render_service_client/core/transaction/rs_interfaces.cpp @liuchao-huawei
 
 rosen/modules/render_service_base/include/pipeline/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
