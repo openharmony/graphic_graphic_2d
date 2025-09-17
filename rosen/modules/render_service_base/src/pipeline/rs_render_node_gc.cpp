@@ -49,7 +49,6 @@ struct MemoryHook {
     }
 };
 
-namespace {
 void RSRenderNodeGC::AddNodeToBucket(RSRenderNode* ptr)
 {
     if (ptr == nullptr) {
@@ -67,7 +66,6 @@ void RSRenderNodeGC::AddNodeToBucket(RSRenderNode* ptr)
         nodeBucket_.push({ptr});
     }
 }
-}} // namespace
 
 RSRenderNodeGC& RSRenderNodeGC::Instance()
 {
