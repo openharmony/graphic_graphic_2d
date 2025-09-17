@@ -1234,7 +1234,7 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
                 ReleaseSwapchain(device, &swapchain);
             }
         } else {
-            SWLOGE("vkQueuePresentKHR swapchainHandle != pSwapchains[%{public}d]", i);
+            SWLOGE("vkQueuePresentKHR swapchainHandle != pSwapchains[%{public}u]", i);
             ReleaseSwapchainImage(device, nullptr, fence, img, true);
             ret = VK_ERROR_OUT_OF_DATE_KHR;
         }
@@ -1351,7 +1351,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
             return VK_ERROR_SURFACE_LOST_KHR;
         }
         defaultQueueSize = window->surface->GetQueueSize();
-        SWLOGD("NativeWindow default Queue Size : (%{public}d)", defaultQueueSize);
+        SWLOGD("NativeWindow default Queue Size : (%{public}u)", defaultQueueSize);
     }
 
     capabilities->minImageCount = std::min(defaultQueueSize, MIN_BUFFER_SIZE);
