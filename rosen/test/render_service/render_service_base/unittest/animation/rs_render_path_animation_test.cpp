@@ -166,7 +166,7 @@ HWTEST_F(RSRenderPathAnimationTest, GetBeginFractionTest, Level1)
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
     float res = rsRenderPathAnimation.GetBeginFraction();
-    ASSERT_EQ(res, res);
+    ASSERT_FALSE(res);
 }
 
 /**
@@ -381,7 +381,7 @@ HWTEST_F(RSRenderPathAnimationTest, SetPathValueTest001, Level1)
     Vector2f value;
     float tangent = 0.f;
     rsRenderPathAnimation.SetPathValue(value, tangent);
-    EXPECT_EQ(tangent, 0.f);
+    EXPECT_FALSE(tangent);
 }
 
 /**
@@ -400,7 +400,7 @@ HWTEST_F(RSRenderPathAnimationTest, SetPathValueTest002, Level1)
     Vector4f value;
     float tangent = 0.f;
     rsRenderPathAnimation.SetPathValue(value, tangent);
-    EXPECT_EQ(tangent, 0.f);
+    EXPECT_FALSE(tangent);
 }
 
 /**
@@ -447,7 +447,7 @@ HWTEST_F(RSRenderPathAnimationTest, SetRotationTest, Level1)
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
     float tangent = 0.f;
     rsRenderPathAnimation.SetRotation(tangent);
-    EXPECT_EQ(tangent, 0.f);
+    EXPECT_FALSE(tangent);
 }
 
 /**
@@ -467,7 +467,7 @@ HWTEST_F(RSRenderPathAnimationTest, GetPosTanValueTest, Level1)
     Vector2f position;
     float tangent = 0.f;
     rsRenderPathAnimation.GetPosTanValue(fraction, position, tangent);
-    EXPECT_EQ(tangent, 0.f);
+    EXPECT_FALSE(tangent);
 }
 
 /**

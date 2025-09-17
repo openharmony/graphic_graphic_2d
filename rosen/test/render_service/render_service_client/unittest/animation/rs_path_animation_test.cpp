@@ -251,9 +251,9 @@ HWTEST_F(RSPathAnimationTest, InitNeedPathVector4fTest, Level1)
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(property, path);
     rsPathAnimation->isNeedPath_ = false;
     rsPathAnimation->InitNeedPath(property3f, nullptr);
-    EXPECT_EQ(rsPathAnimation->isNeedPath_, false);
+    EXPECT_FALSE(rsPathAnimation->isNeedPath_);
     rsPathAnimation->InitNeedPath(property1, nullptr);
-    EXPECT_EQ(rsPathAnimation->isNeedPath_, false);
+    EXPECT_FALSE(rsPathAnimation->isNeedPath_);
     rsPathAnimation->InitNeedPath(property1, property2);
     EXPECT_EQ(rsPathAnimation->isNeedPath_, property1 != property2);
 }

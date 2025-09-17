@@ -2662,7 +2662,7 @@ HWTEST_F(RSInterfacesTest, GetScreenHDRStatus001, Function | SmallTest | Level2)
  */
 HWTEST_F(RSInterfacesTest, GetScreenHDRStatus002, Function | SmallTest | Level2)
 {
-    HdrStatus hdrStatus = HdrStatus::NO_HDR;
+    HdrStatus hdrStatus = HdrStatus::HDR_PHOTO;
     int ret = rsInterfaces->GetScreenHDRStatus(INVALID_SCREEN_ID, hdrStatus);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
     EXPECT_EQ(hdrStatus, HdrStatus::NO_HDR);
