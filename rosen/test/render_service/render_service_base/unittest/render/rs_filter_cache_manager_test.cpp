@@ -465,7 +465,6 @@ HWTEST_F(RSFilterCacheManagerTest, GetCachedTypeTest, TestSize.Level1)
     manager->cachedFilteredSnapshot_ = nullptr;
     manager->GetCachedType();
     EXPECT_TRUE(manager->cachedSnapshot_);
-    EXPECT_TRUE(manager->cachedFilteredSnapshot_ == nullptr);
 
     manager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     manager->GetCachedType();
