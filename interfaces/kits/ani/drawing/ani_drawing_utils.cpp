@@ -230,7 +230,7 @@ ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object&
 
 bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj)
 {
-    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/PointInternal;", "DD:V",
+    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.PointInternal", "dd:",
         ani_double(point.GetX()),
         ani_double(point.GetY())
     );
@@ -283,7 +283,7 @@ ani_object CreateAniNull(ani_env* env)
 bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
 {
     ani_class pointClass;
-    env->FindClass("L@ohos/graphics/common2D/common2D/Point;", &pointClass);
+    env->FindClass("@ohos.graphics.common2D.common2D.Point", &pointClass);
     ani_boolean isPointClass;
     env->Object_InstanceOf(obj, pointClass, &isPointClass);
     if (!isPointClass) {

@@ -316,7 +316,7 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
 
     ani_class arrayCls = nullptr;
     if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
-        ACMLOGE("[ANI]FindClass Lescompat/Array; Failed");
+        ACMLOGE("[ANI]FindClass escompat.Array Failed");
     }
     ani_method arrayCtor;
     if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) {

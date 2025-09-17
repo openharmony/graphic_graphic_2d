@@ -52,7 +52,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
 
     ani_method aniCtor = nullptr;
     static std::string methodSign = "C{std.core.String}C{escompat.ErrorOptions}:";
-    static std::string methodKey = std::string(ANI_BUSINESS_ERROR) + methodSign;
+    static std::string methodKey = "C{" + std::string(ANI_BUSINESS_ERROR) + "}" + methodSign;
     if (AniCacheManager::Instance().FindMethod(methodKey, aniCtor)) {
     } else if ((status = env->Class_FindMethod(aniClass, "<ctor>", methodSign.c_str(), &aniCtor)) == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(methodKey, aniCtor);
@@ -104,7 +104,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
     ani_method arrayCtor = nullptr;
     static std::string methodSign = "i:";
-    static std::string methodKey = std::string(ANI_ARRAY) + methodSign;
+    static std::string methodKey = "C{" + std::string(ANI_ARRAY) + "}" + methodSign;
     if (AniCacheManager::Instance().FindMethod(methodKey, arrayCtor)) {
     } else if ((ret = env->Class_FindMethod(arrayCls, "<ctor>", methodSign.c_str(), &arrayCtor)) == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(methodKey, arrayCtor);

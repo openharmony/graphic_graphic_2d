@@ -317,7 +317,7 @@ ani_status AniFilter::Init(ani_env* env)
     static const char* className = ANI_CLASS_FILTER.c_str();
     ani_class cls;
     if (env->FindClass(className, &cls) != ANI_OK) {
-        EFFECT_LOG_E("Not found L@ohos/effectKit/effectKit/FilterInternal");
+        EFFECT_LOG_E("Not found @ohos.effectKit.effectKit.FilterInternal");
         return ANI_NOT_FOUND;
     }
 

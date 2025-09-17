@@ -67,11 +67,11 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::string getSystemFontFullNamesByTypeSignature =
-        std::string(ANI_ENUM_SYSTEM_FONT_TYPE) + ":" + std::string(ANI_ARRAY);
-    std::string getFontDescriptorByFullNameSignature = std::string(ANI_STRING) + std::string(ANI_ENUM_SYSTEM_FONT_TYPE)
-         + ":" + std::string(ANI_INTERFACE_FONT_DESCRIPTOR);
+        "E{" + std::string(ANI_ENUM_SYSTEM_FONT_TYPE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+    std::string getFontDescriptorByFullNameSignature = "C{" + std::string(ANI_STRING) + "}E{"
+        + std::string(ANI_ENUM_SYSTEM_FONT_TYPE) + "}:C{" + std::string(ANI_INTERFACE_FONT_DESCRIPTOR) + "}";
     std::string matchFontDescriptorsSignature =
-        std::string(ANI_INTERFACE_FONT_DESCRIPTOR) + ":" + std::string(ANI_ARRAY);
+        "C{" + std::string(ANI_INTERFACE_FONT_DESCRIPTOR) + "}:C{" + std::string(ANI_ARRAY) + "}";
 
     std::array methods = {
         ani_native_function{"getSystemFontFullNamesByTypeSync", getSystemFontFullNamesByTypeSignature.c_str(),
@@ -135,9 +135,10 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
-    static std::string sign = std::string(ANI_STRING) + std::string(ANI_STRING) + std::string(ANI_STRING) +
-        std::string(ANI_STRING) + std::string(ANI_STRING) + std::string(ANI_ENUM_FONT_WEIGHT) +
-        "IIZZ:V";
+    static const std::string aniStringDescriptor = "C{" + std::string(ANI_STRING) + "}";
+    static const std::string sign = aniStringDescriptor + aniStringDescriptor + aniStringDescriptor +
+        aniStringDescriptor + aniStringDescriptor + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
+        "}iizz:";
 
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, sign.c_str(),
         AniTextUtils::CreateAniStringObj(env, fontDesc->path),
@@ -181,7 +182,7 @@ ani_object AniFontDescriptor::GetSystemFontFullNamesByType(ani_env* env, ani_enu
     ani_size index = 0;
     for (const auto& item : fontList) {
         ani_string aniStr = AniTextUtils::CreateAniStringObj(env, item);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniStr)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniStr)) {
             TEXT_LOGE("Failed to set fontList item %{public}zu", index);
             continue;
         }
@@ -247,7 +248,7 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
             TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
             continue;
