@@ -1513,11 +1513,11 @@ void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint64_t>& bufferCacheSe
 
     if (auto buffer = surfaceHandler_->GetBuffer()) {
         bufferCacheSet.insert(buffer->GetBufferId());
-        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache bufferSeqNum:%d", buffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache bufferSeqNum:%" PRIu64 "", buffer->GetBufferId());
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
         bufferCacheSet.insert(preBuffer->GetBufferId());
-        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache preBufferSeqNum:%d", preBuffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache preBufferSeqNum:%" PRIu64 "", preBuffer->GetBufferId());
     }
 #endif
 }
@@ -1534,7 +1534,7 @@ void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet)
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
         bufferCacheSet.insert(preBuffer->GetBufferId());
-        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%d", preBuffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%" PRIu64 "", preBuffer->GetBufferId());
     }
     surfaceParams->SetPreBuffer(nullptr);
     AddToPendingSyncList();

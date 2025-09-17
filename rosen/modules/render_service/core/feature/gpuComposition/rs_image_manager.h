@@ -35,7 +35,7 @@ public:
 
     virtual ~RSImageManager() = default;
 
-    virtual void UnMapImageFromSurfaceBuffer(int32_t seqNum) = 0;
+    virtual void UnMapImageFromSurfaceBuffer(uint64_t seqNum) = 0;
     virtual std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) = 0;

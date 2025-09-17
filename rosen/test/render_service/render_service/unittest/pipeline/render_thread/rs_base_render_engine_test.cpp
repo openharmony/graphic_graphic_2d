@@ -446,7 +446,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateImageFromBuffer003, TestSize.Level1)
         EXPECT_NE(recordingCanvas, nullptr);
 
         recordingCanvas->surface_ = p3Surface.get();
-        std::set<uint32_t> unmappedCache;
+        std::set<uint64_t> unmappedCache;
         BufferDrawParam params;
         VideoInfo videoInfo;
         params.buffer = CreateBuffer();

@@ -72,7 +72,7 @@ public:
     explicit RSEglImageManager(EGLDisplay display) : eglDisplay_(display) {};
     ~RSEglImageManager() noexcept override = default;
 
-    void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
+    void UnMapImageFromSurfaceBuffer(uint64_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
@@ -88,11 +88,11 @@ private:
         const pid_t threadIndex);
     GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex);
-    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
+    void UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t seqNum);
 
     static constexpr size_t MAX_CACHE_SIZE = 16;
-    std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
-    std::unordered_map<int32_t, std::unique_ptr<EglImageResource>> imageCacheSeqs_; // guarded by opMutex_
+    std::queue<uint64_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
+    std::unordered_map<uint64_t, std::unique_ptr<EglImageResource>> imageCacheSeqs_; // guarded by opMutex_
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
 };
 } // namespace Rosen

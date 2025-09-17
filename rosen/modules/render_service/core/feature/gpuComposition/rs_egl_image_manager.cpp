@@ -244,10 +244,10 @@ void RSEglImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
 GLuint RSEglImageManager::CreateEglImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
     const pid_t threadIndex)
 {
-    auto bufferId = buffer->GetSeqNum();
+    auto bufferId = buffer->GetBufferId();
     auto imageCache = EglImageResource::Create(eglDisplay_, EGL_NO_CONTEXT, buffer);
     if (imageCache == nullptr) {
-        RS_LOGE("RSEglImageManager::CreateEglImageCacheFromBuffer:failed to create for buffer id %{public}d.",
+        RS_LOGE("RSEglImageManager::CreateEglImageCacheFromBuffer:failed to create for buffer id %{public}" PRIu64 ".",
             bufferId);
         return 0; // return texture id 0.
     }
@@ -269,9 +269,9 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
         RS_LOGE("RSEglImageManager::MapEglImageFromSurfaceBuffer: buffer is null.");
         return 0;
     }
-    auto bufferId = buffer->GetSeqNum();
-    RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %d", bufferId);
-    RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}d", bufferId);
+    auto bufferId = buffer->GetBufferId();
+    RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %" PRIu64 "", bufferId);
+    RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", bufferId);
     {
         bool isImageCacheNotFound = false;
         std::lock_guard<std::mutex> lock(opMutex_);
@@ -288,7 +288,7 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
 void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
     while (cacheQueue_.size() > MAX_CACHE_SIZE) {
-        const int32_t id = cacheQueue_.front();
+        const uint64_t id = cacheQueue_.front();
         if (isForUniRedraw) {
             UnMapEglImageFromSurfaceBufferForUniRedraw(id);
         } else {
@@ -298,7 +298,7 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
     }
 }
 
-void RSEglImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
+void RSEglImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 {
     pid_t threadIndex = 0;
     {
@@ -320,13 +320,13 @@ void RSEglImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
             imageCacheSeq = std::move(imageCacheSeqs_[seqNum]);
         }
         imageCacheSeq.reset();
-        RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %d", seqNum);
-        RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}d", seqNum);
+        RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", seqNum);
+        RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", seqNum);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);
 }
 
-void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum)
+void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t seqNum)
 {
     RSHardwareThread::Instance().PostTask([this, seqNum]() {
         std::lock_guard<std::mutex> lock(opMutex_);
