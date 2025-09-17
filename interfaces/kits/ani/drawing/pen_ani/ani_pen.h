@@ -36,6 +36,30 @@ public:
     static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);
     static void Reset(ani_env*  env, ani_object obj);
+    static ani_int GetHexColor(ani_env* env, ani_object obj);
+    static void SetColor(ani_env* env, ani_object obj, ani_int color);
+    static void SetColorWithColor(ani_env* env, ani_object obj, ani_object colorObj);
+    static void SetColorWithNumber(ani_env* env, ani_object obj, ani_int alpha,
+        ani_int red, ani_int green, ani_int blue);
+    static void SetDither(ani_env* env, ani_object obj, ani_boolean dither);
+    static void SetAntiAlias(ani_env* env, ani_object obj, ani_boolean antiAlias);
+    static void SetStrokeWidth(ani_env* env, ani_object obj, ani_double width);
+    static void SetCapStyle(ani_env* env, ani_object obj, ani_enum_item aniCapstyle);
+    static ani_object GetColorFilter(ani_env* env, ani_object obj);
+    static ani_boolean GetFillPath(ani_env* env, ani_object obj, ani_object src, ani_object dst);
+    static void SetMiterLimit(ani_env* env, ani_object obj, ani_double miter);
+    static ani_enum_item GetCapStyle(ani_env* env, ani_object obj);
+    static void SetMaskFilter(ani_env* env, ani_object obj, ani_object aniMaskFilterObj);
+    static ani_boolean IsAntiAlias(ani_env* env, ani_object obj);
+    static ani_object GetColor(ani_env* env, ani_object obj);
+    static void SetJoinStyle(ani_env* env, ani_object obj, ani_enum_item joinStyle);
+    static ani_enum_item GetJoinStyle(ani_env* env, ani_object obj);
+    static ani_double GetWidth(ani_env* env, ani_object obj);
+    static ani_double GetMiterLimit(ani_env* env, ani_object obj);
+    static void SetPathEffect(ani_env* env, ani_object obj, ani_object aniPathEffectObj);
+    static void SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFilterObj);
+    static void SetShadowLayer(ani_env* env, ani_object obj, ani_object aniShadowLayerObj);
+    static void SetShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderEffectObj);
 
     std::shared_ptr<Pen> GetPen();
 
