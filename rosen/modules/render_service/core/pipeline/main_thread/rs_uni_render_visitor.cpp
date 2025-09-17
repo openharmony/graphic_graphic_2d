@@ -68,7 +68,7 @@
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
 // hpae offline
-#include "feature/hwc/hpae_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
 #include "rs_profiler.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
