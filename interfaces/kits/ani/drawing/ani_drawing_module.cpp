@@ -26,6 +26,7 @@
 #include "region_ani/ani_region.h"
 #include "round_rect_ani/ani_round_rect.h"
 #include "sampling_options_ani/ani_sampling_options.h"
+#include "shader_effect_ani/ani_shader_effect.h"
 #include "typeface_ani/ani_typeface.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
 #include "image_filter_ani/ani_image_filter.h"
@@ -78,6 +79,7 @@ static void Clean(ani_env* env, ani_object object)
         {"Region", SafeDelete<OHOS::Rosen::Drawing::AniRegion>},
         {"RoundRect", SafeDelete<OHOS::Rosen::Drawing::AniRoundRect>},
         {"SamplingOptions", SafeDelete<OHOS::Rosen::Drawing::AniSamplingOptions>},
+        {"ShaderEffect", SafeDelete<OHOS::Rosen::Drawing::AniShaderEffect>},
         {"Typeface", SafeDelete<OHOS::Rosen::Drawing::AniTypeface>},
         {"TypefaceArguments", SafeDelete<OHOS::Rosen::Drawing::AniTypefaceArguments>},
         {"ImageFilter", SafeDelete<OHOS::Rosen::Drawing::AniImageFilter>},
@@ -143,7 +145,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniImageFilter::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniMaskFilter::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniShadowLayer::AniInit(env) != ANI_OK ||
-        OHOS::Rosen::Drawing::AniPathEffect::AniInit(env) != ANI_OK) {
+        OHOS::Rosen::Drawing::AniPathEffect::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniShaderEffect::AniInit(env) != ANI_OK) {
         ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }
