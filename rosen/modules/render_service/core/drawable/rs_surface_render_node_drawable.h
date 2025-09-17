@@ -54,6 +54,12 @@ public:
     void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
     void ResetVirtualScreenWhiteListRootId(NodeId id);
 
+    // uifirst
+    RsSubThreadCache& GetRsSubThreadCache()
+    {
+        return subThreadCache_;
+    }
+
     const std::string& GetName() const
     {
         return name_;
@@ -67,11 +73,6 @@ public:
         return res;
     }
 
-    // uifirst
-    RsSubThreadCache& GetRsSubThreadCache()
-    {
-        return subThreadCache_;
-    }
     // HDR
     bool DrawHDRCacheWithDmaFFRT(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     bool GetCurHeterogComputingHdr() const;

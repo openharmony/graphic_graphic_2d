@@ -172,10 +172,10 @@ void RSSurfaceNode::CreateNodeInRenderThread()
 
     isChildOperationDisallowed_ = true;
     isRenderServiceNode_ = false;
+
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetSurfaceNodeType>(
         GetId(), static_cast<uint8_t>(RSSurfaceNodeType::ABILITY_COMPONENT_NODE));
     AddCommand(command, true);
-
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     if (!IsRenderServiceNode()) {
         command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE, false);
