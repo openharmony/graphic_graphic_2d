@@ -756,8 +756,8 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %{public}" PRIu64
                 " cannot find surface by surfaceId %{public}" PRIu64 "",
             node.GetId(), node.GetSurfaceId());
-        RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is " PRIu64
-                " cannot find surface by surfaceId " PRIu64 "",
+        RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %" PRIu64
+                " cannot find surface by surfaceId %" PRIu64 "",
             node.GetId(), node.GetSurfaceId());
         return;
     }
