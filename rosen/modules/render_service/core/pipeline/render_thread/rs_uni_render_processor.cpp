@@ -40,6 +40,7 @@
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 // hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 
 namespace OHOS {
@@ -156,7 +157,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     }
     auto& layerInfo = params.GetLayerInfo();
     const Rect& dirtyRect = offlineResult ? offlineResult->damageRect : params.GetBufferDamage();
-    const auto& srcRect = offlineResult > offlineResult->bufferRect : layerInfo.srcRect;
+    const auto& srcRect = offlineResult ? offlineResult->bufferRect : layerInfo.srcRect;
     RS_OPTIONAL_TRACE_NAME_FMT(
         "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] dirty:[%d, %d, %d, %d] "
         "buffer:[%d, %d] alpha:[%f] type:[%d]",
@@ -253,7 +254,7 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
 }
 
 LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
-    sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence.
+    sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
     const std::shared_ptr<ProcessOfflineResult> offlineResult)
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
