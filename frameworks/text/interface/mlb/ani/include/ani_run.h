@@ -25,6 +25,7 @@
 namespace OHOS::Text::ANI {
 class AniRun final {
 public:
+    static std::vector<ani_native_function> InitMethods(ani_env* env);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
     static ani_object CreateRun(ani_env* env, Rosen::Run* run);
 

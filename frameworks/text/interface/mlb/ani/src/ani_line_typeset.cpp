@@ -56,7 +56,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for LineTypeset, ret %{public}d", ret);
-        return ANI_ERROR;
+        return ANI_NOT_FOUND;
     }
     return ANI_OK;
 }

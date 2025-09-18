@@ -144,6 +144,8 @@ extern "C"
         ani_status status = OHOS::Text::ANI::Init(vm, result);
         if (status == ANI_OK) {
             *result = ANI_VERSION_1;
+        } else {
+            TEXT_LOGE("Failed to init ANI, ret %{public}d", status);
         }
         return status;
     }

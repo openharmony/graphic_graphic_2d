@@ -32,16 +32,46 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-    const std::string PAINT_SIGNATURE = std::string(ANI_CLASS_CANVAS) + "DD:V";
-    const std::string NATIVE_GET_GLYPHS_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    const std::string NATIVE_GET_POSITIONS_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    const std::string GET_OFFSETS_SIGNATURE = ":" + std::string(ANI_ARRAY);
-    const std::string GET_FONT_SIGNATURE = ":" + std::string(ANI_CLASS_FONT);
-    const std::string GET_STRING_INDICES_SIGNATURE = std::string(ANI_INTERFACE_RANGE) + ":" + std::string(ANI_ARRAY);
-    const std::string GET_STRING_RANGE_SIGNATURE = ":" + std::string(ANI_INTERFACE_RANGE);
-    const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS);
-    const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":" + std::string(ANI_INTERFACE_RECT);
+const std::string PAINT_SIGNATURE = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
+const std::string NATIVE_GET_GLYPHS_SIGNATURE =
+    "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+const std::string NATIVE_GET_POSITIONS_SIGNATURE =
+    "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+const std::string GET_OFFSETS_SIGNATURE = ":C{" + std::string(ANI_ARRAY) + "}";
+const std::string GET_FONT_SIGNATURE = ":C{" + std::string(ANI_CLASS_FONT) + "}";
+const std::string GET_STRING_INDICES_SIGNATURE =
+    "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+const std::string GET_STRING_RANGE_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
+const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
+const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
+const std::string RETURN_ARRAY_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
 } // namespace
+
+std::vector<ani_native_function> AniRun::InitMethods(ani_env* env)
+{
+    std::vector<ani_native_function> methods = {
+        ani_native_function{"getGlyphCount", ":i", reinterpret_cast<void*>(GetGlyphCount)},
+        ani_native_function{"getGlyphs", RETURN_ARRAY_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphs)},
+        ani_native_function{
+            "nativeGetGlyphs", NATIVE_GET_GLYPHS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
+        ani_native_function{
+            "getPositions", RETURN_ARRAY_SIGN.c_str(), reinterpret_cast<void*>(GetPositions)},
+        ani_native_function{
+            "nativeGetPositions", NATIVE_GET_POSITIONS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetPositionsByRange)},
+        ani_native_function{"getOffsets", GET_OFFSETS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetOffsets)},
+        ani_native_function{"getFont", GET_FONT_SIGNATURE.c_str(), reinterpret_cast<void*>(GetFont)},
+        ani_native_function{"paint", PAINT_SIGNATURE.c_str(), reinterpret_cast<void*>(Paint)},
+        ani_native_function{
+            "getStringIndices", GET_STRING_INDICES_SIGNATURE.c_str(), reinterpret_cast<void*>(GetStringIndices)},
+        ani_native_function{
+            "getStringRange", GET_STRING_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetStringRange)},
+        ani_native_function{"getTypographicBounds", GET_TYPOGRAPHIC_BOUNDS_SIGNATURE.c_str(),
+            reinterpret_cast<void*>(GetTypographicBounds)},
+        ani_native_function{
+            "getImageBounds", GET_IMAGE_BOUNDS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetImageBounds)},
+    };
+    return methods;
+}
 
 ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -58,36 +88,24 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
-    std::array methods = {
-        ani_native_function{"getGlyphCount", ":I", reinterpret_cast<void*>(GetGlyphCount)},
-        ani_native_function{"getGlyphs", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetGlyphs)},
-        ani_native_function{
-            "nativeGetGlyphs", NATIVE_GET_GLYPHS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
-        ani_native_function{
-            "getPositions", (":" + std::string(ANI_ARRAY)).c_str(), reinterpret_cast<void*>(GetPositions)},
-        ani_native_function{
-            "nativeGetPositions", NATIVE_GET_POSITIONS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetPositionsByRange)},
-        ani_native_function{"getOffsets", GET_OFFSETS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetOffsets)},
-        ani_native_function{"getFont", GET_FONT_SIGNATURE.c_str(), reinterpret_cast<void*>(GetFont)},
-        ani_native_function{"paint", PAINT_SIGNATURE.c_str(), reinterpret_cast<void*>(Paint)},
-        ani_native_function{
-            "getStringIndices", GET_STRING_INDICES_SIGNATURE.c_str(), reinterpret_cast<void*>(GetStringIndices)},
-        ani_native_function{
-            "getStringRange", GET_STRING_RANGE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetStringRange)},
-        ani_native_function{"getTypographicBounds", GET_TYPOGRAPHIC_BOUNDS_SIGNATURE.c_str(),
-            reinterpret_cast<void*>(GetTypographicBounds)},
-        ani_native_function{
-            "getImageBounds", GET_IMAGE_BOUNDS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetImageBounds)},
-        ani_native_function{"nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
-            reinterpret_cast<void*>(NativeTransferStatic)},
-        ani_native_function{
-            "nativeTransferDynamic", "J:Lstd/interop/ESValue;", reinterpret_cast<void*>(NativeTransferDynamic)},
-    };
 
+    std::array methods = InitMethods(env);
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Run, ret %{public}d", ret);
-        return ANI_ERROR;
+        return ANI_NOT_FOUND;
+    }
+
+    std::array staticMethods = {
+        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
+            reinterpret_cast<void*>(NativeTransferStatic)},
+        ani_native_function{
+            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
+    };
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to bind static methods: %{public}s", ANI_CLASS_RUN);
+        return ANI_NOT_FOUND;
     }
     return ANI_OK;
 }
