@@ -4235,7 +4235,6 @@ void RSMainThread::DumpNode(std::string& result, uint64_t nodeId) const
         return;
     }
     DfxString log;
-    node->DumpNodeInfo(log);
     result.append(log.GetString());
 }
 

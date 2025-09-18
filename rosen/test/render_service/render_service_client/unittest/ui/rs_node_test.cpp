@@ -4543,9 +4543,6 @@ class RSC_EXPORT MockRSNode : public RSNode {
 public:
     MockRSNode() : RSNode(false) {}
     virtual ~MockRSNode() = default;
-    std::vector<PropertyId> GetModifierIds() const {
-        return RSNode::GetModifierIds();
-    }
     MOCK_METHOD1(SetNeedUseCmdlistDrawRegion, void(bool needUseCmdlistDrawRegion));
 };
 
@@ -6533,24 +6530,6 @@ HWTEST_F(RSNodeTest, GetModifier, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetModifierIds
- * @tc.desc: test results of GetModifierIds
- * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
- */
-HWTEST_F(RSNodeTest, GetModifierIds, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    PropertyId propertyId = 1;
-    auto value = Vector4f(100.f);
-    auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
-    auto modifier = std::make_shared<RSBoundsModifier>(prop);
-    rsNode->modifiers_[propertyId] = modifier;
-    rsNode->GetModifierIds();
-    EXPECT_EQ(rsNode->modifiers_.empty(), false);
-}
-
-/**
  * @tc.name: MarkAllExtendModifierDirty
  * @tc.desc: test results of MarkAllExtendModifierDirty
  * @tc.type: FUNC
@@ -8530,7 +8509,6 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
     animation->SetFinishCallback([]() {});
     node1->AddAnimation(animation);
     node1->DumpNode(0);
-    ASSERT_TRUE(node1->GetModifierIds().size() == 0);
     auto value = Vector2f(2.f, 2.f);
     auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
     auto modifier = std::make_shared<RSScaleModifier>(prop);
@@ -8538,7 +8516,6 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
     std::weak_ptr<RSNode> child = std::make_shared<MockRSNode>();
     node1->children_.push_back(child);
     node1->DumpNode(0);
-    ASSERT_TRUE(node1->GetModifierIds().size() == 1);
 }
 
 /**
