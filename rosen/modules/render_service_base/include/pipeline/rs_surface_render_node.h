@@ -1523,6 +1523,16 @@ public:
     void SetSdrHasMetadata(bool hasMetadata);
     bool GetSdrHasMetadata() const;
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
+    void SetContainerWindowTransparent(bool isContainerWindowTransparent)
+    {
+        isContainerWindowTransparent_ = isContainerWindowTransparent;
+    }
+
+    bool IsContainerWindowTransparent() const
+    {
+        return isContainerWindowTransparent_;
+    }
+
     bool IsSecureUIExtension() const
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
@@ -1813,6 +1823,7 @@ private:
     bool isFilterCacheStatusChanged_ = false;
     bool isTreatedAsTransparent_ = false;
     bool startAnimationFinished_ = false;
+    bool isContainerWindowTransparent_ = false;
     // only used in hardware enabled pointer window, when gpu -> hardware composer
     bool isNodeDirtyInLastFrame_ = true;
     bool isNodeDirty_ = true;
@@ -2081,7 +2092,7 @@ private:
         RectI absRect_;
         RectI oldDirty_;
         ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
-        bool isFocusWindow_ = false;
+        bool isContainerWindowTransparent_ = false;
         bool isTransparent_ = false;
         bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
