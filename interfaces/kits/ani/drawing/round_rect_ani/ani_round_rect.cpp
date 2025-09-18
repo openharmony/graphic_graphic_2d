@@ -168,7 +168,7 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
     }
 
     auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
-    ani_object aniRoundRectObj = CreateAniObject(env, ANI_CLASS_ROUND_RECT_NAME, ":V");
+    ani_object aniRoundRectObj = CreateAniObject(env, ANI_CLASS_ROUND_RECT_NAME, ":");
     if (ANI_OK != env->Object_SetFieldByName_Long(aniRoundRectObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniRoundRect))) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");
