@@ -48,12 +48,12 @@ std::unique_ptr<HdiScreen> HdiScreen::CreateHdiScreen(uint32_t screenId)
 
 HdiScreen::HdiScreen(uint32_t screenId) : screenId_(screenId)
 {
-    HLOGI("Create screen, screenId is %{public}d", screenId);
+    HLOGI("Create screen, screenId is %{public}u", screenId);
 }
 
 HdiScreen::~HdiScreen()
 {
-    HLOGI("Destroy screen, screenId is %{public}d", screenId_);
+    HLOGI("Destroy screen, screenId is %{public}u", screenId_);
 }
 
 void HdiScreen::OnVsync(uint32_t sequence, uint64_t ns, void *data)

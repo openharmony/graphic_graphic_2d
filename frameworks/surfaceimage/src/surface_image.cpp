@@ -136,7 +136,7 @@ Rect SurfaceImage::GetBufferCropRegion(const sptr<OHOS::SurfaceBuffer>& buffer)
 
     if (MetadataHelper::GetCropRectMetadata(buffer, cropRegion) == GSERROR_OK) {
         BLOGD("GetCropRectMetadata success,"
-            "left: %{public}d, top: %{public}d, width: %{public}d, height: %{public}d",
+            "left: %{public}u, top: %{public}u, width: %{public}u, height: %{public}u",
             cropRegion.left, cropRegion.top, cropRegion.width, cropRegion.height);
         return {cropRegion.left, cropRegion.top, cropRegion.width, cropRegion.height};
     }
@@ -211,7 +211,7 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
         glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(iter->second.eglImage_));
         error = glGetError();
         if (error != GL_NO_ERROR) {
-            BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d"
+            BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}u, error:%{public}u"
                 "uniqueId: %{public}" PRIu64 ".", textureTarget_, error, uniqueId_);
             return SURFACE_ERROR_EGL_API_FAILED;
         }
@@ -235,7 +235,7 @@ SurfaceError SurfaceImage::DetachContext()
     glBindTexture(textureTarget_, 0);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId:%{public}d, error:%{public}d"
+        BLOGE("glBindTexture failed, textureTarget:%{public}u, textureId:%{public}u, error:%{public}u"
             "uniqueId: %{public}" PRIu64 ".", textureTarget_, textureId_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
@@ -395,7 +395,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& b
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
         NewBufferDestroyEGLImage(isNewBuffer, seqNum);
-        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d"
+        BLOGE("glBindTexture failed, textureTarget:%{public}u, textureId_:%{public}u, error:%{public}u"
             "uniqueId: %{public}" PRIu64 ".", textureTarget_, textureId_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
@@ -403,7 +403,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& b
     error = glGetError();
     if (error != GL_NO_ERROR) {
         NewBufferDestroyEGLImage(isNewBuffer, seqNum);
-        BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d"
+        BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}u, error:%{public}u"
             "uniqueId: %{public}" PRIu64 ".", textureTarget_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
