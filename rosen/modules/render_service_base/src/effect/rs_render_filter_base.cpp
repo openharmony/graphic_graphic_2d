@@ -169,7 +169,9 @@ void RSUIFilterHelper::UpdateCacheData(std::shared_ptr<Drawing::GEVisualEffect>&
     }
     auto srcImpl = src->GetImpl();
     auto destImpl = dest->GetImpl();
-    if (srcImpl == nullptr || destImpl == nullptr || srcImpl->GetFilterType() != destImpl->GetFilterType()) {
+    bool typeMismatch = srcImpl == nullptr || destImpl == nullptr ||
+                        srcImpl->GetFilterType() != destImpl->GetFilterType();
+    if (typeMismatch) {
         RS_LOGE("RSUIFilterHelper::UpdateCacheData: effect impl type mismatch");
         return;
     }
