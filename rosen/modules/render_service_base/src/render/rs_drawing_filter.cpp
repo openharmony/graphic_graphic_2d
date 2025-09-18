@@ -408,7 +408,7 @@ bool RSDrawingFilter::ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas,
         ApplyColorFilter(canvas, image, attr.src, attr.dst, attr.brushAlpha);
         return true;
     }
-    RS_OPTIONAL_TRACE_NAME("ApplyLightBlur width: " + std::to_string(attr.dst.GetWidth()) +
+    RS_TRACE_NAME("ApplyLightBlur width: " + std::to_string(attr.dst.GetWidth()) +
         ", height: " + std::to_string(attr.dst.GetHeight()));
     LightBlurParameter para { attr.src, attr.dst, brush };
     tmpFilter->ApplyLightBlur(canvas, image, para);
@@ -534,7 +534,7 @@ void RSDrawingFilter::DrawKawaseEffect(Drawing::Canvas& canvas, const std::share
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*blurImage, attr.src, attr.dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
-    RS_OPTIONAL_TRACE_NAME("ApplyKawaseBlur " + std::to_string(tmpFilter->GetRadius()));
+    RS_TRACE_NAME("ApplyKawaseBlur " + std::to_string(tmpFilter->GetRadius()));
 }
 
 void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -563,6 +563,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
        in ApplyHpsImageEffect instead of passing visualEffectContainer to get full visualEffectContainer.
      */
     if (ApplyHpsImageEffect(canvas, image, outImage, attr, brush)) {
+        RS_TRACE_NAME("ApplyHpsImageEffect");
         return;
     }
     // RemoveFilterWithType because KAWASE_BLUR will excute in HPS 1.0 separately.
@@ -591,7 +592,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         }
         canSkipMaskColor_ = false;
         if (IsHpsBlurApplied(canvas, outImage, attr, brush, radius)) {
-            RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
+            RS_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
         } else {
             DrawKawaseEffect(canvas, outImage, attr, brush, kawaseShaderFilter);
         }
