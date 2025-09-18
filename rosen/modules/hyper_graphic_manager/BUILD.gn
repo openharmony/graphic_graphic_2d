@@ -70,8 +70,6 @@ config("libhyper_graphic_manager_config") {
     "-Wl,-Bsymbolic",
     "-Wl,-z,now",
     "-Wl,--icf=all",
-    "-Wl,--strip-debug",
-    "-Wl,--strip-all",
   ]
 }
 
