@@ -4752,8 +4752,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateAncoNodeHWCDisabledState, TestSize.Level1
     auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(hwcNodePtr, nullptr);
     hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
-    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
-    ancoNodes.insert(hwcNodePtr);
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
+    ancoNodes.push_back(hwcNodePtr);
     rsUniRenderVisitor->UpdateAncoNodeHWCDisabledState(ancoNodes);
 }
 
