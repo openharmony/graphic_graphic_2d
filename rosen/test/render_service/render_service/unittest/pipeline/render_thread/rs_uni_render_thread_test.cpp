@@ -26,6 +26,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable.h"
 #include <parameters.h>
+#include "memory/rs_memory_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -354,6 +355,46 @@ HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetClearMemoryTask002
+ * @tc.desc: Test ResetClearMemoryTask check new branch added by IfStatusBarDirtyOnly:
+ *           isTimeToReclaimm and ifStatusBarDirtyOnly
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask002, TestSize.Level1)
+{
+    RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uniRenderThread.SetTimeToReclaim(true);
+    mainThread->SetIfStatusBarDirtyOnly(true);
+    uniRenderThread.ResetClearMemoryTask();
+
+    uniRenderThread.SetTimeToReclaim(true);
+    mainThread->SetIfStatusBarDirtyOnly(false);
+    uniRenderThread.ResetClearMemoryTask();
+
+    uniRenderThread.SetTimeToReclaim(false);
+    mainThread->SetIfStatusBarDirtyOnly(true);
+    uniRenderThread.ResetClearMemoryTask();
+
+    uniRenderThread.SetTimeToReclaim(false);
+    mainThread->SetIfStatusBarDirtyOnly(false);
+    uniRenderThread.ResetClearMemoryTask();
+
+    uniRenderThread.SetTimeToReclaim(true);
+    mainThread->SetIfStatusBarDirtyOnly(true);
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(true);
+    uniRenderThread.ResetClearMemoryTask();
+
+    uniRenderThread.SetTimeToReclaim(true);
+    mainThread->SetIfStatusBarDirtyOnly(false);
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(true);
+    uniRenderThread.ResetClearMemoryTask();
+}
+
+/**
  * @tc.name: PurgeCacheBetweenFrames001
  * @tc.desc: Test PurgeCacheBetweenFrames
  * @tc.type: FUNC
@@ -667,6 +708,34 @@ HWTEST_F(RSUniRenderThreadTest, PostReclaimMemoryTaskTest, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     ClearMemoryMoment moment = ClearMemoryMoment::RECLAIM_CLEAN;
     bool isReclaim = true;
+    instance.PostReclaimMemoryTask(moment, isReclaim);
+    EXPECT_FALSE(instance.isTimeToReclaim_);
+}
+
+/**
+ * @tc.name: PostReclaimMemoryTaskTest001
+ * @tc.desc: Test PostReclaimMemoryTask check new branch added by IfStatusBarDirtyOnly: isReclaim and AceTestMode;
+ * @tc.type: FUNC
+ * @tc.require: issueICUBUG
+ */
+HWTEST_F(RSUniRenderThreadTest, PostReclaimMemoryTaskTest001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    ClearMemoryMoment moment = ClearMemoryMoment::RECLAIM_CLEAN;
+    bool isReclaim = true;
+    system::SetParameter("persist.ace.testmode.enable", "0");
+    instance.PostReclaimMemoryTask(moment, isReclaim);
+
+    isReclaim = true;
+    system::SetParameter("persist.ace.testmode.enable", "1");
+    instance.PostReclaimMemoryTask(moment, isReclaim);
+
+    isReclaim = false;
+    system::SetParameter("persist.ace.testmode.enable", "0");
+    instance.PostReclaimMemoryTask(moment, isReclaim);
+
+    isReclaim = false;
+    system::SetParameter("persist.ace.testmode.enable", "1");
     instance.PostReclaimMemoryTask(moment, isReclaim);
     EXPECT_FALSE(instance.isTimeToReclaim_);
 }

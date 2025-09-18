@@ -2393,7 +2393,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
         if (RSUniRenderThread::Instance().IsPostedReclaimMemoryTask()) {
-            ifStatusBarDirtyOnly_ = IfStatusBarDirtyOnly();
+            SetIfStatusBarDirtyOnly(IfStatusBarDirtyOnly());
         }
         RSUniRenderThread::Instance().PostTask([] {
             RSUniRenderThread::Instance().ResetClearMemoryTask();
@@ -2471,7 +2471,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
 bool RSMainThread::IfStatusBarDirtyOnly()
 {
-    if (RSSystemProperties::GetAceTestMode()) {
+    if (!RSSystemProperties::GetAceTestMode()) {
         return false;
     }
     RS_TRACE_NAME_FMT("checkIfStatusBarDirtyOnly");

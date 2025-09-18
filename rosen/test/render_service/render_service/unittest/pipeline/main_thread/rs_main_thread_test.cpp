@@ -1998,6 +1998,8 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
     mainThread->isAccessibilityConfigChanged_ = false;
     mainThread->isCachedSurfaceUpdated_ = false;
     mainThread->isHardwareEnabledBufferUpdated_ = false;
+    RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.SetIsPostedReclaimMemoryTask(true);
     mainThread->UniRender(rootNode);
     ASSERT_TRUE(mainThread->doDirectComposition_);
 }
@@ -2030,6 +2032,7 @@ HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly002, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     auto& context = mainThread->GetContext();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
 
     context.activeNodesInRoot_.clear();
     auto& nodeMap = context.GetMutableNodeMap();

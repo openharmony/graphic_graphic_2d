@@ -43,6 +43,7 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
 }
 
+// replication method takes long
 std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> RSContext::GetActiveNodes()
 {
     std::lock_guard<std::mutex> lock(activeNodesInRootMutex_);
