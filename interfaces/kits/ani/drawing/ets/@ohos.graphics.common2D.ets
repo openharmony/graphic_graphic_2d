@@ -34,32 +34,50 @@ namespace common2D {
   export interface Color {
     /**
      * Alpha component of color, from 0 to 255.
-     * @type { number }
+     * @type { int }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    alpha: number;
+    alpha: int;
     /**
      * Red component of color, from 0 to 255.
-     * @type { number }
+     * @type { int }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    red: number;
+    red: int;
     /**
      * Green component of color, from 0 to 255.
-     * @type { number }
+     * @type { int }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    green: number;
+    green: int;
     /**
      * Blue component of color, from 0 to 255.
-     * @type { number }
+     * @type { int }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    blue: number;
+    blue: int;
+  }
+
+  class ColorInternal implements common2D.Color {
+    alpha: int = 0;
+    red: int = 0;
+    green: int = 0;
+    blue: int = 0;
+    constructor(
+      alpha: int,
+      red: int,
+      green: int,
+      blue: int
+    ) {
+      this.alpha = alpha;
+      this.red = red;
+      this.green = green;
+      this.blue = blue;
+    }
   }
 
   /**
@@ -71,32 +89,50 @@ namespace common2D {
   export interface Rect {
     /**
      * Left Position of Rectangle.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    left: number;
+    left: double;
     /**
      * Top side position of the rectangle
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    top: number;
+    top: double;
     /**
      * Right Position of Rectangle.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    right: number;
+    right: double;
     /**
      * Position of the bottom side of the rectangle.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    bottom: number;
+    bottom: double;
+  }
+
+  class RectInternal implements common2D.Rect {
+    left: double = 0;
+    top: double = 0;
+    right: double = 0;
+    bottom: double = 0;
+    constructor(
+      left: double,
+      top: double,
+      right: double,
+      bottom: double
+    ) {
+      this.left = left;
+      this.top = top;
+      this.right = right;
+      this.bottom = bottom;
+    }
   }
 
   /**
@@ -108,19 +144,31 @@ namespace common2D {
   export interface Point {
     /**
      * X-axis coordinate.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    x: number;
+    x: double;
 
     /**
      * Y-axis coordinate.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    y: number;
+    y: double;
+  }
+
+  class PointInternal implements common2D.Point {
+    x: double = 0;
+    y: double = 0;
+    constructor(
+      x: double,
+      y: double
+    ) {
+      this.x = x;
+      this.y = y;
+    }
   }
 
   /**
@@ -134,11 +182,11 @@ namespace common2D {
   export interface Point3d extends Point {
     /**
      * Z-axis coordinate.
-     * @type { number }
+     * @type { double }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    z: number;
+    z: double;
   }
   
 }

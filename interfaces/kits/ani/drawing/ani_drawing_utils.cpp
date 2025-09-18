@@ -44,6 +44,51 @@ ani_status AniThrowError(ani_env* env, const std::string& message)
     return ANI_OK;
 }
 
+ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const char* message)
+{
+    ani_object aniError;
+    ani_status status = CreateBusinessError(env, static_cast<int32_t>(errorCode), message, aniError);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to create business, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    status = env->ThrowError(static_cast<ani_error>(aniError));
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Fail to throw err, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    return ANI_OK;
+}
+
+ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
+{
+    ani_class aniClass;
+    ani_status status = env->FindClass("L@ohos/base/BusinessError;", &aniClass);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to find class, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    ani_method aniCtor;
+    status = env->Class_FindMethod(aniClass, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &aniCtor);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    ani_string aniMsg = CreateAniString(env, message);
+    status = env->Object_New(aniClass, aniCtor, &err, aniMsg, CreateAniUndefined(env));
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to new err, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    status = env->Object_SetPropertyByName_Double(err, "code", static_cast<ani_int>(error));
+    if (status != ANI_OK) {
+        ROSEN_LOGE("Failed to set code, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    return ANI_OK;
+}
+
+
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
     ani_class colorClass;
@@ -55,15 +100,15 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
         return false;
     }
     
-    ani_double alpha;
-    ani_double red;
-    ani_double green;
-    ani_double blue;
+    ani_int alpha;
+    ani_int red;
+    ani_int green;
+    ani_int blue;
 
-    if ((env->Object_GetPropertyByName_Double(obj, "alpha", &alpha) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "red", &red) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "green", &green) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "blue", &blue) != ANI_OK)) {
+    if ((env->Object_GetPropertyByName_Int(obj, "alpha", &alpha) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Int(obj, "red", &red) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Int(obj, "green", &green) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Int(obj, "blue", &blue) != ANI_OK)) {
         ROSEN_LOGE("GetColorQuadFromParam failed by Color class");
         return false;
     }
@@ -90,7 +135,7 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
     env->Object_InstanceOf(obj, doubleClass, &isNumber);
     if (isNumber) {
         ani_double aniColor;
-        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "unboxed", ":D", &aniColor)) {
+        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "unboxed", nullptr, &aniColor)) {
             ROSEN_LOGE("GetColorQuadFromParam failed by double value");
             return false;
         }
@@ -99,6 +144,17 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
     }
 
     return GetColorQuadFromColorObj(env, obj, color);
+}
+
+ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/ColorInternal;", "IIII:V",
+        ani_int(color.GetAlpha()),
+        ani_int(color.GetRed()),
+        ani_int(color.GetGreen()),
+        ani_int(color.GetBlue())
+    );
+    return ANI_OK;
 }
 
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
@@ -130,6 +186,46 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     rect.SetRight(right);
     rect.SetBottom(bottom);
     return true;
+}
+
+ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/RectInternal;", "DDDD:V",
+        ani_double(rect.left_),
+        ani_double(rect.top_),
+        ani_double(rect.right_),
+        ani_double(rect.bottom_)
+    );
+    return ANI_OK;
+}
+
+ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
+{
+    ani_double x = 0;
+    ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param x is invalid, ret %{public}d", ret);
+        return ret;
+    }
+
+    ani_double y = 0;
+    ret = env->Object_GetPropertyByName_Double(obj, "y", &y);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Param y is invalid, ret %{public}d", ret);
+        return ret;
+    }
+    point.SetX(x);
+    point.SetY(y);
+    return ret;
+}
+
+ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/PointInternal;", "DD:V",
+        ani_double(point.GetX()),
+        ani_double(point.GetY())
+    );
+    return ANI_OK;
 }
 
 ani_object CreateAniUndefined(ani_env* env)

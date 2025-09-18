@@ -1466,10 +1466,10 @@ namespace text {
   }
 
   class ColorInternal implements common2D.Color {
-    alpha: number;
-    red: number;
-    green: number;
-    blue: number;
+    alpha: int;
+    red: int;
+    green: int;
+    blue: int;
   }
 
   class PointInternal implements common2D.Point {

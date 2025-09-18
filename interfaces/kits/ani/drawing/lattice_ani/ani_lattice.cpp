@@ -21,8 +21,8 @@ const char* ANI_CLASS_ANI_LATTICE_NAME = "L@ohos/graphics/drawing/drawing/Lattic
 
 bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, std::vector<int>& dividers)
 {
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(dividersArray, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(dividersArray, "length", &aniLength)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice dividers are invalid");
         return false;
     }
@@ -35,13 +35,17 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
     if (dividersSize != 0) {
         dividers.reserve(dividersSize);
         for (uint32_t i = 0; i < dividersSize; i++) {
-            ani_double divider;
+            ani_int divider;
             ani_ref dividerRef;
-            if (ANI_OK != env->Object_CallMethodByName_Ref(
-                dividersArray, "$_get", "I:Lstd/core/Object;", &dividerRef, (ani_int)i) ||
-                ANI_OK != env->Object_CallMethodByName_Double(
-                    static_cast<ani_object>(dividerRef), "unboxed", ":D", &divider)) {
-                ROSEN_LOGE("AniLattice::CreateImageLattice Incorrect parameter dividers type.");
+            int ret = 0;
+            if ((ret = env->Object_CallMethodByName_Ref(dividersArray,
+                "$_get", "I:Lstd/core/Object;", &dividerRef, (ani_int)i)) != ANI_OK) {
+                ROSEN_LOGE("AniLattice::CreateImageLattice  get divider ref failed. ret: %{public}d", ret);
+                return false;
+            }
+            if ((ret = env->Object_CallMethodByName_Int(
+                static_cast<ani_object>(dividerRef), "unboxed", ":I", &divider)) != ANI_OK) {
+                ROSEN_LOGE("AniLattice::CreateImageLattice Get divider failed. ret: %{public}d", ret);
                 return false;
             }
             dividers.push_back(divider);
@@ -53,8 +57,8 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
 bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count,
     std::vector<Lattice::RectType>& latticeRectTypes)
 {
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(rectTypesArray, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(rectTypesArray, "length", &aniLength)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice rectTypes are invalid");
         return false;
     }
@@ -87,8 +91,8 @@ bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count
 
 bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std::vector<Color>& latticeColors)
 {
-    ani_double aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(colorsArray, "length", &aniLength)) {
+    ani_int aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(colorsArray, "length", &aniLength)) {
         ROSEN_LOGE("AniLattice::CreateImageLattice colors are invalid");
         return false;
     }
@@ -104,7 +108,7 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
         latticeColors.reserve(colorsSize);
         for (uint32_t i = 0; i < colorsSize; i++) {
             ani_ref colorRef;
-            ani_double aniColor;
+            ani_int aniColor;
             Drawing::ColorQuad colorQuad;
             if (ANI_OK != env->Object_CallMethodByName_Ref(
                 colorsArray, "$_get", "I:Lstd/core/Object;", &colorRef, (ani_int)i)) {
@@ -118,7 +122,7 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
             }
 
             if ((isColorClass && !GetColorQuadFromColorObj(env, static_cast<ani_object>(colorRef), colorQuad)) ||
-                (!isColorClass && ANI_OK != env->Object_CallMethodByName_Double(
+                (!isColorClass && ANI_OK != env->Object_CallMethodByName_Int(
                     static_cast<ani_object>(colorRef), "unboxed", ":D", &aniColor))) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice colors is invalid");
                 return false;
@@ -146,9 +150,9 @@ ani_status AniLattice::AniInit(ani_env *env)
             reinterpret_cast<void*>(CreateImageLattice) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_ANI_LATTICE_NAME);
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_ANI_LATTICE_NAME, ret);
         return ANI_NOT_FOUND;
     }
 
@@ -161,19 +165,19 @@ AniLattice::~AniLattice()
 }
 
 ani_object AniLattice::CreateImageLattice(ani_env* env,
-    ani_object obj, ani_object xDivs, ani_object yDivs, ani_double fXCount,
-    ani_double fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors)
+    ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
+    ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors)
 {
     uint32_t xCount = static_cast<uint32_t>(fXCount);
     uint32_t yCount = static_cast<uint32_t>(fYCount);
 
     Lattice lat;
     if (!GetLatticeDividers(env, xDivs, xCount, lat.fXDivs)) {
-        AniThrowError(env, "Incorrect parameter0 type.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
         return CreateAniUndefined(env);
     }
     if (!GetLatticeDividers(env, yDivs, yCount, lat.fYDivs)) {
-        AniThrowError(env, "Incorrect parameter1 type.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
         return CreateAniUndefined(env);
     }
     lat.fXCount = static_cast<int>(xCount);
@@ -194,7 +198,7 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     uint32_t count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
     if (!isUndefined && !isNull) {
         if (!GetLatticeRectTypes(env, fRectTypes, count, lat.fRectTypes)) {
-            AniThrowError(env, "Incorrect parameter6 type.");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter6 type.");
             return CreateAniUndefined(env);
         }
     }
@@ -203,13 +207,19 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     env->Reference_IsNull(fColors, &isNull);
     if (!isUndefined && !isNull) {
         if (!GetLatticeColors(env, fColors, count, lat.fColors)) {
-            AniThrowError(env, "Incorrect parameter7 type.");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter7 type.");
             return CreateAniUndefined(env);
         }
     }
 
     AniLattice* aniLattice = new AniLattice(std::make_shared<Lattice>(lat));
     ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_ANI_LATTICE_NAME, aniLattice);
+    ani_boolean objIsUndefined;
+    env->Reference_IsUndefined(aniObj, &objIsUndefined);
+    if (objIsUndefined) {
+        delete aniLattice;
+        ROSEN_LOGE("AniLattice::CreateImageLattice failed cause aniObj is undefined");
+    }
     return aniObj;
 }
 

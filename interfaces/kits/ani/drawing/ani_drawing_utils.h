@@ -23,6 +23,7 @@
 #include <string>
 #include "effect/color_filter.h"
 #include "utils/rect.h"
+#include "utils/point.h"
 
 #ifdef ROSEN_OHOS
 
@@ -48,9 +49,21 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+enum class DrawingErrorCode : int32_t {
+    OK = 0,
+    ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
+    ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
+    ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
+    ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+};
+
 constexpr char NATIVE_OBJ[] = "nativeObj";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
+
+ani_status ThrowBusinessError(ani_env* env, DrawingErrorCode errorCode, const char* message);
+
+ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err);
 
 inline ani_string CreateAniString(ani_env* env, const std::string& stdStr)
 {
@@ -100,33 +113,28 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
     ani_class aniClass;
     if (env->FindClass(className, &aniClass) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic FindClass failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
     ani_method aniConstructor;
     if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod constructor failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
     ani_object aniObject;
     if (env->Object_New(aniClass, aniConstructor, &aniObject) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Object_New failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
     ani_method innerMethod;
     if (env->Class_FindMethod(aniClass, "bindNativePtr", "J:V", &innerMethod) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod bindNativePtr failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
     if (env->Object_CallMethod_Void(aniObject, innerMethod, reinterpret_cast<ani_long>(obj)) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Object_CallMethod_Void failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
@@ -137,7 +145,15 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
 
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 
+ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj);
+
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect);
+
+ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj);
+
+ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
+
+ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {
