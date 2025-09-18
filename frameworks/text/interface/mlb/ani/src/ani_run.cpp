@@ -43,7 +43,7 @@ const std::string GET_STRING_RANGE_SIGNATURE = ":C{" + std::string(ANI_INTERFACE
 const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
 const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
 const std::string RETURN_ARRAY_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
-const std::string GET_TEXT_DIRECTION_SIGNATURE = ":E{" + std::string(ANI_ENUM_TEXT_VERTICAL_ALIGN) + "}";
+const std::string GET_TEXT_DIRECTION_SIGNATURE = ":E{" + std::string(ANI_ENUM_TEXT_DIRECTION) + "}";
 const std::string GET_ADVANCES_SIGNATURE = "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
 } // namespace
 
