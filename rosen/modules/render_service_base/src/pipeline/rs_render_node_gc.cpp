@@ -140,7 +140,8 @@ void RSRenderNodeGC::ReleaseNodeBucket()
             ++realDelNodeNum;
         }
     }
-    RS_TRACE_NAME_FMT("Actually ReleaseNode(not null) %u, VSync signal arrival interrupts release: %s", realDelNodeNum, vsyncArrived ? "true" : "false");
+    RS_TRACE_NAME_FMT("Actually ReleaseNode(not null) %u, VSync signal arrival interrupts release: %s",
+        realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 
 void RSRenderNodeGC::ReleaseNodeMemory()
