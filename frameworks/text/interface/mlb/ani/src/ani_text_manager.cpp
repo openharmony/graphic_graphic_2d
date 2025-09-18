@@ -108,14 +108,14 @@ static ani_status AniCleanerInit(ani_vm* vm)
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     ani_class cls = nullptr;
     ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_CLEANER, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     std::array methods = {
@@ -125,7 +125,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Manager, ret %{public}d", ret);
-        return ANI_ERROR;
+        return ret;
     }
     return ANI_OK;
 }
@@ -144,6 +144,8 @@ extern "C"
         ani_status status = OHOS::Text::ANI::Init(vm, result);
         if (status == ANI_OK) {
             *result = ANI_VERSION_1;
+        } else {
+            TEXT_LOGE("Failed to init ANI, ret %{public}d", status);
         }
         return status;
     }
