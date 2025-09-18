@@ -138,7 +138,6 @@ HWTEST_F(RSRenderNodeGCTest, AddNodeToBucket001, TestSize.Level1)
     gc.nodeBucket_.swap(tempQueue);
 
     gc.AddNodeToBucket(nullptr);
-    auto nodeBucketSize = gc.nodeBucket_.size();
     EXPECT_TRUE(gc.IsBucketQueueEmpty());
 }
 
