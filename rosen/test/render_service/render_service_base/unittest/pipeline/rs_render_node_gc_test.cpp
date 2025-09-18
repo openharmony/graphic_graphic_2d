@@ -125,12 +125,54 @@ HWTEST_F(RSRenderNodeGCTest, NodeDestructorInner001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReleaseNodeBucketTest
+ * @tc.name: AddNodeToBucket001
+ * @tc.desc: test results of AddNodeToBucket
+ * @tc.type: FUNC
+ * @tc.require: issue19909
+ */
+HWTEST_F(RSRenderNodeGCTest, AddNodeToBucket001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    // clear nodeBucket_
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    gc.nodeBucket_.swap(tempQueue);
+
+    gc.AddNodeToBucket(nullptr);
+    EXPECT_TRUE(gc.IsBucketQueueEmpty());
+}
+
+
+/**
+ * @tc.name: AddNodeToBucket002
+ * @tc.desc: test results of AddNodeToBucket
+ * @tc.type: FUNC
+ * @tc.require: issue19909
+ */
+HWTEST_F(RSRenderNodeGCTest, AddNodeToBucket002, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    // clear nodeBucket_
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    gc.nodeBucket_.swap(tempQueue);
+
+    auto ptr = std::make_shared<RSRenderNode>(0).get();
+
+    // Test adding more than BUCKET_MAX_SIZE nodes
+    constexpr int nodeNum = BUCKET_MAX_SIZE + 2;
+    for (int i = 0; i < nodeNum; ++i) {
+        gc.AddNodeToBucket(ptr);
+    }
+    auto nodeBucketSize = gc.nodeBucket_.size();
+    EXPECT_TRUE(nodeBucketSize == 2);
+}
+
+/**
+ * @tc.name: ReleaseNodeBucketTest001
  * @tc.desc: test results of ReleaseNodeBucket
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucketTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucketTest001, TestSize.Level1)
 {
     RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
     RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
@@ -140,6 +182,27 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucketTest, TestSize.Level1)
     gc.nodeBucket_.swap(tempQueue);
     gc.ReleaseNodeBucket();
     EXPECT_TRUE(gc.nodeBucket_.size() == 0);
+}
+
+/**
+ * @tc.name: ReleaseNodeBucketTest002
+ * @tc.desc: test results of ReleaseNodeBucket
+ * @tc.type: FUNC
+ * @tc.require:issue19909
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucketTest002, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto ptr = nodeAllocator.CreateRSCanvasRenderNode(0);
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({ptr.get()});
+    gc.nodeBucket_.swap(tempQueue);
+
+    // Simulate the scenario where the VSync signal arrives
+    gc.isEnable_.store(false);
+    gc.ReleaseNodeBucket();
+    EXPECT_TRUE(gc.nodeBucket_.size() == 1);
 }
 
 /**

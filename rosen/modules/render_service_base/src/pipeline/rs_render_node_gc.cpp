@@ -49,6 +49,24 @@ struct MemoryHook {
     }
 };
 
+void RSRenderNodeGC::AddNodeToBucket(RSRenderNode* ptr)
+{
+    if (ptr == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(nodeMutex_);
+    if (nodeBucket_.size() > 0) {
+        auto& bucket = nodeBucket_.back();
+        if (bucket.size() < BUCKET_MAX_SIZE) {
+            bucket.push_back(ptr);
+        } else {
+            nodeBucket_.push({ptr});
+        }
+    } else {
+        nodeBucket_.push({ptr});
+    }
+}
+
 RSRenderNodeGC& RSRenderNodeGC::Instance()
 {
     static RSRenderNodeGC instance;
@@ -65,17 +83,7 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     if (ptr == nullptr) {
         return;
     }
-    std::lock_guard<std::mutex> lock(nodeMutex_);
-    if (nodeBucket_.size() > 0) {
-        auto& bucket = nodeBucket_.back();
-        if (bucket.size() < BUCKET_MAX_SIZE) {
-            bucket.push_back(ptr);
-        } else {
-            nodeBucket_.push({ptr});
-        }
-    } else {
-        nodeBucket_.push({ptr});
-    }
+    AddNodeToBucket(ptr);
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
 
@@ -110,8 +118,15 @@ void RSRenderNodeGC::ReleaseNodeBucket()
     }
     nodeBucketThrDetector_.Detect(remainBucketSize, callback);
     RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu, remain node buckets %u", toDele.size(), remainBucketSize);
+    bool vsyncArrived = false;
+    uint32_t realDelNodeNum = 0;
     for (auto ptr : toDele) {
         if (ptr) {
+            if (isEnable_.load() == false) {
+                AddNodeToBucket(ptr);
+                vsyncArrived = true;
+                continue;
+            }
             if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
                 continue;
             }
@@ -121,8 +136,12 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 #endif
             delete ptr;
             ptr = nullptr;
+
+            ++realDelNodeNum;
         }
     }
+    RS_TRACE_NAME_FMT("Actually ReleaseNode(not null) %u, VSync signal arrival interrupts release: %s",
+        realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 
 void RSRenderNodeGC::ReleaseNodeMemory()
