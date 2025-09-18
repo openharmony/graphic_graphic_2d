@@ -79,21 +79,21 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     ani_class cls = nullptr;
     ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_RUN, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
-    std::array methods = InitMethods(env);
+    std::vector<ani_native_function> methods = InitMethods(env);
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Run, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     std::array staticMethods = {
@@ -104,8 +104,8 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     };
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind static methods: %{public}s", ANI_CLASS_RUN);
-        return ANI_NOT_FOUND;
+        TEXT_LOGE("Failed to bind static methods: %{public}s, ret %{public}d", ANI_CLASS_RUN, ret);
+        return ret;
     }
     return ANI_OK;
 }

@@ -56,14 +56,14 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     ani_namespace ns = nullptr;
     ret = env->FindNamespace(ANI_NAMESPACE_TEXT, &ns);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find namespace %{public}s, ret %{public}d", ANI_NAMESPACE_TEXT, ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     std::string getSystemFontFullNamesByTypeSignature =
@@ -85,7 +85,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for AniFontDescriptor, ret %{public}d", ret);
-        return ANI_ERROR;
+        return ret;
     }
     return ANI_OK;
 }

@@ -38,14 +38,14 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK || env == nullptr) {
         TEXT_LOGE("Failed to get env, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
 
     ani_class cls = nullptr;
     ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_LINE_TYPESET, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
     std::string createLineSignature = "ii:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
     std::array methods = {
@@ -56,7 +56,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for LineTypeset, ret %{public}d", ret);
-        return ANI_NOT_FOUND;
+        return ret;
     }
     return ANI_OK;
 }
