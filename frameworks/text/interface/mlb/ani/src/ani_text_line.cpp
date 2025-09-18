@@ -37,6 +37,14 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
 constexpr size_t ARGC_TWO = 2;
+const std::string GET_TEXT_RANGE_SIGN = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
+const std::string GET_LYPH_RUNS_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
+const std::string PAINT_SIGN = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
+const std::string CREATE_TRUNCATED_LINE_SIGN =
+    "dE{" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{std.core.String}:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
+const std::string GET_TYPOGRAPHIC_BOUNDS_SIGN = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
+const std::string GET_IMAGE_BOUNDS_SIGN = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
+const std::string GET_STRING_INDEX_FOR_POSITION_SIGN = "C{" + std::string(ANI_INTERFACE_POINT) + "}:i";
 }
 
 ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
@@ -55,43 +63,42 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
-    std::string getTextRangeSignature = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
-    std::string getGlyphRunsSignature = ":C{" + std::string(ANI_ARRAY) + "}";
-    std::string paintSignature = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
-    std::string createTruncatedLineSignature =
-        "dE{" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{std.core.String}:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
-    std::string getTypographicBoundsSignature = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
-    std::string getImageBoundsSignature = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
-    std::string getStringIndexForPositionSignature = "C{" + std::string(ANI_INTERFACE_POINT) + "}:i";
-
     std::array methods = {
         ani_native_function{"getGlyphCount", ":i", reinterpret_cast<void*>(GetGlyphCount)},
-        ani_native_function{"getTextRange", getTextRangeSignature.c_str(), reinterpret_cast<void*>(GetTextRange)},
-        ani_native_function{"getGlyphRuns", getGlyphRunsSignature.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
-        ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
+        ani_native_function{"getTextRange", GET_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetTextRange)},
+        ani_native_function{"getGlyphRuns", GET_LYPH_RUNS_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
+        ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{
-            "createTruncatedLine", createTruncatedLineSignature.c_str(), reinterpret_cast<void*>(CreateTruncatedLine)},
-        ani_native_function{"getTypographicBounds", getTypographicBoundsSignature.c_str(),
+            "createTruncatedLine", CREATE_TRUNCATED_LINE_SIGN.c_str(), reinterpret_cast<void*>(CreateTruncatedLine)},
+        ani_native_function{"getTypographicBounds", GET_TYPOGRAPHIC_BOUNDS_SIGN.c_str(),
             reinterpret_cast<void*>(GetTypographicBounds)},
-        ani_native_function{"getImageBounds", getImageBoundsSignature.c_str(), reinterpret_cast<void*>(GetImageBounds)},
+        ani_native_function{"getImageBounds", GET_IMAGE_BOUNDS_SIGN.c_str(), reinterpret_cast<void*>(GetImageBounds)},
         ani_native_function{"getTrailingSpaceWidth", ":d", reinterpret_cast<void*>(GetTrailingSpaceWidth)},
-        ani_native_function{"getStringIndexForPosition", getStringIndexForPositionSignature.c_str(),
+        ani_native_function{"getStringIndexForPosition", GET_STRING_INDEX_FOR_POSITION_SIGN.c_str(),
             reinterpret_cast<void*>(GetStringIndexForPosition)},
         ani_native_function{"getOffsetForStringIndex", "i:d", reinterpret_cast<void*>(GetOffsetForStringIndex)},
         // Lstd/core/Function<number>: <number> is an int from 0 to N, means the number of parameters in the function
         ani_native_function{
             "enumerateCaretOffsets", "C{std.core.Function3}:", reinterpret_cast<void*>(EnumerateCaretOffsets)},
         ani_native_function{"getAlignmentOffset", "dd:d", reinterpret_cast<void*>(GetAlignmentOffset)},
-        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
-            reinterpret_cast<void*>(NativeTransferStatic)},
-        ani_native_function{
-            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for TextLine, ret %{public}d", ret);
-        return ANI_ERROR;
+        return ANI_NOT_FOUND;
+    }
+
+    std::array staticMethods = {
+        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
+            reinterpret_cast<void*>(NativeTransferStatic)},
+        ani_native_function{
+            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
+    };
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to bind static methods: %{public}s", ANI_CLASS_TEXT_LINE);
+        return ANI_NOT_FOUND;
     }
     return ANI_OK;
 }

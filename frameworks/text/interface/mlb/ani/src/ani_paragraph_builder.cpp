@@ -35,6 +35,16 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+
+namespace {
+const std::string CTOR_SIGN =
+    "C{" + std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + "}C{" + std::string(ANI_CLASS_FONT_COLLECTION) + "}:";
+const std::string PUSH_STYLE_SIGN = "C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}:";
+const std::string BUILD_STYLE_SIGN = ":C{" + std::string(ANI_CLASS_PARAGRAPH) + "}";
+const std::string ADD_PLACEHOLDER_SIGN = "C{" + std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + "}:";
+const std::string BUILD_LINE_TYPE_SET_SIGN = ":C{" + std::string(ANI_CLASS_LINE_TYPESET) + "}";
+}
+
 void AniParagraphBuilder::Constructor(
     ani_env* env, ani_object object, ani_object paragraphStyle, ani_object fontCollection)
 {
@@ -96,32 +106,35 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
-    std::string ctorSignature =
-        "C{" + std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + "}C{" + std::string(ANI_CLASS_FONT_COLLECTION) + "}:";
-    std::string pushStyleSignature = "C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}:";
-    std::string buildStyleSignature = ":C{" + std::string(ANI_CLASS_PARAGRAPH) + "}";
-    std::string addPlaceholderSignature = "C{" + std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + "}:";
-    std::string buildLineTypesetSignature = ":C{" + std::string(ANI_CLASS_LINE_TYPESET) + "}";
     std::array methods = {
-        ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
+        ani_native_function{"constructorNative", CTOR_SIGN.c_str(), reinterpret_cast<void*>(Constructor)},
+        ani_native_function{"pushStyle", PUSH_STYLE_SIGN.c_str(), reinterpret_cast<void*>(PushStyle)},
         ani_native_function{"popStyle", ":", reinterpret_cast<void*>(PopStyle)},
         ani_native_function{"addText", "C{std.core.String}:", reinterpret_cast<void*>(AddText)},
-        ani_native_function{"addPlaceholder", addPlaceholderSignature.c_str(), reinterpret_cast<void*>(AddPlaceholder)},
-        ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(Build)},
+        ani_native_function{"addPlaceholder", ADD_PLACEHOLDER_SIGN.c_str(), reinterpret_cast<void*>(AddPlaceholder)},
+        ani_native_function{"build", BUILD_STYLE_SIGN.c_str(), reinterpret_cast<void*>(Build)},
         ani_native_function{
-            "buildLineTypeset", buildLineTypesetSignature.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
+            "buildLineTypeset", BUILD_LINE_TYPE_SET_SIGN.c_str(), reinterpret_cast<void*>(BuildLineTypeset)},
         ani_native_function{"addSymbol", "i:", reinterpret_cast<void*>(AddSymbol)},
+    };
+
+    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to bind methods for TypographyCreate, ret %{public}d", ret);
+        return ANI_NOT_FOUND;
+    }
+
+    std::array staticMethods = {
         ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(NativeTransferStatic)},
         ani_native_function{
             "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind methods for TypographyCreate, ret %{public}d", ret);
-        return ANI_ERROR;
+        TEXT_LOGE("Failed to bind static methods: %{public}s", ANI_CLASS_PARAGRAPH_BUILDER);
+        return ANI_NOT_FOUND;
     }
     return ANI_OK;
 }
