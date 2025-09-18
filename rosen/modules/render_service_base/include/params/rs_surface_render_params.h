@@ -748,6 +748,9 @@ public:
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
+    void SetSurfaceBufferOpaque(bool isOpaque);
+    bool GetSurfaceBufferOpaque() const;
+
     void SetUseDeviceOffline(bool useDeviceOffline)
     {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -889,6 +892,7 @@ private:
 
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
+    bool isSurfaceBufferOpaque_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

@@ -3702,6 +3702,29 @@ void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
     isFrameGravityNewVersionEnabled_ = isEnabled;
 }
 
+void RSSurfaceRenderNode::SetSurfaceBufferOpaque(bool isOpaque)
+{
+    ROSEN_LOGI("RSSurfaceRenderNode::SetSurfaceBufferOpaque, Node id:%{public}" PRIu64 ", isOpaque:%{public}d",
+        GetId(), isOpaque);
+    if (isSurfaceBufferOpaque_ == isOpaque) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        ROSEN_LOGE("RSSurfaceRenderNode::SetSurfaceBufferOpaque failed! surfaceParams is null. id:%{public}"
+            "" PRIu64 ", isOpaque:%{public}d", GetId(), isOpaque);
+        return;
+    }
+    surfaceParams->SetSurfaceBufferOpaque(isOpaque);
+    AddToPendingSyncList();
+    isSurfaceBufferOpaque_ = isOpaque;
+}
+
+bool RSSurfaceRenderNode::GetSurfaceBufferOpaque() const
+{
+    return isSurfaceBufferOpaque_;
+}
+
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
     const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();

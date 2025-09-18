@@ -1387,6 +1387,11 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
+    if (nodeParams != nullptr) {
+        RS_LOGE("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity, GetSurfaceBufferOpaque:%{public}d",
+            nodeParams->GetSurfaceBufferOpaque());
+    }
+
     if (nodeParams != nullptr && (nodeParams->GetApiCompatibleVersion() >= API18 ||
         nodeParams->GetName() == "RosenWeb" ||
         nodeParams->GetFrameGravityNewVersionEnabled())) {

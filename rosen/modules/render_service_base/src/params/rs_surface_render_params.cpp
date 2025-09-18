@@ -693,6 +693,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
     targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
+    targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
     RSRenderParams::OnSync(target);
 }
 
@@ -756,6 +757,16 @@ void RSSurfaceRenderParams::SetFrameGravityNewVersionEnabled(bool isEnabled)
 bool RSSurfaceRenderParams::GetFrameGravityNewVersionEnabled() const
 {
     return isFrameGravityNewVersionEnabled_;
+}
+
+void RSSurfaceRenderParams::SetSurfaceBufferOpaque(bool isOpaque)
+{
+    isSurfaceBufferOpaque_ = isOpaque;
+}
+
+bool RSSurfaceRenderParams::GetSurfaceBufferOpaque() const
+{
+    return isSurfaceBufferOpaque_;
 }
 
 } // namespace OHOS::Rosen

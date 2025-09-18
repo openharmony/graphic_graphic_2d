@@ -513,6 +513,16 @@ bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetSurfaceBufferOpaque(const uint8_t* data, size_t size)
+{
+    // test
+    auto config = GetRSSurfaceNodeConfigFromData();
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool isOpaque = GetData<bool>();
+    surfaceNode->SetSurfaceBufferOpaque(isOpaque);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -557,6 +567,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHardwareEnableHint(data, size);
     OHOS::Rosen::DoSetSourceVirtualScreenId(data, size);
     OHOS::Rosen::DoSetFrameGravityNewVersionEnabled(data, size);
+    OHOS::Rosen::DoSetSurfaceBufferOpaque(data, size);
     return 0;
 }
 

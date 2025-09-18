@@ -849,4 +849,19 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetFrameGravityNewVersionEnabledTest, TestSiz
     SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(context, nodeId, true);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
+
+/**
+ * @tc.name: SetSurfaceBufferOpaqueTest
+ * @tc.desc: Verify function SetSurfaceBufferOpaque
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetSurfaceBufferOpaque(context, nodeId, true);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
 } // namespace OHOS::Rosen

@@ -1730,6 +1730,10 @@ public:
     {
         skipFrameDirtyRect_ = skipFrameDirtyRect_.JoinRect(surfaceDirtyRect);
     }
+
+    void SetSurfaceBufferOpaque(bool isOpaque);
+    bool GetSurfaceBufferOpaque() const;
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -2110,6 +2114,8 @@ private:
     bool selfAndParentShouldPaint_ = true;
 
     bool isFrameGravityNewVersionEnabled_ = false;
+
+    bool isSurfaceBufferOpaque_ = false;
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;

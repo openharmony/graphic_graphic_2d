@@ -1069,5 +1069,17 @@ bool RSSurfaceNode::GetFrameGravityNewVersionEnabled() const
 {
     return isFrameGravityNewVersionEnabled_;
 }
+
+void RSSurfaceNode::SetSurfaceBufferOpaque(bool isOpaque)
+{
+    if (isSurfaceBufferOpaque_ == isOpaque) {
+        return;
+    }
+
+    isSurfaceBufferOpaque_ = isOpaque;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSurfaceBufferOpaque>(GetId(), isOpaque);
+    AddCommand(command, true);
+}
 } // namespace Rosen
 } // namespace OHOS
