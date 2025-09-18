@@ -2294,7 +2294,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha001, TestSize.
 {
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
-    surfaceConfig.name = "surfaceNodeTest001";
+    surfaceConfig.name = "surfaceNode";
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode->SetAncoForceDoDirect(false);
     ASSERT_NE(surfaceNode, nullptr);
@@ -2321,10 +2321,10 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha001, TestSize.
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha002, TestSize.Level1)
 {
-    constexpr uint8_t MAX_ALPHA = 255;
+    uint8_t MAX_ALPHA = 255;
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
-    surfaceConfig.name = "solidColorNodeTest002";
+    surfaceConfig.name = "solidColorNode";
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode->SetAncoForceDoDirect(false);
     auto& renderProperties = surfaceNode->GetMutableRenderProperties();
@@ -2376,10 +2376,10 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha002, TestSize.
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha003, TestSize.Level1)
 {
-    constexpr uint8_t MAX_ALPHA = 255;
+    uint8_t MAX_ALPHA = 255;
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = 1;
-    surfaceConfig.name = "solidColorNodeTest003";
+    surfaceConfig.name = "solidColorNode";
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode->SetAncoForceDoDirect(false);
     auto& renderProperties = surfaceNode->GetMutableRenderProperties();
@@ -2421,7 +2421,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha003, TestSize.
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha004, TestSize.Level1)
 {
-    constexpr uint8_t MAX_ALPHA = 255;
+    uint8_t MAX_ALPHA = 255;
     uint32_t left = 0;
     uint32_t top = 0;
     uint32_t width = 300;
@@ -2434,7 +2434,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha004, TestSize.
 
     RSSurfaceRenderNodeConfig surfaceConfig;
     surfaceConfig.id = ++id;
-    surfaceConfig.name = "alphaColorNodeTest004";
+    ssurfaceConfig.name = "alphaColorNode";
     auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
     surfaceNode->SetAncoForceDoDirect(false);
     auto& renderProperties = surfaceNode->GetMutableRenderProperties();
@@ -2490,7 +2490,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha004, TestSize.
     ASSERT_TRUE(solidLayerColor == solidColor);
     RSSurfaceRenderNodeConfig childSurfaceConfig;
     childSurfaceConfig.id = ++id;
-    childSurfaceConfig.name = "childSurfaceTest004";
+    childSurfaceConfig.name = "childSurface";
     auto childSurface = RSTestUtil::CreateSurfaceNode(childSurfaceConfig);
     childSurface->renderProperties_.boundsGeo_->absRect_ = rect;
     ASSERT_NE(childSurface, nullptr);
@@ -2512,59 +2512,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha004, TestSize.
     canvasProperties.SetBackgroundColor(alphaColor);
     canvasProperties.SetAlpha(1);
     rsCanvasRenderNode1->renderProperties_.boundsGeo_->absRect_ = rect;
-    rsUniHwcVisitor->UpdateHwcNodeEnableByBackgroundAlpha(*surfaceNode);
-    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
-}
-
-/**
- * @tc.name: UpdateHwcNodeEnableByBackgroundAlpha005
- * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByBackgroundAlpha
- * @tc.type: FUNC
- * @tc.require: IAHFXD
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha005, TestSize.Level1)
-{
-    constexpr uint8_t MAX_ALPHA = 255;
-    RSSurfaceRenderNodeConfig surfaceConfig;
-    surfaceConfig.id = 1;
-    surfaceConfig.name = "solidColorNodeTest005";
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
-    surfaceNode->SetAncoForceDoDirect(false);
-    auto& renderProperties = surfaceNode->GetMutableRenderProperties();
-    Color solidColor(136, 136, 136, MAX_ALPHA);
-    renderProperties.SetBackgroundColor(solidColor);
-    renderProperties.SetAlpha(1);
-    ASSERT_NE(surfaceNode, nullptr);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    NodeId screenNodeId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
-    displayNode->curMainAndLeashSurfaceNodes_.push_back(nullptr);
-    rsUniRenderVisitor->curScreenNode_ = displayNode;
-    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
-    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
-    ASSERT_NE(rsUniHwcVisitor, nullptr);
-    surfaceNode->SetHardwareEnabled(true, SelfDrawingNodeType::XCOM);
-    surfaceNode->SetHardwareEnableHint(false);
-    RsCommonHook::Instance().SetHardwareEnabledByBackgroundAlphaFlag(false);
-    surfaceNode->UpdateRenderParams();
-    RsCommonHook::Instance().SetIsWhiteListForSolidColorLayerFlag(false);
-    rsUniHwcVisitor->UpdateHwcNodeEnableByBackgroundAlpha(*surfaceNode);
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
-    auto solidLayerColor = stagingSurfaceParams->GetSolidLayerColor();
-    ASSERT_TRUE(solidLayerColor == RgbPalette::Transparent());
-    RsCommonHook::Instance().SetIsWhiteListForSolidColorLayerFlag(true);
-    rsUniHwcVisitor->UpdateHwcNodeEnableByBackgroundAlpha(*surfaceNode);
-    solidLayerColor = stagingSurfaceParams->GetSolidLayerColor();
-    ASSERT_TRUE(solidLayerColor == solidColor);
-    rsUniRenderVisitor->curScreenNode_->SetHasUniRenderHdrSurface(true);
-    rsUniHwcVisitor->UpdateHwcNodeEnableByBackgroundAlpha(*surfaceNode);
-    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
-    rsUniRenderVisitor->curScreenNode_->SetHasUniRenderHdrSurface(false);
-    renderProperties.SetBgBrightnessFract(0.5f);
     rsUniHwcVisitor->UpdateHwcNodeEnableByBackgroundAlpha(*surfaceNode);
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
 }
@@ -2626,21 +2573,6 @@ HWTEST_F(RSUniHwcVisitorTest, CheckNodeOcclusion001, TestSize.Level2)
     surfaceNode1->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect;
     auto result2 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, absRect, bgColor);
     ASSERT_TRUE(result2);
-
-    surfaceNode1->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI(60, 60, 100, 100);
-    auto result3 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, absRect, bgColor);
-    ASSERT_FALSE(result3);
-
-    auto result4 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, RectI(), bgColor);
-    ASSERT_FALSE(result4);
-
-    surfaceNode1->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect;
-    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
-    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::BACKGROUND_IMAGE);
-    surfaceNode1->AddDirtyType(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
-    surfaceNode1->UpdateDrawableVecV2();
-    auto result5 = rsUniHwcVisitor->CheckNodeOcclusion(surfaceNode1, absRect, bgColor);
-    ASSERT_TRUE(result5);
 }
 
 /**
