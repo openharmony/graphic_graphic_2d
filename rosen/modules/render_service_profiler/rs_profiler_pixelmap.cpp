@@ -488,7 +488,7 @@ bool PixelMapStorage::ValidateBufferSize(const PixelMemInfo& memory)
 uint32_t PixelMapStorage::GetBytesPerPixel(const ImageInfo& info)
 {
     const auto rowPitch = PixelMap::GetRGBxRowDataSize(info);
-    return (rowPitch > 0) ? static_cast<uint32_t>(rowPitch / info.size.width) : 0u;
+    return (rowPitch > 0) && (info.size.width > 0) ? static_cast<uint32_t>(rowPitch / info.size.width) : 0u;
 }
 
 uint8_t* PixelMapStorage::MapImage(int32_t file, size_t size, int32_t flags)

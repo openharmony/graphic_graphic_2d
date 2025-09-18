@@ -2344,7 +2344,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
         filePath = realRootPath;
         filePath = filePath + "/rssbtree_test_" + std::to_string(nodeId);
     }
-    std::ofstream file(filePath);
+    std::ofstream file(Utils::GetRealPath(filePath));
     if (file.is_open()) {
         file << testDataSubTree;
         file.close();
