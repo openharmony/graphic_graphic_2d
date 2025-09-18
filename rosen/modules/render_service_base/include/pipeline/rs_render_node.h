@@ -1361,12 +1361,8 @@ private:
 
     RSProperties renderProperties_;
 
-    // for blur effct count
-    static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
-    void UpdateBlurEffectCounter(int deltaCount);
-    int GetBlurEffectDrawbleCount();
     void ShowSetIsOnetheTreeCntIfNeed(const std::string& funcName, NodeId nodeId, const std::string& nodeName);
 
     bool enableHdrEffect_ = false;

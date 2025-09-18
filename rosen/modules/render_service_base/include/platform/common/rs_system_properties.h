@@ -322,7 +322,6 @@ public:
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
-    static uint32_t GetBlurEffectTerminateLimit();
 
     static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();

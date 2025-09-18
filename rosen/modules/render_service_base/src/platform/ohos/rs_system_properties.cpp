@@ -1019,13 +1019,6 @@ bool RSSystemProperties::GetTransactionTerminateEnabled()
     return terminateEnabled;
 }
 
-uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
-{
-    static int terminateLimit =
-        std::atoi((system::GetParameter("persist.sys.graphic.blurEffectTerminateLimit", "50")).c_str());
-    return terminateLimit > 0 ? static_cast<uint32_t>(terminateLimit) : 0;
-}
-
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");
