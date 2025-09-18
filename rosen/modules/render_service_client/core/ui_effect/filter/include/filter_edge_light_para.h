@@ -42,25 +42,13 @@ public:
         return maskPara_;
     }
 
-    void SetAlpha(float alpha)
-    {
-        alpha_ = alpha;
-    }
+    void SetAlpha(float alpha) { alpha_ = alpha; }
 
-    float GetAlpha() const
-    {
-        return alpha_;
-    }
+    float GetAlpha() const { return alpha_; }
 
-    void SetBloom(bool bloom)
-    {
-        bloom_ = bloom;
-    }
+    void SetBloom(bool bloom) { bloom_ = bloom; }
 
-    bool GetBloom() const
-    {
-        return bloom_;
-    }
+    bool GetBloom() const { return bloom_; }
 
     // color: red, green, blue, alpha
     void SetColor(const Vector4f& color)

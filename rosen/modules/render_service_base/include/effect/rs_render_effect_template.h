@@ -78,10 +78,10 @@ public:
             case RSNGEffectType::WAVE_GRADIENT_MASK: return "WaveGradientMask";
             case RSNGEffectType::MASK_TRANSITION: return "MaskTransition";
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
-            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
+            case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             default:
                 return "UNKNOWN";
         }
@@ -158,6 +158,7 @@ public:
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
+
     bool ContainsType(RSNGEffectType type)
     {
         auto current = this;
@@ -265,7 +266,7 @@ public:
     bool Marshalling(Parcel& parcel) const override
     {
         auto count = Base::GetEffectCount();
-        if (count > Base::EFFECT_COUNT_LIMIT) {
+        if (count >= Base::EFFECT_COUNT_LIMIT) {
             return false;
         }
 

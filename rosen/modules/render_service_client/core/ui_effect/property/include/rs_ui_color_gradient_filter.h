@@ -33,9 +33,9 @@ class RSC_EXPORT RSNGColorGradientFilter
 public:
     virtual ~RSNGColorGradientFilter() = default;
 
-    void SetColors(std::vector<float> colors);
-    void SetPositions(std::vector<float> positions);
-    void SetStrengths(std::vector<float> strengths);
+    void SetColors(const std::vector<float>& colors);
+    void SetPositions(const std::vector<float>& positions);
+    void SetStrengths(const std::vector<float>& strengths);
 };
 
 class RSC_EXPORT RSNGColorGradientFilterImpl : public RSNGFilterTemplate<RSNGEffectType::COLOR_GRADIENT> {

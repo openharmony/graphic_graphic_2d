@@ -73,6 +73,7 @@ std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeBgImage(const std::string& pathNam
     image->SetImageFit((int)ImageFit::FILL);
     auto node = Rosen::RSCanvasNode::Create();
     node->SetBounds(bounds);
+    node->SetFrame(bounds);
     node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
     node->SetBgImage(image);
     return node;
@@ -86,6 +87,7 @@ std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeBgImage(const uint8_t* data, uint3
     image->SetImageFit((int)ImageFit::FILL);
     auto node = Rosen::RSCanvasNode::Create();
     node->SetBounds(bounds);
+    node->SetFrame(bounds);
     node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
     node->SetBgImage(image);
     return node;

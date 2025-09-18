@@ -45,9 +45,18 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
     }
 
     napi_valuetype res = napi_undefined;
-    ret = napi_typeof(env, argv, &res);
-    if (ret == napi_ok && res == napi_object) {
-        pixelMap = Media::PixelMapNapi::GetPixelMap(env, argv);
+    napi_typeof(env, argv, &res);
+    Media::PixelMapNapi* tempPixelMap = nullptr;
+    if (res == napi_object) {
+        if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
+            MASK_LOG_E("Get PixelMapNapi napi_unwrap failed!");
+            return false;
+        }
+        if (tempPixelMap == nullptr) {
+            MASK_LOG_E("Get PixelMapNapi tempPixelMap is nullptr!");
+            return false;
+        }
+        pixelMap = tempPixelMap->GetPixelNapiInner();
         return true;
     }
 
@@ -57,7 +66,7 @@ bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMa
         return true;
     }
 
-    MASK_LOG_E("InValued type! ret: %{public}d, isInstance: %{public}d, res: %{public}d", ret, isInstance, res);
+    MASK_LOG_E("InValued type! ret: %{public}d, isInstance: %{public}d", ret, isInstance);
 #else
     MASK_LOG_E("ImageNapi disabled, parse pixel map failed");
 #endif
@@ -136,7 +145,7 @@ void MaskNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 }
 
 bool ParseRippleMask(
-    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, const size_t& realArgc)
+    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, const size_t realArgc)
 {
     if (!rippleMask || realArgc < NUM_3) {
         return false;
@@ -239,7 +248,7 @@ bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<float>& c
 }
 
 bool ParseRadialGradientMask(
-    napi_env env, napi_value* argv, std::shared_ptr<RadialGradientMaskPara> mask, const size_t& realArgc)
+    napi_env env, napi_value* argv, std::shared_ptr<RadialGradientMaskPara> mask, const size_t realArgc)
 {
     if (!mask || realArgc != NUM_4) {
         return false;

@@ -88,9 +88,9 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Start, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Length, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line2Color, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Thickness, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Radius, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Weight1, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Weight2, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, HaloRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, LightWeight, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, HaloWeight, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Radius, float);
@@ -98,15 +98,14 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Thickness, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(AuroraNoise, Noise, float);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Center, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Radius, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Noise, float);
-
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusX, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, RadiusY, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Colors, std::vector<float>);
 DECLARE_ANIMATABLE_PROPERTY_TAG(RadialGradientMask, Positions, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Center, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ParticleCircularHalo, Noise, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, WaveCenter, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(WaveGradientMask, WaveWidth, float);
@@ -120,6 +119,25 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center1, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Center2, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, Turbulence, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DoubleRippleMask, HaloThickness, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, ColorA, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, ColorB, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, ColorC, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, Position, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, RadiusXY, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, Progress, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Position, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Intensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, RotationAngle, Vector3f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Position, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Intensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Width, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, RotationAngle, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, CornerRadius, float);
 
 DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Mask, MASK_PTR);
 DECLARE_ANIMATABLE_PROPERTY_TAG(MaskTransition, Factor, float);
@@ -166,22 +184,3 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Strength10, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Strength11, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Mask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, ColorNumber, float);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, ColorA, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, ColorB, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, ColorC, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, Position, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, RadiusXY, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(LightCave, Progress, float);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Position, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Color, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, Intensity, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(ContentLight, RotationAngle, Vector3f);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Position, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Color, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Intensity, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Width, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, RotationAngle, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, CornerRadius, float);
