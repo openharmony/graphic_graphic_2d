@@ -140,7 +140,7 @@ void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar s
     SkImageFilters::CropRect skCropRect(skiaRect);
 #endif
     filter_ = SkImageFilters::ColorFilter(skColorFilterImpl ? skColorFilterImpl->GetColorFilter() : nullptr,
-        SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr), skCropRect);;
+        SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr), skCropRect);
 }
 
 void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients,
@@ -208,8 +208,8 @@ void SkiaImageFilter::InitWithImage(const std::shared_ptr<Image>& image, const R
         LOGD("SkiaImageFilter::InitWithImage: imageImpl is nullptr!");
         return;
     }
-    SkSamplingOptions samplingOptions(static_cast<SkFilterMode>(options.GetFilterMode()),
-        static_cast<SkMipmapMode>(options.GetMipmapMode()));
+    SkSamplingOptions samplingOptions;
+    SkiaConvertUtils::DrawingSamplingCastToSkSampling(options, samplingOptions);
     filter_ = SkImageFilters::Image(imageImpl->GetImage(), skSrcRect, skDstRect, samplingOptions);
 }
 
