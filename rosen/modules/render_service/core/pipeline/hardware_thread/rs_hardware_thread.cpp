@@ -337,8 +337,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
 
         unExecuteTaskNum_--;
-        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseData unExecuteTaskNum_:%{public}d,"
-            " HARDWARE_THREAD_TASK_NUM:%{public}d, %{public}s",
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseData unExecuteTaskNum_:%{public}u,"
+            " HARDWARE_THREAD_TASK_NUM:%{public}u, %{public}s",
             unExecuteTaskNum_.load(), HARDWARE_THREAD_TASK_NUM, surfaceName.c_str());
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
@@ -519,7 +519,7 @@ std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<L
         surfaceName.append(std::to_string(layer->GetZorder()));
         surfaceName.append(",");
         if (layer->GetType() == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR && layer->GetZorder() < max) {
-            RS_LOGE("RSHardcursor is not on the top, hardcursor zorder:%{public}d", layer->GetZorder());
+            RS_LOGE("RSHardcursor is not on the top, hardcursor zorder:%{public}u", layer->GetZorder());
         }
     }
 
@@ -730,7 +730,7 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
         int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
-        RS_LOGD("CommitAndReleaseLayers send layer adaptiveStatus: %{public}u", adaptiveStatus);
+        RS_LOGD("CommitAndReleaseLayers send layer adaptiveStatus: %{public}d", adaptiveStatus);
         if (adaptiveStatus == SupportASStatus::SUPPORT_AS) {
             return SupportASStatus::SUPPORT_AS;
         }
@@ -931,7 +931,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     RS_LOGD("Redraw computed target color gamut: %{public}d,"
-        "pixel format: %{public}d, frame width: %{public}d, frame height: %{public}d",
+        "pixel format: %{public}d, frame width: %{public}u, frame height: %{public}u",
         colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
         isProtected, colorGamut, pixelFormat);

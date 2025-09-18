@@ -429,7 +429,7 @@ int32_t HdiOutput::PreProcessLayersComp()
     for (const auto &[layerId, layer] : layerIdMap_) {
         ret = layer->SetHdiLayerInfo(isActiveRectSwitching_);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}u.", layer->GetLayerId(), ret);
             return GRAPHIC_DISPLAY_FAILURE;
         }
     }
@@ -637,7 +637,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
             }
         }
         if (presentTimeUpdated && uniRenderLayer) {
-            RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %llu", timestamp);
+            RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %lld", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
         }
     }
