@@ -96,6 +96,13 @@ ohos_shared_library("drawing_ani_core") {
     "runtime_core:ani_helpers",
   ]
 
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    external_deps += [
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:app_context",
+    ]
+  }
+
   public_external_deps = [
     "image_framework:image",
   ]
@@ -167,6 +174,7 @@ ohos_shared_library("drawing_ani") {
     "pen_ani/ani_pen.cpp",
     "sampling_options_ani/ani_sampling_options.cpp",
     "shader_effect_ani/ani_shader_effect.cpp",
+    "tool_ani/ani_tool.cpp",
     "typeface_ani/ani_typeface.cpp",
     "typeface_arguments_ani/ani_typeface_arguments.cpp",
     "image_filter_ani/ani_image_filter.cpp",
@@ -188,6 +196,13 @@ ohos_shared_library("drawing_ani") {
     "napi:ace_napi",
     "runtime_core:ani_helpers",
   ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    external_deps += [
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:app_context",
+    ]
+  }
 
   public_external_deps = [
     "image_framework:image",
