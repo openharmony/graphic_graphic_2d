@@ -294,6 +294,7 @@ void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
 
 void MemoryTrack::RemovePidRecord(const pid_t pid)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     memNodeOfPidMap_.erase(pid);
 }
 
