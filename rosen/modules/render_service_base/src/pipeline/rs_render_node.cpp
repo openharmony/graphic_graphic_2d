@@ -84,23 +84,6 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
 };
 } // namespace
 
-std::unordered_map<pid_t, size_t> RSRenderNode::blurEffectCounter_ = {};
-void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
-{
-    if (LIKELY(deltaCount == 0)) {
-        return;
-    }
-
-    auto pid = ExtractPid(GetId());
-    // Try to insert pid with value 0 and we got an iterator to the inserted element or to the existing element.
-    auto it = blurEffectCounter_.emplace(std::make_pair(pid, 0)).first;
-    if (deltaCount > 0 || (static_cast<int>(it->second) > -deltaCount)) {
-        it->second += deltaCount;
-    } else {
-        blurEffectCounter_.erase(it);
-    }
-}
-
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
@@ -2818,14 +2801,6 @@ void RSRenderNode::MarkParentNeedRegenerateChildren() const
     parent->isChildrenSorted_ = false;
 }
 
-int RSRenderNode::GetBlurEffectDrawbleCount()
-{
-    bool fgFilterValid = drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_FILTER)] != nullptr;
-    bool bgFilterValid = drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_FILTER)] != nullptr;
-    bool cpFilterValid = drawableVec_[static_cast<int32_t>(RSDrawableSlot::COMPOSITING_FILTER)] != nullptr;
-    return static_cast<int>(fgFilterValid) + static_cast<int>(bgFilterValid) + static_cast<int>(cpFilterValid);
-}
-
 void RSRenderNode::UpdateDrawableVecV2()
 {
 #ifdef RS_ENABLE_GPU
@@ -2835,7 +2810,6 @@ void RSRenderNode::UpdateDrawableVecV2()
         RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
-    auto preBlurDrawableCnt = GetBlurEffectDrawbleCount();
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
     // Step 2.1 (optional): fuze some drawables
@@ -2859,7 +2833,6 @@ void RSRenderNode::UpdateDrawableVecV2()
         RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlotShadow);
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
-        UpdateBlurEffectCounter(GetBlurEffectDrawbleCount() - preBlurDrawableCnt);
     }
     // If any effect drawable become dirty, check all effect drawable and do edr update
     auto needUpdateEDR = std::any_of(edrDrawableSlots.begin(), edrDrawableSlots.end(), [&dirtySlots](auto slot) {
@@ -3651,9 +3624,7 @@ void RSRenderNode::OnTreeStateChanged()
         ClearNeverOnTree();
     }
 
-    auto curBlurDrawableCnt = GetBlurEffectDrawbleCount();
     if (!isOnTheTree_) {
-        UpdateBlurEffectCounter(-curBlurDrawableCnt);
         startingWindowFlag_ = false;
         if (stagingUECChildren_ && !stagingUECChildren_->empty()) {
             for (auto uiExtension : *stagingUECChildren_) {
@@ -3662,7 +3633,6 @@ void RSRenderNode::OnTreeStateChanged()
         }
     }
     if (isOnTheTree_) {
-        UpdateBlurEffectCounter(curBlurDrawableCnt);
         // Set dirty and force add to active node list, re-generate children list if needed
         SetDirty(true);
         SetParentSubTreeDirty();

@@ -562,7 +562,6 @@ private:
     void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback,
         const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0, const int64_t& requestVsyncTime = 0);
 
-    void CheckBlurEffectCountStatistics(std::shared_ptr<RSBaseRenderNode> rootNode);
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
     // Used for CommitAndReleaseLayers task

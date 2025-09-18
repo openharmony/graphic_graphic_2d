@@ -2241,54 +2241,6 @@ void RSMainThread::ProcessUiCaptureTasks()
 #endif
 }
 
-void RSMainThread::CheckBlurEffectCountStatistics(std::shared_ptr<RSRenderNode> rootNode)
-{
-    uint32_t terminateLimit = RSSystemProperties::GetBlurEffectTerminateLimit();
-    if (terminateLimit == 0) {
-        return;
-    }
-    static std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient =
-        std::make_unique<AppExecFwk::AppMgrClient>();
-    auto children = rootNode->GetChildren();
-    if (children->empty()) {
-        return;
-    }
-    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(children->front());
-    if (screenNode == nullptr) {
-        return;
-    }
-    auto displayNodeChildren = screenNode->GetChildren();
-    if (displayNodeChildren->empty()) {
-        return;
-    }
-    auto logicalDisplayNode = RSRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(children->front());
-    if (logicalDisplayNode == nullptr) {
-        return;
-    }
-    auto scbPid = logicalDisplayNode->GetCurrentScbPid();
-    int32_t uid = 0;
-    std::string bundleName;
-    for (auto& [pid, count] : rootNode->blurEffectCounter_) {
-        if (pid == scbPid) {
-            continue;
-        }
-        appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
-        if (count > terminateLimit) {
-            auto res = appMgrClient->KillApplicationByUid(bundleName, uid);
-            if (res) {
-                RS_LOGI("bundleName[%{public}s] was killed for too many blur effcts. "
-                    "BlurEffectCountStatistics: pid[%{public}d] uid[%{public}d] blurCount[%{public}zu]",
-                    bundleName.c_str(), pid, uid, count);
-                rootNode->blurEffectCounter_.erase(pid);
-            } else {
-                RS_LOGE("kill bundleName[%{public}s] for too many blur effcts failed. "
-                    "BlurEffectCountStatistics: pid[%{public}d] uid[%{public}d] blurCount[%{public}zu]",
-                    bundleName.c_str(), pid, uid, count);
-            }
-        }
-    }
-}
-
 void RSMainThread::StartGPUDraw()
 {
     gpuDrawCount_.fetch_add(1, std::memory_order_relaxed);
@@ -2437,7 +2389,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         if (SOCPerfParam::IsMultilayersSOCPerfEnable()) {
             RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
         }
-        CheckBlurEffectCountStatistics(rootNode);
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         SelfDrawingNodeMonitor::GetInstance().TriggerRectChangeCallback();
         rsVsyncRateReduceManager_.SetUniVsync();
