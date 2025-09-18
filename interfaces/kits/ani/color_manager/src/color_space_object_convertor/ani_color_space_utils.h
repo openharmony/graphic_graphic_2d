@@ -31,6 +31,7 @@ namespace ColorManager {
 #undef LOG_TAG
 #define LOG_TAG "AniColorSpace"
 
+#define ACMLOGD(fmt, args...) HILOG_DEBUG(LOG_CORE, fmt, ##args)
 #define ACMLOGE(fmt, args...) HILOG_ERROR(LOG_CORE, fmt, ##args)
 #define ACMLOGI(fmt, args...) HILOG_INFO(LOG_CORE, fmt, ##args)
 
@@ -66,7 +67,8 @@ enum class ApiColorSpaceType : uint32_t {
     DISPLAY_P3_HLG = P3_HLG,
     DISPLAY_P3_PQ = P3_PQ,
     CUSTOM = 5,
-    TYPE_END = 26
+    H_LOG = 26,
+    TYPE_END = 27
 };
 
 const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_MAP {
@@ -101,6 +103,7 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
     { ApiColorSpaceType::DISPLAY_P3_HLG, ColorSpaceName::DISPLAY_P3_HLG },
     { ApiColorSpaceType::DISPLAY_P3_PQ, ColorSpaceName::DISPLAY_P3_PQ },
     { ApiColorSpaceType::CUSTOM, ColorSpaceName::CUSTOM },
+    { ApiColorSpaceType::H_LOG, ColorSpaceName::H_LOG },
 };
 
 const std::map<ApiColorSpaceType, std::string> JS_TO_STRING_MAP = {
@@ -135,6 +138,7 @@ const std::map<ApiColorSpaceType, std::string> JS_TO_STRING_MAP = {
     { ApiColorSpaceType::DISPLAY_P3_HLG, "DISPLAY_P3_HLG" },
     { ApiColorSpaceType::DISPLAY_P3_PQ, "DISPLAY_P3_PQ" },
     { ApiColorSpaceType::CUSTOM, "CUSTOM" },
+    { ApiColorSpaceType::H_LOG, "H_LOG" },
 };
 
 const std::map<ColorSpaceName, std::string> NATIVE_TO_STRING_MAP {
@@ -169,6 +173,7 @@ const std::map<ColorSpaceName, std::string> NATIVE_TO_STRING_MAP {
     { ColorSpaceName::DISPLAY_P3_HLG, "DISPLAY_P3_HLG" },
     { ColorSpaceName::DISPLAY_P3_PQ, "DISPLAY_P3_PQ" },
     { ColorSpaceName::CUSTOM, "CUSTOM" },
+    { ColorSpaceName::H_LOG, "H_LOG" },
 };
 }  // namespace ColorManager
 }  // namespace OHOS
