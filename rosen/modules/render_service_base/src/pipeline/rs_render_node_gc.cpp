@@ -117,11 +117,14 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         remainBucketSize = nodeBucket_.size();
     }
     nodeBucketThrDetector_.Detect(remainBucketSize, callback);
-    RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu, remain node buckets %u", toDele.size(), remainBucketSize);
+    RS_TRACE_NAME_FMT("Expected ReleaseNode(including null) %zu, remain node buckets %u", toDele.size(), remainBucketSize);
+    bool vsyncArrived = false;
+    uint32_t realDelNodeNum = 0;
     for (auto ptr : toDele) {
         if (ptr) {
             if (isEnable_.load() == false) {
                 AddNodeToBucket(ptr);
+                vsyncArrived = true;
                 continue;
             }
             if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
@@ -133,8 +136,11 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 #endif
             delete ptr;
             ptr = nullptr;
+
+            ++realDelNodeNum;
         }
     }
+    RS_TRACE_NAME_FMT("Actually ReleaseNode(not null) %u, VSync signal arrival interrupts release: %s", realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 
 void RSRenderNodeGC::ReleaseNodeMemory()
