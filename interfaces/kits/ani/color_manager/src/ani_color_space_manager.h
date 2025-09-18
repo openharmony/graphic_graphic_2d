@@ -36,15 +36,16 @@ public:
     static ani_ref GetWhitePoint(ani_env *env, ani_object obj);
     static ani_double GetGamma(ani_env *env, ani_object obj);
     static bool ParseColorSpacePrimaries(ani_env *env, ani_object obj, ColorSpacePrimaries& primaries);
-    static AniColorSpaceManager* unwrap(ani_env *env, ani_object object);
+    static AniColorSpaceManager* Unwrap(ani_env *env, ani_object object);
+    static ani_object Wrap(ani_env *env, AniColorSpaceManager* colorSpaceManager);
     
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {
         return colorSpaceToken_;
     }
 
-    static ani_enum gEnumType;
-    static std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> NATIVE_TO_ENUM_MAP;
+    static ani_enum enumType_;
+    static std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> nativeToEnumMap_;
 
 private:
     ani_enum_item OnGetColorSpaceName(ani_env *env, ani_object obj);

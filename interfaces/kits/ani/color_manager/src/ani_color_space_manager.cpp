@@ -27,8 +27,8 @@ static const std::string DOUBLE_CLS_NAME = "Lstd/core/Double;";
 static const ani_double INVALID_PARAMETER = 401;
 static const ani_double ABNORMAL_PARAMETER = 18600001;
 
-ani_enum AniColorSpaceManager::gEnumType;
-std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> AniColorSpaceManager::NATIVE_TO_ENUM_MAP;
+ani_enum AniColorSpaceManager::enumType_;
+std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> AniColorSpaceManager::nativeToEnumMap_;
 
 static ani_error CreateAniError(ani_env* env, std::string&& errMsg, ani_double code)
 {
@@ -114,7 +114,7 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
     return true;
 }
 
-AniColorSpaceManager* AniColorSpaceManager::unwrap(ani_env *env, ani_object object)
+AniColorSpaceManager* AniColorSpaceManager::Unwrap(ani_env *env, ani_object object)
 {
     ani_long nativePtrLong;
     if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &nativePtrLong)) {
@@ -122,6 +122,33 @@ AniColorSpaceManager* AniColorSpaceManager::unwrap(ani_env *env, ani_object obje
         return nullptr;
     }
     return reinterpret_cast<AniColorSpaceManager *>(nativePtrLong);
+}
+
+ani_object AniColorSpaceManager::Wrap(ani_env *env, AniColorSpaceManager *nativeHandle)
+{
+    if (env == nullptr || nativeHandle == nullptr) {
+        ACMLOGE("%{public}s [ANI]env or nativeHandle is nullptr", __func__);
+        return nullptr;
+    }
+
+    ani_class cls;
+    if (ANI_OK != env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME.c_str(), &cls)) {
+        ACMLOGE("%{public}s Failed to find class: %{public}s", __func__, COLOR_SPACE_MANAGER_CLS_NAME.c_str());
+        return nullptr;
+    }
+
+    ani_method ctor;
+    if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "J:V", &ctor)) {
+        ACMLOGE("%{public}s Failed to find method!", __func__);
+        return nullptr;
+    }
+
+    ani_object result = nullptr;
+    if (ANI_OK != env->Object_New(cls, ctor, &result, reinterpret_cast<ani_long>(nativeHandle))) {
+        ACMLOGE("%{public}s Failed to create object!", __func__);
+        return nullptr;
+    }
+    return result;
 }
 
 ani_object AniColorSpaceManager::CreateByColorSpace(ani_env* env, ani_enum_item enumObj)
@@ -227,9 +254,9 @@ ani_enum_item AniColorSpaceManager::GetColorSpaceName([[maybe_unused]] ani_env *
         return nullptr;
     }
 
-    auto ptr = unwrap(env, obj);
+    auto ptr = Unwrap(env, obj);
     if (!ptr) {
-        ACMLOGE("[ANI]AniColorSpaceManager unwrap failed");
+        ACMLOGE("[ANI]AniColorSpaceManager Unwrap failed");
         return nullptr;
     }
     
@@ -243,9 +270,9 @@ ani_ref AniColorSpaceManager::GetWhitePoint([[maybe_unused]] ani_env *env, [[may
         return nullptr;
     }
 
-    auto ptr = unwrap(env, obj);
+    auto ptr = Unwrap(env, obj);
     if (!ptr) {
-        ACMLOGE("[ANI]AniColorSpaceManager unwrap failed");
+        ACMLOGE("[ANI]AniColorSpaceManager Unwrap failed");
         return nullptr;
     }
 
@@ -259,9 +286,9 @@ ani_double AniColorSpaceManager::GetGamma([[maybe_unused]] ani_env *env, [[maybe
         return 0;
     }
 
-    auto ptr = unwrap(env, obj);
+    auto ptr = Unwrap(env, obj);
     if (!ptr) {
-        ACMLOGE("[ANI]AniColorSpaceManager unwrap failed");
+        ACMLOGE("[ANI]AniColorSpaceManager Unwrap failed");
         return 0;
     }
 
@@ -279,9 +306,9 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
         return value;
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
-    auto iter = AniColorSpaceManager::NATIVE_TO_ENUM_MAP.find(csName);
-    if (iter != AniColorSpaceManager::NATIVE_TO_ENUM_MAP.end()) {
-        ACMLOGI("[ANI]get color space name %{public}u", csName);
+    auto iter = AniColorSpaceManager::nativeToEnumMap_.find(csName);
+    if (iter != AniColorSpaceManager::nativeToEnumMap_.end()) {
+        ACMLOGD("[ANI]get color space name %{public}u", csName);
         return iter->second;
     }
     ACMLOGE("[ANI]get color space name %{public}u, but not in api type", csName);

@@ -25,12 +25,22 @@ std::shared_ptr<ColorSpace> GetColorSpaceByAniObject(ani_env *env, ani_object ob
         ACMLOGE("[ANI]GetColorSpaceByAniObject::object is nullptr");
         return nullptr;
     }
-    AniColorSpaceManager* aniColorSpaceManager =  AniColorSpaceManager::unwrap(env, object);
+    AniColorSpaceManager* aniColorSpaceManager =  AniColorSpaceManager::Unwrap(env, object);
     if (aniColorSpaceManager == nullptr) {
         ACMLOGE("[ANI]GetColorSpaceByAniObject::ani color space manager is nullptr");
         return nullptr;
     }
     return aniColorSpaceManager->GetColorSpaceToken();
+}
+
+ani_object CreateAniColorSpaceObject(ani_env *env, std::shared_ptr<ColorSpace> colorSpace)
+{
+    if (colorSpace == nullptr) {
+        ACMLOGE("[ANI]CreateAniColorSpaceObject::colorSpace is nullptr");
+        return nullptr;
+    }
+    std::unique_ptr<AniColorSpaceManager> aniColorSpaceManager = std::make_unique<AniColorSpaceManager>(colorSpace);
+    return AniColorSpaceManager::Wrap(env, aniColorSpaceManager.release());
 }
 }  // namespace ColorManager
 }  // namespace OHOS

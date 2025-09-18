@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace ColorManager {
 std::shared_ptr<ColorSpace> GetColorSpaceByAniObject(ani_env *env, ani_object object);
+ani_object CreateAniColorSpaceObject(ani_env *env, std::shared_ptr<ColorSpace> colorSpace);
 }  // namespace ColorManager
 }  // namespace OHOS
 
