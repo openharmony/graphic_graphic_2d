@@ -36,9 +36,44 @@ public:
     static void DrawRect(ani_env* env, ani_object obj,
         ani_double left, ani_double top, ani_double right, ani_double bottom);
     static void DrawRectWithRect(ani_env* env, ani_object obj, ani_object aniRect);
+    static void DrawRoundRect(ani_env* env, ani_object obj, ani_object roundRectObj);
+    static void DrawNestedRoundRect(ani_env* env, ani_object obj, ani_object outerObj, ani_object innerObj);
+    static void DrawBackground(ani_env* env, ani_object obj, ani_object brushObj);
+    static void DrawShadow(ani_env* env, ani_object obj, ani_object pathObj,
+        ani_object planeParams, ani_object devLightPos, ani_double lightRadius,
+        ani_object ambientColor, ani_object spotColor, ani_enum_item flagEnum);
+    static void DrawShadowWithOption(ani_env* env, ani_object obj, ani_object pathObj,
+        ani_object planeParams, ani_object devLightPos, ani_double lightRadius,
+        ani_object ambientColorOps, ani_object spotColorOps, ani_enum_item flagEnum);
+    static void DrawCircle(ani_env* env, ani_object obj, ani_double x, ani_double y, ani_double radius);
+    static void DrawImage(ani_env* env, ani_object obj, ani_object pixelmapObj,
+        ani_double left, ani_double top, ani_object samplingOptionsObj);
+    static void DrawImageLattice(ani_env* env, ani_object obj, ani_object pixelmapObj,
+        ani_object latticeObj, ani_object dstRectObj, ani_enum_item filterModeEnum);
+    static void DrawImageNine(ani_env* env, ani_object obj, ani_object pixelmapObj,
+        ani_object centerRectObj, ani_object rectObj, ani_enum_item filterModeEnum);
     static void DrawImageRect(ani_env* env, ani_object obj,
         ani_object pixelmapObj, ani_object rectObj, ani_object samplingOptionsObj);
 
+    static void DrawImageRectWithSrc(ani_env* env, ani_object obj, ani_object pixelmapObj,
+        ani_object srcRectObj, ani_object dstRectObj, ani_object samplingOptionsObj, ani_object constraintObj);
+    static void DrawColorWithObject(ani_env* env, ani_object obj, ani_object colorObj, ani_object aniBlendMode);
+    static void DrawColorWithArgb(ani_env* env, ani_object obj, ani_int alpha, ani_int red,
+        ani_int green, ani_int blue, ani_object aniBlendMode);
+    static void DrawColor(ani_env* env, ani_object obj, ani_int color, ani_object aniBlendMode);
+    static void DrawPath(ani_env* env, ani_object obj, ani_object pathObj);
+    static void DrawLine(ani_env* env, ani_object obj, ani_double x0,
+        ani_double y0, ani_double x1, ani_double y1);
+    static void DrawSingleCharacter(ani_env* env, ani_object obj, ani_string text,
+        ani_object fontObj, ani_double x, ani_double y);
+    static void DrawOval(ani_env* env, ani_object obj, ani_object rectObj);
+    static void DrawArc(ani_env* env, ani_object obj, ani_object rectObj,
+        ani_double startAngle, ani_double sweepAngle);
+    static void DrawArcWithCenter(ani_env* env, ani_object obj, ani_object rectObj,
+        ani_double startAngle, ani_double sweepAngle, ani_boolean useCenter);
+    static void DrawPoint(ani_env* env, ani_object obj, ani_double x, ani_double y);
+    static void DrawPoints(ani_env* env, ani_object obj, ani_object pointsObj, ani_object aniPointMode);
+    static void DrawRegion(ani_env* env, ani_object obj, ani_object regionObj);
     static void DrawPixelMapMesh(ani_env* env, ani_object obj,
         ani_object pixelmapObj, ani_int aniMeshWidth, ani_int aniMeshHeight,
         ani_object verticesObj, ani_int aniVertOffset, ani_object colorsObj, ani_int aniColorOffset);
@@ -49,9 +84,30 @@ public:
     static void DetachPen(ani_env* env, ani_object obj);
     static ani_int Save(ani_env* env, ani_object obj);
     static ani_long SaveLayer(ani_env* env, ani_object obj, ani_object rectObj, ani_object brushObj);
+    static void Clear(ani_env* env, ani_object obj, ani_object objColor);
+    static void ClearWithOption(ani_env* env, ani_object obj, ani_object objColor);
     static void Restore(ani_env* env, ani_object obj);
+    static void RestoreToCount(ani_env* env, ani_object obj, ani_int count);
     static ani_int GetSaveCount(ani_env* env, ani_object obj);
+    static ani_int GetWidth(ani_env* env, ani_object obj);
+    static ani_int GetHeight(ani_env* env, ani_object obj);
+    static ani_object GetLocalClipBounds(ani_env* env, ani_object obj);
+    static ani_object GetTotalMatrix(ani_env* env, ani_object obj);
+    static void Scale(ani_env* env, ani_object obj, ani_double sx, ani_double sy);
+    static void Skew(ani_env* env, ani_object obj, ani_double sx, ani_double sy);
     static void Rotate(ani_env* env, ani_object obj, ani_double degrees, ani_double sx, ani_double sy);
+    static void Translate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
+    static void ClipRect(ani_env* env, ani_object obj, ani_object rectObj, ani_object clipOpObj, ani_object aaObj);
+    static void ClipPath(ani_env* env, ani_object obj, ani_object pathObj, ani_object clipOpObj, ani_object aaObj);
+    static void ConcatMatrix(ani_env* env, ani_object obj, ani_object matrixObj);
+    static void ClipRegion(ani_env* env, ani_object obj, ani_object regionObj, ani_object clipOpObj);
+    static void ClipRoundRect(ani_env* env, ani_object obj, ani_object roundRectObj,
+        ani_object clipOpObj, ani_object aaObj);
+    static ani_boolean IsClipEmpty(ani_env* env, ani_object obj);
+    static void SetMatrix(ani_env* env, ani_object obj, ani_object matrixObj);
+    static void ResetMatrix(ani_env* env, ani_object obj);
+    static ani_boolean QuickRejectPath(ani_env* env, ani_object obj, ani_object pathObj);
+    static ani_boolean QuickRejectRect(ani_env* env, ani_object obj, ani_object rectObj);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
@@ -65,6 +121,8 @@ private:
 #ifdef ROSEN_OHOS
     void DrawImageRectInner(std::shared_ptr<Media::PixelMap> pixelmap,
         Drawing::Rect& rect, AniSamplingOptions* samplingOptions);
+    void DrawImageRectWithSrcInner(std::shared_ptr<Media::PixelMap> pixelmap, Drawing::Rect& srcRect,
+        Drawing::Rect& dstRect, AniSamplingOptions* samplingOptions, int32_t srcRectConstraint);
 #endif
     static ani_object CanvasTransferStatic(ani_env*  env, [[maybe_unused]]ani_object obj, ani_object input);
     static ani_long GetCanvasAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);

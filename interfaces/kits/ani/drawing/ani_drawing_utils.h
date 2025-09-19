@@ -22,6 +22,10 @@
 #include <memory>
 #include <string>
 #include "effect/color_filter.h"
+#include "text/font.h"
+#include "text/font_mgr.h"
+#include "text/font_metrics.h"
+#include "text/font_types.h"
 #include "utils/point.h"
 #include "utils/rect.h"
 #include "utils/point.h"
@@ -70,6 +74,8 @@ constexpr size_t ARGC_SEVEN = 7;
 constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int MAX_PAIRS_PATHVERB = 4;
+constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
+constexpr int RGBA_MAX = 255;
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
@@ -173,6 +179,8 @@ ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object&
 
 bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
+bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d);
+
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {
     return val < lowerBound || val > upperBound;
@@ -182,6 +190,12 @@ inline bool CheckInt32OutOfRange(ani_int val, int32_t lowerBound, int32_t upperB
 {
     return val < lowerBound || val > upperBound;
 }
+
+std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
+
+std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode);
+
+std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
 
 } // namespace Drawing
 } // namespace Rosen

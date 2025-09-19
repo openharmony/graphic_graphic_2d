@@ -13,6 +13,7 @@
 
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("ani_drawing") {
@@ -39,6 +40,7 @@ config("graphic_ani_drawing_config") {
   defines = []
   include_dirs = [
     ".",
+    "$graphic_2d_root/frameworks/text/adapter/skia",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
@@ -185,6 +187,8 @@ ohos_shared_library("drawing_ani") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$rosen_text_root:rosen_text",
   ]
 
   external_deps = [
