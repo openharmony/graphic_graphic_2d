@@ -249,7 +249,7 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
         NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
             TextErrorCode::ERROR_INVALID_PARAM, return, "FamilyName is invalid %s", context->familyName.c_str());
 
-        if (!ParseContextFilePath(env, argv, context)) {
+        if (!ParseContextFilePath(env, argv, context, ARGC_ONE)) {
             auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
             NAPI_CHECK_ARGS(context, fontCollection != nullptr, napi_invalid_arg,
                 TextErrorCode::ERROR_INVALID_PARAM, return, "FontCollection is null");

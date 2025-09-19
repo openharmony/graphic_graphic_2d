@@ -1090,7 +1090,7 @@ bool SplitAbsoluteFontPath(std::string& absolutePath)
     std::string head = absolutePath.substr(0, iter);
     if ((head == "file" && absolutePath.size() > FILE_HEAD_LENGTH)) {
         absolutePath = absolutePath.substr(iter + 3); // 3 means skip "://"
-        // the file format is like "file://system/fonts...",
+        // the file format is like "file:///system/fonts...",
         return true;
     }
 
@@ -1189,15 +1189,15 @@ bool ParseResourceType(napi_env env, napi_value value, ResourceInfo& info)
     return true;
 }
 
-bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontPathResourceContext> context)
+bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontPathResourceContext> context, size_t argvPathNum)
 {
     napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[ARGC_ONE], &valueType);
+    napi_typeof(env, argv[argvPathNum], &valueType);
 
     if (valueType == napi_object) {
         return false;
     } else if (valueType == napi_string) {
-        if (!ConvertFromJsValue(env, argv[ARGC_ONE], context->filePath)) {
+        if (!ConvertFromJsValue(env, argv[argvPathNum], context->filePath)) {
             std::string errMessage("Failed to convert file path:");
             errMessage += context->filePath;
             context->status = napi_invalid_arg;

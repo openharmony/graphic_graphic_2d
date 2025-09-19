@@ -583,6 +583,7 @@ bool ParseResourceType(napi_env env, napi_value value, ResourceInfo& info);
 
 bool GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi, napi_value bundleNameNApi,
     napi_value moduleNameNApi);
-bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontPathResourceContext> context);
+
+bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontPathResourceContext> context, size_t argvPathNum);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H
