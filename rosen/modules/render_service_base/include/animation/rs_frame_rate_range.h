@@ -173,7 +173,7 @@ public:
     std::string GetAllTypeDescription() const
     {
         std::string allTypeDescription("[" + std::to_string(type_) + "] ");
-        for (int32_t i = 0; i < FRAME_RATE_TYPE_MAX_BIT; i++) {
+        for (uint32_t i = 0; i < FRAME_RATE_TYPE_MAX_BIT; i++) {
             if (auto typeDescription = FrameRateType2Str(type_ & (1 << i)); !typeDescription.empty()) {
                 allTypeDescription += typeDescription + ";";
             }

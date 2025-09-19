@@ -95,7 +95,8 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
 void RSProfiler::BetaRecordOnFrameBegin()
 {
     if (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
-        g_mutexBetaRecording.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(1000));
+        const long long waitingTime = 1000;
+        g_mutexBetaRecording.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(waitingTime));
         g_mutexBetaRecordingLocked = true;
         if (!IsNoneMode() && (IsSecureScreen() || IsPowerOffScreen())) {
             // don't record secure screens

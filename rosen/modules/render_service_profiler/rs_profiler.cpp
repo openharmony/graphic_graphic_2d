@@ -104,6 +104,7 @@ static bool g_playbackImmediate = false;
 static std::mutex g_renderFrameMutex;
 static std::atomic<bool> g_renderFrameWorking = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
+static std::mutex g_mutexFirstFrameMarshalling;
 } // namespace
 
 RSContext* RSProfiler::context_ = nullptr;
