@@ -116,6 +116,8 @@ void OH_Drawing_SurfaceDestroy(OH_Drawing_Surface* cSurface)
     if (cSurface == nullptr) {
         return;
     }
-    
+
+#ifdef RS_ENABLE_GPU
     DrawingSurfaceUtils::RemoveSurface(CastToSurface(cSurface));
+#endif
 }

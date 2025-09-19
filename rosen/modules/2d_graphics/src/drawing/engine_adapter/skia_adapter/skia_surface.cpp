@@ -688,6 +688,10 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 
 void SkiaSurface::ClearDrawingArea()
 {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        retrun;
+    }
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return;

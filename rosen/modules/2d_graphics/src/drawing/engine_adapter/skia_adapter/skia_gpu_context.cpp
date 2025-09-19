@@ -574,7 +574,7 @@ void SkiaGPUContext::GetHpsEffectSupport(std::vector<const char*>& instanceExten
 
 void SkiaGPUContext::SetEarlyZEnabled(bool flag)
 {
-    // Skia Not Implement SetEarlyZflag
+    // Skia Not Implement SetEarlyZEnabled
     LOGD("SkiaGPUContext::SetEarlyZEnabled, not implement");
     return;
 }

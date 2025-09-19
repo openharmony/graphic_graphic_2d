@@ -464,7 +464,7 @@ public:
     void SetHeadroom(float headroom);
 
     /**
-     * @brief         Get headroom for texture in Surface.
+     * @brief         Get headroom for texture in image.
      * @return        headroom value
      */
     float GetHeadroom() const;

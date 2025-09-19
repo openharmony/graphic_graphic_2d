@@ -14,7 +14,7 @@
  */
 #ifndef DRAWING_DEMO_DRAW_TEXTBLOB_TEST_H
 #define DRAWING_DEMO_DRAW_TEXTBLOB_TEST_H
-#include "test_base.h"
+#include "../test_base.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "drawing_demo.h"
-
 #include <sstream>
 
 #include "accesstoken_kit.h"
@@ -23,7 +22,7 @@
 #endif
 #include "display_manager.h"
 #include "test_case_factory.h"
-#include "test_case/test_common.h"
+#include "test_common.h"
 
 using namespace OHOS::Rosen;
 
