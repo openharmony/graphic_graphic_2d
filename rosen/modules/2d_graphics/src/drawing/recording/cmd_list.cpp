@@ -68,6 +68,7 @@ CmdListData CmdList::GetData() const
 
 bool CmdList::SetUpImageData(const void* data, size_t size)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return imageAllocator_.BuildFromDataWithCopy(data, size);
 }
 

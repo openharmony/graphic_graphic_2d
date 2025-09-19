@@ -280,6 +280,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
     auto skFontMgr = SkFontMgr::RefDefault();
     if (skFontMgr == nullptr) {
         LOGE("SkiaTypeface::MakeFromStream, skFontMgr nullptr");
+        return nullptr;
     }
     SkFontArguments skFontArguments;
     SkiaConvertUtils::DrawingFontArgumentsCastToSkFontArguments(fontArguments, skFontArguments);
