@@ -30,7 +30,7 @@ namespace Rosen {
 using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
 using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
 
-static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
+thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
     {RSNGEffectType::RIPPLE_MASK, [] {
             return std::make_shared<RSNGRippleMask>();
         }
@@ -114,7 +114,7 @@ std::shared_ptr<RSNGMaskBase> ConvertWaveGradientMaskPara(std::shared_ptr<MaskPa
 }
 }
 
-static std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
+thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::RIPPLE_MASK, ConvertRippleMaskPara },
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
     { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
@@ -136,6 +136,5 @@ std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(std::shared_ptr<MaskPara> mas
     auto it = convertorLUT.find(maskPara->GetMaskParaType());
     return it != convertorLUT.end() ? it->second(maskPara) : nullptr;
 }
-
 } // namespace Rosen
 } // namespace OHOS

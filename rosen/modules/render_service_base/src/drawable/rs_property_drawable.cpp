@@ -190,7 +190,8 @@ void RSFilterDrawable::PostUpdate(const RSRenderNode& node)
         return;
     }
     auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(stagingFilter_);
-    enableEDREffect_ = RSUIFilterHelper::CheckEnableEDR(drawingFilter->GetNGRenderFilter());
+    auto renderFilter = drawingFilter->GetNGRenderFilter();
+    enableEDREffect_ = RSUIFilterHelper::CheckEnableEDR(renderFilter);
     if (enableEDREffect_) {
         screenNodeId_ = node.GetScreenNodeId();
     }

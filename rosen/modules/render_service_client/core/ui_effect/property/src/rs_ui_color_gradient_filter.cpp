@@ -23,17 +23,17 @@ namespace Rosen {
 #undef LOG_TAG
 #define LOG_TAG "RSNGColorGradientFilterImpl"
 
-void RSNGColorGradientFilter::SetColors(std::vector<float> colors)
+void RSNGColorGradientFilter::SetColors(const std::vector<float>& colors)
 {
     Setter<ColorGradientColorsTag>(colors);
 }
 
-void RSNGColorGradientFilter::SetPositions(std::vector<float> positions)
+void RSNGColorGradientFilter::SetPositions(const std::vector<float>& positions)
 {
     Setter<ColorGradientPositionsTag>(positions);
 }
 
-void RSNGColorGradientFilter::SetStrengths(std::vector<float> strengths)
+void RSNGColorGradientFilter::SetStrengths(const std::vector<float>& strengths)
 {
     Setter<ColorGradientStrengthsTag>(strengths);
 }
