@@ -64,6 +64,7 @@ ohos_shared_library("effectKit_ani") {
     "./src/ani_color_picker.cpp",
     "./src/ani_effect_kit_utils.cpp",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/color_picker_napi.cpp",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/effect_kit_napi_utils.cpp",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit/src/filter_napi.cpp",
   ]
 
