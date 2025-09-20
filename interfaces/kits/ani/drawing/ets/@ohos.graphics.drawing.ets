@@ -533,6 +533,147 @@ namespace drawing {
     native drawRect(left: double, top: double, right: double, bottom: double): void;
 
     /**
+     * Draws a rounded rectangle.
+     * @param { RoundRect } roundRect - Indicates the RectRound object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawRoundRect(roundRect: RoundRect): void;
+
+    /**
+     * Draws two nested rounded rectangles. The outer rectangle boundary must contain the inner rectangle boundary.
+     * Otherwise, there is no drawing effect.
+     * @param { RoundRect } outer - Outer rounded rectangle.
+     * @param { RoundRect } inner - Inner rounded rectangle.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawNestedRoundRect(outer: RoundRect, inner: RoundRect): void;
+
+    /**
+     * Uses a brush to fill the drawable area of the canvas.
+     * @param { Brush } brush - Indicates the Brush object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawBackground(brush: Brush): void;
+
+    /**
+     * Draws a spot shadow and uses a given path to outline the ambient shadow.
+     * @param { Path } path - Path object, which is used to outline the shadow.
+     * @param { common2D.Point3d } planeParams - 3D vector,
+     *     which is used to determine the z-axis offset of an occluder relative to the canvas,
+     *     based on its x and y coordinates.
+     * @param { common2D.Point3d } devLightPos - Position of the light relative to the canvas.
+     * @param { double } lightRadius - Radius of the light. The value is a floating point number.
+     * @param { common2D.Color } ambientColor - Color of the ambient shadow.
+     * @param { common2D.Color } spotColor - Color of the spot shadow.
+     * @param { ShadowFlag } flag - Shadow flag.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawShadow(path: Path, planeParams: common2D.Point3d, devLightPos: common2D.Point3d, lightRadius: double,
+      ambientColor: common2D.Color, spotColor: common2D.Color, flag: ShadowFlag) : void;
+
+    /**
+     * Draws a spot shadow and uses a given path to outline the ambient shadow.
+     * @param { Path } path - Path object, which is used to outline the shadow.
+     * @param { common2D.Point3d } planeParams - 3D vector, which is used to calculate the offset in the Z axis.
+     * @param { common2D.Point3d } devLightPos - Position of the light relative to the canvas.
+     * @param { double } lightRadius - Radius of the light. The value is a floating point number.
+     * @param { common2D.Color | int } ambientColor - Ambient shadow color,
+     *     represented by a 32-bit unsigned integer in hexadecimal ARGB format.
+     * @param { common2D.Color | int } spotColor - Spot shadow color,
+     *     represented by a 32-bit unsigned integer in hexadecimal ARGB format.
+     * @param { ShadowFlag } flag - Indicates the flag to control opaque occluder, shadow, and light position.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+
+    native drawShadow(path: Path, planeParams: common2D.Point3d, devLightPos: common2D.Point3d, lightRadius: double,
+      ambientColor: common2D.Color | int, spotColor: common2D.Color | int, flag: ShadowFlag) : void;
+
+    /**
+     * Draws a circle. If the radius is less than or equal to zero, nothing is drawn.
+     * By default, black is used for filling.
+     * @param { double } x - X coordinate of the center of the circle. The value is a floating point number.
+     * @param { double } y - Y coordinate of the center of the circle. The value is a floating point number.
+     * @param { double } radius - Radius of the circle. The value is a floating point number greater than 0.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native drawCircle(x: double, y: double, radius: double): void;
+
+    /**
+     * Draw a pixelmap, with the upper left corner at (left, top).
+     * @param { image.PixelMap } pixelmap - PixelMap.
+     * @param { double } left - Left side of image.
+     * @param { double } top - Top side of image.
+     * @throws { BusinessError } 401 - Parameter error.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    /**
+     * Draws an image. The coordinates of the upper left corner of the image are (left, top).
+     * @param { image.PixelMap } pixelmap - PixelMap.
+     * @param { double } left - X coordinate of the upper left corner of the image. The value is a floating point number.
+     * @param { double } top - Y coordinate of the upper left corner of the image. The value is a floating point number.
+     * @param { SamplingOptions } samplingOptions - Sampling options. By default, the SamplingOptions object created using the no-argument constructor is used.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawImage(pixelmap: image.PixelMap, left: double, top: double, samplingOptions?: SamplingOptions): void;
+
+    /**
+     * Splits an image into multiple sections based on the lattice object's configuration and draws each section into the specified target rectangle on the canvas.
+     * The intersections of even-numbered rows and columns (starting from 0) are fixed points.
+     * If the fixed lattice area fits within the target rectangle, it will be drawn without scaling.
+     * Otherwise, it will be scaled proportionally to fit the target rectangle.
+     * Any remaining space will be filled by stretching or compressing the remaining sections to cover the entire target rectangle.
+     * @param { image.PixelMap } pixelmap - The source image.
+     * @param { Lattice } lattice - The area of source image.
+     * @param { common2D.Rect } dstRect - The area of destination canvas.
+     * @param { FilterMode } filterMode - Filter mode.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native drawImageLattice(pixelmap: image.PixelMap, lattice: Lattice, dstRect: common2D.Rect,
+      filterMode: FilterMode): void;
+
+    /**
+     * Splits an image into nine sections using two horizontal and two vertical lines: four edge sections, four corner sections, and a central section.
+     * If the four corner sections are smaller than the target rectangle, they will be drawn in the target rectangle without scaling.
+     * Otherwise, they will be scaled to fit the target rectangle. Any remaining space will be filled by stretching or
+     * compressing the other five sections to cover the entire target rectangle.
+     * @param { image.PixelMap } pixelmap - PixelMap to split.
+     * @param { common2D.Rect } center - Central rectangle that divides the image into nine sections by extending its four edges.
+     * @param { common2D.Rect } dstRect - Target rectangle drawn on the canvas.
+     * @param { FilterMode } filterMode - Filter mode.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native drawImageNine(pixelmap: image.PixelMap, center: common2D.Rect, dstRect: common2D.Rect,
+      filterMode: FilterMode): void;
+
+    /**
      * Draws the specified source image onto the canvas,
      * scaled and translated to the destination rectangle.
      * @param { image.PixelMap } pixelmap - The source image.
@@ -544,6 +685,170 @@ namespace drawing {
      * @since 12
      */
     native drawImageRect(pixelmap: image.PixelMap, dstRect: common2D.Rect, samplingOptions?: SamplingOptions): void;
+
+    /**
+     * Draws a portion of an image onto a specified area of the canvas.
+     * @param { image.PixelMap } pixelmap - The source image.
+     * @param { common2D.Rect } srcRect - Rectangle object, which specifies the portion of the image to draw.
+     * @param { common2D.Rect } dstRect - Rectangle object, which specifies the area of the canvas onto which the image will be drawn.
+     * @param { SamplingOptions } samplingOptions - Sampling options. By default, the SamplingOptions object created using the no-argument constructor is used.
+     * @param { SrcRectConstraint } constraint - Constraint type of the source rectangle. The default value is STRICT.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawImageRectWithSrc(pixelmap: image.PixelMap, srcRect: common2D.Rect, dstRect: common2D.Rect,
+      samplingOptions?: SamplingOptions, constraint?: SrcRectConstraint): void;
+
+    /**
+     * Draws the background color.
+     * @param { common2D.Color } color - The range of color channels must be [0, 255].
+     * @param { BlendMode } blendMode - Used to combine source color and destination. The default value is SRC_OVER.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native drawColor(color: common2D.Color, blendMode?: BlendMode): void;
+
+    /**
+     * Fills the drawable area of the canvas with the specified color and blend mode. This API provides better performance and is recommended.
+     * @param { int } alpha - Alpha channel value of the color in ARGB format.
+     * The value is an integer ranging from 0 to 255. Any passed-in floating point number is rounded down.
+     * @param { int } red - Red channel value of the color in ARGB format.
+     * The value is an integer ranging from 0 to 255. Any passed-in floating point number is rounded down.
+     * @param { int } green - Green channel value of the color in ARGB format.
+     * The value is an integer ranging from 0 to 255. Any passed-in floating point number is rounded down.
+     * @param { int } blue - Blue channel value of the color in ARGB format.
+     * The value is an integer ranging from 0 to 255. Any passed-in floating point number is rounded down.
+     * @param { BlendMode } blendMode - Blend mode. The default mode is SRC_OVER.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawColor(alpha: int, red: int, green: int, blue: int, blendMode?: BlendMode): void;
+
+    /**
+     * Fills the drawable area of the canvas with the specified color and blend mode.
+     * @param { int } color - Color in hexadecimal ARGB format.
+     * @param { BlendMode } blendMode - Blend mode. The default mode is SRC_OVER.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native drawColor(color: int, blendMode?: BlendMode): void;
+
+    /**
+     * Draws an oval on the canvas, where the shape and position of the oval are defined by its bounding rectangle.
+     * @param { common2D.Rect } oval - Rectangle. The oval inscribed within the rectangle is the oval to draw.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawOval(oval: common2D.Rect): void;
+
+    /**
+     * Draws an arc on the canvas, with the start angle and sweep angle specified.
+     * If the absolute value of the sweep angle exceeds 360 degrees, an ellipse is drawn.
+     * @param { common2D.Rect } arc - Rectangular boundary that encapsulates the oval including the arc.
+     * @param { double } startAngle - Start angle, in degrees. The value is a floating point number.
+     * When the degree is 0, the start point is located at the right end of the oval.
+     * A positive number indicates that the start point is placed clockwise,
+     * and a negative number indicates that the start point is placed counterclockwise.
+     * @param { double } sweepAngle - Angle to sweep, in degrees. The value is a floating point number.
+     * A positive number indicates a clockwise sweep, and a negative value indicates a counterclockwise swipe.
+     * The valid range is from -360 degrees to 360 degrees. If the absolute value of the sweep angle exceeds 360 degrees,
+     * an ellipse is drawn.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawArc(arc: common2D.Rect, startAngle: double, sweepAngle: double): void;
+
+    /**
+     * Draws an arc on the canvas. It enables you to define the start angle, sweep angle,
+     * and whether the arc's endpoints should connect to its center.
+     * @param { common2D.Rect } arc - Rectangular boundary that encapsulates the oval including the arc.
+     * @param { double } startAngle - Start angle, in degrees. The value is a floating point number.
+     * When the degree is 0, the start point is located at the right end of the oval.
+     * A positive number indicates that the start point is placed clockwise,
+     * and a negative number indicates that the start point is placed counterclockwise.
+     * @param { double } sweepAngle - Angle to sweep, in degrees. The value is a floating point number.
+     * A positive number indicates a clockwise sweep, and a negative value indicates a counterclockwise swipe.
+     * The swipe angle can exceed 360 degrees, and a complete ellipse is drawn.
+     * @param { boolean } useCenter - Whether the start point and end point of the arc are connected to its center.
+     * The value true means that they are connected to the center; the value false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native drawArcWithCenter(arc: common2D.Rect, startAngle: double, sweepAngle: double, useCenter: boolean): void;
+
+    /**
+     * Draw a point.
+     * @param { double } x - X coordinate of the point. The value is a floating point number.
+     * @param { double } y - Y coordinate of the point. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native drawPoint(x: double, y: double): void;
+
+    /**
+     * Draws a group of points, line segments, or polygons on the canvas, with the specified drawing mode. An array is used to hold these points.
+     * @param { Array<common2D.Point> } points - Array that holds the points to draw. The length cannot be 0.
+     * @param { PointMode } mode - Mode in which the points are drawn. The default value is drawing.PointMode.POINTS.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawPoints(points: Array<common2D.Point>, mode?: PointMode): void;
+
+    /**
+     * Draws a custom path, which contains a set of path outlines. Each path outline can be open or closed.
+     * @param { Path } path - Path object to draw.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native drawPath(path: Path): void;
+
+    /**
+     * Draws a line segment from the start point to the end point. If the coordinates of the start point are the same as those of the end point,
+     * nothing is drawn.
+     * @param { double } x0 - X coordinate of the start point of the line segment. The value is a floating point number.
+     * @param { double } y0 - Y coordinate of the start point of the line segment. The value is a floating point number.
+     * @param { double } x1 - X coordinate of the end point of the line segment. The value is a floating point number.
+     * @param { double } y1 - Y coordinate of the end point of the line segment. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native drawLine(x0: double, y0: double, x1: double, y1: double): void;
+
+    /**
+     * Draws a single character. If the typeface of the current font does not support the character to draw,
+     * the system typeface is used to draw the character.
+     * @param { string } text - Single character to draw. The length of the string must be 1.
+     * @param { Font } font - Font object.
+     * @param { double } x - X coordinate of the left point (red point in the figure below) of the character baseline (blue line in the figure below).
+     * The value is a floating point number.
+     * @param { double } y - Y coordinate of the left point (red point in the figure below) of the character baseline (blue line in the figure below).
+     * The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawSingleCharacter(text: string, font: Font, x: double, y: double): void;
 
     /**
      * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
@@ -561,6 +866,16 @@ namespace drawing {
      */
     native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: int, meshHeight: int,
       vertices: Array<double>, vertOffset: int, colors: Array<int>, colorOffset: int): void;
+
+    /**
+     * Draws a region.
+     * @param { Region } region - Region to draw.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawRegion(region: Region): void;
 
     /**
      * Set pen to a canvas.
@@ -617,11 +932,41 @@ namespace drawing {
     native saveLayer(rect?: common2D.Rect | null, brush?: Brush | null): long;
 
     /**
+     * Clears the canvas with a given color. This API has the same effect as drawcolor.
+     * @param { common2D.Color } color - Color in ARGB format. Each color channel is an integer ranging from 0 to 255.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native clear(color: common2D.Color): void;
+
+    /**
+     * Clears the canvas with a given color.
+     * @param { common2D.Color | int } color - Color, represented by an unsigned integer in hexadecimal ARGB format.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native clear(color: common2D.Color | int): void;
+
+    /**
      * Restores the canvas status (canvas matrix) saved on the top of the stack.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
     native restore(): void;
+
+    /**
+     * Restores the canvas state (canvas matrix and clipping area) to a specified number.
+     * @param { int } count - Depth of the canvas statuses to restore.
+     * The value is an integer. If the value is less than or equal to 1, the canvas is restored to the initial state.
+     * If the value is greater than the number of canvas statuses that have been saved, no operation is performed.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native restoreToCount(count: int): void;
 
     /**
      * Gets the number of the canvas status (canvas matrix) saved in the stack.
@@ -630,6 +975,66 @@ namespace drawing {
      * @since 12
      */
     native getSaveCount(): int;
+
+    /**
+     * Obtains the canvas width.
+     * @returns { int } Canvas width. The value is a floating point number.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getWidth(): int;
+
+    /**
+     * Obtains the canvas height.
+     * @returns { int } Canvas height. The value is a floating point number.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getHeight(): int;
+
+    /**
+     * Obtains the bounds of the cropping region of the canvas.
+     * @returns { common2D.Rect } Rect object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getLocalClipBounds(): common2D.Rect;
+
+    /**
+     * Obtains the canvas matrix.
+     * @returns { Matrix } Canvas matrix.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getTotalMatrix(): Matrix;
+
+    /**
+     * Applies a scaling matrix on top of the current canvas matrix (identity matrix by default).
+     * Subsequent drawing and clipping operations will automatically have a scaling effect applied to the shapes and positions.
+     * @param { double } sx - Scale ratio on the X axis. The value is a floating point number.
+     * @param { double } sy - Scale ratio on the Y axis. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native scale(sx: double, sy: double): void;
+
+    /**
+     * Applies a skewing matrix on top of the current canvas matrix (identity matrix by default).
+     * Subsequent drawing and clipping operations will automatically have a skewing effect applied to the shapes and positions.
+     * @param { double } sx - Amount of tilt on the X axis. The value is a floating point number.
+     * A positive number tilts the drawing rightwards along the positive direction of the Y axis,
+     * and a negative number tilts the drawing leftwards along the positive direction of the Y axis.
+     * @param { double } sy - Amount of tilt on the Y axis. The value is a floating point number.
+     * A positive number tilts the drawing downwards along the positive direction of the X axis,
+     * and a negative number tilts the drawing upwards along the positive direction of the X axis.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native skew(sx: double, sy: double) : void;
 
     /**
      * Rotates by degrees, positive degrees rotates clockwise.
@@ -642,6 +1047,148 @@ namespace drawing {
      * @since 12
      */
     native rotate(degrees: double, sx: double, sy: double) : void;
+
+    /**
+     * Applies a translation matrix on top of the current canvas matrix (identity matrix by default).
+     * Subsequent drawing and clipping operations will automatically have a translation effect applied to the shapes and positions.
+     * @param { double } dx - Distance to translate on the X axis. The value is a floating point number.
+     * @param { double } dy - Distance to translate on the Y axis. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native translate(dx: double, dy: double): void;
+
+    /**
+     * Clips the drawable area of the canvas using a custom path.
+     * @param { Path } path - To combine with clip.
+     * @param { ClipOp } clipOp - Clip mode. The default value is INTERSECT.
+     * @param { boolean } doAntiAlias - Whether to enable anti-aliasing. The value true means to enable anti-aliasing,
+     * and false means the opposite. The default value is false.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native clipPath(path: Path, clipOp?: ClipOp, doAntiAlias?: boolean): void;
+
+    /**
+     * Clips the drawable area of the canvas using a rectangle.
+     * @param { common2D.Rect } rect - To combine with clipping area.
+     * @param { ClipOp } clipOp - Clip mode. The default value is INTERSECT.
+     * @param { boolean } doAntiAlias - Whether to enable anti-aliasing. The value true means to enable anti-aliasing,
+     * and false means the opposite. The default value is false.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native clipRect(rect: common2D.Rect, clipOp?: ClipOp, doAntiAlias?: boolean): void;
+
+    /**
+     * Multiplies the current canvas matrix by the incoming matrix on the left. This API does not affect previous drawing operations,
+     * but subsequent drawing and clipping operations will be influenced by this matrix in terms of shape and position.
+     * @param { Matrix } matrix - Declares functions related to the matrix object in the drawing module.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native concatMatrix(matrix: Matrix): void;
+  
+    /**
+     * Clips a region on the canvas.
+     * @param { Region } region - Region object, which indicates the range to clip.
+     * @param { ClipOp } clipOp - Clipping mode. The default value is INTERSECT.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native clipRegion(region: Region, clipOp?: ClipOp): void;
+
+    /**
+     * Clips a rounded rectangle on the canvas.
+     * @param { RoundRect } roundRect - To combine with clipping area.
+     * @param { ClipOp } clipOp - Clipping mode. The default value is INTERSECT.
+     * @param { boolean } doAntiAlias - Whether to enable anti-aliasing. The value true means to enable anti-aliasing,
+     * and false means the opposite. The default value is false.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native clipRoundRect(roundRect: RoundRect, clipOp?: ClipOp, doAntiAlias?: boolean): void;
+
+    /**
+     * Checks whether the region that can be drawn is empty after clipping.
+     * @returns { boolean } Returns true if drawable area is empty.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isClipEmpty(): boolean;
+
+    /**
+     * Sets a matrix for the canvas. Subsequent drawing and clipping operations will be affected by this matrix in terms of shape and position.
+     * @param { Matrix } matrix - Declares functions related to the matrix object in the drawing module.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setMatrix(matrix: Matrix): void;
+
+    /**
+     * Resets the matrix of this canvas to an identity matrix.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native resetMatrix(): void;
+
+    /**
+     * Checks whether the path is not intersecting with the canvas area. The canvas area includes its boundaries.
+     * @param { Path } path - Path to draw.
+     * @returns { boolean } Returns true if path is not intersect; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native quickRejectPath(path: Path): boolean;
+
+    /**
+     * Checks whether the rectangle is not intersecting with the canvas area. The canvas area includes its boundaries.
+     * @param { common2D.Rect } rect - Rectangle to determines.
+     * @returns { boolean } Returns true if rect and region is not intersect; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native quickRejectRect(rect: common2D.Rect): boolean;
+  }
+
+  /**
+   * Enumerates the constraint types of the source rectangle.
+   *
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum SrcRectConstraint {
+
+    /**
+     * The sampling range is strictly confined to the source rectangle, resulting in a slow sampling speed.
+     *
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    STRICT = 0,
+
+    /**
+     * The sampling range is not limited to the source rectangle and can extend beyond it, allowing for a high sampling speed.
+     *
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    FAST = 1
   }
 
   /**
@@ -3663,6 +4210,35 @@ namespace drawing {
   }
 
   /**
+   * Enumerates the modes for drawing multiple points in an array.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum PointMode {
+    /**
+     * Draws each point separately.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    POINTS = 0,
+
+    /**
+     * Draws every two points as a line segment.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    LINES = 1,
+
+    /**
+     * Draws an array of points as an open polygon.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    POLYGON = 2,
+  }
+
+  /**
    * Enumerates the filter modes.
    * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
@@ -3683,6 +4259,42 @@ namespace drawing {
      * @since 20
      */
     FILTER_MODE_LINEAR = 1,
+  }
+
+  /**
+   * Enumerates the shadow drawing behaviors.
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum ShadowFlag {
+    /**
+     * None of the flags are enabled.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    NONE = 0,
+
+    /**
+     * The occluder is transparent.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    TRANSPARENT_OCCLUDER = 1,
+
+    /**
+     * Only the geometric shadow effect is used.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    GEOMETRIC_ONLY = 2,
+
+    /**
+     * All the flags are enabled.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ALL = 3,
   }
 
   /**
