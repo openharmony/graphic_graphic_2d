@@ -34,6 +34,7 @@
 #include "path_effect_ani/ani_path_effect.h"
 #include "mask_filter_ani/ani_mask_filter.h"
 #include "shadow_layer_ani/ani_shadow_layer.h"
+#include "text_blob_ani/ani_text_blob.h"
 
 const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/drawing/Cleaner;";
 
@@ -83,6 +84,7 @@ static void Clean(ani_env* env, ani_object object)
         {"ShaderEffect", SafeDelete<OHOS::Rosen::Drawing::AniShaderEffect>},
         {"Tool", SafeDelete<OHOS::Rosen::Drawing::AniTool>},
         {"Typeface", SafeDelete<OHOS::Rosen::Drawing::AniTypeface>},
+        {"TextBlob", SafeDelete<OHOS::Rosen::Drawing::AniTextBlob>},
         {"TypefaceArguments", SafeDelete<OHOS::Rosen::Drawing::AniTypefaceArguments>},
         {"ImageFilter", SafeDelete<OHOS::Rosen::Drawing::AniImageFilter>},
         {"MaskFilter", SafeDelete<OHOS::Rosen::Drawing::AniMaskFilter>},
@@ -144,6 +146,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniRegion::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniRoundRect::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTool::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniTextBlob::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTypefaceArguments::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniImageFilter::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniMaskFilter::AniInit(env) != ANI_OK ||
