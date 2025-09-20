@@ -163,5 +163,15 @@ void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskI
     transaction->AddCommand(command, true);
     transaction->FlushImplicitTransaction();
 }
+
+void RSUIContext::DetachFromUI()
+{
+    detachedFromUI_ = true;
+}
+
+bool RSUIContext::HasDetachedFromUI() const
+{
+    return detachedFromUI_;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1745,7 +1745,7 @@ public:
      */
     std::shared_ptr<RSUIContext> GetRSUIContext()
     {
-        return rsUIContext_.lock();
+        return rsUIContext_;
     }
     void SetUIContextToken();
 
@@ -2028,7 +2028,7 @@ private:
     bool isUifirstEnable_ = false;
     bool isSkipCheckInMultiInstance_ = false;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
-    std::weak_ptr<RSUIContext> rsUIContext_;
+    std::shared_ptr<RSUIContext> rsUIContext_;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

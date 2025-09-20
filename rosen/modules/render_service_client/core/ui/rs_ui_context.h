@@ -175,6 +175,9 @@ public:
         return bool(taskRunner_);
     }
 
+    void DetachFromUI();
+    bool HasDetachedFromUI() const;
+
 private:
     RSUIContext();
     RSUIContext(uint64_t token);
@@ -199,6 +202,7 @@ private:
 
     TaskRunner taskRunner_ = TaskRunner();
     std::mutex implicitAnimatorMutex_;
+    bool detachedFromUI_ = false;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;
