@@ -87,6 +87,7 @@ void RSLogicalDisplayRenderNode::UpdateRenderParams()
     if (mirroredNode) {
         logicalDisplayRenderParam->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         logicalDisplayRenderParam->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
+        logicalDisplayRenderParam->SetMirrorSourceRotation(mirrorSourceRotation_);
     } else {
         logicalDisplayRenderParam->mirrorSourceDrawable_.reset();
     }

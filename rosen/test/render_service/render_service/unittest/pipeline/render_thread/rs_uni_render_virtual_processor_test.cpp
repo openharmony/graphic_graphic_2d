@@ -604,6 +604,24 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_003, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CanvasInit_004
+ * @tc.desc: CanvasInit Test, mirrorSourceRotation_ != ScreenRotation::INVALID_SCREEN_ROTATION
+ * @tc.type:FUNC
+ * @tc.require:issueICGA54
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_004, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(virtualProcessor_, nullptr);
+    virtualProcessor_->mirrorSourceRotation_ = ScreenRotation::ROTATION_0;
+    virtualProcessor_->CanvasInit(*displayDrawable_);
+
+    virtualProcessor_->mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    virtualProcessor_->CanvasInit(*displayDrawable_);
+    ASSERT_EQ(virtualProcessor_->mirrorSourceRotation_, ScreenRotation::INVALID_SCREEN_ROTATION);
+}
+
+/**
  * @tc.name: CheckIfBufferSizeNeedChangeTest
  * @tc.desc: CheckIfBufferSizeNeedChange Test
  * @tc.type:FUNC

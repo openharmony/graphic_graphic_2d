@@ -31,6 +31,7 @@ void RSLogicalDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>&
     }
     targetLogicalDisplayRenderParam->topSurfaceOpaqueRects_ = topSurfaceOpaqueRects_;
     targetLogicalDisplayRenderParam->screenRotation_ = screenRotation_;
+    targetLogicalDisplayRenderParam->mirrorSourceRotation_ = mirrorSourceRotation_;
     targetLogicalDisplayRenderParam->screenId_ = screenId_;
     targetLogicalDisplayRenderParam->needOffscreen_ = needOffscreen_;
     targetLogicalDisplayRenderParam->nodeRotation_ = nodeRotation_;

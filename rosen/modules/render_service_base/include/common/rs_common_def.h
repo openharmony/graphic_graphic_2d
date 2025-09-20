@@ -517,6 +517,7 @@ struct RSDisplayNodeConfig {
     bool isMirrored = false;
     NodeId mirrorNodeId = 0;
     bool isSync = false;
+    uint32_t mirrorSourceRotation = 4; // default INVALID_SCREEN_ROTATION
 };
 
 // ability state of surface node

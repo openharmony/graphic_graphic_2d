@@ -118,6 +118,20 @@ public:
         return offsetY_;
     }
 
+    ScreenRotation GetMirrorSourceRotation() const
+    {
+        return mirrorSourceRotation_;
+    }
+
+    void SetMirrorSourceRotation(ScreenRotation rotation)
+    {
+        if (mirrorSourceRotation_ == rotation) {
+            return;
+        }
+        mirrorSourceRotation_ = rotation;
+        needSync_ = true;
+    }
+
 private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
     std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
@@ -128,6 +142,7 @@ private:
     bool needOffscreen_ = false;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation nodeRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     bool isRotationChanged_ = false;
 
     bool isMirrorDisplay_ = false;
