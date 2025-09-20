@@ -25,6 +25,7 @@
 #include <unordered_set>
 
 #include "animation/rs_frame_rate_range.h"
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_util.h"
 
 namespace OHOS::Rosen {
 class RsCommonHook {
@@ -72,6 +73,12 @@ public:
     std::string GetCurrentPkgName() const;
     void SetImageEnhancePidList(const std::unordered_set<pid_t>& imageEnhancePidList);
     std::unordered_set<pid_t> GetImageEnhancePidList() const;
+    void SetImageEnhanceParams(const RSImageDetailEnhanceParams& imageEnhanceParams);
+    RSImageDetailEnhanceParams GetImageEnhanceParams() const;
+    void SetImageEnhanceAlgoParams(
+        const std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams>& imageEnhanceAlgoParams);
+    RSImageDetailEnhanceAlgoParams GetImageEnhanceAlgoParams(const std::string& key) const;
+    bool IsImageEnhanceParamsValid();
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
@@ -101,6 +108,8 @@ private:
     std::string pkgName_{};
     mutable std::mutex mutexLock_{};
     std::unordered_set<pid_t> imageEnhancePidList_{};
+    RSImageDetailEnhanceParams imageEnhanceParams_{};
+    std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams> imageEnhanceAlgoParams_{};
 };
 } // namespace OHOS::Rosen
 #endif
