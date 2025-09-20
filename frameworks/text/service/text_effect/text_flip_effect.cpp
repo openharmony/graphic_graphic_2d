@@ -347,13 +347,15 @@ std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> TextFlipEffect::Gen
     parameters[1].emplace_back(inAlphaParameter);
 
     if (blurEnable_) {
+        // The numbers 0.0384 and 6.33 are obtained through ux debugging
+        float blurRadius = 0.0384 * height + 6.33;
         Drawing::DrawingPiecewiseParameter outBlurParameter = {
-            Drawing::DrawingCurveType::LINEAR, sharpCurve, 100, 0, {{g_blurProp, {0, 25}}}
+            Drawing::DrawingCurveType::LINEAR, sharpCurve, 100, 0, {{g_blurProp, {0, blurRadius}}}
         };
         parameters[0].emplace_back(outBlurParameter);
 
         Drawing::DrawingPiecewiseParameter inBlurParameter = {
-            Drawing::DrawingCurveType::SHARP, sharpCurve, 150, 0, {{g_blurProp, {25, 0}}}
+            Drawing::DrawingCurveType::SHARP, sharpCurve, 150, 0, {{g_blurProp, {blurRadius, 0}}}
         };
         parameters[1].emplace_back(inBlurParameter);
     }
