@@ -39,12 +39,21 @@ ani_status AniBrush::AniInit(ani_env *env)
         ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Brush}:",
             reinterpret_cast<void*>(ConstructorWithBrush) },
         ani_native_function { "getAlpha", ":i", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "setColor", "C{@ohos/graphics/common2D/common2D/Color}:",
+            reinterpret_cast<void*>(SetColorWithObject) },
+        ani_native_function { "setColor", "iiii:", reinterpret_cast<void*>(SetColorWithARGB) },
+        ani_native_function { "setColor", "i:", reinterpret_cast<void*>(SetColor) },
+        ani_native_function { "getColor", nullptr, reinterpret_cast<void*>(GetColor) },
+        ani_native_function { "getHexColor", nullptr, reinterpret_cast<void*>(GetHexColor) },
+        ani_native_function { "setAntiAlias", nullptr, reinterpret_cast<void*>(SetAntiAlias) },
+        ani_native_function { "isAntiAlias", nullptr, reinterpret_cast<void*>(IsAntiAlias) },
         ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
         ani_native_function { "setAlpha", "i:", reinterpret_cast<void*>(SetAlpha) },
         ani_native_function { "setBlendMode", "C{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(SetBlendMode) },
         ani_native_function { "setColorFilter", "C{@ohos.graphics.drawing.drawing.ColorFilter}:",
             reinterpret_cast<void*>(SetColorFilter) },
+        ani_native_function { "getColorFilter", nullptr, reinterpret_cast<void*>(GetColorFilter) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -82,7 +91,8 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, aniBrushObj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::ConstructorWithBrush brush is nullptr.");
         return;
     }
     std::shared_ptr<Brush> other = aniBrush->GetBrush();
@@ -99,18 +109,130 @@ ani_int AniBrush::GetAlpha(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetAlpha brush is nullptr.");
         return -1;
     }
 
     return aniBrush->GetBrush()->GetAlpha();
 }
 
+void AniBrush::SetColorWithObject(ani_env* env, ani_object obj, ani_object aniColor)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::SetColorWithObject brush is nullptr.");
+        return;
+    }
+
+    ColorQuad color;
+    if (!GetColorQuadFromParam(env, aniColor, color)) {
+        ROSEN_LOGE("AniBrush::SetColorWithObject failed cause by aniColor");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::SetColorWithObject incorrect type color.");
+        return;
+    }
+
+    Drawing::Color drawingColor;
+    drawingColor.SetColorQuad(color);
+    aniBrush->GetBrush()->SetColor(drawingColor);
+}
+
+void AniBrush::SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,
+    ani_int red, ani_int green, ani_int blue)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::SetColorWithARGB brush is nullptr.");
+        return;
+    }
+
+    if (CheckInt32OutOfRange(alpha, 0, RGBA_MAX)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "alpha is out of range, range is [0, 255]");
+    }
+    if (CheckInt32OutOfRange(red, 0, RGBA_MAX)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "red is out of range, range is [0, 255]");
+    }
+    if (CheckInt32OutOfRange(green, 0, RGBA_MAX)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "green is out of range, range is [0, 255]");
+    }
+    if (CheckInt32OutOfRange(blue, 0, RGBA_MAX)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "blue is out of range, range is [0, 255]");
+    }
+
+    Drawing::Color drawingColor = Color::ColorQuadSetARGB(alpha, red, green, blue);
+    aniBrush->GetBrush()->SetColor(drawingColor);
+}
+
+void AniBrush::SetColor(ani_env* env, ani_object obj, ani_int color)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetColor brush is nullptr.");
+        return;
+    }
+
+    Drawing::Color drawingColor;
+    drawingColor.SetColorQuad(color);
+    aniBrush->GetBrush()->SetColor(drawingColor);
+}
+
+ani_object AniBrush::GetColor(ani_env* env, ani_object obj)
+{
+    ani_object aniObj = CreateAniUndefined(env);
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetColor brush is nullptr.");
+        return aniObj;
+    }
+
+    const Color& color = aniBrush->GetBrush()->GetColor();
+    CreateColorObj(env, color, aniObj);
+    return aniObj;
+}
+
+ani_int AniBrush::GetHexColor(ani_env* env, ani_object obj)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetHexColor brush is nullptr.");
+        return -1;
+    }
+
+    const Color& color = aniBrush->GetBrush()->GetColor();
+    return color.CastToColorQuad();
+}
+
+void AniBrush::SetAntiAlias(ani_env* env, ani_object obj, ani_boolean aa)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetAntiAlias brush is nullptr.");
+        return;
+    }
+    
+    bool antiAlias = static_cast<bool>(aa);
+    aniBrush->GetBrush()->SetAntiAlias(antiAlias);
+}
+
+ani_boolean AniBrush::IsAntiAlias(ani_env* env, ani_object obj)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::IsAntiAlias brush is nullptr.");
+        return ANI_FALSE;
+    }
+    
+    bool isAntiAlias = aniBrush->GetBrush()->IsAntiAlias();
+    return static_cast<ani_boolean>(isAntiAlias);
+}
+
 void AniBrush::Reset(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::Reset brush is nullptr.");
         return;
     }
 
@@ -121,12 +243,13 @@ void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetAlpha brush is nullptr.");
         return;
     }
 
     if (CheckInt32OutOfRange(alpha, 0, Color::RGB_MAX)) {
-        AniThrowError(env, "alpha out of range. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::SetAlpha alpha is out of range, range is [0, 255].");
         return;
     }
 
@@ -137,13 +260,14 @@ void AniBrush::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlend
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetBlendMode brush is nullptr.");
         return;
     }
 
     ani_int blendMode;
     if (ANI_OK != env->EnumItem_GetValue_Int(aniBlendMode, &blendMode)) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::SetBlendMode get blendmode failed.");
         return;
     }
 
@@ -169,20 +293,44 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::SetColorFilter brush is nullptr.");
         return;
     }
 
     auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
     if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
         ROSEN_LOGE("AniBrush::SetColorFilter colorFilter is nullptr");
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniBrush::SetColorFilter colorfilter is nullptr.");
         return;
     }
 
     Filter filter = aniBrush->GetBrush()->GetFilter();
     filter.SetColorFilter(aniColorFilter->GetColorFilter());
     aniBrush->GetBrush()->SetFilter(filter);
+}
+
+ani_object AniBrush::GetColorFilter(ani_env* env, ani_object obj)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr || aniBrush->GetBrush() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniBrush::GetColorFilter brush is nullptr.");
+        return CreateAniUndefined(env);
+    }
+
+    if (!(aniBrush->GetBrush()->HasFilter())) {
+        return CreateAniUndefined(env);
+    }
+
+    AniColorFilter* colorFilter = new AniColorFilter(aniBrush->GetBrush()->GetFilter().GetColorFilter());
+    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.ColorFilter", nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(colorFilter))) {
+        ROSEN_LOGE("AniBrush::GetColorFilter failed cause by Object_SetFieldByName_Long");
+        delete colorFilter;
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
 }
 
 ani_object AniBrush::BrushTransferStatic(

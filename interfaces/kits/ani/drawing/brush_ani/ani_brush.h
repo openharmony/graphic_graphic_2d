@@ -30,11 +30,20 @@ public:
 
     static void Constructor(ani_env* env, ani_object obj);
     static void ConstructorWithBrush(ani_env* env, ani_object obj, ani_object aniBrushObj);
-    static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static ani_int GetAlpha(ani_env* env, ani_object obj);
+    static void SetColorWithObject(ani_env* env, ani_object obj, ani_object aniColor);
+    static void SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,
+        ani_int red, ani_int green, ani_int blue);
+    static void SetColor(ani_env* env, ani_object obj, ani_int color);
+    static ani_object GetColor(ani_env* env, ani_object obj);
+    static ani_int GetHexColor(ani_env* env, ani_object obj);
+    static void SetAntiAlias(ani_env* env, ani_object obj, ani_boolean aa);
+    static ani_boolean IsAntiAlias(ani_env* env, ani_object obj);
     static void SetAlpha(ani_env* env, ani_object obj, ani_int alpha);
     static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);
     static void Reset(ani_env*  env, ani_object obj);
+    static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
+    static ani_object GetColorFilter(ani_env* env, ani_object obj);
 
     std::shared_ptr<Brush> GetBrush();
 

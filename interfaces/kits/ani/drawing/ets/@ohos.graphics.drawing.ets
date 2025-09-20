@@ -1669,6 +1669,77 @@ namespace drawing {
     native getAlpha(): int;
 
     /**
+     * Sets a color for this brush.
+     * @param { common2D.Color } color - Color in ARGB format. The value of each color channel is an integer ranging from 0 to 255.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native setColor(color: common2D.Color): void;
+
+    /**
+     * Sets a color for this brush. This API provides better performance than setColor and is recommended.
+     * @param { int } alpha - Alpha channel value of the color in ARGB format. The value is an integer ranging from 0 to 255.
+     * Any passed-in floating point number is rounded down.
+     * @param { int } red - Red channel value of the color in ARGB format. The value is an integer ranging from 0 to 255.
+     * Any passed-in floating point number is rounded down.
+     * @param { int } green - Green channel value of the color in ARGB format. The value is an integer ranging from 0 to 255.
+     * Any passed-in floating point number is rounded down.
+     * @param { int } blue - Blue channel value of the color in ARGB format. The value is an integer ranging from 0 to 255.
+     * Any passed-in floating point number is rounded down.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setColor(alpha: int, red: int, green: int, blue: int): void;
+
+    /**
+     * Sets a color for this brush.
+     * @param { int } color - Color in hexadecimal ARGB format.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native setColor(color: int): void;
+
+    /**
+     * Obtains the color of this brush.
+     * @returns { common2D.Color } Returns a 32-bit (ARGB) variable that describes the color.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getColor(): common2D.Color;
+
+    /**
+     * Obtains the color of this brush.
+     * @returns { int } Returns a 32-bit (ARGB) variable that describes the color of hexadecimal format.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native getHexColor(): int;
+
+    /**
+     * Enables anti-aliasing for this brush. Anti-aliasing makes the edges of the content smoother.
+     * @param { boolean } aa - Whether to enable anti-aliasing. The value true means to enable anti-aliasing, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native setAntiAlias(aa: boolean): void;
+
+    /**
+     * Checks whether anti-aliasing is enabled for this brush.
+     * @returns { boolean } Returns true if anti-aliasing is enabled; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isAntiAlias(): boolean;
+
+    /**
      * Sets ColorFilter to brush
      * @param { ColorFilter } filter - ColorFilter to apply to subsequent draw.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
@@ -1677,6 +1748,14 @@ namespace drawing {
      * @since 11
      */
     native setColorFilter(filter: ColorFilter): void;
+
+    /**
+     * Obtains the color filter of this brush.
+     * @returns { ColorFilter } ColorFilter.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getColorFilter(): ColorFilter;
 
     /**
      * Sets a blender that implements the specified blendmode enum.
@@ -1936,6 +2015,39 @@ namespace drawing {
     private static native getFontAddr(input: Font): long;
 
     /**
+     * Enables subpixel font rendering.
+     * @param { boolean } isSubpixel - Whether to enable subpixel font rendering.
+     * The value true means to enable subpixel font rendering, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native enableSubpixel(isSubpixel: boolean): void;
+
+    /**
+     * Enables emboldened fonts.
+     * @param { boolean } isEmbolden - Whether to enable emboldened fonts.
+     * The value true means to enable emboldened fonts, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native enableEmbolden(isEmbolden: boolean): void;
+
+    /**
+     * Enables linear font scaling.
+     * @param { boolean } isLinearMetrics - Whether to enable linear font scaling.
+     * The value true means to enable linear font scaling, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native enableLinearMetrics(isLinearMetrics: boolean): void;
+
+    /**
      * Sets text size in points. Has no effect if textSize is not greater than or equal to zero.
      * @param { double } textSize - Typographic height of text. The height of the text must be greater than 0.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
@@ -1978,6 +2090,278 @@ namespace drawing {
      * @since 11
      */
     native getMetrics(): FontMetrics;
+
+    /**
+     * Measures the width of a single character.
+     * If the typeface of the current font does not support the character to measure, the system typeface is used to measure the character width.
+     * @param { string } text - Single character to measure. The length of the string must be 1.
+     * @returns { double } Width of the character. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native measureSingleCharacter(text: string): double;
+
+    /**
+     * Measures the text width.
+     * @param { string } text - Text Symbol Content.
+     * @param { TextEncoding } encoding - Encoding format.
+     * @returns { double } Width of the text. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native measureText(text: string, encoding: TextEncoding): double;
+
+    /**
+     * Sets a horizontal scale factor for this font.
+     * @param { double } scaleX - Horizontal scale factor. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setScaleX(scaleX: double): void;
+
+    /**
+     * Sets whether to request that baselines be snapped to pixels when the current canvas matrix is axis aligned.
+     * @param { boolean } isBaselineSnap - Whether to request that baselines be snapped to pixels.
+     * The value true means to request that baselines be snapped to pixels, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setBaselineSnap(isBaselineSnap: boolean): void;
+
+    /**
+     * Checks whether baselines are requested to be snapped to pixels when the current canvas matrix is axis aligned.
+     * @returns { boolean } Check result. The value true means that the baselines are requested to be snapped to pixels,
+     * and false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isBaselineSnap(): boolean;
+
+    /**
+     * Sets whether to use bitmaps in this font.
+     * @param { boolean } isEmbeddedBitmaps - Whether to use bitmaps in the font. The value true means to use bitmaps in the font,
+     * and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setEmbeddedBitmaps(isEmbeddedBitmaps: boolean): void;
+
+    /**
+     * Checks whether bitmaps are used in this font.
+     * @returns { boolean } Check result. The value true means that the bitmaps are used, and false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isEmbeddedBitmaps(): boolean;
+
+    /**
+     * Sets whether to forcibly use auto hinting, that is, whether to always hint glyphs.
+     * @param { boolean } isForceAutoHinting - Whether to forcibly use auto hinting. The value true means to forcibly use auto hinting,
+     * and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setForceAutoHinting(isForceAutoHinting: boolean): void;
+
+    /**
+     * Obtains the width of each glyph in an array.
+     * @param { Array<int> } glyphs - Glyph array, which can be generated by textToGlyphs.
+     * @returns { Array<double> } Glyph array, which can be generated by textToGlyphs.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getWidths(glyphs: Array<int>): Array<double>;
+
+    /**
+     * Converts text into glyph indexes.
+     * @param { string } text - Text string.
+     * @param { int } glyphCount - Number of glyphs represented by the text. The value must be the same as the value obtained from countText.
+     * The default value is the number of characters in the text string. The value is an integer.
+     * @returns { Array<int> } Returns the storage for glyph indices.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native textToGlyphs(text: string, glyphCount?: int): Array<int>;
+
+    /**
+     * Checks whether sub-pixel rendering is used for this font.
+     * @returns { boolean } Check result. The value true means that sub-pixel rendering is used, and false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isSubpixel(): boolean;
+
+    /**
+     * Checks whether linear scaling is used for this font.
+     * @returns { boolean } Checks whether linear scaling is used for this font.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isLinearMetrics(): boolean;
+
+    /**
+     * Obtains the horizontal skew factor of this font.
+     * @returns { double } Horizontal skew factor.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getSkewX(): double;
+
+    /**
+     * Checks whether the bold effect is set for this font.
+     * @returns { boolean } Check result. The value true means that the bold effect is set, and false means the opposite.
+     * returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isEmbolden(): boolean;
+
+    /**
+     * Sets a horizontal skew factor for this font.
+     * @param { double } skewX - Horizontal skew factor.
+     * A positive number means a skew to the left, and a negative number means a skew to the right. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setSkewX(skewX: double): void;
+
+    /**
+     * Sets a font edging effect.
+     * @param { FontEdging } edging - Font edging effect.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setEdging(edging: FontEdging): void;
+
+    /**
+     * Sets a font hinting effect.
+     * @param { FontHinting } hinting - Font hinting effect.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setHinting(hinting: FontHinting): void;
+
+    /**
+     * Obtains the number of glyphs represented by text.
+     * @param { string } text - Indicates the character storage encoded with text encoding.
+     * @returns { int } Returns the count of text.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native countText(text: string): int;
+
+    /**
+     * Checks whether auto hinting is forcibly used.
+     * @returns { boolean } Check result. The value true means that auto hinting is forcibly used, and false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native isForceAutoHinting(): boolean;
+
+    /**
+     * Obtains the horizontal scale ratio of this font.
+     * @returns { double } Horizontal scale ratio.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getScaleX(): double;
+
+    /**
+     * Obtains the font hinting effect.
+     * @returns { FontHinting } Font hinting effect.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getHinting(): FontHinting;
+
+    /**
+     * Obtains the font edging effect.
+     * @returns { FontEdging } Font edging effect.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getEdging(): FontEdging;
+
+    /**
+     * Obtains the outline path of a glyph.
+     * @param { int } index - Index of the glyph.
+     * @returns { Path } Outline path of the glyph.
+     * Note: Path use y-axis-goes-down system, y axis is inverted to the y-axis-goes-up system.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native createPathForGlyph(index: int): Path;
+
+    /**
+     * Obtains the rectangular bounding box of each glyph in an array.
+     * @param { Array<int> } glyphs - Glyph array, which can be generated by textToGlyphs.
+     * @returns { Array<common2D.Rect> } Array that holds the rectangular bounding boxes.
+     * Note: 1. Rect use y-axis-goes-down system, y axis is inverted to the y-axis-goes-up system.
+     * <br>2. Rect use two points(left-bottom & right-top) to describe the bound.
+     * <br>3. The bound rect will be snap to integral boundaries.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native getBounds(glyphs: Array<int>): Array<common2D.Rect>;
+
+    /**
+     * Obtains the outline path of a text.
+     * @param { string } text - UTF-8 text-encoded characters.
+     * @param { int } byteLength - Length of the outline path,
+     * which is obtained based on the minimum value between the passed value of byteLength and the actual text byte size.
+     * @param { double } x - X coordinate of the text in the drawing area, with the origin as the start point.
+     * @param { double } y - Y coordinate of the text in the drawing area, with the origin as the start point.
+     * @returns { Path } Outline path of the text.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native getTextPath(text: string, byteLength: int, x: double, y: double): Path;
+
+    /**
+     * Sets whether to follow the theme font. When followed is set to true,
+     * the theme font is used if it is enabled by the system and no typeface is set.
+     * @param { boolean } followed - Whether to follow the theme font.
+     * The value true means to follow the theme font, and false means the opposite.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 15
+     */
+    native setThemeFontFollowed(followed: boolean): void;
+
+    /**
+     * Checks whether the font follows the theme font. By default, the font follows the theme font.
+     * @returns { boolean } Check result. The value true means that the theme font is followed, and false means the opposite.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 15
+     */
+    native isThemeFontFollowed(): boolean;
   }
 
   /**
