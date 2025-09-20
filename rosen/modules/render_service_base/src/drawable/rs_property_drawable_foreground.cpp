@@ -432,6 +432,11 @@ void RSPixelStretchDrawable::SetPixelStretch(const std::optional<Vector4f>& pixe
     stagingPixelStretch_ = pixelStretch;
 }
 
+const std::optional<Vector4f>& RSPixelStretchDrawable::GetPixelStretch() const
+{
+    return stagingPixelStretch_;
+}
+
 void RSPixelStretchDrawable::OnSync()
 {
     if (!needSync_) {

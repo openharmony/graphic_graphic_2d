@@ -1056,6 +1056,7 @@ public:
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
+    bool IsPixelStretchValid() const;
 
     void ResetRepaintBoundaryInfo();
     void UpdateRepaintBoundaryInfo(RSRenderNode& node);

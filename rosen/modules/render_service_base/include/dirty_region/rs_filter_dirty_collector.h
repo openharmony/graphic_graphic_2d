@@ -52,7 +52,7 @@ struct FilterDirtyRegionInfo {
     Occlusion::Region belowDirty_ = Occlusion::Region();
     bool isBackgroundFilterClean_ = false;
     bool addToDirty_ = false;
-
+    bool forceDisablePartialRender_ = false;
     FilterDirtyRegionInfo() = default;
     FilterDirtyRegionInfo(const FilterDirtyRegionInfo& info) = default;
     FilterDirtyRegionInfo& operator=(const FilterDirtyRegionInfo& info) = default;

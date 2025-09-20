@@ -59,9 +59,17 @@ public:
         screenInfo_ = screenInfo;
     }
 
+    void SetCurrentFrameVisibleDirtyRects(const std::vector<RectI>& rects)
+    {
+        if (LIKELY(RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::CURRENT_FRAME_VIS_DIRTY)) {
+            return;
+        }
+        currentFrameVisibleDirtyRects_ = rects;
+    }
 private:
     Occlusion::Region dirtyRegion_;
     Occlusion::Region mergedDirtyRegion_;
+    std::vector<RectI> currentFrameVisibleDirtyRects_;
     std::vector<RectI> virtualDirtyRects_;
     ScreenInfo screenInfo_;
     const DrawableV2::RSScreenRenderNodeDrawable& targetDrawable_;
@@ -76,6 +84,7 @@ private:
 #endif
     void DrawHwcRegionForDFX(RSPaintFilterCanvas& canvas) const;
 
+    void DrawCurrentFrameVisibleDirtyRects(RSPaintFilterCanvas& canvas) const;
     void DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, const std::vector<RectI>& dirtyRects) const;
     void DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawMergedAndAllDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
