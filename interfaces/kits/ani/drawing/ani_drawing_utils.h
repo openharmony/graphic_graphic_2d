@@ -75,6 +75,8 @@ constexpr size_t ARGC_NINE = 9;
 constexpr int MAX_PAIRS_PATHVERB = 4;
 constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
 constexpr int RGBA_MAX = 255;
+constexpr const char* ANI_DOUBLE_STRING = "std.core.Double";
+constexpr const char* ANI_INT_STRING = "std.core.Int";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
@@ -162,6 +164,26 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
     }
 
     return aniObject;
+}
+
+inline ani_object CreateAniArrayWithSize(ani_env* env, size_t size)
+{
+    ani_class arrayCls;
+    if (env->FindClass("Lescompat/Array;", &arrayCls) != ANI_OK) {
+        ROSEN_LOGE("Failed to findClass Lescompat/Array;");
+        return CreateAniUndefined(env);
+    }
+    ani_method arrayCtor;
+    if (env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor) != ANI_OK) {
+        ROSEN_LOGE("Failed to find <ctor>");
+        return CreateAniUndefined(env);
+    }
+    ani_object arrayObj = nullptr;
+    if (env->Object_New(arrayCls, arrayCtor, &arrayObj, size) != ANI_OK) {
+        ROSEN_LOGE("Failed to create object Array");
+        return CreateAniUndefined(env);
+    }
+    return arrayObj;
 }
 
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
