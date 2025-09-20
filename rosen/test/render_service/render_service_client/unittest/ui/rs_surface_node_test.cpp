@@ -1929,5 +1929,9 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     surfaceNode->SetSurfaceBufferOpaque(false);
     surfaceNode->SetSurfaceBufferOpaque(true);
     ASSERT_NE(surfaceNode, nullptr);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
 }
 } // namespace OHOS::Rosen
