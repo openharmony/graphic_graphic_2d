@@ -3116,6 +3116,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
         RS_LOGE("RSSurfaceRenderNode::UpdateRenderParams surfaceParams is null");
         return;
     }
+    surfaceParams->UpdateLastCacheSize();
     auto& properties = GetRenderProperties();
 #ifndef ROSEN_CROSS_PLATFORM
     if (surfaceHandler_ && surfaceHandler_->GetConsumer()) {

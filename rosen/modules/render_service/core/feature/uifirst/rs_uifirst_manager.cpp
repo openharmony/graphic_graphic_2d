@@ -59,6 +59,7 @@ namespace {
         auto curTime = std::chrono::system_clock::now().time_since_epoch();
         return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
     }
+    constexpr float CACHE_SIZE_SPIKE_THRESHOLD = 0.1f;
 };
 
 RSUifirstManager& RSUifirstManager::Instance()
@@ -1697,6 +1698,60 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
     return isNeedAssignToSubThread;
 }
 
+bool RSUifirstManager::IsCacheSizeValid(RSSurfaceRenderNode& node)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (!stagingSurfaceParams) {
+        RS_TRACE_NAME_FMT("[%s] cachedSize invalid stagingSurfaceParams is nullptr", node.GetName().c_str());
+        RS_LOGE("[%{public}s] cachedSize invalid stagingSurfaceParams is nullptr", node.GetName().c_str());
+        return false;
+    }
+
+    auto lastUifirstFlag = node.GetLastFrameUifirstFlag();
+    if (lastUifirstFlag == MultiThreadCacheType::NONE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("[%s] cachedSize valid lastUifirstFlag is %d",
+            node.GetName().c_str(), static_cast<int>(lastUifirstFlag));
+        return true;
+    }
+
+    auto gravity = static_cast<int32_t>(stagingSurfaceParams->GetUIFirstFrameGravity());
+    if (gravity >= static_cast<int32_t>(Gravity::RESIZE) &&
+        gravity <= static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("cachedSize valid gravity is resize %d", static_cast<int32_t>(gravity));
+        return true;
+    }
+
+    const auto& cachedSize = stagingSurfaceParams->GetCacheSize();
+    const auto& lastCachedSize = stagingSurfaceParams->GetLastCacheSize();
+    if (ROSEN_EQ(cachedSize.x_, 0.f) || ROSEN_EQ(cachedSize.y_, 0.f)) {
+        RS_TRACE_NAME_FMT("[%s] cachedSize invalid cur[%f %f]", node.GetName().c_str(), cachedSize.x_, cachedSize.y_);
+        RS_LOGW("[%{public}s] cachedSize invalid cur[%{public}f %{public}f]",
+            node.GetName().c_str(), cachedSize.x_, cachedSize.y_);
+        return true;
+    }
+
+    bool cacheSizeStable = ROSEN_EQ(lastCachedSize.x_ / cachedSize.x_,
+        lastCachedSize.y_ / cachedSize.y_, CACHE_SIZE_SPIKE_THRESHOLD);
+    if (cacheSizeStable) {
+        RS_OPTIONAL_TRACE_NAME_FMT("[%s] cacheSizeStable cur[%f %f] last[%f %f]", node.GetName().c_str(),
+            cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_);
+        return true;
+    }
+
+    bool isCacheSizeRotated = !ROSEN_EQ(cachedSize.x_, cachedSize.y_) &&
+            ROSEN_EQ(cachedSize.x_, lastCachedSize.y_) && ROSEN_EQ(cachedSize.y_, lastCachedSize.x_);
+    // Rotated check will be deleted when threshold has been setted by CCM
+    if (!isCacheSizeRotated) {
+        RS_OPTIONAL_TRACE_NAME_FMT("[%s] CacheSizeRotated cur[%f %f] last[%f %f]", node.GetName().c_str(),
+            cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_);
+        return true;
+    }
+
+    RS_TRACE_NAME_FMT("[%s] cachedSize invalid cur[%f %f] last[%f %f] gravity %d", node.GetName().c_str(),
+        cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_, static_cast<int32_t>(gravity));
+    return false;
+}
+
 // animation first, may reuse last image cache
 bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
@@ -1734,6 +1789,8 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     isNeedAssignToSubThread = (isNeedAssignToSubThread ||
         (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)) &&
         !hasFilter && !isRotate;
+
+    isNeedAssignToSubThread = isNeedAssignToSubThread && RSUifirstManager::Instance().IsCacheSizeValid(node);
 
     bool needFilterSCB = IS_SCB_WINDOW_TYPE(node.GetSurfaceWindowType());
     if (needFilterSCB || node.IsSelfDrawingType()) {
