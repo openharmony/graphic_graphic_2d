@@ -1766,6 +1766,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // pre proc for tv overlay display
     RSOverlayDisplayManager::Instance().PreProcForRender();
+    if (RSOverlayDisplayManager::Instance().CheckStatusChanged()) {
+        SetDirtyFlag();
+    }
 #endif
     CheckIfHardwareForcedDisabled();
     if (!pendingUiCaptureTasks_.empty()) {
