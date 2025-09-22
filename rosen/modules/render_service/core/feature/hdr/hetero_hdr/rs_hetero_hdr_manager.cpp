@@ -347,6 +347,7 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
         [this, curFrameId] {
             RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager PrepareAndSubmitHDRTask afterFunc finished");
             RSHeteroHDRHpae::GetInstance().DestroyHpaeHDRTask(this->taskId_.load());
+            RSHDRPatternManager::Instance().MHCGraphQueryTaskError(curFrameId, MHC_PATTERN_TASK_HDR_HPAE);
             this->taskPtr_ = nullptr;
             destroyedFlag_.store(true);
         });

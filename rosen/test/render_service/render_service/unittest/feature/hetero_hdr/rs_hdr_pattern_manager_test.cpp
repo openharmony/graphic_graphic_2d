@@ -197,6 +197,35 @@ HWTEST_F(RSHDRPatternManagerTest, MHCRequestEGraphTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MHCGraphQueryTaskErrorTest
+ * @tc.desc: Test MHCGraphQueryTaskError
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHDRPatternManagerTest, MHCGraphQueryTaskErrorTest, TestSize.Level1)
+{
+    SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = reinterpret_cast<void*>(0x1234);
+    bool ret = SingletonMockRSHDRPatternManager::Instance().MHCCheck("query task test");
+    auto graphPatternHpaeTaskExecutionQuery = [] (void*, uint64_t, MHCPatternTaskName) { return 0; };
+    SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternHpaeTaskExecutionQuery =
+        graphPatternHpaeTaskExecutionQuery;
+    SingletonMockRSHDRPatternManager::Instance().MHCGraphQueryTaskError(1, MHC_PATTERN_TASK_HDR_HPAE);
+    EXPECT_EQ(ret, true);
+
+    bool ret2 = SingletonMockRSHDRPatternManager::Instance().MHCCheck("query task test2");
+    auto graphPatternHpaeTaskExecutionQuery2 = [] (void*, uint64_t, MHCPatternTaskName) { return -1; };
+    SingletonMockRSHDRPatternManager::Instance().MHCDevice_->graphPatternHpaeTaskExecutionQuery =
+        graphPatternHpaeTaskExecutionQuery2;
+    SingletonMockRSHDRPatternManager::Instance().MHCGraphQueryTaskError(1, MHC_PATTERN_TASK_HDR_HPAE);
+    EXPECT_EQ(ret2, true);
+
+    SingletonMockRSHDRPatternManager::Instance().graphPatternInstance_ = nullptr;
+    bool ret3 = SingletonMockRSHDRPatternManager::Instance().MHCCheck("query task test3");
+    SingletonMockRSHDRPatternManager::Instance().MHCGraphQueryTaskError(1, MHC_PATTERN_TASK_HDR_HPAE);
+    EXPECT_EQ(ret3, false);
+}
+
+/**
  * @tc.name: MHCSubmitHDRTaskTest
  * @tc.desc: Test MHCSubmitHDRTask
  * @tc.type: FUNC
