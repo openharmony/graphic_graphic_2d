@@ -803,5 +803,4 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
     ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
     RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
 }
-
 } // namespace OHOS::Rosen
