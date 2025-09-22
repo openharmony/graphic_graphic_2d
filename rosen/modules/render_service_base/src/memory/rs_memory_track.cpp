@@ -226,7 +226,7 @@ const std::string MemoryTrack::PixelMapInfo2String(MemoryInfo info)
     std::string allocTypeStr = AllocatorType2String(info.allocType);
     std::string pixelformatStr = "UNDEFINED";
 #ifdef ROSEN_OHOS
-    pixelformat_str = PixelFormat2String(info.pixelMapFormat);
+    pixelformatStr = PixelFormat2String(info.pixelMapFormat);
 #endif
     return allocTypeStr + "," + pixelformatStr;
 }
