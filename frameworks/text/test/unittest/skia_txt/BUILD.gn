@@ -22,6 +22,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "asset_font_manager_test.cpp",
     "drawing_painter_impl_test.cpp",
     "font_collection_test.cpp",
+    "font_collection_mgr_test.cpp",
     "font_mgr_test.cpp",
     "paint_record_test.cpp",
     "paragraph_builder_test.cpp",
