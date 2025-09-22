@@ -14,13 +14,19 @@
  */
 
 #include "gtest/gtest.h"
+#include "include/TextStyle.h"
+#include "paragraph_builder.h"
+#include "paragraph_impl.h"
 #include "text_style.h"
+#include "text_types.h"
 
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::SPText;
 
 namespace txt {
+const float LINE_HEIGHT= 100;
+
 class TextStyleTest : public testing::Test {
 public:
     void SetUp() override;
@@ -140,5 +146,37 @@ HWTEST_F(TextStyleTest, TextStyleTest007, TestSize.Level0)
     // 0.2 is just for test
     shadowB.blurSigma = 0.2;
     EXPECT_NE(shadowA, shadowB);
+}
+
+/*
+ * @tc.name: TextStyleTest007
+ * @tc.desc: Test for lineHeightStyle, minLineHeight and maxLineHeight from runMetrics's textStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest008, TestSize.Level0)
+{
+    ParagraphStyle paragraphStyle;
+    auto fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::unique_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    OHOS::Rosen::SPText::TextStyle style;
+    style.lineHeightStyle = OHOS::Rosen::LineHeightStyle::kFontHeight;
+    style.maxLineHeight = LINE_HEIGHT;
+    style.minLineHeight = LINE_HEIGHT;
+    paragraphBuilder->PushStyle(style);
+    paragraphBuilder->AddText(u"你好世界");
+    std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(200);
+    skia::textlayout::LineMetrics lineMetrics;
+    paragraph->GetLineMetricsAt(0, &lineMetrics);
+    for (const auto& lineMetric : lineMetrics.fLineMetrics) {
+        const auto& runMetricsStyle = lineMetric.second.text_style;
+        EXPECT_EQ(runMetricsStyle->getLineHeightStyle(), skia::textlayout::LineHeightStyle::kFontHeight);
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(runMetricsStyle->getMinLineHeight(), LINE_HEIGHT));
+        EXPECT_TRUE(skia::textlayout::nearlyEqual(runMetricsStyle->getMaxLineHeight(), LINE_HEIGHT));
+    }
 }
 } // namespace txt
