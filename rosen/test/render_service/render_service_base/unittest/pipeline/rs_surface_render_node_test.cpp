@@ -2803,8 +2803,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     node->SetSurfaceBufferOpaque(true);
     node->SetSurfaceBufferOpaque(true);
     ASSERT_EQ(node->GetSurfaceBufferOpaque(), true);
+    ASSERT_EQ(node->GetBlendType(), GRAPHIC_BLEND_NONE);
+    node->SetBlendType(GRAPHIC_BLEND_SRC);
     node->SetSurfaceBufferOpaque(false);
     ASSERT_FALSE(node->GetSurfaceBufferOpaque());
+    ASSERT_EQ(node->GetBlendType(), GRAPHIC_BLEND_SRC);
 }
 } // namespace Rosen
 } // namespace OHOS
