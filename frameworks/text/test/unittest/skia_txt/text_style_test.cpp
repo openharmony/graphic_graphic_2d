@@ -25,7 +25,7 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::SPText;
 
 namespace txt {
-const float LINE_HEIGHT= 100;
+const float LINE_HEIGHT = 100;
 
 class TextStyleTest : public testing::Test {
 public:
@@ -149,7 +149,7 @@ HWTEST_F(TextStyleTest, TextStyleTest007, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleTest007
+ * @tc.name: TextStyleTest008
  * @tc.desc: Test for lineHeightStyle, minLineHeight and maxLineHeight from runMetrics's textStyle
  * @tc.type: FUNC
  */
