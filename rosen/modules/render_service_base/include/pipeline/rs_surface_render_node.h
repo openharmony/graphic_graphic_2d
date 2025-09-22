@@ -1722,7 +1722,10 @@ public:
         }
         return occlusionParams_;
     }
-
+    void MergeSkippedDirtyRect(const RectI& surfaceDirtyRect)
+    {
+        skipFrameDirtyRect_ = skipFrameDirtyRect_.JoinRect(surfaceDirtyRect);
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
