@@ -51,7 +51,6 @@ public:
     MOCK_METHOD(void, ForceCloseHdr, (uint32_t closeHdrSceneId, bool forceCloseHdr), (override));
     MOCK_METHOD(bool, IsCloseHardwareHdr, (), (override, const));
     MOCK_METHOD(bool, IsScreenNoHeadroom, (ScreenId screenId), (override, const));
-    MOCK_METHOD(bool, IsEnableImageDetailEnhance, (), (override));
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
 
     float CalScaler(const float& maxContentLightLevel,
