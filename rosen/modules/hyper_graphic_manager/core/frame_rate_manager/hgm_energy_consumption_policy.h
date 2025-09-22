@@ -96,6 +96,8 @@ private:
     int32_t GetComponentEnergyConsumptionConfig(const std::string& componentName);
     // Invoked by the render_service thread
     void GetComponentFps(FrameRateRange& rsRange);
+    // called by hgm thread
+    void VoterVideoCallFrameRate();
 };
 } // namespace OHOS::Rosen
 
