@@ -20,6 +20,9 @@
 namespace OHOS::Rosen {
 namespace {
 const std::string CLASS_NAME = "FontCollection";
+struct FontArgumentsConcreteContext : public FontPathResourceContext {
+    std::string familyName;
+};
 }
 
 std::mutex JsFontCollection::constructorMutex_;
@@ -235,9 +238,6 @@ napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info
 
 napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info info)
 {
-    struct FontArgumentsConcreteContext : public FontPathResourceContext {
-        std::string familyName;
-    };
     sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
     NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
@@ -274,9 +274,8 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
             NAPI_CHECK_ARGS(context, SplitAbsoluteFontPath(context->filePath),
                 napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to split absolute font path");
 
-            NAPI_CHECK_ARGS(context, fontCollection->LoadFontFromPath(context->filePath,
-                context->familyName), napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
-                "Failed to get font file properties");
+            NAPI_CHECK_ARGS(context, fontCollection->LoadFontFromPath(context->filePath, context->familyName),
+                napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to get font file properties");
         } else {
             auto pathCB = [context, fontCollection](std::string& path) -> bool {
                 return SplitAbsoluteFontPath(path) && fontCollection->LoadFontFromPath(path, context->familyName);
@@ -286,7 +285,7 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
                     static_cast<const uint8_t*>(data), size) != nullptr;
             };
             NAPI_CHECK_ARGS(context, ProcessResource(context->info, pathCB, fileCB), napi_invalid_arg,
-                TextErrorCode::ERROR_INVALID_PARAM, return, "Faild to execute function, path is invalid");
+                TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to execute function, path is invalid");
         }
     };
 
@@ -311,9 +310,6 @@ napi_value JsFontCollection::UnloadFontSync(napi_env env, napi_callback_info inf
 
 napi_value JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info info)
 {
-    struct FontArgumentsConcreteContext : public FontPathResourceContext {
-        std::string familyName;
-    };
     sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
     NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, context](size_t argc, napi_value* argv) {

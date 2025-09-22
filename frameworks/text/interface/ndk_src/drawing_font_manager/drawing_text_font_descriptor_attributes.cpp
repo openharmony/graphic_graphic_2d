@@ -31,17 +31,22 @@ typedef OH_Drawing_ErrorCode (*FontFullDescriptorBoolGetter)(const Drawing::Font
 typedef OH_Drawing_ErrorCode (*FontFullDescriptorStrGetter)(const Drawing::FontParser::FontDescriptor&,
     OH_Drawing_String&);
 
-OH_Drawing_ErrorCode TranslateStringToOHDrawingString(const std::string& fontFullDescriptorString, OH_Drawing_String& value)
+OH_Drawing_ErrorCode TranslateStringToOHDrawingString(const std::string& fontFullDescriptorString,
+    OH_Drawing_String& value)
 {
     std::u16string utf16String = OHOS::Str8ToStr16(fontFullDescriptorString);
     if (utf16String.empty()) {
+        TEXT_LOGE("Failed to convert string to utf16: %{public}s", fontFullDescriptorString.c_str());
         value.strLen = 0;
         value.strData = nullptr;
         return OH_DRAWING_SUCCESS;
     }
     value.strLen = utf16String.size() * sizeof(char16_t);
     std::unique_ptr strData = std::make_unique<uint8_t[]>(value.strLen);
-    memcpy_s(strData.get(), value.strLen, utf16String.c_str(), value.strLen);
+    if (memcpy_s(strData.get(), value.strLen, utf16String.c_str(), value.strLen) != EOK) {
+        TEXT_LOGE("Failed to memcpy_s length: %{public}u", value.strLen);
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
+    }
     value.strData = strData.release();
     return OH_DRAWING_SUCCESS;
 }
@@ -138,7 +143,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeInt(const OH_Drawi
     OH_Drawing_FontFullDescriptorAttributeId id, int* value)
 {
     if (descriptor == nullptr || value == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
     }
     auto it = Text::g_fontFullDescriptorIntGetters.find(id);
     if (it == Text::g_fontFullDescriptorIntGetters.end()) {
@@ -151,7 +156,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeBool(const OH_Draw
     OH_Drawing_FontFullDescriptorAttributeId id, bool* value)
 {
     if (descriptor == nullptr || value == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
     }
     auto it = Text::g_fontFullDescriptorBoolGetters.find(id);
     if (it == Text::g_fontFullDescriptorBoolGetters.end()) {
@@ -164,7 +169,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeString(const OH_Dr
     OH_Drawing_FontFullDescriptorAttributeId id, OH_Drawing_String* str)
 {
     if (descriptor == nullptr || str == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
     }
 
     auto it = Text::g_fontFullDescriptorStrGetters.find(id);

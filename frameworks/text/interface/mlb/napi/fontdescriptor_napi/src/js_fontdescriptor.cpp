@@ -33,6 +33,19 @@ std::unordered_map<int, int> g_weightMap = {
     {800, static_cast<int>(FontWeight::W800)},
     {900, static_cast<int>(FontWeight::W900)}
 };
+
+struct FontDescriptorsListContext : public FontPathResourceContext {
+    FontDescSharedPtr resultDesc = nullptr;
+    std::vector<FontDescSharedPtr> fontDescripterList;
+};
+
+bool ProcessFontPath (sptr<FontDescriptorsListContext> context, std::string& path) {
+    if (SplitAbsoluteFontPath(path)) {
+        context->fontDescripterList = TextEngine::FontParser::ParserFontDescriptorsFromPath(path);
+        return true;
+    }
+    return false;
+}
 }
 
 napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
@@ -270,11 +283,6 @@ napi_value JsFontDescriptor::CreateFontList(napi_env env, std::unordered_set<std
 
 napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callback_info info)
 {
-    struct FontDescriptorsListContext : public FontPathResourceContext {
-        FontDescSharedPtr resultDesc = nullptr;
-        std::vector<FontDescSharedPtr> fontDescripterList;
-    };
-
     sptr<FontDescriptorsListContext> context = sptr<FontDescriptorsListContext>::MakeSptr();
     NAPI_CHECK_AND_THROW_ERROR(
         context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to get font descriptors from path, no memory");
@@ -302,11 +310,7 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
             context->fontDescripterList = TextEngine::FontParser::ParserFontDescriptorsFromPath(context->filePath);
         } else {
             auto pathCB = [context](std::string& path) -> bool {
-                if (SplitAbsoluteFontPath(path)) {
-                    context->fontDescripterList = TextEngine::FontParser::ParserFontDescriptorsFromPath(path);
-                    return true;
-                }
-                return false;
+                return ProcessFontPath(context, path);
             };
             auto fileCB = [context](const void* data, size_t size) -> bool { return true; };
             NAPI_CHECK_ARGS(context, ProcessResource(context->info, pathCB, fileCB), napi_invalid_arg,

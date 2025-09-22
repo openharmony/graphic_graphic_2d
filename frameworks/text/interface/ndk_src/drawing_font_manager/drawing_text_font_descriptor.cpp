@@ -215,7 +215,7 @@ OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromPath(char* path)
         return nullptr;
     }
     std::unique_ptr array = std::make_unique<ObjectArray>();
-    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontDescriptor*[]>(fontFullDescriptors.size());
+    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontDescriptor* []>(fontFullDescriptors.size());
     array->type = ObjectType::FONT_FULL_DESCRIPTOR;
 
     size_t num = 0;
@@ -230,24 +230,25 @@ OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromPath(char* path)
 
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
 {
-    ObjectArray* fullNameList = ConvertToOriginalText<ObjectArray>(descriptorArray);
-    if (fullNameList == nullptr || fullNameList->type != ObjectType::STRING) {
+    ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);
+    if (descriptorList == nullptr || descriptorList->type != ObjectType::FONT_FULL_DESCRIPTOR) {
         return;
     }
-    OH_Drawing_String* drawingStringArray = ConvertToOriginalText<OH_Drawing_String>(fullNameList->addr);
-    if (drawingStringArray == nullptr) {
+    Drawing::FontParser::FontDescriptor** descriptors =
+        reinterpret_cast<Drawing::FontParser::FontDescriptor**>(descriptorList->addr);
+    if (descriptors == nullptr) {
         return;
     }
-    for (size_t i = 0; i < fullNameList->num; ++i) {
-        if (drawingStringArray[i].strData == nullptr) {
+    for (size_t i = 0; i < descriptorList->num; ++i) {
+        if (descriptors[i] == nullptr) {
             continue;
         }
-        delete[] drawingStringArray[i].strData;
-        drawingStringArray[i].strData = nullptr;
+        delete descriptors[i];
+        descriptors[i] = nullptr;
     }
-    delete[] drawingStringArray;
-    fullNameList->addr = nullptr;
-    fullNameList->num = 0;
-    fullNameList->type = ObjectType::INVALID;
-    delete fullNameList;
+    delete[] descriptors;
+    descriptorList->addr = nullptr;
+    descriptorList->num = 0;
+    descriptorList->type = ObjectType::INVALID;
+    delete descriptorList;
 }

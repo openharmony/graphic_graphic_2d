@@ -189,7 +189,7 @@ void OH_Drawing_DestroySystemFontFullNames(OH_Drawing_Array*);
  *
  * @param data Pointer to the raw binary font data buffer.
  * @param size Size of the font data buffer in bytes.
- * @return Returns a pointer to <b>OH_Drawing_Array</b> containing font full descriptors. 
+ * @return Returns a pointer to <b>OH_Drawing_Array</b> containing font full descriptors.
  *         Returns <b>NULL</b> if the operation fails due to invalid data format or parsing errors.
  * @since 22
  */
