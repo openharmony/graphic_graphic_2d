@@ -119,7 +119,7 @@ std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::sha
     return image;
 }
 
-bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
+bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha)
 {
     auto skBitmapImpl = bitmap.GetImpl<SkiaBitmap>();
     if (skBitmapImpl != nullptr) {
@@ -169,7 +169,7 @@ std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, co
     return image;
 }
 
-bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
+bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha)
 {
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
@@ -265,7 +265,7 @@ void SkiaImage::DeleteCleanupHelper(void (*deleteFunc)(void*), void* cleanupHelp
 
 bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-    void (*deleteFunc)(void*), void* cleanupHelper)
+    void (*deleteFunc)(void*), void* cleanupHelper, bool ignoreAlpha)
 {
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     if (!grContext_) {

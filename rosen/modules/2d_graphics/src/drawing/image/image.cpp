@@ -47,15 +47,15 @@ Image::Image() noexcept : imageImplPtr(ImplFactory::CreateImageImpl()) {}
 
 Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)) {}
 
-bool Image::BuildFromBitmap(const Bitmap& bitmap)
+bool Image::BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha)
 {
-    return imageImplPtr->BuildFromBitmap(bitmap);
+    return imageImplPtr->BuildFromBitmap(bitmap, ignoreAlpha);
 }
 
 std::shared_ptr<Image> Image::MakeFromRaster(const Pixmap& pixmap,
-    RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
+    RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext, bool ignoreAlpha)
 {
-    return StaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
+    return StaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext, ignoreAlpha);
 }
 
 std::shared_ptr<Image> Image::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
@@ -76,9 +76,9 @@ std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const 
     return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
 }
 
-bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
+bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha)
 {
-    return imageImplPtr->BuildFromBitmap(gpuContext, bitmap);
+    return imageImplPtr->BuildFromBitmap(gpuContext, bitmap, ignoreAlpha);
 }
 #endif
 
@@ -106,10 +106,10 @@ bool Image::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOr
 
 bool Image::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-    void (*deleteFunc)(void*), void* cleanupHelper)
+    void (*deleteFunc)(void*), void* cleanupHelper, bool ignoreAlpha)
 {
     return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat,
-        colorSpace, deleteFunc, cleanupHelper);
+        colorSpace, deleteFunc, cleanupHelper, ignoreAlpha);
 }
 
 bool Image::BuildSubset(const std::shared_ptr<Image>& image, const RectI& rect, GPUContext& gpuContext)
