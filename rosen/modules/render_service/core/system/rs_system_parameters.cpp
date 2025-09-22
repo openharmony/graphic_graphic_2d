@@ -309,6 +309,7 @@ bool RSSystemParameters::GetUIFirstCaptrueReuseEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.uifirst.captrue.reuse.enable", "1")).c_str()) != 0;
     return enable;
 }
+
 bool RSSystemParameters::GetUIFirstStartingWindowCacheEnabled()
 {
     static bool enable =

@@ -3426,7 +3426,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode001, TestSize.Level2)
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    RSUniHwcPrevalidateUtil::GetInstance().isPrevalidateHwcNodeEnable_ = false;
     rsUniRenderVisitor->curScreenNode_ = displayNode;
     rsUniRenderVisitor->PrevalidateHwcNode();
     ASSERT_FALSE(surfaceNode->isHardwareForcedDisabled_);
