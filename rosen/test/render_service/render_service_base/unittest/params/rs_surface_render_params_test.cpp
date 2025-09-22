@@ -539,14 +539,12 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetFrameGravityNewVersionEnabledTest, TestSi
  * @tc.name: SetSurfaceBufferOpaqueTest
  * @tc.desc: SetSurfaceBufferOpaque and GetSurfaceBufferOpaque
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderParamsTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
 {
     RSSurfaceRenderParams params(129);
     params.SetSurfaceBufferOpaque(false);
     EXPECT_EQ(params.GetSurfaceBufferOpaque(), false);
-
     params.SetSurfaceBufferOpaque(true);
     EXPECT_EQ(params.GetSurfaceBufferOpaque(), true);
 }
