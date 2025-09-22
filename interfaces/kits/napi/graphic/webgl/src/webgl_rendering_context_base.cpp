@@ -2416,7 +2416,7 @@ napi_value WebGLRenderingContextBase::GetActiveAttrib(napi_env env, napi_callbac
             if (length > WEBGL_ACTIVE_INFO_NAME_MAX_LENGTH) {
                 LOGE("WebGL: getActiveAttrib: error bufSize exceed!");
             }
-            LOGD("WebGL getActiveAttrib %{public}s %{public}u %{public}d %{public}u", name, type, size, length);
+            LOGD("WebGL getActiveAttrib %{public}s %{public}u %{public}d %{public}d", name, type, size, length);
         });
 }
 

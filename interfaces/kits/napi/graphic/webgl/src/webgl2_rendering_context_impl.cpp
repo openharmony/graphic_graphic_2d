@@ -391,7 +391,7 @@ napi_value WebGL2RenderingContextImpl::IsVertexArray(napi_env env, napi_value ob
     }
     vertexArrayId = webGLVertexArrayObject->GetVertexArrays();
     GLboolean returnValue = glIsVertexArray(vertexArrayId);
-    LOGD("WebGL2 isVertexArray %{public}u %{public}d", vertexArrayId, returnValue);
+    LOGD("WebGL2 isVertexArray %{public}u %{public}u", vertexArrayId, returnValue);
     return NVal::CreateBool(env, returnValue).val_;
 }
 
@@ -432,7 +432,7 @@ napi_value WebGL2RenderingContextImpl::IsSync(napi_env env, napi_value syncObj)
     }
     int64_t syncId = webGlSync->GetSync();
     GLboolean returnValue = glIsSync(reinterpret_cast<GLsync>(syncId));
-    LOGD("WebGL2 isSync syncId %{public}" PRIi64 " result %{public}d", syncId, returnValue);
+    LOGD("WebGL2 isSync syncId %{public}" PRIi64 " result %{public}u", syncId, returnValue);
     return NVal::CreateBool(env, static_cast<bool>(returnValue)).val_;
 }
 
@@ -1698,7 +1698,7 @@ napi_value WebGL2RenderingContextImpl::GetInternalFormatParameter(
     GLint length = -1;
     if (pname == GL_SAMPLES) {
         glGetInternalformativ(target, internalFormat, GL_NUM_SAMPLE_COUNTS, 1, &length);
-        LOGD("WebGL2 getInternalformatParameter length %{public}u", length);
+        LOGD("WebGL2 getInternalformatParameter length %{public}d", length);
     } else {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_ENUM, "pname %{public}u", pname);
         return NVal::CreateNull(env).val_;

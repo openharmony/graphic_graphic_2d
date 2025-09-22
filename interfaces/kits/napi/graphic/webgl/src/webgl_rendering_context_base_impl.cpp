@@ -69,7 +69,7 @@ void WebGLRenderingContextBaseImpl::Init()
     colorMask_[3] = false; // 3: a
 
     LOGD("WebGL Init maxTextureImageUnits %{public}d, maxTextureSize %{public}d, maxCubeMapTextureSize %{public}d, "
-        "maxRenderBufferSize %{public}d, maxVertexAttribs %{public}d", maxTextureImageUnits_,
+        "maxRenderBufferSize %{public}d, maxVertexAttribs %{public}u", maxTextureImageUnits_,
         maxTextureSize_, maxCubeMapTextureSize_, maxRenderBufferSize_, maxVertexAttribs_);
 }
 
@@ -915,7 +915,7 @@ napi_value WebGLRenderingContextBaseImpl::FrameBufferTexture2D(
     } else {
         glFramebufferTexture2D(target, attachment, textureTarget, static_cast<GLuint>(textureId), level);
     }
-    LOGD("WebGL framebufferTexture2D texture %{public}u result %{public}u", textureId, GetError_());
+    LOGD("WebGL framebufferTexture2D texture %{public}d result %{public}u", textureId, GetError_());
     return NVal::CreateNull(env).val_;
 }
 
@@ -2119,7 +2119,7 @@ napi_value WebGLRenderingContextBaseImpl::VertexAttribfv(napi_env env, GLuint in
     bufferData.DumpBuffer(bufferData.GetBufferDataType());
     if (bufferData.GetBufferDataType() != BUFFER_DATA_FLOAT_32) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
-            "WebGL :vertexAttribfv invalid buffer data type = %{public}d",
+            "WebGL :vertexAttribfv invalid buffer data type = %{public}u",
             static_cast<uint32_t>(bufferData.GetBufferDataType()));
         return NVal::CreateNull(env).val_;
     }
