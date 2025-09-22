@@ -119,7 +119,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
     }
 
     std::array methods = {
-        ani_native_function{"clean", ":V", reinterpret_cast<void*>(Clean)},
+        ani_native_function{"clean", ":", reinterpret_cast<void*>(Clean)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

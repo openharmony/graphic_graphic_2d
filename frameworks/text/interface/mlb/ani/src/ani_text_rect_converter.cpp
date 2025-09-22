@@ -84,13 +84,14 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
     ani_env* env, const OHOS::Rosen::TextRect& textRect, ani_object& aniObj)
 {
     ani_object rectObj = nullptr;
-    ani_status ret = AniDrawingConverter::ParseRectToAni(env, textRect.rect, rectObj);
+    ani_status ret = OHOS::Rosen::Drawing::CreateRectObj(env, textRect.rect, rectObj);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse rect to ani, ret %{public}d", ret);
         rectObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    static std::string sign = std::string(ANI_INTERFACE_RECT) + std::string(ANI_ENUM_TEXT_DIRECTION) + ":V";
+    static std::string sign =
+        "C{" + std::string(ANI_INTERFACE_RECT) + "}C{" + std::string(ANI_ENUM_TEXT_DIRECTION) + "}:";
     aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, sign.c_str(), rectObj,
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DIRECTION, static_cast<int>(textRect.direction)));
     return ANI_OK;
@@ -99,7 +100,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RANGE, "II:V",
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RANGE, "ii:",
         ani_int(boundary.leftIndex),
         ani_int(boundary.rightIndex));
     return ANI_OK;

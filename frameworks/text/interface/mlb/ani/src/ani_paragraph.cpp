@@ -22,9 +22,8 @@
 
 #include "ani_common.h"
 #include "ani_index_and_affinity_converter.h"
-#include "ani_line_metrics_converter.h"
-#include "ani_paragraph.h"
 #include "ani_text_line.h"
+#include "ani_line_metrics_converter.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
 #include "ani_transfer_util.h"
@@ -66,10 +65,10 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
         return AniTextUtils::CreateAniUndefined(env);
     }
     AniParagraph* aniParagraph = new AniParagraph();
-    ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
+    ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":");
     aniParagraph->typography_ = std::shared_ptr<OHOS::Rosen::Typography>(typography);
     ani_status ret = env->Object_CallMethodByName_Void(
-        paragraphObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
+        paragraphObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraph));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
         delete aniParagraph;
@@ -82,33 +81,33 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
 std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
 {
     std::vector<ani_native_function> methods = {
-        ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
+        ani_native_function{"layoutSync", "d:", reinterpret_cast<void*>(LayoutSync)},
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath)},
-        ani_native_function{"getMaxWidth", ":D", reinterpret_cast<void*>(GetMaxWidth)},
-        ani_native_function{"getHeight", ":D", reinterpret_cast<void*>(GetHeight)},
-        ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
-        ani_native_function{"getLongestLineWithIndent", ":D", reinterpret_cast<void*>(GetLongestLineWithIndent)},
-        ani_native_function{"getMinIntrinsicWidth", ":D", reinterpret_cast<void*>(GetMinIntrinsicWidth)},
-        ani_native_function{"getMaxIntrinsicWidth", ":D", reinterpret_cast<void*>(GetMaxIntrinsicWidth)},
-        ani_native_function{"getAlphabeticBaseline", ":D", reinterpret_cast<void*>(GetAlphabeticBaseline)},
-        ani_native_function{"getIdeographicBaseline", ":D", reinterpret_cast<void*>(GetIdeographicBaseline)},
+        ani_native_function{"getMaxWidth", ":d", reinterpret_cast<void*>(GetMaxWidth)},
+        ani_native_function{"getHeight", ":d", reinterpret_cast<void*>(GetHeight)},
+        ani_native_function{"getLongestLine", ":d", reinterpret_cast<void*>(GetLongestLine)},
+        ani_native_function{"getLongestLineWithIndent", ":d", reinterpret_cast<void*>(GetLongestLineWithIndent)},
+        ani_native_function{"getMinIntrinsicWidth", ":d", reinterpret_cast<void*>(GetMinIntrinsicWidth)},
+        ani_native_function{"getMaxIntrinsicWidth", ":d", reinterpret_cast<void*>(GetMaxIntrinsicWidth)},
+        ani_native_function{"getAlphabeticBaseline", ":d", reinterpret_cast<void*>(GetAlphabeticBaseline)},
+        ani_native_function{"getIdeographicBaseline", ":d", reinterpret_cast<void*>(GetIdeographicBaseline)},
         ani_native_function{"getRectsForRange", GET_RECTS_SIGN.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
         ani_native_function{
-            "getRectsForPlaceholders", ":Lescompat/Array;", reinterpret_cast<void*>(GetRectsForPlaceholders)},
+            "getRectsForPlaceholders", ":C{escompat.Array}", reinterpret_cast<void*>(GetRectsForPlaceholders)},
         ani_native_function{"getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGN.c_str(),
             reinterpret_cast<void*>(GetGlyphPositionAtCoordinate)},
         ani_native_function{
             "getWordBoundary", GET_WORD_BOUNDARY_SIGN.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
-        ani_native_function{"getLineCount", ":I", reinterpret_cast<void*>(GetLineCount)},
-        ani_native_function{"getLineHeight", "I:D", reinterpret_cast<void*>(GetLineHeight)},
-        ani_native_function{"getLineWidth", "I:D", reinterpret_cast<void*>(GetLineWidth)},
-        ani_native_function{"didExceedMaxLines", ":Z", reinterpret_cast<void*>(DidExceedMaxLines)},
+        ani_native_function{"getLineCount", ":i", reinterpret_cast<void*>(GetLineCount)},
+        ani_native_function{"getLineHeight", "i:d", reinterpret_cast<void*>(GetLineHeight)},
+        ani_native_function{"getLineWidth", "i:d", reinterpret_cast<void*>(GetLineWidth)},
+        ani_native_function{"didExceedMaxLines", ":z", reinterpret_cast<void*>(DidExceedMaxLines)},
         ani_native_function{
             "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
         ani_native_function{"getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines)},
-        ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
-        ani_native_function{"nativeGetLineMetricsAt", "I:L@ohos/graphics/text/text/LineMetrics;",
+        ani_native_function{"getLineMetrics", ":C{escompat.Array}", reinterpret_cast<void*>(GetLineMetrics)},
+        ani_native_function{"nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
             reinterpret_cast<void*>(GetLineMetricsAt)},
     };
     return methods;
@@ -331,7 +330,7 @@ ani_object AniParagraph::GetRectsForRange(
             TEXT_LOGE("Failed to parse text box,index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set textBox item,index %{public}zu, status %{public}d", index, status);
             continue;
@@ -366,7 +365,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
             TEXT_LOGE("Failed to parse text box,index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set textBox item,index %{public}zu, status %{public}d", index, status);
             continue;
@@ -505,7 +504,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
             textLineBasePtr = nullptr;
             continue;
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);
             delete textLineBasePtr;
@@ -537,7 +536,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
         ani_object aniObj = AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set lineMetrics item %{public}zu", index);
             continue;
@@ -570,7 +569,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
             TEXT_LOGE("Null jsParagraph");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":");
         std::shared_ptr<Typography> typographyPtr = jsParagraph->GetParagraph();
         if (typographyPtr == nullptr) {
             TEXT_LOGE("Failed to get typography");
@@ -579,7 +578,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
         AniParagraph* aniParagraph = new AniParagraph();
         aniParagraph->typography_ = typographyPtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniParagraph));
+            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani typography obj, ret %{public}d", ret);
             delete aniParagraph;

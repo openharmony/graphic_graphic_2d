@@ -42,7 +42,6 @@ ohos_shared_library("text_engine_ani") {
   branch_protector_ret = "pac_ret"
   sources = [
     "./src/ani_cache_manager.cpp",
-    "./src/ani_drawing_converter.cpp",
     "./src/ani_font_collection.cpp",
     "./src/ani_fontdescriptor.cpp",
     "./src/ani_index_and_affinity_converter.cpp",
@@ -83,7 +82,6 @@ ohos_shared_library("text_engine_ani") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "hilog:libhilog",
-    "ipc:ipc_single",
     "resource_management:global_resmgr",
     "runtime_core:ani",
     "runtime_core:ani_helpers",

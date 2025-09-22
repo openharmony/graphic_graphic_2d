@@ -118,9 +118,9 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     }
     AniRun* aniRun = new AniRun();
     aniRun->run_ = std::shared_ptr<Rosen::Run>(run);
-    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
+    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
     ani_status ret = env->Object_CallMethodByName_Void(
-        runObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
+        runObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
         delete aniRun;
@@ -161,7 +161,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -203,7 +203,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -238,7 +238,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -285,7 +285,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -321,7 +321,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -339,11 +339,17 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
+    std::shared_ptr<Drawing::Font> fontPtr = std::make_shared<Drawing::Font>(aniRun->run_->GetFont());
+    if (!fontPtr) {
+        TEXT_LOGE("Font is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
 
-    Drawing::AniFont* aniFont = new Drawing::AniFont(aniRun->run_->GetFont());
-    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":V");
+    Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
+    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":");
     ani_status ret = env->Object_CallMethodByName_Void(
-        fontObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniFont));
+        fontObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine");
         delete aniFont;
@@ -400,7 +406,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& stringIndex : stringIndices) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "ILstd/core/Object;:V", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
+            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set stringIndices item %{public}zu", index);
             continue;
@@ -478,7 +484,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
             TEXT_LOGE("Null jsRun");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":V");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
         std::shared_ptr<Rosen::Run> runPtr = jsRun->GetRun();
         if (runPtr == nullptr) {
             TEXT_LOGE("Failed to get run");
@@ -487,7 +493,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
         AniRun* aniRun = new AniRun();
         aniRun->run_ = runPtr;
         ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "J:V", reinterpret_cast<ani_long>(aniRun));
+            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
             delete aniRun;
