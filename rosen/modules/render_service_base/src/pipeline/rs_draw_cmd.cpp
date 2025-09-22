@@ -281,7 +281,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan() &&
-            GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), sampling, colorSpace)) {
             rsImage_->SetDmaImage(image_);
         }
 #endif
@@ -322,7 +322,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
-    SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+    SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (pixelMap == nullptr) {
         return false;
@@ -344,7 +345,7 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         this->image_ = imageCache;
     } else {
         bool ret = MakeFromTextureForVK(
-            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace);
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), sampling, colorSpace);
         if (ret && image_ && !pixelMap->IsEditable()) {
             SKResourceManager::Instance().HoldResource(image_);
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
@@ -429,6 +430,7 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+    const Drawing::SamplingOptions& sampling,
     const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (!RSSystemProperties::IsUseVulkan()) {
@@ -481,7 +483,19 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         RS_LOGE("MakeFromTextureForVK build image failed");
         return false;
     }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE) {
+        RSImageCache::Instance().ReserveImageInfo(rsImage_, GetNodeId(), weak_from_this());
+    }
+#endif
     return true;
+}
+
+void RSExtendImageObject::PurgeMipmapMem()
+{
+    if (image_ && image_.use_count() == 1) {
+        image_ = nullptr;
+    }
 }
 #endif
 

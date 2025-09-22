@@ -25,6 +25,8 @@
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_track.h"
 #include "render/rs_image_base.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
+#include "pipeline/rs_draw_cmd.h"
 
 namespace OHOS {
 namespace Media {
@@ -32,7 +34,11 @@ class PixelMap;
 }
 
 namespace Rosen {
+using ImageContent = std::vector<std::pair<std::weak_ptr<RSImage>, std::weak_ptr<RSExtendImageObject>>>;
 class RSImageBase;
+class RSRenderParams;
+class RSRenderNodeDrawableAdapter;
+class RSImage;
 class RSB_EXPORT RSImageCache {
 public:
     static RSImageCache& Instance();
@@ -56,6 +62,10 @@ public:
     bool CheckUniqueIdIsEmpty();
     void CollectUniqueId(uint64_t uniqueId);
     void ReleaseUniqueIdList();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RemoveImageMemForWindow(NodeId surfaceNodeId);
+    void ReserveImageInfo(std::shared_ptr<RSImage> rsImage, NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd);
+#endif
 private:
     RSImageCache(const RSImageCache&) = delete;
     RSImageCache(const RSImageCache&&) = delete;
@@ -74,6 +84,7 @@ private:
         pixelMapIdRelatedDrawingImageCache_;
     std::mutex uniqueIdListMutex_;
     std::list<uint64_t> uniqueIdList_;
+    std::unordered_map<NodeId, ImageContent> rsImageInfoMap;
 };
 } // namespace Rosen
 } // namespace OHOS

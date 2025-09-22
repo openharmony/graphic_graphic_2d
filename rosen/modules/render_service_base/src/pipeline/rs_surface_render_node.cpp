@@ -46,6 +46,7 @@
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_render_service_client.h"
 #include "visitor/rs_node_visitor.h"
+#include "render/rs_image_cache.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "metadata_helper.h"
 #include <v1_0/cm_color_space.h>
@@ -435,6 +436,9 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 GetId(), GetName().c_str());
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+                RSImageCache::Instance().RemoveImageMemForWindow(GetId());
+#endif
             }
             if (IS_SCB_WINDOW_TYPE(surfaceWindowType_)) {
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
