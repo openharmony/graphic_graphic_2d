@@ -423,6 +423,41 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeMirrorFenceToHardwareEnabledDrawa
     RSUniRenderThread::Instance().Sync(std::move(newUniParam));
     close(fenceFd);
 }
+
+/**
+ * @tc.name: SetVirtualScreenFenceToRenderThreadTest
+ * @tc.desc: Test SetVirtualScreenFenceToRenderThread
+ * @tc.type: FUNC
+ * @tc.require: issue20000
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetVirtualScreenFenceToRenderThreadTest, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(virtualProcessor, nullptr);
+    virtualProcessor->SetVirtualScreenFenceToRenderThread();
+
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface1 = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    auto tmpSurface = std::make_shared<Drawing::Surface>();
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 10);
+    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, std::move(surfaceFrame));
+    ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
+    ASSERT_NE(virtualProcessor->renderFrame_->surfaceFrame_, nullptr);
+
+    ASSERT_FALSE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
+    virtualProcessor->SetVirtualScreenFenceToRenderThread();
+    virtualProcessor->renderFrame_->acquireFence_ = nullptr;
+    virtualProcessor->SetVirtualScreenFenceToRenderThread();
+
+    int fenceFd = open("/data/local/tmpfile", O_RDONLY | O_CREAT);
+    virtualProcessor->renderFrame_->acquireFence_ = sptr<SyncFence>(new SyncFence(::dup(fenceFd)));
+    ASSERT_TRUE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
+    virtualProcessor->SetVirtualScreenFenceToRenderThread();
+    close(fenceFd);
+}
 #endif // RS_ENABLE_VK
 
 /**
