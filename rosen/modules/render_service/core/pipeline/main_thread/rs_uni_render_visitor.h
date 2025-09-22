@@ -486,6 +486,8 @@ private:
     ScreenState screenState_ = ScreenState::UNKNOWN;
     
     bool isSkipDrawInVirtualScreen_ = false;
+
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers_;
 };
 } // namespace Rosen
 } // namespace OHOS
