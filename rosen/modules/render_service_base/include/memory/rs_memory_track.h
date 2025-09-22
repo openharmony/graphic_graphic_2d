@@ -102,7 +102,7 @@ private:
     const char* MemoryType2String(MEMORY_TYPE type);
     const std::string PixelMapInfo2String(MemoryInfo info);
     const std::string AllocatorType2String(OHOS::Media::AllocatorType);
-    const std::string PixelFormat2String(OHOS::Media::PixelFormat);
+    const std::string PixelFormat2String(Media::PixelFormat);
     std::string GenerateDumpTitle();
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
     void DumpMemoryNodeStatistics(DfxString& log);
