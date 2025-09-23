@@ -61,16 +61,16 @@ public:
     ImageImpl() noexcept {}
     ~ImageImpl() override {}
 
-    virtual bool BuildFromBitmap(const Bitmap& bitmap) = 0;
+    virtual bool BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha = false) = 0;
 #ifdef RS_ENABLE_GPU
-    virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) = 0;
+    virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha = false) = 0;
     virtual bool MakeFromEncoded(const std::shared_ptr<Data>& data) = 0;
     virtual bool BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext);
     virtual bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace = nullptr) = 0;
     virtual bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr) = 0;
+        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr, bool ignoreAlpha = false) = 0;
     virtual bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) = 0;
     virtual BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) = 0;
