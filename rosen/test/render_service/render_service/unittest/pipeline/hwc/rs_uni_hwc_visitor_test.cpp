@@ -1916,7 +1916,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect009, TestSize.Level
     surfaceNode1->isHardwareEnabledNode_ = true;
     RectI rect{0, 0, 100, 100};
     surfaceNode1->SetDstRect(rect);
-    surfaceNode1->renderProperties_.boundsGeo_->absRect = rect;
+    surfaceNode1->renderProperties_.boundsGeo_->absRect_ = rect;
     leashWindowNode1->childHardwareEnabledNodes_.emplace_back(surfaceNode1);
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(++id);
     surfaceNode2->InitRenderParams();
@@ -1941,7 +1941,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect009, TestSize.Level
     filterNode->GetHwcRecorder().SetBlendWithBackground(true);
 
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode4 = nullptr;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilter(surfaceNode4);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode4);
     ASSERT_TRUE(surfaceNode1->isHardwareForcedDisabled_);
 }
 
