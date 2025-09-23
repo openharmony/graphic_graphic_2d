@@ -839,7 +839,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
         return;
     }
-    const auto& voters = frameVoter_.GetVoters();
+    auto voters = frameVoter_.GetVoters();
     auto event = std::find(voters.begin(), voters.end(), eventName);
     if (event == voters.end()) {
         HGM_LOGW("HgmFrameRateManager:unknown event, eventName is %{public}s", eventName.c_str());
