@@ -103,23 +103,24 @@ void RSFrameRateLinker::SetEnable(bool enabled)
     isEnabled_ = enabled;
 }
 
-void RSFrameRateLinker::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand)
-{
-    auto rsUIContext = rsUIContext_.lock();
-    if (rsUIContext != nullptr) {
-        auto transaction = rsUIContext->GetRSTransaction();
-        transaction->AddCommand(command, IsUniRenderEnabled());
-    } else {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsUniRenderEnabled());
-        }
-    }
-}
-
 bool RSFrameRateLinker::IsEnable()
 {
     return isEnabled_;
+}
+
+void RSFrameRateLinker::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand)
+{
+    auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext) {
+        auto transaction = rsUIContext->GetRSTransaction();
+        transaction->AddCommand(command, isRenderServiceCommand);
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (!transactionProxy) {
+            return;
+        }
+        transactionProxy->AddCommand(command, isRenderServiceCommand);
+    }
 }
 
 void RSFrameRateLinker::InitUniRenderEnabled()

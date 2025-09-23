@@ -125,11 +125,20 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
     if (CollectVRateChange(linker.first, expectedRange)) {
         isChanged = true;
     }
-    if (!isChanged && appVoteData_.count(linker.first)) {
-        expectedRange.preferred_ = static_cast<int32_t>(appVoteData_[linker.first]);
+    bool isForceUseAppVSync = false;
+    if (!isChanged) {
+        if (auto appVoteDataIter = appVoteData_.find(linker.first); appVoteDataIter != appVoteData_.end()) {
+            expectedRange.preferred_ = static_cast<int32_t>(appVoteDataIter->second.first);
+            expectedRange.max_ =
+                expectedRange.max_ > expectedRange.preferred_ ? expectedRange.max_ : expectedRange.preferred_;
+            expectedRange.min_ =
+                expectedRange.min_ < expectedRange.preferred_ ? expectedRange.min_ : expectedRange.preferred_;
+            isForceUseAppVSync = static_cast<bool>(appVoteDataIter->second.second);
+        }
     }
-    auto appFrameRate = isPerformanceFirst_ && expectedRange.type_ != SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE ?
-                        OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
+    auto appFrameRate =
+        isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != SOFT_NATIVE_VSYNC_FRAME_RATE_TYPE ?
+        OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
         appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
     }
@@ -354,11 +363,24 @@ void HgmSoftVSyncManager::DeliverSoftVote(FrameRateLinkerId linkerId, const Vote
         std::vector<std::string> voters(std::begin(VOTER_NAME), std::end(VOTER_NAME));
         linkerVoteMap_.try_emplace(linkerId, std::make_shared<HgmVoter>(voters));
     }
-
+    RS_TRACE_NAME_FMT("DeliverSoftVote linkerId=%" PRIu64 " min=%d max=%d status=%d extInfo=%s",
+        linkerId, voteInfo.min, voteInfo.max, eventStatus, voteInfo.extInfo.c_str());
     auto hgmVoter = linkerVoteMap_[linkerId];
     if (hgmVoter && hgmVoter->DeliverVote(voteInfo, eventStatus)) {
-        VoteInfo voteInfo = hgmVoter->ProcessVote();
-        appVoteData_[linkerId] = voteInfo.max;
+        if (std::optional<VoteInfo> resultVoteInfo = hgmVoter->ProcessVote()) {
+            bool isForceUseAppVSync = eventStatus ? hgmVoter->CheckForceUseAppVSync() : false;
+            auto appVoteDataIter = appVoteData_.find(linkerId);
+            if (appVoteDataIter == appVoteData_.end() || appVoteDataIter->second.first != resultVoteInfo->max ||
+                static_cast<bool>(appVoteDataIter->second.second) != isForceUseAppVSync) {
+                appVoteData_.insert_or_assign(linkerId,
+                    std::pair<uint32_t, uint32_t>(resultVoteInfo->max, static_cast<uint32_t>(isForceUseAppVSync)));
+                UpdateSoftVSync(false);
+            }
+        } else {
+            if (appVoteData_.erase(linkerId) != 0) {
+                UpdateSoftVSync(false);
+            }
+        }
     }
 }
 

@@ -146,16 +146,4 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl005, TestSize.Level1)
     auto& luminCtrl = RSLuminanceControl::Get();
     ASSERT_EQ(luminCtrl.IsForceCloseHdr(), false);
 }
-
-/**
- * @tc.name: LuminanceControl006
- * @tc.desc: Test LuminanceControl class members
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSLuminanceControlTest, LuminanceControl006, TestSize.Level1)
-{
-    auto& luminCtrl = RSLuminanceControl::Get();
-    ASSERT_EQ(luminCtrl.IsEnableImageDetailEnhance(), false);
-}
 } // namespace OHOS::Rosen

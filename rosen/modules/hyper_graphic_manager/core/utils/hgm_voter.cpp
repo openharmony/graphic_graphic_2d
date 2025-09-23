@@ -17,14 +17,17 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+const std::string_view FORCE_USE_APP_VSYNC = "FORCE_USE_APP_VSYNC";
+}
 HgmVoter::HgmVoter(const std::vector<std::string>& voters) : voters_(voters)
 {
     HGM_LOGI("Construction of HgmVoter");
 }
 
-VoteInfo HgmVoter::ProcessVote()
+std::optional<VoteInfo> HgmVoter::ProcessVote()
 {
-    VoteInfo resultVoteInfo;
+    std::optional<VoteInfo> resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
     auto& [min, max] = voteRange;
 
@@ -44,15 +47,16 @@ VoteInfo HgmVoter::ProcessVote()
             }
         }
     }
-
-    resultVoteInfo.min = min;
-    resultVoteInfo.max = max;
+    if (resultVoteInfo.has_value()) {
+        resultVoteInfo->min = min;
+        resultVoteInfo->max = max;
+    }
 
     return resultVoteInfo;
 }
 
 bool HgmVoter::ProcessVote(std::vector<std::string>::iterator& voterIter,
-    VoteInfo& resultVoteInfo, VoteRange& voteRange)
+    std::optional<VoteInfo>& resultVoteInfo, VoteRange& voteRange)
 {
     auto& voter = *voterIter;
     if (voteRecord_.find(voter) == voteRecord_.end()) {
@@ -69,7 +73,11 @@ bool HgmVoter::ProcessVote(std::vector<std::string>::iterator& voterIter,
     auto [mergeVoteRange, mergeVoteInfo] =
         HgmVoter::MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
     if (mergeVoteInfo) {
-        resultVoteInfo.Merge(curVoteInfo);
+        if (!resultVoteInfo.has_value()) {
+            resultVoteInfo = curVoteInfo;
+        } else {
+            resultVoteInfo->Merge(curVoteInfo);
+        }
     }
     if (mergeVoteRange) {
         return true;
@@ -101,6 +109,22 @@ std::pair<bool, bool> HgmVoter::MergeRangeByPriority(VoteRange& rangeRes, const 
         return {true, needMergeVoteInfo};
     }
     return {false, needMergeVoteInfo};
+}
+
+bool HgmVoter::CheckForceUseAppVSync()
+{
+    for (auto voterIter = voters_.begin(); voterIter != voters_.end(); ++voterIter) {
+        auto iter = voteRecord_.find(*voterIter);
+        if (iter == voteRecord_.end()) {
+            continue;
+        }
+        for (auto& voteInfo : iter->second.first) {
+            if (FORCE_USE_APP_VSYNC == voteInfo.extInfo) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool HgmVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
