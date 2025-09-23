@@ -25,7 +25,7 @@ constexpr int32_t UP_TIMEOUT_MS = 3000;
 
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
-    HGM_LOGD("XMLParser opening xml file");
+    HGM_LOGI("XMLParser opening xml file");
     xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
     if (!xmlDocument_) {
         HGM_LOGE("XMLParser xmlReadFile failed");
@@ -199,7 +199,7 @@ int32_t XMLParser::ParseParams(xmlNode& node)
     }
 
     if (setResult != EXEC_SUCCESS) {
-        HGM_LOGD("XMLParser failed to ParseParams %{public}s", paraName.c_str());
+        HGM_LOGI("XMLParser failed to ParseParams %{public}s", paraName.c_str());
     }
     return EXEC_SUCCESS;
 }
@@ -325,7 +325,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode& node)
         if (name == "supported_mode") {
             PolicyConfigData::SupportedModeConfig supportedModeConfig;
             if (ParseSupportedModeConfig(*currNode, supportedModeConfig) != EXEC_SUCCESS) {
-                HGM_LOGD("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+                HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
             }
             mParsedData_->supportedModeConfigs_[type] = supportedModeConfig;
             continue;
@@ -395,7 +395,7 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode& node, PolicyConfigData::ScreenS
     }
 
     if (setResult != EXEC_SUCCESS) {
-        HGM_LOGD("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+        HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
     }
     return setResult;
 }
@@ -447,7 +447,7 @@ int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::str
     auto result = ParseSimplex(node, configs);
     powerConfig.clear();
     if (result != EXEC_SUCCESS) {
-        HGM_LOGD("XMLParser failed to powerConfig component_power_config");
+        HGM_LOGI("XMLParser failed to powerConfig component_power_config");
         return result;
     }
     for (const auto& item: configs) {
