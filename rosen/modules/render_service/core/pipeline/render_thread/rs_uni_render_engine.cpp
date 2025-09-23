@@ -52,6 +52,7 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     canvas.Save();
     bool hdrHeteroRet = RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
     canvas.ConcatMatrix(params.matrix);
+    RS_TRACE_NAME_FMT("RSUniRenderEngine::DrawSurfaceNodeWithParams ignoreAlpha[%d]", params.ignoreAlpha);
     if (!params.useCPU) {
         if (hdrHeteroRet) {
             std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();

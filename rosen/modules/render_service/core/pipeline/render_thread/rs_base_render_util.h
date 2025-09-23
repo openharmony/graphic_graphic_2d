@@ -109,6 +109,8 @@ struct BufferDrawParam {
     bool colorFollow = false;
     bool preRotation = false;
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
+
+    bool ignoreAlpha = false;
 };
 
 using WriteToPngParam = struct {
