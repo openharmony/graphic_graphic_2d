@@ -264,6 +264,7 @@ private:
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result, PendingPostNodeMap& pendingNode);
     void SortSubThreadNodesPriority();
+    bool IsCacheSizeValid(RSSurfaceRenderNode& node);
     // check if ArkTsCard enable uifirst
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     // check if leash window enable uifirst
