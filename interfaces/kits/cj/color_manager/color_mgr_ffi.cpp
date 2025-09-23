@@ -47,7 +47,7 @@ RetDataCString CJ_ColorMgrCreateByColorSpace(uint32_t colorSpaceName, int64_t* i
 int64_t CJ_ColorMgrCreate(ColorSpacePrimaries primaries, float gamma, int32_t* errCode)
 {
     CMLOGI("[ColorMgr] CJ_ColorMgrCreate start");
-    std::shared_ptr<ColorSpace> ptr = CjColorManager::create(primaries, gamma, errCode);
+    std::shared_ptr<ColorSpace> ptr = CjColorManager::create(primaries, gamma, *errCode);
     if (*errCode != OK || ptr == nullptr) {
         return 0;
     }
@@ -67,7 +67,7 @@ uint32_t CJ_ColorMgrGetColorSpaceName(int64_t id, int32_t* errCode)
         return 0;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrGetColorSpaceName success");
-    return native->GetColorSpaceName(errCode);
+    return native->GetColorSpaceName(*errCode);
 }
 
 float* CJ_ColorMgrGetWhitePoint(int64_t id, int32_t* errCode)
@@ -78,7 +78,7 @@ float* CJ_ColorMgrGetWhitePoint(int64_t id, int32_t* errCode)
         return nullptr;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrGetWhitePoint success");
-    std::array<float, DIMES_2> arr = native->GetWhitePoint(errCode);
+    std::array<float, DIMES_2> arr = native->GetWhitePoint(*errCode);
     if (*errCode != OK) {
         return nullptr;
     }
@@ -101,7 +101,7 @@ float CJ_ColorMgrGetGamma(int64_t id, int32_t* errCode)
         return 0;
     }
     CMLOGI("[ColorMgr] CJ_ColorMgrGetGamma success");
-    return native->GetGamma(errCode);
+    return native->GetGamma(*errCode);
 }
 }
 }

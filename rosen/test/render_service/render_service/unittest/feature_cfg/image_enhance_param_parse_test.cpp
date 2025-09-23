@@ -36,6 +36,40 @@ const std::string TEST_GRAPHIC_CONFIG_XML = (R"(<?xml version="1.0" encoding="UT
             <App name="com.target2.app"/>
             <App name=""/>
         </FeatureMultiParam>
+        <FeatureMultiParam name = "ImageEnhanceParam">
+            <param name="MinSize" value="500"/>
+            <param name="MaxSize" value="3000"/>
+            <param name="MinScaleRatio" value="0.5"/>
+            <param name="MaxScaleRatio" value="5"/>
+        </FeatureMultiParam>
+        <FeatureMultiParam name = "SLR">
+            <param name="RangeMin" value="0.0"/>
+            <param name="RangeMax" value="0.5"/>
+            <param name="param" value="0.3"/>
+            <param name="MinSize" value="360000"/>
+            <param name="MaxSize" value="640000"/>
+        </FeatureMultiParam>
+        <FeatureMultiParam name = "ESR">
+            <param name="RangeMin" value="1.0"/>
+            <param name="RangeMax" value="2.0"/>
+            <param name="param" value="0.3"/>
+            <param name="MinSize" value="360000"/>
+            <param name="MaxSize" value="9000000"/>
+        </FeatureMultiParam>
+    </FeatureModule>)");
+
+const std::string TEST_GRAPHIC_CONFIG_XML_2 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <FeatureModule version = "1.0" xmlns:xi="http://www.w3.org/2001/XInclude" name="ImageEnhanceConfig">
+        <FeatureMultiParam name = "SLR">
+            <param name="WrongName" value="0.0"/>
+        </FeatureMultiParam>
+    </FeatureModule>)");
+
+const std::string TEST_GRAPHIC_CONFIG_XML_3 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <FeatureModule version = "1.0" xmlns:xi="http://www.w3.org/2001/XInclude" name="ImageEnhanceConfig">
+        <FeatureMultiParam name = "ESR">
+            <param name="WrongName" value="0.0"/>
+        </FeatureMultiParam>
     </FeatureModule>)");
 
 class ImageEnhanceParamParseTest : public testing::Test {
@@ -94,6 +128,94 @@ HWTEST_F(ImageEnhanceParamParseTest, ParseFeatureParam, Function | SmallTest | L
 
     xmlFreeNode(childNode);
     childNode = nullptr;
+    xmlFreeDoc(doc);
+    doc = nullptr;
+}
+
+/**
+ * @tc.name: ImageEnhanceParamParse
+ * @tc.desc: Verify the ImageEnhanceParamParse
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, ParseImageEnhanceParam, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    int32_t result1 = imageEnhanceParamParse.ParseImageEnhanceParamInternal(node);
+    EXPECT_NE(result1, PARSE_EXEC_SUCCESS);
+
+    xmlNewProp(&node, reinterpret_cast<const xmlChar*>("name"),
+        reinterpret_cast<const xmlChar*>("ImageEnhanceParam"));
+    int32_t result2 = imageEnhanceParamParse.ParseImageEnhanceParamInternal(node);
+    EXPECT_NE(result2, PARSE_EXEC_SUCCESS);
+    int32_t result3 = imageEnhanceParamParse.ParseImageEnhanceParam(node);
+    EXPECT_NE(result3, PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: ParseSLRParam
+ * @tc.desc: Verify the ParseSLRParam
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, ParseSLRParam, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    int32_t result1 = imageEnhanceParamParse.ParseImageEnhanceAlgoInternal(node);
+    EXPECT_NE(result1, PARSE_EXEC_SUCCESS);
+
+    xmlNewProp(&node, reinterpret_cast<const xmlChar*>("name"),
+        reinterpret_cast<const xmlChar*>("SLR"));
+    int32_t result2 = imageEnhanceParamParse.ParseImageEnhanceAlgoInternal(node);
+    EXPECT_NE(result2, PARSE_EXEC_SUCCESS);
+    int32_t result3 = imageEnhanceParamParse.ParseImageEnhanceAlgoParam(node);
+    EXPECT_NE(result3, PARSE_EXEC_SUCCESS);
+
+    FeatureParamMapType featureParam;
+    featureParam["ImageEnhanceConfig"] = std::make_shared<ImageEnhanceParam>();
+    xmlDoc* doc = StringToXmlDoc(TEST_GRAPHIC_CONFIG_XML_2);
+    ASSERT_NE(doc, nullptr);
+    xmlNode* featureRoot = xmlDocGetRootElement(doc);
+    ASSERT_NE(featureRoot, nullptr);
+    int32_t result4 = imageEnhanceParamParse.ParseFeatureParam(featureParam, *featureRoot);
+    EXPECT_NE(result4, PARSE_EXEC_SUCCESS);
+    xmlFreeDoc(doc);
+    doc = nullptr;
+}
+
+/**
+ * @tc.name: ParseESRParam
+ * @tc.desc: Verify the ParseESRParam
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, ParseESRParam, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    xmlNode node;
+    node.xmlChildrenNode = nullptr;
+    int32_t result1 = imageEnhanceParamParse.ParseImageEnhanceAlgoInternal(node);
+    EXPECT_NE(result1, PARSE_EXEC_SUCCESS);
+
+    xmlNewProp(&node, reinterpret_cast<const xmlChar*>("name"),
+        reinterpret_cast<const xmlChar*>("ESR"));
+    int32_t result2 = imageEnhanceParamParse.ParseImageEnhanceAlgoInternal(node);
+    EXPECT_NE(result2, PARSE_EXEC_SUCCESS);
+    int32_t result3 = imageEnhanceParamParse.ParseImageEnhanceAlgoParam(node);
+    EXPECT_NE(result3, PARSE_EXEC_SUCCESS);
+
+    FeatureParamMapType featureParam;
+    featureParam["ImageEnhanceConfig"] = std::make_shared<ImageEnhanceParam>();
+    xmlDoc* doc = StringToXmlDoc(TEST_GRAPHIC_CONFIG_XML_3);
+    ASSERT_NE(doc, nullptr);
+    xmlNode* featureRoot = xmlDocGetRootElement(doc);
+    ASSERT_NE(featureRoot, nullptr);
+    int32_t result4 = imageEnhanceParamParse.ParseFeatureParam(featureParam, *featureRoot);
+    EXPECT_NE(result4, PARSE_EXEC_SUCCESS);
     xmlFreeDoc(doc);
     doc = nullptr;
 }

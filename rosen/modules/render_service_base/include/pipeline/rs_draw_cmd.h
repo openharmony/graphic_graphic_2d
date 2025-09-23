@@ -65,7 +65,8 @@ struct DrawingSurfaceBufferInfo {
 };
 #endif
 
-class RSB_EXPORT RSExtendImageObject : public Drawing::ExtendImageObject {
+class RSB_EXPORT RSExtendImageObject : public Drawing::ExtendImageObject,
+    public std::enable_shared_from_this<RSExtendImageObject> {
 public:
     RSExtendImageObject() = default;
     RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
@@ -81,9 +82,12 @@ public:
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+        const Drawing::SamplingOptions& sampling,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
     bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
-        SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+        SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,
+        const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+    void PurgeMipmapMem();
 #endif
     void SetNodeId(NodeId id) override;
     NodeId GetNodeId() const override;

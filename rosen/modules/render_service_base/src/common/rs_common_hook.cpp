@@ -121,6 +121,48 @@ std::unordered_set<pid_t> RsCommonHook::GetImageEnhancePidList() const
     return imageEnhancePidList_;
 }
 
+void RsCommonHook::SetImageEnhanceParams(const RSImageDetailEnhanceParams& imageEnhanceParams)
+{
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
+    imageEnhanceParams_ = imageEnhanceParams;
+}
+
+RSImageDetailEnhanceParams RsCommonHook::GetImageEnhanceParams() const
+{
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
+    return imageEnhanceParams_;
+}
+
+void RsCommonHook::SetImageEnhanceAlgoParams(
+    const std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams>& imageEnhanceAlgoParams)
+{
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
+    imageEnhanceAlgoParams_ = imageEnhanceAlgoParams;
+}
+
+RSImageDetailEnhanceAlgoParams RsCommonHook::GetImageEnhanceAlgoParams(const std::string& key) const
+{
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
+    auto it = imageEnhanceAlgoParams_.find(key);
+    if (it != imageEnhanceAlgoParams_.end()) {
+        return it->second;
+    }
+    return {};
+}
+
+bool RsCommonHook::IsImageEnhanceParamsValid()
+{
+    if (imageEnhanceAlgoParams_.find("SLR") == imageEnhanceAlgoParams_.end() ||
+        imageEnhanceAlgoParams_.find("ESR") == imageEnhanceAlgoParams_.end()) {
+        return false;
+    }
+    if (imageEnhanceParams_.isValid && imageEnhanceAlgoParams_["SLR"].isValid &&
+        imageEnhanceAlgoParams_["ESR"].isValid) {
+        return true;
+    }
+    return false;
+}
+
 void RsCommonHook::SetTvPlayerBundleName(const std::string& bundleName)
 {
     tvPlayerBundleName_ = bundleName;

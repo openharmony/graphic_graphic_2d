@@ -272,8 +272,13 @@ void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& 
 
 void RSTransactionData::MoveAllCommand(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    std::copy(std::make_move_iterator(payload_.begin()), std::make_move_iterator(payload_.end()),
-        std::back_inserter(transactionData->payload_));
+    constexpr size_t commandIndex = 2;
+    constexpr size_t nodeIdIndex = 0;
+    constexpr size_t followTypeIndex = 1;
+    for (auto& elem : payload_) {
+        transactionData->AddCommand(
+            std::move(std::get<commandIndex>(elem)), std::get<nodeIdIndex>(elem), std::get<followTypeIndex>(elem));
+    }
     payload_.clear();
 }
 

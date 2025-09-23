@@ -296,7 +296,7 @@ void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo &eventInf
         videoCallPid_.store(DEFAULT_PID);
         videoCallMaxFrameRate_ = 0;
         isEnableVideoCall_.store(false);
-        isVideoCallVsyncChange_.store(true);
+        HgmTaskHandleThread::Instance().PostTask([this]() { VoterVideoCallFrameRate(); });
     }
     if (eventInfo.eventStatus) {
         auto [vsyncName, pid, _] = HgmMultiAppStrategy::AnalyzePkgParam(eventInfo.description);
@@ -342,7 +342,7 @@ void HgmEnergyConsumptionPolicy::CheckOnlyVideoCallExist()
         isSubmitDecisionTask_.store(false);
         if (isOnlyVideoCallExist_.load()) {
             isOnlyVideoCallExist_.store(false);
-            isVideoCallVsyncChange_.store(true);
+            HgmTaskHandleThread::Instance().PostTask([this]() { VoterVideoCallFrameRate(); });
         }
         return;
     }
@@ -351,7 +351,7 @@ void HgmEnergyConsumptionPolicy::CheckOnlyVideoCallExist()
             DESCISION_VIDEO_CALL_TASK_ID,
             [this]() {
                 isOnlyVideoCallExist_.store(true);
-                isVideoCallVsyncChange_.store(true);
+                VoterVideoCallFrameRate();
             },
             DESCISION_VIDEO_CALL_TIME);
         isSubmitDecisionTask_.store(true);
@@ -376,6 +376,16 @@ bool HgmEnergyConsumptionPolicy::GetVideoCallFrameRate(
     finalRange.Merge({ OLED_NULL_HZ, OLED_144_HZ, videoCallMaxFrameRate_ });
     RS_TRACE_NAME_FMT("GetVideoCallFrameRate limit video call frame rate %d", finalRange.preferred_);
     return true;
+}
+
+void HgmEnergyConsumptionPolicy::VoterVideoCallFrameRate()
+{
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    isVideoCallVsyncChange_.store(true);
+    frameRateMgr->UpdateSoftVSync(false);
 }
 
 void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string>& pkgs)

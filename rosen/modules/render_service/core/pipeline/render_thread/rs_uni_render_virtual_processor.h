@@ -108,6 +108,7 @@ public:
     void CancelCurrentFrame();
 private:
     void MergeMirrorFenceToHardwareEnabledDrawables();
+    void SetVirtualScreenFenceToRenderThread();
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         const sptr<RSScreenManager>& screenManager);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);

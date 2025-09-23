@@ -17,6 +17,7 @@
 #include "memory/rs_memory_snapshot.h"
 #include "render/rs_image_cache.h"
 #include "pixel_map.h"
+#include "params/rs_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -219,5 +220,37 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
         }
     }
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
+    NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd)
+{
+    if (rsImage != nullptr) {
+        auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        if (drawableAdapter == nullptr) {
+            return;
+        }
+        NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
+        std::weak_ptr<RSImage> rsImage_weak = rsImage;
+        rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
+    }
+}
+
+void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
+{
+    ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];
+    for (auto& [img_wptr, imageOp] : rsImageVec) {
+        if (auto img = img_wptr.lock()) {
+            ReleaseDrawingImageCacheByPixelMapId(img->GetUniqueId());
+            ReleaseDrawingImageCache(img->GetUniqueId());
+            img->Purge();
+        }
+        if (auto imgOP_ptr = imageOp.lock()) {
+            imgOP_ptr->PurgeMipmapMem();
+        }
+    }
+    rsImageInfoMap.erase(surfaceNodeId);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

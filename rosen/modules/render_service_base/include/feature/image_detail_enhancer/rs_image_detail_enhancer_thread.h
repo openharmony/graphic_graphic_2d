@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <mutex>
 
+#include "common/rs_common_hook.h"
 #include "common/rs_macros.h"
 #include "event_handler.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -63,6 +64,7 @@ private:
     void SetProcessReady(uint64_t imageId, bool flag);
     bool GetProcessReady(uint64_t imageId) const;
     bool IsSizeSupport(int srcWidth, int srcHeight, int dstWidth, int dstHeight);
+    bool GetSharpness(RSImageDetailEnhanceAlgoParams& param, float scaleRatio, float& sharpness);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool IsTypeSupport(const std::shared_ptr<Media::PixelMap>& pixelMap);
@@ -75,6 +77,10 @@ private:
         uint64_t nodeId, uint64_t imageId);
 #endif
 
+    bool isParamValidate_ = false;
+    RSImageDetailEnhanceParams params_ = {};
+    RSImageDetailEnhanceAlgoParams slrParams_{};
+    RSImageDetailEnhanceAlgoParams esrParams_{};
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::unordered_map<uint64_t, std::shared_ptr<Drawing::Image>> outImageMap_ = {};
