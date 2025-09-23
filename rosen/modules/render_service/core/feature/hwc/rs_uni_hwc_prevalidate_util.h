@@ -73,7 +73,6 @@ public:
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     static void OnHwcEvent(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data);
     bool IsPrevalidateEnable();
-    bool GetPrevalidateEnabled();
     void CollectSurfaceNodeLayerInfo(
         std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
@@ -99,7 +98,6 @@ private:
     PreValidateFunc preValidateFunc_ = nullptr;
     HandleEventFunc handleEventFunc_ = nullptr;
     bool loadSuccess_ = false;
-    bool isPrevalidateHwcNodeEnable_ = false;
     bool arsrPreEnabled_ = false;
     bool isCopybitSupported_ = false;
 };

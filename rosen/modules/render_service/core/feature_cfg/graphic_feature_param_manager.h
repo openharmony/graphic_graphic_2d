@@ -45,8 +45,6 @@
 #include "occlusion_culling_param_parse.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
-#include "prevalidate_param_parse.h"
-#include "prevalidate_param.h"
 #include "rotateoffscreen_param_parse.h"
 #include "rotateoffscreen_param.h"
 #include "subtree_parallel_param.h"
@@ -94,12 +92,10 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<OcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[MULTISCREEN], [] { return std::make_unique<MultiScreenParamParse>(); },
         [] {return std::make_unique<MultiScreenParam>(); }},
-    {FEATURE_CONFIGS[OPInc], [] { return std::make_unique<OPIncParamParse>(); },
-        [] { return std::make_unique<OPIncParam>(); }},
-    {FEATURE_CONFIGS[PREVALIDATE], [] { return std::make_unique<PrevalidateParamParse>(); },
-        [] { return std::make_unique<PrevalidateParam>(); }},
-    {FEATURE_CONFIGS[UIFirst], [] { return std::make_unique<UIFirstParamParse>(); },
-        [] { return std::make_unique<UIFirstParam>(); }},
+    {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
+        [] {return std::make_unique<UIFirstParam>(); }},
+    {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
+        [] { return std::make_unique<FilterParam>(); }},
     {FEATURE_CONFIGS[DVSYNC], [] { return std::make_unique<DVSyncParamParse>(); },
         [] { return std::make_unique<DVSyncParam>(); }},
     {FEATURE_CONFIGS[HARDCURSOR], [] { return std::make_unique<HardCursorParamParse>(); },

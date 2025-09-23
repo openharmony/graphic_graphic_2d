@@ -1473,7 +1473,7 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
 }
 
 // only used in dirtyRegion
-bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
+bool RSScreenManager::CheckVirtualScreenStatusChanged(ScreenId id)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1483,7 +1483,7 @@ bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
     if (!screen->IsVirtual()) {
         return false;
     }
-    return screen->GetAndResetPSurfaceChange();
+    return screen->GetAndResetPSurfaceChange() || screen->GetAndResetVirtualScreenPlay();
 }
 
 bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const

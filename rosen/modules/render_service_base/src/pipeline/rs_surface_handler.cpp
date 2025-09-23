@@ -18,7 +18,6 @@
 #include "metadata_helper.h"
 #endif
 #include "rs_trace.h"
-#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {

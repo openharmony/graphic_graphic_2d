@@ -301,7 +301,6 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CreateRCDLayerInfo003, TestSize.Level1)
 HWTEST_F(RSUniHwcPrevalidateUtilTest, IsPrevalidateEnable001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
-    uniHwcPrevalidateUtil.isPrevalidateHwcNodeEnable_ = true;
     uniHwcPrevalidateUtil.loadSuccess_ = false;
     bool ret = uniHwcPrevalidateUtil.IsPrevalidateEnable();
     EXPECT_EQ(ret, false);

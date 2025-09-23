@@ -34,7 +34,6 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "OcclusionCullingConfig",
     "MultiScreenConfig",
     "OPIncConfig",
-    "PrevalidateConfig",
     "UIFirstConfig",
     "DvsyncConfig",
     "CaptureConfig",
