@@ -303,15 +303,15 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level0)
     EXPECT_FALSE(symblic);
 
     errorCode = OH_Drawing_GetFontFullDescriptorAttributeInt(nullptr, FULL_DESCRIPTOR_ATTR_I_ITALIC, &italic);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(weight, initialValue);
     errorCode = OH_Drawing_GetFontFullDescriptorAttributeBool(nullptr, FULL_DESCRIPTOR_ATTR_B_SYMBOLIC, &mono);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     errorCode = OH_Drawing_GetFontFullDescriptorAttributeInt(desc, FULL_DESCRIPTOR_ATTR_I_ITALIC, nullptr);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     errorCode = OH_Drawing_GetFontFullDescriptorAttributeBool(desc, FULL_DESCRIPTOR_ATTR_B_SYMBOLIC, nullptr);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
     free(validPath);
@@ -339,10 +339,10 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
     EXPECT_EQ(path.strLen, initialValue);
 
     errorCode = OH_Drawing_GetFontFullDescriptorAttributeString(nullptr, FULL_DESCRIPTOR_ATTR_I_ITALIC, &path);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     errorCode = OH_Drawing_GetFontFullDescriptorAttributeInt(desc, FULL_DESCRIPTOR_ATTR_I_ITALIC, nullptr);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
     free(validPath);

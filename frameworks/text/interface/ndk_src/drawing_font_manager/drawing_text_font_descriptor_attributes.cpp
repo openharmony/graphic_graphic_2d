@@ -143,7 +143,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeInt(const OH_Drawi
     OH_Drawing_FontFullDescriptorAttributeId id, int* value)
 {
     if (descriptor == nullptr || value == nullptr) {
-        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     auto it = Text::g_fontFullDescriptorIntGetters.find(id);
     if (it == Text::g_fontFullDescriptorIntGetters.end()) {
@@ -156,7 +156,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeBool(const OH_Draw
     OH_Drawing_FontFullDescriptorAttributeId id, bool* value)
 {
     if (descriptor == nullptr || value == nullptr) {
-        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     auto it = Text::g_fontFullDescriptorBoolGetters.find(id);
     if (it == Text::g_fontFullDescriptorBoolGetters.end()) {
@@ -169,7 +169,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeString(const OH_Dr
     OH_Drawing_FontFullDescriptorAttributeId id, OH_Drawing_String* str)
 {
     if (descriptor == nullptr || str == nullptr) {
-        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     auto it = Text::g_fontFullDescriptorStrGetters.find(id);

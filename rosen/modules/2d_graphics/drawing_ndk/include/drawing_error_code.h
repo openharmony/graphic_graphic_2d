@@ -73,6 +73,11 @@ typedef enum {
      * @since 21
      */
     OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH = 26200003,
+    /**
+     * @error incorrect input parameter. The possible cause is that the provided pointer is null.
+     * @since 22
+     */
+    OH_DRAWING_ERROR_INCORRECT_PARAMETER = 26200004,
 } OH_Drawing_ErrorCode;
 
 /**

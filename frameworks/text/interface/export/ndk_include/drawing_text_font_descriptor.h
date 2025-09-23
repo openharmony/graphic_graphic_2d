@@ -233,8 +233,8 @@ void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray);
  * @param value Output parameter to receive the requested integer attribute value.
  * @return Returns the error code.
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
- *         Returns <b>OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE</b> if attribute ID is invalid.
- *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if parameter type mismatch occurs.
+ *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the descriptor or value is NULL.
+ *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
  * @since 22
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeInt(const OH_Drawing_FontFullDescriptor* descriptor,
@@ -248,8 +248,8 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeInt(const OH_Drawi
  * @param value Output parameter to receive the requested boolean attribute value.
  * @return Returns the error code.
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
- *         Returns <b>OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE</b> if attribute ID is invalid.
- *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if parameter type mismatch occurs.
+ *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the descriptor or value is NULL.
+ *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
  * @since 22
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeBool(const OH_Drawing_FontFullDescriptor* descriptor,
@@ -266,8 +266,8 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeBool(const OH_Draw
  * @param str Output parameter to receive pointer to the requested string attribute value.
  * @return Returns the error code.
  *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
- *         Returns <b>OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE</b> if attribute ID is invalid.
- *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if parameter type mismatch occurs.
+ *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the descriptor or str is NULL.
+ *         Returns <b>OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH</b> if the attribute id is not recognized or supported.
  * @since 22
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeString(const OH_Drawing_FontFullDescriptor* descriptor,
