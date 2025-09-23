@@ -13,36 +13,23 @@
  * limitations under the License.
  */
 
-#include "mem_param.h"
+#include "gpu_resource_release_param.h"
 
 namespace OHOS::Rosen {
-std::string MEMParam::GetRSWatchPoint() const
+
+DeeplyRelGpuResParam& DeeplyRelGpuResParam::GetInstance()
 {
-    return rsWatchPoint_;
+    static DeeplyRelGpuResParam instance;
+    return instance;
 }
 
-void MEMParam::SetRSWatchPoint(std::string rsWatchPoint)
+bool DeeplyRelGpuResParam::IsDeeplyRelGpuResEnable() const
 {
-    rsWatchPoint_ = rsWatchPoint;
+    return isDeeplyRelGpuResEnable_;
 }
 
-int MEMParam::GetRSCacheLimitsResourceSize()
+void DeeplyRelGpuResParam::SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable)
 {
-    return rsCacheLimitsResourceSize_;
-}
-
-void MEMParam::SetRSCacheLimitsResourceSize(int rsCacheLimitsResourceSize)
-{
-    rsCacheLimitsResourceSize_ = rsCacheLimitsResourceSize;
-}
-
-bool MEMParam::IsReclaimEnabled()
-{
-    return isReclaimEnabled_;
-}
-
-void MEMParam::SetReclaimEnabled(bool isEnabled)
-{
-    isReclaimEnabled_ = isEnabled;
+    isDeeplyRelGpuResEnable_ = isDeeplyRelGpuResEnable;
 }
 } // namespace OHOS::Rosen
