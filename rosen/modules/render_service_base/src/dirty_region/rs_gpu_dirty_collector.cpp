@@ -47,6 +47,10 @@ BufferSelfDrawingData* RSGpuDirtyCollector::GetBufferSelfDrawingData(const sptr<
     if (buffer == nullptr) {
         return nullptr;
     }
+    auto usage = buffer->GetUsage() & RSGpuDirtyCollectorConst::BUFFER_USAGE_GPU_RENDER_DIRTY;
+    if (usage != RSGpuDirtyCollectorConst::BUFFER_USAGE_GPU_RENDER_DIRTY) {
+        return nullptr;
+    }
     BlobDataType* data = nullptr;
     BufferSelfDrawingData* src = nullptr;
     std::vector<uint8_t> rec;
@@ -63,7 +67,6 @@ bool RSGpuDirtyCollector::DirtyRegionCompute(const sptr<SurfaceBuffer> &buffer, 
     if (!RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()) {
         return false;
     }
-
     if (buffer == nullptr) {
         return false;
     }
