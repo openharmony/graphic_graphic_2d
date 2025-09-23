@@ -338,6 +338,8 @@ private:
 
     void CollectSurfaceLockLayer(RSSurfaceRenderNode& node);
 
+    void CheckFilterNeedEnableDebug(RSEffectRenderNode& node, bool hasEffectNodeInParent);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
@@ -488,6 +490,9 @@ private:
     bool isSkipDrawInVirtualScreen_ = false;
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers_;
+
+    // used for finding the first effect render node to check to need to enabled debug
+    bool hasEffectNodeInParent_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
