@@ -127,7 +127,7 @@ bool RSHDRPatternManager::MHCDlOpen()
     MHCDevice_->graphPatternAnimationTaskSubmit = reinterpret_cast<GPHpaeTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_animation_task_submit"));
     MHCDevice_->graphPatternHpaeTaskExecutionQuery =
-        reinterpret_cast<GPHpaeTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_, "mhc_gp_query_task_error"));
+        reinterpret_cast<GPHpaeRaskExecutionQuery>(dlsym(MHCLibFrameworkHandle_, "mhc_gp_query_task_error"));
     MHCDevice_->graphPatternVulkanTaskSubmit = reinterpret_cast<GPGPUTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_vulkan_task_submit"));
     MHCDevice_->graphPatternWait = reinterpret_cast<GPWaitFunc>(dlsym(MHCLibFrameworkHandle_, "mhc_gp_task_wait"));
