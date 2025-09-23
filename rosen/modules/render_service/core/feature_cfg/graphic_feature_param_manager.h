@@ -84,7 +84,7 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<DRMParam>(); }},
     {FEATURE_CONFIGS[SPECIALLAYER], [] {return std::make_unique<SpecialLayerParamParse>(); },
         [] {return std::make_unique<SpecialLayerParam>(); }},
-    {FEATURE_CONFIGS[HWC], [] { return std::make_unique<HWCParamParse>(); }, 
+    {FEATURE_CONFIGS[HWC], [] { return std::make_unique<HWCParamParse>(); },
         [] { return std::make_unique<HWCParam>(); }},
     {FEATURE_CONFIGS[MEM], [] { return std::make_unique<MEMParamParse>(); },
         [] { return std::make_unique<MEMParam>(); }},
