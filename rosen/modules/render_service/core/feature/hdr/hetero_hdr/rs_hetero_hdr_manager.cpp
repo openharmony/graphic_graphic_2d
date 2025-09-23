@@ -354,6 +354,12 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
     return submitRet;
 }
 
+bool RSHeteroHDRManager::HasHdrHeteroNode()
+{
+    uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
+    return (pendingPostNodes_.size() == 1 && curFrameId != 0);
+}
+
 void RSHeteroHDRManager::PostHDRSubTasks()
 {
     if (!isHeteroComputingHdrOn_) {
@@ -364,7 +370,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
     RSHDRPatternManager::Instance().MHCSetVsyncId(curFrameId);
     FindParentLeashWindowNode();
 
-    if (pendingPostNodes_.size() == 1 && curFrameId != 0) {
+    if (HasHdrHeteroNode()) {
         curFrameHeteroHandleCanBeUsed_ = ProcessPendingNode(pendingPostNodes_.front(), curFrameId);
     } else {
         curFrameHeteroHandleCanBeUsed_ = false;
@@ -446,11 +452,6 @@ void RSHeteroHDRManager::FindParentLeashWindowNode()
         "AppWindowNode:%{public}" PRIu64, ownedLeashWindowIdMap_[nodeId], ownedAppWindowIdMap_[nodeId]);
 }
 
-bool RSHeteroHDRManager::ReleaseBuffer()
-{
-    return rsHeteroHDRBufferLayer_.ReleaseBuffer();
-}
-
 int32_t RSHeteroHDRManager::BuildHDRTask(
     RSSurfaceRenderParams* surfaceParams, MDCRectT srcRect, uint32_t* taskId, void** taskPtr, HdrStatus curHandleStatus)
 {
@@ -526,6 +527,12 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
     if (!isHeteroComputingHdrOn_) {
         return false;
     }
+#ifdef RS_ENABLE_VK
+    if (!RSHDRVulkanTask::IsInterfaceTypeBasicRender()) {
+        RS_LOGW("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams not basic render");
+        return false;
+    }
+#endif // RS_ENABLE_VK
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable.GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams surfaceParams is nullptr");

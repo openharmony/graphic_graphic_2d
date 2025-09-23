@@ -118,12 +118,12 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
 
 void RSHeteroHDRBufferLayer::ConsumeAndUpdateBuffer()
 {
-    // The log information related to the failure has been printed within the function.
-    ReleaseBuffer();
     if (surfaceHandler_ == nullptr) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ConsumeAndUpdateBuffer surfaceHandler is nullptr");
         return;
     }
+    // The log information related to the failure has been printed within the function.
+    ReleaseBuffer();
     RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler_);
 }
 
@@ -206,7 +206,7 @@ bool RSHeteroHDRBufferLayer::ReleaseBuffer()
     if (preBuffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler_->GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ReleaseBuffer surfaceHandler ReleaseBuffer failed");
+            RS_LOGD("[hdrHetero]:RSHeteroHDRBufferLayer ReleaseBuffer consumer failed, maybe normal");
             return false;
         }
     }

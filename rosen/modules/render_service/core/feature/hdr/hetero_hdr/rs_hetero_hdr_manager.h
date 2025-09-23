@@ -42,8 +42,6 @@ public:
     bool UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& drawableParams);
     void GenerateHDRHeteroShader(BufferDrawParam& param, std::shared_ptr<Drawing::ShaderEffect>& imageShader);
-    
-    bool ReleaseBuffer();
 
     std::shared_ptr<RSSurfaceHandler> GetHDRSurfaceHandler()
     {
@@ -53,6 +51,9 @@ public:
     {
         return curHandleStatus_;
     }
+
+    bool HasHdrHeteroNode();
+
     virtual ~RSHeteroHDRManager() = default;
 private:
     RSHeteroHDRManager();

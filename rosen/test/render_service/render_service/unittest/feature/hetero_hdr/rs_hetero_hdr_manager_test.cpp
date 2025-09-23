@@ -1520,6 +1520,41 @@ HWTEST_F(RSHeteroHDRManagerTest, DrawHDRCacheWithDmaFFRTTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateHDRHeteroParamsTest
+ * @tc.desc: Test UpdateHDRHeteroParams
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, UpdateHDRHeteroParamsTest002, TestSize.Level1)
+{
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    auto interfaceTypeTmp = RsVulkanContext::GetSingleton().vulkanInterfaceType_;
+
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
+    mockRSHeteroHDRManager.isHeteroComputingHdrOn_ = true;
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    BufferDrawParam drawableParams;
+
+    RsVulkanContext::GetSingleton().vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
+    auto ret = RSHDRVulkanTask::IsInterfaceTypeBasicRender();
+    mockRSHeteroHDRManager.UpdateHDRHeteroParams(canvas, *surfaceDrawable, drawableParams);
+    EXPECT_EQ(ret, true);
+
+    RsVulkanContext::GetSingleton().vulkanInterfaceType_ = VulkanInterfaceType::UNPROTECTED_REDRAW;
+    auto ret1 = RSHDRVulkanTask::IsInterfaceTypeBasicRender();
+    mockRSHeteroHDRManager.UpdateHDRHeteroParams(canvas, *surfaceDrawable, drawableParams);
+    EXPECT_EQ(ret1, false);
+
+    RsVulkanContext::GetSingleton().vulkanInterfaceType_ = interfaceTypeTmp;
+}
+
+/**
  * @tc.name: DrawHDRBufferWithGPUTest
  * @tc.desc: Test ProcessParamsUpdate
  * @tc.type: FUNC

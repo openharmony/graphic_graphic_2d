@@ -126,17 +126,10 @@ void RSHDRVulkanTask::PrepareHDRSemaphoreVector(std::vector<GrBackendSemaphore>&
     }
 }
 
-std::vector<void*> RSHDRVulkanTask::GetWaitSemaphoreKeys(VkSubmitInfo* pSubmits)
+bool RSHDRVulkanTask::IsInterfaceTypeBasicRender()
 {
-    std::vector<void*> keys{};
-    if (!pSubmits || pSubmits->waitSemaphoreCount == 0 || !pSubmits->pWaitSemaphores) {
-        RS_LOGE("[hdrHetero]:RSHDRVulkanTask GetWaitSemaphoreKeys invalid parameters");
-        return keys;
-    }
-    for (uint32_t i = 0; i < pSubmits->waitSemaphoreCount; i++) {
-        keys.push_back(pSubmits->pWaitSemaphores[i]);
-    }
-    return keys;
+    RsVulkanInterface& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    return vkInterface.GetInterfaceType() == VulkanInterfaceType::BASIC_RENDER;
 }
 } // namespace Rosen
 } // namespace OHOS
