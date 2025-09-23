@@ -257,7 +257,7 @@ void RSAnimationTraceUtils::AddAnimationCreateTrace(const uint64_t nodeId, const
     RS_TRACE_NAME_FMT("%s", propertyOss.str().c_str());
 }
 
-void RSAnimationTraceUtils::AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t targetId,
+void RSAnimationTraceUtils::AddAnimationFrameTrace(const RSRenderNode* target, const uint64_t nodeId,
     const std::string& nodeName, const uint64_t animationId, const uint64_t propertyId, const float fraction,
     const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur, const int repeat) const
 {
@@ -266,16 +266,12 @@ void RSAnimationTraceUtils::AddAnimationFrameTrace(const RSRenderNode* target, c
     }
 
     auto propertyValue = ParseRenderPropertyValue(value);
-    uint64_t nodeId = 0;
-    if (target != nullptr) {
-        nodeId = target->GetId();
-    }
     // If it's a UI animation, target is always nullptr. Check if nodeId is not 0. If yes, the animation stays on the
     // node tree by default.
     bool isOnTheTree = target ? target->IsOnTheTree() : (nodeId != 0);
 
     std::ostringstream oss;
-    oss << "frame animation node[" << targetId << "]";
+    oss << "frame animation node[" << nodeId << "]";
     if (target == nullptr) {
         oss << " target[nullptr]";
     }
