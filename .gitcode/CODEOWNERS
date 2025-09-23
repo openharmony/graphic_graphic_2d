@@ -4,7 +4,7 @@
 bundle.json @lijj01
 
 [cross-platform]
-rosen/modules/glfw_render_context/ @aslklw
+rosen/modules/glfw_render_context/ @aslklw1
 
 [drawing]
 rosen/modules/2d_graphics/BUILD.gn @wanyanglan
@@ -78,12 +78,12 @@ rosen/modules/render_service/core/pipeline/hardware_thread/ @conan13234
 rosen/modules/composer/hdi_backend/ @conan13234
 
 [main_thread]
-rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw
-rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @aslklw1
+rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @aslklw1
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @aslklw1
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @aslklw1
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw1
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw1
 
 [render_thread]
 rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.cpp @charlielou
