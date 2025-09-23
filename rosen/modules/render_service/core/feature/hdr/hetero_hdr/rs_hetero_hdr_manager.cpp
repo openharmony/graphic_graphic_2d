@@ -495,7 +495,7 @@ bool RSHeteroHDRManager::IsHDRSurfaceNodeSkipped(
         RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager IsHDRSurfaceNodeSkipped FilterCache Skip");
         return true;
     }
-    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, GetScreenIDByDrawable(surfaceDrawable))) {
+    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
         return true;
     }
     if (!surfaceDrawable->ShouldPaint()) {
