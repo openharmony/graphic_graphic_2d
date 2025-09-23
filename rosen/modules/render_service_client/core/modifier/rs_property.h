@@ -330,10 +330,10 @@ struct RSPropertyTypeTraits {
     static constexpr RSPropertyType type = RSPropertyType::INVALID;
 };
 
-#define DECLARE_PROPERTY(T, TYPE_ENUM)                                    \
-    template<>                                                            \
-    struct RSPropertyTypeTraits<T> {                                      \
-        static constexpr RSPropertyType type = RSPropertyType::TYPE_ENUM; \
+#define DECLARE_PROPERTY(T, TYPE_ENUM)                                      \
+    template<>                                                              \
+    struct RSPropertyTypeTraits<T> {                                        \
+        static constexpr RSPropertyType type = (RSPropertyType::TYPE_ENUM); \
     }
 #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)
 
