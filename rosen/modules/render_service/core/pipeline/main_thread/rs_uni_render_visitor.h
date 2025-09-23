@@ -336,6 +336,8 @@ private:
 
     void UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node);
 
+    void CheckFilterNeedEnableDebug(RSEffectRenderNode& node, bool hasEffectNodeInParent);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
@@ -481,6 +483,9 @@ private:
     int32_t rsScreenNodeChildNum_ = 0;
     
     bool isSkipDrawInVirtualScreen_ = false;
+
+    // used for finding the first effect render node to check to need to enabled debug
+    bool hasEffectNodeInParent_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

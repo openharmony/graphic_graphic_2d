@@ -528,5 +528,12 @@ void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)
     stagingDrawBehindWindowRegion_ = region;
 }
 
+void RSFilterDrawable::MarkDebugEnabled()
+{
+    if (stagingCacheManager_ == nullptr) {
+        return;
+    }
+    stagingCacheManager_->MarkDebugEnabled();
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

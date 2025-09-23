@@ -579,6 +579,7 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
 
     // save staging param value
     lastInForegroundFilter_ = stagingInForegroundFilter_;
+    lastStagingFilterInteractWithDirty_ = stagingFilterInteractWithDirty_;
 
     // stagingParams init
     stagingFilterHashChanged_ = false;
@@ -598,6 +599,8 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     isFilterCacheValid_ = false;
 
     stagingInForegroundFilter_ = false;
+
+    debugEnabled_ = false;
 }
 
 void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
@@ -630,6 +633,7 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
     }
 
     stagingIsSkipFrame_ = stagingIsLargeArea_ && canSkipFrame_ && !stagingFilterRegionChanged_;
+    PrintDebugInfo(nodeId);
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
@@ -920,6 +924,28 @@ void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
     if (isCacheInvalid) {
         InvalidateFilterCache(FilterCacheType::BOTH);
     }
+}
+
+void RSFilterCacheManager::MarkDebugEnabled()
+{
+    debugEnabled_ = true;
+}
+
+void RSFilterCacheManager::PrintDebugInfo(NodeId nodeID)
+{
+    if (!debugEnabled_) {
+        return;
+    }
+
+    if (lastStagingFilterInteractWithDirty_ == stagingFilterInteractWithDirty_) {
+        return;
+    }
+
+    ROSEN_LOGI("RSFilterDrawable::PrintDebugInfo nodeID: %{public}" PRIu64 ", forceUseCache_:%{public}d,"
+        " forceClearCache_:%{public}d, belowDirty_:%{public}d, cacheUpdateInterval_:%{public}d,"
+        " pendingPurge_:%{public}d,",
+        nodeID, stagingForceUseCache_, stagingForceClearCache_, stagingFilterInteractWithDirty_,
+        cacheUpdateInterval_, pendingPurge_);
 }
 } // namespace Rosen
 } // namespace OHOS

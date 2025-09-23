@@ -133,6 +133,7 @@ public:
     void MarkNeedClearFilterCache();
     void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
     void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
+    void MarkDebugEnabled();
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;
