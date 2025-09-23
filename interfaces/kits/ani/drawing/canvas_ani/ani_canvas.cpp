@@ -408,6 +408,75 @@ void AniCanvas::DrawImageRectInner(std::shared_ptr<Media::PixelMap> pixelmap,
 }
 #endif
 
+#ifdef ROSEN_OHOS
+bool AniCanvas::GetVertices(ani_env* env, ani_object verticesObj, float* vertices, uint32_t verticesSize)
+{
+    for (uint32_t i = 0; i < verticesSize; i++) {
+        ani_double vertex;
+        ani_ref vertexRef;
+        if (ANI_OK !=  env->Object_CallMethodByName_Ref(
+            verticesObj, "$_get", "I:Lstd/core/Object;", &vertexRef, (ani_int)i) ||
+            ANI_OK !=  env->Object_CallMethodByName_Double(
+                static_cast<ani_object>(vertexRef), "unboxed", ":D", &vertex)) {
+            delete []vertices;
+            return false;
+        }
+        vertices[i] = vertex;
+    }
+    return true;
+}
+#endif
+
+#ifdef ROSEN_OHOS
+void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
+    DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas)
+{
+    float* verticesMesh = args.verticesSize ? (args.vertices + args.vertOffset * 2) : nullptr;
+    ani_double aniLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Double(colorsObj, "length", &aniLength)) {
+        AniThrowError(env, "Invalid params.");
+        return;
+    }
+    uint32_t colorsSize = aniLength;
+    int64_t tempColorsSize = (args.column + 1) * (args.row + 1) + colorOffset;
+    if (colorsSize != 0 && colorsSize != tempColorsSize) {
+        ROSEN_LOGE("AniCanvas::GetColorsAndDraw colors are invalid");
+        AniThrowError(env, "Incorrect parameter5 type");
+        return;
+    }
+    auto canvas = aniCanvas->GetCanvas();
+    
+    if (colorsSize == 0) {
+        DrawingPixelMapMesh(args.pixelMap, args.column, args.row, verticesMesh, nullptr, canvas);
+        aniCanvas->NotifyDirty();
+        return;
+    }
+
+    auto colors = new (std::nothrow) uint32_t[colorsSize];
+    if (!colors) {
+        ROSEN_LOGE("AniCanvas::GetColorsAndDraw create array with size of colors failed");
+        AniThrowError(env, "Size of colors exceed memory limit.");
+        return;
+    }
+    for (uint32_t i = 0; i < colorsSize; i++) {
+        ani_double color;
+        ani_ref colorRef;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(
+            colorsObj, "$_get", "I:Lstd/core/Object;", &colorRef, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(colorRef), "unboxed", ":D", &color)) {
+            delete []colors;
+            AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
+            return;
+        }
+        colors[i] = color;
+    }
+    uint32_t* colorsMesh = colors + colorOffset;
+    DrawingPixelMapMesh(args.pixelMap, args.column, args.row, verticesMesh, colorsMesh, canvas);
+    aniCanvas->NotifyDirty();
+    delete []colors;
+}
+#endif
+
 void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
     ani_object pixelmapObj, ani_int aniMeshWidth, ani_int aniMeshHeight,
     ani_object verticesObj, ani_int aniVertOffset, ani_object colorsObj, ani_int aniColorOffset)
@@ -428,7 +497,6 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
     int32_t column = aniMeshWidth;
     int32_t row = aniMeshHeight;
     int32_t vertOffset = aniVertOffset;
-    int32_t colorOffset = aniColorOffset;
     if (column == 0 || row == 0) {
         ROSEN_LOGE("AniCanvas::DrawPixelMapMesh column or row is invalid");
         AniThrowError(env, "Invalid column or row params.");
@@ -448,76 +516,18 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         AniThrowError(env, "Incorrect parameter3 type.");
         return;
     }
-
     auto vertices = new (std::nothrow) float[verticesSize];
     if (!vertices) {
         ROSEN_LOGE("AniCanvas::DrawPixelMapMesh create array with size of vertices failed");
         AniThrowError(env, "Size of vertices exceed memory limit.");
         return;
     }
-    for (uint32_t i = 0; i < verticesSize; i++) {
-        ani_double vertex;
-        ani_ref vertexRef;
-        if (ANI_OK !=  env->Object_CallMethodByName_Ref(
-            verticesObj, "$_get", "I:Lstd/core/Object;", &vertexRef, (ani_int)i) ||
-            ANI_OK !=  env->Object_CallMethodByName_Double(
-                static_cast<ani_object>(vertexRef), "unboxed", ":D", &vertex)) {
-            delete []vertices;
-            AniThrowError(env, "Incorrect DrawPixelMapMesh parameter vertex type.");
-            return;
-        }
-        vertices[i] = vertex;
-    }
-
-    float* verticesMesh = verticesSize ? (vertices + vertOffset * 2) : nullptr; // offset two coordinates
-
-    if (ANI_OK != env->Object_GetPropertyByName_Int(colorsObj, "length", &aniLength)) {
-        delete []vertices;
-        AniThrowError(env, "Invalid params.");
+    if (!GetVertices(env, verticesObj, vertices, verticesSize)) {
+        AniThrowError(env, "Incorrect DrawPixelMapMesh parameter vertex type.");
         return;
     }
-    uint32_t colorsSize = aniLength;
-    int64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
-    if (colorsSize != 0 && colorsSize != tempColorsSize) {
-        ROSEN_LOGE("AniCanvas::DrawPixelMapMesh colors are invalid");
-        delete []vertices;
-        AniThrowError(env, "Incorrect parameter5 type");
-        return;
-    }
-
-    if (colorsSize == 0) {
-        DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, nullptr, aniCanvas->GetCanvas());
-        aniCanvas->NotifyDirty();
-        delete []vertices;
-        return;
-    }
-
-    auto colors = new (std::nothrow) uint32_t[colorsSize];
-    if (!colors) {
-        ROSEN_LOGE("AniCanvas::DrawPixelMapMesh create array with size of colors failed");
-        delete []vertices;
-        AniThrowError(env, "Size of colors exceed memory limit.");
-        return;
-    }
-    for (uint32_t i = 0; i < colorsSize; i++) {
-        ani_int color;
-        ani_ref colorRef;
-        if (ANI_OK !=  env->Object_CallMethodByName_Ref(
-            colorsObj, "$_get", "I:Lstd/core/Object;", &colorRef, (ani_int)i) ||
-            ANI_OK !=  env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(colorRef), "unboxed", ":I", &color)) {
-            delete []vertices;
-            delete []colors;
-            AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
-            return;
-        }
-        colors[i] = color;
-    }
-    uint32_t* colorsMesh = colors + colorOffset;
-    DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, aniCanvas->GetCanvas());
-    aniCanvas->NotifyDirty();
-    delete []vertices;
-    delete []colors;
+    DrawPixelMapMeshArgs args {pixelMap, vertices, verticesSize, vertOffset, column, row};
+    GetColorsAndDraw(env, colorsObj, static_cast<int32_t>(aniColorOffset), args, aniCanvas);
 #endif
 }
 
