@@ -104,7 +104,6 @@ constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 constexpr uint32_t MAX_BLACK_LIST_NUM = 1024;
 constexpr uint32_t MAX_WHITE_LIST_NUM = 1024;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
-constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 }
 // we guarantee that when constructing this object,
@@ -495,7 +494,7 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
         RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
         config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
     }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
