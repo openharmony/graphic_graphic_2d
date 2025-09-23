@@ -210,16 +210,16 @@ napi_value ColorPickerNapi::CreateColorPickerFromPtr(napi_env env, std::shared_p
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
 
-    std::unique_ptr<ColorPickerNapi> pColorPickerNapi = std::make_unique<ColorPickerNapi>();
+    ColorPickerNapi* pColorPickerNapi = new (std::nothrow) ColorPickerNapi();
+    if (pColorPickerNapi == nullptr) {
+        return nullptr;
+    }
     pColorPickerNapi->env_ = env;
     pColorPickerNapi->nativeColorPicker_ = picker;
-    napi_wrap(env, objValue, pColorPickerNapi.release(), ColorPickerNapi::Finalizer, nullptr, nullptr);
+    auto status = napi_wrap(env, objValue, pColorPickerNapi, ColorPickerNapi::Destructor, nullptr, nullptr);
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, pColorPickerNapi,
+        EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPtr wrap fail"));
     return objValue;
-}
-
-void ColorPickerNapi::Finalizer(napi_env env, void* data, void* hint)
-{
-    std::unique_ptr<ColorPickerNapi>(static_cast<ColorPickerNapi*>(data));
 }
 
 static void CreateColorPickerFromPixelMapExecute(napi_env env, void* data)
