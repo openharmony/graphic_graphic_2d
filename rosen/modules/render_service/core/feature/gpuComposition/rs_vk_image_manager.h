@@ -95,7 +95,7 @@ public:
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
     std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0, bool ignoreAlpha) override;
 
     void DumpVkImageInfo(std::string &dumpString) override;
 private:

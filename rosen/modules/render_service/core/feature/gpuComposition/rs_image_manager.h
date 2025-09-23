@@ -41,7 +41,7 @@ public:
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) = 0;
     virtual std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
         const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) = 0;
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0, bool ignoreAlpha) = 0;
 
     // Vulkan specific functions
     virtual void DumpVkImageInfo(std::string &dumpString) { return; }

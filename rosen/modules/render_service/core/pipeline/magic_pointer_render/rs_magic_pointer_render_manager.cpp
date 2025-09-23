@@ -414,7 +414,7 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageBy
     }
 #if (defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)) || defined(RS_ENABLE_VK)
     return imageManager_->GetIntersectImage(imgCutRect, context,
-        param.buffer, param.acquireFence, param.threadIndex);
+        param.buffer, param.acquireFence, param.threadIndex, params.ignoreAlpha);
 #endif
 #endif
     return nullptr;

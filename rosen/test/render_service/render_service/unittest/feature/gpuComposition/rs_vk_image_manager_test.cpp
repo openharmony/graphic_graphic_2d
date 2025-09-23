@@ -317,6 +317,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
     params.buffer = nullptr;
     params.acquireFence = nullptr;
     params.threadIndex = 0;
+    params.ignoreAlpha = false;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
     auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
@@ -343,6 +344,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
     BufferDrawParam params;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     params.buffer = CreateBuffer();
+    params.ignoreAlpha = true;
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && recordingCanvas) {
         params.buffer->SetBufferDeleteFromCacheFlag(false);
