@@ -2549,7 +2549,6 @@ uint64_t RSProfiler::GetRootNodeId()
                 rootNodeChildrenCount = node->GetChildrenCount();
             }
         }
-        
         if (const auto children = node->GetChildren()) {
             for (const auto& child: *children) {
                 nodes.push(child);
