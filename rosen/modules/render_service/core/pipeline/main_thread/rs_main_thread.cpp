@@ -1947,7 +1947,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE;
             }
             // virtual expand screen
-            return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            return false;
     });
 
     // In the process of cutting the state, the self-drawing layer with the size before the cut state is probably
