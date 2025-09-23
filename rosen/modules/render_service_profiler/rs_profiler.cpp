@@ -2550,7 +2550,7 @@ uint64_t RSProfiler::GetRootNodeId()
             }
         }
         if (const auto children = node->GetChildren()) {
-            for (const auto child: *children) {
+            for (const auto& child: *children) {
                 nodes.push(child);
             }
         }
