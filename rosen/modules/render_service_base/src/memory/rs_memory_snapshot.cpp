@@ -69,21 +69,15 @@ bool MemorySnapshot::GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotI
     return true;
 }
 
-void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& uniRenderGpuInfo,
-    const std::unordered_map<pid_t, size_t>& subThreadGpuInfo,
+void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
     std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto& [pid, info] : appMemorySnapshots_) {
-        auto it = uniRenderGpuInfo.find(pid);
-        if (it != uniRenderGpuInfo.end()) {
+        auto it = gpuInfo.find(pid);
+        if (it != gpuInfo.end()) {
             totalMemory_ = totalMemory_ - info.gpuMemory + it->second;
             info.gpuMemory = it->second;
-        }
-        auto subThreadInfoIt = subThreadGpuInfo.find(pid);
-        if (subThreadInfoIt != subThreadGpuInfo.end()) {
-            totalMemory_ = totalMemory_ - info.subThreadGpuMemory + subThreadInfoIt->second;
-            info.subThreadGpuMemory = subThreadInfoIt->second;
         }
         if (info.TotalMemory() > singleMemoryWarning_) {
             pidForReport.emplace(pid, info);
@@ -195,7 +189,7 @@ void MemorySnapshot::PrintMemorySnapshotToHilog()
         MemorySnapshotInfo info = memorySnapshotsList[i];
         RS_LOGE("pid : %{public}d %{public}s, cpu : %{public}zuKB, gpu : %{public}zuKB",
             static_cast<int32_t>(info.pid), info.bundleName.c_str(),
-            info.cpuMemory / MEMUNIT_RATE, (info.gpuMemory + info.subThreadGpuMemory) / MEMUNIT_RATE);
+            info.cpuMemory / MEMUNIT_RATE, info.gpuMemory / MEMUNIT_RATE);
     }
 
     memorySnapshotHilogTime_ = currentTime + MEMORY_SNAPSHOT_INTERVAL;
@@ -212,8 +206,8 @@ void MemorySnapshot::FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapsh
             maxCpu = snapshotInfo.cpuMemory;
         }
 
-        if (snapshotInfo.gpuMemory + snapshotInfo.subThreadGpuMemory > maxGpu) {
-            maxGpu = snapshotInfo.gpuMemory + snapshotInfo.subThreadGpuMemory;
+        if (snapshotInfo.gpuMemory > maxGpu) {
+            maxGpu = snapshotInfo.gpuMemory;
         }
 
         size_t totalMemory = snapshotInfo.TotalMemory();
@@ -227,8 +221,7 @@ float MemorySnapshot::CalculateRiskScore(const MemorySnapshotInfo snapshotInfo,
     size_t maxCpu, size_t maxGpu, size_t maxSum)
 {
     float normCpu = (maxCpu == 0) ? 0 : static_cast<float>(snapshotInfo.cpuMemory) / maxCpu;
-    float normGpu =
-        (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.gpuMemory + snapshotInfo.subThreadGpuMemory) / maxGpu;
+    float normGpu = (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.gpuMemory) / maxGpu;
     float normSum = (maxSum == 0) ? 0 : static_cast<float>(snapshotInfo.TotalMemory()) / maxSum;
     return WEIGHT_CPU * normCpu + WEIGHT_GPU * normGpu + WEIGHT_SUM * normSum;
 }
