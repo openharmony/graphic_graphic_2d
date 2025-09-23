@@ -468,7 +468,7 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
     Drawing::Rect srcRect { 0, 0, 1, 1 };
     Drawing::PaintHandle paintHandle;
     Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, paintHandle);
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, false, paintHandle);
     Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -504,7 +504,7 @@ HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
     Drawing::Rect srcRect { 0, 0, 1, 1 };
     Drawing::PaintHandle paintHandle;
     Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, paintHandle);
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, transform, srcRect, false, paintHandle);
     Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
     Drawing::BitmapFormat bitmapFormat =
         drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_8888);

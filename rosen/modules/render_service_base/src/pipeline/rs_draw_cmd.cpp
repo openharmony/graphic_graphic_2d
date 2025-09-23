@@ -1140,7 +1140,7 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
           handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
           handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
           handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.transform_,
-          handle->surfaceBufferInfo.srcRect_),
+          handle->surfaceBufferInfo.srcRect_, handle->surfaceBufferInfo.isIgnoreAlpha_),
       isNeedDrawDirectly_(!IsValidRemoteAddress(handle->surfaceBufferInfo.pid_,
           handle->surfaceBufferInfo.uid_))
 {
@@ -1172,7 +1172,8 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     cmdList.AddOp<ConstructorHandle>(CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
         surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
         surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
-        surfaceBufferInfo_.uid_, surfaceBufferInfo_.transform_, surfaceBufferInfo_.srcRect_, paintHandle);
+        surfaceBufferInfo_.uid_, surfaceBufferInfo_.transform_, surfaceBufferInfo_.srcRect_,
+        surfaceBufferInfo_.isIgnoreAlpha_, paintHandle);
 }
 
 namespace {
@@ -1495,8 +1496,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
-        new NativeBufferUtils::VulkanCleanupHelper(
-            RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
+        new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage,
+            vkTextureInfo->vkAlloc.memory), surfaceBufferInfo_.isIgnoreAlpha_)) {
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
@@ -1551,7 +1552,7 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     }
     auto newImage = std::make_shared<Drawing::Image>();
     if (!newImage->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr, surfaceBufferInfo_.isIgnoreAlpha_)) {
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
