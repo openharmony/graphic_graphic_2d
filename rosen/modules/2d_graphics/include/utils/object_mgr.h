@@ -46,26 +46,6 @@ private:
     std::mutex mutex_;
 };
 
-class FontCollectionMgr {
-public:
-    FontCollectionMgr(const FontCollectionMgr&) = delete;
-    FontCollectionMgr& operator=(const FontCollectionMgr&) = delete;
-
-    static FontCollectionMgr& GetInstance();
-
-    using FontCollectionType = ::OHOS::Rosen::FontCollection;
-
-    void Insert(void* key, std::shared_ptr<FontCollectionType> fontCollection);
-    std::shared_ptr<FontCollectionType> Find(void* key);
-    bool Remove(void* key);
-
-private:
-    FontCollectionMgr() {}
-
-    std::unordered_map<void*, std::shared_ptr<FontCollectionType>> collections_;
-    std::mutex mutex_;
-};
-
 class TypefaceMgr {
 public:
     TypefaceMgr(const TypefaceMgr&) = delete;

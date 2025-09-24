@@ -16,6 +16,7 @@
 #include "drawing_font_collection.h"
 
 #include "rosen_text/font_collection.h"
+#include "rosen_text/font_collection_mgr.h"
 
 #ifdef USE_SKIA_TXT
 #include "skia_txt/font_collection.h"
@@ -50,7 +51,7 @@ OH_Drawing_FontCollection* OH_Drawing_CreateSharedFontCollection(void)
 {
     auto fc = std::make_shared<OHOS::Rosen::AdapterTxt::FontCollection>();
     OH_Drawing_FontCollection* pointer = reinterpret_cast<OH_Drawing_FontCollection*>(fc.get());
-    FontCollectionMgr::GetInstance().Insert(pointer, fc);
+    OHOS::Rosen::FontCollectionMgr::GetInstance().InsertSharedFontColleciton(pointer, fc);
     return pointer;
 }
 
@@ -60,7 +61,7 @@ void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    if (FontCollectionMgr::GetInstance().Remove(fontCollection)) {
+    if (OHOS::Rosen::FontCollectionMgr::GetInstance().RemoveSharedFontColleciton(fontCollection)) {
         return;
     }
     if (!g_objectMgr->RemoveObject(fontCollection)) {
@@ -92,7 +93,7 @@ void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    if (FontCollectionMgr::GetInstance().Find(fontCollection)) {
+    if (OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection)) {
         ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
         return;
     }
@@ -108,8 +109,8 @@ OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void)
 {
     std::shared_ptr<OHOS::Rosen::FontCollection> fc = OHOS::Rosen::FontCollection::Create();
     OH_Drawing_FontCollection* pointer = reinterpret_cast<OH_Drawing_FontCollection*>(fc.get());
-    if (!FontCollectionMgr::GetInstance().Find(pointer)) {
-        FontCollectionMgr::GetInstance().Insert(pointer, fc);
+    if (!OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(pointer)) {
+        OHOS::Rosen::FontCollectionMgr::GetInstance().InsertSharedFontColleciton(pointer, fc);
     }
     return pointer;
 }
