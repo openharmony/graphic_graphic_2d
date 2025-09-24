@@ -51,8 +51,9 @@ public:
     MOCK_METHOD(void, ForceCloseHdr, (uint32_t closeHdrSceneId, bool forceCloseHdr), (override));
     MOCK_METHOD(bool, IsCloseHardwareHdr, (), (override, const));
     MOCK_METHOD(bool, IsScreenNoHeadroom, (ScreenId screenId), (override, const));
-    MOCK_METHOD(bool, IsEnableImageDetailEnhance, (), (override));
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
+    MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));
+    MOCK_METHOD(bool, IsBrightnessInfoChanged, (ScreenId screenId), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -94,6 +95,12 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     auto& luminCtrl = RSLuminanceControl::Get();
     luminCtrl.Init();
     luminCtrl.initStatus_ = true;
+    luminCtrl.DimmingIncrease(screenId);
+    luminCtrl.SetNowHdrLuminance(screenId, level);
+    luminCtrl.SetSdrLuminance(screenId, level);
+    luminCtrl.ForceCloseHdr(screenId, true);
+    luminCtrl.GetBrightnessInfo(screenId);
+
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
@@ -106,6 +113,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO_GTM);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
     luminCtrl.ForceCloseHdr(screenId, true);
+    luminCtrl.GetBrightnessInfo(screenId);
     
     ASSERT_NE((&luminCtrl), nullptr);
 }
@@ -331,5 +339,20 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl015, TestSize.Level1)
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
     ASSERT_EQ(luminCtrl.GetNewHdrLuminance(0), 0);
+}
+
+/**
+ * @tc.name: LuminanceControl016
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl016, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+    ASSERT_EQ(luminCtrl.IsBrightnessInfoChanged(0), false);
 }
 } // namespace OHOS::Rosen

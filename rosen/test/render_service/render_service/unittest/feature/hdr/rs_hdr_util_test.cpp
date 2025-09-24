@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "ibuffer_consumer_listener.h"
 #include "gtest/gtest.h"
+#include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -281,6 +282,59 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // update surfaceNode HDRBrightnessFactor
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // not update surfaceNode HDRBrightnessFactor
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
+}
+
+/**
+ * @tc.name: UpdateSurfaceNodeNit003
+ * @tc.desc: Test UpdateSurfaceNodeNit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest003, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    node->OnRegister(context);
+    node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+    EXPECT_EQ(node->GetVideoHdrStatus(), HdrStatus::HDR_VIDEO);
+
+    auto& nodeMap = context->GetMutableNodeMap();
+    NodeId screenRenderNodeId = 1;
+    ScreenId screenId = 1;
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
+    bool res = nodeMap.RegisterRenderNode(screenRenderNode);
+    ASSERT_EQ(res, true);
+    node->screenNodeId_ = screenRenderNodeId;
+    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(node->GetScreenNodeId());
+    ASSERT_NE(screenNode, nullptr);
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+
+    uint32_t hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR;
+    std::vector<uint8_t> metadataType;
+    metadataType.resize(sizeof(hdrType));
+    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
+    buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
+    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GTM);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+
+    hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT;
+    metadataType.resize(sizeof(hdrType));
+    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
+    buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
+    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+#endif
 }
 
 /**
