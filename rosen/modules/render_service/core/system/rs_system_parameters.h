@@ -80,9 +80,9 @@ public:
     static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);
     static bool GetWiredScreenOndrawEnabled();
     static bool GetDebugMirrorOndrawEnabled();
-    static bool GetArsrPreEnabled();
     static bool GetIsCopybitSupported();
     static bool GetMultimediaEnableCameraRotationCompensation();
+    static bool GetArsrPreEnabled();
     static bool GetCanvasDrawingNodeRegionEnabled();
     static int32_t GetWindowScreenScanType();
     static int32_t GetPurgeableResourceLimit();
