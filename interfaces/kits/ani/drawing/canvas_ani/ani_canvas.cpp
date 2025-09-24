@@ -270,15 +270,15 @@ ani_status AniCanvas::AniInit(ani_env *env)
         ani_native_function { "drawRoundRect", nullptr, reinterpret_cast<void*>(DrawRoundRect) },
         ani_native_function { "drawNestedRoundRect", nullptr, reinterpret_cast<void*>(DrawNestedRoundRect) },
         ani_native_function { "drawBackground", nullptr, reinterpret_cast<void*>(DrawBackground) },
-        ani_native_function { "drawShadow", "C{@ohos/graphics/drawing/drawing/Path}"
-            "C{@ohos/graphics/common2D/common2D/Point3d}C{@ohos/graphics/common2D/common2D/Point3d}"
-            "dC{@ohos/graphics/common2D/common2D/Color}C{@ohos/graphics/common2D/common2D/Color}"
-            "C{@ohos/graphics/drawing/drawing/ShadowFlag}:",
+        ani_native_function { "drawShadow", "C{@ohos.graphics.drawing.drawing.Path}"
+            "C{@ohos.graphics.common2D.common2D.Point3d}C{@ohos.graphics.common2D.common2D.Point3d}"
+            "dC{@ohos.graphics.common2D.common2D.Color}C{@ohos.graphics.common2D.common2D.Color}"
+            "C{@ohos.graphics.drawing.drawing.ShadowFlag}:",
             reinterpret_cast<void*>(DrawShadow) },
-        ani_native_function { "drawShadow", "C{@ohos/graphics/drawing/drawing/Path}"
-            "C{@ohos/graphics/common2D/common2D/Point3d}C{@ohos/graphics/common2D/common2D/Point3d}"
-            "dX{C{@ohos/graphics/common2D/common2D/Color}C{std.core.Int}}"
-            "X{C{@ohos/graphics/common2D/common2D/Color}C{std.core.Int}}C{@ohos/graphics/drawing/drawing/ShadowFlag}:",
+        ani_native_function { "drawShadow", "C{@ohos.graphics.drawing.drawing.Path}"
+            "C{@ohos.graphics.common2D.common2D.Point3d}C{@ohos.graphics.common2D.common2D.Point3d}"
+            "dX{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}"
+            "X{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}C{@ohos.graphics.drawing.drawing.ShadowFlag}:",
             reinterpret_cast<void*>(DrawShadowWithOption) },
         ani_native_function { "drawCircle", nullptr, reinterpret_cast<void*>(DrawCircle) },
         ani_native_function { "drawImage", nullptr, reinterpret_cast<void*>(DrawImage) },
@@ -287,11 +287,11 @@ ani_status AniCanvas::AniInit(ani_env *env)
         ani_native_function { "drawImageRect", nullptr, reinterpret_cast<void*>(DrawImageRect) },
         ani_native_function { "drawImageRectWithSrc", nullptr, reinterpret_cast<void*>(DrawImageRectWithSrc) },
         ani_native_function { "drawColor",
-            "C{@ohos/graphics/common2D/common2D/Color}C{@ohos/graphics/drawing/drawing/BlendMode}:",
+            "C{@ohos.graphics.common2D.common2D.Color}C{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(DrawColorWithObject) },
-        ani_native_function { "drawColor", "iiiiC{@ohos/graphics/drawing/drawing/BlendMode}:",
+        ani_native_function { "drawColor", "iiiiC{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(DrawColorWithArgb) },
-        ani_native_function { "drawColor", "iC{@ohos/graphics/drawing/drawing/BlendMode}:",
+        ani_native_function { "drawColor", "iC{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(DrawColor) },
         ani_native_function { "drawPath", nullptr, reinterpret_cast<void*>(DrawPath) },
         ani_native_function { "drawLine", nullptr, reinterpret_cast<void*>(DrawLine) },
@@ -309,8 +309,8 @@ ani_status AniCanvas::AniInit(ani_env *env)
         ani_native_function { "detachBrush", nullptr, reinterpret_cast<void*>(DetachBrush) },
         ani_native_function { "save", nullptr, reinterpret_cast<void*>(Save) },
         ani_native_function { "saveLayer", nullptr, reinterpret_cast<void*>(SaveLayer) },
-        ani_native_function { "clear", "C{@ohos/graphics/common2D/common2D/Color}:", reinterpret_cast<void*>(Clear) },
-        ani_native_function { "clear", "X{C{@ohos/graphics/common2D/common2D/Color}C{std.core.Int}}:",
+        ani_native_function { "clear", "C{@ohos.graphics.common2D.common2D.Color}:", reinterpret_cast<void*>(Clear) },
+        ani_native_function { "clear", "X{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}:",
             reinterpret_cast<void*>(ClearWithOption) },
         ani_native_function { "restore", nullptr, reinterpret_cast<void*>(Restore) },
         ani_native_function { "restoreToCount", nullptr, reinterpret_cast<void*>(RestoreToCount) },

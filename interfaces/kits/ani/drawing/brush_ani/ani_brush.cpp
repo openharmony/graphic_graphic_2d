@@ -39,7 +39,7 @@ ani_status AniBrush::AniInit(ani_env *env)
         ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Brush}:",
             reinterpret_cast<void*>(ConstructorWithBrush) },
         ani_native_function { "getAlpha", ":i", reinterpret_cast<void*>(GetAlpha) },
-        ani_native_function { "setColor", "C{@ohos/graphics/common2D/common2D/Color}:",
+        ani_native_function { "setColor", "C{@ohos.graphics.common2D.common2D.Color}:",
             reinterpret_cast<void*>(SetColorWithObject) },
         ani_native_function { "setColor", "iiii:", reinterpret_cast<void*>(SetColorWithARGB) },
         ani_native_function { "setColor", "i:", reinterpret_cast<void*>(SetColor) },
@@ -51,8 +51,7 @@ ani_status AniBrush::AniInit(ani_env *env)
         ani_native_function { "setAlpha", "i:", reinterpret_cast<void*>(SetAlpha) },
         ani_native_function { "setBlendMode", "C{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(SetBlendMode) },
-        ani_native_function { "setColorFilter", "C{@ohos.graphics.drawing.drawing.ColorFilter}:",
-            reinterpret_cast<void*>(SetColorFilter) },
+        ani_native_function { "setColorFilter", nullptr, reinterpret_cast<void*>(SetColorFilter) },
         ani_native_function { "getColorFilter", nullptr, reinterpret_cast<void*>(GetColorFilter) },
     };
 
@@ -297,16 +296,20 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
         return;
     }
 
-    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
-    if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
-        ROSEN_LOGE("AniBrush::SetColorFilter colorFilter is nullptr");
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "AniBrush::SetColorFilter colorfilter is nullptr.");
-        return;
+    ani_boolean isNull = ANI_TRUE;
+    env->Reference_IsNull(objColorFilter, &isNull);
+    AniColorFilter* aniColorFilter = nullptr;
+    if (!isNull) {
+        aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
+        if (aniColorFilter == nullptr) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "AniBrush::SetColorFilter Invalid param colorFilter.");
+            return;
+        }
     }
 
     Filter filter = aniBrush->GetBrush()->GetFilter();
-    filter.SetColorFilter(aniColorFilter->GetColorFilter());
+    filter.SetColorFilter(aniColorFilter ? aniColorFilter->GetColorFilter() : nullptr);
     aniBrush->GetBrush()->SetFilter(filter);
 }
 
