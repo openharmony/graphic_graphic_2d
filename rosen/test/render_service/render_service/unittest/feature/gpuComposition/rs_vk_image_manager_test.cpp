@@ -317,6 +317,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
     params.buffer = nullptr;
     params.acquireFence = nullptr;
     params.threadIndex = 0;
+    params.ignoreAlpha = false;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
     auto res = imageManager->CreateImageFromBuffer(*canvas, params, drawingColorSpace);
@@ -343,6 +344,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
     BufferDrawParam params;
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     params.buffer = CreateBuffer();
+    params.ignoreAlpha = true;
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && recordingCanvas) {
         params.buffer->SetBufferDeleteFromCacheFlag(false);
@@ -366,16 +368,18 @@ HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
     Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
     std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
-    sptr<OHOS::SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = nullptr;
-    pid_t threadIndex = 0;
-    auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+    BufferDrawParam params;
+    params.acquireFence = nullptr;
+    params.threadIndex = 0;
+    params.buffer = nullptr;
+    auto res = imageManager->GetIntersectImage(imgCutRect, context, params);
     EXPECT_EQ(res, nullptr);
-    buffer = SurfaceBuffer::Create();
-    res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+    params.buffer = SurfaceBuffer::Create();
+    res = imageManager->GetIntersectImage(imgCutRect, context, params);
     EXPECT_EQ(res, nullptr);
-
-    res = imageManager->GetIntersectImage(imgCutRect, context, buffer_, BufferFence_, threadIndex);
+    params.buffer = buffer_;
+    params.acquireFence = BufferFence_;
+    res = imageManager->GetIntersectImage(imgCutRect, context, params);
     EXPECT_EQ(res, nullptr);
 }
 
