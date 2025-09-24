@@ -74,7 +74,7 @@ void FontCollectionMgr::DestroyLocalInstance(uint64_t envId)
 bool FontCollectionMgr::CheckInstanceIsValid(uint64_t envId, std::shared_ptr<FontCollection> fontCollection)
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);
-    if (fontCollection == nullptr || !fontCollection->HasGlobalFontMgr()) {
+    if (fontCollection == nullptr || !fontCollection->IsLocalFontCollection()) {
         return true;
     }
 

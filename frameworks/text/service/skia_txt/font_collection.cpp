@@ -72,7 +72,7 @@ void FontCollection::EnableGlobalFontMgr()
     enableGlobalFontMgr_ = true;
 }
 
-bool FontCollection::HasGlobalFontMgr()
+bool FontCollection::IsLocalFontCollection()
 {
     return enableGlobalFontMgr_;
 }
