@@ -14,7 +14,6 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
-import("${graphic_2d_root}/rosen/modules/render_service_base/config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/graphic_test"
 
@@ -104,9 +103,7 @@ rs_perform_feature_sources = [
 
 group("test") {
   testonly = true
-  deps = [
-    ":RSGraphicTest",
-  ]
+  deps = [ ":RSGraphicTest" ]
 }
 
 ## Build RSGraphicTest

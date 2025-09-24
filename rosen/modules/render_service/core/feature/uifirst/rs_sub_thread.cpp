@@ -258,7 +258,6 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     // mark nodedrawable can release
     RSUifirstManager::Instance().AddProcessDoneNode(nodeId);
     doingCacheProcessNum_--;
-    UpdateGpuMemoryStatistics();
 }
 
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
@@ -367,7 +366,6 @@ void RSSubThread::ResetGrContext()
     }
     grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
-    UpdateGpuMemoryStatistics();
 }
 
 void RSSubThread::ThreadSafetyReleaseTexture()
@@ -376,7 +374,6 @@ void RSSubThread::ThreadSafetyReleaseTexture()
         return;
     }
     grContext_->FreeGpuResources();
-    UpdateGpuMemoryStatistics();
 }
 
 void RSSubThread::ReleaseSurface()
@@ -387,7 +384,6 @@ void RSSubThread::ReleaseSurface()
         tmpSurfaces_.pop();
         tmp = nullptr;
     }
-    UpdateGpuMemoryStatistics();
 }
 
 void RSSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
@@ -418,7 +414,6 @@ void RSSubThread::ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceR
     RS_TRACE_NAME_FMT("ReleaseCacheSurfaceOnly id:" PRIu64, nodeId);
     RS_LOGI("ReleaseCacheSurfaceOnly id:%{public}" PRIu64, nodeId);
     nodeDrawable->GetRsSubThreadCache().ClearCacheSurfaceOnly();
-    UpdateGpuMemoryStatistics();
 }
 
 void RSSubThread::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas)
@@ -426,22 +421,6 @@ void RSSubThread::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas)
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (renderEngine) {
         canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
-    }
-}
-
-void RSSubThread::UpdateGpuMemoryStatistics()
-{
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
-    if (grContext_ == nullptr) {
-        return;
-    }
-    std::unordered_map<pid_t, size_t> gpuMemOfPid;
-    grContext_->GetUpdatedMemoryMap(gpuMemOfPid);
-    std::lock_guard<std::mutex> lock(memMutex_);
-    for (auto& [pid, size] : gpuMemOfPid) {
-        gpuMemoryOfPid_[pid] = size;
     }
 }
 }

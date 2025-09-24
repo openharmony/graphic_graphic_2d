@@ -26,6 +26,9 @@ namespace OHOS {
 namespace Rosen {
 namespace RSGpuDirtyCollectorConst {
     constexpr int ATTRKEY_GPU_DIRTY_REGION = 17;
+#ifndef ROSEN_CROSS_PLATFORM
+    constexpr uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
+#endif
 }
 enum CacheOption : int32_t {
     CACHE_NOOP = 0x0,   // do nothing
