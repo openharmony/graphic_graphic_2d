@@ -301,25 +301,24 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
 }
 
 std::shared_ptr<Drawing::Image> RSVkImageManager::GetIntersectImage(Drawing::RectI& imgCutRect,
-    const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
-    const sptr<SyncFence>& acquireFence, pid_t threadIndex, bool ignoreAlpha)
+    const std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& params)
 {
-    if (buffer == nullptr) {
+    if (params.buffer == nullptr) {
         ROSEN_LOGE("RSVkImageManager::GetIntersectImageFromVK context or buffer is nullptr!");
         return nullptr;
     }
-    auto imageCache = CreateImageCacheFromBuffer(buffer, acquireFence);
+    auto imageCache = CreateImageCacheFromBuffer(params.buffer, params.acquireFence);
     if (imageCache == nullptr) {
         ROSEN_LOGE("RSVkImageManager::GetIntersectImageFromVK imageCache == nullptr!");
         return nullptr;
     }
     auto& backendTexture = imageCache->GetBackendTexture();
-    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 
     std::shared_ptr<Drawing::Image> layerImage = std::make_shared<Drawing::Image>();
     if (!layerImage->BuildFromTexture(*context, backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
-        NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper(), ignoreAlpha)) {
+        NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper(), params.ignoreAlpha)) {
         ROSEN_LOGE("RSVkImageManager::GetIntersectImageFromVK image BuildFromTexture failed.");
         return nullptr;
     }
