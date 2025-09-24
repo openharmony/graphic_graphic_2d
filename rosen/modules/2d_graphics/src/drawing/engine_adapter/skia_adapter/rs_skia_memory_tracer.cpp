@@ -136,7 +136,7 @@ void SkiaMemoryTracer::ProcessElement()
             std::string strResourceName = resourceName;
             TraceValue sizeValue = sizeResult->second;
             std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
-            results_.insert({ strResourceName, typeItem });
+            results_.insert({ std:move(strResourceName), std:move(typeItem) });
         } else {
             auto& resourceValues = result->second;
             typeResult = resourceValues.find(key);
@@ -167,13 +167,13 @@ void SkiaMemoryTracer::ProcessElement()
             std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
             std::unordered_map<std::string,
                 std::unordered_map<std::string, TraceValue>> tagItem{{strResourceName, typeItem}};
-            sourceTagResults_.insert({sourceType, tagItem});
+            sourceTagResults_.insert({sourceType, std:move(tagItem)});
         } else { // 2.update source item
             auto& sourceValues = sourceResult->second;
             auto tagResult = sourceValues.find(strResourceName);
             if (tagResult == sourceValues.end()) { // 2.1 add new tag item in current source
                 std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
-                sourceResult->second.insert({strResourceName, typeItem});
+                sourceResult->second.insert({strResourceName, std:move(typeItem)});
             } else { // 2.2 update tag item in current source
                 auto& typeValues = tagResult->second;
                 typeResult = typeValues.find(key);
@@ -205,12 +205,12 @@ void SkiaMemoryTracer::LogOutput(DfxString& log)
     // process any remaining elements
     ProcessElement();
 
-    for (const auto& sourceItem: sourceTagResults_) {
+    for (const auto& sourceItem : sourceTagResults_) {
         if (itemizeType_) {
             log.AppendFormat("  %s:\n", sourceItem.first.c_str()); // source_xx
-            for (const auto& tagItem: sourceItem.second) {
+            for (const auto& tagItem : sourceItem.second) {
                 log.AppendFormat("    %s:\n", tagItem.first.c_str()); // skia/sk_glyph_cache
-                for (const auto& typeItem: tagItem.second) {
+                for (const auto& typeItem : tagItem.second) {
                     TraceValue traceValue = ConvertUnits(typeItem.second);
                     const char* entry = (traceValue.count > 1) ? "entries" : "entry";
                     log.AppendFormat("      %s: %.2f %s (%d %s)\n", typeItem.first.c_str(), traceValue.value,
