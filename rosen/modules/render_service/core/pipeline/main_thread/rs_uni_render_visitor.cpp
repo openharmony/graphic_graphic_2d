@@ -475,6 +475,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     bool isBrightnessInfoChanged = RSLuminanceControl::Get().IsBrightnessInfoChanged(screenId);
     if (isBrightnessInfoChanged) {
         BrightnessInfo info = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
+        screenManager_->NotifyBrightnessInfoChangeCallback(screenId, info);
         RS_LOGD("HandlePixelFormat curHeadroom:%{public}f maxHeadroom:%{public}f sdrNits:%{public}f",
             info.currentHeadroom, info.maxHeadroom, info.sdrNits);
     }
