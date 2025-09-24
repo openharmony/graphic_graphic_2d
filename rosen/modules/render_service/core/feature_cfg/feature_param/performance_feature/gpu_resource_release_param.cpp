@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef SOCPERF_PARAM_PARSE_H
-#define SOCPERF_PARAM_PARSE_H
-
-#include "xml_parser_base.h"
-#include "socperf_param.h"
+#include "gpu_resource_release_param.h"
 
 namespace OHOS::Rosen {
-class SOCPerfParamParse : public XMLParserBase {
-public:
-    SOCPerfParamParse() = default;
-    ~SOCPerfParamParse() = default;
 
-    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
+DeeplyRelGpuResParam& DeeplyRelGpuResParam::GetInstance()
+{
+    static DeeplyRelGpuResParam instance;
+    return instance;
+}
 
-private:
-    int32_t ParseSOCPerfInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<SOCPerfParam> socPerfParam_;
-};
+bool DeeplyRelGpuResParam::IsDeeplyRelGpuResEnable() const
+{
+    return isDeeplyRelGpuResEnable_;
+}
+
+void DeeplyRelGpuResParam::SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable)
+{
+    isDeeplyRelGpuResEnable_ = isDeeplyRelGpuResEnable;
+}
 } // namespace OHOS::Rosen
-#endif // SOCPERF_PARAM_PARSE_H

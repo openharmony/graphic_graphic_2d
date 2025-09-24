@@ -55,6 +55,8 @@
 #include "dvsync_param.h"
 #include "surface_capture_param_parse.h"
 #include "surface_capture_param.h"
+#include "gpu_resource_release_param_parse.h"
+#include "gpu_resource_release_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
 #include "vrate_param_parse.h"
@@ -110,6 +112,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<FilterParam>(); }},
     {FEATURE_CONFIGS[SOC_PERF], [] { return std::make_unique<SOCPerfParamParse>(); },
         [] { return std::make_unique<SOCPerfParam>(); }},
+    {FEATURE_CONFIGS[DEEPLY_REL_GPU_RES], [] { return std::make_unique<DeeplyRelGpuResParamParse>(); },
+        [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[VRATE], [] { return std::make_unique<VRateParamParse>(); },
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ACCESSIBILITY], [] { return std::make_unique<AccessibilityParamParse>(); },

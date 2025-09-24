@@ -27,7 +27,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseMemInternal(xmlNode &node);
+    int32_t ParseMemInternal(FeatureParamMapType &featureMap, xmlNode &node);
     std::shared_ptr<MEMParam> memParam_;
 };
 } // namespace OHOS::Rosen
