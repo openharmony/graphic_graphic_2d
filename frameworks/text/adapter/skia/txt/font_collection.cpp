@@ -98,7 +98,7 @@ std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() co
     std::vector<std::shared_ptr<RSFontMgr>> order;
     if (dynamicFontManager_)
         order.push_back(dynamicFontManager_);
-    if (globalFontManager_!=nullptr)
+    if (globalFontManager_ != nullptr)
         order.push_back(globalFontManager_);
     if (assetFontManager_)
         order.push_back(assetFontManager_);

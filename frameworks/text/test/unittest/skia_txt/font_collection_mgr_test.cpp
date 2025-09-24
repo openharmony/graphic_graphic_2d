@@ -25,7 +25,8 @@ class FontCollectionMgrTest : public testing::Test {
 protected:
     void SetUp() override {}
 
-    void TearDown() override {
+    void TearDown() override
+    {
         mgr.RemoveSharedFontColleciton(key1);
         mgr.RemoveSharedFontColleciton(key2);
         mgr.DestroyLocalInstance(envId1);
