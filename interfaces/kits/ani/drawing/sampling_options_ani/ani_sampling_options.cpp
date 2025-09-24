@@ -14,11 +14,16 @@
  */
 
 #include "ani_sampling_options.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "drawing/sampling_options_napi/js_sampling_options.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_SAMPLING_OPTIONS_NAME = "L@ohos/graphics/drawing/drawing/SamplingOptions;";
+const char* ANI_CLASS_SAMPLING_OPTIONS_NAME = "@ohos.graphics.drawing.drawing.SamplingOptions";
 
 ani_status AniSamplingOptions::AniInit(ani_env *env)
 {
@@ -30,8 +35,8 @@ ani_status AniSamplingOptions::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/FilterMode;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.FilterMode}:",
             reinterpret_cast<void*>(ConstructorWithFilterMode) },
     };
 
@@ -41,6 +46,17 @@ ani_status AniSamplingOptions::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
+    std::array staticMethods = {
+        ani_native_function { "samplingOptionsTransferStaticNative", nullptr,
+            reinterpret_cast<void*>(SamplingOptionsTransferStatic) },
+        ani_native_function { "getSamplingOptionsAddr", nullptr, reinterpret_cast<void*>(GetSamplingOptionsAddr) },
+    };
+
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_SAMPLING_OPTIONS_NAME);
+        return ANI_NOT_FOUND;
+    }
     return ANI_OK;
 }
 
@@ -74,14 +90,57 @@ void AniSamplingOptions::ConstructorWithFilterMode(ani_env* env, ani_object obj,
     }
 }
 
+ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+{
+    void* unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
+    if (!success) {
+        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed to unwrap");
+        return nullptr;
+    }
+    if (unwrapResult == nullptr) {
+        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic unwrapResult is null");
+        return nullptr;
+    }
+    auto jsSamplingOptions = reinterpret_cast<JsSamplingOptions*>(unwrapResult);
+    if (jsSamplingOptions->GetSamplingOptions() == nullptr) {
+        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic jsSamplingOptions is null");
+        return nullptr;
+    }
+
+    auto aniSamplingOptions = new AniSamplingOptions(jsSamplingOptions->GetSamplingOptions());
+    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
+        ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed create aniSamplingOptions");
+        delete aniSamplingOptions;
+        return nullptr;
+    }
+    return output;
+}
+
+ani_long AniSamplingOptions::GetSamplingOptionsAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
+{
+    auto aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, input);
+    if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
+        ROSEN_LOGE("AniSamplingOptions::GetSamplingOptionsAddr aniSamplingOptions is null");
+        return 0;
+    }
+    return reinterpret_cast<ani_long>(aniSamplingOptions->GetSamplingOptionsPtrAddr());
+}
+
+std::shared_ptr<SamplingOptions>* AniSamplingOptions::GetSamplingOptionsPtrAddr()
+{
+    return &samplingOptions_;
+}
+
 AniSamplingOptions::~AniSamplingOptions()
 {
-    m_samplingOptions = nullptr;
+    samplingOptions_ = nullptr;
 }
 
 std::shared_ptr<SamplingOptions> AniSamplingOptions::GetSamplingOptions()
 {
-    return m_samplingOptions;
+    return samplingOptions_;
 }
 
 } // namespace Drawing

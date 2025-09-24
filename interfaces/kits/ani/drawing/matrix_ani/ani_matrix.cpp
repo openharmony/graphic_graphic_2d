@@ -14,11 +14,6 @@
  */
 
 #include "ani_matrix.h"
-#include "interop_js/arkts_esvalue.h"
-#include "interop_js/arkts_interop_js_api.h"
-#include "interop_js/hybridgref_ani.h"
-#include "interop_js/hybridgref_napi.h"
-#include "drawing/matrix_napi/js_matrix.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -35,28 +30,19 @@ ani_status AniMatrix::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Matrix}:",
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Matrix;:V",
             reinterpret_cast<void*>(ConstructorWithMatrix) },
-        ani_native_function { "getValue", "i:d", reinterpret_cast<void*>(GetValue) },
-        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setTranslation", "dd:", reinterpret_cast<void*>(SetTranslation) },
+        ani_native_function { "getValue", "I:D", reinterpret_cast<void*>(GetValue) },
+        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "setTranslation", "DD:V", reinterpret_cast<void*>(SetTranslation) },
+        ani_native_function { "preConcat", "L@ohos/graphics/drawing/drawing/Matrix;:V",
+            reinterpret_cast<void*>(preConcat)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind methods fail: ret %{public}d %{public}s", ret, ANI_CLASS_MATRIX_NAME);
-        return ANI_NOT_FOUND;
-    }
-
-    std::array staticMethods = {
-        ani_native_function { "matrixTransferStaticNative", nullptr, reinterpret_cast<void*>(MatrixTransferStatic) },
-        ani_native_function { "getMatrixAddr", nullptr, reinterpret_cast<void*>(GetMatrixAddr) },
-    };
-
-    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
-    if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_MATRIX_NAME);
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_MATRIX_NAME);
         return ANI_NOT_FOUND;
     }
 
@@ -65,8 +51,7 @@ ani_status AniMatrix::AniInit(ani_env *env)
 
 void AniMatrix::Constructor(ani_env* env, ani_object obj)
 {
-    std::shared_ptr<Matrix> matrix = std::make_shared<Matrix>();
-    AniMatrix* aniMatrix = new AniMatrix(matrix);
+    AniMatrix* aniMatrix = new AniMatrix();
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniMatrix))) {
         ROSEN_LOGE("AniMatrix::Constructor failed create AniMatrix");
         delete aniMatrix;
@@ -77,17 +62,14 @@ void AniMatrix::Constructor(ani_env* env, ani_object obj)
 void AniMatrix::ConstructorWithMatrix(ani_env* env, ani_object obj, ani_object aniMatrixObj)
 {
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj);
-    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    if (aniMatrix == nullptr) {
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
-    std::shared_ptr<Matrix> other = aniMatrix->GetMatrix();
-    std::shared_ptr<Matrix> matrix = other == nullptr ? std::make_shared<Matrix>() : std::make_shared<Matrix>(*other);
-    AniMatrix* newAniMatrix = new AniMatrix(matrix);
-    ani_status ret = env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniMatrix));
-    if (ret != ANI_OK) {
-        ROSEN_LOGE("AniMatrix::Constructor failed create AniMatrix. ret: %{public}d", ret);
+    AniMatrix* newAniMatrix = new AniMatrix(aniMatrix->GetMatrix());
+    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniMatrix))) {
+        ROSEN_LOGE("AniMatrix::Constructor failed create AniMatrix");
         delete newAniMatrix;
         return;
     }
@@ -96,91 +78,61 @@ void AniMatrix::ConstructorWithMatrix(ani_env* env, ani_object obj, ani_object a
 void AniMatrix::Reset(ani_env* env, ani_object obj)
 {
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
-    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    if (aniMatrix == nullptr) {
+        AniThrowError(env, "Invalid params. ");
         return;
     }
 
-    aniMatrix->GetMatrix()->Reset();
+    aniMatrix->GetMatrix().Reset();
 }
 
 void AniMatrix::SetTranslation(ani_env* env, ani_object obj, ani_double dx, ani_double dy)
 {
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
-    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    if (aniMatrix == nullptr) {
+        AniThrowError(env, "Invalid params. ");
         return;
     }
-    aniMatrix->GetMatrix()->Translate(dx, dy);
+    aniMatrix->GetMatrix().Translate(dx, dy);
 }
 
 ani_double AniMatrix::GetValue(ani_env* env, ani_object obj, ani_int index)
 {
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
-    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    if (aniMatrix == nullptr) {
+        AniThrowError(env, "Invalid params. ");
         return 0;
     }
 
-    if (index < NUMBER_ZREO || index >= MATRIX_SIZE) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param index out of range.");
+    if (CheckInt32OutOfRange(static_cast<ani_int>(index), NUMBER_ZREO, MATRIX_SIZE)) {
+        AniThrowError(env, "matrix index out of range. ");
         return 0;
     }
 
-    return aniMatrix->GetMatrix()->Get(index);
+    return aniMatrix->GetMatrix().Get(index);
 }
 
-ani_object AniMatrix::MatrixTransferStatic(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
+void AniMatrix::preConcat(ani_env* env, ani_object obj, ani_object aniMatrixObj)
 {
-    void* unwrapResult = nullptr;
-    bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
-    if (!success) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed to unwrap");
-        return nullptr;
-    }
-    if (unwrapResult == nullptr) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic unwrapResult is null");
-        return nullptr;
-    }
-    auto jsMatrix = reinterpret_cast<JsMatrix*>(unwrapResult);
-    if (jsMatrix->GetMatrix() == nullptr) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic jsMatrix is null");
-        return nullptr;
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
+    if (aniMatrix == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniMatrix::preConcat invalid params: aniMatrix. ");
+        return;
     }
 
-    auto aniMatrix = new AniMatrix(jsMatrix->GetMatrix());
-    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniMatrix))) {
-        ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed create aniMatrix");
-        delete aniMatrix;
-        return nullptr;
+    auto otherMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj);
+    if (otherMatrix == nullptr) {
+        AniThrowError(env, "AniMatrix::preConcat invalid params: otherMatrix. ");
+        return;
     }
-    return output;
+    aniMatrix->GetMatrix().PreConcat(otherMatrix->GetMatrix());
 }
 
-ani_long AniMatrix::GetMatrixAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
-{
-    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, input);
-    if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
-        ROSEN_LOGE("AniMatrix::GetMatrixAddr aniMatrix is null");
-        return 0;
-    }
-    return reinterpret_cast<ani_long>(aniMatrix->GetMatrixPtrAddr());
-}
 
-std::shared_ptr<Matrix>* AniMatrix::GetMatrixPtrAddr()
-{
-    return &matrix_;
-}
-
-std::shared_ptr<Matrix> AniMatrix::GetMatrix()
+Matrix& AniMatrix::GetMatrix()
 {
     return matrix_;
-}
-
-AniMatrix::~AniMatrix()
-{
-    matrix_ = nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

@@ -62,12 +62,8 @@ public:
     static napi_value IsAffine(napi_env env, napi_callback_info info);
     static napi_value IsIdentity(napi_env env, napi_callback_info info);
     static napi_value SetMatrix(napi_env env, napi_callback_info info);
-    static napi_value MatrixTransferDynamic(napi_env env, napi_callback_info info);
 
-    std::shared_ptr<Matrix> GetMatrix()
-    {
-        return m_matrix;
-    }
+    std::shared_ptr<Matrix> GetMatrix();
     static napi_value GetAll(napi_env env, napi_callback_info info);
 private:
 
