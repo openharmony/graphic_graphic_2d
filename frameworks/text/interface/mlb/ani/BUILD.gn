@@ -59,7 +59,6 @@ ohos_shared_library("text_engine_ani") {
     "./src/ani_text_rect_converter.cpp",
     "./src/ani_text_style_converter.cpp",
     "./src/ani_text_utils.cpp",
-    "./src/ani_transfer_util.cpp",
     "./src/ani_typographic_bounds_converter.cpp",
   ]
 
@@ -85,7 +84,6 @@ ohos_shared_library("text_engine_ani") {
     "ipc:ipc_single",
     "resource_management:global_resmgr",
     "runtime_core:ani",
-    "runtime_core:ani_helpers",
     "runtime_core:libarkruntime",
   ]
 

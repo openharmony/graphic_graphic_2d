@@ -42,8 +42,6 @@ private:
     static ani_object GetStringRange(ani_env* env, ani_object object);
     static ani_object GetTypographicBounds(ani_env* env, ani_object object);
     static ani_object GetImageBounds(ani_env* env, ani_object object);
-    static ani_object NativeTransferStatic(ani_env* env, ani_class cls, ani_object input);
-    static ani_object NativeTransferDynamic(ani_env* env, ani_class cls, ani_long nativeObj);
 
     std::shared_ptr<Rosen::Run> run_{nullptr};
 };

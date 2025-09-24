@@ -23,12 +23,10 @@
 #include "ani_run.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
-#include "ani_transfer_util.h"
 #include "ani_typographic_bounds_converter.h"
 #include "canvas_ani/ani_canvas.h"
 #include "SkPoint.h"
 #include "text_line_base.h"
-#include "text_line_napi/js_text_line.h"
 #include "typography.h"
 #include "typography_types.h"
 #include "utils/text_log.h"
@@ -86,18 +84,6 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for TextLine, ret %{public}d", ret);
-        return ret;
-    }
-
-    std::array staticMethods = {
-        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
-            reinterpret_cast<void*>(NativeTransferStatic)},
-        ani_native_function{
-            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
-    };
-    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind static methods: %{public}s, ret %{public}d", ANI_CLASS_TEXT_LINE, ret);
         return ret;
     }
     return ANI_OK;
@@ -406,58 +392,5 @@ ani_double AniTextLine::GetAlignmentOffset(
     }
 
     return aniTextline->textLine_->GetAlignmentOffset(alignmentFactor, alignmentWidth);
-}
-
-ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
-{
-    return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
-        JsTextLine* jsTextLine = reinterpret_cast<JsTextLine*>(unwrapResult);
-        if (jsTextLine == nullptr) {
-            TEXT_LOGE("Null jsTextLine");
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":");
-        std::shared_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
-        if (textLineBase == nullptr) {
-            TEXT_LOGE("Failed to get textLineBase");
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        AniTextLine* aniTextLine = new AniTextLine();
-        aniTextLine->textLine_ = textLineBase;
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani textLineBase obj, ret %{public}d", ret);
-            delete aniTextLine;
-            aniTextLine = nullptr;
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        return staticObj;
-    });
-}
-
-ani_object AniTextLine::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
-{
-    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-            napi_value dynamicObj = JsTextLine::CreateTextLine(napiEnv);
-            if (!dynamicObj) {
-                TEXT_LOGE("Failed to create run");
-                return dynamicObj = nullptr;
-            }
-            AniTextLine* aniTextLine = reinterpret_cast<AniTextLine*>(nativeObj);
-            if (aniTextLine == nullptr || aniTextLine->textLine_ == nullptr) {
-                TEXT_LOGE("Null textLineBase");
-                return dynamicObj = nullptr;
-            }
-            JsTextLine* jsTextLine = nullptr;
-            napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsTextLine));
-            if (!jsTextLine) {
-                TEXT_LOGE("Failed to unwrap textLine");
-                return dynamicObj = nullptr;
-            }
-            jsTextLine->SetTextLine(aniTextLine->textLine_);
-            return dynamicObj;
-        });
 }
 } // namespace OHOS::Text::ANI

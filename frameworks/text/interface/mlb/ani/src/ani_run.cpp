@@ -22,11 +22,9 @@
 #include "ani_drawing_utils.h"
 #include "ani_text_rect_converter.h"
 #include "ani_text_utils.h"
-#include "ani_transfer_util.h"
 #include "ani_typographic_bounds_converter.h"
 #include "canvas_ani/ani_canvas.h"
 #include "font_ani/ani_font.h"
-#include "run_napi/js_run.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -93,18 +91,6 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Run, ret %{public}d", ret);
-        return ret;
-    }
-
-    std::array staticMethods = {
-        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
-            reinterpret_cast<void*>(NativeTransferStatic)},
-        ani_native_function{
-            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
-    };
-    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind static methods: %{public}s, ret %{public}d", ANI_CLASS_RUN, ret);
         return ret;
     }
     return ANI_OK;
@@ -474,58 +460,5 @@ ani_object AniRun::GetImageBounds(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     return rectObj;
-}
-
-ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
-{
-    return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
-        JsRun* jsRun = reinterpret_cast<JsRun*>(unwrapResult);
-        if (jsRun == nullptr) {
-            TEXT_LOGE("Null jsRun");
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
-        std::shared_ptr<Rosen::Run> runPtr = jsRun->GetRun();
-        if (runPtr == nullptr) {
-            TEXT_LOGE("Failed to get run");
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        AniRun* aniRun = new AniRun();
-        aniRun->run_ = runPtr;
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
-            delete aniRun;
-            aniRun = nullptr;
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        return staticObj;
-    });
-}
-
-ani_object AniRun::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
-{
-    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-            napi_value dynamicObj = JsRun::CreateRun(napiEnv);
-            if (!dynamicObj) {
-                TEXT_LOGE("Failed to create run");
-                return dynamicObj = nullptr;
-            }
-            AniRun* aniRun = reinterpret_cast<AniRun*>(nativeObj);
-            if (aniRun == nullptr || aniRun->run_ == nullptr) {
-                TEXT_LOGE("Null aniRun");
-                return dynamicObj = nullptr;
-            }
-            JsRun* jsRun = nullptr;
-            napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsRun));
-            if (!jsRun) {
-                TEXT_LOGE("Failed to unwrap run");
-                return dynamicObj = nullptr;
-            }
-            jsRun->SetRun(aniRun->run_);
-            return dynamicObj;
-        });
 }
 } // namespace OHOS::Text::ANI

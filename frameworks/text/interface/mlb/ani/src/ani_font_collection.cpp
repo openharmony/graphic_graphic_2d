@@ -22,8 +22,6 @@
 #include "ani_common.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
-#include "ani_transfer_util.h"
-#include "fontcollection_napi/js_fontcollection.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -97,10 +95,6 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     std::array staticMethods = {
         ani_native_function{"getGlobalInstance", GLOBAL_INSTANCE_SIGN.c_str(),
             reinterpret_cast<void*>(GetGlobalInstance)},
-        ani_native_function{"nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
-            reinterpret_cast<void*>(NativeTransferStatic)},
-        ani_native_function{
-            "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
     ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
     if (ret != ANI_OK) {
@@ -199,53 +193,5 @@ void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
 {
     return fontCollection_;
-}
-
-ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
-{
-    return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
-        JsFontCollection* jsFontcollection = reinterpret_cast<JsFontCollection*>(unwrapResult);
-        if (jsFontcollection == nullptr) {
-            TEXT_LOGE("Null jsFontcollection");
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":");
-        AniFontCollection* aniFontCollection = new AniFontCollection();
-        aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
-            delete aniFontCollection;
-            aniFontCollection = nullptr;
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        return staticObj;
-    });
-}
-
-ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
-{
-    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
-            objValue = JsFontCollection::Init(napiEnv, objValue);
-            napi_value dynamicObj = nullptr;
-            napi_status status = JsFontCollection::CreateFontCollection(napiEnv, objValue, &dynamicObj);
-            if (status != napi_ok || dynamicObj == nullptr) {
-                TEXT_LOGE("Failed to create font collection, status %{public}d", status);
-                return dynamicObj = nullptr;
-            }
-            AniFontCollection* aniFontCollection = reinterpret_cast<AniFontCollection*>(nativeObj);
-            if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
-                TEXT_LOGE("Null font collection");
-                return dynamicObj = nullptr;
-            }
-            status = JsFontCollection::SetFontCollection(napiEnv, dynamicObj, aniFontCollection->GetFontCollection());
-            if (status != napi_ok) {
-                TEXT_LOGE("Failed to set inner font collection, status %{public}d", status);
-                return dynamicObj = nullptr;
-            }
-            return dynamicObj;
-        });
 }
 } // namespace OHOS::Text::ANI
