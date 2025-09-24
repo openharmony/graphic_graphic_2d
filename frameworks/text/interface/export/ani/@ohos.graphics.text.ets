@@ -630,7 +630,7 @@ namespace text {
     DOWNSTREAM,
   }
 
-  type CaretOffsetsCallback = (offset: int, index: int, leadingEdge: boolean) => boolean;
+  type CaretOffsetsCallback = (offset: double, index: int, leadingEdge: boolean) => boolean;
 
   export class TextLine {
     static { loadLibrary('text_engine_ani.z') }
