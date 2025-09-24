@@ -136,7 +136,7 @@ void SkiaMemoryTracer::ProcessElement()
             std::string strResourceName = resourceName;
             TraceValue sizeValue = sizeResult->second;
             std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
-            results_.insert({ std:move(strResourceName), std:move(typeItem) });
+            results_.insert({ std::move(strResourceName), std::move(typeItem) });
         } else {
             auto& resourceValues = result->second;
             typeResult = resourceValues.find(key);
@@ -167,13 +167,13 @@ void SkiaMemoryTracer::ProcessElement()
             std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
             std::unordered_map<std::string,
                 std::unordered_map<std::string, TraceValue>> tagItem{{strResourceName, typeItem}};
-            sourceTagResults_.insert({sourceType, std:move(tagItem)});
+            sourceTagResults_.insert({sourceType, std::move(tagItem)});
         } else { // 2.update source item
             auto& sourceValues = sourceResult->second;
             auto tagResult = sourceValues.find(strResourceName);
             if (tagResult == sourceValues.end()) { // 2.1 add new tag item in current source
                 std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
-                sourceResult->second.insert({strResourceName, std:move(typeItem)});
+                sourceResult->second.insert({strResourceName, std::move(typeItem)});
             } else { // 2.2 update tag item in current source
                 auto& typeValues = tagResult->second;
                 typeResult = typeValues.find(key);
