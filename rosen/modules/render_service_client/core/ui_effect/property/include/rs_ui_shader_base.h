@@ -78,6 +78,15 @@ DECLARE_SHADER(BorderLight, BORDER_LIGHT,
     ADD_PROPERTY_TAG(BorderLight, CornerRadius)
 );
 
+DECLARE_SHADER(LightCave, LIGHT_CAVE,
+    ADD_PROPERTY_TAG(LightCave, ColorA),
+    ADD_PROPERTY_TAG(LightCave, ColorB),
+    ADD_PROPERTY_TAG(LightCave, ColorC),
+    ADD_PROPERTY_TAG(LightCave, Position),
+    ADD_PROPERTY_TAG(LightCave, RadiusXY),
+    ADD_PROPERTY_TAG(LightCave, Progress)
+);
+
 DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Color0),
     ADD_PROPERTY_TAG(ColorGradientEffect, Color1),
@@ -116,16 +125,9 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, Strength10),
     ADD_PROPERTY_TAG(ColorGradientEffect, Strength11),
     ADD_PROPERTY_TAG(ColorGradientEffect, Mask),
-    ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber)
-);
-
-DECLARE_SHADER(LightCave, LIGHT_CAVE,
-    ADD_PROPERTY_TAG(LightCave, ColorA),
-    ADD_PROPERTY_TAG(LightCave, ColorB),
-    ADD_PROPERTY_TAG(LightCave, ColorC),
-    ADD_PROPERTY_TAG(LightCave, Position),
-    ADD_PROPERTY_TAG(LightCave, RadiusXY),
-    ADD_PROPERTY_TAG(LightCave, Progress)
+    ADD_PROPERTY_TAG(ColorGradientEffect, ColorNumber),
+    ADD_PROPERTY_TAG(ColorGradientEffect, Blend),
+    ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
 );
 
 #undef ADD_PROPERTY_TAG

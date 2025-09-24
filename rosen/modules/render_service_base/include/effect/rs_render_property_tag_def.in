@@ -184,3 +184,5 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Strength10, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Strength11, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Mask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, ColorNumber, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Blend, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, BlendK, float);

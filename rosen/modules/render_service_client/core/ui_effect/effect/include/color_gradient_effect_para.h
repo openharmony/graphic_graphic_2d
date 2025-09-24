@@ -22,6 +22,10 @@
 
 namespace OHOS {
 namespace Rosen {
+
+constexpr float GRADIENT_BLEND = 6.0f;
+constexpr float GRADIENT_BLEND_K = 20.0f;
+
 class ColorGradientEffectPara : public VisualEffectPara {
 public:
     ColorGradientEffectPara()
@@ -68,6 +72,31 @@ public:
     const std::shared_ptr<MaskPara>& GetMask() const
     {
         return maskPara_;
+    }
+
+    Vector4f GetDefaultColor4f()
+    {
+        return Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    Vector2f GetDefaultPoint()
+    {
+        return Vector2f(0.0f, 0.0f);
+    }
+
+    float GetDefaultStrength()
+    {
+        return 0.0f;
+    }
+
+    float GetDefaultBlend()
+    {
+        return GRADIENT_BLEND;
+    }
+
+    float GetDefaultBlendK()
+    {
+        return GRADIENT_BLEND_K;
     }
 private:
     std::vector<Vector4f> colors_;
