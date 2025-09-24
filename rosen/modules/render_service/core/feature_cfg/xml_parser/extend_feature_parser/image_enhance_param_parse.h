@@ -16,8 +16,10 @@
 #ifndef IMAGE_ENHANCE_PARAM_PARSE_H
 #define IMAGE_ENHANCE_PARAM_PARSE_H
 
-#include "xml_parser_base.h"
+#include "common/rs_common_hook.h"
 #include "image_enhance_param.h"
+#include "securec.h"
+#include "xml_parser_base.h"
 
 namespace OHOS::Rosen {
 class ImageEnhanceParamParse : public XMLParserBase {
@@ -30,6 +32,33 @@ public:
 private:
     int32_t ParseImageEnhanceInternal(xmlNode& node);
     int32_t ParseFeatureMultiParamForApp(xmlNode& node);
+
+    int32_t ParseImageEnhanceParamInternal(xmlNode& node);
+    int32_t ParseImageEnhanceParam(xmlNode& node);
+    bool CheckParams();
+
+    int32_t ParseImageEnhanceAlgoInternal(xmlNode& node);
+    int32_t ParseImageEnhanceAlgoParam(xmlNode& node);
+    bool CheckAlgoParams(RSImageDetailEnhanceAlgoParams& algoParams);
+
+    template <typename T>
+    bool ExtractValue(xmlNode& node, const std::string& format, T& value)
+    {
+        T parseValue;
+        std::string nodeValueStr = ExtractPropertyValue("value", node);
+        if (sscanf_s(nodeValueStr.c_str(), format.c_str(), &parseValue) <= 0) {
+            RS_LOGE("Invalid input! node value = %{public}s", nodeValueStr.c_str());
+            return false;
+        }
+        if (parseValue < 0) {
+            return false;
+        }
+        value = parseValue;
+        return true;
+    }
+
+    RSImageDetailEnhanceParams params_{};
+    std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams> algoParams_{};
 };
 } // namespace OHOS::Rosen
 #endif // IMAGE_ENHANCE_PARAM_PARSE_H

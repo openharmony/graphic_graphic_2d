@@ -416,6 +416,11 @@ void SkiaGPUContext::ResetContext()
 
 void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
 {
+#ifdef ROSEN_OHOS
+    if (!SystemProperties::IsDebugGpuMem()) {
+        return;
+    }
+#endif
     if (!grContext_) {
         LOGD("SkiaGPUContext::DumpMemoryStatisticsByTag, grContext_ is nullptr");
         return;
@@ -441,6 +446,11 @@ uint64_t SkiaGPUContext::NewDumpMemoryStatisticsByTag(TraceMemoryDump* traceMemo
 
 void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
 {
+#ifdef ROSEN_OHOS
+    if (!SystemProperties::IsDebugGpuMem()) {
+        return;
+    }
+#endif
     if (!grContext_) {
         LOGD("SkiaGPUContext::DumpMemoryStatistics, grContext_ is nullptr");
         return;

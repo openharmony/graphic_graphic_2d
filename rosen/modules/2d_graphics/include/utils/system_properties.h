@@ -46,6 +46,7 @@ public:
 
 #ifdef ROSEN_OHOS
     static bool IsVkImageDfxEnabled();
+    static bool IsDebugGpuMem();
 #endif
 
 private:

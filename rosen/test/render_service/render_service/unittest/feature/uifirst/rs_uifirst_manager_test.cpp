@@ -3142,6 +3142,69 @@ HWTEST_F(RSUifirstManagerTest, AddMarkedClearCacheNodeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsCacheSizeValid
+ * @tc.desc: Test IsCacheSizeValid for Rotate situation
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSUifirstManagerTest, IsCacheSizeValid, TestSize.Level2)
+{
+    auto surfaceNodePtr = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNodePtr, nullptr);
+    auto& surfaceNode = *surfaceNodePtr;
+
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode.GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+
+    auto ret = false;
+
+    /* test case: defaultValue
+    */
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+
+    /* test case: lastUifirstFlag
+    */
+    surfaceNode.SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+
+    /* test case: cachedSize
+    */
+    stagingSurfaceParams->SetCacheSize({0.f, 1.f});
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+    stagingSurfaceParams->SetCacheSize({1.f, 0.f});
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+    stagingSurfaceParams->SetCacheSize({1.f, 2.f});
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+
+    /* test case: lastCachedSize Rotate
+    */
+    stagingSurfaceParams->UpdateLastCacheSize();
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+
+    stagingSurfaceParams->SetCacheSize({2.f, 1.f});
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_FALSE(ret);
+
+    /* test case: Gravity::RESIZE
+    */
+    stagingSurfaceParams->SetUIFirstFrameGravity(Gravity::RESIZE);
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_TRUE(ret);
+
+    /* test case: invalid stagingSurfaceParams
+    */
+    surfaceNode.GetStagingRenderParams() = nullptr;
+    ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: ProcessMarkedNodeSubThreadCacheTest
  * @tc.desc: Test ProcessMarkedNodeSubThreadCache
  * @tc.type: FUNC

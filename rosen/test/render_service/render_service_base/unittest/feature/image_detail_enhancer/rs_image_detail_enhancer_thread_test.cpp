@@ -14,6 +14,7 @@
  */
 
 #include <parameters.h>
+#include <unordered_map>
 
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "gtest/gtest.h"
@@ -31,6 +32,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 using namespace Drawing;
+
 class RSImageDetailEnhancerThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -660,6 +662,36 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, RegisterCallbackTest, TestSize.Level1)
     result = rsImageDetailEnhancerThread.RegisterCallback(nullptr);
     EXPECT_FALSE(result);
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
+}
+
+/**
+ * @tc.name: GetSharpnessTest
+ * @tc.desc: GetSharpnessTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBZ6NM
+ */
+HWTEST_F(RSImageDetailEnhancerThreadTest, GetSharpnessTest, TestSize.Level1)
+{
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    RSImageDetailEnhanceAlgoParams algoParams = {
+            true,
+            {{ 0.1f, 0.5f, 0.2f }},
+            360000,
+            640000,
+        };
+    float result;
+    EXPECT_TRUE(rsImageDetailEnhancerThread.GetSharpness(algoParams, 0.2f, result));
+    EXPECT_FLOAT_EQ(result, 0.2f);
+    EXPECT_FALSE(rsImageDetailEnhancerThread.GetSharpness(algoParams, 0.6f, result));
+    EXPECT_FALSE(rsImageDetailEnhancerThread.GetSharpness(algoParams, 0.0f, result));
+
+    RSImageDetailEnhanceAlgoParams algoParams2 = {
+        true,
+        {{ 0.5f, 0.2f, 0.2f }},
+        360000,
+        640000,
+    };
+    EXPECT_FALSE(rsImageDetailEnhancerThread.GetSharpness(algoParams2, 0.1f, result));
 }
 
 /**

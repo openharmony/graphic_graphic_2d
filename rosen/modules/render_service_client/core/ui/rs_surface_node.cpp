@@ -1081,5 +1081,12 @@ void RSSurfaceNode::SetSurfaceBufferOpaque(bool isOpaque)
         std::make_unique<RSSurfaceNodeSetSurfaceBufferOpaque>(GetId(), isOpaque);
     AddCommand(command, true);
 }
+
+void RSSurfaceNode::SetContainerWindowTransparent(bool isContainerWindowTransparent)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetContainerWindowTransparent>(GetId(), isContainerWindowTransparent);
+    AddCommand(command, true);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -50,10 +50,10 @@ struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
         pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr,
         GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
-        Drawing::Rect srcRect = {})
+        Drawing::Rect srcRect = {}, bool isIgnoreAlpha = false)
         : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
           dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
-          acquireFence_(acquireFence), transform_(transform)
+          acquireFence_(acquireFence), transform_(transform), isIgnoreAlpha_(isIgnoreAlpha)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     Drawing::Rect srcRect_;
@@ -62,10 +62,12 @@ struct DrawingSurfaceBufferInfo {
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    bool isIgnoreAlpha_ = false;
 };
 #endif
 
-class RSB_EXPORT RSExtendImageObject : public Drawing::ExtendImageObject {
+class RSB_EXPORT RSExtendImageObject : public Drawing::ExtendImageObject,
+    public std::enable_shared_from_this<RSExtendImageObject> {
 public:
     RSExtendImageObject() = default;
     RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
@@ -81,9 +83,12 @@ public:
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+        const Drawing::SamplingOptions& sampling,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
     bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
-        SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+        SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,
+        const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+    void PurgeMipmapMem();
 #endif
     void SetNodeId(NodeId id) override;
     NodeId GetNodeId() const override;
@@ -424,10 +429,11 @@ class RSB_EXPORT DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
-            uint64_t uid, GraphicTransformType transform, Drawing::Rect srcRect, const PaintHandle& paintHandle)
+            uint64_t uid, GraphicTransformType transform, Drawing::Rect srcRect, bool isIgnoreAlpha,
+            const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, transform, srcRect),
-              paintHandle(paintHandle)
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, transform, srcRect,
+              isIgnoreAlpha), paintHandle(paintHandle)
         {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;

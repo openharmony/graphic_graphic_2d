@@ -799,12 +799,12 @@ GLenum WebGLRenderingContextBaseImpl::CheckTexSubImage2D(
     }
     if ((imgArg.xOffset + imgArg.width) > texture->GetWidth(imgArg.target, imgArg.level) ||
         (imgArg.yOffset + imgArg.height) > texture->GetHeight(imgArg.target, imgArg.level)) {
-        LOGE("WebGL invalid CheckTexSubImage2D GetWidth %{public}u, GetHeight %{public}d",
+        LOGE("WebGL invalid CheckTexSubImage2D GetWidth %{public}d, GetHeight %{public}d",
             texture->GetWidth(imgArg.target, imgArg.level), texture->GetHeight(imgArg.target, imgArg.level));
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
     if (!IsHighWebGL() && texture->GetType(imgArg.target, imgArg.level) != imgArg.type) {
-        LOGE("WebGL invalid CheckTexSubImage2D type %{public}d", imgArg.type);
+        LOGE("WebGL invalid CheckTexSubImage2D type %{public}u", imgArg.type);
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
     return WebGLRenderingContextBase::NO_ERROR;

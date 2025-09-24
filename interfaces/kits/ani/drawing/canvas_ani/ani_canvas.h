@@ -25,6 +25,20 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
+struct DrawPixelMapMeshArgs {
+    ~DrawPixelMapMeshArgs()
+    {
+        if (vertices != nullptr) {
+            delete []vertices;
+        }
+    }
+    std::shared_ptr<Media::PixelMap>& pixelMap;
+    float* vertices = nullptr;
+    uint32_t verticesSize = 0;
+    int32_t vertOffset = 0;
+    int32_t column = 0;
+    int32_t row = 0;
+};
 class AniCanvas final {
 public:
     AniCanvas() = default;
@@ -65,6 +79,9 @@ private:
 #ifdef ROSEN_OHOS
     void DrawImageRectInner(std::shared_ptr<Media::PixelMap> pixelmap,
         Drawing::Rect& rect, AniSamplingOptions* samplingOptions);
+    static bool GetVertices(ani_env* env, ani_object verticesObj, float* vertices, uint32_t verticesSize);
+    static void GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
+        DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas);
 #endif
     Canvas* m_canvas = nullptr;
     bool owned_ = false;

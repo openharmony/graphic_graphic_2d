@@ -23,7 +23,6 @@
 
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 
-#include "common/rs_common_hook.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_pixel_map_util.h"
@@ -38,13 +37,11 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#define DMA_BUF_SET_LEAK_TYPE _IOW(DMA_BUF_BASE, 5, const char *)
+
 namespace OHOS {
 namespace Rosen {
-constexpr int IMAGE_MAX_SIZE = 3000;
-constexpr int IMAGE_MIN_SIZE = 500;
-constexpr float IMAGE_MIN_SCALE_RATIO = 0.89f;
-constexpr float IMAGE_MAX_SCALE_RATIO = 1.09f;
-constexpr int IMAGE_DIFF_VALUE = 2; // Image size difference
+constexpr int IMAGE_DIFF_VALUE = 200; // Image size difference
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 constexpr float INFO_ALPHA = 0.5f; // Sharpness parameter for SLR
@@ -58,6 +55,13 @@ RSImageDetailEnhancerThread& RSImageDetailEnhancerThread::Instance()
 
 RSImageDetailEnhancerThread::RSImageDetailEnhancerThread()
 {
+    isParamValidate_ = RsCommonHook::Instance().IsImageEnhanceParamsValid();
+    if (!isParamValidate_) {
+        return;
+    }
+    params_ = RsCommonHook::Instance().GetImageEnhanceParams();
+    slrParams_ = RsCommonHook::Instance().GetImageEnhanceAlgoParams("SLR");
+    esrParams_ = RsCommonHook::Instance().GetImageEnhanceAlgoParams("ESR");
     runner_ = AppExecFwk::EventRunner::Create("RSImageDetailEnhancerThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 #ifdef RES_BASE_SCHED_ENABLE
@@ -98,17 +102,29 @@ void RSImageDetailEnhancerThread::MarkDirty(uint64_t nodeId)
 
 bool RSImageDetailEnhancerThread::IsSizeSupport(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
-    if (srcWidth > 0 && srcHeight > 0 && srcWidth != dstWidth && srcHeight != dstHeight && dstWidth > IMAGE_MIN_SIZE &&
-        dstHeight > IMAGE_MIN_SIZE && dstWidth < IMAGE_MAX_SIZE && dstHeight < IMAGE_MAX_SIZE) {
+    if (srcWidth > 0 && srcHeight > 0 && srcWidth != dstWidth && srcHeight != dstHeight && dstWidth > params_.minSize &&
+        dstHeight > params_.minSize && dstWidth < params_.maxSize && dstHeight < params_.maxSize) {
         float scaleX = (dstWidth * 1.0f) / (srcWidth * 1.0f);
         float scaleY = (dstHeight * 1.0f) / (srcHeight * 1.0f);
-        if ((scaleX > IMAGE_MAX_SCALE_RATIO && scaleY > IMAGE_MAX_SCALE_RATIO) ||
-            (scaleX < IMAGE_MIN_SCALE_RATIO && scaleY < IMAGE_MIN_SCALE_RATIO)) {
+        if ((scaleX > params_.minScaleRatio && scaleY > params_.minScaleRatio) &&
+            (scaleX < params_.maxScaleRatio && scaleY < params_.maxScaleRatio)) {
             return true;
         }
     }
     RS_LOGD("RSImageDetailEnhancerThread size is not support, srcSize=(%{public}d, %{public}d), \
         dstSize=(%{public}d, %{public}d)", srcWidth, srcHeight, dstWidth, dstHeight);
+    return false;
+}
+
+bool RSImageDetailEnhancerThread::GetSharpness(RSImageDetailEnhanceAlgoParams& param,
+    float scaleRatio, float& sharpness)
+{
+    for (size_t i = 0; i < param.rangeParams.size(); i++) {
+        if (scaleRatio <= param.rangeParams[i].rangeMax && scaleRatio >= param.rangeParams[i].rangeMin) {
+            sharpness =  param.rangeParams[i].effectParam;
+            return true;
+        }
+    }
     return false;
 }
 
@@ -183,9 +199,12 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::ScaleByHDSampler(in
     auto dst = Drawing::Rect(0, 0, dstWidth, dstHeight);
     Drawing::Brush brush;
     Drawing::HDSampleInfo info;
+    float scaleRatio = static_cast<float>(dstWidth) / static_cast<float>(srcWidth);
     if (srcWidth > dstWidth && srcHeight > dstHeight) {
         info.type = Drawing::HDSampleType::SLR;
-        info.alpha = INFO_ALPHA;
+        if (!GetSharpness(slrParams_, scaleRatio, info.alpha)) {
+            return nullptr;
+        }
         info.isUniformScale = false;
     } else if (srcWidth < dstWidth && srcHeight < dstHeight) {
         info.type = Drawing::HDSampleType::ESR;
@@ -317,7 +336,8 @@ bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
 bool RSImageDetailEnhancerThread::GetEnableStatus() const
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    return std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0;
+    return std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
+        isParamValidate_;
 #endif
     return false;
 }
@@ -447,7 +467,7 @@ bool DetailEnhancerUtils::SetMemoryName(sptr<SurfaceBuffer>& buffer)
     }
     int ret = -1;
 #ifdef ROSEN_OHOS
-    ret = TEMP_FAILURE_RETRY(ioctl(fd, DMA_BUF_SET_NAME_A, MemoryName.c_str()));
+    ret = TEMP_FAILURE_RETRY(ioctl(fd, DMA_BUF_SET_LEAK_TYPE, MemoryName.c_str()));
 #endif
     return ret == 0;
 }

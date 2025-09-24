@@ -230,11 +230,11 @@ std::shared_ptr<Surface> StaticFactory::MakeRasterN32Premul(int32_t width, int32
 }
 
 std::shared_ptr<Image> StaticFactory::MakeFromRaster(const Pixmap& pixmap,
-    RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
+    RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext, bool ignoreAlpha)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
+        return DDGRStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext, ignoreAlpha);
     }
 #endif
     return EngineStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);

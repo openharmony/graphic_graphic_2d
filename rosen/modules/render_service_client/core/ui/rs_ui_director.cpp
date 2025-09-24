@@ -880,5 +880,12 @@ void RSUIDirector::SetTypicalResidentProcess(bool isTypicalResidentProcess)
 {
     SetTypicalResidentProcessOnce(isTypicalResidentProcess);
 }
+
+void RSUIDirector::SetContainerWindowTransparent(bool isContainerWindowTransparent)
+{
+    if (auto node = surfaceNode_.lock()) {
+        node->SetContainerWindowTransparent(isContainerWindowTransparent);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1522,10 +1522,8 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     }
 
     // occlusion - 2. Calculate opaque/transparent region based on round corner, container window, etc.
-    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
-    auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
-        (parent && parent->IsLeashWindow() && parent->IsFocusedNode(focusedLeashWindowId_));
-    node.CheckAndUpdateOpaqueRegion(curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), isFocused);
+    node.CheckAndUpdateOpaqueRegion(
+        curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), node.IsContainerWindowTransparent());
     // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
     auto mainThread = RSMainThread::Instance();
@@ -2230,7 +2228,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
     if (hwcNodes.empty() || !curScreenNode_) {
         return;
     }
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
@@ -2238,7 +2235,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         }
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         if (hwcNodePtr->IsLayerTop()) {
-            topLayers.emplace_back(hwcNodePtr);
+            topLayers_.emplace_back(hwcNodePtr);
             if (hasMirrorDisplay_ && hwcNodePtr->GetRSSurfaceHandler() &&
                 hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
                 !(node->GetVisibleRegion().IsEmpty()) && curScreenDirtyManager_) {
@@ -2273,9 +2270,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }
     curScreenNode_->SetDisplayGlobalZOrder(globalZOrder_);
-    if (!topLayers.empty()) {
-        UpdateTopLayersDirtyStatus(topLayers);
-    }
 }
 
 void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow)
@@ -2367,6 +2361,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
     Occlusion::Region accumulatedDirtyRegion;
     bool hasMainAndLeashSurfaceDirty = false;
+    topLayers_.clear();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
         [this, &accumulatedDirtyRegion, &hasMainAndLeashSurfaceDirty](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
@@ -2398,6 +2393,9 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             dirtyManager && dirtyManager->IsCurrentFrameDirty() &&
             surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
     });
+    if (!topLayers_.empty()) {
+        UpdateTopLayersDirtyStatus(topLayers_);
+    }
     curScreenNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
     CheckMergeScreenDirtyByRoundCornerDisplay();

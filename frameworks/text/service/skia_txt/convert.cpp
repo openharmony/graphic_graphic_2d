@@ -268,6 +268,9 @@ void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
             textStyle.fontVariations.SetAxisValue(axis, value);
         }
     }
+    textStyle.lineHeightStyle = style.lineHeightStyle;
+    textStyle.minLineHeight = style.minLineHeight;
+    textStyle.maxLineHeight = style.maxLineHeight;
 }
 
 TextStyle Convert(const SPText::TextStyle& style)

@@ -164,4 +164,38 @@ HWTEST_F(RsCommonHookTest, SetAndGetImageEnhancePidListTest, TestSize.Level1)
     auto result3 = RsCommonHook::Instance().GetImageEnhancePidList();
     EXPECT_EQ(result3, testImageEnhancePidList);
 }
+
+/**
+ * @tc.name: SetAndGetImageEnhanceParamsTest
+ * @tc.desc: test results of SetImageEnhanceParams and GetImageEnhanceParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceParamsTest, TestSize.Level1)
+{
+    RSImageDetailEnhanceParams testImageEnhanceParams = {};
+    RsCommonHook::Instance().SetImageEnhanceParams(testImageEnhanceParams);
+    auto result1 = RsCommonHook::Instance().GetImageEnhanceParams();
+    EXPECT_EQ(result1.isValid, testImageEnhanceParams.isValid);
+    EXPECT_EQ(result1.minSize, testImageEnhanceParams.minSize);
+    EXPECT_EQ(result1.maxSize, testImageEnhanceParams.maxSize);
+    EXPECT_EQ(result1.minScaleRatio, testImageEnhanceParams.minScaleRatio);
+    EXPECT_EQ(result1.maxScaleRatio, testImageEnhanceParams.maxScaleRatio);
+}
+
+/**
+ * @tc.name: SetAndGetImageEnhanceAlgoParams
+ * @tc.desc: test results of SetImageEnhanceAlgoParams and GetImageEnhanceAlgoParams
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceAlgoParams, TestSize.Level1)
+{
+    std::unordered_map<std::string, RSImageDetailEnhanceAlgoParams> testImageEnhanceAlgoParams{};
+    RSImageDetailEnhanceAlgoParams algoParam1{};
+    testImageEnhanceAlgoParams["algoTest"] = algoParam1;
+    RsCommonHook::Instance().SetImageEnhanceAlgoParams(testImageEnhanceAlgoParams);
+    auto result1 = RsCommonHook::Instance().GetImageEnhanceAlgoParams("algoTest");
+    EXPECT_EQ(result1.isValid, algoParam1.isValid);
+}
 } // namespace OHOS::Rosen

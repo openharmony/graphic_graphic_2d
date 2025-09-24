@@ -81,6 +81,8 @@ HWTEST_F(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*surfaceNode);
     param.useCPU = true;
     uniRenderEngine->DrawSurfaceNodeWithParams(*canvas, *surfaceDrawable.get(), param, nullptr, nullptr);
+    param.ignoreAlpha = true;
+    uniRenderEngine->DrawSurfaceNodeWithParams(*canvas, *surfaceDrawable.get(), param, nullptr, nullptr);
 }
 
 /**

@@ -366,6 +366,7 @@ void RSTransactionHandler::MergeSyncTransaction(std::shared_ptr<RSTransactionHan
             implicitRemoteTransactionDataStack_.top());
         transactionHandler->implicitRemoteTransactionDataStack_.pop();
     }
+    transactionHandler->CloseSyncTransaction();
 }
 
 void RSTransactionHandler::MarkTransactionNeedSync()

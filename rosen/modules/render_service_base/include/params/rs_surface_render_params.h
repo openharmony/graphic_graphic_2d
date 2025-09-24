@@ -758,6 +758,16 @@ public:
 #endif
     }
 
+    inline void UpdateLastCacheSize()
+    {
+        lastCacheSize_ = GetCacheSize();
+    }
+
+    inline Vector2f GetLastCacheSize() const
+    {
+        return lastCacheSize_;
+    }
+
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -836,6 +846,7 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
+    Vector2f lastCacheSize_ = {0.f, 0.f};
     bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
     std::set<NodeId> privacyContentLayerIds_ = {};

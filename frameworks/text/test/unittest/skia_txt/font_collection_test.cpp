@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "font_collection.h"
 #include "platform.h"
+#include "rosen_text/font_collection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -91,12 +92,14 @@ HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level0)
     fontCollection.SetAssetFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
     fontCollection.SetDynamicFontManager(OHOS::Rosen::Drawing::FontMgr::CreateDynamicFontMgr());
     fontCollection.SetTestFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
-    EXPECT_EQ(fontCollection.GetFontManagersCount(), 4);
+    fontCollection.SetGlobalFontManager(OHOS::Rosen::FontCollection::Create()->GetFontMgr());
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 5);
     std::vector<std::shared_ptr<RSFontMgr>> fontManagerOrder = fontCollection.GetFontManagerOrder();
     EXPECT_EQ(fontManagerOrder.at(0), fontCollection.dynamicFontManager_);
-    EXPECT_EQ(fontManagerOrder.at(1), fontCollection.assetFontManager_);
-    EXPECT_EQ(fontManagerOrder.at(2), fontCollection.testFontManager_);
-    EXPECT_EQ(fontManagerOrder.at(3), fontCollection.defaultFontManager_);
+    EXPECT_EQ(fontManagerOrder.at(1), OHOS::Rosen::FontCollection::Create()->GetFontMgr());
+    EXPECT_EQ(fontManagerOrder.at(2), fontCollection.assetFontManager_);
+    EXPECT_EQ(fontManagerOrder.at(3), fontCollection.testFontManager_);
+    EXPECT_EQ(fontManagerOrder.at(4), fontCollection.defaultFontManager_);
 }
 
 /*

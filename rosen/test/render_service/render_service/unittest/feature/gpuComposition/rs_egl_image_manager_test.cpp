@@ -375,13 +375,13 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest, TestSize.Level1)
         auto imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
         Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
         std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
-        sptr<OHOS::SurfaceBuffer> buffer = nullptr;
-        sptr<SyncFence> acquireFence = nullptr;
-        pid_t threadIndex = 0;
-        auto res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+        BufferDrawParam params;
+        params.acquireFence = nullptr;
+        params.threadIndex = 0;
+        auto res = imageManager->GetIntersectImage(imgCutRect, context, params);
         EXPECT_EQ(res, nullptr);
-        buffer = SurfaceBuffer::Create();
-        res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+        params.buffer = SurfaceBuffer::Create();
+        res = imageManager->GetIntersectImage(imgCutRect, context, params);
         EXPECT_EQ(res, nullptr);
     }
 }
@@ -405,23 +405,23 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest002, TestSize.Level1)
             std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
         auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
         surfaceHandler->SetConsumer(consumer);
-        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        BufferDrawParam params;
+        params.acquireFence = SyncFence::InvalidFence();
+        params.threadIndex = 0;
         int64_t timestamp = 0;
         Rect damage;
         sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        surfaceHandler->SetBuffer(buffer, params.acquireFence, damage, timestamp);
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
-            sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
-            sptr<SyncFence> acquireFence;
+            params.buffer = surfaceHandler->GetBuffer();
             std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
             renderContext->InitializeEglContext();
             renderContext->SetUpGpuContext();
             auto eglImageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
             Drawing::RectI imgCutRect = Drawing::RectI{0, 0, 10, 10};
             std::shared_ptr<Drawing::GPUContext> context = std::make_shared<Drawing::GPUContext>();
-            pid_t threadIndex = 0;
-            auto res = eglImageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
+            auto res = eglImageManager->GetIntersectImage(imgCutRect, context, params);
             EXPECT_EQ(res, nullptr);
         }
     }

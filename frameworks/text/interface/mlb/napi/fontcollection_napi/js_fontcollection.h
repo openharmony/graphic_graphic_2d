@@ -34,6 +34,7 @@ public:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
     static napi_value LoadFontSync(napi_env env, napi_callback_info info);
     static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
+    static napi_value GetLocalInstance(napi_env env, napi_callback_info info);
     static napi_value ClearCaches(napi_env env, napi_callback_info info);
     static napi_value LoadFontAsync(napi_env env, napi_callback_info info);
     static napi_value UnloadFontSync(napi_env env, napi_callback_info info);
@@ -44,6 +45,7 @@ public:
     std::shared_ptr<FontCollection> GetFontCollection();
 private:
     static bool CreateConstructor(napi_env env);
+    static napi_value GenerateNewInstance(napi_env env);
     static std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& moduleName);
     static thread_local napi_ref constructor_;
     static std::mutex constructorMutex_;

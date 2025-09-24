@@ -1343,6 +1343,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     surfaceParams.SetGlobalAlpha(1.0f);
     uint32_t threadId = canvas.GetParallelThreadId();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
+    params.ignoreAlpha = surfaceParams.GetSurfaceBufferOpaque();
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();

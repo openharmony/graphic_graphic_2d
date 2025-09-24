@@ -854,7 +854,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetFrameGravityNewVersionEnabledTest, TestSiz
  * @tc.name: SetSurfaceBufferOpaqueTest
  * @tc.desc: Verify function SetSurfaceBufferOpaque
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
 {
@@ -862,6 +861,28 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     NodeId nodeId = 1;
     SurfaceNodeCommandHelper::Create(context, nodeId);
     SurfaceNodeCommandHelper::SetSurfaceBufferOpaque(context, nodeId, true);
+    SurfaceNodeCommandHelper::SetSurfaceBufferOpaque(context, 2, true);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: SetContainerWindowTransparent
+ * @tc.desc: Verify function when map can find id and can't find id
+ * @tc.type: FUNC
+ * @tc.require: issue19957
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindowTransparent, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetContainerWindowTransparent(context, nodeId, true);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_TRUE(surfaceNode->isContainerWindowTransparent_);
+
+    NodeId InvalidNodeId = 2;
+    SurfaceNodeCommandHelper::SetContainerWindowTransparent(context, InvalidNodeId, false);
+    ASSERT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(InvalidNodeId) == nullptr);
 }
 } // namespace OHOS::Rosen

@@ -419,7 +419,7 @@ bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_v
         return false;
     }
     if (objects_[T::objectType].find(key) != objects_[T::objectType].end()) {
-        LOGE("AddObject exit %{public}u %{public}" PRIu64, T::objectType, key);
+        LOGE("AddObject exit %{public}d %{public}" PRIu64, T::objectType, key);
         return false;
     }
     napi_ref ref;
@@ -428,7 +428,7 @@ bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_v
         LOGE("AddObject %{public}" PRIu64 " status %{public}u", key, status);
         return false;
     }
-    LOGD("AddObject %{public}u %{private}p %{public}" PRIu64, T::objectType, obj, key);
+    LOGD("AddObject %{public}d %{private}p %{public}" PRIu64, T::objectType, obj, key);
     objects_[T::objectType].insert({ key, ref });
     return true;
 }
@@ -441,12 +441,12 @@ napi_value WebGLRenderingContextBaseImpl::GetNapiValue(napi_env env, uint64_t ke
     }
     auto it = objects_[T::objectType].find(key);
     if (it == objects_[T::objectType].end()) {
-        LOGD("GetObject %{public}u %{public}" PRIu64, T::objectType, key);
+        LOGD("GetObject %{public}d %{public}" PRIu64, T::objectType, key);
         return nullptr;
     }
     napi_value obj;
     napi_status status = napi_get_reference_value(env, it->second, &obj);
-    LOGD("GetNapiValue %{public}u %{private}p %{public}" PRIu64, T::objectType, obj, key);
+    LOGD("GetNapiValue %{public}d %{private}p %{public}" PRIu64, T::objectType, obj, key);
     if (status != napi_ok) {
         return nullptr;
     }
@@ -473,7 +473,7 @@ void WebGLRenderingContextBaseImpl::DeleteObject(napi_env env, uint64_t key)
     }
     auto it = objects_[T::objectType].find(key);
     if (it == objects_[T::objectType].end()) {
-        LOGE("WebGL can not delete %{public}u %{public}" PRIu64, T::objectType, key);
+        LOGE("WebGL can not delete %{public}d %{public}" PRIu64, T::objectType, key);
         return;
     }
     napi_value obj;
@@ -481,7 +481,7 @@ void WebGLRenderingContextBaseImpl::DeleteObject(napi_env env, uint64_t key)
     auto ref = it->second;
     objects_[T::objectType].erase(it);
     napi_delete_reference(env, ref);
-    LOGD("DeleteObject %{public}u %{public}" PRIu64 " status %{public}u", T::objectType, key, status);
+    LOGD("DeleteObject %{public}d %{public}" PRIu64 " status %{public}u", T::objectType, key, status);
 }
 
 template<class T>

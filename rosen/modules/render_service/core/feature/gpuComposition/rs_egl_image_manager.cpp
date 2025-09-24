@@ -393,24 +393,23 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
 }
 
 std::shared_ptr<Drawing::Image> RSEglImageManager::GetIntersectImage(Drawing::RectI& imgCutRect,
-    const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
-    const sptr<SyncFence>& acquireFence, pid_t threadIndex)
+    const std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& params)
 {
-    auto eglTextureId = MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
+    auto eglTextureId = MapEglImageFromSurfaceBuffer(params.buffer, params.acquireFence, params.threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSEglImageManager::GetIntersectImageFromGL invalid texture ID");
         return nullptr;
     }
 
-    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer);
+    Drawing::BitmapFormat bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
     Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(buffer->GetSurfaceBufferWidth());
-    externalTextureInfo.SetHeight(buffer->GetSurfaceBufferHeight());
+    externalTextureInfo.SetWidth(params.buffer->GetSurfaceBufferWidth());
+    externalTextureInfo.SetHeight(params.buffer->GetSurfaceBufferHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(eglTextureId);
     auto glType = GR_GL_RGBA8;
-    auto pixelFmt = buffer->GetFormat();
+    auto pixelFmt = params.buffer->GetFormat();
     if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
         glType = GR_GL_BGRA8;
     } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
