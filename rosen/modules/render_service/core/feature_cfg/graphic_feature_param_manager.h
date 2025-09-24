@@ -108,8 +108,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<SurfaceCaptureParam>(); }},
     {FEATURE_CONFIGS[UI_CAPTURE], [] {return std::make_unique<UICaptureParamParse>(); },
         [] {return std::make_unique<UICaptureParam>(); }},
-    {FEATURE_CONFIGS[ACCESSIBILITY], [] { return std::make_unique<AccessibilityParamParse>(); },
-        [] { return std::make_unique<AccessibilityParam>(); }},
     {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
         [] { return std::make_unique<FilterParam>(); }},
     {FEATURE_CONFIGS[SOC_PERF], [] { return std::make_unique<SOCPerfParamParse>(); },
