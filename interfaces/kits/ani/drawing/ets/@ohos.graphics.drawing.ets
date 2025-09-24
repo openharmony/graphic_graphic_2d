@@ -2702,6 +2702,34 @@ namespace drawing {
      */
     static native createImageLattice(xDivs: Array<int>, yDivs: Array<int>, fXCount: int, fYCount: int,
       fBounds?: common2D.Rect | null, fRectTypes?: Array<RectType> | null, fColors?: Array<common2D.Color> | Array<int> | null): Lattice;
+
+    /**
+     * Divides the image into lattices. The lattices on both even columns and even rows are fixed,
+     * and they are drawn at their original size if the target is large enough.
+     * If the target is too small to hold the fixed lattices, all the fixed lattices are scaled down to fit the target,
+     * and the lattices that are not on even columns and even rows are scaled to accommodate the remaining space.
+     * @param { Array<int> } xDivs - Array of X coordinates used to divide the image. The value is an integer.
+     * @param { Array<int> } yDivs - Array of Y coordinates used to divide the image. The value is an integer.
+     * @param { int } fXCount - Size of the array that holds the X coordinates. The value range is [0, 5].
+     * @param { int } fYCount - Size of the array that holds the Y coordinates. The value range is [0, 5].
+     * @param { common2D.Rect | null } [fBounds] - Source bounds to draw. The rectangle parameter must be an integer.
+     *    The default value is the rectangle size of the original image. If the rectangle parameter is a decimal,
+     *    the decimal part is discarded and converted into an integer.
+     * @param { Array<RectType> | null } [fRectTypes] - Array that holds the rectangle types. The default value is null.
+     *    If this parameter is specified, the array size must be (fXCount + 1) * (fYCount + 1).
+     * @param { Array<int> | null } [fColors] - Array that holds the colors used to fill the lattices.
+     *    Each color is represented by a 32-bit unsigned integer in hexadecimal ARGB format.
+     *    The default value is null.
+     *    If this parameter is specified, the array size must be (fXCount + 1) * (fYCount + 1).
+     * @returns { Lattice | undefined } Lattice object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 22
+     */
+    static native createImageLatticeWithArrayInt(xDivs: Array<int>, yDivs: Array<int>, fXCount: int, fYCount: int,
+      fBounds?: common2D.Rect | null, fRectTypes?: Array<RectType> | null, fColors?: Array<int> | null): Lattice  | undefined;
   }
 
   /**
