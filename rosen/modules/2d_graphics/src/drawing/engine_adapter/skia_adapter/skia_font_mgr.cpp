@@ -166,9 +166,11 @@ void SkiaFontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Ty
         return;
     }
     SkiaTypeface *skiaTypeFace = typeface->GetImpl<SkiaTypeface>();
-    if (skiaTypeFace == nullptr) {
+    if (skiaTypeFace == nullptr || skiaTypeFace->GetTypeface() == nullptr) {
         return;
     }
+    skiaTypeFace->GetTypeface()->setIsCustomTypeface(true);
+    skiaTypeFace->GetTypeface()->setIsThemeTypeface(true);
     dynamicFontMgr->font_provider().RegisterTypeface(skiaTypeFace->GetTypeface(), themeName);
 }
 
