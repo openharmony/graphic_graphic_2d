@@ -17,21 +17,12 @@
 #include "rs_hpae_offline_util.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
-#ifdef RES_SCHED_ENABLE
-#include "qos.h"
+#if defined(ROSEN_OHOS)
+#include "ffrt_inner.h"
 #endif
 
 namespace OHOS::Rosen {
 bool RSHpaeOfflineThreadManager::PostTask(const std::function<void()>& task)
-{
-    if (handler_) {
-        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        return true;
-    }
-    return false;
-}
-
-void RSHpaeOfflineThreadManager::CreateThread()
 {
 #if defined(ROSEN_OHOS)
     ffrt::submit_h([this, task]() {
