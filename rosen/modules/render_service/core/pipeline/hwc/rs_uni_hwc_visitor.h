@@ -31,13 +31,6 @@ public:
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node);
 
-    RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI& globalFilterRect) const;
-
-    bool UpdateIsOffscreen(RSCanvasRenderNode& node);
-    void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
-
-    void UpdateForegroundColorValid(RSCanvasRenderNode& node);
-
     Color FindAppBackgroundColor(RSSurfaceRenderNode& node);
     bool CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
         const RectI& nodeAbsRect, Color& nodeBgColor);
@@ -80,17 +73,23 @@ public:
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& absRect);
 
-    bool IsDisableHwcOnExpandScreen() const;
+    RectI GetHwcVisibleEffectDirty(RSRenderNode& node, const RectI& globalFilterRect) const;
 
-    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix, const RectI& absRect,
-        bool subTreeSkipped = false);
-    void QuickPrepareChildrenOnlyOrder(RSRenderNode& node);
+    bool UpdateIsOffscreen(RSCanvasRenderNode& node);
+    void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
+
+    void UpdateForegroundColorValid(RSCanvasRenderNode& node);
+
     void PrintHiperfCounterLog(const char* const counterContext, uint64_t counter);
     void PrintHiperfLog(RSSurfaceRenderNode* node, const char* const disabledContext);
     void PrintHiperfLog(const std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext);
 
+    bool IsDisableHwcOnExpandScreen() const;
+
     // DRM
     void UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hwcNode);
+    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix,
+        bool subTreeSkipped = false);
 
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
@@ -111,7 +110,6 @@ private:
     void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
     void UpdateRenderResolutionDstRectForDrm(RSSurfaceRenderNode& node, RectI& dstRect);
-    bool IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

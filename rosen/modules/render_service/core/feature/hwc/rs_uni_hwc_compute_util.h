@@ -22,14 +22,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSUniHwcComputeUtil {
-struct HwcPropertyContext {
-    float alpha = 0.f;
-    bool isNodeRenderByDrawingCache = false;
-    bool isNodeRenderByChildNode = false;
-    Drawing::Matrix totalMatrix;
-    float absRotation = 0.f;
-};
-
 public:
     static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
@@ -64,6 +56,14 @@ public:
     static float GetFloatRotationDegreeFromMatrix(const Drawing::Matrix& matrix);
 
 private:
+    struct HwcPropertyContext {
+        float alpha = 0.f;
+        bool isNodeRenderByDrawingCache = false;
+        bool isNodeRenderByChildNode = false;
+        Drawing::Matrix totalMatrix;
+        float absRotation = 0.f;
+    };
+
     template <typename T>
     constexpr static bool IS_NULLPTR(const T& ptr)
     {
@@ -98,12 +98,14 @@ private:
             }
         }
     }
-    static inline void UpdateHwcNodeDrawingCache(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
-    static inline void UpdateHwcNodeBlendNeedChildNode(const std::shared_ptr<RSRenderNode>& parent,
+    static void UpdateHwcNodeDrawingCache(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcNodeBlendNeedChildNode(const std::shared_ptr<RSRenderNode>& parent,
         HwcPropertyContext& ctx);
-    static inline void UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
-    static inline void UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
     static void UpdateHwcNodeAbsRotation(const std::shared_ptr<RSRenderNode>& parent, HwcPropertyContext& ctx);
+    static void UpdateHwcEnableByProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+        const HwcPropertyContext& ctx);
     template<typename T>
     static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(
         const RSRenderNode& node, ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType);
