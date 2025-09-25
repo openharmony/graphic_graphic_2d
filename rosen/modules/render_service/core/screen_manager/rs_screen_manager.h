@@ -145,6 +145,7 @@ public:
 
     virtual int32_t SetBrightnessInfoChangeCallback(const sptr<RSIBrightnessInfoChangeCallback>& callback) = 0;
     virtual void NotifyBrightnessInfoChangeCallback(ScreenId screenId, const BrightnessInfo& brightnessInfo) const = 0;
+    virtual bool IsBrightnessInfoChangeCallbackRegister() const = 0;
     virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
     virtual int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const = 0;
     virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const = 0;
@@ -267,6 +268,7 @@ public:
     void RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener) override;
     int32_t SetBrightnessInfoChangeCallback(const sptr<RSIBrightnessInfoChangeCallback>& callback) override;
     void NotifyBrightnessInfoChangeCallback(ScreenId screenId, const BrightnessInfo& brightnessInfo) const override;
+    bool IsBrightnessInfoChangeCallbackRegister() const override;
 
     void DisplayDump(std::string& dumpString) override;
     void SurfaceDump(std::string& dumpString) override;

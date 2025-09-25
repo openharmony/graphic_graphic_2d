@@ -2555,12 +2555,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
     RSLuminanceControl::Get().SetHdrStatus(screenId,
         screenNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());
-    if (RSLuminanceControl::Get().IsBrightnessInfoChanged(screenId)) {
-        BrightnessInfo info = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
-        screenManager->NotifyBrightnessInfoChangeCallback(screenId, info);
-        RS_LOGD("DoDirectComposition curHeadroom:%{public}f maxHeadroom:%{public}f sdrNits:%{public}f",
-            info.currentHeadroom, info.maxHeadroom, info.sdrNits);
-    }
 #endif
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
@@ -5191,6 +5185,14 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
                 screenManager->SetScreenLinearMatrix(screenId, matrix);
                 rsColorTemperature.DimmingIncrease(screenId);
                 isNeedRefreshAll = true;
+            }
+            bool needNotifyCallback = screenManager->IsBrightnessInfoChangeCallbackRegister() &&
+                rsLuminance.IsBrightnessInfoChanged(screenId);
+            if (needNotifyCallback) {
+                BrightnessInfo info = rsLuminance.GetBrightnessInfo(screenId);
+                screenManager->NotifyBrightnessInfoChangeCallback(screenId, info);
+                RS_TRACE_NAME_FMT("%s curHeadroom:%{public}f maxHeadroom:%{public}f sdrNits:%{public}f",
+                    __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits);
             }
         }
     }

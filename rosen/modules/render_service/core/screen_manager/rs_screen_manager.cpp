@@ -2107,6 +2107,11 @@ void RSScreenManager::NotifyBrightnessInfoChangeCallback(ScreenId screenId, cons
     brightnessInfoChangeCallback_->OnBrightnessInfoChange(screenId, brightnessInfo);
 }
 
+bool RSScreenManager::IsBrightnessInfoChangeCallbackRegister() const
+{
+    return brightnessInfoChangeCallback_ != nullptr;
+}
+
 void RSScreenManager::RegisterScreenNodeListener(std::shared_ptr<RSIScreenNodeListener> listener)
 {
     if (listener == nullptr) {

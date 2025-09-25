@@ -16,8 +16,9 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_IBRIGHTNESS_INFO_CHANGE_CALLBACK_H
 #define ROSEN_RENDER_SERVICE_BASE_IBRIGHTNESS_INFO_CHANGE_CALLBACK_H
 
+#include "display_engine/rs_luminance_control.h"
+
 #include <iremote_broker.h>
-#include <display_engine/rs_luminance_control.h>
 
 namespace OHOS {
 namespace Rosen {
