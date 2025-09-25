@@ -582,16 +582,6 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput>& output)
             RS_LOGE("%{public}s failed to add screen : %{public}" PRIu64, __func__, thisId);
             return;
         }
-
-        // for each supported mode, use the index as modeId to add the detailed mode to hgm
-        int32_t modeId = 0;
-        auto supportedModes = screen->GetSupportedModes();
-        for (const auto& mode : supportedModes) {
-            if (hgmCore.AddScreenInfo(thisId, mode.width, mode.height, mode.freshRate, modeId)) {
-                RS_LOGW("failed to add a screen profile to the screen : %{public}" PRIu64, thisId);
-            }
-            modeId++;
-        }
     });
 }
 
@@ -1473,7 +1463,7 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
 }
 
 // only used in dirtyRegion
-bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
+bool RSScreenManager::CheckVirtualScreenStatusChanged(ScreenId id)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1483,7 +1473,7 @@ bool RSScreenManager::CheckPSurfaceChanged(ScreenId id)
     if (!screen->IsVirtual()) {
         return false;
     }
-    return screen->GetAndResetPSurfaceChange();
+    return screen->GetAndResetPSurfaceChange() || screen->GetAndResetVirtualScreenPlay();
 }
 
 bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const

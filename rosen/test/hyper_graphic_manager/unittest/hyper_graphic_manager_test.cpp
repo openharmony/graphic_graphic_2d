@@ -349,12 +349,11 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            auto addScreen = instance8.AddScreen(screenId, 0, screenSize);
+            std::vector<GraphicDisplayModeInfo> modeList;
+            modeList.push_back({width0, height0, rate0, mode0});
+            modeList.push_back({width, height, rate, mode});
+            auto addScreen = instance8.AddScreen(screenId, 0, screenSize, modeList);
             STEP_ASSERT_EQ(addScreen, 0);
-            auto addScreenProfile = instance8.AddScreenInfo(screenId, width, height, rate, mode);
-            STEP_ASSERT_EQ(addScreenProfile, 0);
-            auto addScreenProfile0 = instance8.AddScreenInfo(screenId, width0, height0, rate0, mode0);
-            STEP_ASSERT_EQ(addScreenProfile0, 0);
             auto setRate500 = instance8.SetScreenRefreshRate(screenId, 0, 500);
             STEP_ASSERT_EQ(setRate500, -1);
             screen = instance8.GetScreen(screenId);
@@ -398,12 +397,11 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate_002, Function | MediumTes
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
+            std::vector<GraphicDisplayModeInfo> modeList;
+            modeList.push_back({width0, height0, rate0, mode0});
+            modeList.push_back({width, height, rate, mode});
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize, modeList);
             STEP_ASSERT_EQ(addScreen, 0);
-            auto addScreenProfile = instance.AddScreenInfo(screenId, width, height, rate, mode);
-            STEP_ASSERT_EQ(addScreenProfile, 0);
-            auto addScreenProfile0 = instance.AddScreenInfo(screenId, width0, height0, rate0, mode0);
-            STEP_ASSERT_EQ(addScreenProfile0, 0);
             bool shouldSendCallback = false;
             auto setRate120 = instance.SetScreenRefreshRate(screenId, 0, 120, shouldSendCallback);
             if (setRate120 == -1) {
@@ -437,15 +435,11 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
+            std::vector<GraphicDisplayModeInfo> modeList;
+            modeList.push_back({width, height, rate, mode});
             auto addScreen = instance.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_GE(addScreen, 0);
         }
-
-        STEP("2. add a a supported config to the new screen") {
-            auto addScreenProfile = instance.AddScreenInfo(screenId, width, height, rate, mode);
-            STEP_ASSERT_EQ(addScreenProfile, 0);
-        }
-
         STEP("3. set the refreshrate mode") {
             auto setMode2 = instance.SetRefreshRateMode(modeToSet);
             STEP_ASSERT_EQ(setMode2, 0);
@@ -475,10 +469,10 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level0
     uint32_t rate5 = 80;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    instance.AddScreen(screenId2, 1, screenSize);
-    instance.AddScreenInfo(screenId2, width, height, rate, mode);
-    EXPECT_EQ(instance.AddScreenInfo(screenId2, width, height, rate, mode), HgmErrCode::HGM_SCREEN_PARAM_ERROR);
-    instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
+    std::vector<GraphicDisplayModeInfo> modeList;
+    modeList.push_back({width, height, rate, mode});
+    modeList.push_back({width, height, rate2, mode2});
+    instance.AddScreen(screenId2, 1, screenSize, modeList);
     sptr<HgmScreen> screen = instance.GetScreen(screenId1);
     sptr<HgmScreen> screen2 = instance.GetScreen(screenId2);
 
@@ -573,9 +567,12 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
     uint32_t rate3 = -1;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    instance.AddScreen(screenId2, 1, screenSize);
-    instance.AddScreenInfo(screenId2, width, height, rate, mode);
-    instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
+    int32_t mode3 = 3;
+    std::vector<GraphicDisplayModeInfo> modeList;
+    modeList.push_back({width, height, rate, mode});
+    modeList.push_back({width, height, rate2, mode2});
+    modeList.push_back({width, height, rate3, mode3});
+    instance.AddScreen(screenId2, 1, screenSize, modeList);
 
     PART("HgmCore") {
         STEP("1. set active mode") {
@@ -600,16 +597,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
             STEP_ASSERT_GE(addResult, -1);
         }
 
-        STEP("4. add screen info, screen does not exist") {
-            int32_t setResult = instance.AddScreenInfo(screenId3, 0, 0, 0, 0);
-            STEP_ASSERT_NE(setResult, 0);
-            uint32_t getResult = instance.GetScreenCurrentRefreshRate(screenId3);
-            STEP_ASSERT_EQ(getResult, 0);
-            std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId3);
-            STEP_ASSERT_EQ(getVResult.size(), 0);
-        }
-
-        STEP("5. add screen info, screen exist") {
+        STEP("4. add screen info, screen exist") {
             instance.GetScreenCurrentRefreshRate(screenId2);
             std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId2);
             auto screenComponentRefreshRates = instance.GetScreenComponentRefreshRates(screenId2);
@@ -634,9 +622,10 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
     uint32_t rate2 = 60;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    instance.AddScreen(screenId2, 1, screenSize);
-    instance.AddScreenInfo(screenId2, width, height, rate, mode);
-    instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
+    std::vector<GraphicDisplayModeInfo> modeList;
+    modeList.push_back({width, height, rate, mode});
+    modeList.push_back({width, height, rate2, mode2});
+    instance.AddScreen(screenId2, 1, screenSize, modeList);
 
     PART("HgmCore") {
         STEP("1. set active mode") {

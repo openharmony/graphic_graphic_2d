@@ -184,6 +184,8 @@ public:
     virtual int32_t GetOffsetY() const = 0;
     virtual bool GetAndResetPSurfaceChange() = 0;
     virtual void SetPSurfaceChange(bool pSurfaceChange) = 0;
+    virtual bool GetAndResetVirtualScreenPlay() = 0;
+    virtual void SetVirtualScreenPlay(bool virtualScreenPlay) = 0;
 };
 
 namespace impl {
@@ -332,6 +334,8 @@ public:
 
     bool GetAndResetPSurfaceChange() override;
     void SetPSurfaceChange(bool pSurfaceChange) override;
+    bool GetAndResetVirtualScreenPlay() override;
+    void SetVirtualScreenPlay(bool virtualScreenPlay) override;
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
@@ -448,7 +452,9 @@ private:
 
     std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
 
-    std::atomic<bool> pSurfaceChange_ = false; // just for dirty region to use
+    // status for full screen dirty region update
+    std::atomic<bool> pSurfaceChange_ = false;
+    std::atomic<bool> virtualScreenPlay_ = false;
 };
 } // namespace impl
 } // namespace Rosen

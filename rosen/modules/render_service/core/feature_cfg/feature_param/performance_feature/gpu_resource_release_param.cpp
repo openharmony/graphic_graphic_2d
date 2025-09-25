@@ -1,6 +1,5 @@
-
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,27 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef ADAPTER_TYPE_H
-#define ADAPTER_TYPE_H
+#include "gpu_resource_release_param.h"
 
-namespace OHOS {
-namespace Rosen {
-namespace Drawing {
-enum class AdapterType {
-    SKIA_ADAPTER,
-    DDGR_ADAPTER,
-    OTHER_ADAPTER,
-};
+namespace OHOS::Rosen {
 
-enum class DrawingType {
-    COMMON,
-    RECORDING,
-    OVER_DRAW,
-    NO_DRAW,
-    PAINT_FILTER,
-    STATE_RECORD
-};
-} // namespace Drawing
-} // namespace Rosen
-} // namespace OHOS
-#endif
+DeeplyRelGpuResParam& DeeplyRelGpuResParam::GetInstance()
+{
+    static DeeplyRelGpuResParam instance;
+    return instance;
+}
+
+bool DeeplyRelGpuResParam::IsDeeplyRelGpuResEnable() const
+{
+    return isDeeplyRelGpuResEnable_;
+}
+
+void DeeplyRelGpuResParam::SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable)
+{
+    isDeeplyRelGpuResEnable_ = isDeeplyRelGpuResEnable;
+}
+} // namespace OHOS::Rosen

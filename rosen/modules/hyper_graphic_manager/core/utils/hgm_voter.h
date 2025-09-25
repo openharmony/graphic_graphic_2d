@@ -87,10 +87,12 @@ public:
     ~HgmVoter() = default;
 
     bool DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
-    VoteInfo ProcessVote();
+    std::optional<VoteInfo> ProcessVote();
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    bool CheckForceUseAppVSync();
 private:
-    bool ProcessVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange);
+    bool ProcessVote(std::vector<std::string>::iterator& voterIter,
+        std::optional<VoteInfo>& resultVoteInfo, VoteRange& voteRange);
 
     VoteRecord voteRecord_;
     std::vector<std::string> voters_;

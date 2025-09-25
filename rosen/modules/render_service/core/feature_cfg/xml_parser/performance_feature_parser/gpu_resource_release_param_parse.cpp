@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-#include "socperf_param_parse.h"
+#include "gpu_resource_release_param_parse.h"
 
 namespace OHOS::Rosen {
 
-int32_t SOCPerfParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t DeeplyRelGpuResParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
-    RS_LOGI("SOCPerfParamParse start");
+    RS_LOGI("DeeplyRelGpuResParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("SOCPerfParamParse stop parsing, no children nodes");
+        RS_LOGD("DeeplyRelGpuResParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 
@@ -32,8 +32,8 @@ int32_t SOCPerfParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xm
             continue;
         }
 
-        if (ParseSOCPerfInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGD("SOCPerfParamParse stop parsing, parse internal fail");
+        if (ParseDeeplyRelGpuResInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("DeeplyRelGpuResParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
@@ -41,16 +41,16 @@ int32_t SOCPerfParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xm
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t SOCPerfParamParse::ParseSOCPerfInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t DeeplyRelGpuResParamParse::ParseDeeplyRelGpuResInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[SOC_PERF]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]);
     if (iter == featureMap.end()) {
-        RS_LOGD("SOCPerfParamParse stop parsing, no initializing param map");
+        RS_LOGD("DeeplyRelGpuResParamParse stop parsing, no initializing param map");
         return PARSE_NO_PARAM;
     }
-    socPerfParam_ = std::static_pointer_cast<SOCPerfParam>(iter->second);
+    deeplyRelGpuResParam_ = std::static_pointer_cast<DeeplyRelGpuResParam>(iter->second);
 
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
@@ -58,18 +58,10 @@ int32_t SOCPerfParamParse::ParseSOCPerfInternal(FeatureParamMapType &featureMap,
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "MultilayersSocperfEnabled") {
-            socPerfParam_->SetMultilayersSOCPerfEnable(isEnabled);
-            RS_LOGI("SOCPerfParamParse parse MultilayersSocperfEnabled %{public}d",
-                socPerfParam_->IsMultilayersSOCPerfEnable());
-        } else if (name == "UnlockSocperfEnabled") {
-            socPerfParam_->SetUnlockSOCPerfEnable(isEnabled);
-            RS_LOGI("SOCPerfParamParse parse UnlockSocperfEnabled %{public}d",
-                socPerfParam_->IsUnlockSOCPerfEnable());
-        } else if (name == "BlurSocperfEnabled") {
-            socPerfParam_->SetBlurSOCPerfEnable(isEnabled);
-            RS_LOGI("SOCPerfParamParse parse BlurSocperfEnabled %{public}d",
-                socPerfParam_->IsBlurSOCPerfEnable());
+        if (name == "DeeplyReleaseGpuResourceEnabled") {
+            deeplyRelGpuResParam_->SetDeeplyRelGpuResEnable(isEnabled);
+            RS_LOGI("DeeplyRelGpuResParamParse parse DeeplyReleaseGpuResourceEnabled %{public}d",
+                deeplyRelGpuResParam_->IsDeeplyRelGpuResEnable());
         }
     }
     return PARSE_EXEC_SUCCESS;

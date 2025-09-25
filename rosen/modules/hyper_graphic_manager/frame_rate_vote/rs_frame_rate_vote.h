@@ -47,13 +47,12 @@ private:
     void CancelVoteRate(pid_t pid, std::string eventName);
     void NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo);
 
-private:
     bool isSwitchOn_{ false };
     pid_t lastVotedPid_{ DEFAULT_PID };
     std::atomic<uint32_t> lastVotedRate_{ OLED_NULL_HZ };
     bool hasUiOrSurface = true;
     bool isVoted_{ false };
-    std::atomic<uint64_t> lastSurfaceNodeId_ {0};
+    std::atomic<uint64_t> lastSurfaceNodeId_{ 0 };
     uint64_t currentUpdateTime_{ 0 };
     std::string transactionFlags_ = "";
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_{};
