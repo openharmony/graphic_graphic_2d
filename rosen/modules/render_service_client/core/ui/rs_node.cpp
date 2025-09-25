@@ -2888,9 +2888,6 @@ void RSNode::DoFlushModifier()
             std::unique_ptr<RSCommand> command =
                 std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
             AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-            if (modifier->IsCustom()) {
-                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
-            }
         }
     }
 }
@@ -3885,17 +3882,9 @@ void RSNode::DumpModifiers(std::string& out) const
         if (modifier == nullptr) {
             continue;
         }
-        auto customModifier =
-            modifier->IsCustom() ? std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier) : nullptr;
-        if (customModifier != nullptr) {
-            customModifier->UpdateDrawCmdList();
-        }
         auto renderModifier = modifier->CreateRenderModifier();
         if (renderModifier != nullptr) {
             renderModifier->Dump(modifierInfo, ",");
-        }
-        if (customModifier != nullptr) {
-            customModifier->ClearDrawCmdList();
         }
     }
     if (!modifierInfo.empty()) {
@@ -4100,9 +4089,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         std::unique_ptr<RSCommand> cmdForRemote =
             std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
-    }
-    if (modifier->IsCustom()) {
-        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
     }
 }
 

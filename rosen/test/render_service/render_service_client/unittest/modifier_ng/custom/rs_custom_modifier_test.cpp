@@ -102,7 +102,6 @@ HWTEST_F(RSCustomModifierHelperTest, FinishDrawingTest, TestSize.Level1)
 HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListTest, TestSize.Level1)
 {
     auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
-    modifier->ClearDrawCmdList();
     modifier->UpdateDrawCmdList();
     EXPECT_EQ(modifier->node_.lock(), nullptr);
     auto node = std::make_shared<RSCanvasNode>(true);
@@ -122,7 +121,5 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListTest, TestSize.Level1)
     EXPECT_NE(modifier->node_.lock(), nullptr);
     EXPECT_NE(property, nullptr);
     EXPECT_NE(property->Get(), nullptr);
-    modifier->ClearDrawCmdList();
-    EXPECT_EQ(property->Get(), nullptr);
 }
 } // namespace OHOS::Rosen
