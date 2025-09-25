@@ -398,4 +398,25 @@ HWTEST_F(RSEffectRenderNodeTest, SetDarkColorModeTest001, TestSize.Level1)
     rsEffectRenderNode.SetDarkColorMode(true);
     EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
 }
+
+/**
+ * @tc.name: MarkFilterDebugEnabled001
+ * @tc.desc: Test function MarkFilterDebugEnabled
+ * @tc.type: FUNC
+ * @tc.require: issue20057
+ */
+HWTEST_F(RSEffectRenderNodeTest, MarkFilterDebugEnabled001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.MarkFilterDebugEnabled();
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    rsEffectRenderNode.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        backgroundFilterDrawable;
+    backgroundFilterDrawable->stagingCacheManager_ = nullptr;
+    rsEffectRenderNode.MarkFilterDebugEnabled();
+    backgroundFilterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    rsEffectRenderNode.MarkFilterDebugEnabled();
+    EXPECT_TRUE(backgroundFilterDrawable->stagingCacheManager_->debugEnabled_);
+}
 } // namespace OHOS::Rosen

@@ -351,5 +351,16 @@ void RSEffectRenderNode::SetDarkColorMode(bool isDark)
     }
     effectParams->SetDarkColorMode(isDark);
 }
+
+void RSEffectRenderNode::MarkFilterDebugEnabled()
+{
+#ifdef RS_ENABLE_GPU
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr) {
+        return;
+    }
+    filterDrawable->MarkDebugEnabled();
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
