@@ -36,7 +36,7 @@
 #include "shadow_layer_ani/ani_shadow_layer.h"
 #include "text_blob_ani/ani_text_blob.h"
 
-const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/drawing/Cleaner;";
+const char* ANI_CLASS_CLEANER_NAME = "@ohos.graphics.drawing.drawing.Cleaner";
 
 template <typename T>
 void SafeDelete(ani_long& ptr)
@@ -110,7 +110,7 @@ static ani_status AniCleanerInit(ani_env* env)
     }
 
     std::array methods = {
-        ani_native_function{"clean", ":V", reinterpret_cast<void*>(Clean)},
+        ani_native_function{"clean", ":", reinterpret_cast<void*>(Clean)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
