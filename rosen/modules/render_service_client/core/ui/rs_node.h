@@ -32,8 +32,18 @@
 #include <optional>
 #include <unordered_map>
 
+#include "recording/recording_canvas.h"
+#include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/visual_effect.h"
 #include "ui_effect/filter/include/filter.h"
+#include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
+#include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_hdr_para.h"
+#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
@@ -41,14 +51,17 @@
 #include "animation/rs_particle_params.h"
 #include "animation/rs_symbol_node_config.h"
 #include "animation/rs_transition_effect.h"
+#include "command/rs_animation_command.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
 #include "modifier/rs_showing_properties_freezer.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
+#include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
+#include "transaction/rs_sync_transaction_handler.h"
 #include "transaction/rs_transaction_handler.h"
 
 namespace OHOS {
@@ -67,9 +80,7 @@ class RSObjAbsGeometry;
 class RSUIContext;
 class RSNGFilterBase;
 class RSNGShaderBase;
-class Blender;
 enum class CancelAnimationStatus;
-enum class AnimationCallbackEvent : uint16_t;
 
 namespace ModifierNG {
 class RSModifier;

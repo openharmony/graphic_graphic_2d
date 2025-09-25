@@ -324,8 +324,7 @@ void DoRecvMessages002(const uint8_t* data, size_t size)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     NodeId id = GetData<NodeId>();
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     cmds->AddCommand(command, id, FollowType::FOLLOW_TO_SELF);
     
     director->RecvMessages(cmds);
@@ -344,8 +343,7 @@ bool DoProcessMessages001()
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     NodeId id = GetData<NodeId>();
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     cmds->AddCommand(command, id, FollowType::FOLLOW_TO_SELF);
     director->ProcessMessages(cmds);
     return true;

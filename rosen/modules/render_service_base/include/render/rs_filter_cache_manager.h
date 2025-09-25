@@ -20,12 +20,16 @@
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
 
+#include "draw/canvas.h"
+#include "draw/surface.h"
+#include "utils/rect.h"
+
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
-#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {

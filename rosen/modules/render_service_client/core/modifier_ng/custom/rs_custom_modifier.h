@@ -19,7 +19,9 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
+#include "command/rs_node_command.h"
 #include "modifier_ng/rs_modifier_ng.h"
+#include "pipeline/rs_draw_cmd_list.h"
 
 namespace OHOS::Rosen {
 class RSNode;
@@ -39,7 +41,7 @@ public:
 class RSC_EXPORT RSCustomModifier : public RSModifier {
 public:
     RSCustomModifier() = default;
-    ~RSCustomModifier() override = default;
+    virtual ~RSCustomModifier() = default;
 
     virtual void Draw(RSDrawingContext& context) const = 0;
 

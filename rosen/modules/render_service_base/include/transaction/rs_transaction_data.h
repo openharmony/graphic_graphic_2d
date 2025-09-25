@@ -18,22 +18,26 @@
 
 #include <memory>
 #include <mutex>
-#include <parcel.h>
 #include <vector>
 
+#include "command/rs_command.h"
+#include "command/rs_node_showing_command.h"
 #include "common/rs_macros.h"
 #include "pipeline/rs_context.h"
 
+#include <parcel.h>
+
 namespace OHOS {
 namespace Rosen {
-class RSCommand;
 class RSB_EXPORT RSTransactionData : public Parcelable {
 public:
     RSTransactionData() = default;
     RSTransactionData(const RSTransactionData&) = delete;
     RSTransactionData& operator=(const RSTransactionData&) = delete;
-    RSTransactionData(RSTransactionData&& other);
-    RSTransactionData& operator=(const RSTransactionData&&) = delete;
+    RSTransactionData(RSTransactionData&& other)
+        : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
+          abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_)
+    {}
     ~RSTransactionData() override;
 
     [[nodiscard]] static RSTransactionData* Unmarshalling(Parcel& parcel);

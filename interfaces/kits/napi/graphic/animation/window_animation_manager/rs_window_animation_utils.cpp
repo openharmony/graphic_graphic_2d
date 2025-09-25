@@ -51,7 +51,7 @@ napi_value RSWindowAnimationUtils::CreateJsWindowAnimationTarget(napi_env env,
     };
     target.GetRefPtr()->IncStrongRef(target.GetRefPtr());
     napi_wrap(env, objValue, &(target->surfaceNode_), finalizeCallback, target.GetRefPtr(), nullptr);
-    if (auto proxyNode = RSNode::ReinterpretCast<RSProxyNode>(target->surfaceNode_)) {
+    if (auto proxyNode = RSBaseNode::ReinterpretCast<RSProxyNode>(target->surfaceNode_)) {
         // force proxy node to flush correct context alpha on next visit
         proxyNode->ResetContextVariableCache();
     }

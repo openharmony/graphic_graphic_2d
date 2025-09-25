@@ -342,6 +342,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_041",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSUpdatePropertyDrawingMatrix*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_042",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
