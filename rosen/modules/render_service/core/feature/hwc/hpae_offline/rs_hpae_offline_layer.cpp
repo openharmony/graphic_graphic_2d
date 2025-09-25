@@ -46,7 +46,7 @@ bool RSHpaeOfflineLayer::PreAllocBuffers(const BufferRequestConfig& config)
     RS_OPTIONAL_TRACE_NAME_FMT("prealloc offline buffer.");
     GSError ret = pSurface_->PreAllocBuffers(config, bufferSize_);
     if (ret != GSERROR_OK) {
-         pSurface_->Connect();
+        pSurface_->Connect();
         auto cleanRet = pSurface_->CleanCache(true);
         RS_OFFLINE_LOGW("offline prealloc buffer failed[%{public}d], clean cache: %{public}d", ret, cleanRet);
         return false;
