@@ -53,8 +53,6 @@ public:
     MOCK_METHOD(bool, IsScreenNoHeadroom, (ScreenId screenId), (override, const));
     MOCK_METHOD(bool, IsEnableImageDetailEnhance, (), (override));
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
-    MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));
-    MOCK_METHOD(bool, IsBrightnessInfoChanged, (ScreenId screenId), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;

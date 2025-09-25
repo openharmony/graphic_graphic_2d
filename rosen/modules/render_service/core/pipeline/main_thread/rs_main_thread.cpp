@@ -5191,8 +5191,8 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
             if (needNotifyCallback) {
                 BrightnessInfo info = rsLuminance.GetBrightnessInfo(screenId);
                 screenManager->NotifyBrightnessInfoChangeCallback(screenId, info);
-                RS_TRACE_NAME_FMT("%s curHeadroom:%{public}f maxHeadroom:%{public}f sdrNits:%{public}f",
-                    __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits);
+                RS_TRACE_NAME_FMT("%s curHeadroom:%f maxHeadroom:%f sdrNits:%f screenId:%" PRIu64 "",
+                    __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits, screenId);
             }
         }
     }

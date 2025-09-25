@@ -51,24 +51,6 @@ enum HdrStatus : uint32_t {
     AI_HDR_VIDEO_GAINMAP = 0x10000,
 };
 
-struct BrightnessInfo {
-    float currentHeadroom = 1.0f;
-    float maxHeadroom = 1.0f;
-    float sdrNits = 500.0f;
-
-    bool operator==(const BrightnessInfo& other) const {
-        const float epsilon = 1e-6f;
-        return std::fabs(currentHeadroom - other.currentHeadroom) < epsilon &&
-            std::fabs(maxHeadroom - other.maxHeadroom) < epsilon &&
-            std::fabs(sdrNits - other.sdrNits) < epsilon;
-    }
-
-    bool operator!=(const BrightnessInfo& other) const {
-        return !(*this == other);
-    }
-};
-
-
 class RSLuminanceControlInterface {
 public:
     virtual ~RSLuminanceControlInterface() = default;
@@ -94,8 +76,6 @@ public:
     virtual bool IsScreenNoHeadroom(ScreenId) const = 0;
     virtual bool IsEnableImageDetailEnhance() = 0;
     virtual double GetMaxScaler(ScreenId screenId) const = 0;
-    virtual BrightnessInfo GetBrightnessInfo(ScreenId screenId) = 0;
-    virtual bool IsBrightnessInfoChanged(ScreenId screenId) = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -131,8 +111,6 @@ public:
     RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId) const;
     RSB_EXPORT bool IsEnableImageDetailEnhance();
     RSB_EXPORT double GetMaxScaler(ScreenId screenId) const;
-    RSB_EXPORT BrightnessInfo GetBrightnessInfo(ScreenId screenId);
-    RSB_EXPORT bool IsBrightnessInfoChanged(ScreenId screenId);
 
 private:
     RSLuminanceControl() = default;

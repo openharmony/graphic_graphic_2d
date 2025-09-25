@@ -219,17 +219,5 @@ double RSLuminanceControl::GetMaxScaler(ScreenId screenId) const
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->GetMaxScaler(screenId) : HDR_DEFAULT_SCALER;
 }
-
-BrightnessInfo RSLuminanceControl::GetBrightnessInfo(ScreenId screenId)
-{
-    return (rSLuminanceControlInterface_ != nullptr) ?
-        rSLuminanceControlInterface_->GetBrightnessInfo(screenId) : BrightnessInfo{};
-}
-
-bool RSLuminanceControl::IsBrightnessInfoChanged(ScreenId screenId)
-{
-    return (rSLuminanceControlInterface_ != nullptr) ?
-        rSLuminanceControlInterface_->IsBrightnessInfoChanged(screenId) : false;
-}
 } // namespace Rosen
 } // namespace OHOS
