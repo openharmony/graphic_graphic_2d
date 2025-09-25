@@ -53,7 +53,8 @@ constexpr uint8_t ASTC_HEADER_SIZE = 16;
 bool PixelMapCanBePurge(std::shared_ptr<Media::PixelMap>& pixelMap)
 {
     return RSSystemProperties::GetRSImagePurgeEnabled() && pixelMap &&
-        pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC &&
+        (pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC ||
+        pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) &&
         !RSPixelMapUtil::IsYUVFormat(pixelMap) &&
         !pixelMap->IsEditable() && !pixelMap->IsAstc() && !pixelMap->IsHdr();
 }
