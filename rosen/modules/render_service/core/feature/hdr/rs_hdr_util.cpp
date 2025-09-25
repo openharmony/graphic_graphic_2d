@@ -227,8 +227,6 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         layerNits, displayNits, sdrNits, scaler, surfaceNode.GetHDRBrightness(), brightnessFactor);
 }
 
-void RSHdrUtil::
-
 void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId)
 {
     if (!surfaceNode.GetRSSurfaceHandler()) {
@@ -370,9 +368,9 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
 void RSHdrUtil::CheckNotifyCallback(const sptr<RSScreenManager>& screenManager)
 {
     bool needNotifyCallback = screenManager->IsBrightnessInfoChangeCallbackRegister() &&
-        rsLuminance.IsBrightnessInfoChanged(screenId);
+        RSLuminanceControl::Get().IsBrightnessInfoChanged(screenId);
     if (needNotifyCallback) {
-        BrightnessInfo info = rsLuminance.GetBrightnessInfo(screenId);
+        BrightnessInfo info = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
         screenManager->NotifyBrightnessInfoChangeCallback(screenId, info);
         RS_TRACE_NAME_FMT("%s curHeadroom:%f maxHeadroom:%f sdrNits:%f screenId:%" PRIu64 "",
             __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits, screenId);
