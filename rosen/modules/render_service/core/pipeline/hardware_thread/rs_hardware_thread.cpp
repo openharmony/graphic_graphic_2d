@@ -237,6 +237,13 @@ void RSHardwareThread::ClearRefreshRateCounts(std::string& dumpString)
     RS_LOGD("RefreshRateCounts refresh rate counts info is cleared");
 }
 
+void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
+{
+#ifdef HIPERF_TRACE_ENABLE
+    RS_LOGW("hiperf_surface_%{public}s %{public}" PRIu64, counterContext.c_str(), counter);
+#endif
+}
+
 void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers)
 {
     if (!handler_) {
@@ -257,9 +264,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param,
         currentRate = currentRate, hasGameScene = hasGameScene, curScreenId = curScreenId]() {
-#ifdef HIPERF_TRACE_ENABLE
-        RS_LOGW("hiperf_surface_counter3 %{public}" PRIu64 " ", static_cast<uint64_t>(layers.size()));
-#endif
+        PrintHiperfSurfaceLog("counter3", static_cast<uint64_t>(layers.size()));
         int64_t startTime = GetCurTimeCount();
         std::string surfaceName = GetSurfaceNameInLayers(layers);
         RS_LOGD("CommitAndReleaseLayers task execute, %{public}s", surfaceName.c_str());

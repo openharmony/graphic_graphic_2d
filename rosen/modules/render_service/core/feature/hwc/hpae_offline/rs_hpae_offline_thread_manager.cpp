@@ -33,30 +33,12 @@ bool RSHpaeOfflineThreadManager::PostTask(const std::function<void()>& task)
 
 void RSHpaeOfflineThreadManager::CreateThread()
 {
-    if (!runner_ || !handler_) {
-        runner_ = AppExecFwk::EventRunner::Create("RSHpaeOfflineThread");
-        handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-        if (runner_) {
-            runner_->Run();
-        }
-#ifdef RES_SCHED_ENABLE
-        PostTask([this]() {
-            auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
-            RS_OFFLINE_LOGI("RSHpaeOfflineThreadManager: SetThreadQos ret = %{public}d", ret);
-        });
+#if defined(ROSEN_OHOS)
+    ffrt::submit_h([this, task]() {
+        std::unique_lock<std::mutex> lock(ffrtThreadMutex_);
+        task();
+    }, {}, {}, ffrt::task_attr().qos(5));
 #endif
-    }
-}
-
-void RSHpaeOfflineThreadManager::DestroyThread()
-{
-    if (handler_) {
-        handler_->RemoveAllEvents();
-        handler_ = nullptr;
-    }
-    if (runner_) {
-        runner_->Stop();
-        runner_ = nullptr;
-    }
+    return true;
 }
 }
