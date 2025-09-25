@@ -57,10 +57,14 @@ HWTEST_F(RSUnionRenderModifierTest, RSUnionRenderModifierTest, TestSize.Level1)
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::UNION);
     properties.SetUseUnion(true);
     properties.SetUnionSpacing(0.5f);
+    std::string dumpExistingUnion = properties.Dump();
 
     modifier.ResetProperties(properties);
     EXPECT_EQ(properties.GetUseUnion(), false);
     EXPECT_EQ(properties.GetUnionSpacing(), 0.0f);
     EXPECT_EQ(properties.GetSDFMask(), nullptr);
+
+    std::string dumpClearUnion = properties.Dump();
+    EXPECT_NE(dumpExistingUnion, dumpClearUnion);
 }
 } // namespace OHOS::Rosen

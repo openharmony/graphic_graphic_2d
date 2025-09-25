@@ -4340,6 +4340,25 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // UseUnion
+    if (GetUseUnion()) {
+        dumpInfo.append(", UseUnion[true]");
+    }
+    // UnionSpacing
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for UnionSpacing, ret=" + std::to_string(ret);
+    }
+    float spacing = GetUnionSpacing();
+    if (!ROSEN_EQ(spacing, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", UnionSpacing[%.2f]", spacing) != -1) {
+        dumpInfo.append(buffer);
+    }
+    // SDFMask
+    auto sdfMask = GetSDFMask();
+    if (sdfMask)
+        dumpInfo.append(", SDFMask[" + sdfMask->Dump() + "]");
+    }
     return dumpInfo;
 }
 
