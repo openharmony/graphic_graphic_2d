@@ -3300,6 +3300,33 @@ void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
     UpdateFilter();
 }
 
+void RSProperties::SetUseUnion(bool useUnion)
+{
+    useUnion_ = useUnion;
+    if (GetUseUnion()) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+}
+
+bool RSProperties::GetUseUnion() const
+{
+    return useUnion_;
+}
+
+void RSProperties::SetUnionSpacing(float spacing)
+{
+    unionSpacing_ = spacing;
+    geoDirty_ = true;
+    contentDirty_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetUnionSpacing() const
+{
+    return unionSpacing_;
+}
+
 void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 {
     if (useShadowBatching) {
@@ -4681,6 +4708,19 @@ void RSProperties::SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBas
 std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
 {
     return fgRenderShader_;
+}
+
+void RSProperties::SetSDFMask(const std::shared_ptr<RSNGRenderMaskBase>& mask)
+{
+    renderSDFMask_ = mask;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderMaskBase> RSProperties::GetSDFMask() const
+{
+    return renderSDFMask_;
 }
 
 } // namespace Rosen

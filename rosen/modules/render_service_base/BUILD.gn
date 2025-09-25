@@ -134,6 +134,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_point_light_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_shadow_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_use_effect_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_union_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_color_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_image_render_modifier.cpp",

@@ -380,6 +380,8 @@ public:
     std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
     void SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
+    void SetSDFMask(const std::shared_ptr<RSNGRenderMaskBase>& mask);
+    std::shared_ptr<RSNGRenderMaskBase> GetSDFMask() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -749,6 +751,11 @@ public:
         return needDrawBehindWindow_;
     }
 
+    void SetUseUnion(bool useUnion);
+    bool GetUseUnion() const;
+    void SetUnionSpacing(float spacing);
+    float GetUnionSpacing() const;
+
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const
     {
@@ -862,6 +869,7 @@ private:
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool useEffect_ = false;
+    bool useUnion_ = false;
     bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
@@ -881,6 +889,7 @@ private:
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
+    float unionSpacing_ = 0.f;
     int useEffectType_ = 0;
     Gravity frameGravity_ = Gravity::DEFAULT;
     int colorBlendMode_ = 0;
@@ -913,6 +922,7 @@ private:
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
+    std::shared_ptr<RSNGRenderMaskBase> renderSDFMask_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
