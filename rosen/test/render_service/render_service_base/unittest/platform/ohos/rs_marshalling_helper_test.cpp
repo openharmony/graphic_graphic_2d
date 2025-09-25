@@ -1974,6 +1974,22 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest052, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnmarshallingTest053
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest053, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<Media::PixelMap> val = std::make_shared<Media::PixelMap>();
+    uint64_t uniqueId = 0;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val, uniqueId));
+    parcel.WriteInt32(-1);
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val, uniqueId));
+}
+
+/**
  * @tc.name: MarshallingTest053
  * @tc.desc: Verify function Marshalling recordCmd nesting depth limit
  * @tc.type:FUNC
