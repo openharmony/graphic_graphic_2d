@@ -23,12 +23,12 @@ ohos_shared_library("libdrawing_demo") {
 
   sources = [
     "drawing_demo.cpp",
-    "test_case/draw_path_test.cpp",
-    "test_case/draw_rect_test.cpp",
+    "test_base.cpp",
+    "test_case/draw_path.cpp",
+    "test_case/draw_rect.cpp",
     "test_case/draw_textblob_test.cpp",
-    "test_case/test_base.cpp",
-    "test_case/test_common.cpp",
     "test_case_factory.cpp",
+    "test_common.cpp",
   ]
 
   deps = [
@@ -37,15 +37,17 @@ ohos_shared_library("libdrawing_demo") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_external_deps = [ "window_manager:libwm" ]
+  public_external_deps = [
+    "hilog:libhilog",
+    "window_manager:libwm",
+  ]
+
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hilog:libhilog",
     "image_framework:image_native",
-    "selinux_adapter:librestorecon",
     "window_manager:libdm",
   ]
 

@@ -561,6 +561,8 @@ void SkiaCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4],
     if (texCoords != nullptr) {
         skiaTexCoords.resize(texCoordCount);
         for (size_t i = 0; i < texCoordCount; ++i) {
+            // Tell the compiler there is no alias and to select wider
+            // load/store instructions.
             scalar fX0 = texCoords[i].GetX();
             scalar fY0 = texCoords[i].GetY();
             skiaTexCoords[i].fX = fX0;
@@ -1139,7 +1141,11 @@ bool SkiaCanvas::QuickReject(const Path& path)
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return false;
     }
-    const SkPath& clipPath = path.GetImpl<SkiaPath>()->GetPath();
+    auto skPathImpl = path.GetImpl<SkiaPath>();
+    if (skPathImpl == nullptr) {
+        return false;
+    }
+    const SkPath& clipPath = skPathImpl->GetPath();
     DRAWING_PERFORMANCE_TEST_SKIA_RETURN(false);
     return skCanvas_->quickReject(clipPath);
 }

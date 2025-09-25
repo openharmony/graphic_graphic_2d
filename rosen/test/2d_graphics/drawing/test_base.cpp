@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 #include "test_base.h"
-
 #include <sstream>
 #include <string>
-
-#include "test_common.h"
 #include "image/image.h"
+#include "test_common.h"
 #include "utils/log.h"
 
 namespace OHOS {

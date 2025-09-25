@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <memory>
 #include <unordered_set>
+#include <hilog/log.h>
 
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
@@ -27,9 +28,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-namespace {
-constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
-}
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
@@ -310,13 +308,13 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
     do {
         count++;
         if (opItemCount && ++(*opItemCount) > MAX_OPITEMSIZE) {
-            LOGE("DrawCmdList::UnmarshallingOps failed, opItem count exceed limit");
+            HILOG_COMM_ERROR("DrawCmdList::UnmarshallingOps failed, opItem count exceed limit");
             break;
         }
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr == nullptr) {
-            LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
+            HILOG_COMM_ERROR("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
             break;
         }
         uint32_t type = curOpItemPtr->GetType();
@@ -333,7 +331,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
             auto* replacePtr = opAllocator_.OffsetToAddr(
                 replacedOpListForBuffer_[opReplaceIndex].second, sizeof(OpItem));
             if (replacePtr == nullptr) {
-                LOGE("DrawCmdList::Unmarshalling replace Ops failed, replace op is nullptr");
+                HILOG_COMM_ERROR("DrawCmdList::Unmarshalling replace Ops failed, replace op is nullptr");
                 break;
             }
             auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
@@ -540,7 +538,7 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr == nullptr) {
-            LOGE("DrawCmdList::GenerateCacheByBuffer failed, opItem is nullptr");
+            HILOG_COMM_ERROR("DrawCmdList::GenerateCacheByBuffer failed, opItem is nullptr");
             break;
         }
         size_t avaliableSize = opAllocator_.GetSize() - offset;
@@ -550,7 +548,7 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
             itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
             curOpItemPtr = static_cast<OpItem*>(itemPtr);
             if (curOpItemPtr == nullptr) {
-                LOGE("DrawCmdList::GenerateCache failed, opItem is nullptr");
+                HILOG_COMM_ERROR("DrawCmdList::GenerateCache failed, opItem is nullptr");
                 break;
             }
         }
@@ -613,15 +611,9 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
     if (drawOpItems_.empty()) {
         return;
     }
-    uint32_t opCount = 0;
     for (auto op : drawOpItems_) {
-        if (isCanvasDrawingOpLimitEnabled_ && opCount > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
-            LOGE("DrawCmdList::PlaybackByVector Out of DrawOp limit, DrawOpCount: %{public}d", opCount);
-            break;
-        }
         if (op) {
             op->Playback(&canvas, rect);
-            ++opCount;
         }
     }
     canvas.DetachPaint();
@@ -647,7 +639,7 @@ bool DrawCmdList::UnmarshallingDrawOpsSimple(
             }
             uint32_t type = curOpItemPtr->GetType();
             if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset, isReplayMode)) {
-                drawOpItems_.emplace_back(op);
+                drawOpItems.emplace_back(op);
             }
             if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
                 break;
@@ -664,15 +656,9 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
     if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
         return;
     }
-    uint32_t opCount = 0;
     for (auto op : drawOpItems_) {
-        if (isCanvasDrawingOpLimitEnabled_ && opCount > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
-            LOGE("DrawCmdList::PlaybackByBuffer Out of DrawOp limit, DrawOpCount: %{public}d", opCount);
-            break;
-        }
         if (op) {
             op->Playback(&canvas, rect);
-            ++opCount;
         }
     }
     canvas.DetachPaint();
