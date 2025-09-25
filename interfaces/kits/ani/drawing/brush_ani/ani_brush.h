@@ -44,6 +44,10 @@ public:
     static void Reset(ani_env*  env, ani_object obj);
     static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static ani_object GetColorFilter(ani_env* env, ani_object obj);
+    static void SetImageFilter(ani_env* env, ani_object obj, ani_object imageFilterObj);
+    static void SetMaskFilter(ani_env* env, ani_object obj, ani_object maskFilterObj);
+    static void SetShadowLayer(ani_env* env, ani_object obj, ani_object shadowLayerObj);
+    static void SetShaderEffect(ani_env* env, ani_object obj, ani_object shaderEffectObj);
 
     std::shared_ptr<Brush> GetBrush();
 

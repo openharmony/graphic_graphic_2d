@@ -27,6 +27,8 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 const char* ANI_CLASS_FONT_NAME = "@ohos.graphics.drawing.drawing.Font";
+const char* ANI_FONT_HINTING_NAME = "@ohos.graphics.drawing.drawing.FontHinting";
+const char* ANI_FONT_EDGING_NAME = "@ohos.graphics.drawing.drawing.FontEdging";
 
 static std::string GetFontHintingItemName(FontHinting hinting)
 {
@@ -414,16 +416,16 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
     uint32_t fontSize = aniLength;
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
     for (uint32_t i = 0; i < fontSize; i++) {
-        ani_int glyph_t;
+        ani_int glyph;
         ani_ref glyphRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
             glyphs, "$_get", "i:C{std.core.Object}", &glyphRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(glyphRef), "unboxed", ":i", &glyph_t)) {
+                static_cast<ani_object>(glyphRef), "unboxed", ":i", &glyph)) {
             ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
             return arrayObj;
         }
-        glyphPtr[i] = glyph_t;
+        glyphPtr[i] = glyph;
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -662,7 +664,7 @@ ani_enum_item AniFont::GetHinting(ani_env* env, ani_object obj)
     FontHinting hinting = aniFont->GetFont()->GetHinting();
 
     ani_enum type;
-    if (ANI_OK != env->FindEnum("@ohos.graphics.drawing.drawing.FontHinting", &type)) {
+    if (ANI_OK != env->FindEnum(ANI_FONT_HINTING_NAME, &type)) {
         ROSEN_LOGE("AniFont::GetHinting FindEnum for FontHinting failed");
         return {};
     }
@@ -687,7 +689,7 @@ ani_enum_item AniFont::GetEdging(ani_env* env, ani_object obj)
     FontEdging edging = aniFont->GetFont()->GetEdging();
 
     ani_enum type;
-    if (ANI_OK != env->FindEnum("@ohos.graphics.drawing.drawing.FontEdging", &type)) {
+    if (ANI_OK != env->FindEnum(ANI_FONT_EDGING_NAME, &type)) {
         ROSEN_LOGE("AniFont::GetEdging FindEnum for FontEdging failed");
         return {};
     }
@@ -720,7 +722,7 @@ ani_object AniFont::CreatePathForGlyph(ani_env* env, ani_object obj, ani_int ind
         return aniObj;
     }
     AniPath* aniPath = new AniPath(path);
-    aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.Path", ":");
+    aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, ":");
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniFont::CreatePathForGlyph failed cause by Object_SetFieldByName_Long");
@@ -749,16 +751,16 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
     uint32_t glyphscnt = aniLength;
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphscnt);
     for (uint32_t i = 0; i < glyphscnt; i++) {
-        ani_int glyph_t;
+        ani_int glyph;
         ani_ref glyphRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
             glyphs, "$_get", "i:C{std.core.Object}", &glyphRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(glyphRef), "unboxed", ":i", &glyph_t)) {
+                static_cast<ani_object>(glyphRef), "unboxed", ":i", &glyph)) {
             ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");
             return arrayObj;
         }
-        glyphPtr[i] = glyph_t;
+        glyphPtr[i] = glyph;
     }
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -802,7 +804,7 @@ ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText
     std::shared_ptr<Path> path = std::make_shared<Path>();
     realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
     AniPath* aniPath = new AniPath(path);
-    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.Path", nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniFont::GetTextPath failed cause by Object_SetFieldByName_Long");

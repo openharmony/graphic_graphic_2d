@@ -30,6 +30,7 @@
 #include "region_ani/ani_region.h"
 #include "round_rect_ani/ani_round_rect.h"
 #include "sampling_options_ani/ani_sampling_options.h"
+#include "text_blob_ani/ani_text_blob.h"
 #ifdef OHOS_PLATFORM
 #include "pipeline/rs_recording_canvas.h"
 #endif
@@ -253,6 +254,7 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
 
 namespace Drawing {
 const char* ANI_CLASS_CANVAS_NAME = "@ohos.graphics.drawing.drawing.Canvas";
+const char* ANI_CLASS_POINT_NAME = "@ohos.graphics.common2D.common2D.Point";
 ani_status AniCanvas::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -296,6 +298,7 @@ ani_status AniCanvas::AniInit(ani_env *env)
         ani_native_function { "drawPath", nullptr, reinterpret_cast<void*>(DrawPath) },
         ani_native_function { "drawLine", nullptr, reinterpret_cast<void*>(DrawLine) },
         ani_native_function { "drawSingleCharacter", nullptr, reinterpret_cast<void*>(DrawSingleCharacter) },
+        ani_native_function { "drawTextBlob", nullptr, reinterpret_cast<void*>(DrawTextBlob) },
         ani_native_function { "drawOval", nullptr, reinterpret_cast<void*>(DrawOval) },
         ani_native_function { "drawArc", nullptr, reinterpret_cast<void*>(DrawArc) },
         ani_native_function { "drawArcWithCenter", nullptr, reinterpret_cast<void*>(DrawArcWithCenter) },
@@ -564,24 +567,24 @@ void AniCanvas::DrawShadowWithOption(ani_env* env, ani_object obj, ani_object pa
     Drawing::Point3 plane;
     Drawing::Point3 lightPos;
     if (!GetPoint3FromPoint3dObj(env, planeParams, plane) || !GetPoint3FromPoint3dObj(env, devLightPos, lightPos)) {
-        ROSEN_LOGE("AniCanvas::DrawShadow params1 or params2 is invalid");
+        ROSEN_LOGE("AniCanvas::DrawShadowWithOption params1 or params2 is invalid");
         return;
     }
 
     Drawing::ColorQuad ambient;
     Drawing::ColorQuad spot;
     if (!GetColorQuadFromParam(env, ambientColorOps, ambient) || !GetColorQuadFromParam(env, spotColorOps, spot)) {
-        ROSEN_LOGE("AniCanvas::DrawShadow params4 or params5 is invalid");
+        ROSEN_LOGE("AniCanvas::DrawShadowWithOption params4 or params5 is invalid");
         return;
     }
 
     ani_int shadowFlag;
     if (ANI_OK != env->EnumItem_GetValue_Int(flagEnum, &shadowFlag)) {
-        ROSEN_LOGE("AniCanvas::DrawShadow params6 is invalid");
+        ROSEN_LOGE("AniCanvas::DrawShadowWithOption params6 is invalid");
         return;
     }
     if (CheckInt32OutOfRange(shadowFlag, 0, static_cast<int32_t>(ShadowFlags::ALL))) {
-        ROSEN_LOGE("AniCanvas::DrawShadow params6 is invalid");
+        ROSEN_LOGE("AniCanvas::DrawShadowWithOption params6 is invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniCanvas::DrawShadowWithOption shadowFlag is out of range.");
         return;
@@ -1097,6 +1100,22 @@ void AniCanvas::DrawSingleCharacter(ani_env* env, ani_object obj, ani_string tex
     aniCanvas->NotifyDirty();
 }
 
+void AniCanvas::DrawTextBlob(ani_env* env, ani_object obj, ani_object textBlobObj, ani_double x, ani_double y)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawTextBlob canvas is nullptr.");
+        return;
+    }
+    auto aniTextBlob = GetNativeFromObj<AniTextBlob>(env, textBlobObj);
+    if (aniTextBlob == nullptr || aniTextBlob->GetTextBlob() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawTextBlob textBlob is nullptr.");
+        return;
+    }
+    aniCanvas->GetCanvas()->DrawTextBlob(aniTextBlob->GetTextBlob().get(), x, y);
+    aniCanvas->NotifyDirty();
+}
+
 void AniCanvas::DrawOval(ani_env* env, ani_object obj, ani_object rectObj)
 {
     auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj);
@@ -1179,13 +1198,13 @@ bool GetPoints(ani_env* env, ani_object pointsObj, uint32_t size, Drawing::Point
     for (uint32_t i = 0; i < size; i++) {
         ani_ref pointRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            pointsObj, "$_get", "I:Lstd/core/Object;", &pointRef, (ani_int)i)) {
+            pointsObj, "$_get", "i:C{std.core.Object}", &pointRef, (ani_int)i)) {
             ROSEN_LOGE("GetPoints get points failed");
             return false;
         }
         if (i == 0) {
             ani_class pointClass;
-            env->FindClass("L@ohos/graphics/common2D/common2D/Point;", &pointClass);
+            env->FindClass(ANI_CLASS_POINT_NAME, &pointClass);
             env->Object_InstanceOf(static_cast<ani_object>(pointRef), pointClass, &isPointClass);
         }
         if (!isPointClass || GetPointFromPointObj(env, static_cast<ani_object>(pointRef), point[i]) != ANI_OK) {
@@ -1606,7 +1625,7 @@ ani_object AniCanvas::GetTotalMatrix(ani_env* env, ani_object obj)
     Drawing::Matrix matrix = aniCanvas->GetCanvas()->GetTotalMatrix();
     std::shared_ptr<Drawing::Matrix> matrixPtr = std::make_shared<Drawing::Matrix>(matrix);
     AniMatrix* aniMatrix = new AniMatrix(matrixPtr);
-    aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Matrix;", ":V");
+    aniObj = CreateAniObject(env, ANI_CLASS_MATRIX_NAME, ":");
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniMatrix))) {
         ROSEN_LOGE("AniCanvas::GetTotalMatrix failed cause by Object_SetFieldByName_Long");
@@ -1692,7 +1711,7 @@ void AniCanvas::ClipPath(ani_env* env, ani_object obj, ani_object pathObj, ani_o
     env->Reference_IsUndefined(aaObj, &isUndefined);
     if (!isUndefined) {
         ani_boolean aniDoAntiAlias;
-        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "isTrue", ":Z", &aniDoAntiAlias);
+        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "unboxed", ":z", &aniDoAntiAlias);
         if (result != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniCanvas::ClipPath incorrect type antiAlias.");
@@ -1742,7 +1761,7 @@ void AniCanvas::ClipRect(ani_env* env, ani_object obj, ani_object rectObj, ani_o
     env->Reference_IsUndefined(aaObj, &isUndefined);
     if (!isUndefined) {
         ani_boolean aniDoAntiAlias;
-        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "isTrue", ":Z", &aniDoAntiAlias);
+        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "unboxed", ":z", &aniDoAntiAlias);
         if (result != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniCanvas::ClipRect incorrect type antiAlias.");
@@ -1826,7 +1845,7 @@ void AniCanvas::ClipRoundRect(ani_env* env, ani_object obj, ani_object roundRect
     env->Reference_IsUndefined(aaObj, &isUndefined);
     if (!isUndefined) {
         ani_boolean aniDoAntiAlias;
-        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "isTrue", ":Z", &aniDoAntiAlias);
+        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "unboxed", ":z", &aniDoAntiAlias);
         if (result != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniCanvas::ClipRoundRect incorrect type antiAlias.");

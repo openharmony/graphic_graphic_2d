@@ -156,7 +156,7 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
     ani_class intClass;
-    env->FindClass("Lstd/core/Int;", &intClass);
+    env->FindClass(ANI_INT_STRING, &intClass);
     
     ani_boolean isInt;
     env->Object_InstanceOf(obj, intClass, &isInt);
@@ -269,7 +269,7 @@ bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_objec
 bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d)
 {
     ani_class point3dClass;
-    env->FindClass("L@ohos/graphics/common2D/common2D/Point3d;", &point3dClass);
+    env->FindClass("@ohos.graphics.common2D.common2D.Point3d", &point3dClass);
     ani_boolean isPoint3dClass;
     env->Object_InstanceOf(obj, point3dClass, &isPoint3dClass);
     if (!isPoint3dClass) {
