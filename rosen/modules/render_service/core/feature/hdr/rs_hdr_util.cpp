@@ -365,7 +365,7 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     }
 }
 
-void RSHdrUtil::CheckNotifyCallback(const sptr<RSScreenManager>& screenManager)
+void RSHdrUtil::CheckNotifyCallback(const sptr<RSScreenManager>& screenManager, ScreenId screenId)
 {
     bool needNotifyCallback = screenManager->IsBrightnessInfoChangeCallbackRegister() &&
         RSLuminanceControl::Get().IsBrightnessInfoChanged(screenId);

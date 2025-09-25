@@ -5186,7 +5186,7 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
                 rsColorTemperature.DimmingIncrease(screenId);
                 isNeedRefreshAll = true;
             }
-            RSHdrUtil::CheckNotifyCallback(screenManager);
+            RSHdrUtil::CheckNotifyCallback(screenManager, screenId);
         }
     }
     if (isNeedRefreshAll) {
