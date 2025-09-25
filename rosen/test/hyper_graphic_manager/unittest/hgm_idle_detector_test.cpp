@@ -34,13 +34,10 @@ const std::string flutterBuffer = "oh_flutter";
 const std::string otherSurface = "Other_SF";
 constexpr uint64_t  fromtest = 3;
 constexpr uint64_t  currTime = 100000000;
-constexpr uint64_t  lastTime = 200000000;
-constexpr uint32_t  fps30HZ = 30;
 constexpr uint32_t  fps60HZ = 60;
 constexpr uint32_t  fps90HZ = 90;
 constexpr uint32_t  fps120HZ = 120;
 constexpr pid_t Pid = 0;
-const NodeId id = 0;
 }
 
 class HgmIdleDetectorTest : public HgmTestBase {
