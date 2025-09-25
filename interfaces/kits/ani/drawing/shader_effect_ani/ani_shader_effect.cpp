@@ -62,7 +62,7 @@ bool GetColorsArray(ani_env* env, ani_object corlorsArray, std::vector<ColorQuad
         ani_ref colorRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(corlorsArray,
             "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "unboxed", ":I", &color)) {
+            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
             ROSEN_LOGE("get color ref failed.");
             return false;
         }
