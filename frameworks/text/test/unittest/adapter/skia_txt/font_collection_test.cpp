@@ -486,5 +486,51 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest014, TestSi
     res = fontCollection_->LoadSymbolJson("testCustomSymbol", buffer.get(), bufferSize);
     EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest015
+ * @tc.desc: test load theme font and custom font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSize.Level0)
+{
+    std::string familyName = "familyname";
+    std::vector<uint8_t> sansData = GetFileData(sansFile_);
+    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
+    // 10000 just for test
+    const size_t minSize = 10000;
+    EXPECT_GE(sansData.size(), minSize);
+    EXPECT_GE(cjkData.size(), minSize);
+    fontCollection_->ClearThemeFont();
+    auto typefaces = fontCollection_->LoadThemeFont(
+        familyName, { { sansData.data(), sansData.size() }, { cjkData.data(), cjkData.size() } });
+    // 2 is the theme families' size
+    EXPECT_EQ(typefaces.size(), 2);
+    for (auto& typeface : typefaces) {
+        ASSERT_NE(typeface, nullptr);
+        EXPECT_TRUE(typeface->IsCustomTypeface());
+        EXPECT_TRUE(typeface->IsThemeTypeface());
+    }
+    fontCollection_->ClearThemeFont();
+
+    auto typeface = fontCollection_->LoadFont(familyName, sansData.data(), sansData.size());
+    ASSERT_NE(typeface, nullptr);
+    EXPECT_TRUE(typeface->IsCustomTypeface());
+    EXPECT_FALSE(typeface->IsThemeTypeface());
+    fontCollection_->UnloadFont(familyName);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest016
+ * @tc.desc: test for enable global font mgr
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest016, TestSize.Level0)
+{
+    auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
+    adaptFontCollection->EnableGlobalFontMgr();
+    constexpr size_t targetSize = 3;
+    EXPECT_EQ(adaptFontCollection->fontCollection_->GetFontManagersCount(), targetSize);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -15,8 +15,11 @@
 
 #include "js_fontcollection.h"
 
+#include <tuple>
+
 #include "ability.h"
 #include "file_ex.h"
+#include "font_collection_mgr.h"
 #include "napi_async_work.h"
 
 namespace OHOS::Rosen {
@@ -107,6 +110,7 @@ bool JsFontCollection::CreateConstructor(napi_env env)
     }
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
+        DECLARE_NAPI_STATIC_FUNCTION("getLocalInstance", JsFontCollection::GetLocalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
         DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
@@ -149,7 +153,7 @@ std::shared_ptr<FontCollection> JsFontCollection::GetFontCollection()
     return fontcollection_;
 }
 
-napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info info)
+napi_value JsFontCollection::GenerateNewInstance(napi_env env)
 {
     if (!CreateConstructor(env)) {
         TEXT_LOGE("Failed to create constructor");
@@ -157,26 +161,62 @@ napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info 
     }
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
-    if (status != napi_ok || !constructor) {
+    if (status != napi_ok || constructor == nullptr) {
         TEXT_LOGE("Failed to get constructor object");
         return nullptr;
     }
 
     napi_value object = nullptr;
     status = napi_new_instance(env, constructor, 0, nullptr, &object);
-    if (status != napi_ok || !object) {
+    if (status != napi_ok) {
+        return nullptr;
+    }
+    return object;
+}
+
+napi_value JsFontCollection::GetGlobalInstance(napi_env env, napi_callback_info info)
+{
+    std::ignore = info;
+    napi_value object = GenerateNewInstance(env);
+    if (object == nullptr) {
         TEXT_LOGE("Failed to new instance");
         return nullptr;
     }
 
     JsFontCollection* jsFontCollection = nullptr;
-    status = napi_unwrap(env, object, reinterpret_cast<void**>(&jsFontCollection));
-    if (status != napi_ok || !jsFontCollection) {
+    napi_status status = napi_unwrap(env, object, reinterpret_cast<void**>(&jsFontCollection));
+    if (status != napi_ok || jsFontCollection == nullptr) {
         TEXT_LOGE("Failed to unwrap font collection");
         return nullptr;
     }
     jsFontCollection->fontcollection_ = OHOS::Rosen::FontCollection::Create();
 
+    return object;
+}
+
+napi_value JsFontCollection::GetLocalInstance(napi_env env, napi_callback_info info)
+{
+    std::ignore = info;
+    napi_value object = GenerateNewInstance(env);
+    if (object == nullptr) {
+        TEXT_LOGE("Failed to new instance");
+        return nullptr;
+    }
+
+    JsFontCollection* jsLocalFontCollection = nullptr;
+    napi_status status = napi_unwrap(env, object, reinterpret_cast<void**>(&jsLocalFontCollection));
+    if (status != napi_ok || jsLocalFontCollection == nullptr) {
+        TEXT_LOGE("Failed to unwrap font collection");
+        return nullptr;
+    }
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    auto localInstance = FontCollectionMgr::GetInstance().GetLocalInstance(envAddress);
+    if (localInstance != nullptr) {
+        jsLocalFontCollection->fontcollection_ = localInstance;
+        return object;
+    }
+    jsLocalFontCollection->fontcollection_->EnableGlobalFontMgr();
+    FontCollectionMgr::GetInstance().InsertLocalInstance(envAddress, jsLocalFontCollection->fontcollection_);
     return object;
 }
 
@@ -349,6 +389,11 @@ bool JsFontCollection::LoadFontFromPath(const std::string path, const std::strin
 
 napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
 {
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
+        TEXT_LOGE("Failed to check local instance");
+        return nullptr;
+    }
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = { nullptr };
     if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_TWO) {
@@ -392,6 +437,11 @@ napi_value JsFontCollection::OnClearCaches(napi_env env, napi_callback_info info
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
             "JsFontCollection::OnClearCaches fontCollection is nullptr.");
     }
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
+        TEXT_LOGE("Failed to check local instance");
+        return nullptr;
+    }
     fontcollection_->ClearCaches();
     return NapiGetUndefined(env);
 }
@@ -426,7 +476,7 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
 
     context->GetCbInfo(env, info, inputParser);
 
-    auto executor = [context]() {
+    auto executor = [context, env]() {
         TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
 
         auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
@@ -435,6 +485,9 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
 
         NAPI_CHECK_ARGS(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
             TextErrorCode::ERROR_INVALID_PARAM, return, "Inner fontcollection is null");
+        NAPI_CHECK_ARGS(context, FontCollectionMgr::GetInstance().CheckInstanceIsValid(
+            static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env)), fontCollection->fontcollection_),
+            napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to check local instance");
 
         if (!context->filePath.empty()) {
             NAPI_CHECK_ARGS(context, fontCollection->SplitAbsoluteFontPath(context->filePath),
@@ -485,7 +538,7 @@ napi_value JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info 
 
     context->GetCbInfo(env, info, inputParser);
 
-    auto executor = [context]() {
+    auto executor = [context, env]() {
         TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
 
         auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
@@ -494,6 +547,9 @@ napi_value JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info 
 
         NAPI_CHECK_ARGS(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
             TextErrorCode::ERROR_INVALID_PARAM, return, "Inner fontcollection is null");
+        NAPI_CHECK_ARGS(context, FontCollectionMgr::GetInstance().CheckInstanceIsValid(
+            static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env)), fontCollection->fontcollection_),
+            napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to check local instance");
         fontCollection->fontcollection_->UnloadFont(context->familyName);
     };
 
@@ -505,6 +561,12 @@ napi_value JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info 
 
 napi_value JsFontCollection::OnUnloadFont(napi_env env, napi_callback_info info)
 {
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
+        TEXT_LOGE("Failed to check local instance");
+        return nullptr;
+    }
+    
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = { nullptr };
     if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_ONE) {

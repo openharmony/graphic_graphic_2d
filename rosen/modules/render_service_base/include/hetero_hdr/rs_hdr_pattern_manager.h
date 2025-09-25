@@ -52,6 +52,7 @@ using GPRequestEGraphFunc = bool (*)(void*, uint64_t);
 using GPReleaseEGraphFunc = bool (*)(void*, uint64_t);
 using GPReleaseAllFunc = bool (*)(void*);
 using GPHpaeTaskSubmitFunc = void (*)(void*, uint64_t, MHCPatternTaskName, void*, void**, void*);
+using GPHpaeRaskExecutionQuery = int32_t (*)(void*, uint64_t, MHCPatternTaskName);
 using GPWaitFunc = void (*)(void*, uint64_t, MHCPatternTaskName);
 using GPGPUTaskSubmitFunc = void (*)(void*, uint64_t, MHCPatternTaskName, void*, void*);
 using GPGetGPUWaitEventFunc = uint16_t (*)(void*, uint64_t, MHCPatternTaskName);
@@ -65,6 +66,7 @@ struct MHCDevice {
     GPReleaseEGraphFunc graphPatternReleaseEGraph = nullptr;
     GPReleaseAllFunc graphPatternReleaseAll = nullptr;
     GPHpaeTaskSubmitFunc graphPatternAnimationTaskSubmit = nullptr;
+    GPHpaeRaskExecutionQuery graphPatternHpaeTaskExecutionQuery = nullptr;
     GPGPUTaskSubmitFunc graphPatternVulkanTaskSubmit = nullptr;
     GPWaitFunc graphPatternWait = nullptr;
     GPGetGPUWaitEventFunc graphPatternGetVulkanWaitEvent = nullptr;
@@ -111,6 +113,8 @@ public:
 
     bool MHCSubmitHDRTask(uint64_t frameId, MHCPatternTaskName taskName, std::function<void()>&& preFunc,
         void** taskHandle, std::function<void()>&& afterFunc);
+
+    void MHCGraphQueryTaskError(uint64_t frameId, MHCPatternTaskName taskName);
 
     bool MHCSubmitVulkanTask(uint64_t frameId, MHCPatternTaskName taskName, std::function<void()>&& preFunc,
         std::function<void()>&& afterFunc);

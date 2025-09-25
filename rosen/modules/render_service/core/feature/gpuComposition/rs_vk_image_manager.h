@@ -94,8 +94,7 @@ public:
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
     std::shared_ptr<Drawing::Image> GetIntersectImage(Drawing::RectI& imgCutRect,
-        const std::shared_ptr<Drawing::GPUContext>& context, const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex = 0) override;
+        const std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& params) override;
 
     void DumpVkImageInfo(std::string &dumpString) override;
 private:

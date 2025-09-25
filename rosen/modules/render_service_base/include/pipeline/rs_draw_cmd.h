@@ -50,10 +50,10 @@ struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
         pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr,
         GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
-        Drawing::Rect srcRect = {})
+        Drawing::Rect srcRect = {}, bool isIgnoreAlpha = false)
         : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
           dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
-          acquireFence_(acquireFence), transform_(transform)
+          acquireFence_(acquireFence), transform_(transform), isIgnoreAlpha_(isIgnoreAlpha)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     Drawing::Rect srcRect_;
@@ -62,6 +62,7 @@ struct DrawingSurfaceBufferInfo {
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    bool isIgnoreAlpha_ = false;
 };
 #endif
 
@@ -428,10 +429,11 @@ class RSB_EXPORT DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
-            uint64_t uid, GraphicTransformType transform, Drawing::Rect srcRect, const PaintHandle& paintHandle)
+            uint64_t uid, GraphicTransformType transform, Drawing::Rect srcRect, bool isIgnoreAlpha,
+            const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, transform, srcRect),
-              paintHandle(paintHandle)
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, transform, srcRect,
+              isIgnoreAlpha), paintHandle(paintHandle)
         {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;

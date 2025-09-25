@@ -264,17 +264,18 @@ public:
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
     virtual ~Image() {};
-    bool BuildFromBitmap(const Bitmap& bitmap);
+    bool BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha = false);
 
     /**
      * @brief                        Create Image from Pixmap.
      * @param  pixmap                pixmap.
      * @param  rasterReleaseProc     function called when pixels can be released; or nullptr.
      * @param  releaseContext        state passed to rasterReleaseProc; or nullptr.
+     * @param  ignoreAlpha           whether the image ignores the alpha channel.
      * @return                       Image sharing pixmap.
      */
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
-        RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+        RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext, bool ignoreAlpha = false);
 
     /**
      * @brief              Create Image from ImageInfo, sharing pixels.
@@ -310,9 +311,10 @@ public:
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
      * @param gpuContext  GPU context.
      * @param bitmap      BitmapInfo, pixel address and row bytes.
+     * @param ignoreAlpha Determine whether the image ignores the alpha channel.
      * @return            True if Image is created succeeded.
      */
-    bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap);
+    bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha = false);
 #endif
 
     bool MakeFromEncoded(const std::shared_ptr<Data>& data);
@@ -338,11 +340,12 @@ public:
                             One of TextureOrigin::Top_Left, TextureOrigion::Bottom_Left.
      * @param bitmapFormat  It contains ColorType and AlphaType.
      * @param colorSpace    Range of colors, may be nullptr.
+     * @param ignoreAlpha   Determine whether the image ignores the alpha channel.
      * @return              True if Image is created succeeded.
      */
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr);
+        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr, bool ignoreAlpha = false);
 
     /**
      * @brief GetBackendTexture from surface, then create Image from GPU texture associated with context.

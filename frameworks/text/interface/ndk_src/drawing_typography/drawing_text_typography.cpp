@@ -27,7 +27,7 @@
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
-#include "rosen_text/font_collection.h"
+#include "rosen_text/font_collection_mgr.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "txt/text_bundle_config_parser.h"
@@ -412,7 +412,7 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(
     std::unique_ptr<TypographyCreate> handler;
     const TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
 
-    if (auto fc = OHOS::Rosen::Drawing::FontCollectionMgr::GetInstance().Find(fontCollection)) {
+    if (auto fc = OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection)) {
         handler = TypographyCreate::Create(*typoStyle, fc);
     } else {
         objectMgr->RemoveObject(fontCollection);

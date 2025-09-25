@@ -326,6 +326,13 @@ public:
      * @param dvsyncTime the time which need send to dvsync.
      */
     void SetDVSyncUpdate(uint64_t dvsyncTime);
+
+    /**
+     * @brief Set the ContainerWindow whether is transparent.
+     *
+     * @param isContainerWindowTransparent means whether the ContainerWindow is transparent.
+     */
+    void SetContainerWindowTransparent(bool isContainerWindowTransparent);
 private:
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();

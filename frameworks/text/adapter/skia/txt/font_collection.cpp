@@ -74,6 +74,15 @@ void FontCollection::SetDynamicFontManager(std::shared_ptr<RSFontMgr> fontManage
     }
 }
 
+void FontCollection::SetGlobalFontManager(std::shared_ptr<RSFontMgr> fontManager)
+{
+    std::unique_lock lock(collectionMutex_);
+    if (globalFontManager_ != fontManager) {
+        globalFontManager_ = fontManager;
+        sktFontCollection_.reset();
+    }
+}
+
 void FontCollection::SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager)
 {
     std::unique_lock lock(collectionMutex_);
@@ -89,6 +98,8 @@ std::vector<std::shared_ptr<RSFontMgr>> FontCollection::GetFontManagerOrder() co
     std::vector<std::shared_ptr<RSFontMgr>> order;
     if (dynamicFontManager_)
         order.push_back(dynamicFontManager_);
+    if (globalFontManager_ != nullptr)
+        order.push_back(globalFontManager_);
     if (assetFontManager_)
         order.push_back(assetFontManager_);
     if (testFontManager_)
@@ -126,6 +137,7 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
         sktFontCollection_->setAssetFontManager(assetFontManager_);
         sktFontCollection_->setDynamicFontManager(dynamicFontManager_);
         sktFontCollection_->setTestFontManager(testFontManager_);
+        sktFontCollection_->setGlobalFontManager(globalFontManager_);
         if (!enableFontFallback_) {
             sktFontCollection_->disableFontFallback();
         }

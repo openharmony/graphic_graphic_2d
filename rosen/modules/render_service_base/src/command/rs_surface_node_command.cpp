@@ -475,5 +475,13 @@ void SurfaceNodeCommandHelper::SetSurfaceBufferOpaque(RSContext& context, NodeId
         node->SetSurfaceBufferOpaque(isOpaque);
     }
 }
+
+void SurfaceNodeCommandHelper::SetContainerWindowTransparent(
+    RSContext& context, NodeId nodeId, bool isContainerWindowTransparent)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetContainerWindowTransparent(isContainerWindowTransparent);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

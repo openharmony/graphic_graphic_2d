@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include "ge_visual_effect_impl.h"
 #include "effect/rs_render_filter_base.h"
-#include "effet/rs_render_mask_base.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"

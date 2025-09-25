@@ -86,6 +86,7 @@ void RSHDRPatternManager::MHCDlClose()
         MHCDevice_->graphPatternRequestEGraph = nullptr;
         MHCDevice_->graphPatternReleaseEGraph = nullptr;
         MHCDevice_->graphPatternAnimationTaskSubmit = nullptr;
+        MHCDevice_->graphPatternHpaeTaskExecutionQuery = nullptr;
         MHCDevice_->graphPatternVulkanTaskSubmit = nullptr;
         MHCDevice_->graphPatternWait = nullptr;
         MHCDevice_->graphPatternGetVulkanWaitEvent = nullptr;
@@ -125,6 +126,8 @@ bool RSHDRPatternManager::MHCDlOpen()
         "mhc_graph_pattern_release_all"));
     MHCDevice_->graphPatternAnimationTaskSubmit = reinterpret_cast<GPHpaeTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_animation_task_submit"));
+    MHCDevice_->graphPatternHpaeTaskExecutionQuery =
+        reinterpret_cast<GPHpaeRaskExecutionQuery>(dlsym(MHCLibFrameworkHandle_, "mhc_gp_query_task_error"));
     MHCDevice_->graphPatternVulkanTaskSubmit = reinterpret_cast<GPGPUTaskSubmitFunc>(dlsym(MHCLibFrameworkHandle_,
         "mhc_gp_vulkan_task_submit"));
     MHCDevice_->graphPatternWait = reinterpret_cast<GPWaitFunc>(dlsym(MHCLibFrameworkHandle_, "mhc_gp_task_wait"));
@@ -151,7 +154,8 @@ bool RSHDRPatternManager::MHCDlsymInvalid()
 {
     return !MHCDevice_->getGraphPatternInstance || !MHCDevice_->graphPatternInit || !MHCDevice_->graphPatternDestroy ||
            !MHCDevice_->graphPatternRequestEGraph || !MHCDevice_->graphPatternReleaseEGraph ||
-           !MHCDevice_->graphPatternAnimationTaskSubmit || !MHCDevice_->graphPatternVulkanTaskSubmit ||
+           !MHCDevice_->graphPatternAnimationTaskSubmit || !MHCDevice_->graphPatternHpaeTaskExecutionQuery ||
+           !MHCDevice_->graphPatternVulkanTaskSubmit ||
            !MHCDevice_->graphPatternWait || !MHCDevice_->graphPatternGetVulkanWaitEvent ||
            !MHCDevice_->graphPatternGetVulkanNotifyEvent || !MHCDevice_->graphPatternReleaseAll;
 }
@@ -200,6 +204,19 @@ bool RSHDRPatternManager::MHCSubmitHDRTask(uint64_t frameId, MHCPatternTaskName 
     MHCDevice_->graphPatternAnimationTaskSubmit(graphPatternInstance_, frameId, taskName,
         c_preFunc, taskHandle, c_afterFunc);
     return true;
+}
+
+void RSHDRPatternManager::MHCGraphQueryTaskError(uint64_t frameId, MHCPatternTaskName taskName)
+{
+    if (!MHCCheck("MHCGraphQueryTaskError")) {
+        return;
+    }
+    int32_t queryResult = MHCDevice_->graphPatternHpaeTaskExecutionQuery(graphPatternInstance_, frameId, taskName);
+    if (queryResult == 0) {
+        RS_LOGD("[hdrHetero]:RSHDRPatternManager submit task success");
+    } else {
+        RS_LOGW("[hdrHetero]:RSHDRPatternManager submit task maybe blocked, queryResult:%{public}" PRId32, queryResult);
+    }
 }
 
 bool RSHDRPatternManager::MHCSubmitVulkanTask(uint64_t frameId, MHCPatternTaskName taskName,

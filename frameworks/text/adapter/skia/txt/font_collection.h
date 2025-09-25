@@ -42,6 +42,7 @@ public:
     void SetAssetFontManager(std::shared_ptr<RSFontMgr> fontManager);
     void SetDynamicFontManager(std::shared_ptr<RSFontMgr> fontManager);
     void SetTestFontManager(std::shared_ptr<RSFontMgr> fontManager);
+    void SetGlobalFontManager(std::shared_ptr<RSFontMgr> fontManager);
 
     void DisableFontFallback();
 
@@ -54,10 +55,11 @@ public:
     void RemoveCacheByUniqueId(uint32_t uniqueId);
 
 private:
-    std::shared_ptr<RSFontMgr> defaultFontManager_;
-    std::shared_ptr<RSFontMgr> assetFontManager_;
-    std::shared_ptr<RSFontMgr> dynamicFontManager_;
-    std::shared_ptr<RSFontMgr> testFontManager_;
+    std::shared_ptr<RSFontMgr> defaultFontManager_{nullptr};
+    std::shared_ptr<RSFontMgr> assetFontManager_{nullptr};
+    std::shared_ptr<RSFontMgr> dynamicFontManager_{nullptr};
+    std::shared_ptr<RSFontMgr> testFontManager_{nullptr};
+    std::shared_ptr<RSFontMgr> globalFontManager_{nullptr};
     bool enableFontFallback_;
 
     sk_sp<skia::textlayout::FontCollection> sktFontCollection_;

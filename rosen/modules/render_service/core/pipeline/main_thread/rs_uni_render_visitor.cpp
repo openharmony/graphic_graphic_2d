@@ -1522,10 +1522,8 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     }
 
     // occlusion - 2. Calculate opaque/transparent region based on round corner, container window, etc.
-    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
-    auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
-        (parent && parent->IsLeashWindow() && parent->IsFocusedNode(focusedLeashWindowId_));
-    node.CheckAndUpdateOpaqueRegion(curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), isFocused);
+    node.CheckAndUpdateOpaqueRegion(
+        curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), node.IsContainerWindowTransparent());
     // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
     auto mainThread = RSMainThread::Instance();

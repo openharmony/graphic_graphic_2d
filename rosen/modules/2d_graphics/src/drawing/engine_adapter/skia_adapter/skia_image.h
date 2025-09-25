@@ -65,19 +65,19 @@ public:
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
-    bool BuildFromBitmap(const Bitmap& bitmap) override;
+    bool BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha = false) override;
 #ifdef RS_ENABLE_GPU
     static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
     bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
-    bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) override;
+    bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha = false) override;
     bool MakeFromEncoded(const std::shared_ptr<Data>& data) override;
     bool BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext) override;
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace = nullptr) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr) override;
+        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr, bool ignoreAlpha = false) override;
     void DeleteCleanupHelper(void (*deleteFunc)(void*), void* cleanupHelper);
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) override;
     void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
