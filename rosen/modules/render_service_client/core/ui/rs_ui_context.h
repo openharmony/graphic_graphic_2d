@@ -179,6 +179,8 @@ public:
     void DetachFromUI();
     bool HasDetachedFromUI() const;
 
+    void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
+
 private:
     RSUIContext();
     RSUIContext(uint64_t token);

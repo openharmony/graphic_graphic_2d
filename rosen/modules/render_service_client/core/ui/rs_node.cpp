@@ -1508,6 +1508,7 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
     // step3 register node to new nodeMap and move the command to the new RSUIContext
     RegisterNodeMap();
     if (preUIContext != nullptr) {
+        preUIContext->MoveModifier(rsUIContext, GetId());
         auto preTransaction = preUIContext->GetRSTransaction();
         auto curTransaction = rsUIContext->GetRSTransaction();
         if (preTransaction && curTransaction) {

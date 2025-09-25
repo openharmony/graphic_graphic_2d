@@ -186,6 +186,8 @@ public:
      */
     void FlushStartAnimation(int64_t time);
 
+    void MoveModifier(std::shared_ptr<RSModifierManager> dstModifierManager, NodeId nodeId);
+
 private:
     /**
      * @brief Callback invoked when a animation has finished.

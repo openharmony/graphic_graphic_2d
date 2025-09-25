@@ -174,5 +174,16 @@ bool RSUIContext::HasDetachedFromUI() const
 {
     return detachedFromUI_;
 }
+
+void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId)
+{
+    if (!rsModifierManager_ || !dstUIContext) {
+        return;
+    }
+
+    if (auto dstModifierManager = dstUIContext->rsModifierManager_) {
+        rsModifierManager_->MoveModifier(dstModifierManager, nodeId);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

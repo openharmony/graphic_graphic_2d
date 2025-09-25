@@ -226,5 +226,23 @@ bool RSModifierManager::IsDisplaySyncEnabled() const
 {
     return isDisplaySyncEnabled_;
 }
+
+void RSModifierManager::MoveModifier(std::shared_ptr<RSModifierManager> dstModifierManager, NodeId nodeId)
+{
+    if (modifiers_.empty()) {
+        return;
+    }
+    for (auto iter = modifiers_.begin(); iter != modifiers_.end();) {
+        if (*iter) {
+            auto node = (*iter)->node_.lock();
+            if (node && node->GetId() == nodeId) {
+                dstModifierManager->modifiers_.insert(*iter);
+                iter = modifiers_.erase(iter);
+                continue;
+            }
+        }
+        ++iter;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
