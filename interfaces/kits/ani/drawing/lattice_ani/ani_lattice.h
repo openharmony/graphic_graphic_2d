@@ -30,6 +30,9 @@ public:
     static ani_object CreateImageLattice(ani_env* env,
         ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
         ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors);
+    static ani_object CreateImageLatticeWithArrayInt(ani_env* env,
+        ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
+        ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors);
 
     std::shared_ptr<Lattice> GetLattice();
 
