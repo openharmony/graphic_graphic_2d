@@ -84,6 +84,8 @@ public:
     SurfaceError SetDefaultSize(int32_t width, int32_t height);
     SurfaceError SetDropBufferSwitch(bool isOpen);
     SurfaceError OnBufferAvailable();
+    SurfaceError ReleaseTextImage();
+    int32_t GetColorSpace(OH_NativeBuffer_ColorSpace* colorSpace);
 private:
     void UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t timestamp);
     Rect GetBufferCropRegion(const sptr<OHOS::SurfaceBuffer>& buffer);
@@ -111,6 +113,8 @@ private:
     uint32_t currentSurfaceImage_ = UINT_MAX;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int64_t currentTimeStamp_;
+    OH_NativeBuffer_ColorSpace colorSpace_ = OH_COLORSPACE_NONE;
+
     float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentBufferMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};

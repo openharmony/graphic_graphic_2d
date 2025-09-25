@@ -232,3 +232,54 @@ int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen)
     }
     return image->consumer->SetDropBufferSwitch(isOpen);
 }
+
+OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
+    uint32_t textureId, uint32_t textureTarget, bool singleBufferMode)
+{
+    OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage(textureId, textureTarget);
+    sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
+    OH_NativeImage* nativeImage = new OH_NativeImage();
+
+    nativeImage->consumer = surfaceImage;
+    nativeImage->producer = producer;
+    sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
+    nativeImage->consumer->RegisterConsumerListener(listener);
+    if (singleBufferMode == true) {
+        nativeImage->consumer->SetMaxQueueSize(1);
+    }
+    return nativeImage;
+}
+
+OH_NativeImage* OH_ConsumerSurface_Create_With_SingleBufferMode(bool singleBufferMode)
+{
+    OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage();
+    sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
+    OH_NativeImage* nativeImage = new OH_NativeImage();
+
+    nativeImage->consumer = surfaceImage;
+    nativeImage->producer = producer;
+    sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
+    nativeImage->consumer->RegisterConsumerListener(listener);
+    if (singleBufferMode == true) {
+        nativeImage->consumer->SetMaxQueueSize(1);
+    }
+    return nativeImage;
+}
+
+int32_t OH_NativeImage_ReleaseTextImage(OH_NativeImage* image)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->ReleaseTextImage();
+}
+
+int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_ColorSpace* colorSpace)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->GetColorSpace(colorSpace);
+}
