@@ -878,6 +878,17 @@ HWTEST_F(RSSystemPropertiesTest, GetWideColorSpaceEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetSkipUnpremulEnabled
+ * @tc.desc: GetSkipUnpremulEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSkipUnpremulEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetSkipUnpremulEnabled());
+}
+
+/**
  * @tc.name: GetUIFirstDebugEnabled
  * @tc.desc: GetUIFirstDebugEnabled Test
  * @tc.type:FUNC

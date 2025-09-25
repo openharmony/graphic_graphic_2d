@@ -20,11 +20,19 @@
 namespace OHOS {
 namespace Rosen {
 
+static constexpr Drawing::CMSTransferFunction TRANSFUNC_2DOT6 = { 2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+static constexpr Drawing::CMSMatrix3x3 MATRIX_DCI_P3 = {{
+    { 0.486143,    0.323835,  0.154234  },
+    { 0.226676,    0.710327,  0.0629966 },
+    { 0.000800549, 0.0432385, 0.78275   },
+}};
+
 std::shared_ptr<Drawing::ColorSpace> RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(
     ColorManager::ColorSpaceName colorSpaceName)
 {
     switch (colorSpaceName) {
         case ColorManager::ColorSpaceName::DCI_P3:
+            return Drawing::ColorSpace::CreateCustomRGB(TRANSFUNC_2DOT6, MATRIX_DCI_P3);
         case ColorManager::ColorSpaceName::DISPLAY_P3:
             return Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
