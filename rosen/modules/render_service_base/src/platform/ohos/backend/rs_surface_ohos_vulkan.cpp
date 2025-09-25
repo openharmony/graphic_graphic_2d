@@ -664,7 +664,7 @@ void RSSurfaceOhosVulkan::ResetBufferAge()
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
 }
 
-void RSSurfaceWindows::SetCleanUpHelper(std::function<void()> func)
+void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void()> func)
 {
     cleanUpHelper_ = func;
 }
