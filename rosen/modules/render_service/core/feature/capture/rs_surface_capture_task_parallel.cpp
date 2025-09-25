@@ -745,6 +745,11 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_DUAL);
         if (ret != GSERROR_OK) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Set SDR metadata error with: %{public}d", ret);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
         ret = RSHdrUtil::SetMetadata(reinterpret_cast<SurfaceBuffer*>(pixelmapHDR->GetFd()),
@@ -752,6 +757,11 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
         if (ret != GSERROR_OK) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Set HDR metadata error with: %{public}d", ret);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
 #endif
