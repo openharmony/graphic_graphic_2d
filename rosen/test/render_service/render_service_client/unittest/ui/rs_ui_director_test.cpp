@@ -53,7 +53,7 @@ public:
     static constexpr uint64_t g_normalUInt64_3 = 3245;
     static constexpr uint64_t g_vsyncPeriod = 11718750;
     static constexpr float outerRadius = 30.4f;
-    RRect rrect = RRect({ 0, 0, 0, 0 }, outerRadius, outerRadius);
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -130,7 +130,7 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002, TestSize.Level1)
+HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002 , TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_NE(director, nullptr);
@@ -280,8 +280,7 @@ HWTEST_F(RSUIDirectorTest, SendMessagesTest001, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto node = RSCanvasNode::Create();
     NodeId nodeId = node->GetId();
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
     transaction->AddCommonCommand(command);
 
     director->rsUIContext_->rsTransactionHandler_ = transaction;
@@ -310,8 +309,7 @@ HWTEST_F(RSUIDirectorTest, SendMessagesTest002, TestSize.Level1)
     auto rsTransactionProxy = RSTransactionProxy::GetInstance();
     auto node = RSCanvasNode::Create();
     NodeId nodeId = node->GetId();
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
     director->rsUIContext_ = nullptr;
     std::function<void()> callback = []() { std::cout << "for test" << std::endl; };
@@ -474,6 +472,7 @@ HWTEST_F(RSUIDirectorTest, GetAnimateExpectedRate, TestSize.Level1)
     ASSERT_EQ(director->GetAnimateExpectedRate(), 0);
 }
 
+
 /**
  * @tc.name: FlushAnimation
  * @tc.desc:
@@ -484,7 +483,7 @@ HWTEST_F(RSUIDirectorTest, FlushAnimation, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     bool hasRunningAnimation = director->FlushAnimation(g_normalUInt64_2, g_vsyncPeriod);
-    director->PostFrameRateTask([]() { return; });
+    director->PostFrameRateTask([](){return;});
     ASSERT_EQ(hasRunningAnimation, false);
 }
 
@@ -510,7 +509,9 @@ HWTEST_F(RSUIDirectorTest, PostFrameRateTask, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    const std::function<void()>& task = []() { std::cout << "for test" << std::endl; };
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
     director->PostFrameRateTask(task);
 }
 
@@ -523,7 +524,9 @@ HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallback, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    const std::function<void()>& callback = []() { std::cout << "for test" << std::endl; };
+    const std::function<void()>& callback = []() {
+        std::cout << "for test" << std::endl;
+    };
     director->SetRequestVsyncCallback(callback);
 }
 
@@ -701,8 +704,7 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
     ASSERT_NE(uiContext, nullptr);
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     uint64_t token = uiContext->GetToken();
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(token, token, token, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
     ASSERT_NE(command->GetToken(), 0);
     cmds->AddCommand(command, token, FollowType::FOLLOW_TO_SELF);
     director->ProcessMessages(cmds);
@@ -728,10 +730,8 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
     auto node1 = RSCanvasNode::Create();
     auto node2 = RSCanvasNode::Create();
     node2->SetInstanceId(instanceId);
-    std::unique_ptr<RSCommand> command1 =
-        std::make_unique<RSAnimationCallback>(node1->GetId(), 0, 0, AnimationCallbackEvent::FINISHED);
-    std::unique_ptr<RSCommand> command2 =
-        std::make_unique<RSAnimationCallback>(node2->GetId(), 0, 0, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> command1 = std::make_unique<RSAnimationCallback>(node1->GetId(), 0, 0, FINISHED);
+    std::unique_ptr<RSCommand> command2 = std::make_unique<RSAnimationCallback>(node2->GetId(), 0, 0, FINISHED);
     ASSERT_EQ(command1->GetToken(), 0);
     ASSERT_EQ(command2->GetToken(), 0);
     cmds->AddCommand(command1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
@@ -751,7 +751,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest001, TestSize.Level1)
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
     uint64_t token = 12345;
     std::vector<std::unique_ptr<RSCommand>> commands;
-    auto command = std::make_unique<RSAnimationCallback>(token, token, token, AnimationCallbackEvent::FINISHED);
+    auto command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
     commands.push_back(std::move(command));
     cmdMap[token] = std::move(commands);
     RSUIDirector::ProcessUIContextMessages(cmdMap, 1);
@@ -774,7 +774,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
     uint64_t token = uiContext->GetToken();
     std::vector<std::unique_ptr<RSCommand>> commands;
-    auto command = std::make_unique<RSAnimationCallback>(token, token, token, AnimationCallbackEvent::FINISHED);
+    auto command = std::make_unique<RSAnimationCallback>(token, token, token, FINISHED);
     commands.push_back(std::move(command));
     cmdMap[token] = std::move(commands);
     director->ProcessUIContextMessages(cmdMap, 1);
@@ -793,7 +793,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
     auto uiContext = director->GetRSUIContext();
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     auto token = 12345;
-    auto command = std::make_unique<RSAnimationCallback>(0, 0, token, AnimationCallbackEvent::FINISHED);
+    auto command = std::make_unique<RSAnimationCallback>(0, 0, token, FINISHED);
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> cmdMap;
     std::vector<std::unique_ptr<RSCommand>> commands;
     commands.push_back(std::move(command));
@@ -816,7 +816,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
     NodeId nodeId = 0;
     AnimationId animId = 0;
     uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
+    AnimationCallbackEvent event = REPEAT_FINISHED;
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
 }
 
@@ -834,7 +834,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
     NodeId nodeId = 0;
     AnimationId animId = 0;
     uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
+    AnimationCallbackEvent event = REPEAT_FINISHED;
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
 
     auto node = std::make_shared<RSRootNode>(false);
@@ -861,7 +861,9 @@ HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    const std::function<void()>& task = []() { std::cout << "for test" << std::endl; };
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
     director->PostTask(task);
 }
 
@@ -874,7 +876,9 @@ HWTEST_F(RSUIDirectorTest, PostDelayTask001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    const std::function<void()>& task = []() { std::cout << "for test" << std::endl; };
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
     director->PostDelayTask(task, 0, 0);
     director->PostDelayTask(task, 0, -1);
     director->PostDelayTask(task, 0, 1);
@@ -1075,8 +1079,8 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch004, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    ComponentEnableSwitch bitSeq =
-        static_cast<ComponentEnableSwitch>(static_cast<uint8_t>(ComponentEnableSwitch::MAX_VALUE) + 1);
+    ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(
+        static_cast<uint8_t>(ComponentEnableSwitch::MAX_VALUE) + 1);
     bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
     bool directorRet = director->GetHybridRenderSwitch(bitSeq);
     EXPECT_EQ(systemPropertiesRet, directorRet);
@@ -1115,10 +1119,8 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
     uint64_t id = 1;
     auto node1 = RSCanvasNode::Create();
     auto node2 = RSCanvasNode::Create();
-    std::unique_ptr<RSCommand> cmd1 =
-        std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, AnimationCallbackEvent::FINISHED);
-    std::unique_ptr<RSCommand> cmd2 =
-        std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, FINISHED);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, FINISHED);
     cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
     cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
     // test cmd is nullptr
@@ -1147,10 +1149,8 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
     uint64_t id = 1;
     auto node1 = RSCanvasNode::Create();
     auto node2 = RSCanvasNode::Create();
-    std::unique_ptr<RSCommand> cmd1 =
-        std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, AnimationCallbackEvent::FINISHED);
-    std::unique_ptr<RSCommand> cmd2 =
-        std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, FINISHED);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, FINISHED);
     RSNodeMap::MutableInstance().RegisterAnimationInstanceId(0, node1->GetId(), id);
     RSNodeMap::MutableInstance().RegisterAnimationInstanceId(0, node2->GetId(), ++id);
     cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
@@ -1179,10 +1179,8 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
     uint64_t id = 1;
     auto node1 = RSCanvasNode::Create();
     auto node2 = RSCanvasNode::Create();
-    std::unique_ptr<RSCommand> cmd1 =
-        std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, AnimationCallbackEvent::FINISHED);
-    std::unique_ptr<RSCommand> cmd2 =
-        std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, AnimationCallbackEvent::FINISHED);
+    std::unique_ptr<RSCommand> cmd1 = std::make_unique<RSAnimationCallback>(node1->GetId(), id, id, FINISHED);
+    std::unique_ptr<RSCommand> cmd2 = std::make_unique<RSAnimationCallback>(node2->GetId(), id, id, FINISHED);
     cmds->AddCommand(cmd1, node1->GetId(), FollowType::FOLLOW_TO_SELF);
     cmds->AddCommand(cmd2, node2->GetId(), FollowType::FOLLOW_TO_SELF);
     ASSERT_NE(director->rsUIContext_, nullptr);
@@ -1205,7 +1203,7 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
         ASSERT_TRUE(director != nullptr);
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
             director->isUniRenderEnabled_ = true;
-            RSRenderThread::Instance().thread_ = std::make_unique<std::thread>([] {});
+            RSRenderThread::Instance().thread_ = std::make_unique<std::thread>([]{});
             director->StartTextureExport();
             EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
         }

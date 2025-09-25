@@ -247,7 +247,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
     RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(targetId, animationId, token, AnimationCallbackEvent::FINISHED);
+        std::make_unique<RSAnimationCallback>(targetId, animationId, token, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
     animation->Detach();
 }

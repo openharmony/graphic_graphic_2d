@@ -19,7 +19,6 @@
 
 #include "rs_profiler.h"
 
-#include "animation/rs_render_particle.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -29,6 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 void RSRenderPropertyBase::Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
     node_ = node.weak_from_this();
@@ -275,12 +275,6 @@ void RSRenderProperty<int>::Dump(std::string& out) const
 }
 
 template<>
-void RSRenderProperty<short>::Dump(std::string& out) const
-{
-    out += "[" + std::to_string(Get()) + "]";
-}
-
-template<>
 void RSRenderProperty<float>::Dump(std::string& out) const
 {
     std::stringstream ss;
@@ -289,18 +283,9 @@ void RSRenderProperty<float>::Dump(std::string& out) const
 }
 
 template<>
-void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const
-{
-    auto v4u32 = Get();
-    std::stringstream ss;
-    ss << "[x:" << v4u32.x_ << " y:" << v4u32.y_ << " z:" << v4u32.z_ << " w:" << v4u32.w_ << "]";
-    out += ss.str();
-}
-
-template<>
 void RSRenderProperty<Quaternion>::Dump(std::string& out) const
 {
-    auto q = Get();
+    Quaternion q = Get();
     std::stringstream ss;
     ss << std::fixed << std::setprecision(1);
     ss << "[x:" << q.x_ << " y:" << q.y_ << " z:" << q.z_ << " w:" << q.w_ << +"]";
@@ -310,7 +295,7 @@ void RSRenderProperty<Quaternion>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Vector2f>::Dump(std::string& out) const
 {
-    auto v2f = Get();
+    Vector2f v2f = Get();
     std::stringstream ss;
     ss << std::fixed << std::setprecision(1) << "[x:" << v2f.x_ << " y:" << v2f.y_ << "]";
     out += ss.str();
@@ -319,7 +304,7 @@ void RSRenderProperty<Vector2f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Vector3f>::Dump(std::string& out) const
 {
-    auto v3f = Get();
+    Vector3f v3f = Get();
     std::stringstream ss;
     ss << std::fixed << std::setprecision(1) << "[x:" << v3f.x_ << " y:" << v3f.y_ << " z:" << v3f.z_ << "]";
     out += ss.str();
@@ -336,11 +321,6 @@ void RSRenderProperty<Vector4f>::Dump(std::string& out) const
 }
 
 template<>
-void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
-{
-}
-
-template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
     Get().Dump(out);
@@ -349,7 +329,7 @@ void RSRenderProperty<Color>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 {
-    auto v4Color = Get();
+    Vector4<Color> v4Color = Get();
     out += "[left";
     v4Color.x_.Dump(out);
     out += " top";
@@ -398,6 +378,22 @@ size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const
         size += propertyData->GetSize();
     }
     return size;
+}
+
+template<>
+void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
+{
+    out += std::to_string(static_cast<int>(Get()));
+}
+
+template<>
+void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
+{
+#ifdef TODO_M133_SKIA
+    (void)out; // todo : Intrusive modification of the waiting turn
+#else
+    Get().dump(out, 0);
+#endif
 }
 
 template<>
@@ -548,26 +544,17 @@ void RSRenderProperty<Gravity>::Dump(std::string& out) const
 }
 
 template<>
-void RSRenderProperty<std::vector<float>>::Dump(std::string& out) const
-{}
-template<>
-void RSRenderProperty<RSWaterRipplePara>::Dump(std::string& out) const
-{}
-template<>
-void RSRenderProperty<RSFlyOutPara>::Dump(std::string& out) const
-{}
-template<>
-void RSRenderProperty<std::shared_ptr<OHOS::Media::PixelMap>>::Dump(std::string& out) const
-{}
-template<>
-void RSRenderProperty<RSDynamicBrightnessPara>::Dump(std::string& out) const
-{}
-template<>
-void RSRenderProperty<RSShadowBlenderPara>::Dump(std::string& out) const
-{}
-template<>
-void RSRenderProperty<std::vector<Vector2f>>::Dump(std::string& out) const
-{}
+void RSRenderProperty<Drawing::Matrix>::Dump(std::string& out) const
+{
+    out += "[";
+    Drawing::Matrix::Buffer buffer;
+    Get().GetAll(buffer);
+    for (const auto& v : buffer) {
+        out += std::to_string(v) + " ";
+    }
+    out.pop_back();
+    out += "]";
+}
 
 template<>
 bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -663,7 +650,7 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
         auto thisData = RSRenderProperty<Vector4<Color>>::stagingValue_.data_;
         auto otherValue = animatableProperty->Get();
         auto& otherData = otherValue.data_;
-        auto threshold = static_cast<int16_t>(zeroThreshold);
+        int16_t threshold = static_cast<int16_t>(zeroThreshold);
         return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[1].IsNearEqual(otherData[1], threshold) &&
                thisData[2].IsNearEqual(otherData[2], threshold) && thisData[3].IsNearEqual(otherData[3], threshold);
     }
@@ -795,53 +782,15 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
     OnChange();
 }
 
-template<typename T>
-RSRenderPropertyBase::RSPropertyUnmarshallingFuncRegister RSRenderProperty<T>::unmarshallingFuncRegister_ { false,
-    RSRenderProperty<T>::type_, RSRenderProperty<T>::OnUnmarshalling };
-template<typename T>
-RSRenderPropertyBase::RSPropertyUnmarshallingFuncRegister RSRenderAnimatableProperty<T>::unmarshallingFuncRegister_ {
-    true, RSRenderAnimatableProperty<T>::type_, RSRenderAnimatableProperty<T>::OnUnmarshalling
-};
-
-// explicit instantiation
-#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>;
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)                                                             \
-    template<>                                                                                                \
-    std::shared_ptr<RSValueEstimator> RSRenderAnimatableProperty<T>::CreateRSValueEstimator(                  \
-        const RSValueEstimatorType type)                                                                      \
-    {                                                                                                         \
-        switch (type) {                                                                                       \
-            case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {                                               \
-                return std::make_shared<RSCurveValueEstimator<T>>();                                          \
-            }                                                                                                 \
-            case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {                                            \
-                return std::make_shared<RSKeyframeValueEstimator<T>>();                                       \
-            }                                                                                                 \
-            default: {                                                                                        \
-                return nullptr;                                                                               \
-            }                                                                                                 \
-        }                                                                                                     \
-    }                                                                                                         \
-    template<>                                                                                                \
-    std::shared_ptr<RSSpringValueEstimatorBase> RSRenderAnimatableProperty<T>::CreateRSSpringValueEstimator() \
-    {                                                                                                         \
-        return std::make_shared<RSSpringValueEstimator<T>>();                                                 \
-    }                                                                                                         \
-    template class RSRenderAnimatableProperty<T>
-
-#define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>
-#define SHADER_PTR std::shared_ptr<RSNGRenderShaderBase>
-#define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
+#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
+    template class RSRenderAnimatableProperty<T>; \
+    template class RSRenderProperty<T>
 
 #include "modifier/rs_property_def.in"
 
-#undef FILTER_PTR
-#undef SHADER_PTR
-#undef MASK_PTR
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
-
-template class RSRenderProperty<RSRenderParticleVector>;
 
 } // namespace Rosen
 } // namespace OHOS

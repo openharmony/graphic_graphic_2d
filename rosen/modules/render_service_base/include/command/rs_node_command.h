@@ -52,18 +52,15 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VECTOR4_COLOR = 0x0113,
     UPDATE_MODIFIER_VECTOR4F = 0x0114,
     UPDATE_MODIFIER_RRECT = 0x0115,
-    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0116,
+    // 0x0116 deleted, do not use this value never.
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
-    UPDATE_MODIFIER_VECTOR_FLOAT = 0X0118,
+    UPDATE_MODIFIER_COMPLEX_SHADER_PARAM = 0X0118,
     UPDATE_MODIFIER_UI_FILTER_PTR = 0X0119,
     UPDATE_MODIFIER_DRAW_CMD_LIST_NG = 0x0120,
     UPDATE_MODIFIER_NG_FILTER_BASE_PTR = 0X0121,
     UPDATE_MODIFIER_NG_SHADER_BASE_PTR = 0X0122,
     UPDATE_MODIFIER_NG_MASK_BASE_PTR = 0X0123,
-    UPDATE_MODIFIER_PIXEL_MAP = 0x0124,
-    UPDATE_MODIFIER_SHADOW_BLENDER_PARA = 0x0125,
-    UPDATE_MODIFIER_VECTOR_VECTOR2F = 0x0126,
-    UPDATE_MODIFIER_SHORT = 0x0127,
+
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -271,33 +268,13 @@ ADD_COMMAND(RSUpdatePropertyVector4f,
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RRECT,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
-        RSNodeCommandHelper::UpdateProperty<Drawing::DrawCmdListPtr>,
-        NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
-
-// =============================================================================
-// Planning: Remove the following commands after deprecating complex shader
-ADD_COMMAND(RSUpdatePropertyVectorFloat,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_FLOAT,
+ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
+        RSNodeCommandHelper::UpdateProperty<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyComplexShaderParam,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_COMPLEX_SHADER_PARAM,
         RSNodeCommandHelper::UpdateProperty<std::vector<float>>,
         NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyVectorVector2f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR2F,
-        RSNodeCommandHelper::UpdateProperty<std::vector<Vector2f>>,
-        NodeId, std::vector<Vector2f>, PropertyId, PropertyUpdateType))
-// =============================================================================
-ADD_COMMAND(RSUpdatePropertyPixelMap,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PIXEL_MAP,
-        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<Media::PixelMap>>, NodeId,
-        std::shared_ptr<Media::PixelMap>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyShadowBlenderPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADOW_BLENDER_PARA,
-        RSNodeCommandHelper::UpdateProperty<RSShadowBlenderPara>, NodeId,
-        RSShadowBlenderPara, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyShort,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHORT, RSNodeCommandHelper::UpdateProperty<short>, NodeId, short,
-        PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,

@@ -324,32 +324,6 @@ struct RSRenderPropertyTraits<std::shared_ptr<RSNGMaskBase>> {
     using Type = RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>;
 };
 
-// Helper class to deduce the property type
-template<typename T>
-struct RSPropertyTypeTraits {
-    static constexpr RSPropertyType type = RSPropertyType::INVALID;
-};
-
-#define DECLARE_PROPERTY(T, TYPE_ENUM)                                      \
-    template<>                                                              \
-    struct RSPropertyTypeTraits<T> {                                        \
-        static constexpr RSPropertyType type = (RSPropertyType::TYPE_ENUM); \
-    }
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)
-
-#define FILTER_PTR std::shared_ptr<RSNGFilterBase>
-#define SHADER_PTR std::shared_ptr<RSNGShaderBase>
-#define MASK_PTR std::shared_ptr<RSNGMaskBase>
-
-#include "modifier/rs_property_def.in"
-
-#undef FILTER_PTR
-#undef SHADER_PTR
-#undef MASK_PTR
-
-#undef DECLARE_PROPERTY
-#undef DECLARE_ANIMATABLE_PROPERTY
-
 /**
  * @class RSProperty
  *
@@ -428,7 +402,8 @@ public:
 protected:
     RSPropertyType GetPropertyType() const override { return type_; }
 
-    void UpdateToRender(const T& value, PropertyUpdateType type) const {}
+    void UpdateToRender(const T& value, PropertyUpdateType type) const
+    {}
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
     {
@@ -467,7 +442,7 @@ protected:
         return std::make_shared<RSRenderProperty<T>>(stagingValue_, id_);
     }
 
-    static constexpr RSPropertyType type_ = RSPropertyTypeTraits<T>::type;
+    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
     ModifierNG::RSPropertyType typeNG_ = ModifierNG::RSPropertyType::INVALID;
 
     T stagingValue_ {};
@@ -933,6 +908,80 @@ template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty();
 
 template<>
+RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType type) const;
+template <>
+RSC_EXPORT void RSProperty<std::vector<float>>::UpdateToRender(
+    const std::vector<float> &value, PropertyUpdateType type) const;
+template <>
+RSC_EXPORT void RSProperty<int>::UpdateToRender(const int &value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSImage>>::UpdateToRender(
+    const std::shared_ptr<RSImage>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
+    const std::shared_ptr<RSMask>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
+    const std::shared_ptr<RSPath>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<RSWaterRipplePara>::UpdateToRender(
+    const RSWaterRipplePara& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<RSFlyOutPara>::UpdateToRender(
+    const RSFlyOutPara& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
+    const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
+    const std::shared_ptr<MotionBlurParam>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSMagnifierParams>>::UpdateToRender(
+    const std::shared_ptr<RSMagnifierParams>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::UpdateToRender(
+    const std::vector<std::shared_ptr<EmitterUpdater>>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<ParticleNoiseFields>>::UpdateToRender(
+    const std::shared_ptr<ParticleNoiseFields>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
+    const std::shared_ptr<RSShader>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Vector3f>::UpdateToRender(const Vector3f& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Vector4<uint32_t>>::UpdateToRender(
+    const Vector4<uint32_t>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Vector4<Color>>::UpdateToRender(
+    const Vector4<Color>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShaderBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGShaderBase>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const;
+
+template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);
 template<>
 RSC_EXPORT bool RSProperty<Vector2f>::IsValid(const Vector2f& value);
@@ -940,19 +989,12 @@ template<>
 RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) \
-    template<>                         \
-    RSC_EXPORT void RSProperty<T>::UpdateToRender(const T& value, PropertyUpdateType type) const
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)
-
-#define FILTER_PTR std::shared_ptr<RSNGFilterBase>
-#define SHADER_PTR std::shared_ptr<RSNGShaderBase>
-#define MASK_PTR std::shared_ptr<RSNGMaskBase>
+template<>                             \
+inline const RSPropertyType RSProperty<T>::type_ = RSPropertyType::TYPE_ENUM
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) DECLARE_PROPERTY(T, TYPE_ENUM)
 
 #include "modifier/rs_property_def.in"
 
-#undef MASK_PTR
-#undef SHADER_PTR
-#undef FILTER_PTR
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
 

@@ -62,7 +62,7 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-    const std::string& desc, const std::vector<Vector2f>& value)
+    const std::string& desc, const VectorVector2F& value)
 {
     geFilter.SetParam(desc, value);
 }
@@ -115,7 +115,7 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
     hash = hashFunc_(&maskHash, sizeof(maskHash), hash);
 }
 
-void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std::vector<Vector2f>& value)
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const VectorVector2F& value)
 {
     for (const auto& vec : value) {
         hash = hashFunc_(vec.data_, Vector2f::DATA_SIZE, hash);

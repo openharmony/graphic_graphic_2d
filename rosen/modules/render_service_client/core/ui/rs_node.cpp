@@ -22,19 +22,9 @@
 #include <string>
 #include <vector>
 
-#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
-#include "ui_effect/effect/include/background_color_effect_para.h"
-#include "ui_effect/effect/include/border_light_effect_para.h"
-#include "ui_effect/filter/include/filter_blur_para.h"
-#include "ui_effect/filter/include/filter_distort_para.h"
-#include "ui_effect/filter/include/filter_fly_out_para.h"
-#include "ui_effect/filter/include/filter_hdr_para.h"
-#include "ui_effect/filter/include/filter_pixel_stretch_para.h"
-#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
-#include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
@@ -52,6 +42,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_vector4.h"
+#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
@@ -91,7 +82,6 @@
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
-#include "transaction/rs_sync_transaction_handler.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
@@ -2836,18 +2826,18 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
         ROSEN_LOGE("Failed to callback animation[%{public}" PRIu64 "], animation is null!", animationId);
         return false;
     }
-    if (event == AnimationCallbackEvent::FINISHED) {
+    if (event == FINISHED) {
         RemoveAnimationInner(animation);
         animation->CallFinishCallback();
         return true;
-    } else if (event == AnimationCallbackEvent::REPEAT_FINISHED) {
+    } else if (event == REPEAT_FINISHED) {
         animation->CallRepeatCallback();
         return true;
-    } else if (event == AnimationCallbackEvent::LOGICALLY_FINISHED) {
+    } else if (event == LOGICALLY_FINISHED) {
         animation->CallLogicallyFinishCallback();
         return true;
     }
-    ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", static_cast<int>(event));
+    ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", event);
     return false;
 }
 

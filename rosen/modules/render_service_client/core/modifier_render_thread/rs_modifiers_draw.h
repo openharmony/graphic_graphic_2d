@@ -19,25 +19,26 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "surface_buffer.h"
-
-#include "common/rs_common_def.h"
-#include "common/rs_rect.h"
+#include "command/rs_canvas_node_command.h"
+#include "command/rs_node_command.h"
+#include "common/rs_optional_trace.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
+#include "pipeline/rs_draw_cmd.h"
+#include "recording/cmd_list_helper.h"
+#include "recording/draw_cmd_list.h"
+#include "recording/draw_cmd.h"
+#include "surface_buffer.h"
 #include "transaction/rs_irender_client.h"
 #include "transaction/rs_transaction_data.h"
 
-namespace OHOS {
-namespace Media {
-class PixelMap;
-}
-namespace Rosen {
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
 constexpr uint32_t HYBRID_MAX_PIXELMAP_HEIGHT = 8192;  // max height value from PhysicalDeviceProperties
 constexpr uint32_t HYBRID_MAX_ENABLE_OP_CNT = 11;  // max value for enable hybrid op
 constexpr uint32_t HYBRID_MAX_TEXT_ENABLE_OP_CNT = 1;  // max value for enable text hybrid op
 constexpr int64_t FFRT_WAIT_TIMEOUT = 30; // ms
+namespace OHOS {
+namespace Rosen {
 struct DrawOpInfo {
     bool isRenderWithForegroundColor = false;
     NodeId nodeId = INVALID_NODEID;
@@ -45,11 +46,7 @@ struct DrawOpInfo {
     std::shared_ptr<Drawing::DrawCmdList> cmdList = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
 };
-namespace Drawing {
-class DrawCmdList;
-using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
-class DrawOpItem;
-}
+
 class RSModifiersDraw {
 public:
     static void ConvertCmdListForCanvas(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId);

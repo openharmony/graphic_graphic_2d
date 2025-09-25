@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "command/rs_node_showing_command.h"
 #include "transaction/rs_render_thread_client.h"
 
 namespace OHOS {

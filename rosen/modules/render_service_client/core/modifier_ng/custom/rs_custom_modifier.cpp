@@ -15,8 +15,6 @@
 
 #include "modifier_ng/custom/rs_custom_modifier.h"
 
-#include "command/rs_node_command.h"
-#include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
