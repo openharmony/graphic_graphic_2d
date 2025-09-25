@@ -448,5 +448,9 @@ void RSTransactionData::DumpCommand(std::string& dumpString)
     }
     dumpString.append("]\n");
 }
+RSTransactionData::RSTransactionData(RSTransactionData&& other)
+    : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
+      abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_)
+{}
 } // namespace Rosen
 } // namespace OHOS

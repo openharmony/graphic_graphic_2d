@@ -47,6 +47,8 @@ public:
     static std::shared_ptr<FontCollection> Create();
     virtual ~FontCollection() = default;
 
+    virtual void EnableGlobalFontMgr() {}
+    virtual bool IsLocalFontCollection() { return false; }
     virtual void DisableFallback() = 0;
     virtual void DisableSystemFont() = 0;
     virtual std::shared_ptr<Drawing::Typeface> LoadFont(

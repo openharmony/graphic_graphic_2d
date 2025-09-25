@@ -1947,7 +1947,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE;
             }
             // virtual expand screen
-            return screenNodeSp->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            return false;
     });
 
     // In the process of cutting the state, the self-drawing layer with the size before the cut state is probably
@@ -3801,7 +3801,7 @@ void RSMainThread::SendCommands()
             RS_LOGI("SendCommands sync finish animation node is %{public}" PRIu64 ","
                 " animation is %{public}" PRIu64, nodeId, animationId);
             std::unique_ptr<RSCommand> command =
-                std::make_unique<RSAnimationCallback>(nodeId, animationId, token, FINISHED);
+                std::make_unique<RSAnimationCallback>(nodeId, animationId, token, AnimationCallbackEvent::FINISHED);
             RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
         }
         context_->needSyncFinishAnimationList_.clear();

@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
 #include "ffrt_inner.h"
-#include "transaction/rs_unmarshal_thread.h"
+#include "gtest/gtest.h"
+
+#include "command/rs_command.h"
 #include "platform/common/rs_system_properties.h"
+#include "transaction/rs_unmarshal_thread.h"
 
 using namespace testing;
 using namespace testing::ext;

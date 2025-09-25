@@ -1464,16 +1464,4 @@ namespace text {
     axis: string;
     value: number;
   }
-
-  class ColorInternal implements common2D.Color {
-    alpha: int;
-    red: int;
-    green: int;
-    blue: int;
-  }
-
-  class PointInternal implements common2D.Point {
-    x: number;
-    y: number;
-  }
 }

@@ -18,7 +18,9 @@
 
 #include "modifier_ng/custom/rs_custom_modifier.h"
 
-namespace OHOS::Rosen::ModifierNG {
+namespace OHOS::Rosen {
+class RSUIDirector;
+namespace ModifierNG {
 class RSC_EXPORT RSContentStyleModifier : public RSCustomModifier {
 public:
     RSContentStyleModifier() = default;
@@ -41,5 +43,6 @@ protected:
         return RSPropertyType::CONTENT_STYLE;
     }
 };
-} // namespace OHOS::Rosen::ModifierNG
+} // namespace ModifierNG
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_CUSTOM_RS_CONTENT_STYLE_MODIFIER_H

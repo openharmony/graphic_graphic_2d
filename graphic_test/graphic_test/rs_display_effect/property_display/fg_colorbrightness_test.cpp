@@ -18,6 +18,7 @@
 #include "rs_graphic_test_img.h"
 
 #include "property/rs_properties_def.h"
+#include "ui_effect/effect/include/brightness_blender.h"
 
 using namespace testing;
 using namespace testing::ext;

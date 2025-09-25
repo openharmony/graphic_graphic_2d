@@ -519,5 +519,18 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSi
     EXPECT_FALSE(typeface->IsThemeTypeface());
     fontCollection_->UnloadFont(familyName);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest016
+ * @tc.desc: test for enable global font mgr
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest016, TestSize.Level0)
+{
+    auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
+    adaptFontCollection->EnableGlobalFontMgr();
+    constexpr size_t targetSize = 3;
+    EXPECT_EQ(adaptFontCollection->fontCollection_->GetFontManagersCount(), targetSize);
+}
 } // namespace Rosen
 } // namespace OHOS
