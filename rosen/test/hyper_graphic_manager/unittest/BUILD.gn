@@ -151,10 +151,10 @@ config("hgm_test_public_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
-    "$graphic_2d_root/utils/log",      
+    "$graphic_2d_root/utils/log",
     "$graphic_2d_root/utils/sandbox",
   ]
-  
+
   if (defined(graphic_2d_hgm_configs.vendor_root)) {
     include_dirs += graphic_2d_hgm_configs.libhyper_graphic_manager_ext_includes
   }
