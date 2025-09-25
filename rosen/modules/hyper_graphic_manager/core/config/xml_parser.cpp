@@ -15,8 +15,6 @@
 #include "xml_parser.h"
 #include <algorithm>
 
-#include "config_policy_utils.h"
-
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework

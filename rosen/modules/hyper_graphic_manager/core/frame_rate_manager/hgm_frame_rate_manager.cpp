@@ -83,6 +83,9 @@ HgmFrameRateManager::HgmFrameRateManager()
     frameVoter_.SetChangeRangeCallback([this](const std::string& voter) {
         MarkVoteChange(voter);
     });
+    softVSyncManager_.SetUpdateSoftVSyncFunc([this](bool followRs) {
+        UpdateSoftVSync(followRs);
+    });
 }
 
 void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
@@ -1476,7 +1479,7 @@ bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
     bool isOtherSelfNodeOnTree = false;
     std::string gameNodeName = GetGameNodeName();
     nodeMap.TraverseSurfaceNodes(
-        [this, &isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
+        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;

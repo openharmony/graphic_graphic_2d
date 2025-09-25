@@ -147,11 +147,11 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(softVSyncManager.linkerVoteMap_.size(), 5);
     EXPECT_EQ(appVoteData.size(), 5);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId2], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId3], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId4], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId5], 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId2].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId3].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId4].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId5].first, 60);
 
     eventInfo1 =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
@@ -169,11 +169,11 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
     };
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId2], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId3], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId4], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId5], 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId2].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId3].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId4].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId5].first, 90);
 }
 
 /**
@@ -205,19 +205,19 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Functi
     voters = {{ windowId1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
 
     eventInfo =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
     voters = {{ windowId1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 90);
 
     voters[windowId1].eventStatus = false;
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
 }
 
 /**
@@ -248,11 +248,11 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
     InitHgmSoftVSyncManager(softVSyncManager);
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId2], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId3], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId4], 60);
-    EXPECT_EQ(appVoteData[frameRateLinkerId5], 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId2].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId3].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId4].first, 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId5].first, 60);
 
     eventInfo1 =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
@@ -270,11 +270,11 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
     };
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId2], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId3], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId4], 90);
-    EXPECT_EQ(appVoteData[frameRateLinkerId5], 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId2].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId3].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId4].first, 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId5].first, 90);
 }
 
 /**
@@ -306,19 +306,19 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Functio
     voters = {{ vsyncName1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
 
     eventInfo =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
     voters = {{ vsyncName1, eventInfo }};
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 90);
 
     voters[vsyncName1].eventStatus = false;
     softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
-    EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
+    EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
 }
 
 

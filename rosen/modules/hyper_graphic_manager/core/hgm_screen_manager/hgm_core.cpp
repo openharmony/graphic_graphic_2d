@@ -422,7 +422,8 @@ void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& a
     }
 }
 
-int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize)
+int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize,
+    const std::vector<GraphicDisplayModeInfo>& supportedModes)
 {
     // add a physical screen to hgm during hotplug event
     HILOG_COMM_INFO("HgmCore adding screen : " PUBI64 "", id);
@@ -449,13 +450,24 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
         }
     }
 
+    // for each supported mode, use the index as modeId to add the detailed mode to hgm
+    int32_t modeId = 0;
+    int32_t result = EXEC_SUCCESS;
+    for (const auto& mode : supportedModes) {
+        if (newScreen->AddScreenModeInfo(mode.width, mode.height, mode.freshRate, modeId) != EXEC_SUCCESS) {
+            HGM_LOGW("failed to add a screen profile to the screen : %{public}" PRIu64, id);
+            result = HGM_ERROR;
+            continue;
+        }
+        modeId++;
+    }
     std::lock_guard<std::mutex> lock(listMutex_);
     screenList_.push_back(newScreen);
     screenIds_.push_back(id);
 
     int32_t screenNum = GetScreenListSize();
     HILOG_COMM_INFO("HgmCore num of screen is %{public}d", screenNum);
-    return EXEC_SUCCESS;
+    return result;
 }
 
 int32_t HgmCore::RemoveScreen(ScreenId id)
@@ -476,23 +488,6 @@ int32_t HgmCore::RemoveScreen(ScreenId id)
         }
     }
     return EXEC_SUCCESS;
-}
-
-int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode)
-{
-    // add a supported screen mode to the screen
-    auto screen = GetScreen(id);
-    if (!screen) {
-        HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
-        return HGM_NO_SCREEN;
-    }
-
-    if (screen->AddScreenModeInfo(width, height, rate, mode) == EXEC_SUCCESS) {
-        return EXEC_SUCCESS;
-    }
-
-    HGM_LOGW("HgmCore failed to add screen mode info of screen : " PUBU64 "", id);
-    return HGM_SCREEN_PARAM_ERROR;
 }
 
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const

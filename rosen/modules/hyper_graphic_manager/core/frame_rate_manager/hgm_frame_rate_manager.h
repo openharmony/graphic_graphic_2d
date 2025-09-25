@@ -187,7 +187,7 @@ private:
 
     void ProcessLtpoVote(const FrameRateRange& finalRange);
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
-    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool isNeedDvsyncDelay);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime,
         std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData, int64_t controllerRate);
     void UpdateSoftVSync(bool followRs);
