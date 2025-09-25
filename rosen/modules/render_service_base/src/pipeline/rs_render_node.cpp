@@ -1378,7 +1378,6 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     }
     CheckDrawingCacheType();
     if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
-        RS_LOGD("RSRenderNode::UpdateDrawingCacheInfoBC drawingCacheType is %{public}d", GetDrawingCacheType());
         return;
     }
     SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty() || IsAccessibilityConfigChanged()));
