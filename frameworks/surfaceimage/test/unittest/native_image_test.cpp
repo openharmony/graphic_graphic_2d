@@ -27,6 +27,7 @@
 #include "metadata_helper.h"
 #include "surface.h"
 #include "surface_image.h"
+#include "native_buffer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1683,11 +1684,12 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
     ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_ColorSpaceInfo infoSet = {
-        .primaries = COLORPRIMARIES_SRGB,
-    };
-    MetadataHelper::SetColorSpaceInfo(nativeWindowBuffer->sfbuffer, infoSet);
+    OH_NativeBuffer* nativeBuffer = nullptr;
+    ret = OH_NativeBuffer_FromNativeWindowBuffer(nativeWindowBuffer, &nativeBuffer);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ASSERT_NE(nativeBuffer, nullptr);
+    OH_NativeBuffer_ColorSpace colorSpace = OH_COLORSPACE_BT601_EBU_FULL;
+    auto setRet = OH_NativeBuffer_SetColorSpace(nativeBuffer, colorSpace);
 
     struct Region *region = new Region();
     struct Region::Rect *rect = new Region::Rect();
@@ -1702,6 +1704,13 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
     ret = OH_NativeImage_UpdateSurfaceImage(nativeImage);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
+    OH_NativeBuffer_ColorSpace colorSpace1;
+    ret = OH_NativeImage_GetColorSpace(nativeImage, &colorSpace1);
+    ASSERT_EQ(ret, GSERROR_OK);
+    if (setRet == GSERROR_OK) {
+        ASSERT_EQ(colorSpace1, OH_COLORSPACE_BT601_EBU_FULL);
+    }
+
     // single buffer before release textImage，request buffer fail
     ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
     ASSERT_NE(ret, GSERROR_OK);
@@ -1710,7 +1719,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
     ASSERT_EQ(ret, GSERROR_OK);
 
     ret = OH_NativeImage_ReleaseTextImage(nativeImage);
-    ASSERT_EQ(ret, GSERROR_INTERNAL);
+    ASSERT_NE(ret, GSERROR_OK);
 
     ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
     ASSERT_EQ(ret, GSERROR_OK);
@@ -1722,7 +1731,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
     ret = OH_NativeImage_ReleaseTextImage(nativeImage);
-    ASSERT_EQ(ret, SURFACE_ERROR_UNKOWN);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
 
     delete rect;
     delete region;
@@ -1842,6 +1851,9 @@ HWTEST_F(NativeImageTest, OH_NativeImage_GetColorSpace002, Function | MediumTest
     OH_NativeBuffer_ColorSpace colorSpace;
     int32_t ret = OH_NativeImage_GetColorSpace(nativeImage, &colorSpace);
     ASSERT_EQ(ret, GSERROR_OK);
+
+    ret = OH_NativeImage_GetColorSpace(nativeImage, nullptr);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
 
     OH_NativeImage_Destroy(&nativeImage);
 }

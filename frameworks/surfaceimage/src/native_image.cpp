@@ -277,7 +277,7 @@ int32_t OH_NativeImage_ReleaseTextImage(OH_NativeImage* image)
 
 int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_ColorSpace* colorSpace)
 {
-    if (image == nullptr || image->consumer == nullptr) {
+    if (image == nullptr || image->consumer == nullptr || colorSpace == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }

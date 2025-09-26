@@ -354,7 +354,7 @@ int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen);
  * @param singleBufferMode Whether to set single buffer mode.
  * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
  * returns <b>NULL</b> otherwise.
- * @since 9
+ * @since 22
  * @version 1.0
  */
 OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
@@ -368,7 +368,7 @@ OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
  * returns <b>NULL</b> otherwise.
- * @since 12
+ * @since 22
  * @version 1.0
  */
 OH_NativeImage* OH_ConsumerSurface_Create_With_SingleBufferMode(bool singleBufferMode);
@@ -383,7 +383,7 @@ OH_NativeImage* OH_ConsumerSurface_Create_With_SingleBufferMode(bool singleBuffe
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @return {@link NATIVE_ERROR_OK} 0 - Success.
  *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
- * @since 17
+ * @since 22
  * @version 1.0
  */
 int32_t OH_NativeImage_ReleaseTextImage(OH_NativeImage* image);
@@ -396,7 +396,7 @@ int32_t OH_NativeImage_ReleaseTextImage(OH_NativeImage* image);
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
  * @param colorSpace Indicates the colorSpace of <b>OH_NativeImage</b>.
  * @return {@link NATIVE_ERROR_OK} 0 - Success.
- * @since 17
+ * @since 22
  * @version 1.0
  */
 int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_ColorSpace* colorSpace);
