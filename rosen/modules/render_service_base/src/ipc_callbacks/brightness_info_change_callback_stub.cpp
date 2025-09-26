@@ -52,7 +52,7 @@ int RSBrightnessInfoChangeCallbackStub::OnRemoteRequest(
     return ret;
 }
 
-bool RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
+bool RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
 {
     if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
         !data.ReadFloat(brightnessInfo.maxHeadroom) ||

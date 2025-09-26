@@ -119,7 +119,7 @@ public:
 
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
 
-    bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
+    bool ReadBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data);
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 

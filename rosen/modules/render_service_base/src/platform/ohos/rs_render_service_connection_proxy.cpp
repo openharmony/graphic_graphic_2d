@@ -1267,7 +1267,7 @@ int32_t RSRenderServiceConnectionProxy::GetBrightnessInfo(ScreenId screenId, Bri
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("GetBrightnessInfo: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
@@ -1293,7 +1293,7 @@ int32_t RSRenderServiceConnectionProxy::GetBrightnessInfo(ScreenId screenId, Bri
     return result;
 }
 
-bool RSRenderServiceConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
+bool RSRenderServiceConnectionProxy::ReadBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
 {
     if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
         !data.ReadFloat(brightnessInfo.maxHeadroom) ||
