@@ -29,8 +29,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_NODE_H
 
-#include "pipeline/rs_recording_canvas.h"
 #include "ui/rs_node.h"
+
 
 namespace OHOS {
 namespace Rosen {

@@ -55,6 +55,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector4Color, Uint64, ColorVector4, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector4f, Uint64, Vector4f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyRRect, Uint64, RRect, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyDrawingMatrix, Uint64, DrawingMatrix, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetFreeze, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNodeName, Uint64, String);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSMarkNodeGroup, Uint64, Bool, Bool, Bool);

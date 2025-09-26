@@ -21,17 +21,15 @@
 #include <parcel.h>
 #include <securec.h>
 
-#include "recording/mask_cmd_list.h"
-#include "recording/record_cmd.h"
-
 #include "animation/rs_render_particle.h"
-#include "command/rs_command.h"
 #include "draw/canvas.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/image_native/pixel_map.h"
-#include "render/rs_filter.h"
+#include "recording/mask_cmd_list.h"
+#include "recording/record_cmd.h"
 #include "render/rs_shader.h"
+#include "render/rs_filter.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction_data.h"
 

@@ -65,9 +65,15 @@ DECLARE_RENDER_PROPERTY(RSFlyOutPara, RandomData, RSFlyOutPara)
 
 DECLARE_RENDER_PROPERTY(std::shared_ptr<Drawing::DrawCmdList>, RandomDrawCmdList, DrawCmdList)
 
+DECLARE_RENDER_PROPERTY(ForegroundColorStrategyType, RandomData, ForegroundColorStrategyType)
+
+DECLARE_RENDER_PROPERTY(Drawing::Matrix, RandomData, DrawingMatrix)
+
 DECLARE_ANIMATABLE_RENDER_PROPERTY(Matrix3f, RandomData, Matrix3f)
 
 DECLARE_RENDER_PROPERTY(Matrix3f, RandomData, Matrix3f)
+
+DECLARE_RENDER_PROPERTY(SkMatrix, RandomData, SkMatrix)
 
 DECLARE_RENDER_PROPERTY(RSRenderParticleVector, RandomRSRenderParticle, RSRenderParticleVector)
 

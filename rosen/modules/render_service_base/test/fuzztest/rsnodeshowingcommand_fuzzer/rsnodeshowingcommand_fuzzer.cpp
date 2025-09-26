@@ -62,6 +62,98 @@ namespace OHOS {
         std::string str(cstr);
         return str;
     }
+#ifndef MODIFIER_NG
+    void RSNodeGetShowingPropertyAndCancelAnimationFuzzerTest()
+    {
+        // get data
+        RSContext context;
+        NodeId nodeId = GetData<NodeId>();
+        PropertyId propertyId = GetData<PropertyId>();
+        auto time = GetData<uint64_t>();
+
+        auto property = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
+        auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(nodeId, property);
+
+        Parcel parcel;
+        auto copy = RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(parcel);
+        task->ReadFromParcel(parcel);
+        task->CheckHeader(parcel);
+        task->Process(context);
+
+        Parcel parcel1;
+        RSMarshallingHelper::Marshalling(parcel1, nodeId);
+        RSMarshallingHelper::Marshalling(parcel1, time);
+        copy = RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(parcel1);
+        task->ReadFromParcel(parcel1);
+        task->CheckHeader(parcel1);
+        task->Process(context);
+
+        Parcel parcel2;
+        task->Marshalling(parcel2);
+        copy = RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(parcel2);
+        task->ReadFromParcel(parcel2);
+        task->CheckHeader(parcel2);
+        task->Process(context);
+
+        std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(nodeId);
+        context.GetMutableNodeMap().RegisterRenderNode(node);
+        task->Process(context);
+        auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
+        node->modifiers_[propertyId] = modifier;
+        task->Process(context);
+
+        delete copy;
+        copy = nullptr;
+    }
+
+    void RSNodeGetShowingPropertiesAndCancelAnimationFuzzerTest()
+    {
+        // get data
+        RSContext context;
+        NodeId nodeId = GetData<NodeId>();
+        PropertyId propertyId = GetData<PropertyId>();
+        AnimationId animationId = GetData<AnimationId>();
+        auto time = GetData<uint64_t>();
+
+        auto property = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
+        std::vector<AnimationId> animationIds = { animationId };
+        std::pair<std::pair<NodeId, PropertyId>, std::pair<std::shared_ptr<RSRenderPropertyBase>,
+            std::vector<AnimationId>>>
+            newEntry(std::make_pair(nodeId, propertyId), std::make_pair(property, animationIds));
+        auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(time);
+        task->propertiesMap_.insert(newEntry);
+
+        Parcel parcel;
+        auto copy = RSNodeGetShowingPropertiesAndCancelAnimation::Unmarshalling(parcel);
+        task->ReadFromParcel(parcel);
+        task->CheckHeader(parcel);
+        task->Process(context);
+
+        Parcel parcel1;
+        RSMarshallingHelper::Marshalling(parcel1, time);
+        copy = RSNodeGetShowingPropertiesAndCancelAnimation::Unmarshalling(parcel1);
+        task->ReadFromParcel(parcel1);
+        task->CheckHeader(parcel1);
+        task->Process(context);
+
+        Parcel parcel2;
+        task->Marshalling(parcel2);
+        copy = RSNodeGetShowingPropertiesAndCancelAnimation::Unmarshalling(parcel2);
+        task->ReadFromParcel(parcel2);
+        task->CheckHeader(parcel2);
+        task->Process(context);
+
+        std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(nodeId);
+        context.GetMutableNodeMap().RegisterRenderNode(node);
+        task->Process(context);
+        auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
+        node->modifiers_[propertyId] = modifier;
+        task->Process(context);
+
+        delete copy;
+        copy = nullptr;
+    }
+#endif
 
     void RSNodeGetAnimationsValueFractionFuzzerTest()
     {

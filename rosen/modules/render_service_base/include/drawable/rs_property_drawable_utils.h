@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_UTILS_H
 
-#include "effect/runtime_blender_builder.h"
 #include "property/rs_properties.h"
 
 namespace OHOS {

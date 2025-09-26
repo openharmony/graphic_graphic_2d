@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "pixel_map.h"
+#include "securec.h"
 
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_render_curve_animation.h"
@@ -39,7 +40,9 @@
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
+#include "render/rs_light_up_effect_filter.h"
 #include "render/rs_magnifier_para.h"
+#include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
@@ -513,11 +516,11 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                         \
     EXPLICIT_INSTANTIATION(TEMPLATE, float)                                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, int)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, short)                                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSWaterRipplePara)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSFlyOutPara)                                 \
     EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSNGRenderFilterBase>)        \
@@ -541,7 +544,8 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector2f>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
 

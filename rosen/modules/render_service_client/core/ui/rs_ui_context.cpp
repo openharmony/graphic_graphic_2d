@@ -15,7 +15,6 @@
 
 #include "ui/rs_ui_context.h"
 
-#include "command/rs_animation_command.h"
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
@@ -76,18 +75,18 @@ bool RSUIContext::AnimationCallback(AnimationId animationId, AnimationCallbackEv
         ROSEN_LOGE("Failed to callback animation[%{public}" PRIu64 "], animation is null!", animationId);
         return false;
     }
-    if (event == AnimationCallbackEvent::FINISHED) {
+    if (event == FINISHED) {
         RemoveAnimationInner(animation);
         animation->CallFinishCallback();
         return true;
-    } else if (event == AnimationCallbackEvent::REPEAT_FINISHED) {
+    } else if (event == REPEAT_FINISHED) {
         animation->CallRepeatCallback();
         return true;
-    } else if (event == AnimationCallbackEvent::LOGICALLY_FINISHED) {
+    } else if (event == LOGICALLY_FINISHED) {
         animation->CallLogicallyFinishCallback();
         return true;
     }
-    ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", static_cast<int>(event));
+    ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", event);
     return false;
 }
 

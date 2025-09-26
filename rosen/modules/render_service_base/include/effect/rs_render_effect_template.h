@@ -115,7 +115,7 @@ private:
         const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-        const std::string& desc, const std::vector<Vector2f>& value);
+        const std::string& desc, const VectorVector2F& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<Media::PixelMap> value);
@@ -135,7 +135,7 @@ private:
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSNGRenderMaskBase> value);
 
-    static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<Vector2f>& value);
+    static void CalculatePropTagHashImpl(uint32_t& hash, const VectorVector2F& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Media::PixelMap> value);
 

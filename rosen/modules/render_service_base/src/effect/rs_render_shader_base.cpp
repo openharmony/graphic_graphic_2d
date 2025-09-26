@@ -110,6 +110,20 @@ std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectTyp
     return false;
 }
 
+void RSNGRenderShaderBase::Dump(std::string& out) const
+{
+    std::string descStr = ": ";
+    std::string splitStr = ", ";
+
+    out += RSNGRenderEffectHelper::GetEffectTypeString(GetType());
+    out += descStr;
+    DumpProperties(out);
+    if (nextEffect_) {
+        out += splitStr;
+        nextEffect_->Dump(out);
+    }
+}
+
 bool RSNGRenderShaderHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase>& shader)
 {
     auto current = shader;

@@ -17,33 +17,32 @@
 #include "render_thread/rs_render_thread_stats.h"
 
 #include <cmath>
+#include "draw/color.h"
+#include "drawing/engine_adapter/impl_interface/matrix_impl.h"
 
-#include "rs_render_thread_util.h"
 #include "rs_trace.h"
 
 #include "command/rs_base_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
-#include "draw/color.h"
-#include "drawing/engine_adapter/impl_interface/matrix_impl.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
-#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
+#include "rs_render_thread_util.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#include "ui/rs_ui_context_manager.h"
 #include "utils/camera3d.h"
+#include "ui/rs_ui_context_manager.h"
 
 #ifdef ROSEN_OHOS
 #include <frame_collector.h>
