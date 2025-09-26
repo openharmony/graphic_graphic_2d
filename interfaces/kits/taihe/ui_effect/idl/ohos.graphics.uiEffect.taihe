@@ -1,0 +1,57 @@
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.graphics.uiEffect", "uiEffect")
+
+@!sts_inject("""
+static { loadLibrary("uieffect_taihe_native.z"); }
+""")
+
+enum TileMode: i32 {
+    CLAMP = 0,
+    REPEAT = 1,
+    MIRROR = 2,
+    DECAL = 3,
+}
+
+enum WaterRippleMode: i32 {
+    SMALL2MEDIUM_RECV = 0,
+    SMALL2MEDIUM_SEND = 1,
+    SMALL2SMALL = 2,
+    MINI_RECV = 3
+}
+
+struct BrightnessBlender {
+    cubicRate: f64;
+    quadraticRate: f64;
+    linearRate: f64;
+    degree: f64;
+    saturation: f64;
+    positiveCoefficient: @sts_type("[double, double, double]") Opaque;
+    negativeCoefficient: @sts_type("[double, double, double]") Opaque;
+    fraction: f64;
+}
+
+interface Filter {
+    blur(blurRadius: f64): Filter;
+    pixelStretch(stretchSizes: Array<f64>, tileMode: TileMode): Filter;
+}
+
+interface VisualEffect {
+    backgroundColorBlender(blender: BrightnessBlender): VisualEffect;
+}
+
+function createFilter(): Filter;
+function createEffect(): VisualEffect;

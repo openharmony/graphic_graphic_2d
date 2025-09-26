@@ -1,0 +1,112 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//build/ohos/taihe_idl/taihe.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+subsystem_name = "graphic"
+part_name = "graphic_2d"
+taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
+rosen_is_ohos = current_os == "ohos"
+
+copy_taihe_idl("copy_uieffect_taihe") {
+  sources = [
+    "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.taihe",
+  ]
+}
+
+ohos_taihe("run_taihe") {
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  deps = [ ":copy_uieffect_taihe" ]
+  outputs = [
+    "$taihe_generated_file_path/src/ohos.graphics.uiEffect.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.graphics.uiEffect.abi.c",
+  ]
+}
+
+taihe_shared_library("uieffect_taihe_native") {
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  subsystem_name = "$subsystem_name"
+  part_name = "$part_name"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core/ui_effect",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  sources = get_target_outputs(":run_taihe")
+  sources += [
+    "src/ani_constructor.cpp",
+    "src/effect_taihe.cpp",
+    "src/filter_taihe.cpp",
+    "src/ui_effect_taihe_utils.cpp",
+  ]
+
+  cflags = [ "-DIMAGE_DEBUG_FLAG" ]
+
+  deps = [
+    ":run_taihe",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime",
+  ]
+
+  if (rosen_is_ohos) {
+    defines = [
+      "ENABLE_IPC_SECURITY"
+    ]
+    external_deps += [
+      "access_token:libaccesstoken_sdk",
+      "ipc:ipc_core",
+    ]
+  }
+}
+
+generate_static_abc("uiEffect_taihe_abc") {
+  base_url = "$taihe_generated_file_path"
+  files = [ "$taihe_generated_file_path/@ohos.graphics.uiEffect.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/uiEffect_taihe_abc.abc"
+  dependencies = [ ":run_taihe" ]
+}
+
+ohos_prebuilt_etc("uiEffect_etc") {
+  source = "$target_out_dir/uiEffect_taihe_abc.abc"
+  module_install_dir = "framework"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+  deps = [
+    ":uiEffect_taihe_abc",
+  ]
+}
+
+group("uieffect_taihe_gen_only") {
+  deps = [ ":run_taihe" ]
+}
