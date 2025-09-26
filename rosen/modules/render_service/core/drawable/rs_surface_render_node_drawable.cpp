@@ -766,8 +766,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
-        (surfaceParams->GetVisibleRegion().Area() == (surfaceParams->GetOpaqueRegion().Area() +
-        surfaceParams->GetRoundedCornerRegion().Area()));
+        !surfaceParams->IsTransparent();
     curCanvas_ = rscanvas;
     if (needOffscreen) {
         isInRotationFixed_ = false;
