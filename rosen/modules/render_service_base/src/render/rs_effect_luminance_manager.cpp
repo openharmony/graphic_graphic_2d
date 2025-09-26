@@ -23,10 +23,26 @@
 namespace OHOS {
 namespace Rosen {
 
+namespace {
+
+// for type inference
+using ColorGradientEffectColorRenderTags = std::tuple<
+    ColorGradientEffectColor0RenderTag,
+    ColorGradientEffectColor1RenderTag,
+    ColorGradientEffectColor2RenderTag,
+    ColorGradientEffectColor3RenderTag,
+    ColorGradientEffectColor4RenderTag,
+    ColorGradientEffectColor5RenderTag,
+    ColorGradientEffectColor6RenderTag,
+    ColorGradientEffectColor7RenderTag,
+    ColorGradientEffectColor8RenderTag,
+    ColorGradientEffectColor9RenderTag,
+    ColorGradientEffectColor10RenderTag,
+    ColorGradientEffectColor11RenderTag>;
+
 using FilterEDRChecker = std::function<bool(std::shared_ptr<RSNGRenderFilterBase>)>;
 using ShaderEDRChecker = std::function<bool(std::shared_ptr<RSNGRenderShaderBase>)>;
 
-namespace {
 constexpr uint32_t COLOR_PROPS_NUM = 4;
 
 bool GetEnableEDREffectEdgeLight(std::shared_ptr<RSNGRenderFilterBase> renderFilter)
@@ -37,6 +53,25 @@ bool GetEnableEDREffectEdgeLight(std::shared_ptr<RSNGRenderFilterBase> renderFil
     }
     const auto& color = filter->Getter<EdgeLightColorRenderTag>()->Get();
     return ROSEN_GNE(color.x_, 1.0f) || ROSEN_GNE(color.y_, 1.0f) || ROSEN_GNE(color.z_, 1.0f);
+}
+
+bool GetEnableEDRShaderColorGradient(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    auto shader = std::static_pointer_cast<RSNGRenderColorGradientEffect>(renderShader);
+    if (!shader) {
+        return false;
+    }
+    bool isUseEDR = false;
+    auto lamba = [&isUseEDR](const Vector4f& v4) {
+        if (ROSEN_GNE(v4.x_, 1.0f) || ROSEN_GNE(v4.y_, 1.0f) || ROSEN_GNE(v4.z_, 1.0f)) {
+            isUseEDR = true;
+        }
+    };
+    ColorGradientEffectColorRenderTags colorTag{};
+    std::apply([&shader, &lamba](auto&&... args) {
+        (lamba(shader->Getter<std::decay_t<decltype(args)>>()->Get()), ...);
+        }, colorTag);
+    return isUseEDR;
 }
 
 bool GetEnableEDREffectColorGradient(std::shared_ptr<RSNGRenderFilterBase> renderFilter)
@@ -78,6 +113,7 @@ static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT 
 };
  
 static std::unordered_map<RSNGEffectType, ShaderEDRChecker> edrShaderCheckerLUT = {
+    {RSNGEffectType::COLOR_GRADIENT_EFFECT, GetEnableEDRShaderColorGradient},
 };
 
 std::mutex g_dataMutex;

@@ -337,7 +337,7 @@ float EffectNapi::GetSpecialValue(napi_env env, napi_value argValue)
         napi_get_value_double(env, argValue, &tmp) == napi_ok && tmp >= 0) {
             return static_cast<float>(tmp);
     }
-    return tmp;
+    return static_cast<float>(tmp);
 }
 
 static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)
@@ -635,7 +635,7 @@ napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_inf
 
     if (argCount > NUM_3) {
         Mask* mask = nullptr;
-        if (napi_unwrap(env, argValue[NUM_3], reinterpret_cast<void**>(&mask)) && mask != nullptr) {
+        if (napi_unwrap(env, argValue[NUM_3], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
