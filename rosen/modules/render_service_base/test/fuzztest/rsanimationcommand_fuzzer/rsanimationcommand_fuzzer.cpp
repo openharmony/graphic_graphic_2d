@@ -89,6 +89,7 @@ namespace OHOS {
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);
         AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
 #ifndef MODIFIER_NG
+        auto property = std::shared_ptr<RSRenderProperty<Drawing::Matrix>>();
         auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
         node->modifiers_[propertyId] = modifier;
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);

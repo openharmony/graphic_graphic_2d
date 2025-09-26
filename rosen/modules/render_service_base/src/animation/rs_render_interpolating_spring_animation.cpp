@@ -196,8 +196,8 @@ void RSRenderInterpolatingSpringAnimation::CallLogicallyFinishCallback() const
     AnimationId animationId = GetAnimationId();
     uint64_t token = GetToken();
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(
-        targetId, animationId, token, AnimationCallbackEvent::LOGICALLY_FINISHED);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(targetId, animationId, token, LOGICALLY_FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
 }
 } // namespace Rosen

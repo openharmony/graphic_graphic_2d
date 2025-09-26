@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-#include "animation/rs_symbol_animation.h"
-
 #include <cmath>
 
-#include "rs_trace.h"
-#include "skia_txt/default_symbol_config.h"
-
 #include "animation/rs_keyframe_animation.h"
+#include "animation/rs_symbol_animation.h"
 #include "draw/paint.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
-#include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
+#include "skia_txt/default_symbol_config.h"
 #include "utils/point.h"
 
 namespace OHOS {

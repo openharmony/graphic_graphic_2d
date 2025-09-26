@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "gtest/gtest.h"
-
 #include "animation/rs_curve_animation.h"
-#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "modifier/rs_property.h"
+#include <sys/types.h>
+#include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
 #include "sandbox_utils.h"

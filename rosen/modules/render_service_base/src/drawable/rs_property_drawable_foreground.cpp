@@ -15,19 +15,18 @@
 
 #include "drawable/rs_property_drawable_foreground.h"
 
+#include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_property_drawable_utils.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-
-#include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_property_drawable_utils.h"
-#include "effect/rs_render_shader_base.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
-#include "render/rs_particles_drawable.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {

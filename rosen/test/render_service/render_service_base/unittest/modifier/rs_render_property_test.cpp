@@ -557,6 +557,36 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyVector4uint32_tOnUnmarshalling, T
 }
 
 /**
+ * @tc.name: RSRenderPropertySkMatrixOnUnmarshalling
+ * @tc.desc: RSRenderPropertySkMatrix On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertySkMatrixOnUnmarshalling, TestSize.Level1)
+{
+    SkMatrix value = {};
+    std::shared_ptr<RSRenderProperty<SkMatrix>> prop = std::make_shared<RSRenderProperty<SkMatrix>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<SkMatrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<SkMatrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<SkMatrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
  * @tc.name: RSRenderPropertyDrawingDrawCmdListPtrOnUnmarshalling
  * @tc.desc: RSRenderPropertyDrawingDrawCmdListPtr On Unmarshalling Test
  * @tc.type: FUNC
@@ -583,6 +613,37 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyDrawingDrawCmdListPtrOnUnmarshall
     ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
     EXPECT_TRUE(ret);
     ret = RSRenderProperty<Drawing::DrawCmdListPtr>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyForegroundColorStrategyTypeOnUnmarshalling
+ * @tc.desc: RSRenderPropertyForegroundColorStrategyType On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyForegroundColorStrategyTypeOnUnmarshalling, TestSize.Level1)
+{
+    ForegroundColorStrategyType value = {};
+    std::shared_ptr<RSRenderProperty<ForegroundColorStrategyType>> prop =
+        std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<ForegroundColorStrategyType>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<ForegroundColorStrategyType>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<ForegroundColorStrategyType>::OnUnmarshalling(parcel, receivedProp);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(receivedProp != nullptr);
 }
@@ -706,6 +767,37 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyGravityOnUnmarshalling, TestSize.
     ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
     EXPECT_TRUE(ret);
     ret = RSRenderProperty<Gravity>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(receivedProp != nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyDrawingMatrixOnUnmarshalling
+ * @tc.desc: RSRenderPropertyDrawingMatrix On Unmarshalling Test
+ * @tc.type: FUNC
+ * @tc.require: issueICDSPJ
+ */
+HWTEST_F(RSRenderPropertyTest, RSRenderPropertyDrawingMatrixOnUnmarshalling, TestSize.Level1)
+{
+    Drawing::Matrix value = {};
+    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> prop =
+        std::make_shared<RSRenderProperty<Drawing::Matrix>>(value, 1);
+
+    Parcel parcel;
+    std::shared_ptr<RSRenderPropertyBase> receivedProp;
+    bool ret = RSRenderProperty<Drawing::Matrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Drawing::Matrix>::OnUnmarshalling(parcel, receivedProp);
+    EXPECT_FALSE(ret);
+
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
+    EXPECT_TRUE(ret);
+    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
+    EXPECT_TRUE(ret);
+    ret = RSRenderProperty<Drawing::Matrix>::OnUnmarshalling(parcel, receivedProp);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(receivedProp != nullptr);
 }

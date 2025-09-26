@@ -3801,7 +3801,7 @@ void RSMainThread::SendCommands()
             RS_LOGI("SendCommands sync finish animation node is %{public}" PRIu64 ","
                 " animation is %{public}" PRIu64, nodeId, animationId);
             std::unique_ptr<RSCommand> command =
-                std::make_unique<RSAnimationCallback>(nodeId, animationId, token, AnimationCallbackEvent::FINISHED);
+                std::make_unique<RSAnimationCallback>(nodeId, animationId, token, FINISHED);
             RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
         }
         context_->needSyncFinishAnimationList_.clear();

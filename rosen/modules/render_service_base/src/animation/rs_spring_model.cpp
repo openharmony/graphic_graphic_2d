@@ -28,14 +28,13 @@ namespace {
 constexpr float FLOAT_NEAR_ZERO_THRESHOLD = 1e-6f;
 constexpr double DOUBLE_NEAR_ZERO_THRESHOLD = 1e-6;
 constexpr float SPRING_MIN_THRESHOLD = 5e-5f;
-} // namespace
 
-// Explicit Instantiation
-#define DECLARE_PROPERTY(T, TYPE_ENUM)
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSSpringModel<T>
-#include "modifier/rs_property_def.in"
-#undef DECLARE_PROPERTY
-#undef DECLARE_ANIMATABLE_PROPERTY
+template<>
+float toFloat(float value)
+{
+    return std::fabs(value);
+}
+} // namespace
 
 template<>
 void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParameters()
@@ -318,25 +317,12 @@ float RSSpringModel<float>::EstimateDurationForOverDampedModel() const
     }
     return estimatedDuration;
 }
-template<>
-float RSSpringModel<float>::toFloat(float value)
-{
-    return std::fabs(value);
-}
-template<>
-float RSSpringModel<Vector4f>::toFloat(Vector4f value)
-{
-    return value.GetLength();
-}
-template<>
-float RSSpringModel<Quaternion>::toFloat(Quaternion value)
-{
-    return value.GetLength();
-}
-template<>
-float RSSpringModel<Vector2f>::toFloat(Vector2f value)
-{
-    return value.GetLength();
-}
+
+template class RSSpringModel<float>;
+template class RSSpringModel<Color>;
+template class RSSpringModel<Matrix3f>;
+template class RSSpringModel<RRect>;
+template class RSSpringModel<Vector4<Color>>;
+template class RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>;
 } // namespace Rosen
 } // namespace OHOS

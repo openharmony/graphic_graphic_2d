@@ -28,6 +28,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr int PID_SHIFT = 32;
+
+namespace {
 constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
 constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 1.0f / 256.0f;
 constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 1000.0f;
@@ -35,8 +38,8 @@ constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
 constexpr float COLOR_NEAR_ZERO_THRESHOLD = 0.0f;
 constexpr float LAYOUT_NEAR_ZERO_THRESHOLD = 0.5f;
 constexpr float ZERO = 0.0f;
+} // namespace
 
-constexpr int PID_SHIFT = 32;
 PropertyId GeneratePropertyId()
 {
     static pid_t pid_ = GetRealPid();
@@ -51,21 +54,6 @@ PropertyId GeneratePropertyId()
     return ((PropertyId)pid_ << PID_SHIFT) | currentId;
 }
 } // namespace
-
-// explicit instantiation
-#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSAnimatableProperty<T>
-
-#define FILTER_PTR std::shared_ptr<RSNGFilterBase>
-#define SHADER_PTR std::shared_ptr<RSNGShaderBase>
-#define MASK_PTR std::shared_ptr<RSNGMaskBase>
-#include "modifier/rs_property_def.in"
-
-#undef MASK_PTR
-#undef SHADER_PTR
-#undef FILTER_PTR
-#undef DECLARE_PROPERTY
-#undef DECLARE_ANIMATABLE_PROPERTY
 
 RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 {}
@@ -400,29 +388,15 @@ void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType ty
 {
     UPDATE_TO_RENDER(RSUpdatePropertyFloat, value, type);
 }
-// =============================================================================
-// Planning: Remove the following properties after deprecating complex shader
 template<>
 void RSProperty<std::vector<float>>::UpdateToRender(const std::vector<float>& value, PropertyUpdateType type) const
 {
-    UPDATE_TO_RENDER(RSUpdatePropertyVectorFloat, value, type);
+    UPDATE_TO_RENDER(RSUpdatePropertyComplexShaderParam, value, type);
 }
-template<>
-void RSProperty<std::vector<Vector2f>>::UpdateToRender(
-    const std::vector<Vector2f>& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyVectorVector2f, value, type);
-}
-// =============================================================================
 template<>
 void RSProperty<int>::UpdateToRender(const int& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyInt, value, type);
-}
-template<>
-void RSProperty<short>::UpdateToRender(const short& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyShort, value, type);
 }
 template<>
 void RSProperty<Color>::UpdateToRender(const Color& value, PropertyUpdateType type) const
@@ -551,27 +525,6 @@ void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType ty
 }
 
 template<>
-void RSProperty<std::shared_ptr<OHOS::Media::PixelMap>>::UpdateToRender(
-    const std::shared_ptr<OHOS::Media::PixelMap>& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyPixelMap, value, type);
-}
-
-template<>
-void RSProperty<RSShadowBlenderPara>::UpdateToRender(
-    const RSShadowBlenderPara& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyShadowBlenderPara, value, type);
-}
-
-template<>
-void RSProperty<Drawing::DrawCmdListPtr>::UpdateToRender(
-    const Drawing::DrawCmdListPtr& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyDrawCmdList, value, type);
-}
-
-template<>
 void RSProperty<std::shared_ptr<RSNGFilterBase>>::UpdateToRender(
     const std::shared_ptr<RSNGFilterBase>& value, PropertyUpdateType type) const
 {
@@ -595,7 +548,7 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
 template<>
 bool RSProperty<float>::IsValid(const float& value)
 {
-    return !std::isinf(value);
+    return !isinf(value);
 }
 template<>
 bool RSProperty<Vector2f>::IsValid(const Vector2f& value)
@@ -607,5 +560,14 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
 {
     return !value.IsInfinite();
 }
+
+#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
+    template class RSAnimatableProperty<T>;       \
+    template class RSProperty<T>
+
+#include "modifier/rs_property_def.in"
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
 } // namespace Rosen
 } // namespace OHOS

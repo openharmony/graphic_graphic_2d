@@ -16,22 +16,19 @@
 #include "boot_compile_progress.h"
 
 #include <chrono>
-
 #include "event_handler.h"
 #include "parameter.h"
 #include "parameters.h"
+#include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
-#include "util.h"
-
 #include "animation/rs_animation_common.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
-#include "pipeline/rs_recording_canvas.h"
-#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_ui_context_manager.h"
+#include "util.h"
 
 namespace OHOS {
 namespace {

@@ -19,25 +19,24 @@
 #include "render/rs_filter.h"
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-#include "hpae_base/rs_hpae_base_data.h"
-#include "hpae_base/rs_hpae_filter_cache_manager.h"
-#include "src/image/SkImage_Base.h"
-
-#include "common/rs_optional_trace.h"
-#include "draw/canvas.h"
-#include "draw/surface.h"
-#include "memory/rs_tag_tracker.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
-#include "render/rs_drawing_filter.h"
-#include "render/rs_high_performance_visual_engine.h"
-#include "render/rs_render_magnifier_filter.h"
-
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrBackendSurface.h"
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
+#include "src/image/SkImage_Base.h"
+
+#include "common/rs_optional_trace.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_high_performance_visual_engine.h"
+#include "render/rs_render_magnifier_filter.h"
+#include "render/rs_skia_filter.h"
+#include "drawable/rs_property_drawable_utils.h"
+#include "memory/rs_tag_tracker.h"
 
 namespace OHOS {
 namespace Rosen {

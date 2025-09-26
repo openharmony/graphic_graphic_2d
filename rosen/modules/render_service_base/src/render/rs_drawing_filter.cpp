@@ -228,8 +228,8 @@ void RSDrawingFilter::GenerateAndUpdateGEVisualEffect()
     if (!renderFilter_) {
         return;
     }
-    RSNGRenderFilterHelper::GenerateGEVisualEffect(renderFilter_);
-    RSNGRenderFilterHelper::UpdateToGEContainer(renderFilter_, visualEffectContainer_);
+    RSUIFilterHelper::GenerateGEVisualEffect(renderFilter_);
+    RSUIFilterHelper::UpdateToGEContainer(renderFilter_, visualEffectContainer_);
 }
 
 void RSDrawingFilter::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)

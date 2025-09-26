@@ -1,37 +1,14 @@
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
- 
-DECLARE_PROPERTY(float, FLOAT);
-DECLARE_PROPERTY(Quaternion, QUATERNION);
-DECLARE_PROPERTY(Vector2f, VECTOR2F);
-DECLARE_PROPERTY(Vector3f, VECTOR3F);
-DECLARE_PROPERTY(Vector4f, VECTOR4F);
-DECLARE_PROPERTY(Matrix3f, MATRIX3F);
-DECLARE_PROPERTY(RRect, RRECT);
-DECLARE_PROPERTY(Color, RS_COLOR);
-DECLARE_PROPERTY(Vector4<Color>, VECTOR4_COLOR);
-DECLARE_PROPERTY(std::vector<float>, VECTOR_FLOAT);
 DECLARE_PROPERTY(bool, BOOL);
 DECLARE_PROPERTY(int, INT);
 DECLARE_PROPERTY(short, SHORT);
 DECLARE_PROPERTY(Vector4<uint32_t>, VECTOR4_UINT32);
-DECLARE_PROPERTY(Drawing::DrawCmdListPtr, DRAW_CMD_LIST);
+DECLARE_PROPERTY(SkMatrix, SK_MATRIX);
+DECLARE_PROPERTY(ForegroundColorStrategyType, FOREGROUND_COLOR_STRATEGY);
 DECLARE_PROPERTY(std::shared_ptr<RSShader>, RS_SHADER);
 DECLARE_PROPERTY(std::shared_ptr<RSImage>, RS_IMAGE);
 DECLARE_PROPERTY(std::shared_ptr<RSPath>, RS_PATH);
 DECLARE_PROPERTY(Gravity, GRAVITY);
+DECLARE_PROPERTY(Drawing::Matrix, DRAWING_MATRIX);
 DECLARE_PROPERTY(std::shared_ptr<RSLinearGradientBlurPara>, LINEAR_GRADIENT_BLUR_PARA);
 DECLARE_PROPERTY(std::shared_ptr<RSMagnifierParams>, MAGNIFIER_PARAMS);
 DECLARE_PROPERTY(std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARAM);
@@ -40,11 +17,13 @@ DECLARE_PROPERTY(std::shared_ptr<ParticleNoiseFields>, PARTICLE_NOISE_FIELD);
 DECLARE_PROPERTY(std::shared_ptr<RSMask>, RS_MASK);
 DECLARE_PROPERTY(RSWaterRipplePara, WATER_RIPPLE_PARAMS);
 DECLARE_PROPERTY(RSFlyOutPara, FLY_OUT_PARAMS);
+DECLARE_PROPERTY(RSRenderParticleVector, RENDER_PARTICLE_VECTOR);
 DECLARE_PROPERTY(std::shared_ptr<OHOS::Media::PixelMap>, PIXEL_MAP);
 DECLARE_PROPERTY(RSDynamicBrightnessPara, DYNAMIC_BRIGHTNESS_PARA);
-DECLARE_PROPERTY(FILTER_PTR, RS_NG_RENDER_FILTER_BASE);
-DECLARE_PROPERTY(MASK_PTR, RS_NG_RENDER_MASK_BASE);
-DECLARE_PROPERTY(SHADER_PTR, RS_NG_RENDER_SHADER_BASE);
+DECLARE_PROPERTY(std::shared_ptr<RSNGRenderFilterBase>, RS_NG_RENDER_FILTER_BASE);
+DECLARE_PROPERTY(std::shared_ptr<RSNGRenderMaskBase>, RS_NG_RENDER_MASK_BASE);
+DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShaderBase>, RS_NG_RENDER_SHADER_BASE);
+DECLARE_PROPERTY(std::vector<Vector2f>, VECTOR_VECTOR2F);
 DECLARE_PROPERTY(RSShadowBlenderPara, SHADOW_BLENDER_PARAMS);
 
 DECLARE_ANIMATABLE_PROPERTY(float, FLOAT);
@@ -56,10 +35,5 @@ DECLARE_ANIMATABLE_PROPERTY(Matrix3f, MATRIX3F);
 DECLARE_ANIMATABLE_PROPERTY(RRect, RRECT);
 DECLARE_ANIMATABLE_PROPERTY(Color, RS_COLOR);
 DECLARE_ANIMATABLE_PROPERTY(Vector4<Color>, VECTOR4_COLOR);
-DECLARE_ANIMATABLE_PROPERTY(Drawing::DrawCmdListPtr, DRAW_CMD_LIST);
-
-// =============================================================================
-// Planning: Remove the following properties after deprecating complex shader
-DECLARE_PROPERTY(std::vector<Vector2f>, VECTOR_VECTOR2F);
 DECLARE_ANIMATABLE_PROPERTY(std::vector<float>, VECTOR_FLOAT);
-// =============================================================================
+DECLARE_ANIMATABLE_PROPERTY(Drawing::DrawCmdListPtr, DRAW_CMD_LIST);
