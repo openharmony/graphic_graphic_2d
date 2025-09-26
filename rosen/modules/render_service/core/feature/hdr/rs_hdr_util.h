@@ -72,6 +72,7 @@ public:
     static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
     static bool GetRGBA1010108Enabled();
+    static void CheckNotifyCallback(RSContext& context, ScreenId screenId);
     static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
     static void UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut);
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);

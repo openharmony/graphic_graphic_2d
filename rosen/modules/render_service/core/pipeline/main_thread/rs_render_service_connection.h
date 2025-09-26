@@ -61,6 +61,7 @@ private:
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
     void CleanFrameRateLinkerExpectedFpsCallbacks() noexcept;
+    void CleanBrightnessInfoChangeCallbacks() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -141,6 +142,10 @@ private:
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
+
+    int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
+
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 

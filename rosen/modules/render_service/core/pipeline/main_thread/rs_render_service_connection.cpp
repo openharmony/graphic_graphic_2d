@@ -241,6 +241,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
             connection->CleanFrameRateLinkerExpectedFpsCallbacks();
+            connection->CleanBrightnessInfoChangeCallbacks();
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -1043,6 +1044,33 @@ int32_t RSRenderServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScre
     // update
     int32_t status = screenManager_->SetScreenSwitchingNotifyCallback(callback);
     return status;
+}
+
+int32_t RSRenderServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
+{
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    auto task = [this, &callback]() {
+        auto& context = mainThread_->GetContext();
+        return context.SetBrightnessInfoChangeCallback(remotePid_, callback);
+    };
+    return mainThread_->ScheduleTask(task).get();
+}
+
+void RSRenderServiceConnection::CleanBrightnessInfoChangeCallbacks() noexcept
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto& context = mainThread_->GetContext();
+    context.SetBrightnessInfoChangeCallback(remotePid_, nullptr);
+}
+
+int32_t RSRenderServiceConnection::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
+    return StatusCode::SUCCESS;
 }
 
 void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)

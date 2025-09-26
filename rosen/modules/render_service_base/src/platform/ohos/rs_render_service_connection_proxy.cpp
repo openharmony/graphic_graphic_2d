@@ -1224,6 +1224,86 @@ int32_t RSRenderServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetBrightnessInfoChangeCallback: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("SetBrightnessInfoChangeCallback: WriteBool[T] OR WriteRemoteObject[CB] err");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("SetBrightnessInfoChangeCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBrightnessInfoChangeCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("GetBrightnessInfo: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("GetBrightnessInfo: WriteUint64 screenId err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBrightnessInfo Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    if (!ReadBrightnessInfo(brightnessInfo, reply)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReadBrightnessInfo ReadBrightnessInfo failed!");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+bool RSRenderServiceConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
+{
+    if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
+        !data.ReadFloat(brightnessInfo.maxHeadroom) ||
+        !data.ReadFloat(brightnessInfo.sdrNits)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReadBrightnessInfo read parcel failed!");
+        return false;
+    }
+    return true;
+}
+
 void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     MessageParcel data;

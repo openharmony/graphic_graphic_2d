@@ -247,6 +247,16 @@ int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
 }
 #endif
 
+int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
+{
+    return 0;
+}
+
+int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     return 0;

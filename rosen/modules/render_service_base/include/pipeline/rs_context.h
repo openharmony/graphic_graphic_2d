@@ -25,6 +25,7 @@
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "feature/capture/rs_ui_capture_helper.h"
+#include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/rs_render_node_map.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 
@@ -120,6 +121,10 @@ public:
     void AddPendingSyncNode(const std::shared_ptr<RSRenderNode> node);
 
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
+
+    int32_t SetBrightnessInfoChangeCallback(pid_t remotePid, const sptr<RSIBrightnessInfoChangeCallback>& callback);
+    void NotifyBrightnessInfoChangeCallback(ScreenId screenId, const BrightnessInfo& brightnessInfo) const;
+    bool IsBrightnessInfoChangeCallbackMapEmpty() const;
 
     void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
     {
@@ -232,6 +237,7 @@ private:
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
+    std::unordered_map<pid_t, sptr<RSIBrightnessInfoChangeCallback>> brightnessInfoChangeCallbackMap_;
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;

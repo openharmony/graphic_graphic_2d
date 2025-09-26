@@ -214,6 +214,21 @@ public:
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback);
 
     /**
+     * @brief Set brightness info change callback.
+     * when the brightness info is changed.
+     * @param callback Callback of the brightness info changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
+    int32_t SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback);
+
+    /**
+     * @brief Get brightness info by screenId.
+     * @param screenId is screen id.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
+    /**
      * @brief Set watermark for surfaceNode.
      * @param name Watermark name.
      * @param watermark Watermark pixelmap.

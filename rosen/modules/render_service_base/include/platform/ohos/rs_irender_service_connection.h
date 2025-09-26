@@ -23,6 +23,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "feature/capture/rs_ui_capture.h"
+#include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
@@ -152,6 +153,10 @@ public:
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) = 0;
+
+    virtual int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) = 0;
+
+    virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 

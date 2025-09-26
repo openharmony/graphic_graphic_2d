@@ -365,6 +365,18 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     }
 }
 
+void RSHdrUtil::CheckNotifyCallback(RSContext& context, ScreenId screenId)
+{
+    bool needNotifyCallback = !context.IsBrightnessInfoChangeCallbackMapEmpty() &&
+        RSLuminanceControl::Get().IsBrightnessInfoChanged(screenId);
+    if (needNotifyCallback) {
+        BrightnessInfo info = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
+        context.NotifyBrightnessInfoChangeCallback(screenId, info);
+        RS_TRACE_NAME_FMT("%s curHeadroom:%f maxHeadroom:%f sdrNits:%f screenId:%" PRIu64 "",
+            __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits, screenId);
+    }
+}
+
 ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
     ScreenColorGamut screenColorGamut;

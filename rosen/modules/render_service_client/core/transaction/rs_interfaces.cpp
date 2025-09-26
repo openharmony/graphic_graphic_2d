@@ -265,6 +265,17 @@ int32_t RSInterfaces::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNoti
     return renderServiceClient_->SetScreenSwitchingNotifyCallback(callback);
 }
 
+int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
+{
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
+    return renderServiceClient_->SetBrightnessInfoChangeCallback(callback);
+}
+
+int32_t RSInterfaces::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return renderServiceClient_->GetBrightnessInfo(screenId, brightnessInfo);
+}
+
 int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return renderServiceClient_->GetPixelMapByProcessId(pixelMapInfoVector, pid);
