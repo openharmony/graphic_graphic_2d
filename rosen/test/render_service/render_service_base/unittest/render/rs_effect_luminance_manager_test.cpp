@@ -14,11 +14,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <vector>
 
-#include "effect/rs_render_filter_base.h"
-#include "effect/rs_render_shader_base.h"
+#include <vector>
 #include "render/rs_effect_luminance_manager.h"
+#include "render/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;

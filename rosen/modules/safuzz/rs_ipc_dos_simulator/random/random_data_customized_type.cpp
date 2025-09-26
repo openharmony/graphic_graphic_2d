@@ -543,6 +543,18 @@ Drawing::RectI RandomDataCustomizedType::GetRandomDrawingRectI()
         RandomDataBasicType::GetRandomInt32(), RandomDataBasicType::GetRandomInt32());
 }
 
+SkMatrix RandomDataCustomizedType::GetRandomSkMatrix()
+{
+    SkMatrix matrix;
+    matrix.setAll(
+        RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat(),
+        RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat(),
+        RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat(),
+        RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat(),
+        RandomDataBasicType::GetRandomFloat());
+    return matrix;
+}
+
 Range<float> RandomDataCustomizedType::GetRandomFloatRange()
 {
     return Range<float>(RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat());
@@ -566,6 +578,13 @@ std::vector<std::shared_ptr<EmitterUpdater>> RandomDataCustomizedType::GetRandom
 std::shared_ptr<ParticleNoiseFields> RandomDataCustomizedType::GetRandomSmallParticleNoiseFieldsSharedPtr()
 {
     return GetRandomParticleNoiseFieldsSharedPtr("small");
+}
+
+ForegroundColorStrategyType RandomDataCustomizedType::GetRandomForegroundColorStrategyType()
+{
+    static constexpr int FOREGROUND_COLOR_STRATEGY_TYPE_INDEX_MAX = 1;
+    int randomIndex = RandomEngine::GetRandomIndex(FOREGROUND_COLOR_STRATEGY_TYPE_INDEX_MAX);
+    return static_cast<ForegroundColorStrategyType>(randomIndex);
 }
 } // namespace Rosen
 } // namespace OHOS

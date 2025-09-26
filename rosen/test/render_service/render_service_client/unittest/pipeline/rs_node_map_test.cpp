@@ -68,7 +68,7 @@ HWTEST_F(RSNodeMapTest, Instance001, TestSize.Level1)
  */
 HWTEST_F(RSNodeMapTest, RegisterNode001, TestSize.Level1)
 {
-    RSNode::SharedPtr nodePtr = std::make_shared<RSNode>(0);
+    RSBaseNode::SharedPtr nodePtr = std::make_shared<RSNode>(0);
     nodePtr->id_ = 0;
     bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
     EXPECT_TRUE(res == false);
@@ -118,7 +118,7 @@ HWTEST_F(RSNodeMapTest, GetNode001, TestSize.Level1)
     auto nodeone = RSNodeMap::MutableInstance().GetNode(1);
     EXPECT_EQ(nodeone, nullptr);
 
-    RSNode::SharedPtr nodePtr = std::make_shared<RSNode>(3);
+    RSBaseNode::SharedPtr nodePtr = std::make_shared<RSNode>(3);
     nodePtr->id_ = 3;
     RSNodeMap::MutableInstance().RegisterNode(nodePtr);
     nodeone = RSNodeMap::MutableInstance().GetNode(3);

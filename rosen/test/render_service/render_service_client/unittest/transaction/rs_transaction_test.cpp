@@ -61,7 +61,7 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
 HWTEST_F(RSTransactionTest, FlushImplicitTransaction002, TestSize.Level1)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+        std::make_unique<RSAnimationCallback>(1, 1, 1, FINISHED);
     RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
     RSTransaction::FlushImplicitTransaction();
     EXPECT_NE(RSTransaction::FlushImplicitTransaction, nullptr);

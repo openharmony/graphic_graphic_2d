@@ -21,12 +21,10 @@
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_context.h"
+#include "recording/draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class DrawCmdList;
-}
 
 //Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //If a command is not used and you want to delete it,

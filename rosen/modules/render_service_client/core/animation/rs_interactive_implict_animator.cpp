@@ -15,10 +15,8 @@
 
 #include "animation/rs_interactive_implict_animator.h"
 
-#include "sandbox_utils.h"
-
-#include "command/rs_animation_command.h"
 #include "platform/common/rs_log.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {

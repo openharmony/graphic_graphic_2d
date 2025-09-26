@@ -45,9 +45,9 @@ void RSRenderFilterBaseTest::TearDown() {}
 HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderFilterBase> filterNull = nullptr;
-    RSNGRenderFilterHelper::GenerateGEVisualEffect(filterNull);
+    RSUIFilterHelper::GenerateGEVisualEffect(filterNull);
     std::shared_ptr<RSNGRenderFilterBase> filter = std::make_shared<RSNGRenderBlurFilter>();
-    RSNGRenderFilterHelper::GenerateGEVisualEffect(filter);
+    RSUIFilterHelper::GenerateGEVisualEffect(filter);
     EXPECT_NE(filter->geFilter_, nullptr);
 }
 
@@ -89,19 +89,19 @@ HWTEST_F(RSRenderFilterBaseTest, UpdateCacheData, TestSize.Level1)
     auto src = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
     auto dest = std::make_shared<Drawing::GEVisualEffect>("KAWASE_BLUR");
     auto other = std::make_shared<Drawing::GEVisualEffect>("MESA_BLUR");
-    RSNGRenderFilterHelper::UpdateCacheData(src, dest);
+    RSUIFilterHelper::UpdateCacheData(src, dest);
     EXPECT_EQ(dest->GetImpl()->GetCache(), nullptr);
     src->GetImpl()->SetCache(std::make_shared<std::any>(std::make_any<float>(1.0)));
     std::shared_ptr<Drawing::GEVisualEffect> null = nullptr;
-    RSNGRenderFilterHelper::UpdateCacheData(null, null);
+    RSUIFilterHelper::UpdateCacheData(null, null);
     EXPECT_EQ(null, nullptr);
-    RSNGRenderFilterHelper::UpdateCacheData(null, dest);
-    RSNGRenderFilterHelper::UpdateCacheData(src, null);
+    RSUIFilterHelper::UpdateCacheData(null, dest);
+    RSUIFilterHelper::UpdateCacheData(src, null);
     EXPECT_EQ(null, nullptr);
     ASSERT_NE(src->GetImpl()->GetFilterType(), other->GetImpl()->GetFilterType());
-    RSNGRenderFilterHelper::UpdateCacheData(src, other);
+    RSUIFilterHelper::UpdateCacheData(src, other);
     EXPECT_EQ(other->GetImpl()->GetCache(), nullptr);
-    RSNGRenderFilterHelper::UpdateCacheData(src, dest);
+    RSUIFilterHelper::UpdateCacheData(src, dest);
     auto cachePtr = dest->GetImpl()->GetCache();
     auto cache = std::any_cast<float>(*cachePtr);
     EXPECT_EQ(cache, 1.0);
@@ -384,10 +384,10 @@ HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
     std::shared_ptr<RSNGRenderFilterBase> filter1 = std::make_shared<RSNGRenderBlurFilter>();
     auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
     filter1->nextEffect_ = filter2;
-    EXPECT_FALSE(RSNGRenderFilterHelper::CheckEnableEDR(filter1));
+    EXPECT_FALSE(RSUIFilterHelper::CheckEnableEDR(filter1));
 
     Vector4f color{0.5f, 0.5f, 1.5f, 1.0f};
     filter2->Setter<EdgeLightColorRenderTag>(color);
-    EXPECT_TRUE(RSNGRenderFilterHelper::CheckEnableEDR(filter1));
+    EXPECT_TRUE(RSUIFilterHelper::CheckEnableEDR(filter1));
 }
 } // namespace OHOS::Rosen
