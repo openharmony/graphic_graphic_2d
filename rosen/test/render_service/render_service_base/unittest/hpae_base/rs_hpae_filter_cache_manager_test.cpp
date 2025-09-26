@@ -12,20 +12,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include <buffer_handle.h>
+#include "gtest/gtest.h"
+
 #include <parameter.h>
 #include <parameters.h>
 #include <unistd.h>
-
-#include "gtest/gtest.h"
-#include "hpae_base/rs_hpae_base_data.h"
-#include "hpae_base/rs_hpae_base_types.h"
-#include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
+#include "param/sys_param.h"
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "hpae_base/rs_hpae_base_types.h"
 #include "hpae_base/rs_hpae_fusion_operator.h"
 #include "hpae_base/rs_hpae_hianimation.h"
-#include "param/sys_param.h"
-
+#include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
+#include "hpae_base/rs_hpae_base_data.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_render_maskcolor_filter.h"
 

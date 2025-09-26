@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <unistd.h>
+#include <gtest/gtest.h>
 
-#include "command/rs_command.h"
-#include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_transaction_metric_collector.h"
+#include "platform/common/rs_log.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -23,17 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
-// explicit instantiation
-#define DECLARE_PROPERTY(T, TYPE_ENUM)
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
-    template class RSKeyframeValueEstimator<T>;   \
-    template class RSCurveValueEstimator<T>;      \
-    template class RSSpringValueEstimator<T>
-#include "modifier/rs_property_def.in"
-#undef DECLARE_PROPERTY
-#undef DECLARE_ANIMATABLE_PROPERTY
-
 Quaternion RSValueEstimator::Estimate(float fraction,
     const Quaternion& startValue, const Quaternion& endValue)
 {
@@ -96,5 +85,7 @@ void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::UpdateAnimationValue(const 
         property_->Set(rsDrawCmdList);
     }
 }
+template class RSCurveValueEstimator<float>;
+template class RSCurveValueEstimator<Drawing::DrawCmdListPtr>;
 } // namespace Rosen
 } // namespace OHOS

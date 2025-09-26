@@ -73,7 +73,7 @@ enum RSAnimationCommandType : uint16_t {
     INTERACTIVE_ANIMATOR_SET_FRACTION = 0x0406,
 };
 
-enum class AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED, LOGICALLY_FINISHED };
+enum AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED, LOGICALLY_FINISHED };
 
 class RSB_EXPORT AnimationCommandHelper {
 public:

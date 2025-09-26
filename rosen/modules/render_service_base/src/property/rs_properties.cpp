@@ -30,7 +30,6 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
-#include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -48,7 +47,6 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_hdr_ui_brightness_filter.h"
 #include "render/rs_material_filter.h"
-#include "render/rs_particles_drawable.h"
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_always_snapshot_filter.h"
 #include "render/rs_render_filter_base.h"
@@ -3213,7 +3211,7 @@ void RSProperties::ComposeNGRenderFilter(
         originDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         if (filter->ContainsType(RSNGEffectType::CONTENT_LIGHT)) {
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
-            RSNGRenderFilterHelper::SetRotationAngle(filter, rotationAngle);
+            RSUIFilterHelper::SetRotationAngle(filter, rotationAngle);
         }
     }
     originFilter = originDrawingFilter;
