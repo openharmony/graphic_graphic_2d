@@ -1137,7 +1137,7 @@ bool RSSurfaceRenderNodeDrawable::DrawSpecialLayer(RSPaintFilterCanvas& canvas, 
         RSUniRenderThread::GetCaptureParam().isNeedBlur_ || RSUniRenderThread::GetCaptureParam().isSelfCapture_;
     // Draw White
     if (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
-        (UNLIKELY(isSecLayersNotExempted && !needSkipDrawWhite) || specialLayerManager.Find(SpecialLayerType::SKIP))) {
+        UNLIKELY(isSecLayersNotExempted && !needSkipDrawWhite)) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::DrawSpecialLayer: "
                 "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
                 "draw white with security or skip layer for SingleSurface, isNeedBlur:[%{public}s], "
@@ -1186,8 +1186,8 @@ bool RSSurfaceRenderNodeDrawable::DrawSpecialLayer(RSPaintFilterCanvas& canvas, 
     // Skip Drawing
     auto isSnapshotSkipLayer =
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && specialLayerManager.Find(SpecialLayerType::SNAPSHOT_SKIP);
-    if (((!RSUniRenderThread::GetCaptureParam().isSingleSurface_ && specialLayerManager.Find(SpecialLayerType::SKIP)) ||
-        isSnapshotSkipLayer) && !RSUniRenderThread::GetCaptureParam().ignoreSpecialLayer_) {
+    if ((specialLayerManager.Find(SpecialLayerType::SKIP) || isSnapshotSkipLayer) &&
+        !RSUniRenderThread::GetCaptureParam().ignoreSpecialLayer_) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::DrawSpecialLayer: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "skip layer or snapshotskip layer", surfaceParams.GetId(), name_.c_str());
