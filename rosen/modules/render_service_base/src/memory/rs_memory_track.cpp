@@ -239,7 +239,7 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
         for (auto it = memPicRecord_.begin(); it != memPicRecord_.end(); it++) {
             pid_t picPid = it->second.pid;
             if (pid == picPid) {
-                totalMemSize += static_cast<int>(it->second.size);
+                totalMemSize += static_cast<uint64_t>(it->second.size);
             }
         }
         memoryGraphic.SetPid(pid);
