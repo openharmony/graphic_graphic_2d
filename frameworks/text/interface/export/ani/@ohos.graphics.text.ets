@@ -341,7 +341,8 @@ namespace text {
       baselineShift: double,
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
-      backgroundRect: RectStyle
+      backgroundRect: RectStyle,
+      badgeType: TextBadgeType
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -362,6 +363,7 @@ namespace text {
       this.fontFeatures = fontFeatures;
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
+      this.badgeType = badgeType;
     }
   }
 

@@ -298,7 +298,8 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         std::string(ANI_ARRAY) + "}ddddzzC{" + std::string(ANI_STRING) + "}E{" +
         std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{" + std::string(ANI_STRING) +
         "}dC{" + std::string(ANI_ARRAY) + "}C{" +
-        std::string(ANI_ARRAY) + "}C{" + std::string(ANI_INTERFACE_RECT_STYLE) + "}:";
+        std::string(ANI_ARRAY) + "}C{" + std::string(ANI_INTERFACE_RECT_STYLE) + "}E{" +
+        std::string(ANI_ENUM_TEXT_BADGE_TYPE) + "}:";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, sign.c_str(),
         AniTextStyleConverter::ParseDecorationToAni(env, textStyle),
@@ -323,7 +324,8 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
             [](ani_env* env, const TextShadow& item) {
                 return AniTextStyleConverter::ParseTextShadowToAni(env, item);
             }),
-        AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect)
+        AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect),
+        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_BADGE_TYPE, static_cast<int>(textStyle.badgeType))
     );
     return aniObj;
 }
