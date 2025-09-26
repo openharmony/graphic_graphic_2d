@@ -142,7 +142,7 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, st
       showingPropertiesFreezer_(id, rsUIContext), isOnTheTree_(isOnTheTree)
 {
     InitUniRenderEnabled();
-    if (auto rsUIContextPtr = rsUIContext_.lock()) {
+    if (auto rsUIContextPtr = rsUIContext_) {
         auto transaction = rsUIContextPtr->GetRSTransaction();
         if (transaction != nullptr && g_isUniRenderEnabled && isTextureExportNode) {
             std::call_once(flag_, [transaction]() {
@@ -192,7 +192,7 @@ RSNode::~RSNode()
                                                   [](const auto& child) { return child.expired(); }),
             parentPtr->children_.end());
     }
-    auto rsUIContext = rsUIContext_.lock();
+    auto rsUIContext = rsUIContext_;
     // To prevent a process from repeatedly serializing and generating different node objects, it is necessary to place
     // the nodes in a globally static map. Therefore, when disassembling, the global map needs to be deleted
     if (skipDestroyCommandInDestructor_ && rsUIContext) {
@@ -235,7 +235,7 @@ RSNode::~RSNode()
 
 std::shared_ptr<RSTransactionHandler> RSNode::GetRSTransaction() const
 {
-    auto rsUIContext = rsUIContext_.lock();
+    auto rsUIContext = rsUIContext_;
     if (!rsUIContext) {
         return nullptr;
     }
@@ -636,7 +636,7 @@ void RSNode::ExecuteWithoutAnimation(
 
 bool RSNode::FallbackAnimationsToContext()
 {
-    auto rsUIContext = rsUIContext_.lock();
+    auto rsUIContext = rsUIContext_;
     if (rsUIContext == nullptr) {
         return false;
     }
@@ -1469,7 +1469,7 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
     if (rsUIContext == nullptr) {
         return;
     }
-    auto preUIContext = rsUIContext_.lock();
+    auto preUIContext = rsUIContext_;
     if ((preUIContext != nullptr) && (preUIContext == rsUIContext)) {
         return;
     }
@@ -2687,7 +2687,7 @@ void RSNode::SetAttractionEffectDstPoint(const Vector2f& destinationPoint)
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
-    auto rsUIContext = rsUIContext_.lock();
+    auto rsUIContext = rsUIContext_;
     auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
                                         : RSImplicitAnimatorMap::Instance().GetAnimator();
     if (implicitAnimator == nullptr) {
@@ -2966,7 +2966,7 @@ bool RSNode::CheckMultiThreadAccess(const std::string& func) const
     if (isSkipCheckInMultiInstance_) {
         return true;
     }
-    auto rsContext = rsUIContext_.lock();
+    auto rsContext = rsUIContext_;
     // Node todo
     if (rsContext == nullptr) {
         return true;
@@ -3010,7 +3010,7 @@ void RSNode::MarkAllExtendModifierDirty()
         return;
     }
 
-    auto rsUIContext = rsUIContext_.lock();
+    auto rsUIContext = rsUIContext_;
     auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
                                        : RSModifierManagerMap::Instance()->GetModifierManager();
     extendModifierIsDirty_ = true;
@@ -3892,7 +3892,7 @@ void RSNode::DumpModifiers(std::string& out) const
 void RSNode::Dump(std::string& out) const
 {
     auto iter = RSUINodeTypeStrs.find(GetType());
-    auto rsUIContextPtr = rsUIContext_.lock();
+    auto rsUIContextPtr = rsUIContext_;
     out += (iter != RSUINodeTypeStrs.end() ? iter->second : "RSNode");
     out += "[" + std::to_string(id_);
     out += "], parent[" + std::to_string(parent_.lock() ? parent_.lock()->GetId() : -1);
@@ -3963,7 +3963,7 @@ std::string RSNode::DumpNode(int depth) const
             ss << " animationInfo:" << animation->DumpAnimation();
         }
     }
-    auto rsUIContextPtr = rsUIContext_.lock();
+    auto rsUIContextPtr = rsUIContext_;
     ss << " token:" << (rsUIContextPtr ? std::to_string(rsUIContextPtr->GetToken()) : "null");
     ss << " " << GetStagingProperties().Dump();
     return ss.str();
@@ -3995,7 +3995,7 @@ template bool RSNode::IsInstanceOf<RSEffectNode>() const;
 void RSNode::SetInstanceId(int32_t instanceId)
 {
     instanceId_ = instanceId;
-    auto rsUIContext = rsUIContext_.lock();
+    auto rsUIContext = rsUIContext_;
     // use client multi don’t need
     if (rsUIContext == nullptr) {
         RSNodeMap::MutableInstance().RegisterNodeInstanceId(id_, instanceId_);
