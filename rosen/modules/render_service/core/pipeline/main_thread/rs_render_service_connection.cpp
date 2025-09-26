@@ -1054,7 +1054,7 @@ int32_t RSRenderServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrigh
     auto task = [this, &callback]() {
         auto& context = mainThread_->GetContext();
         return context.SetBrightnessInfoChangeCallback(remotePid_, callback);
-    }
+    };
     return mainThread_->ScheduleTask(task).get();
 }
 
