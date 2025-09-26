@@ -186,6 +186,7 @@ public:
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val, uint64_t uniqueId);
     static RSB_EXPORT bool UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
     static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
@@ -459,6 +460,7 @@ private:
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
+    static constexpr size_t MAX_FD = 30000;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

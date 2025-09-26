@@ -316,6 +316,52 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddPictureFdRecordTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureFdRecordTest, testing::ext::TestSize.Level1)
+{
+    uint32_t pid = 123;
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureFdRecord(pid);
+    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+}
+
+/**
+ * @tc.name: RemovePictureFdRecordTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureFdRecordTest, testing::ext::TestSize.Level1)
+{
+    uint32_t pid = 123;
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureFdRecord(pid);
+    test1.AddPictureFdRecord(pid);
+
+    test1.RemovePictureFdRecord(pid);
+    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+}
+
+/**
+ * @tc.name: CountFdRecordOfPidTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest, testing::ext::TestSize.Level1)
+{
+    uint32_t pid = 1234;
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureFdRecord(pid);
+
+    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+}
+
+/**
  * @tc.name: RemovePictureRecordTest
  * @tc.desc: test
  * @tc.type: FUNC

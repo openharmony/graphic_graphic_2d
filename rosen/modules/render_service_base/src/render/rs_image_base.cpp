@@ -404,7 +404,7 @@ static bool UnmarshallingAndCachePixelMap(Parcel& parcel, std::shared_ptr<Media:
             // unmarshalling the pixelmap and cache it
             RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);
         }
-    } else if (RSMarshallingHelper::Unmarshalling(parcel, pixelMap)) {
+    } else if (RSMarshallingHelper::Unmarshalling(parcel, pixelMap, uniqueId)) {
         if (pixelMap) {
             // unmarshalling the pixelMap and cache it
             RSImageCache::Instance().CachePixelMap(uniqueId, pixelMap);

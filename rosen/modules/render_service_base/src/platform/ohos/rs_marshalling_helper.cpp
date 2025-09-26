@@ -1894,7 +1894,8 @@ static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 #endif
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val,
+    uint64_t uniqueId)
 {
     if (parcel.ReadInt32() == -1) {
         val = nullptr;
@@ -1904,6 +1905,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
         return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     };
+    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
+    if (MemoryTrack::Instance().CountFdRecordOfPid(pid) > MAX_FD) {
+        ROSEN_LOGE("The number of fd exceeds the limit");
+        std::string reason = "The number of fd exceeds the limit" +
+            std::to_string(MemoryTrack::Instance().CountFdRecordOfPid(pid));
+        MemoryTrack::Instance().KillProcessByPid(pid, reason);
+        return false;
+    }
     val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
@@ -1925,7 +1934,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
     MemoryInfo info = {
-        val->GetByteCount(), 0, 0, val->GetUniqueId(),
+        val->GetByteCount(), pid, 0, val->GetUniqueId(),
         MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), imageInfo.pixelFormat
     };
 
@@ -1934,12 +1943,18 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
     } else {
         MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+        MemoryTrack::Instance().AddPictureFdRecord(uniqueId);
     }
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
+{
+    return Unmarshalling(parcel, val, 0);
 }
 
 bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)

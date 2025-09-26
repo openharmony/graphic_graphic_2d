@@ -14,6 +14,10 @@
  */
 #include "memory/rs_memory_track.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include "ability_manager_client.h"
+#endif
+
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 namespace OHOS {
@@ -30,6 +34,9 @@ constexpr uint32_t MEM_UID_STRING_LEN = 8;
 constexpr uint32_t MEM_SURNODE_STRING_LEN = 40;
 constexpr uint32_t MEM_FRAME_STRING_LEN = 35;
 constexpr uint32_t MEM_NODEID_STRING_LEN = 20;
+#ifdef RS_ENABLE_UNI_RENDER
+constexpr int KILL_PROCESS_TYPE = 301;
+#endif
 }
 
 MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id, size_t drawableNodeSize)
@@ -510,10 +517,68 @@ void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
     memPicRecord_.emplace(addr, info);
 }
 
+void MemoryTrack::AddPictureFdRecord(uint64_t uniqueId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
+    if (fdNumOfPid_.find(pid) == fdNumOfPid_.end()) {
+        fdNumOfPid_[pid] = 1;
+    } else {
+        ++fdNumOfPid_[pid];
+    }
+}
+
 void MemoryTrack::RemovePictureRecord(const void* addr)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t pid;
+    if (memPicRecord_.find(addr) != memPicRecord_.end()) {
+        pid = memPicRecord_[addr].pid;
+    } else {
+        pid = 0;
+    }
+    
+    RemovePictureFdRecord(pid);
     memPicRecord_.erase(addr);
+}
+
+void MemoryTrack::RemovePictureFdRecord(uint32_t pid)
+{
+    auto it = fdNumOfPid_.find(pid);
+    if (it == fdNumOfPid_.end()) {
+        fdNumOfPid_[pid] = 0;
+        return;
+    }
+
+    uint32_t& count = it->second;
+    if (count > 0) {
+        --count;
+    }
+    if (count == 0) {
+        fdNumOfPid_.erase(pid);
+    }
+}
+
+void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pid == 0) {
+        return;
+    }
+
+#ifdef RS_ENABLE_UNI_RENDER
+    AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+    int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+    if (ret == ERR_OK) {
+        fdNumOfPid_.erase(pid);
+    }
+#endif
+}
+
+uint32_t MemoryTrack::CountFdRecordOfPid(uint32_t pid)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return fdNumOfPid_[pid];
 }
 
 #ifdef RS_MEMORY_INFO_MANAGER
