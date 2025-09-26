@@ -220,7 +220,7 @@ ani_object AniPen::GetColorFilter(ani_env* env, ani_object obj)
         return CreateAniUndefined(env);
     }
     AniColorFilter* aniColorFilter = new AniColorFilter(aniPen->GetPen()->GetFilter().GetColorFilter());
-    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.ColorFilter", nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniColorFilter))) {
         ROSEN_LOGE(" AniPen::GetColorFilter failed cause by Object_SetFieldByName_Long");

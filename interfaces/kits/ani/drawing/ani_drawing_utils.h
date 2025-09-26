@@ -77,6 +77,9 @@ constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
 constexpr int RGBA_MAX = 255;
 constexpr const char* ANI_DOUBLE_STRING = "std.core.Double";
 constexpr const char* ANI_INT_STRING = "std.core.Int";
+constexpr const char* ANI_CLASS_MATRIX_NAME = "@ohos.graphics.drawing.drawing.Matrix";
+constexpr const char* ANI_CLASS_COLORFILTER_NAME = "@ohos.graphics.drawing.drawing.ColorFilter";
+constexpr const char* ANI_CLASS_PATH_NAME = "@ohos.graphics.drawing.drawing.Path";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
@@ -169,12 +172,12 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
 inline ani_object CreateAniArrayWithSize(ani_env* env, size_t size)
 {
     ani_class arrayCls;
-    if (env->FindClass("Lescompat/Array;", &arrayCls) != ANI_OK) {
-        ROSEN_LOGE("Failed to findClass Lescompat/Array;");
+    if (env->FindClass("escompat.Array", &arrayCls) != ANI_OK) {
+        ROSEN_LOGE("Failed to findClass escompat.Array");
         return CreateAniUndefined(env);
     }
     ani_method arrayCtor;
-    if (env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor) != ANI_OK) {
+    if (env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor) != ANI_OK) {
         ROSEN_LOGE("Failed to find <ctor>");
         return CreateAniUndefined(env);
     }

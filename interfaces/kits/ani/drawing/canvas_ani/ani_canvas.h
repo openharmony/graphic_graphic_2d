@@ -66,6 +66,7 @@ public:
         ani_double y0, ani_double x1, ani_double y1);
     static void DrawSingleCharacter(ani_env* env, ani_object obj, ani_string text,
         ani_object fontObj, ani_double x, ani_double y);
+    static void DrawTextBlob(ani_env* env, ani_object obj, ani_object textBlobObj, ani_double x, ani_double y);
     static void DrawOval(ani_env* env, ani_object obj, ani_object rectObj);
     static void DrawArc(ani_env* env, ani_object obj, ani_object rectObj,
         ani_double startAngle, ani_double sweepAngle);

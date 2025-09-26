@@ -467,7 +467,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native constructorNative(pixelmap: image.PixelMap): void;
 
@@ -514,7 +514,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native drawRect(rect: common2D.Rect): void;
 
@@ -528,7 +528,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawRect(left: double, top: double, right: double, bottom: double): void;
 
@@ -538,7 +538,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawRoundRect(roundRect: RoundRect): void;
 
@@ -550,7 +550,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawNestedRoundRect(outer: RoundRect, inner: RoundRect): void;
 
@@ -560,7 +560,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawBackground(brush: Brush): void;
 
@@ -578,7 +578,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawShadow(path: Path, planeParams: common2D.Point3d, devLightPos: common2D.Point3d, lightRadius: double,
       ambientColor: common2D.Color, spotColor: common2D.Color, flag: ShadowFlag) : void;
@@ -597,7 +597,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
 
     native drawShadow(path: Path, planeParams: common2D.Point3d, devLightPos: common2D.Point3d, lightRadius: double,
@@ -612,7 +612,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      *     <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native drawCircle(x: double, y: double, radius: double): void;
 
@@ -623,7 +623,7 @@ namespace drawing {
      * @param { double } top - Top side of image.
      * @throws { BusinessError } 401 - Parameter error.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     /**
      * Draws an image. The coordinates of the upper left corner of the image are (left, top).
@@ -634,7 +634,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawImage(pixelmap: image.PixelMap, left: double, top: double, samplingOptions?: SamplingOptions): void;
 
@@ -651,7 +651,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native drawImageLattice(pixelmap: image.PixelMap, lattice: Lattice, dstRect: common2D.Rect,
       filterMode: FilterMode): void;
@@ -668,7 +668,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native drawImageNine(pixelmap: image.PixelMap, center: common2D.Rect, dstRect: common2D.Rect,
       filterMode: FilterMode): void;
@@ -682,7 +682,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawImageRect(pixelmap: image.PixelMap, dstRect: common2D.Rect, samplingOptions?: SamplingOptions): void;
 
@@ -696,7 +696,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawImageRectWithSrc(pixelmap: image.PixelMap, srcRect: common2D.Rect, dstRect: common2D.Rect,
       samplingOptions?: SamplingOptions, constraint?: SrcRectConstraint): void;
@@ -708,7 +708,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native drawColor(color: common2D.Color, blendMode?: BlendMode): void;
 
@@ -726,7 +726,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawColor(alpha: int, red: int, green: int, blue: int, blendMode?: BlendMode): void;
 
@@ -737,7 +737,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native drawColor(color: int, blendMode?: BlendMode): void;
 
@@ -747,7 +747,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawOval(oval: common2D.Rect): void;
 
@@ -766,7 +766,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawArc(arc: common2D.Rect, startAngle: double, sweepAngle: double): void;
 
@@ -784,7 +784,7 @@ namespace drawing {
      * @param { boolean } useCenter - Whether the start point and end point of the arc are connected to its center.
      * The value true means that they are connected to the center; the value false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native drawArcWithCenter(arc: common2D.Rect, startAngle: double, sweepAngle: double, useCenter: boolean): void;
 
@@ -795,7 +795,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native drawPoint(x: double, y: double): void;
 
@@ -806,7 +806,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawPoints(points: Array<common2D.Point>, mode?: PointMode): void;
 
@@ -816,7 +816,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native drawPath(path: Path): void;
 
@@ -830,7 +830,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native drawLine(x0: double, y0: double, x1: double, y1: double): void;
 
@@ -846,7 +846,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawSingleCharacter(text: string, font: Font, x: double, y: double): void;
 
@@ -877,7 +877,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: int, meshHeight: int,
       vertices: Array<double>, vertOffset: int, colors: Array<int>, colorOffset: int): void;
@@ -888,7 +888,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native drawRegion(region: Region): void;
 
@@ -898,7 +898,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native attachPen(pen: Pen): void;
 
@@ -908,21 +908,21 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native attachBrush(brush: Brush): void;
 
     /**
      * Unset pen to a canvas.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native detachPen(): void;
 
     /**
      * Unset brush to a canvas.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native detachBrush(): void;
 
@@ -930,7 +930,7 @@ namespace drawing {
      * Saves the current canvas status (canvas matrix) to the top of the stack.
      * @returns { int } Return the number of saved states.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native save(): int;
 
@@ -942,7 +942,7 @@ namespace drawing {
      * @returns { long } Return the number of saved states before this call.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: Mandatory parameters are left unspecified.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native saveLayer(rect?: common2D.Rect | null, brush?: Brush | null): long;
 
@@ -952,7 +952,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native clear(color: common2D.Color): void;
 
@@ -960,14 +960,14 @@ namespace drawing {
      * Clears the canvas with a given color.
      * @param { common2D.Color | int } color - Color, represented by an unsigned integer in hexadecimal ARGB format.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native clear(color: common2D.Color | int): void;
 
     /**
      * Restores the canvas status (canvas matrix) saved on the top of the stack.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native restore(): void;
 
@@ -979,7 +979,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native restoreToCount(count: int): void;
 
@@ -987,7 +987,7 @@ namespace drawing {
      * Gets the number of the canvas status (canvas matrix) saved in the stack.
      * @returns { int } Return represent depth of save state stack.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getSaveCount(): int;
 
@@ -995,7 +995,7 @@ namespace drawing {
      * Obtains the canvas width.
      * @returns { int } Canvas width. The value is a floating point number.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getWidth(): int;
 
@@ -1003,7 +1003,7 @@ namespace drawing {
      * Obtains the canvas height.
      * @returns { int } Canvas height. The value is a floating point number.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getHeight(): int;
 
@@ -1011,7 +1011,7 @@ namespace drawing {
      * Obtains the bounds of the cropping region of the canvas.
      * @returns { common2D.Rect | undefined } Rect object.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getLocalClipBounds(): common2D.Rect | undefined;
 
@@ -1019,7 +1019,7 @@ namespace drawing {
      * Obtains the canvas matrix.
      * @returns { Matrix | undefined } Canvas matrix.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getTotalMatrix(): Matrix | undefined;
 
@@ -1031,7 +1031,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native scale(sx: double, sy: double): void;
 
@@ -1047,7 +1047,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native skew(sx: double, sy: double) : void;
 
@@ -1059,7 +1059,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native rotate(degrees: double, sx: double, sy: double) : void;
 
@@ -1071,7 +1071,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native translate(dx: double, dy: double): void;
 
@@ -1084,7 +1084,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native clipPath(path: Path, clipOp?: ClipOp, doAntiAlias?: boolean): void;
 
@@ -1097,7 +1097,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native clipRect(rect: common2D.Rect, clipOp?: ClipOp, doAntiAlias?: boolean): void;
 
@@ -1108,7 +1108,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native concatMatrix(matrix: Matrix): void;
   
@@ -1119,7 +1119,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native clipRegion(region: Region, clipOp?: ClipOp): void;
 
@@ -1132,7 +1132,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native clipRoundRect(roundRect: RoundRect, clipOp?: ClipOp, doAntiAlias?: boolean): void;
 
@@ -1140,7 +1140,7 @@ namespace drawing {
      * Checks whether the region that can be drawn is empty after clipping.
      * @returns { boolean } Returns true if drawable area is empty.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isClipEmpty(): boolean;
 
@@ -1150,14 +1150,14 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setMatrix(matrix: Matrix): void;
 
     /**
      * Resets the matrix of this canvas to an identity matrix.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native resetMatrix(): void;
 
@@ -1166,7 +1166,7 @@ namespace drawing {
      * @param { Path } path - Path to draw.
      * @returns { boolean } Returns true if path is not intersect; returns false otherwise.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native quickRejectPath(path: Path): boolean;
 
@@ -1175,7 +1175,7 @@ namespace drawing {
      * @param { common2D.Rect } rect - Rectangle to determines.
      * @returns { boolean } Returns true if rect and region is not intersect; returns false otherwise.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native quickRejectRect(rect: common2D.Rect): boolean;
   }
@@ -1185,7 +1185,7 @@ namespace drawing {
    *
    * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
-   * @since 12
+   * @since 20
    */
   export enum SrcRectConstraint {
 
@@ -1193,7 +1193,7 @@ namespace drawing {
      * The sampling range is strictly confined to the source rectangle, resulting in a slow sampling speed.
      *
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     STRICT = 0,
 
@@ -1201,7 +1201,7 @@ namespace drawing {
      * The sampling range is not limited to the source rectangle and can extend beyond it, allowing for a high sampling speed.
      *
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     FAST = 1
   }
@@ -1211,19 +1211,19 @@ namespace drawing {
    *
    * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
-   * @since 12
+   * @since 20
    */
   export enum ClipOp {
     /**
      * Clips with difference.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     DIFFERENCE = 0,
     /**
      * Clips with intersection.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     INTERSECT = 1,
   }
@@ -1593,7 +1593,7 @@ namespace drawing {
   /**
    * Provides settings for brush fill when drawing.
    * @syscap SystemCapability.Graphics.Drawing
-   * @since 11
+   * @since 20
    */
   export class Brush {
     static { loadLibrary("drawing_ani_core"); }
@@ -1618,7 +1618,7 @@ namespace drawing {
     /**
      * Constructor for the Brush.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native constructorNative(): void;
 
@@ -1628,7 +1628,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native constructorNative(brush: Brush): void;
 
@@ -1671,7 +1671,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native setAlpha(alpha: int): void;
 
@@ -1679,7 +1679,7 @@ namespace drawing {
      * Obtains the alpha of a brush. The alpha is used by the brush to fill in a shape.
      * @returns { int } Returns a 8-bit variable that describes the alpha.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getAlpha(): int;
 
@@ -1689,7 +1689,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native setColor(color: common2D.Color): void;
 
@@ -1706,7 +1706,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setColor(alpha: int, red: int, green: int, blue: int): void;
 
@@ -1716,7 +1716,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native setColor(color: int): void;
 
@@ -1732,7 +1732,7 @@ namespace drawing {
      * Obtains the color of this brush.
      * @returns { int } Returns a 32-bit (ARGB) variable that describes the color of hexadecimal format.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native getHexColor(): int;
 
@@ -1742,7 +1742,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native setAntiAlias(aa: boolean): void;
 
@@ -1750,7 +1750,7 @@ namespace drawing {
      * Checks whether anti-aliasing is enabled for this brush.
      * @returns { boolean } Returns true if anti-aliasing is enabled; returns false otherwise.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isAntiAlias(): boolean;
 
@@ -1766,11 +1766,54 @@ namespace drawing {
 
     /**
      * Obtains the color filter of this brush.
-     * @returns { ColorFilter } ColorFilter.
+     * @returns { ColorFilter | undefined } ColorFilter.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
-    native getColorFilter(): ColorFilter;
+    native getColorFilter(): ColorFilter | undefined;
+
+    /**
+     * Sets an image filter for this brush.
+     * @param { ImageFilter | null } filter - Image filter.
+     *     If null is passed in, the image filter effect of the brush will be cleared.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setImageFilter(filter: ImageFilter | null): void;
+
+    /**
+     * Adds a mask filter for this brush.
+     * @param { MaskFilter | null } filter - Mask filter. If null is passed in, the mask filter is cleared.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setMaskFilter(filter: MaskFilter | null): void;
+
+    /**
+     * Sets a shadow layer for this brush. The shadow layer effect takes effect only when text is drawn.
+     *
+     * @param { ShadowLayer | null } shadowLayer - Shadow layer. If null is passed in, the shadow layer is cleared.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setShadowLayer(shadowLayer: ShadowLayer | null): void;
+
+    /**
+     * Sets the shader effect for this brush.
+     * @param { ShaderEffect | null } shaderEffect - ShaderEffect object.
+     *     If null is passed in, the shader effect will be cleared.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     *     <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native setShaderEffect(shaderEffect: ShaderEffect | null): void;
 
     /**
      * Sets a blender that implements the specified blendmode enum.
@@ -1778,14 +1821,14 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native setBlendMode(mode: BlendMode): void;
 
     /**
      * Resets all brush contents to their initial values.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native reset(): void;
   }
@@ -1972,7 +2015,7 @@ namespace drawing {
    * Font controls options applied when drawing and measuring text.
    *
    * @syscap SystemCapability.Graphics.Drawing
-   * @since 11
+   * @since 20
    */
   export class Font {
     static { loadLibrary("drawing_ani_core"); }
@@ -2036,7 +2079,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native enableSubpixel(isSubpixel: boolean): void;
 
@@ -2047,7 +2090,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native enableEmbolden(isEmbolden: boolean): void;
 
@@ -2058,7 +2101,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native enableLinearMetrics(isLinearMetrics: boolean): void;
 
@@ -2068,7 +2111,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native setSize(textSize: double): void;
 
@@ -2076,7 +2119,7 @@ namespace drawing {
      * Obtains the text size.
      * @returns { double } Text size.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native getSize(): double;
 
@@ -2086,7 +2129,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native setTypeface(typeface: Typeface): void;
 
@@ -2094,7 +2137,7 @@ namespace drawing {
      * Get Typeface to font.
      * @returns { Typeface | undefined } Typeface.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native getTypeface(): Typeface | undefined;
 
@@ -2102,7 +2145,7 @@ namespace drawing {
      * Get fontMetrics associated with typeface.
      * @returns { FontMetrics } The fontMetrics value returned to the caller.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native getMetrics(): FontMetrics;
 
@@ -2114,7 +2157,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native measureSingleCharacter(text: string): double;
 
@@ -2126,7 +2169,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 11
+     * @since 20
      */
     native measureText(text: string, encoding: TextEncoding): double;
 
@@ -2136,7 +2179,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setScaleX(scaleX: double): void;
 
@@ -2147,7 +2190,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setBaselineSnap(isBaselineSnap: boolean): void;
 
@@ -2156,7 +2199,7 @@ namespace drawing {
      * @returns { boolean } Check result. The value true means that the baselines are requested to be snapped to pixels,
      * and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isBaselineSnap(): boolean;
 
@@ -2167,7 +2210,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setEmbeddedBitmaps(isEmbeddedBitmaps: boolean): void;
 
@@ -2175,7 +2218,7 @@ namespace drawing {
      * Checks whether bitmaps are used in this font.
      * @returns { boolean } Check result. The value true means that the bitmaps are used, and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isEmbeddedBitmaps(): boolean;
 
@@ -2186,7 +2229,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setForceAutoHinting(isForceAutoHinting: boolean): void;
 
@@ -2197,7 +2240,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getWidths(glyphs: Array<int>): Array<double> | undefined;
 
@@ -2210,7 +2253,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native textToGlyphs(text: string, glyphCount?: int): Array<int> | undefined;
 
@@ -2218,7 +2261,7 @@ namespace drawing {
      * Checks whether sub-pixel rendering is used for this font.
      * @returns { boolean } Check result. The value true means that sub-pixel rendering is used, and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isSubpixel(): boolean;
 
@@ -2226,7 +2269,7 @@ namespace drawing {
      * Checks whether linear scaling is used for this font.
      * @returns { boolean } Checks whether linear scaling is used for this font.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isLinearMetrics(): boolean;
 
@@ -2234,7 +2277,7 @@ namespace drawing {
      * Obtains the horizontal skew factor of this font.
      * @returns { double } Horizontal skew factor.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getSkewX(): double;
 
@@ -2243,7 +2286,7 @@ namespace drawing {
      * @returns { boolean } Check result. The value true means that the bold effect is set, and false means the opposite.
      * returns false otherwise.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isEmbolden(): boolean;
 
@@ -2254,7 +2297,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setSkewX(skewX: double): void;
 
@@ -2264,7 +2307,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setEdging(edging: FontEdging): void;
 
@@ -2274,7 +2317,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native setHinting(hinting: FontHinting): void;
 
@@ -2285,7 +2328,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native countText(text: string): int;
 
@@ -2293,7 +2336,7 @@ namespace drawing {
      * Checks whether auto hinting is forcibly used.
      * @returns { boolean } Check result. The value true means that auto hinting is forcibly used, and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native isForceAutoHinting(): boolean;
 
@@ -2301,7 +2344,7 @@ namespace drawing {
      * Obtains the horizontal scale ratio of this font.
      * @returns { double } Horizontal scale ratio.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getScaleX(): double;
 
@@ -2309,7 +2352,7 @@ namespace drawing {
      * Obtains the font hinting effect.
      * @returns { FontHinting | undefined } Font hinting effect.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getHinting(): FontHinting | undefined;
 
@@ -2317,7 +2360,7 @@ namespace drawing {
      * Obtains the font edging effect.
      * @returns { FontEdging | undefined } Font edging effect.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 12
+     * @since 20
      */
     native getEdging(): FontEdging | undefined;
 
@@ -2327,7 +2370,7 @@ namespace drawing {
      * @returns { Path | undefined } Outline path of the glyph.
      * Note: Path use y-axis-goes-down system, y axis is inverted to the y-axis-goes-up system.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native createPathForGlyph(index: int): Path | undefined;
 
@@ -2339,7 +2382,7 @@ namespace drawing {
      * <br>2. Rect use two points(left-bottom & right-top) to describe the bound.
      * <br>3. The bound rect will be snap to integral boundaries.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native getBounds(glyphs: Array<int>): Array<common2D.Rect> | undefined;
 
@@ -2354,7 +2397,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types; 3. Parameter verification failed.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 18
+     * @since 20
      */
     native getTextPath(text: string, byteLength: int, x: double, y: double): Path | undefined;
 
@@ -2366,7 +2409,7 @@ namespace drawing {
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
      * <br>2. Incorrect parameter types.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 15
+     * @since 20
      */
     native setThemeFontFollowed(followed: boolean): void;
 
@@ -2374,7 +2417,7 @@ namespace drawing {
      * Checks whether the font follows the theme font. By default, the font follows the theme font.
      * @returns { boolean } Check result. The value true means that the theme font is followed, and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 15
+     * @since 20
      */
     native isThemeFontFollowed(): boolean;
   }
