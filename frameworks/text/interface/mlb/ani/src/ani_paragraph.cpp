@@ -581,7 +581,7 @@ void AniParagraph::UpdateDecoration(ani_env* env, ani_object object, ani_object 
         return;
     }
     TextStyle textStyleTemplate;
-    AniTextStyleConverter::ParseDecorationToNative(env, decoration, textStyleTemplate);
+    AniTextStyleConverter::ParseDecorationToNative(env, decoration, true, textStyleTemplate);
     aniParagraph->typography_->UpdateAllTextStyles(textStyleTemplate);
 }
 } // namespace OHOS::Text::ANI

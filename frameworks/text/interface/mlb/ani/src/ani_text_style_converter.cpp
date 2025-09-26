@@ -60,8 +60,11 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
         TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         return ret;
     }
+    ani_ref decorationRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "decoration", decorationRef) == ANI_OK && decorationRef != nullptr) {
+        ParseDecorationToNative(env, reinterpret_cast<ani_object>(decorationRef), false, textStyle);
+    }
 
-    ParseDecorationToNative(env, obj, textStyle);
     ParseDrawingColorToNative(env, obj, true, "color", textStyle.color);
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle.fontWeight);
@@ -101,18 +104,41 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     return ANI_OK;
 }
 
-void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
+void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj, bool reLayout, TextStyle& textStyle)
 {
-    ani_ref decorationRef = nullptr;
-    if (AniTextUtils::ReadOptionalField(env, obj, "decoration", decorationRef) == ANI_OK && decorationRef != nullptr) {
-        AniTextUtils::ReadOptionalEnumField(
-            env, reinterpret_cast<ani_object>(decorationRef), "textDecoration", textStyle.decoration);
-        AniTextUtils::ReadOptionalEnumField(
-            env, reinterpret_cast<ani_object>(decorationRef), "decorationStyle", textStyle.decorationStyle);
-        AniTextUtils::ReadOptionalDoubleField(env, reinterpret_cast<ani_object>(decorationRef),
-            "decorationThicknessScale", textStyle.decorationThicknessScale);
-        ParseDrawingColorToNative(
-            env, reinterpret_cast<ani_object>(decorationRef), true, "color", textStyle.decorationColor);
+    ani_status ret = AniTextUtils::ReadOptionalEnumField(env, obj, "textDecoration", textStyle.decoration);
+    if (ret == ANI_OK) {
+        if (reLayout) {
+            textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+        }
+    } else {
+        TEXT_LOGE("Failed to parse textDecoration, ret %{public}d", ret);
+    }
+    ret = AniTextUtils::ReadOptionalEnumField(env, obj, "decorationStyle", textStyle.decorationStyle);
+    if (ret == ANI_OK) {
+        if (reLayout) {
+            textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+        }
+    } else {
+        TEXT_LOGE("Failed to parse decorationStyle, ret %{public}d", ret);
+    }
+    ret = AniTextUtils::ReadOptionalDoubleField(
+        env, obj, "decorationThicknessScale", textStyle.decorationThicknessScale);
+    if (ret == ANI_OK) {
+        if (reLayout) {
+            textStyle.relayoutChangeBitmap.set(
+                static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+        }
+    } else {
+        TEXT_LOGE("Failed to parse decorationThicknessScale, ret %{public}d", ret);
+    }
+    ret = ParseDrawingColorToNative(env, obj, true, "color", textStyle.decorationColor);
+    if (ret == ANI_OK) {
+        if (reLayout) {
+            textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_COLOR));
+        }
+    } else {
+        TEXT_LOGE("Failed to parse color, ret %{public}d", ret);
     }
 }
 
