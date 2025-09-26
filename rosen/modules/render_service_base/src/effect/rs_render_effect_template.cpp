@@ -149,7 +149,7 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std:
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
 {
     hash = hashFunc_(&value.rect_.data_, sizeof(float), hash);
-    hash = hashFunc_(&value.radius_, Vector2f::DATA_SIZE * 4, hash);
+    hash = hashFunc_(&value.radius_, Vector2f::DATA_SIZE * sizeof(float), hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

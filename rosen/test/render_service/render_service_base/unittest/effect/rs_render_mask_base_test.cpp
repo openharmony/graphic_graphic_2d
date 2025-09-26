@@ -64,7 +64,7 @@ HWTEST_F(RSRenderMaskBaseTest, RSNGRenderMaskBaseUnmarshallingTest010, TestSize.
  * @tc.desc: Test marshalling and unmarshalling with SDF_UNION_OP_MASK, SDF_RRECT_MASK
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderMaskBaseTest, RSNGRenderMaskBaseUnmarshallingTest010, TestSize.Level1)
+HWTEST_F(RSRenderMaskBaseTest, RSNGRenderMaskBaseUnmarshallingTest011, TestSize.Level1)
 {
     auto head = RSNGRenderMaskBase::Create(RSNGEffectType::SDF_UNION_OP_MASK);
     auto next = RSNGRenderMaskBase::Create(RSNGEffectType::SDF_RRECT_MASK);
