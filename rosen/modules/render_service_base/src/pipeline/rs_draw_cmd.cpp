@@ -269,7 +269,11 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         pixelMap->IsHdr());
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     if (pixelMap->IsHdr()) {
-        colorSpace = Drawing::ColorSpace::CreateSRGB();
+        auto surface = canvas.GetSurface();
+        if (surface == nullptr) {
+            return;
+        }
+        colorSpace = surface->GetImageInfo().GetColorSpace();
     }
 #endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
@@ -341,7 +345,9 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
             rsImage_->GetUniqueId(), threadId);
     }
-    if (imageCache) {
+    bool needMakeFromTexture = !imageCache || (imageCache && pixelmap->IsHdr() &&
+        !colorSpace->Equals(imageCache->GetImageInfo().GetColorSpace()))
+    if (!needMakeFromTexture) {
         this->image_ = imageCache;
     } else {
         bool ret = MakeFromTextureForVK(
