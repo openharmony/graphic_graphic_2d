@@ -1040,12 +1040,13 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
     return true;
 }
 
-std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& moduleName)
+std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& bundleName,
+    const std::string& moduleName)
 {
     std::shared_ptr<AbilityRuntime::ApplicationContext> context =
         AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
-    auto moduleContext = context->CreateModuleContext(moduleName);
+    auto moduleContext = context->CreateModuleContext(bundleName, moduleName);
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {
@@ -1058,7 +1059,7 @@ std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std:
 bool ProcessResource(ResourceInfo& info, std::function<bool(std::string&)> pathCB,
     std::function<bool(const void*, size_t)> fileCB)
 {
-    auto resourceManager = GetResourceManager(info.moduleName);
+    auto resourceManager = GetResourceManager(info.bundleName, info.moduleName);
     TEXT_ERROR_CHECK(resourceManager != nullptr, return false,
         "Failed to get resourceManager, resourceManager is nullptr");
 
