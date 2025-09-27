@@ -566,6 +566,7 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
 void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
     cacheEnabledForRotation_ = flag;
+    RS_LOGI("SetCacheEnabledForRotation flag:%{public}d", flag);
 }
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
