@@ -106,6 +106,7 @@ protected:
         if (it->second == nullptr) {
             return;
         }
+        std::static_pointer_cast<RSProperty<Drawing::DrawCmdListPtr>>(it->second)->stagingValue_ = drawCmdList;
         std::unique_ptr<RSCommand> command =
             std::make_unique<RSUpdatePropertyDrawCmdListNG>(node->GetId(), drawCmdList, it->second->GetId());
         node->AddCommand(command, node->IsRenderServiceNode());
