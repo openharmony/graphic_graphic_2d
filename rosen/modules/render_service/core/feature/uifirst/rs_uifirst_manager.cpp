@@ -334,7 +334,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         }
         std::swap(tmp, subthreadProcessDoneNode_);
     }
-    RS_TRACE_NAME_FMT("ProcessDoneNode num:%d", tmp.size());
+    RS_TRACE_NAME_FMT("ProcessDoneNode num:%zu", tmp.size());
     for (auto& id : tmp) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
@@ -832,7 +832,7 @@ void RSUifirstManager::PostReleaseCacheSurfaceSubTasks()
 
 void RSUifirstManager::PostReleaseCacheSurfaceSubTask(NodeId id)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("post ReleaseCacheSurface %d", id);
+    RS_OPTIONAL_TRACE_NAME_FMT("post ReleaseCacheSurface %" PRIu64, id);
 
     if (subthreadProcessingNode_.find(id) != subthreadProcessingNode_.end()) { // drawable is doing, do not send
         RS_TRACE_NAME_FMT("node %" PRIu64" is doing", id);
@@ -855,7 +855,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
     processingNodeSkipSync_.clear();
     processingNodePartialSync_.clear();
     processingCardNodeSkipSync_.clear();
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSkipSyncNode doning%d", subthreadProcessingNode_.size());
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSkipSyncNode doing%zu", subthreadProcessingNode_.size());
     if (subthreadProcessingNode_.size() == 0) {
         return;
     }
@@ -1011,7 +1011,7 @@ void RSUifirstManager::RestoreSkipSyncNode()
         if (processingNodeSkipSync_.count(it.first) == 0 && processingNodePartialSync_.count(it.first) == 0 &&
             processingCardNodeSkipSync_.count(it.first) == 0) {
             todele.push_back(it.first);
-            RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode %" PRIu64" num%d", it.first, it.second.size());
+            RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode %" PRIu64" num:%zu", it.first, it.second.size());
             for (auto& node : it.second) {
                 node->SetUifirstSkipPartialSync(false);
                 node->AddToPendingSyncList();
@@ -1939,8 +1939,8 @@ bool RSUifirstManager::QuerySubAssignable(RSSurfaceRenderNode& node, bool isRota
         !(isRotation && ROSEN_EQ(globalAlpha, 0.0f)) : !isRotation;
     bool assignable = !(hasTransparentSurface && childHasVisibleFilter) &&
         !hasFilter && rotateOptimize && !hasProtectedLayer;
-    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] assignable[%d] hasTransparent[%d] childHasVisibleFilter[%d]"
-        " hasFilter[%d] isRotation:[%d & %d] globalAlpha[%f], hasProtectedLayer[%d] %s",
+    RS_TRACE_NAME_FMT("SubThreadAssignable node[%" PRIu64 "] assignable[%d] hasTransparent[%d] "
+        "childHasVisibleFilter[%d] hasFilter[%d] isRotation:[%d & %d] globalAlpha[%f], hasProtectedLayer[%d] %s",
         node.GetId(), assignable, hasTransparentSurface, childHasVisibleFilter, hasFilter, isRotation,
         RSSystemProperties::GetCacheOptimizeRotateEnable(), globalAlpha, hasProtectedLayer, dfxMsg.c_str());
     return assignable;
@@ -1989,7 +1989,7 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]"
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%" PRIu64 "] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]"
         " isCardOn[%d] isForceFlag[%d], hasProtectedLayer[%d] switch:[%d] curUifirstWindowNum[%d] threshold[%d]",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(), ancestorNodeHasAnimation,
         node.GetUifirstSupportFlag(), isUiFirstOn_, isCardUiFirstOn_, node.isForceFlag_,
@@ -2448,7 +2448,7 @@ void RSUifirstManager::AddMarkedClearCacheNode(NodeId id)
 
 void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache size:%d", markedClearCacheNodes_.size());
+    RS_OPTIONAL_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache size:%zu", markedClearCacheNodes_.size());
     for (auto& markedNode : markedClearCacheNodes_) {
         if (subthreadProcessingNode_.find(markedNode) == subthreadProcessingNode_.end()) {
             auto drawable = GetSurfaceDrawableByID(markedNode);

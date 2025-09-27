@@ -180,7 +180,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d alpha[%{public}d %{public}d]"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d alpha[%{public}u %{public}d]"
         " boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
@@ -227,7 +227,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
         " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}f brightnessRatio:%{public}f"
-        " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
+        " alpha[%{public}u %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
         node.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
@@ -704,8 +704,8 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& no
             break;
         }
     }
-    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}u,"
-        "%{public}u,%{public}u,%{public}u", node.GetId(),
+    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}d,"
+        "%{public}d,%{public}d,%{public}d", node.GetId(),
         srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     return srcRect;
 }
@@ -758,8 +758,8 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
             break;
         }
     }
-    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}u,"
-        "%{public}u,%{public}u,%{public}u", surfaceDrawable.GetId(),
+    RS_LOGD("BuildComposeInfo: srcRect transformed info NodeId:%{public}" PRIu64 ", XYWH:%{public}d,"
+        "%{public}d,%{public}d,%{public}d", surfaceDrawable.GetId(),
         srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     return srcRect;
 }
@@ -886,9 +886,9 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSur
 
     uint32_t newWidthDstHeight = newWidth * dstHeight;
     uint32_t newHeightDstWidth = newHeight * dstWidth;
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}d"
-        " newHeightDstWidth:%{public}d newWidth:%{public}d newHeight:%{public}d dstWidth:%{public}d"
-        " dstHeight:%{public}d", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}u"
+        " newHeightDstWidth:%{public}u newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
+        " dstHeight:%{public}u", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
     if (newWidthDstHeight > newHeightDstWidth) {
         // too wide
         newWidth = dstWidth * newHeight / dstHeight;
@@ -955,9 +955,9 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
     uint32_t newWidthDstHeight = newWidth * dstHeight;
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}d"
-        " newHeightDstWidth:%{public}d newWidth:%{public}d newHeight:%{public}d dstWidth:%{public}d"
-        " dstHeight:%{public}d", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSD newWidthDstHeight:%{public}u"
+        " newHeightDstWidth:%{public}u newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
+        " dstHeight:%{public}u", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
     if (newWidthDstHeight > newHeightDstWidth) {
         // too wide
         newWidth = dstWidth * newHeight / dstHeight;
@@ -1012,9 +1012,9 @@ void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer) const
     uint32_t newWidthDstHeight = newWidth * dstHeight;
     uint32_t newHeightDstWidth = newHeight * dstWidth;
 
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSF newWidthDstHeight:%{public}d"
-        " newHeightDstWidth:%{public}d newWidth:%{public}d newHeight:%{public}d dstWidth:%{public}d"
-        " dstHeight:%{public}d", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::LayerSF newWidthDstHeight:%{public}u"
+        " newHeightDstWidth:%{public}u newWidth:%{public}u newHeight:%{public}u dstWidth:%{public}u"
+        " dstHeight:%{public}u", newWidthDstHeight, newHeightDstWidth, newWidth, newHeight, dstWidth, dstHeight);
     if (newWidthDstHeight > newHeightDstWidth) {
         newHeight = newHeight * dstWidth / newWidth;
         newWidth = dstWidth;

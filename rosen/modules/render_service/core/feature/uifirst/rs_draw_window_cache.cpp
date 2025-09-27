@@ -60,7 +60,8 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
         windowSurface = nullptr;
         return;
     }
-    RS_TRACE_NAME_FMT("DrawAndCacheWindow node[%lld] %s", surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
+    RS_TRACE_NAME_FMT("DrawAndCacheWindow node[%" PRIu64 "] %s", surfaceDrawable->GetId(),
+        surfaceDrawable->GetName().c_str());
     // copy HDR properties into offscreen canvas
     windowCanvas->CopyHDRConfiguration(canvas);
     // copy current canvas properties into offscreen canvas

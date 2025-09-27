@@ -43,7 +43,7 @@
 namespace OHOS::Rosen {
 RSSubThread::~RSSubThread()
 {
-    RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
+    RS_LOGI("~RSSubThread():%{public}u", threadIndex_);
     PostSyncTask([this]() {
         DestroyShareEglContext();
     });
@@ -51,7 +51,7 @@ RSSubThread::~RSSubThread()
 
 pid_t RSSubThread::Start()
 {
-    RS_LOGI("RSSubThread::Start():%{public}d", threadIndex_);
+    RS_LOGI("RSSubThread::Start():%{public}u", threadIndex_);
     std::string name = "RSSubThread" + std::to_string(threadIndex_);
     runner_ = AppExecFwk::EventRunner::Create(name);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -62,7 +62,7 @@ pid_t RSSubThread::Start()
     PostTask([this]() {
 #ifdef RES_SCHED_ENABLE
         auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
-        RS_LOGI("RSSubThread%{public}d: SetThreadQos retcode = %{public}d", threadIndex_, ret);
+        RS_LOGI("RSSubThread%{public}u: SetThreadQos retcode = %{public}d", threadIndex_, ret);
 #endif
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {

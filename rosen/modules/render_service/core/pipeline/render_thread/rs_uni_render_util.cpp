@@ -520,7 +520,7 @@ void RSUniRenderUtil::SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuff
 
     if (UNLIKELY(params.hasCropMetadata)) {
         RS_LOGD("buffer has crop metadata, "
-            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
+            "left = %{public}d, right = %{public}d, width = %{public}d, height = %{public}d",
             crop.x, crop.y, crop.w, crop.h);
         params.srcRect = Drawing::Rect(crop.x, crop.y, crop.x + crop.w, crop.y + crop.h);
     } else {
