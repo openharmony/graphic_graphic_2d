@@ -507,7 +507,7 @@ void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
 
 void HgmFrameRateManager::FrameRateReport()
 {
-    if (!schedulePreferredFpsChange_) {
+    if (!schedulePreferredFpsChange_ && !slideModeChange) {
         return;
     }
     std::unordered_map<pid_t, uint32_t> rates;
@@ -518,6 +518,10 @@ void HgmFrameRateManager::FrameRateReport()
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
         rates[UNI_APP_PID] = OLED_120_HZ;
+    }
+    if (isLowPowerSlide && currRefreshRate_ == OLED_60_HZ) {
+        rates[UNI_APP_PID] = OLED_60_HZ;
+        slideModeChange = false;
     }
     HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
@@ -841,6 +845,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     } else if (eventName == "ENERGY_CONSUMPTION_ASSURANCE") {
         HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+        return;
+    } else if (eventName == "VOTER_LOW_POWER_SLIDE") {
+        HandleLowPowerSlideSceneEvent(eventInfo.description, eventInfo.eventStatus);
         return;
     }
     auto voters = frameVoter_.GetVoters();
@@ -1170,6 +1177,15 @@ void HgmFrameRateManager::HandleStylusSceneEvent(const std::string& sceneName)
     } else if (sceneName == "STYLUS_WAKEUP") {
         isStylusWakeUp_ = true;
     }
+}
+
+void HgmFrameRateManager::HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus)
+{
+    bool slideMode = isLowPowerSlide;
+    if (sceneName == "LOW_POWER_SLIDE_MODE") {
+        isLowPowerSlide = eventStatus;
+    }
+    slideModeChange = (slideMode != isLowPowerSlide);
 }
 
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, const EventInfo& eventInfo)
@@ -1564,6 +1580,10 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
         return;
     }
     if (touchManager_.GetState() == TouchState::IDLE_STATE) {
+        isNeedUpdateAppOffset_ = true;
+        return;
+    }
+    if (isLowPowerSlide && refreshRate == OLED_60_HZ) {
         isNeedUpdateAppOffset_ = true;
         return;
     }
