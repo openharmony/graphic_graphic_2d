@@ -155,6 +155,7 @@ void RSCanvasNode::FinishRecording()
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, modifierType);
     AddCommand(command, IsRenderServiceNode());
     recordingUpdated_ = true;
+    drawCmdList_ = recording;
 }
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
@@ -181,6 +182,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         std::make_unique<RSCanvasNodeUpdateRecording>(GetId(), recording, modifierType);
     if (AddCommand(command, IsRenderServiceNode())) {
         recordingUpdated_ = true;
+        drawCmdList_ = recording;
     }
 }
 
