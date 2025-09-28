@@ -38,6 +38,10 @@ std::unordered_map<int, int> g_weightMap = {
     {800, static_cast<int>(FontWeight::W800)},
     {900, static_cast<int>(FontWeight::W900)}
 };
+static const std::string ANI_STRING_DESCRIPTOR = "C{" + std::string(ANI_STRING) + "}";
+static const std::string FONT_DESCRIPTOR_SIGN = ANI_STRING_DESCRIPTOR + ANI_STRING_DESCRIPTOR + ANI_STRING_DESCRIPTOR +
+    ANI_STRING_DESCRIPTOR + ANI_STRING_DESCRIPTOR + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
+    "}iizz:";
 }
 
 #define READ_OPTIONAL_FIELD(env, obj, field, type, fontDescPtr, error_var) \
@@ -92,17 +96,9 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
 
 ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDescSharedPtr& fontDesc)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_FONT_DESCRIPTOR, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        fontDesc = nullptr;
-        return ret;
-    }
-
     ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(aniObj, cls, &isObj);
-    if (!isObj) {
+    ani_status ret = AniTextUtils::Object_InstanceOf(env, aniObj, ANI_INTERFACE_FONT_DESCRIPTOR, &isObj);
+    if (ret != ANI_OK || !isObj) {
         TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         fontDesc = nullptr;
         return ret;
@@ -135,12 +131,8 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
-    static const std::string aniStringDescriptor = "C{" + std::string(ANI_STRING) + "}";
-    static const std::string sign = aniStringDescriptor + aniStringDescriptor + aniStringDescriptor +
-        aniStringDescriptor + aniStringDescriptor + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
-        "}iizz:";
 
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, sign.c_str(),
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, FONT_DESCRIPTOR_SIGN.c_str(),
         AniTextUtils::CreateAniStringObj(env, fontDesc->path),
         AniTextUtils::CreateAniStringObj(env, fontDesc->postScriptName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fullName),

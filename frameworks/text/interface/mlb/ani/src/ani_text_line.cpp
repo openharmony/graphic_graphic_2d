@@ -331,8 +331,8 @@ static bool CaretOffsetsCallBack(
 {
     ani_object jsIndex = AniTextUtils::CreateAniIntObj(env, index);
     for (size_t i = 0; i < ARGC_TWO; i++) {
-        ani_object jsOffset =
-            (i == 0) ? AniTextUtils::CreateAniIntObj(env, leftOffset) : AniTextUtils::CreateAniIntObj(env, rightOffset);
+        ani_object jsOffset = (i == 0) ? AniTextUtils::CreateAniDoubleObj(env, leftOffset) :
+            AniTextUtils::CreateAniDoubleObj(env, rightOffset);
         ani_object jsLeadingEdge =
             (i == 0) ? AniTextUtils::CreateAniBooleanObj(env, true) : AniTextUtils::CreateAniBooleanObj(env, false);
         std::vector<ani_ref> vec = {jsOffset, jsIndex, jsLeadingEdge};

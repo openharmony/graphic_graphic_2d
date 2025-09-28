@@ -25,15 +25,9 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_RANGE, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
-    }
     ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj || ret != ANI_OK) {
+    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_RANGE, &isObj);
+    if (ret != ANI_OK || !isObj) {
         TEXT_LOGE("Object mismatch:%{public}d", ret);
         return ret;
     }

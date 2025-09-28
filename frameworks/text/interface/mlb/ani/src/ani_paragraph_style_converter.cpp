@@ -24,15 +24,9 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_PARAGRAPH_STYLE, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return nullptr;
-    }
     ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
+    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_PARAGRAPH_STYLE, &isObj);
+    if (ret != ANI_OK || !isObj) {
         TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         return nullptr;
     }
@@ -70,6 +64,10 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     if (AniTextUtils::ReadOptionalField(env, obj, "tab", tabRef) == ANI_OK && tabRef != nullptr) {
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
+
+    AniTextUtils::ReadOptionalBoolField(env, obj, "trailingSpaceOptimized", paragraphStyle->isTrailingSpaceOptimized);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "autoSpace", paragraphStyle->enableAutoSpace);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "verticalAlign", paragraphStyle->verticalAlignment);
 
     return paragraphStyle;
 }

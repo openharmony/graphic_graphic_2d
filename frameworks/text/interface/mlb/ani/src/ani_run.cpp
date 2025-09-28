@@ -43,6 +43,9 @@ const std::string GET_STRING_RANGE_SIGNATURE = ":C{" + std::string(ANI_INTERFACE
 const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
 const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
 const std::string RETURN_ARRAY_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
+const std::string GET_TEXT_DIRECTION_SIGNATURE = ":E{" + std::string(ANI_ENUM_TEXT_DIRECTION) + "}";
+const std::string GET_ADVANCES_SIGNATURE =
+    "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
 } // namespace
 
 std::vector<ani_native_function> AniRun::InitMethods(ani_env* env)
@@ -67,6 +70,10 @@ std::vector<ani_native_function> AniRun::InitMethods(ani_env* env)
             reinterpret_cast<void*>(GetTypographicBounds)},
         ani_native_function{
             "getImageBounds", GET_IMAGE_BOUNDS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetImageBounds)},
+        ani_native_function{
+            "getTextDirection", GET_TEXT_DIRECTION_SIGNATURE.c_str(), reinterpret_cast<void*>(GetTextDirection)},
+        ani_native_function{
+            "getAdvances", GET_ADVANCES_SIGNATURE.c_str(), reinterpret_cast<void*>(GetAdvances)},
     };
     return methods;
 }
@@ -453,5 +460,63 @@ ani_object AniRun::GetImageBounds(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     return rectObj;
+}
+
+ani_object AniRun::GetTextDirection(ani_env* env, ani_object object)
+{
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    if (aniRun == nullptr || aniRun->run_ == nullptr) {
+        TEXT_LOGE("Run is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    TextDirection textDirection = aniRun->run_->GetTextDirection();
+    ani_enum_item textDirectionEnum = AniTextUtils::CreateAniEnum(
+        env, ANI_ENUM_TEXT_DIRECTION, static_cast<int>(textDirection));
+    return static_cast<ani_object>(textDirectionEnum);
+}
+
+ani_object AniRun::GetAdvances(ani_env* env, ani_object object, ani_object range)
+{
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    if (aniRun == nullptr || aniRun->run_ == nullptr) {
+        TEXT_LOGE("Run is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    OHOS::Text::ANI::RectRange rectRange;
+    if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
+        TEXT_LOGE("Failed to parse range");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    std::vector<Drawing::Point> advances = aniRun->run_->GetAdvances(rectRange.start, rectRange.end);
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, advances.size());
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to create arrayObject");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    ani_size index = 0;
+    for (const auto& point : advances) {
+        ani_object aniObj = nullptr;
+        ani_status status = OHOS::Rosen::Drawing::CreatePointObj(env, point, aniObj);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
+            continue;
+        }
+        index++;
+    }
+    return arrayObj;
 }
 } // namespace OHOS::Text::ANI

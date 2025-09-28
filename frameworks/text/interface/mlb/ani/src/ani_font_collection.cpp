@@ -30,6 +30,7 @@ using namespace OHOS::Rosen;
 namespace {
 const std::string GLOBAL_INSTANCE_SIGN = ":C{" + std::string(ANI_CLASS_FONT_COLLECTION) + "}";
 const std::string LOAD_FONT_SYNC_SIGN = "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}:";
+const std::string UNLOAD_FONT_SYNC_SIGN = "C{std.core.String}:";
 
 void LoadString(
     ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
@@ -83,6 +84,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     std::array methods = {
         ani_native_function{"constructorNative", ":", reinterpret_cast<void*>(Constructor)},
         ani_native_function{"loadFontSync", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync)},
+        ani_native_function{"unloadFontSync", UNLOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(UnloadFontSync)},
         ani_native_function{"clearCaches", ":", reinterpret_cast<void*>(ClearCaches)},
     };
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -188,6 +190,22 @@ void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
         return;
     }
     aniFontCollection->fontCollection_->ClearCaches();
+}
+
+void AniFontCollection::UnloadFontSync(ani_env* env, ani_object obj, ani_string name)
+{
+    std::string familyName;
+    ani_status ret = AniTextUtils::AniToStdStringUtf8(env, name, familyName);
+    if (ret != ANI_OK) {
+        return;
+    }
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
+        TEXT_LOGE("Null font collection");
+        return;
+    }
+
+    aniFontCollection->fontCollection_->UnloadFont(familyName);
 }
 
 std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()

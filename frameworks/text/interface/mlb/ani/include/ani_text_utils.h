@@ -67,6 +67,7 @@ public:
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
     static ani_status FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls);
+    static ani_status Object_InstanceOf(ani_env* env, ani_object obj, const char* clsName, ani_boolean* result);
 };
 
 template <typename... Args>

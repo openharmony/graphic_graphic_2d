@@ -23,15 +23,9 @@ using namespace OHOS::Rosen;
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_PLACEHOLDER_SPAN, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
-    }
     ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
+    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_PLACEHOLDER_SPAN, &isObj);
+    if (ret != ANI_OK || !isObj) {
         TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         return ret;
     }

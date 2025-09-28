@@ -354,4 +354,15 @@ ani_status AniTextUtils::FindClassWithCache(ani_env* env, const char* clsName, a
     }
     return ret;
 }
+
+ani_status AniTextUtils::Object_InstanceOf(ani_env* env, ani_object obj, const char* clsName, ani_boolean* result)
+{
+    ani_class cls = nullptr;
+    ani_status ret = FindClassWithCache(env, clsName, cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find class %{public}s, ret %{public}d", clsName, ret);
+        return ret;
+    }
+    return env->Object_InstanceOf(obj, cls, result);
+}
 } // namespace OHOS::Text::ANI

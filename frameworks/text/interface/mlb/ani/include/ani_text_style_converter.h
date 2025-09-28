@@ -30,7 +30,7 @@ public:
     static void ParseFontVariationToNative(ani_env* env, ani_object obj, OHOS::Rosen::FontVariations& fontVariations);
     static void ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<OHOS::Rosen::TextShadow>& textShadow);
     static void ParseRectStyleToNative(ani_env* env, ani_object obj, OHOS::Rosen::RectStyle& rectStyle);
-    static void ParseDecorationToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle);
+    static void ParseDecorationToNative(ani_env* env, ani_object obj, bool reLayout, OHOS::Rosen::TextStyle& textStyle);
 
     static ani_object ParseTextStyleToAni(ani_env* env, const OHOS::Rosen::TextStyle& textStyle);
     static ani_object ParseTextShadowToAni(ani_env* env, const OHOS::Rosen::TextShadow& textShadow);
