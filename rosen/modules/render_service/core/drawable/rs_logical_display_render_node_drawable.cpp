@@ -712,7 +712,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSLogicalDisplayRen
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, curScreenParams->GetScreenInfo());
 
     auto width = mirroredParams->GetFixedWidth();
-    auto height = mirroredParams->GetFixedWidth();
+    auto height = mirroredParams->GetFixedHeight();
 
     auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {

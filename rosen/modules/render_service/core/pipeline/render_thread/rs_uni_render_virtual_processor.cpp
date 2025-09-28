@@ -546,6 +546,8 @@ void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
         mirrorScaleX_ = mirrorWidth / mainWidth;
         mirrorScaleY_ = mirrorHeight / mainHeight;
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+        RS_LOGD("RSUniRenderVirtualProcessor::Fill: scaleX: %{public}f, scaleY: %{public}f",
+            mirrorScaleX_, mirrorScaleY_);
     }
 }
 
@@ -584,7 +586,8 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
 
     canvas.Scale(mirrorScaleX_, mirrorScaleY_);
     canvas.Translate(startX, startY);
-    RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f", startX, startY);
+    RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f"
+        " scaleX: %{public}f, scaleY: %{public}f", startX, startY, mirrorScaleX_, mirrorScaleY_);
 }
 
 bool RSUniRenderVirtualProcessor::EnableSlrScale()
