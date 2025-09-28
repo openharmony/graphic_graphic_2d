@@ -116,6 +116,7 @@ private:
     std::shared_ptr<Drawing::Image> image_;
     Drawing::AdaptiveImageInfo imageInfo_;
     NodeId nodeId_ = INVALID_NODEID;
+    std::mutex drawingImageMutex_;
 };
 
 class RSB_EXPORT RSExtendImageBaseObj : public Drawing::ExtendImageBaseObj {
