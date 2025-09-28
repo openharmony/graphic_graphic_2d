@@ -317,7 +317,7 @@ class RRectT {
 public:
     RectT<T> rect_ = RectT<T>();
     Vector2f radius_[4] = { { 0, 0 } };
-
+    size_t DATA_SIZE = sizeof(radius_) + sizeof(rect_);
     RRectT() {}
     ~RRectT() = default;
 
