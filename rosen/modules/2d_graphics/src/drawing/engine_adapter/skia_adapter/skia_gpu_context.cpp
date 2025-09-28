@@ -241,11 +241,7 @@ void SkiaGPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
         LOGD("SkiaGPUContext::SetPurgeableResourceLimit, grContext_ is nullptr");
         return;
     }
-#ifdef TODO_M133_SKIA
-    (void)purgeableMaxCount;
-#else
     grContext_->setPurgeableResourceLimit(purgeableMaxCount);
-#endif
 #else
     static_cast<void>(purgeableMaxCount);
     LOGD("SkiaGPUContext::SetPurgeableResourceLimit, unsupported");
@@ -475,9 +471,7 @@ void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
         LOGD("SkiaGPUContext::GetUpdatedMemoryMap, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     grContext_->getUpdatedMemoryMap(out);
-#endif
 }
 
 void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
@@ -486,9 +480,7 @@ void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64
         LOGD("SkiaGPUContext::InitGpuMemoryLimit, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     grContext_->initGpuMemoryLimit(callback, size);
-#endif
 }
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
