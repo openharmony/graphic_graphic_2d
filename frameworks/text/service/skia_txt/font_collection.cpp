@@ -131,9 +131,13 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
     }
     if (err != RegisterError::ALREADY_EXIST) {
         typeface = ta.GetTypeface();
-        dfmanager_->LoadDynamicFont(familyName, typeface);
-        FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, ta.GetAlias());
-        fontCollection_->ClearFontFamilyCache();
+        if (dfmanager_->LoadDynamicFont(familyName, typeface)) {
+            FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, ta.GetAlias());
+            fontCollection_->ClearFontFamilyCache();
+        } else {
+            typefaceSet_.erase(ta);
+            return nullptr;
+        }
     }
     return typeface;
 }
