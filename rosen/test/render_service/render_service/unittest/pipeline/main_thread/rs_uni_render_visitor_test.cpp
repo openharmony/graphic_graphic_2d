@@ -4229,6 +4229,12 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     auto rsUniRenderVisitor = InitRSUniRenderVisitor();
+    rsUniRenderVisitor->curScreenNode_ = nullptr;
+    rsUniRenderVisitor->UpdateNodeVisibleRegion(*rsSurfaceRenderNode);
+    ScreenId screenId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID, screenId, rsContext);
+    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
     rsUniRenderVisitor->needRecalculateOcclusion_ = true;
     // test: if node is non-cross-display, its visibility will be cropped by screen.
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();

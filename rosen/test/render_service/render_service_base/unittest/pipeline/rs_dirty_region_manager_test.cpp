@@ -846,6 +846,26 @@ HWTEST_F(RSDirtyRegionManagerTest, ClearAdvancedDirtyRegion, Function | SmallTes
 }
 
 /**
+ * @tc.name: SkippedVirtualExpandScreenDirtyRegionsOperateTest01
+ * @tc.desc: operate dirtyManager's skipped virtual expand screen dirty regions
+ * @tc.type:FUNC
+ * @tc.require: ICW5FR
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SkippedVirtualExpandScreenDirtyRegionsOperateTest01,
+    Function | SmallTest | TestSize.Level2)
+{
+    rsDirtyManager->Clear();
+    RectI rect = RectI(0, 0, 100, 100);
+    rsDirtyManager->AccumulateVirtualExpandScreenDirtyRegions(rect);
+    rsDirtyManager->AccumulateVirtualExpandScreenDirtyRegions(RectI(0, 0, 0, 0));
+    auto currentAccumulatedDirtyRegions = rsDirtyManager->GetVirtualExpandScreenAccumulatedDirtyRegions();
+    EXPECT_EQ(static_cast<int>(currentAccumulatedDirtyRegions.size()), 1);
+    rsDirtyManager->ClearVirtualExpandScreenAccumulatedDirtyRegions();
+    currentAccumulatedDirtyRegions = rsDirtyManager->GetVirtualExpandScreenAccumulatedDirtyRegions();
+    EXPECT_EQ(static_cast<int>(currentAccumulatedDirtyRegions.size()), 0);
+}
+
+/**
  * @tc.name: GetAdvancedDirtyHistory
  * @tc.desc: test results of GetAdvancedDirtyHistory
  * @tc.type:FUNC

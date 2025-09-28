@@ -360,14 +360,12 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     }
     const auto& displayDrawables = params.GetDisplayDrawables();
     for (const auto& drawable : displayDrawables) {
-        if (UNLIKELY(drawable == nullptr)) {
-            continue;
-        }
         const auto& displayDrawable = static_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable*>(drawable.get());
-        if (UNLIKELY(displayDrawable == nullptr || drawable->GetRenderParams() == nullptr)) {
+        if (UNLIKELY(displayDrawable == nullptr)) {
             continue;
         }
-        const auto& displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
+        const auto& displayParams =
+            static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
         if (UNLIKELY(displayParams == nullptr)) {
             continue;
         }

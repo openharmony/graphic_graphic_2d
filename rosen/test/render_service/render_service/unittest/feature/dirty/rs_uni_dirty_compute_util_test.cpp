@@ -78,6 +78,38 @@ RSLogicalDisplayRenderNodeDrawable* GenerateLogicalscreenDrawableById(
     return static_cast<RSLogicalDisplayRenderNodeDrawable*>(displayAdapter);
 }
 
+RSSurfaceRenderNodeDrawable* createDrawableWithDirtyAndParams(NodeId id, bool isSurfaceRenderParamsNotNull,
+    bool isApp, bool firstLevel, bool isDirtyMangerNotNull)
+{
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+    if (surfaceDrawable == nullptr) {
+        return surfaceDrawable;
+    }
+    if (isSurfaceRenderParamsNotNull) {
+        surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    } else {
+        surfaceDrawable->renderParams_ = nullptr;
+    }
+    if (surfaceDrawable->renderParams_ == nullptr) {
+        return surfaceDrawable;
+    }
+    if (isDirtyMangerNotNull) {
+        surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    } else {
+        surfaceDrawable->syncDirtyManager_ = nullptr;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    surfaceParams->SetWindowInfo(isApp, isApp, isApp);
+    surfaceParams->isFirstLevelCrossNode_ = firstLevel;
+    if (surfaceDrawable->syncDirtyManager_ == nullptr) {
+        return surfaceDrawable;
+    }
+    surfaceDrawable->syncDirtyManager_->SetCurrentFrameDirtyRect(RSUniDirtyComputeUtilTest::DEFAULT_RECT1);
+    return surfaceDrawable;
+}
+
 void RSUniDirtyComputeUtilTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
@@ -166,6 +198,61 @@ HWTEST_F(RSUniDirtyComputeUtilTest, ScreenIntersectDirtyRectsTest, Function | Sm
 }
 
 /**
+ * @tc.name: SkipedVirtualExpandScreenDirtyRegionsOperateTest01
+ * @tc.desc: test SkipedVirtualExpandScreenDirtyRegionsOperateTest01
+ * @tc.type: FUNC
+ * @tc.require: #ICW5FR
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, SkipedVirtualExpandScreenDirtyRegionsOperateTest01, TestSize.Level1)
+{
+    NodeId defaultScreenNodeId = 0;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(defaultScreenNodeId, screenId, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultScreenNodeId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    screenDrawable->syncDirtyManager_->SetCurrentFrameDirtyRect(DEFAULT_RECT1);
+    surfaceAdapters.emplace_back(createDrawableWithDirtyAndParams(++defaultSurfaceId, false, true, true, true));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyAndParams(++defaultSurfaceId, false, false, true, false));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyAndParams(++defaultSurfaceId, true, false, false, false));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyAndParams(++defaultSurfaceId, true, true, false, true));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyAndParams(++defaultSurfaceId, true, true, false, false));
+    surfaceAdapters.emplace_back(createDrawableWithDirtyAndParams(++defaultSurfaceId, true, true, true, true));
+
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    ASSERT_EQ(screenDrawable->syncDirtyManager_->GetVirtualExpandScreenAccumulatedDirtyRegions().size(), 0);
+    params->isFirstVisitCrossNodeDisplay_ = true;
+    RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    ASSERT_EQ(screenDrawable->syncDirtyManager_->GetVirtualExpandScreenAccumulatedDirtyRegions().size(), 0);
+    params->SetAccumulatedSpecialLayerStatusChanged(true);
+    RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    ASSERT_EQ(screenDrawable->syncDirtyManager_->GetVirtualExpandScreenAccumulatedDirtyRegions().size(), 0);
+    screenDrawable->syncDirtyManager_ = nullptr;
+    RSUniDirtyComputeUtil::AccumulateVirtualExpandScreenDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(*screenDrawable, *params);
+    auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        params->GetAllMainAndLeashSurfaceDrawables().back());
+    ASSERT_EQ(surfaceNodeDrawable->syncDirtyManager_->GetVirtualExpandScreenAccumulatedDirtyRegions().size(), 0);
+}
+
+/**
  * @tc.name: UpdateVirtualExpandScreenAccumulatedParams001
  * @tc.desc: UpdateVirtualExpandScreenAccumulatedParams can update params
  * @tc.type: FUNC
@@ -184,6 +271,46 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, nullptr);
     ASSERT_TRUE(params->GetAccumulatedDirty());
     ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
+}
+
+/**
+ * @tc.name: UpdateVirtualExpandScreenAccumulatedParams002
+ * @tc.desc: UpdateVirtualExpandScreenAccumulatedParams can update params
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams002, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateScreenDrawableById(DEFAULT_ID, 0, context);
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    RSLogicalDisplayRenderNodeDrawable* displayDrawable = GenerateLogicalscreenDrawableById(DEFAULT_ID + 1, context);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(DEFAULT_ID + 1);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+    RSSpecialLayerManager specialLayerManager;
+    specialLayerManager.Set(SpecialLayerType::HAS_SECURITY, true);
+    displayParams->specialLayerManager_ = specialLayerManager;
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+
+    std::unordered_set<NodeId> blackListVector({1, 2, 3});
+    params->SetLastBlackList(blackListVector);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+    std::unordered_set<NodeId> blackListVector2({});
+    params->SetLastBlackList(blackListVector2);
+    params->SetLastSecExemption(true);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
+    displayDrawable->renderParams_ = nullptr;
+    params->SetLastSecExemption(false);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
 }
 
 /**
