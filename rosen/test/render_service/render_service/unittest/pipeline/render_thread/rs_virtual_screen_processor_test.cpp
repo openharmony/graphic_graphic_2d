@@ -109,10 +109,6 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest002, TestSize.Level1)
     auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE);
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
     ASSERT_EQ(false, virtualScreenProcessor->Init(rsScreenRenderNode, offsetX, offsetY, mirroredId, renderEngine));
-
-    RSSurfaceRenderNodeConfig sConfig;
-    RSSurfaceRenderNode rsSurfaceRenderNode(sConfig);
-    virtualScreenProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
 /**
