@@ -84,7 +84,7 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
 {
     auto context = AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return false, "Failed to get application context");
-    auto moduleContext = context->CreateModuleContext(resource.moduleName);
+    auto moduleContext = context->CreateModuleContext(resource.bundleName, resource.moduleName);
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager;
     if (moduleContext != nullptr) {
         resourceManager = moduleContext->GetResourceManager();
