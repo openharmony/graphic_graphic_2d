@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace ColorManager {
 class CjColorManager : public OHOS::FFI::FFIData {
+    DECL_TYPE(CjColorManager, OHOS::FFI::FFIData)
 public:
     explicit CjColorManager(std::shared_ptr<ColorSpace> ptr);
     ~CjColorManager() override
@@ -30,25 +31,16 @@ public:
         colorSpaceToken_ = nullptr;
     }
     static std::tuple<int32_t, std::string, std::shared_ptr<ColorSpace>> create(ApiColorSpaceType csType);
-    static std::shared_ptr<ColorSpace> create(ColorSpacePrimaries primaries, float gamma, int32_t* errCode);
+    static std::shared_ptr<ColorSpace> create(ColorSpacePrimaries primaries, float gamma, int32_t& errCode);
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {
         return colorSpaceToken_;
     }
     
-    uint32_t GetColorSpaceName(int32_t* errCode);
-    std::array<float, DIMES_2> GetWhitePoint(int32_t* errCode);
-    float GetGamma(int32_t* errCode);
-    OHOS::FFI::RuntimeType *GetRuntimeType() override { return GetClassType(); }
+    uint32_t GetColorSpaceName(int32_t& errCode);
+    std::array<float, DIMES_2> GetWhitePoint(int32_t& errCode);
+    float GetGamma(int32_t& errCode);
 private:
-    friend class OHOS::FFI::RuntimeType;
-    friend class OHOS::FFI::TypeBase;
-    static OHOS::FFI::RuntimeType *GetClassType()
-    {
-        static OHOS::FFI::RuntimeType runtimeType =
-            OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("CjColorManager");
-        return &runtimeType;
-    }
     std::shared_ptr<ColorSpace> colorSpaceToken_;
 };
 } // namespace ColorManager

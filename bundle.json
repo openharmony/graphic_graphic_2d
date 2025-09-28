@@ -451,8 +451,7 @@
             "header": {
               "header_files": [
                 "cj_color_manager.h",
-                "cj_color_mgr_utils.h",
-                "color_mgr_ffi.h"
+                "cj_color_mgr_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
             }

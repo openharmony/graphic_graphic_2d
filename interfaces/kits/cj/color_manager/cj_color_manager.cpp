@@ -38,59 +38,59 @@ std::tuple<int32_t, std::string, std::shared_ptr<ColorSpace>> CjColorManager::cr
     return std::make_tuple(0, "", colorSpace);
 }
 
-std::shared_ptr<ColorSpace> CjColorManager::create(ColorSpacePrimaries primaries, float gamma, int32_t* errCode)
+std::shared_ptr<ColorSpace> CjColorManager::create(ColorSpacePrimaries primaries, float gamma, int32_t& errCode)
 {
     std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>(primaries, gamma);
     if (colorSpace == nullptr) {
-        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
+        errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
         return nullptr;
     }
     CMLOGI("[CJ]OnCreateColorSpace CreateJsColorSpaceObject is called");
-    *errCode = 0;
+    errCode = 0;
     return colorSpace;
 }
 
-uint32_t CjColorManager::GetColorSpaceName(int32_t* errCode)
+uint32_t CjColorManager::GetColorSpaceName(int32_t& errCode)
 {
     if (colorSpaceToken_ == nullptr) {
         CMLOGE("[CJ]colorSpaceToken_ is nullptr");
-        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
+        errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
         return 0;
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
     if (NATIVE_TO_CJ_COLOR_SPACE_TYPE_MAP.count(csName) != 0) {
         CMLOGI("[CJ]get color space name %{public}u, api type %{public}u",
             csName, NATIVE_TO_CJ_COLOR_SPACE_TYPE_MAP.at(csName));
-        *errCode = 0;
+        errCode = 0;
         return static_cast<uint32_t>(NATIVE_TO_CJ_COLOR_SPACE_TYPE_MAP.at(csName));
     }
     CMLOGE("[CJ]get color space name %{public}u, but not in api type", csName);
-    *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM));
+    errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM));
     return 0;
 }
 
-std::array<float, DIMES_2> CjColorManager::GetWhitePoint(int32_t* errCode)
+std::array<float, DIMES_2> CjColorManager::GetWhitePoint(int32_t& errCode)
 {
     std::array<float, DIMES_2> wp;
     if (colorSpaceToken_ == nullptr) {
         CMLOGE("[CJ]colorSpaceToken_ is nullptr");
-        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
+        errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
         return wp;
     }
     wp = colorSpaceToken_->GetWhitePoint();
-    *errCode = 0;
+    errCode = 0;
     return wp;
 }
 
-float CjColorManager::GetGamma(int32_t* errCode)
+float CjColorManager::GetGamma(int32_t& errCode)
 {
     if (colorSpaceToken_ == nullptr) {
         CMLOGE("[CJ]colorSpaceToken_ is nullptr");
-        *errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
+        errCode = static_cast<int32_t>(CJ_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR));
         return 0;
     }
     float gamma = colorSpaceToken_->GetGamma();
-    *errCode = 0;
+    errCode = 0;
     return gamma;
 }
 }
