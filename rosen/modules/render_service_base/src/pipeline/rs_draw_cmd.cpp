@@ -200,7 +200,7 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (!rsImage_) {
         return;
     }
-    std::unique_lock<std::mutext> lock(drawingImageMutex_);
+    std::unique_lock<std::mutex> lock(drawingImageMutex_);
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     bool isPurgeable = rsImage_->IsPurgeable();
     RSImageBase::PixelMapUseCountGuard guard = {pixelmap, isPurgeable};
@@ -500,7 +500,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
 
 void RSExtendImageObject::PurgeMipmapMem()
 {
-    if (drawingImageMutex_.try_lock())
+    if (drawingImageMutex_.try_lock()) {
         if (image_ && image_.use_count() == 1) {
             image_ = nullptr;
         }
