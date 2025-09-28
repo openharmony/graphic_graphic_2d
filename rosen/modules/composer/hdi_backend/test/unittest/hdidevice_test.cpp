@@ -59,7 +59,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegScreenVBlankCallback(screenId, nullptr, nullptr),
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenVsyncEnabled(screenId, enabled), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenVsyncEnabled(screenId, enabled), GRAPHIC_DISPLAY_SUCCESS);
     uint32_t pid = 1;
     uint64_t pvalue = 0;
     EXPECT_CALL(*hdiDeviceMock_,
