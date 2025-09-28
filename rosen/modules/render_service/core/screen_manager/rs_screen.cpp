@@ -404,11 +404,11 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
         targetModeInfo.height, targetModeInfo.freshRate, phyWidth_, phyHeight_, activeRefreshRate_);
     resolutionChanging_.store(targetModeInfo.width != phyWidth_ || targetModeInfo.height != phyHeight_);
     int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
-    constexpr int32_t HDF_ERR_NOT_SUPPORT = -2;
+    constexpr int32_t hdfErrNotSupport = -2;
     auto ret = StatusCode::SUCCESS;
     if (hdiErr < 0) {
         HILOG_COMM_ERROR("SetActiveMode: Hdi SetScreenMode fails.");
-        if (hdiErr != HDF_ERR_NOT_SUPPORT) {
+        if (hdiErr != hdfErrNotSupport) {
             resolutionChanging_.store(false);
             return StatusCode::SET_RATE_ERROR;
         }
