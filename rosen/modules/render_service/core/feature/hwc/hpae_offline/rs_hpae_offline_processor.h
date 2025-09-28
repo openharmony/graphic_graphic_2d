@@ -96,11 +96,22 @@ private:
 
     // surface
     RSHpaeOfflineLayer offlineLayer_{"DeviceOfflineLayer", INVALID_NODEID};
-    BufferFlushConfig flushConfig_;
+    BufferFlushConfig flushConfig_{
+        .damage = {.x = 0, .y = 0, .w = 0, .h = 0},
+        .timestamp = 0,
+        .desiredPresentTimestamp = 0,
+    };
     std::atomic<bool> preAllocBufferSucc_ = false;
     // offline config
     std::mutex offlineConfigMutex_;
-    BufferRequestConfig layerConfig_;
+    BufferRequestConfig layerConfig_{
+        .width = 0,
+        .height = 0,
+        .strideAlignment = 0,
+        .format = 0,
+        .usage = 0,
+        .timeout = 0,
+    };
     RequestRect offlineRect_;
     // status
     std::atomic<size_t> invalidFrames_ = 0;

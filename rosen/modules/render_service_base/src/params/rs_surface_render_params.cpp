@@ -560,7 +560,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        bufferSynced_ = true;
+        if (layerInfo_.useDeviceOffline && isHardwareEnabled_) {
+            // hpae offline: while using hpae offline and going directly composition, set to false
+            bufferSynced_ = offlineOriginBufferSynced_;
+        } else {
+            bufferSynced_ = true;
+        }
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif

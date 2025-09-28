@@ -423,6 +423,13 @@ public:
     {
         return bufferSynced_;
     }
+    // hpae offline: when surface node using hpae offline and doing directly compotition,
+    // the origin buffer will not be synced by hwc.
+    // While taking capture, bufferSynced_ should be set to false
+    void SetOfflineOriginBufferSynced(bool bufferSynced)
+    {
+        offlineOriginBufferSynced_ = bufferSynced;
+    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
@@ -812,6 +819,7 @@ private:
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
     bool bufferSynced_ = true;
+    bool offlineOriginBufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
     bool needMakeImage_ = false;

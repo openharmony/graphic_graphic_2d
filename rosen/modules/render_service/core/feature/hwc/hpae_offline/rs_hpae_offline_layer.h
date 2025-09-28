@@ -43,7 +43,7 @@ public:
     }
 
 private:
-    uint32_t bufferSize_ = 5;
+    uint32_t bufferSize_ = 4;
     sptr<Surface> pSurface_ = nullptr;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
     bool surfaceCreated_ = false;
