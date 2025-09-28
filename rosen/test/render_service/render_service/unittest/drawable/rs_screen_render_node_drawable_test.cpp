@@ -1070,6 +1070,26 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrameTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkipFrameTest003
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_ACTIVE_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrameTest003, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_ACTIVE_REFRESH_RATE;
+    screenInfo.activeRefreshRate = 30; // activeRefreshRate 30
+    screenDrawable_->SkipFrame(refreshRate, screenInfo);
+    ASSERT_TRUE(screenDrawable_->SkipFrame(refreshRate, screenInfo));
+
+    screenInfo.activeRefreshRate = 60; // activeRefreshRate 60
+    screenDrawable_->SkipFrame(refreshRate, screenInfo);
+    ASSERT_FALSE(screenDrawable_->SkipFrame(refreshRate, screenInfo));
+}
+
+/**
  * @tc.name: SkipFrameIrregularRefreshRateTest001
  * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
  * @tc.type:FUNC

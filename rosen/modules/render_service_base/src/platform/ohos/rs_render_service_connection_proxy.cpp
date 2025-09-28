@@ -1304,7 +1304,7 @@ bool RSRenderServiceConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightne
     return true;
 }
 
-void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1312,22 +1312,30 @@ void RSRenderServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t m
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetScreenActiveMode: WriteInterfaceToken GetDescriptor err.");
-        return;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("SetScreenActiveMode: WriteUint64 id err.");
-        return;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
     if (!data.WriteUint32(modeId)) {
         ROSEN_LOGE("SetScreenActiveMode: WriteUint32 modeId err.");
-        return;
+        return StatusCode::WRITE_PARCEL_ERR;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        return;
+        return StatusCode::IPC_ERROR;
     }
+
+    uint32_t ret = 0;
+    if (!reply.ReadUint32(ret)) {
+        ROSEN_LOGE("SetScreenActiveMode: ReadUint32 for result err.");
+        return StatusCode::READ_PARCEL_ERR;
+    }
+
+    return ret;
 }
 
 void RSRenderServiceConnectionProxy::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)

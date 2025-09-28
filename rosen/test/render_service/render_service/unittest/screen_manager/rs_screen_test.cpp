@@ -741,6 +741,9 @@ HWTEST_F(RSScreenTest, IsEnable_002, testing::ext::TestSize.Level1)
 
     rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), psurface);
     ASSERT_TRUE(rsScreen->IsEnable());
+
+    rsScreen->resolutionChanging_ = true;
+    ASSERT_FALSE(rsScreen->IsEnable());
 }
 
 /*
@@ -784,6 +787,11 @@ HWTEST_F(RSScreenTest, SetActiveMode_003, testing::ext::TestSize.Level1)
     EXPECT_CALL(*hdiDeviceMock_, SetScreenMode(_, _)).Times(1).WillOnce(testing::Return(-1));
 
     rsScreen->SetActiveMode(modeId);
+
+    constexpr int32_t HDF_ERR_NOT_SUPPORT = -2;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenMode(_, _)).Times(1).WillOnce(testing::Return(HDF_ERR_NOT_SUPPORT));
+    auto ret = rsScreen->SetActiveMode(modeId);
+    EXPECT_EQ(ret, StatusCode::HDI_ERR_NOT_SUPPORT);
 }
 
 /*

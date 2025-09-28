@@ -820,6 +820,16 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub019
     data.WriteUint32(1);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
+    // for reply write fail branch
+    MessageParcel reply1;
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data1.WriteUint64(0);
+    data1.WriteUint32(1);
+    reply1.writable_ = false;
+    reply1.data_ = nullptr;
+    res = connectionStub_->OnRemoteRequest(code, data1, reply1, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
 }
 
 /**

@@ -94,6 +94,7 @@ public:
     virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
     virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
     virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
+    virtual uint32_t GetActiveRefreshRate() const = 0;
 
     virtual const GraphicDisplayCapability& GetCapability() const = 0;
     virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
@@ -243,6 +244,7 @@ public:
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
     int32_t GetActiveModePosByModeId(int32_t modeId) const override;
     const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
+    uint32_t GetActiveRefreshRate() const override;
 
     const GraphicDisplayCapability& GetCapability() const override;
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
@@ -363,6 +365,7 @@ private:
     uint32_t height_ = 0;
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
+    uint32_t activeRefreshRate_ = 0;
     bool isSamplingOn_ = false;
     float samplingTranslateX_ = 0.f;
     float samplingTranslateY_ = 0.f;
@@ -455,6 +458,7 @@ private:
     // status for full screen dirty region update
     std::atomic<bool> pSurfaceChange_ = false;
     std::atomic<bool> virtualScreenPlay_ = false;
+    std::atomic<bool> resolutionChanging_ = false;
 };
 } // namespace impl
 } // namespace Rosen

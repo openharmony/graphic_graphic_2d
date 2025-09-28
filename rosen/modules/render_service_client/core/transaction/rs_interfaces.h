@@ -424,8 +424,9 @@ public:
      * the display calls back the mode set by the user and then set is to RS.)
      * @param id id of screen.
      * @param modeId the id of the active mode to set to the screen.
+     * @return return 0 if change screen active mode success, otherwise failed, see StatusCode
      */
-    void SetScreenActiveMode(ScreenId id, uint32_t modeId);
+    uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
     /**
      * @brief Statistics of application GPU memory.

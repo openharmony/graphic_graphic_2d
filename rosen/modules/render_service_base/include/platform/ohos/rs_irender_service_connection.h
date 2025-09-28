@@ -158,7 +158,7 @@ public:
 
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
-    virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
+    virtual uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
     virtual void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) = 0;
 

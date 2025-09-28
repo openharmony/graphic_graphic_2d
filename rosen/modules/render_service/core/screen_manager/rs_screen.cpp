@@ -174,9 +174,10 @@ void RSScreen::PhysicalScreenInit() noexcept
         phyHeight_ = activeMode->height;
         width_ = phyWidth_;
         height_ = phyHeight_;
+        activeRefreshRate_ = activeMode->freshRate;
         RS_LOGI("%{public}s activeMode, screenId:%{public}" PRIu64
-                ", activeModeId: %{public}d, size:[%{public}u, %{public}u]",
-                __func__, id_, activeMode->id, activeMode->width, activeMode->height);
+                ", activeModeId: %{public}d, size:[%{public}u, %{public}u], activeRefreshRate: %{public}u",
+                __func__, id_, activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenPowerStatus.",
@@ -207,6 +208,10 @@ void RSScreen::PhysicalScreenInit() noexcept
         }
     }
     screenBacklightLevel_ = GetScreenBacklight();
+
+    if (id_ != 0 && MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
+        skipFrameStrategy_ = SKIP_FRAME_BY_ACTIVE_REFRESH_RATE;
+    }
 }
 
 void RSScreen::ScreenCapabilityInit() noexcept
@@ -340,7 +345,7 @@ RectI RSScreen::GetReviseRect() const
 
 bool RSScreen::IsEnable() const
 {
-    if (id_ == INVALID_SCREEN_ID) {
+    if (id_ == INVALID_SCREEN_ID || resolutionChanging_.load()) {
         return false;
     }
 
@@ -393,19 +398,45 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     }
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
-    if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
+    const auto& targetModeInfo = supportedModes_[modeId];
+    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[%{public}dx%{public}d %{public}u],"
+        "CurMode:[%{public}dx%{public}d %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
+        targetModeInfo.height, targetModeInfo.freshRate, phyWidth_, phyHeight_, activeRefreshRate_);
+    resolutionChanging_.store(targetModeInfo.width != phyWidth_ || targetModeInfo.height != phyHeight_);
+    int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
+    constexpr int32_t HDF_ERR_NOT_SUPPORT = -2;
+    auto ret = StatusCode::SUCCESS;
+    if (hdiErr < 0) {
         HILOG_COMM_ERROR("SetActiveMode: Hdi SetScreenMode fails.");
-        return StatusCode::SET_RATE_ERROR;
+        if (hdiErr != HDF_ERR_NOT_SUPPORT) {
+            resolutionChanging_.store(false);
+            return StatusCode::SET_RATE_ERROR;
+        }
+
+        // When HDI return HDF_ERR_NOT_SUPPORT, the hardware will downgrade to a lower resolution,
+        // so it should not directly return, active mode info must be update
+        ret = StatusCode::HDI_ERR_NOT_SUPPORT;
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
         std::unique_lock<std::shared_mutex> lock(screenMutex_);
         phyWidth_ = activeMode->width;
         phyHeight_ = activeMode->height;
+        activeRefreshRate_ = activeMode->freshRate;
         lock.unlock();
         WriteHisyseventEpsLcdInfo(activeMode.value());
+        RS_LOGI("%{public}s screenId:%{public}" PRIu64
+            ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
+            __func__, id_, activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
-    return StatusCode::SUCCESS;
+    resolutionChanging_.store(false);
+    return ret;
+}
+
+uint32_t RSScreen::GetActiveRefreshRate() const
+{
+    std::unique_lock<std::shared_mutex> lock(screenMutex_);
+    return activeRefreshRate_;
 }
 
 uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
