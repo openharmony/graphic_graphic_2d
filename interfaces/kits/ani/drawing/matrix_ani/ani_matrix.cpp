@@ -315,7 +315,7 @@ void AniMatrix::SetMatrix(ani_env* env, ani_object obj, ani_object aniValueArray
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix.");
         return;
     }
-    uint32_t matrixSize = aniLength;
+    uint32_t matrixSize = static_cast<uint32_t>(aniLength);
     if (matrixSize != ARGC_NINE) {
         ROSEN_LOGE("AniMatrix::SetMatrix aniValueArrayObj size{%{public}d} invalid.", matrixSize);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array length.");
@@ -546,7 +546,7 @@ ani_object AniMatrix::MapPoints(ani_env* env, ani_object obj, ani_object aniSrcP
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid src array size.");
         return CreateAniUndefined(env);
     }
-    uint32_t pointSize = aniLength;
+    uint32_t pointSize = static_cast<uint32_t>(aniLength);
     std::vector<Drawing::Point> srcPoints(pointSize);
     std::vector<Drawing::Point> dstPoints(pointSize);
     if (!ConvertFromAniPointsArray(env, aniSrcPointArray, srcPoints.data(), pointSize)) {

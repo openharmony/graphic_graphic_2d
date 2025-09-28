@@ -1228,7 +1228,7 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_object pointsObj, a
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawPoints incorrect type points.");
         return;
     }
-    uint32_t size = aniLength;
+    uint32_t size = static_cast<uint32_t>(aniLength);
     Drawing::Point* points = new(std::nothrow) Point[size];
     if (points == nullptr) {
         return;
@@ -1316,7 +1316,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         return;
     }
 
-    uint32_t verticesSize = aniLength;
+    uint32_t verticesSize = static_cast<uint32_t>(aniLength);
     int64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("AniCanvas::DrawPixelMapMesh vertices are invalid");
@@ -1351,7 +1351,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         AniThrowError(env, "Invalid params.");
         return;
     }
-    uint32_t colorsSize = aniLength;
+    uint32_t colorsSize = static_cast<uint32_t>(aniLength);
     int64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("AniCanvas::DrawPixelMapMesh colors are invalid");
@@ -1386,7 +1386,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
             return;
         }
-        colors[i] = color;
+        colors[i] = static_cast<uint32_t>(color);
     }
     uint32_t* colorsMesh = colors + colorOffset;
     DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, aniCanvas->GetCanvas());

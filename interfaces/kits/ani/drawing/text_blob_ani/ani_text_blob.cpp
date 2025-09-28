@@ -136,7 +136,7 @@ ani_object AniTextBlob::MakeFromPosText(ani_env* env, ani_object obj, ani_string
         return CreateAniUndefined(env);
     }
 
-    uint32_t pointsSize = aniLength;
+    uint32_t pointsSize = static_cast<uint32_t>(aniLength);
     std::unique_ptr<Point[]> points = std::make_unique<Point[]>(pointsSize);
     if (!MakePoints(env, points.get(), pointsSize, static_cast<ani_array>(pointArray))) {
         ROSEN_LOGE("AniTextBlob::MakeFromPosText: Argv[2] is invalid");
@@ -205,7 +205,7 @@ ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_obje
         ROSEN_LOGE("AniTextBlob::MakeFromRunBuffer failed. param is invalid");
         return CreateAniUndefined(env);
     }
-    uint32_t size = aniLength;
+    uint32_t size = static_cast<uint32_t>(aniLength);
     auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj);
     if (aniFont == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");

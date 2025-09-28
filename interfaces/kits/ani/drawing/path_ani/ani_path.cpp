@@ -373,7 +373,7 @@ void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_object aniPointArray,
         ROSEN_LOGE("AniPath::AddPolygon aniPointsObj are invalid");
         return;
     }
-    uint32_t pointSize = aniLength;
+    uint32_t pointSize = static_cast<uint32_t>(aniLength);
     if (pointSize == 0) {
         ROSEN_LOGD("AniPath::AddPolygon aniPointArray size is empty.");
         return;

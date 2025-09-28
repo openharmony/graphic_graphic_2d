@@ -413,7 +413,7 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
         ROSEN_LOGE("AniFont::GetWidths Failed to get size of glyph array");
         return arrayObj;
     }
-    uint32_t fontSize = aniLength;
+    uint32_t fontSize = static_cast<uint32_t>(aniLength);
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
     for (uint32_t i = 0; i < fontSize; i++) {
         ani_int glyph;
@@ -748,7 +748,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
         return arrayObj;
     }
     
-    uint32_t glyphscnt = aniLength;
+    uint32_t glyphscnt = static_cast<uint32_t>(aniLength);
     std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphscnt);
     for (uint32_t i = 0; i < glyphscnt; i++) {
         ani_int glyph;
