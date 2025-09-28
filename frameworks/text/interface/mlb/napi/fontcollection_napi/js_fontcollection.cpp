@@ -15,6 +15,7 @@
 
 #include "js_fontcollection.h"
 
+#include <fstream>
 #include <tuple>
 
 #include "ability.h"
@@ -243,10 +244,28 @@ bool JsFontCollection::LoadFontFromPath(const std::string path, const std::strin
         return false;
     }
 
-    std::vector<char> content;
-    TEXT_ERROR_CHECK(LoadBufferFromFile(path, content), return false, "Failed to load buffer from file");
-    const uint8_t* buffer = reinterpret_cast<const uint8_t*>(content.data());
-    return fontcollection_->LoadFont(familyName.c_str(), buffer, content.size()) != nullptr;
+    char tmpPath[PATH_MAX] = { 0 };
+    if (realpath(path.c_str(), tmpPath) == nullptr) {
+        TEXT_LOGE("Invalid path %{public}s", path.c_str());
+        return false;
+    }
+
+    std::ifstream ifs(tmpPath, std::ios_base::in);
+    if (!ifs.is_open()) {
+        return false;
+    }
+
+    ifs.seekg(0, ifs.end);
+    size_t datalen = static_cast<size_t>(ifs.tellg());
+    ifs.seekg(ifs.beg);
+    if (ifs.fail()) {
+        return false;
+    }
+
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(datalen);
+    ifs.read(buffer.get(), datalen);
+    const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
+    return fontcollection_->LoadFont(familyName.c_str(), data, datalen) != nullptr;
 }
 
 napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
