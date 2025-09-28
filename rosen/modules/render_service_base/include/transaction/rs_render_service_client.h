@@ -247,7 +247,7 @@ public:
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback& callback);
 
 #ifndef ROSEN_ARKUI_X
-    void SetScreenActiveMode(ScreenId id, uint32_t modeId);
+    uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
 #endif // !ROSEN_ARKUI_X
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
 

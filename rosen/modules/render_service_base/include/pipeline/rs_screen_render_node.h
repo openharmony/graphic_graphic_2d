@@ -73,7 +73,14 @@ public:
             properties.SetBounds({0, 0, info.width, info.height});
             properties.SetFrame({0, 0, info.width, info.height});
         }
+
+        screenResolutionChanged_ = screenInfo_.phyWidth != info.phyWidth || screenInfo_.phyHeight != info.phyHeight;
         screenInfo_ = std::move(info);
+    }
+
+    bool IsScreenResolutionChanged() const
+    {
+        return screenResolutionChanged_;
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -587,6 +594,7 @@ private:
     std::vector<int32_t> oldScbPids_ {};
 
     bool hasMirrorDisplay_ = false;
+    bool screenResolutionChanged_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

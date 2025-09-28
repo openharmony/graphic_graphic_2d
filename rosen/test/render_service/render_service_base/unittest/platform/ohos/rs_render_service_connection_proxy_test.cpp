@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
@@ -54,6 +55,39 @@ void RSRenderServiceConnectionProxyTest::SetUpTestCase()
 void RSRenderServiceConnectionProxyTest::TearDownTestCase() {}
 void RSRenderServiceConnectionProxyTest::SetUp() {}
 void RSRenderServiceConnectionProxyTest::TearDown() {}
+
+class IRemoteObjectMock : public IRemoteObject {
+public:
+    IRemoteObjectMock() : IRemoteObject {u"IRemoteObjectMock"}
+    {
+    }
+
+    ~IRemoteObjectMock()
+    {
+    }
+
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    int Dump(int fd, const std::vector<std::u16string> &args)
+    {
+        return 0;
+    }
+
+    MOCK_METHOD4(SendRequest, int32_t(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));
+};
 
 /**
  * @tc.name: CommitTransaction Test
@@ -427,6 +461,12 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveMode, TestSize.Level
     uint32_t modeId = 1;
     proxy->SetScreenActiveMode(id, modeId);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSRenderServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->SetScreenActiveMode(id, modeId);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 
 /**

@@ -892,14 +892,14 @@ int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessIn
     return renderService->GetBrightnessInfo(screenId, brightnessInfo);
 }
 
-void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return;
+        return StatusCode::RENDER_SERVICE_NULL;
     }
 
-    renderService->SetScreenActiveMode(id, modeId);
+    return renderService->SetScreenActiveMode(id, modeId);
 }
 
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)

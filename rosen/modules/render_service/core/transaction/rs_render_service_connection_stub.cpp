@@ -1049,7 +1049,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetScreenActiveMode(id, modeId);
+            uint32_t status = SetScreenActiveMode(id, modeId);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_ACTIVE_MODE Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE): {

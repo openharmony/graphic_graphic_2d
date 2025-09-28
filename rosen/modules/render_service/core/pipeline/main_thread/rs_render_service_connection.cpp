@@ -1073,21 +1073,22 @@ int32_t RSRenderServiceConnection::GetBrightnessInfo(ScreenId screenId, Brightne
     return StatusCode::SUCCESS;
 }
 
-void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     if (!screenManager_) {
-        return;
+        return StatusCode::SCREEN_MANAGER_NULL;
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         return RSHardwareThread::Instance().ScheduleTask(
-            [=]() { screenManager_->SetScreenActiveMode(id, modeId); }).wait();
+            [=]() { return screenManager_->SetScreenActiveMode(id, modeId); }).get();
 #endif
     } else if (mainThread_ != nullptr) {
         return mainThread_->ScheduleTask(
-            [=]() { screenManager_->SetScreenActiveMode(id, modeId); }).wait();
+            [=]() { return screenManager_->SetScreenActiveMode(id, modeId); }).get();
     }
+    return StatusCode::RS_CONNECTION_ERROR;
 }
 
 void RSRenderServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)

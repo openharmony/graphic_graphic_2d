@@ -1985,6 +1985,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.activeRect = screen->GetActiveRect();
     info.maskRect = screen->GetMaskRect();
     info.reviseRect = screen->GetReviseRect();
+    info.activeRefreshRate = screen->GetActiveRefreshRate();
     return info;
 }
 

@@ -378,9 +378,9 @@ bool RSInterfaces::TakeSurfaceCapture(NodeId id,
 }
 
 #ifndef ROSEN_ARKUI_X
-void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    renderServiceClient_->SetScreenActiveMode(id, modeId);
+    return renderServiceClient_->SetScreenActiveMode(id, modeId);
 }
 #endif // !ROSEN_ARKUI_X
 void RSInterfaces::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
