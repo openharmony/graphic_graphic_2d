@@ -898,7 +898,6 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
         if (touchCnt != LAST_TOUCH_CNT) {
             return;
         }
-        auto voteRecord = frameVoter_.GetVoteRecord();
         if (frameVoter_.GetVoterGamesEffective()) {
             HGM_LOGD("[touch manager] keep down in games");
             return;
@@ -1234,7 +1233,7 @@ void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo e
 
 void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 {
-    auto voteRecord = frameVoter_.GetVoteRecord();
+    const auto& voteRecord = frameVoter_.GetVoteRecord();
     if (auto iter = voteRecord.find(voter);
         voter != "" && (iter == voteRecord.end() || !iter->second.second) && !voterTouchEffective_) {
         return;
@@ -1340,7 +1339,7 @@ bool HgmFrameRateManager::CheckAncoVoterStatus() const
         !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
         return false;
     }
-    auto voteRecord = frameVoter_.GetVoteRecord();
+    const auto& voteRecord = frameVoter_.GetVoteRecord();
     auto iter = voteRecord.find("VOTER_ANCO");
     if (iter == voteRecord.end() || iter->second.first.empty() || !iter->second.second) {
         return false;
@@ -1567,7 +1566,7 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
         isNeedUpdateAppOffset_ = true;
         return;
     }
-    auto voteRecord = frameVoter_.GetVoteRecord();
+    const auto& voteRecord = frameVoter_.GetVoteRecord();
     if (auto iter = voteRecord.find("VOTER_THERMAL");
         iter != voteRecord.end() && !iter->second.first.empty() &&
         iter->second.first.back().max > 0 && iter->second.first.back().max <= OLED_60_HZ) {

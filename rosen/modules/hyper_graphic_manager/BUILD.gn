@@ -16,7 +16,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 config("libhyper_graphic_manager_config") {
   visibility = [ ":*" ]
-
   include_dirs = [
     "core/config",
     "core/frame_rate_manager",
@@ -32,7 +31,6 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
-    "$graphic_2d_root/utils/log",
     "$graphic_2d_root/utils/sandbox",
   ]
 
@@ -52,7 +50,25 @@ config("libhyper_graphic_manager_config") {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
     }
+    if (enhanced_opt) {
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
+    }
   }
+
+  ldflags = [
+    "-flto",
+    "-Wl,-z,relro",
+    "-Wl,--exclude-libs=ALL",
+    "-Wl,--gc-sections",
+    "-Wl,--as-needed",
+    "-Wl,--sort-common",
+    "-Wl,--relax",
+    "-Wl,-Bsymbolic",
+    "-Wl,-z,now",
+    "-Wl,--icf=all",
+  ]
 }
 
 ohos_shared_library("libhyper_graphic_manager") {
@@ -66,41 +82,30 @@ ohos_shared_library("libhyper_graphic_manager") {
   configs = [ ":libhyper_graphic_manager_config" ]
 
   sources = [
-    "core/config/hgm_config_callback_manager.cpp",
-    "core/config/hgm_user_define.cpp",
-    "core/config/xml_parser.cpp",
-    "core/frame_rate_manager/hgm_app_page_url_strategy.cpp",
-    "core/frame_rate_manager/hgm_energy_consumption_policy.cpp",
-    "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
-    "core/frame_rate_manager/hgm_hfbc_config.cpp",
-    "core/frame_rate_manager/hgm_idle_detector.cpp",
-    "core/frame_rate_manager/hgm_multi_app_strategy.cpp",
-    "core/frame_rate_manager/hgm_pointer_manager.cpp",
-    "core/frame_rate_manager/hgm_task_handle_thread.cpp",
-    "core/frame_rate_manager/hgm_touch_manager.cpp",
-    "core/frame_rate_manager/hgm_vsync_generator_controller.cpp",
-    "core/hgm_screen_manager/hgm_core.cpp",
-    "core/hgm_screen_manager/hgm_screen.cpp",
-    "core/hgm_screen_manager/hgm_screen_info.cpp",
-    "core/soft_vsync_manager/hgm_soft_vsync_manager.cpp",
-    "core/utils/hgm_command.cpp",
-    "core/utils/hgm_frame_voter.cpp",
-    "core/utils/hgm_one_shot_timer.cpp",
-    "core/utils/hgm_voter.cpp",
-    "frame_rate_vote/rs_frame_rate_vote.cpp",
-    "frame_rate_vote/rs_video_frame_rate_vote.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config/hgm_config_callback_manager.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config/hgm_user_define.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config/xml_parser.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_app_page_url_strategy.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_energy_consumption_policy.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_frame_rate_manager.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_hfbc_config.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_idle_detector.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_multi_app_strategy.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_pointer_manager.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_task_handle_thread.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_touch_manager.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager/hgm_vsync_generator_controller.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager/hgm_core.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager/hgm_screen.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager/hgm_screen_info.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager/hgm_soft_vsync_manager.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils/hgm_command.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils/hgm_frame_voter.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils/hgm_one_shot_timer.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils/hgm_voter.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote/rs_frame_rate_vote.cpp",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote/rs_video_frame_rate_vote.cpp",
   ]
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags = []
-    if (!use_libfuzzer) {
-      cflags += [ "-flto=thin" ]
-    }
-    if (enhanced_opt) {
-      if (!use_libfuzzer) {
-        cflags += [ "-fwhole-program-vtables" ]
-      }
-    }
-  }
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
@@ -111,7 +116,6 @@ ohos_shared_library("libhyper_graphic_manager") {
 
   external_deps = [
     "c_utils:utils",
-    "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hicollie:libhicollie",
@@ -119,9 +123,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
-    "ipc:ipc_core",
     "libxml2:libxml2",
-    "samgr:samgr_proxy",
   ]
 
   if (defined(graphic_2d_hgm_configs.vendor_root)) {
