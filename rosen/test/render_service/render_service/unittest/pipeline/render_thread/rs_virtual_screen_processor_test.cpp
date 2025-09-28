@@ -95,9 +95,8 @@ HWTEST_F(RSVirtualScreenProcessorTest, Init, TestSize.Level1)
 /**
  * @tc.name: InitTest002
  * @tc.desc: test Init when mirroredId is not INVALID_SCREEN_ID
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
  */
 HWTEST_F(RSVirtualScreenProcessorTest, InitTest002, TestSize.Level1)
 {
