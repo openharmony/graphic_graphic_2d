@@ -1338,10 +1338,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedFilter_001, Function | SmallTest | 
 {
     NodeId id = 0;
     RSRenderNode node(id);
-    node.renderProperties_.needFilter_ = true;
+    node.renderProperties_.useEffect_ = true;
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
 
-    node.renderProperties_.needFilter_ = false;
+    node.renderProperties_.useEffect_ = false;
     node.GetHwcRecorder().SetBlendWithBackground(true);
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
 }
