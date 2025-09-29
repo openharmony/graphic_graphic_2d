@@ -1336,7 +1336,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
             verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Double(
-                static_cast<ani_object>(vertexRef), "unboxed", ":d", &vertex)) {
+                static_cast<ani_object>(vertexRef), "toDouble", ":d", &vertex)) {
             delete []vertices;
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter vertex type.");
             return;
@@ -1380,7 +1380,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
             colorsObj, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
+                static_cast<ani_object>(colorRef), "toInt", ":i", &color)) {
             delete []vertices;
             delete []colors;
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
@@ -1711,7 +1711,7 @@ void AniCanvas::ClipPath(ani_env* env, ani_object obj, ani_object pathObj, ani_o
     env->Reference_IsUndefined(aaObj, &isUndefined);
     if (!isUndefined) {
         ani_boolean aniDoAntiAlias;
-        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "unboxed", ":z", &aniDoAntiAlias);
+        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "toBoolean", ":z", &aniDoAntiAlias);
         if (result != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniCanvas::ClipPath incorrect type antiAlias.");
@@ -1761,7 +1761,7 @@ void AniCanvas::ClipRect(ani_env* env, ani_object obj, ani_object rectObj, ani_o
     env->Reference_IsUndefined(aaObj, &isUndefined);
     if (!isUndefined) {
         ani_boolean aniDoAntiAlias;
-        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "unboxed", ":z", &aniDoAntiAlias);
+        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "toBoolean", ":z", &aniDoAntiAlias);
         if (result != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniCanvas::ClipRect incorrect type antiAlias.");
@@ -1845,7 +1845,7 @@ void AniCanvas::ClipRoundRect(ani_env* env, ani_object obj, ani_object roundRect
     env->Reference_IsUndefined(aaObj, &isUndefined);
     if (!isUndefined) {
         ani_boolean aniDoAntiAlias;
-        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "unboxed", ":z", &aniDoAntiAlias);
+        ani_status result = env->Object_CallMethodByName_Boolean(aaObj, "toBoolean", ":z", &aniDoAntiAlias);
         if (result != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniCanvas::ClipRoundRect incorrect type antiAlias.");

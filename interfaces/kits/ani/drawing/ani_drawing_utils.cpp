@@ -162,7 +162,7 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
     env->Object_InstanceOf(obj, intClass, &isInt);
     if (isInt) {
         ani_int aniColor;
-        if (ANI_OK != env->Object_CallMethodByName_Int(obj, "unboxed", nullptr, &aniColor)) {
+        if (ANI_OK != env->Object_CallMethodByName_Int(obj, "toInt", nullptr, &aniColor)) {
             ROSEN_LOGE("GetColorQuadFromParam failed by int value");
             return false;
         }

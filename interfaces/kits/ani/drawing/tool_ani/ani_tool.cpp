@@ -173,7 +173,7 @@ bool AniTool::GetTypeParam(ani_env* env, ani_object obj, const char* name, int32
         return false;
     }
     ani_int resultValue;
-    if (env->Object_CallMethodByName_Int(typeObj, "unboxed", nullptr, &resultValue) != ANI_OK) {
+    if (env->Object_CallMethodByName_Int(typeObj, "toInt", nullptr, &resultValue) != ANI_OK) {
         return false;
     }
     result = static_cast<int32_t>(resultValue);
@@ -572,7 +572,7 @@ bool AniTool::GetResourceColor(ani_env* env, ani_object obj, uint32_t& result)
 
     if (IsNumberObject(env, obj)) {
         ani_double aniColor;
-        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "unboxed", nullptr, &aniColor)) {
+        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "toDouble", nullptr, &aniColor)) {
             ROSEN_LOGE("AniTool::GetResourceColor failed by Object_CallMethodByName_Double");
             return false;
         }

@@ -195,7 +195,7 @@ ani_object AniPathEffect::CreateDashPathEffect(
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid intervals array length.");
             return CreateAniUndefined(env);
         }
-        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(intervalRef), "unboxed", ":d", &interval);
+        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(intervalRef), "toDouble", ":d", &interval);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPathEffect::CreateDashPathEffect intervalRef get interval failed: %d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid intervals array length.");
