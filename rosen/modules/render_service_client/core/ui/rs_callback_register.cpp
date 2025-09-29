@@ -31,7 +31,7 @@ public:
             [](uint32_t id) { Rosen::RSInterfaces::GetInstance().UnRegisterTypeface(id); });
 
         Drawing::Typeface::RegisterUniqueIdCallBack(
-            [](uint64_t id) { return TypefaceMap::GetTypefaceById(RSTypefaceCache::GetTypefaceId(id)); });
+            [](uint64_t id) { return TypefaceMap::GetTypeface(RSTypefaceCache::GetTypefaceId(id)); });
     }
 
     ~TypefaceAutoRegister()

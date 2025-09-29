@@ -96,7 +96,7 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
             "Find same typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(), ta.GetHash());
         return RegisterError::ALREADY_EXIST;
     }
-    auto typeface = TypefaceMap::GetTypefaceByHash(ta.GetTypeface()->GetHash());
+    auto typeface = TypefaceMap::GetTypeface(ta.GetTypeface()->GetHash());
     if (typeface != nullptr) {
         typefaceSet_.insert(ta);
         return RegisterError::SUCCESS;
@@ -171,7 +171,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::CreateTypeface(
     const std::string& familyName, const uint8_t* data, size_t datalen)
 {
     uint32_t hash = Drawing::Typeface::CalculateHash(data, datalen);
-    auto typeface = TypefaceMap::GetTypefaceByHash(hash);
+    auto typeface = TypefaceMap::GetTypeface(hash);
     if (typeface != nullptr) {
         TEXT_LOGI("Find same typeface local, family name: %{public}s", typeface->GetFamilyName().c_str());
         return typeface;

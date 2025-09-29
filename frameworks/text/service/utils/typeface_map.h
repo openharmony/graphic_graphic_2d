@@ -41,8 +41,7 @@ namespace OHOS::Rosen {
 class TEXTING_API TypefaceMap {
 public:
     static TypefaceMap& GetInstance();
-    static std::shared_ptr<Drawing::Typeface> GetTypefaceById(uint32_t id);
-    static std::shared_ptr<Drawing::Typeface> GetTypefaceByHash(uint32_t hash);
+    static std::shared_ptr<Drawing::Typeface> GetTypeface(uint32_t id);
     static void InsertTypeface(uint32_t hash, const std::shared_ptr<Drawing::Typeface>& typeface);
 
 private:

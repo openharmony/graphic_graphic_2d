@@ -25,24 +25,10 @@ TypefaceMap& TypefaceMap::GetInstance()
     return instance;
 }
 
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceById(uint32_t id)
+std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypeface(uint32_t id)
 {
     std::unique_lock guard(GetInstance().mutex_);
     auto iter = GetInstance().typefaceMap_.find(id);
-    if (iter != GetInstance().typefaceMap_.end()) {
-        if (auto tf = iter->second.lock()) {
-            return tf;
-        } else {
-            GetInstance().typefaceMap_.erase(iter);
-        }
-    }
-    return nullptr;
-}
-
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHash(uint32_t hash)
-{
-    std::unique_lock guard(GetInstance().mutex_);
-    auto iter = GetInstance().typefaceMap_.find(hash);
     if (iter != GetInstance().typefaceMap_.end()) {
         if (auto tf = iter->second.lock()) {
             return tf;
