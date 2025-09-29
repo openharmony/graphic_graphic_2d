@@ -364,6 +364,12 @@ public:
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func);
 
     /**
+     * @brief                       Register callback function for single frame drawop limit exceeded
+     * @param drawOpOverCallback    Single frame drawop limit exceeded
+     */
+    void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback);
+
+    /**
      * @brief                   Defragment or clear Vma Cache if needed
      */
     void VmaDefragment();

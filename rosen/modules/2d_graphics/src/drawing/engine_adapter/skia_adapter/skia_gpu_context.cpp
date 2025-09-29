@@ -348,6 +348,19 @@ void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vu
     grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
 }
 
+void SkiaGPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
+{
+#ifdef TODO_M133_SKIA
+    (void)drawOpOverCallback;
+#else
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::RegisterDrawOpOverCallback, grContext_ is nullptr");
+        return;
+    }
+    grContext_->registerDrawOpOverCallback(drawOpOverCallback);
+#endif
+}
+
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     if (!grContext_) {
