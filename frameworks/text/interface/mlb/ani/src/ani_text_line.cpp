@@ -38,7 +38,7 @@ using namespace OHOS::Rosen;
 namespace {
 constexpr size_t ARGC_TWO = 2;
 const std::string GET_TEXT_RANGE_SIGN = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
-const std::string GET_LYPH_RUNS_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
+const std::string GET_GLYPH_RUNS_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
 const std::string PAINT_SIGN = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
 const std::string CREATE_TRUNCATED_LINE_SIGN =
     "dE{" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{std.core.String}:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
@@ -66,7 +66,7 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     std::array methods = {
         ani_native_function{"getGlyphCount", ":i", reinterpret_cast<void*>(GetGlyphCount)},
         ani_native_function{"getTextRange", GET_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetTextRange)},
-        ani_native_function{"getGlyphRuns", GET_LYPH_RUNS_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
+        ani_native_function{"getGlyphRuns", GET_GLYPH_RUNS_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{
             "createTruncatedLine", CREATE_TRUNCATED_LINE_SIGN.c_str(), reinterpret_cast<void*>(CreateTruncatedLine)},
