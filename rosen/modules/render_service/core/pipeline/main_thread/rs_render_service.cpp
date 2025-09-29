@@ -32,6 +32,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
+#include "ge_render.h"
 #include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
@@ -47,7 +48,6 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "render/rs_render_kawase_blur_filter.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
@@ -1012,7 +1012,7 @@ void RSRenderService::FilterCCMInit()
     RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
-    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GraphicsEffectEngine::GERender::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace Rosen
