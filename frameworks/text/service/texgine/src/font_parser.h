@@ -105,6 +105,8 @@ public:
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
     static std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
         const std::string& path, const std::string& locale = ENGLISH);
+    static std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromStream(
+        const void* data, size_t byteLength, const std::string& locale = ENGLISH);
     std::shared_ptr<FontDescriptor> ParserFontDescriptorFromPath(
         const std::string& path, size_t index, const std::string& locale = ENGLISH) const;
     static std::shared_ptr<FontDescriptor> CreateFontDescriptor(

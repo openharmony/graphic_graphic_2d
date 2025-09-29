@@ -231,6 +231,30 @@ OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromPath(const char* path)
     return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
 
+OH_Drawing_Array* OH_Drawing_GetFontFullDescriptorsFromStream(const void* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return nullptr;
+    }
+    std::vector<std::shared_ptr<Drawing::FontParser::FontDescriptor>> fontFullDescriptors =
+        TextEngine::FontParser::ParserFontDescriptorsFromStream(data, size);
+    if (fontFullDescriptors.empty()) {
+        return nullptr;
+    }
+    std::unique_ptr array = std::make_unique<ObjectArray>();
+    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontDescriptor* []>(fontFullDescriptors.size());
+    array->type = ObjectType::FONT_FULL_DESCRIPTOR;
+
+    size_t num = 0;
+    for (const auto& fontFullDescriptor : fontFullDescriptors) {
+        addr[num] = new Drawing::FontParser::FontDescriptor(*fontFullDescriptor);
+        num += 1;
+    }
+    array->addr = addr.release();
+    array->num = num;
+    return reinterpret_cast<OH_Drawing_Array*>(array.release());
+}
+
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
 {
     ObjectArray* descriptorList = ConvertToOriginalText<ObjectArray>(descriptorArray);
