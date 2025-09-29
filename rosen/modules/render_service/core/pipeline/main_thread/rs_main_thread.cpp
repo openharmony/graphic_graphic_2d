@@ -519,10 +519,10 @@ void RSMainThread::Init()
         };
     Drawing::DrawOpItem::SetBaseCallback(holdDrawingImagefunc);
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
-        [] (uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
-            auto globalUnique = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
-            auto hash = RSTypefaceCache::Instance().GetDrawingTypefaceCacheByHash(globalUniqueId);
-            return globalUnique == nullptr ? hash : globalUnique;
+        [] (uint64_t id) -> std::shared_ptr<Drawing::Typeface> {
+            auto uniqueIdTypeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(id);
+            auto hashTypeface = RSTypefaceCache::Instance().GetDrawingTypefaceCacheByHash(id);
+            return uniqueIdTypeface == nullptr ? hashTypeface : uniqueIdTypeface;
         };
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
     {
