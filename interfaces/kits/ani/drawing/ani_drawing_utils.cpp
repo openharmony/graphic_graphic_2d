@@ -418,6 +418,25 @@ std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font)
     return fontMgr;
 }
 
+ani_object CreateAniArrayWithSize(ani_env* env, size_t size)
+{
+    ani_class arrayCls;
+    if (env->FindClass("escompat.Array", &arrayCls) != ANI_OK) {
+        ROSEN_LOGE("Failed to findClass escompat.Array");
+        return CreateAniUndefined(env);
+    }
+    ani_method arrayCtor;
+    if (env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor) != ANI_OK) {
+        ROSEN_LOGE("Failed to find <ctor>");
+        return CreateAniUndefined(env);
+    }
+    ani_object arrayObj = nullptr;
+    if (env->Object_New(arrayCls, arrayCtor, &arrayObj, size) != ANI_OK) {
+        ROSEN_LOGE("Failed to create object Array");
+        return CreateAniUndefined(env);
+    }
+    return arrayObj;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -169,25 +169,7 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
     return aniObject;
 }
 
-inline ani_object CreateAniArrayWithSize(ani_env* env, size_t size)
-{
-    ani_class arrayCls;
-    if (env->FindClass("escompat.Array", &arrayCls) != ANI_OK) {
-        ROSEN_LOGE("Failed to findClass escompat.Array");
-        return CreateAniUndefined(env);
-    }
-    ani_method arrayCtor;
-    if (env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor) != ANI_OK) {
-        ROSEN_LOGE("Failed to find <ctor>");
-        return CreateAniUndefined(env);
-    }
-    ani_object arrayObj = nullptr;
-    if (env->Object_New(arrayCls, arrayCtor, &arrayObj, size) != ANI_OK) {
-        ROSEN_LOGE("Failed to create object Array");
-        return CreateAniUndefined(env);
-    }
-    return arrayObj;
-}
+ani_object CreateAniArrayWithSize(ani_env* env, size_t size);
 
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 

@@ -178,7 +178,7 @@ ani_object AniPathEffect::CreateDashPathEffect(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param intervals.");
         return CreateAniUndefined(env);
     }
-    uint32_t intervalSize = aniLength;
+    uint32_t intervalSize = static_cast<uint32_t>(aniLength);
     if ((intervalSize & 1) || (intervalSize <= 0)) { // intervalSize must be even and greater than 0;
         ROSEN_LOGD("AniPathEffect::CreateDashPathEffect intervalSize invalid %{public}u.", intervalSize);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid intervals array length.");

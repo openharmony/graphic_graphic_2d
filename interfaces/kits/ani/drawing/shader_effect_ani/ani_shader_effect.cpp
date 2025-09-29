@@ -55,7 +55,7 @@ bool GetColorsArray(ani_env* env, ani_object corlorsArray, std::vector<ColorQuad
         ROSEN_LOGE("colors are invalid");
         return false;
     }
-    uint32_t colorsSize = aniLength;
+    uint32_t colorsSize = static_cast<uint32_t>(aniLength);
     colors.reserve(colorsSize);
     for (uint32_t i = 0; i < colorsSize; i++) {
         ani_int color;
@@ -78,7 +78,7 @@ bool GetPosArray(ani_env* env, ani_object posArray, std::vector<float>& pos)
         ROSEN_LOGE("pos are invalid");
         return false;
     }
-    uint32_t size = aniLength;
+    uint32_t size = static_cast<uint32_t>(aniLength);
     pos.reserve(size);
     for (uint32_t i = 0; i < size; i++) {
         ani_double value;
