@@ -165,20 +165,9 @@ float MemoryTrack::GetAppMemorySizeInMB()
 void MemoryTrack::DumpMemoryStatistics(DfxString& log,
     std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func)
 {
-    std::vector<MemoryInfo> memPicRecord;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        for (auto& [addr, info] : memPicRecord_) {
-            memPicRecord.push_back(info);
-        }
-    }
-    // dump without mutex to avoid dead lock
-    // because it may free pixelmap after fetch shard_ptr(use_count = 1) from pixelmap's weak_ptr
-    DumpMemoryPicStatistics(log, func, memPicRecord);
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        DumpMemoryNodeStatistics(log);
-    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    DumpMemoryPicStatistics(log, func);
+    DumpMemoryNodeStatistics(log);
 }
 
 void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
@@ -339,8 +328,7 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func,
-    const std::vector<MemoryInfo>& memPicRecord)
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func)
 {
     log.AppendFormat("RSImageCache:\n");
     log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
@@ -358,7 +346,7 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int nullWithoutDMASize = 0;
     int nullWithoutDMA = 0;
     //calculate by byte
-    for (auto& info : memPicRecord) {
+    for (auto& [addr, info] : memPicRecord_) {
         int size = static_cast<uint64_t>(info.size / BYTE_CONVERT); // k
         //total of type
         arrTotal[info.type] += size;
