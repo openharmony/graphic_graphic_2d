@@ -129,6 +129,8 @@ ani_object CreateAniObject(ani_env* env, const char* className, const char* meth
 
 ani_object CreateAniNull(ani_env* env);
 
+bool CreateAniEnumByEnumIndex(ani_env* env, const char* enumDescripter, ani_size index, ani_enum_item& enumItem);
+
 bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
 
 template<typename T>
@@ -206,6 +208,8 @@ ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object&
 bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
 bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d);
+
+bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_object& pointArray, uint32_t index);
 
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {

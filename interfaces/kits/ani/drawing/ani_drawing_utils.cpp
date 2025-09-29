@@ -366,6 +366,38 @@ bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point
     return true;
 }
 
+bool CreateAniEnumByEnumIndex(ani_env* env, const char* enumDescripter, ani_size index, ani_enum_item& enumItem)
+{
+    ani_enum enumType;
+    ani_status ret = env->FindEnum(enumDescripter, &enumType);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("CreateAniEnum find enum failed. ret: %{public}d. %{public}s", ret, enumDescripter);
+        return false;
+    }
+    ret = env->Enum_GetEnumItemByIndex(enumType, index, &enumItem);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("CreateAniEnum get enum by index failed. ret: %{public}d.", ret);
+        return false;
+    }
+
+    return enumItem;
+}
+
+bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_object& pointArray, uint32_t index)
+{
+    ani_object pointObj;
+    if (!CreatePointObjAndCheck(env, point, pointObj)) {
+        ROSEN_LOGE("AniPathIterator::Next Set pointObj from point failed.");
+        return false;
+    }
+    ani_status ret = env->Object_CallMethodByName_Void(pointArray, "$_set", "iC{std.core.Object}:", index, pointObj);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("AniPathIterator::Next SObject_CallMethodByName_Void  $_set Faild. ret: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font)
 {
     std::shared_ptr<FontMgr> fontMgr = GetFontMgr(font);
