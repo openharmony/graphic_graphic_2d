@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.animation.windowAnimationManager", "windowAnimationManager")
+@!sts_export_default
+@!sts_inject("""
+static { loadLibrary("window_animation_manager_taihe.z"); }
+""")
+
+struct RRect {
+  left: f64;
+  top: f64;
+  width: f64;
+  height: f64;
+  radius: f64;
+}
+
+struct WindowAnimationTarget {
+  @readonly bundleName: String;
+  @readonly abilityName: String;
+  @readonly windowBounds: RRect;
+  @readonly missionId: i32;
+  @readonly windowId: i32;
+}
+
+interface WindowAnimationFinishedCallback {
+  onAnimationFinish(): void;
+}
+
+struct WindowAnimationController {
+  onStartAppFromLauncher: (startingWindowTarget: WindowAnimationTarget,
+    finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onStartAppFromRecent: (startingWindowTarget: WindowAnimationTarget,
+    finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onStartAppFromOther: (startingWindowTarget: WindowAnimationTarget,
+    finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onAppTransition: (fromWindowTarget: WindowAnimationTarget, toWindowTarget: WindowAnimationTarget,
+    finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onMinimizeWindow: (minimizingWindowTarget: WindowAnimationTarget,
+    finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onCloseWindow: (closingWindowTarget: WindowAnimationTarget,
+    finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onScreenUnlock: (finishCallback: WindowAnimationFinishedCallback) => void;
+
+  onWindowAnimationTargetsUpdate: (fullScreenWindowTarget: WindowAnimationTarget,
+    floatingWindowTargets: Array<WindowAnimationTarget>) => void;
+}
+
+function setController(controller: WindowAnimationController): void;
+
+function MinimizeWindowWithAnimationSync(windowTarget: WindowAnimationTarget): WindowAnimationFinishedCallback;
+@static_overload("MinimizeWindowWithAnimation")
+@async function MinimizeWindowWithAnimationAsync(
+  windowTarget: WindowAnimationTarget): WindowAnimationFinishedCallback;
+@static_overload("MinimizeWindowWithAnimation")
+@promise function MinimizeWindowWithAnimationPromise(
+  windowTarget: WindowAnimationTarget): WindowAnimationFinishedCallback;

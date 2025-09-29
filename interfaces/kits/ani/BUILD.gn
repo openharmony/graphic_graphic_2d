@@ -25,5 +25,6 @@ group("ani_packages") {
     "ui_effect:uiEffect_ani",
     "ui_effect:uiEffect_etc",
     "$text_ani:text_engine_ani_group",
+    "window_animation_manager:window_animation_manager_taihe_group",
   ]
 }
