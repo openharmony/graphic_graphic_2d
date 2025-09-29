@@ -278,7 +278,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
     EXPECT_EQ(vkImageManager_->CreateImageCacheFromBuffer(
         new SurfaceBufferImpl(), SyncFence::INVALID_FENCE), nullptr);
 
-    EXPECT_EQ(vkImageManaer_->CreateImageCacheFromBuffer(nullptr, SyncFence::INVALID_FENCE), nullptr);
+    EXPECT_EQ(vkImageManager_->CreateImageCacheFromBuffer(nullptr, SyncFence::INVALID_FENCE), nullptr);
 }
 
 /**
@@ -336,21 +336,21 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager = std::make_shared<RSVkImageManager>();
-    auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100,);
-    drawingRecordingCanvas->SetGrRecordingContext(std::make_shard<Drawing::GPUContext());
+    auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+    drawingRecordingCanvas->SetGrRecordingContext(std::make_shared<Drawing::GPUContext>());
     auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
     EXPECT_NE(recordingCanvas, nullptr);
     BufferDrawParam params;
-    std::shared_ptr<Drawing::ColotSpace> drawingColorSpace = nullptr;
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
     params.buffer = CreateBuffer();
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && recordingCanvas) {
         params.buffer->SetBufferDeleteFromCacheFlag(false);
-        EXPECT_EQ(image->CreateImageFromBuffer(
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(
             *recordingCanvas, params, drawingColorSpace), nullptr);
 
         params.buffer->SetBufferDeleteFromCacheFlag(true);
-        EXPECT_EQ(image->CreateImageFromBuffer(
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(
             *recordingCanvas, params, drawingColorSpace), nullptr);
     }
 }
@@ -375,7 +375,7 @@ HWTEST_F(RSVKImageManagerTest, GetIntersectImageTest, TestSize.Level1)
     res = imageManager->GetIntersectImage(imgCutRect, context, buffer, acquireFence, threadIndex);
     EXPECT_EQ(res, nullptr);
 
-    res = imageManager->GetIntersectImage(imgCutRect, context, buffer, BufferFence_, threadIndex);
+    res = imageManager->GetIntersectImage(imgCutRect, context, buffer_, BufferFence_, threadIndex);
     EXPECT_EQ(res, nullptr);
 }
 
