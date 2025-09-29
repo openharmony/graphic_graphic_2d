@@ -94,4 +94,29 @@ HWTEST_F(MultiScreenParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     res = paramParse.ParseFeatureParam(paramMapType, node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
+
+/**
+ * @tc.name: ParseMultiScreenInternalTest
+ * @tc.desc: Test ParseMultiScreenInternal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MultiScreenParamParseTest, ParseMultiScreenInternalTest, TestSize.Level1)
+{
+    MultiScreenParamParse paramParse;
+    FeatureParamMapType paramMapType;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+    string name = "FeatureSwitch";
+    node.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("IsSkipFrameByActiveRefreshRate"));
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("true"));
+    auto res = paramParse.ParseMultiScreenInternal(node);
+    EXPECT_EQ(res, PARSE_EXEC_SUCCESS);
+ 
+    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("test01"));
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("true"));
+    res = paramParse.ParseMultiScreenInternal(node);
+    EXPECT_EQ(res, PARSE_EXEC_SUCCESS);
+}
 }

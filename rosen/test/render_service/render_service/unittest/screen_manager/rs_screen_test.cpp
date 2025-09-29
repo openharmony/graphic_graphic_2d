@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "screen_manager/rs_screen.h"
+#include "multiscreen_param.h"
 #include "mock_hdi_device.h"
 
 using namespace testing;
@@ -2355,5 +2356,36 @@ HWTEST_F(RSScreenTest, SetScreenActiveRect, testing::ext::TestSize.Level1)
     actRect.y = 2;
     res = rsScreen->RSScreen::SetScreenActiveRect(actRect);
     EXPECT_EQ(StatusCode::HDI_ERROR, res);
+}
+
+/*
+ * @tc.name: PhysicalScreenInit
+ * @tc.desc: PhysicalScreenInit Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    MultiScreenParam::SetSkipFrameByActiveRefreshRate(false);
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    EXPECT_EQ(rsScreen->skipFrameStrategy_, SKIP_FRAME_BY_INTERVAL);
+ 
+    id = 1;
+    rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    EXPECT_EQ(rsScreen->skipFrameStrategy_, SKIP_FRAME_BY_INTERVAL);
+ 
+    id = 2;
+    rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    EXPECT_EQ(rsScreen->skipFrameStrategy_, SKIP_FRAME_BY_INTERVAL);
+ 
+    id = 3;
+    MultiScreenParam::SetSkipFrameByActiveRefreshRate(true);
+    rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    EXPECT_EQ(rsScreen->skipFrameStrategy_, SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
 }
 } // namespace OHOS::Rosen
