@@ -70,7 +70,6 @@ private:
     static napi_value GetReverseColor(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
     static ImageType ParserArgumentType(napi_env env, napi_value argv);
-    static void Finalizer(napi_env env, void* data, void* hint);
 
     // napi var
     napi_env env_ = nullptr;

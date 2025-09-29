@@ -71,7 +71,7 @@ function main() {
   }).catch((ex: Object | null | undefined) => {
     console.log('Test createColorPicker (Promise) failed');
   });
-  
+
   effectKit.createColorPicker(pixelMap, [0, 0, 5, 5]).then((colorPicker: effectKit.ColorPicker) => {
     if (colorPicker != undefined) {
       console.log(`Test createColorPicker (Promise, region) success`);
@@ -79,7 +79,7 @@ function main() {
   }).catch((ex: Object | null | undefined) => {
     console.log('Test createColorPicker (Promise, region) failed');
   });
-  
+
   effectKit.createColorPicker(pixelMap, (error, colorPicker: effectKit.ColorPicker | undefined) => {
     if (error && error.code != 0) {
       console.log('Test createColorPicker (Callback) failed');
@@ -99,6 +99,6 @@ function main() {
       console.log('Test createColorPicker (Callback, region) failed (colorPicker = undefined)');
     }
   });
-  
+
   console.log('Test effectKit end');
 }

@@ -138,6 +138,7 @@ static void GetDoubleFromTuple(ani_env *env, ani_object tuple, const char *index
     ani_ref ref {};
     if (env->Object_GetFieldByName_Ref(tuple, index, &ref) != ANI_OK) {
         UIEFFECT_LOG_E("GetDoubleFromTuple Object_SetPropertyByName_Ref pos error");
+        return;
     }
     if (env->Object_GetFieldByName_Double(static_cast<ani_object>(ref), "value", result) != ANI_OK) {
         UIEFFECT_LOG_E("GetDoubleFromTuple Object_GetFieldByName_Double pos error");
