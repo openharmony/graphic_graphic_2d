@@ -47,7 +47,7 @@ public:
 class EffectImageChain {
 public:
     EffectImageChain() = default;
-    ~EffectImageChain() = default;
+    ~EffectImageChain();
 
     DrawingError Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU);
 
@@ -79,6 +79,7 @@ private:
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
 
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
+    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
     std::shared_ptr<Drawing::Canvas> canvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
 };
