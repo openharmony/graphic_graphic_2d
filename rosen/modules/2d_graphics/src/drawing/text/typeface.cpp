@@ -95,7 +95,6 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
 #else
     return nullptr;
 #endif
-
 }
 
 std::shared_ptr<Typeface> Typeface::MakeFromAshmem(

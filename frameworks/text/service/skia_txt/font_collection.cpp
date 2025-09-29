@@ -96,11 +96,13 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
             "Find same typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(), ta.GetHash());
         return RegisterError::ALREADY_EXIST;
     }
+
     auto typeface = TypefaceMap::GetTypeface(ta.GetTypeface()->GetHash());
     if (typeface != nullptr) {
         typefaceSet_.insert(ta);
         return RegisterError::SUCCESS;
     }
+
     int32_t fd = Drawing::Typeface::GetTypefaceRegisterCallBack()(ta.GetTypeface());
     if (fd == -1) {
         TEXT_LOGE("Failed to register typeface %{public}s", ta.GetAlias().c_str());
@@ -108,6 +110,7 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
     } else if (fd >= 0 && fd != ta.GetTypeface()->GetFd()) {
         ta.UpdateTypefaceAshmem(fd, ta.GetTypeface()->GetSize());
     }
+
     TEXT_LOGI("Succeed in registering typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(),
         ta.GetHash());
     typefaceSet_.insert(ta);
