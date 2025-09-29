@@ -107,7 +107,7 @@ public:
     void DoAnimation(std::shared_ptr<RSCanvasNode>& canvasNode, Vector2f translate)
     {
         RSAnimationTimingProtocol protocol;
-        int duration = 1000; // the animation lasts for 1 second
+        int duration = 500; // the animation lasts for 0.5 second
         protocol.SetDuration(duration);
         auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
         RSNode::Animate(protocol, timingCurve, [&]() {
