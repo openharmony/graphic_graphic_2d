@@ -231,7 +231,7 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCache(uint
 }
 
 std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCacheByHash(uint64_t uniqueId) const
-{ 
+{
     std::lock_guard lock(mapMutex_);
     auto hash = GetTypefaceId(uniqueId);
     if (typefaceHashMap_.count(hash)) {

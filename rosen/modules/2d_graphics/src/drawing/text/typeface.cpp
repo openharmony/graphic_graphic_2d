@@ -320,7 +320,7 @@ T read(const uint8_t* data, size_t size = sizeof(T))
 {
     T result = 0;
     for (auto ii = size; ii > 0; ii--) {
-        result += data[size - ii] << (ii - 1) * ONE_BYTE_SHIFT;
+        result += (data[size - ii] << ((ii - 1) * ONE_BYTE_SHIFT));
     }
     return result;
 }
