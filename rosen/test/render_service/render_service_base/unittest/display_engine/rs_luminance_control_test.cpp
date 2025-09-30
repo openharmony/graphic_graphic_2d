@@ -54,6 +54,7 @@ public:
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
     MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));
     MOCK_METHOD(bool, IsBrightnessInfoChanged, (ScreenId screenId), (override));
+    MOCK_METHOD(void, HandleGamutSpecialRender, (std::vector<ScreenColorGamut>& modes), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -92,6 +93,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
 {
     ScreenId screenId{};
     uint32_t level{};
+    std::vector<ScreenColorGamut> mode{};
     auto& luminCtrl = RSLuminanceControl::Get();
     luminCtrl.Init();
     luminCtrl.initStatus_ = true;
@@ -100,6 +102,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetSdrLuminance(screenId, level);
     luminCtrl.ForceCloseHdr(screenId, true);
     luminCtrl.GetBrightnessInfo(screenId);
+    luminCtrl.HandleGamutSpecialRender(mode);
 
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
@@ -114,6 +117,23 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
     luminCtrl.ForceCloseHdr(screenId, true);
     luminCtrl.GetBrightnessInfo(screenId);
+    luminCtrl.HandleGamutSpecialRender(mode);
+
+    ASSERT_NE((&luminCtrl), nullptr);
+
+    luminCtrl.rSLuminanceControlInterface_ = nullptr;
+    ASSERT_EQ(luminCtrl.rSLuminanceControlInterface_, nullptr);
+    luminCtrl.UpdateScreenStatus(screenId, POWER_STATUS_ON);
+    luminCtrl.DimmingIncrease(screenId);
+    luminCtrl.SetNowHdrLuminance(screenId, level);
+    luminCtrl.SetSdrLuminance(screenId, level);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO_GTM);
+    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
+    luminCtrl.ForceCloseHdr(screenId, true);
+    luminCtrl.GetBrightnessInfo(screenId);
+    luminCtrl.HandleGamutSpecialRender(mode);
     
     ASSERT_NE((&luminCtrl), nullptr);
 }
