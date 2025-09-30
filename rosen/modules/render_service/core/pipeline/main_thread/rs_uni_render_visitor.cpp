@@ -387,6 +387,7 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
     } else {
+        RSLuminanceControl::Get().HandleGamutSpecRender(mode);
         node.SelectBestGamut(mode);
     }
 

@@ -225,5 +225,12 @@ bool RSLuminanceControl::IsBrightnessInfoChanged(ScreenId screenId)
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->IsBrightnessInfoChanged(screenId) : false;
 }
+
+void RSLuminanceControl::HandleGamutSpecRender(std::vector<ScreenColorGamut>& modes)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->HandleGamutSpecRender(modes);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
