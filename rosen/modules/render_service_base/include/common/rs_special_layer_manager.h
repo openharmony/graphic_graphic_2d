@@ -32,6 +32,7 @@ constexpr uint32_t VIRTUALSCREEN_IS_SPECIAL = 0X7;  //contain security、skip、
 constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、skip、protected layer
 constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
+constexpr uint32_t MAX_IDS_SIZE = 1024;
 
 enum SpecialLayerType : uint32_t {
     NONE = 0,
@@ -70,6 +71,7 @@ public:
     bool SetWithScreen(uint64_t screenId, uint32_t type, bool is);
     bool FindWithScreen(uint64_t screenId, uint32_t type) const;
     void ClearScreenSpecialLayer();
+    void ClearSpecialLayerIds();
 
 private:
     static std::stack<LeashPersistentId> whiteListRootIds_;
