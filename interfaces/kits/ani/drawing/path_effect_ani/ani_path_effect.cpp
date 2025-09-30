@@ -73,7 +73,7 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
-        ROSEN_LOGE("AniMaskFilter::CreateDiscretePathEffect failed cause aniObj is undefined");
+        ROSEN_LOGE("AniPathEffect::CreateDiscretePathEffect failed cause aniObj is undefined");
     }
     return aniObj;
 }
@@ -98,7 +98,7 @@ ani_object AniPathEffect::CreateSumPathEffect(ani_env* env, [[maybe_unused]]ani_
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
-        ROSEN_LOGE("AniMaskFilter::CreateSumPathEffect failed cause aniObj is undefined");
+        ROSEN_LOGE("AniPathEffect::CreateSumPathEffect failed cause aniObj is undefined");
     }
     return aniObj;
 }
@@ -124,7 +124,7 @@ ani_object AniPathEffect::CreatePathDashEffect(ani_env* env, [[maybe_unused]]ani
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
-        ROSEN_LOGE("AniMaskFilter::CreatePathDashEffect failed cause aniObj is undefined");
+        ROSEN_LOGE("AniPathEffect::CreatePathDashEffect failed cause aniObj is undefined");
     }
     return aniObj;
 }
@@ -149,7 +149,7 @@ ani_object AniPathEffect::CreateComposePathEffect(ani_env* env, [[maybe_unused]]
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
-        ROSEN_LOGE("AniMaskFilter::CreateComposePathEffect failed cause aniObj is undefined");
+        ROSEN_LOGE("AniPathEffect::CreateComposePathEffect failed cause aniObj is undefined");
     }
     return aniObj;
 }
@@ -163,7 +163,7 @@ ani_object AniPathEffect::CreateCornerPathEffect(
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
-        ROSEN_LOGE("AniMaskFilter::CreateCornerPathEffect failed cause aniObj is undefined");
+        ROSEN_LOGE("AniPathEffect::CreateCornerPathEffect failed cause aniObj is undefined");
     }
     return aniObj;
 }
@@ -210,7 +210,7 @@ ani_object AniPathEffect::CreateDashPathEffect(
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
-        ROSEN_LOGE("AniMaskFilter::CreateDashPathEffect failed cause aniObj is undefined");
+        ROSEN_LOGE("AniPathEffect::CreateDashPathEffect failed cause aniObj is undefined");
     }
     return aniObj;
 }

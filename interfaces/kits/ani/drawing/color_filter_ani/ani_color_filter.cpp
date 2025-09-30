@@ -265,7 +265,7 @@ ani_object AniColorFilter::CreateComposeColorFilter(
         return CreateAniUndefined(env);
     }
     auto aniInnerColorFilter = GetNativeFromObj<AniColorFilter>(env, aniInnerColorFilterObj);
-    if (aniOuterColorFilter == nullptr) {
+    if (aniInnerColorFilter == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param inner.");
         return CreateAniUndefined(env);
     }
@@ -302,7 +302,7 @@ ani_object AniColorFilter::CreateLumaColorFilter(ani_env* env, [[maybe_unused]] 
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete colorFilter;
-        ROSEN_LOGE("AniColorFilter::CreateLinearToSRGBGamma failed cause aniObj is undefined");
+        ROSEN_LOGE("AniColorFilter::CreateLumaColorFilter failed cause aniObj is undefined");
     }
     return aniObj;
 }

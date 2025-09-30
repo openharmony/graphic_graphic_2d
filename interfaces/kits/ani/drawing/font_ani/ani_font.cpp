@@ -62,12 +62,32 @@ static std::string GetFontEdgingItemName(FontEdging edging)
 
 ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
 {
-    ani_object aniFontMetrics = CreateAniObject(env, "@ohos.graphics.drawing.drawing.FontMetricsInner", "ddddd:",
+        ani_object aniFontMetrics = CreateAniObject(env, "@ohos.graphics.drawing.drawing.FontMetricsInner",
+        "iddddddddddddddd:",
+        ani_int(static_cast<int>(fontMetrics.fFlags)),
         ani_double(fontMetrics.fTop),
         ani_double(fontMetrics.fAscent),
         ani_double(fontMetrics.fDescent),
         ani_double(fontMetrics.fBottom),
-        ani_double(fontMetrics.fLeading));
+        ani_double(fontMetrics.fLeading),
+        ani_double(fontMetrics.fAvgCharWidth),
+        ani_double(fontMetrics.fMaxCharWidth),
+        ani_double(fontMetrics.fXMin),
+        ani_double(fontMetrics.fXMax),
+        ani_double(fontMetrics.fXHeight),
+        ani_double(fontMetrics.fCapHeight),
+        ani_double(fontMetrics.fUnderlineThickness),
+        ani_double(fontMetrics.fUnderlinePosition),
+        ani_double(fontMetrics.fStrikeoutThickness),
+        ani_double(fontMetrics.fStrikeoutPosition)
+    );
+    
+    ani_boolean isUndefined = false;
+    env->Reference_IsUndefined(aniFontMetrics, &isUndefined);
+    if (isUndefined) {
+        ROSEN_LOGE("[ANI] create aniFontMetrics failed.");
+        return aniFontMetrics;
+    }
     return aniFontMetrics;
 }
 

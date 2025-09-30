@@ -249,7 +249,7 @@ ani_object DoubleToObject(ani_env *env, double value)
     }
     ani_method ctorMethod;
     ret = env->Class_FindMethod(aniClass, "<ctor>", "d:", &ctorMethod);
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "d:", &ctorMethod)) {
+    if (ret != ANI_OK) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Class_FindMethod <ctor> Failed.");
         return aniObject;
     }
@@ -389,6 +389,7 @@ ani_boolean AniMatrix::Invert(ani_env* env, ani_object obj, ani_object aniMatrix
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
     if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid params.");
+        return false;
     }
 
     auto aniNewMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj);
@@ -451,7 +452,7 @@ ani_boolean AniMatrix::SetPolyToPoly(ani_env* env, ani_object obj, ani_object an
 
     uint32_t inputSize = static_cast<uint32_t>(count);
     if (inputSize > POLY_POINT_COUNT_MAX) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param 'count' > 4");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param count.");
         return false;
     }
 

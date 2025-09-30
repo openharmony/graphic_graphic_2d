@@ -2474,11 +2474,11 @@ namespace drawing {
   export interface FontMetrics {
     /**
      * Font measurement flags that are valid.
-     * @type { ?FontMetricsFlags }
+     * @type { ?int }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
      */
-    flags?: FontMetricsFlags;
+    flags?: int;
 
     /**
      * Maximum range above the glyph bounding box.
@@ -2612,11 +2612,11 @@ namespace drawing {
   export class FontMetricsInner implements FontMetrics {
     /**
      * Font measurement flags that are valid.
-     * @type { ?FontMetricsFlags }
+     * @type { ?int }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
      */
-    flags?: FontMetricsFlags;
+    flags?: int;
 
     /**
      * Maximum range above the glyph bounding box.
@@ -2671,6 +2671,42 @@ namespace drawing {
       this.descent = descent;
       this.bottom = bottom;
       this.leading = leading;
+    }
+
+    constructor(
+      flags: int,
+      top: double,
+      ascent: double,
+      descent: double,
+      bottom: double,
+      leading: double,
+      avgCharWidth: double,
+      maxCharWidth: double,
+      xMin: double,
+      xMax: double,
+      xHeight: double,
+      capHeight: double,
+      underlineThickness: double,
+      underlinePosition: double,
+      strikethroughThickness: double,
+      strikethroughPosition: double
+    ) {
+      this.flags = flags;
+      this.top = top;
+      this.ascent = ascent;
+      this.descent = descent;
+      this.bottom = bottom;
+      this.leading = leading;
+      this.avgCharWidth = avgCharWidth;
+      this.maxCharWidth = maxCharWidth;
+      this.xMin = xMin;
+      this.xMax = xMax;
+      this.xHeight = xHeight;
+      this.capHeight = capHeight;
+      this.underlineThickness = underlineThickness;
+      this.underlinePosition = underlinePosition;
+      this.strikethroughThickness = strikethroughThickness;
+      this.strikethroughPosition = strikethroughPosition;
     }
 
      avgCharWidth?: double;

@@ -331,7 +331,7 @@ ani_double AniPath::GetLength(ani_env* env, ani_object obj, ani_boolean forceClo
     auto aniPath = GetNativeFromObj<AniPath>(env, obj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
-        return false;
+        return 0.0;
     }
     return aniPath->GetPath()->GetLength(forceClosed);
 }

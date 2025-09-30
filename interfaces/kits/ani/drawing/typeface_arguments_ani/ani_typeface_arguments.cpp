@@ -18,23 +18,27 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 const char* ANI_CLASS_TYPEFACE_ARGUMENTS_NAME = "@ohos.graphics.drawing.drawing.TypefaceArguments";
+constexpr uint32_t AXIS_OFFSET_ZERO = 24;
+constexpr uint32_t AXIS_OFFSET_ONE = 16;
+constexpr uint32_t AXIS_OFFSET_TWO = 8;
 
 ani_status AniTypefaceArguments::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
     ani_status ret = env->FindClass(ANI_CLASS_TYPEFACE_ARGUMENTS_NAME, &cls);
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME);
+        ROSEN_LOGE("[ANI] can't find class: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME, ret);
         return ANI_NOT_FOUND;
     }
 
     std::array methods = {
         ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "addVariation", nullptr, reinterpret_cast<void*>(AddVariation) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME);
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_ARGUMENTS_NAME, ret);
         return ANI_NOT_FOUND;
     }
 
@@ -44,11 +48,31 @@ ani_status AniTypefaceArguments::AniInit(ani_env *env)
 void AniTypefaceArguments::Constructor(ani_env* env, ani_object obj)
 {
     AniTypefaceArguments* aniTypefaceArguments = new AniTypefaceArguments();
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypefaceArguments))) {
-        ROSEN_LOGE("AniTypefaceArguments::Constructor failed create AniTypefaceArguments");
+    ani_status ret = env->Object_SetFieldByName_Long(
+        obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypefaceArguments));
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("AniTypefaceArguments::Constructor failed create AniTypefaceArguments. ret: %{public}d", ret);
         delete aniTypefaceArguments;
         return;
     }
+}
+
+uint32_t AniTypefaceArguments::ConvertAxisToNumber(const std::string& axis)
+{
+    return ((static_cast<uint32_t>(axis[ARGC_ZERO]) << AXIS_OFFSET_ZERO) |
+        (static_cast<uint32_t>(axis[ARGC_ONE]) << AXIS_OFFSET_ONE) |
+        (static_cast<uint32_t>(axis[ARGC_TWO]) << AXIS_OFFSET_TWO) | (static_cast<uint32_t>(axis[ARGC_THREE])));
+}
+
+void AniTypefaceArguments::AddVariation(ani_env* env, ani_object obj, ani_string aniAxis, ani_double value)
+{
+    std::string axis = CreateStdString(env, aniAxis);
+    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, obj);
+    if (aniTypefaceArguments == nullptr) {
+        ROSEN_LOGE("AniTypefaceArguments::AddVariation aniTypefaceArguments invalid.");
+        return;
+    }
+    aniTypefaceArguments->GetTypefaceArgumentsHelper().coordinate.push_back({ConvertAxisToNumber(axis), value});
 }
 
 TypefaceArgumentsHelper& AniTypefaceArguments::GetTypefaceArgumentsHelper()
