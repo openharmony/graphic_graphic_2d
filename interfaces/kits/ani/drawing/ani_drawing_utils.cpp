@@ -380,7 +380,7 @@ bool CreateAniEnumByEnumIndex(ani_env* env, const char* enumDescripter, ani_size
         return false;
     }
 
-    return enumItem;
+    return true;
 }
 
 bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_object& pointArray, uint32_t index)

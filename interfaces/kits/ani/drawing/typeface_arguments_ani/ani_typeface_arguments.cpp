@@ -18,6 +18,7 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 const char* ANI_CLASS_TYPEFACE_ARGUMENTS_NAME = "@ohos.graphics.drawing.drawing.TypefaceArguments";
+constexpr uint32_t VARIATION_AXIS_LENGTH = 4;
 constexpr uint32_t AXIS_OFFSET_ZERO = 24;
 constexpr uint32_t AXIS_OFFSET_ONE = 16;
 constexpr uint32_t AXIS_OFFSET_TWO = 8;
@@ -67,6 +68,11 @@ uint32_t AniTypefaceArguments::ConvertAxisToNumber(const std::string& axis)
 void AniTypefaceArguments::AddVariation(ani_env* env, ani_object obj, ani_string aniAxis, ani_double value)
 {
     std::string axis = CreateStdString(env, aniAxis);
+    if (axis.length() != VARIATION_AXIS_LENGTH) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "Incorrect parameter0 length, the length must be four");
+        return;
+    }
     auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, obj);
     if (aniTypefaceArguments == nullptr) {
         ROSEN_LOGE("AniTypefaceArguments::AddVariation aniTypefaceArguments invalid.");

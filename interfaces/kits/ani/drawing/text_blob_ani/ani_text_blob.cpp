@@ -277,22 +277,21 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
         ROSEN_LOGE("AniTextBlob::MakeRunBuffer failed. size exceeds the upper limit.");
         return false;
     }
+    ani_class runBufferClass;
+    if (ANI_OK != env->FindClass(ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME, &runBufferClass)) {
+        return false;
+    }
     for (uint32_t i = 0; i < size; i++) {
         Drawing::Point point;
         ani_ref runBufferRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
             posArray, "$_get", "i:C{std.core.Object}", &runBufferRef, (ani_int)i)) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_CallMethodByName_Ref failed");
             return false;
         }
         ani_object aniRunBuffer =  static_cast<ani_object>(runBufferRef);
-
-        ani_class runBufferClass;
-        if (ANI_OK != env->FindClass(ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME, &runBufferClass)) {
-            return false;
-        }
         ani_boolean isRunBufferClass;
         env->Object_InstanceOf(aniRunBuffer, runBufferClass, &isRunBufferClass);
-
         if (!isRunBufferClass) {
             return false;
         }
@@ -300,10 +299,10 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
         ani_int glyph;
         ani_double positionX;
         ani_double positionY;
-
         if ((env->Object_GetPropertyByName_Int(aniRunBuffer, "glyph", &glyph) != ANI_OK) ||
             (env->Object_GetPropertyByName_Double(aniRunBuffer, "positionX", &positionX) != ANI_OK) ||
             (env->Object_GetPropertyByName_Double(aniRunBuffer, "positionY", &positionY) != ANI_OK)) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_GetPropertyByName failed");
             return false;
         }
         

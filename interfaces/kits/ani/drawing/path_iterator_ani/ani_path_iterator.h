@@ -41,6 +41,7 @@ public:
 private:
     ani_object OnNext(ani_env* env, ani_object aniPointArray, ani_object aniOffsetObj);
     ani_boolean OnHasNext(ani_env* env);
+    ani_enum_item OnPeek(ani_env* env, PathIterator& pathIterator);
 
     PathVerb NextInternal();
     PathVerb GetReturnVerb(const PathVerb& cachedVerb);

@@ -28,7 +28,6 @@
 #include "text/font_types.h"
 #include "utils/point.h"
 #include "utils/rect.h"
-#include "utils/point.h"
 
 #ifdef ROSEN_OHOS
 
@@ -59,6 +58,7 @@ enum class DrawingErrorCode : int32_t {
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+    ERROR_PARAM_VERIFICATION_FAILED = 25900001, // after api 18, no throw 401
 };
 
 constexpr char NATIVE_OBJ[] = "nativeObj";

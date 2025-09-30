@@ -174,14 +174,14 @@ ani_boolean AniPathIterator::HasNext(ani_env* env, ani_object obj)
     return aniPathIterator->OnHasNext(env);
 }
 
-ani_enum_item AniPathIterator::Peek(ani_env* env, ani_object obj)
+ani_enum_item AniPathIterator::OnPeek(ani_env* env, PathIterator& pathIterator)
 {
-    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj);
-    if (aniPathIterator == nullptr) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return nullptr;
+    PathVerb pathVerb;
+    if (done_) {
+        pathVerb = PathVerb::DONE;
+    } else {
+        pathVerb = pathIterator.Peek();
     }
-    auto pathVerb = aniPathIterator->GetPathIterator().Peek();
     ani_enum_item enumItem;
     bool result = CreateAniEnumByEnumIndex(env, ANI_ENUM_PATH_ITERATOR_VERB, static_cast<int>(pathVerb), enumItem);
     if (!result) {
@@ -189,6 +189,16 @@ ani_enum_item AniPathIterator::Peek(ani_env* env, ani_object obj)
         return nullptr;
     }
     return enumItem;
+}
+
+ani_enum_item AniPathIterator::Peek(ani_env* env, ani_object obj)
+{
+    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj);
+    if (aniPathIterator == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return nullptr;
+    }
+    return aniPathIterator->OnPeek(env, aniPathIterator->GetPathIterator());
 }
 
 PathIterator& AniPathIterator::GetPathIterator()
