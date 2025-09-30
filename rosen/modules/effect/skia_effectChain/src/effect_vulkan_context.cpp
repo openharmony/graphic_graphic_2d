@@ -55,17 +55,8 @@ void EffectVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing
 
 std::shared_ptr<Drawing::GPUContext> EffectVulkanContext::CreateDrawingContext()
 {
-    static thread_local int tid = gettid();
-    {
-        std::lock_guard<std::mutex> lock(drawingContextMutex_);
-        auto iter = drawingContextMap_.find(tid);
-        if (iter != drawingContextMap_.end() && iter->second != nullptr) {
-            return iter->second; // has created before
-        }
-    }
     auto context = vulkanInterface_->DoCreateDrawingContext();
-    SaveNewDrawingContext(tid, context);
-
+    context->SetResourceCacheLimits(0, 0);
     return context;
 }
 }
