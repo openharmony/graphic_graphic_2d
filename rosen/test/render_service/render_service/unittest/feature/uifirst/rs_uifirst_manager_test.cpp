@@ -2515,11 +2515,17 @@ HWTEST_F(RSUifirstManagerTest, ForceUpdateUifirstNodes002, TestSize.Level1)
     ASSERT_FALSE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
     // force enable
     surfaceNode->MarkUifirstNode(true, true);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONFOCUS_WINDOW);
 
     // force disable
     surfaceNode->MarkUifirstNode(true, false);

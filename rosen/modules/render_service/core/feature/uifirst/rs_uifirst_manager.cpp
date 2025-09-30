@@ -1971,7 +1971,11 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
             UifirstStateChange(node, MultiThreadCacheType::NONE);
             return true;
         }
-        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        if (RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
+            UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
+        } else {
+            UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        }
         return true;
     }
     if (node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE && node.IsLeashWindow()) {
