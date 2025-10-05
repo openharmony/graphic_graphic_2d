@@ -147,6 +147,12 @@ public:
 
     void SetCornerRadius(const Vector4f& cornerRadius);
     const Vector4f& GetCornerRadius() const;
+    void SetCornerApplyType(int type);
+    int GetCornerApplyType() const
+    {
+        return cornerApplyType_;
+    }
+    bool NeedCornerOptimization() const;
 
     void SetQuaternion(Quaternion quaternion);
     void SetRotation(float degree);
@@ -942,6 +948,7 @@ private:
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;
     std::optional<Vector4f> cornerRadius_;
+    int cornerApplyType_ = 0;
     std::optional<RSShadow> shadow_;
 
     std::shared_ptr<Drawing::RuntimeEffect> shaderEffect_ = nullptr;

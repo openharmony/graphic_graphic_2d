@@ -47,6 +47,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::TRANSLATE_Z, ThresholdType::LAYOUT },
     { RSPropertyType::SUBLAYER_TRANSFORM, ThresholdType::DEFAULT },
     { RSPropertyType::CORNER_RADIUS, ThresholdType::MEDIUM },
+    { RSPropertyType::CORNER_APPLY_TYPE, ThresholdType::ZERO },
     { RSPropertyType::ALPHA, ThresholdType::COARSE },
     { RSPropertyType::ALPHA_OFFSCREEN, ThresholdType::ZERO },
     { RSPropertyType::FOREGROUND_COLOR, ThresholdType::COLOR },

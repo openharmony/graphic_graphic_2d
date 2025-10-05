@@ -1229,6 +1229,11 @@ void RSNode::SetCornerRadius(const Vector4f& cornerRadius)
     SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetCornerRadius>(cornerRadius);
 }
 
+void RSNode::SetCornerApplyType(RSCornerApplyType type)
+{
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetCornerApplyType>(type);
+}
+
 // transform
 void RSNode::SetRotation(const Quaternion& quaternion)
 {

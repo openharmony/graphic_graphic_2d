@@ -24,6 +24,7 @@
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable.h"
+#include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
@@ -85,16 +86,29 @@ private:
 
 // ============================================================================
 // Clip To Bounds and Clip To Frame
-class RSClipToBoundsDrawable : public RSPropertyDrawable {
+class RSClipToBoundsDrawable : public RSDrawable {
 public:
-    RSClipToBoundsDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
     RSClipToBoundsDrawable() = default;
+    ~RSClipToBoundsDrawable() override = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
+    Drawing::Path stagingDrawingPath_;
+    Drawing::Path drawingPath_;
+    Drawing::RoundRect stagingClipRRect_;
+    Drawing::RoundRect clipRRect_;
+    Drawing::Rect stagingBoundsRect_;
+    Drawing::Rect boundsRect_;
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId nodeId_ = INVALID_NODEID;
+    bool stagingIsClipRRectOptimization_ = false;
+    bool isClipRRectOptimization_ = false;
+    RSClipToBoundsType stagingType_ = RSClipToBoundsType::INVALID;
+    RSClipToBoundsType type_ = RSClipToBoundsType::INVALID;
+    bool needSync_ = false;
 };
 
 class RSClipToFrameDrawable : public RSPropertyDrawable {

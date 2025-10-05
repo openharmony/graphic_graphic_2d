@@ -170,6 +170,7 @@ public:
             case RSPropertyType::TRANSLATE_Z: return "TranslateZ";
             case RSPropertyType::SUBLAYER_TRANSFORM: return "SublayerTransform";
             case RSPropertyType::CORNER_RADIUS: return "CornerRadius";
+            case RSPropertyType::CORNER_APPLY_TYPE: return "CornerApplyType";
             case RSPropertyType::ALPHA: return "Alpha";
             case RSPropertyType::ALPHA_OFFSCREEN: return "AlphaOffscreen";
             case RSPropertyType::FOREGROUND_COLOR: return "ForegroundColor";

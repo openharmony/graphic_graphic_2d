@@ -46,4 +46,14 @@ Vector4f RSBoundsClipModifier::GetCornerRadius() const
 {
     return Getter(RSPropertyType::CORNER_RADIUS, Vector4f(0.f));
 }
+
+void RSBoundsClipModifier::SetCornerApplyType(RSCornerApplyType type)
+{
+    Setter<RSProperty>(RSPropertyType::CORNER_APPLY_TYPE, static_cast<int>(type));
+}
+
+RSCornerApplyType RSBoundsClipModifier::GetCornerApplyType() const
+{
+    return static_cast<RSCornerApplyType>(Getter(RSPropertyType::CORNER_APPLY_TYPE, 0));
+}
 } // namespace OHOS::Rosen::ModifierNG

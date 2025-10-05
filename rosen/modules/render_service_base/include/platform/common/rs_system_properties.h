@@ -385,6 +385,7 @@ public:
     static bool GetSupportScreenFreezeEnabled();
 
     static bool GetBootCompleted();
+    static bool GetClipRRectOptimizationEnabled();
 
 private:
     RSSystemProperties() = default;

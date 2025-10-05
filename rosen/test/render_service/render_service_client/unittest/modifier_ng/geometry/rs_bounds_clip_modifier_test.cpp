@@ -106,4 +106,17 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipToBoundsTest, TestSize.Level1)
     modifier->SetClipToBounds(clipToBounds);
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CLIP_TO_BOUNDS));
 }
+
+/**
+ * @tc.name: SetAndGetCornerApplyTypeTest
+ * @tc.desc: Test the set and get functions for the corner apply type property
+ * @tc.type: FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetAndGetCornerApplyTypeTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    modifier->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
+    EXPECT_EQ(modifier->GetCornerApplyType(), RSCornerApplyType::OFFSCREEN);
+}
 } // namespace OHOS::Rosen

@@ -139,6 +139,26 @@ public:
     CoreCanvas& DetachBrush() override;
     CoreCanvas& DetachPaint() override;
 
+    struct CornerData {
+        CornerData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI rect) : image_(image), rect_(rect) {}
+        ~CornerData() = default;
+        std::shared_ptr<Drawing::Image> image_ = nullptr;
+        Drawing::RectI rect_ = {};
+    };
+
+    struct ClipRRectData {
+        static constexpr size_t CORNER_DATA_SIZE = 4;
+        ClipRRectData(std::array<std::shared_ptr<RSPaintFilterCanvasBase::CornerData>, CORNER_DATA_SIZE> data,
+            Drawing::RoundRect rRect, uint32_t saveCount) : data_(data), rRect_(rRect), saveCount_(saveCount) {}
+        ~ClipRRectData() = default;
+        std::array<std::shared_ptr<RSPaintFilterCanvasBase::CornerData>, CORNER_DATA_SIZE> data_ =
+            { nullptr, nullptr, nullptr, nullptr };
+        Drawing::RoundRect rRect_ = {};
+        uint32_t saveCount_ = 0;
+    };
+
+    uint32_t SaveClipRRect(std::shared_ptr<RSPaintFilterCanvasBase::ClipRRectData> data);
+
     /**
      * @brief DDK Draw HPS Effect on image
      *
@@ -178,6 +198,7 @@ protected:
     virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
     virtual Drawing::Brush* GetFilteredBrush() const = 0;
     Drawing::Canvas* canvas_ = nullptr;
+    std::stack<std::shared_ptr<RSPaintFilterCanvasBase::ClipRRectData>> clipRRectStack_;
 };
 
 // This class is used to filter the paint before drawing. currently, it is used to filter the alpha and foreground
@@ -216,6 +237,11 @@ public:
     void SetBlendMode(std::optional<int> blendMode);
     void SetBlender(std::shared_ptr<Drawing::Blender>);
     bool HasOffscreenLayer() const;
+
+    // round corner related
+    void ClipRRectOptimization(Drawing::RoundRect clipRRect);
+    std::shared_ptr<RSPaintFilterCanvasBase::CornerData> GenerateCornerData(
+        Drawing::RoundRect rRect, Drawing::RoundRect::CornerPos pos, Drawing::Matrix mat, Drawing::Surface *surface);
 
     // save/restore utils
     struct SaveStatus {

@@ -122,6 +122,22 @@ enum class RSColorBlendApplyType : int16_t {
     MAX = SAVE_LAYER_INIT_WITH_PREVIOUS_CONTENT
 };
 
+// corner apply type
+enum class RSCornerApplyType : int16_t {
+    FAST = 0,
+    OFFSCREEN,
+    MAX = OFFSCREEN
+};
+
+// clip to bounds type
+enum class RSClipToBoundsType : int16_t {
+    INVALID = 0,
+    CLIP_PATH,
+    CLIP_RRECT,
+    CLIP_IRECT,
+    CLIP_RECT
+};
+
 struct RSDynamicBrightnessPara {
     Vector4f rates_ {};
     float saturation_ = 0.0f;

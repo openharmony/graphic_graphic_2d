@@ -828,6 +828,20 @@ HWTEST_F(RSNodeTest, SetandGetCornerRadius005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetCornerApplyType
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSNodeTest, SetandGetCornerApplyType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(), static_cast<int>(RSCornerApplyType::FAST));
+    rsNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(), static_cast<int>(RSCornerApplyType::OFFSCREEN));
+}
+
+/**
  * @tc.name: SetandGetOutlineRadius001
  * @tc.desc:
  * @tc.type:FUNC

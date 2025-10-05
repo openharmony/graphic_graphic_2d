@@ -1696,5 +1696,11 @@ bool RSSystemProperties::GetBootCompleted()
 {
     return system::GetBoolParameter("bootevent.boot.completed", false);
 }
+
+bool RSSystemProperties::GetClipRRectOptimizationEnabled()
+{
+    static bool enable = system::GetIntParameter("persist.sys.graphic.clipRRectOptimizationEnabled", 0) != 0;
+    return enable;
+}
 } // namespace Rosen
 } // namespace OHOS
