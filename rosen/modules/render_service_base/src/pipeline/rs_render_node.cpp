@@ -1437,11 +1437,6 @@ RSRenderNode::~RSRenderNode()
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, appPid_);
     }
     FallbackAnimationsToRoot();
-    if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
-        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
-            completedSurfaceThreadIndex_);
-    }
-    ClearCacheSurface();
     auto context = GetContext().lock();
     if (!context) {
         ROSEN_LOGD("RSRenderNode::~RSRenderNode: Invalid context");
@@ -3172,156 +3167,6 @@ bool RSRenderNode::GetGlobalPositionEnabled() const
     return false;
 }
 
-bool RSRenderNode::NeedInitCacheSurface()
-{
-    auto cacheType = GetCacheType();
-    int width = 0;
-    int height = 0;
-    if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid() && !GetRenderProperties().IsAttractionValid()) {
-        const RectF boundsRect = GetRenderProperties().GetBoundsRect();
-        RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
-        RectI shadowRect;
-        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rrect, false);
-        width = shadowRect.GetWidth();
-        height = shadowRect.GetHeight();
-    } else {
-        Vector2f size = GetOptionalBufferSize();
-        width =  size.x_;
-        height = size.y_;
-    }
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    if (cacheSurface_ == nullptr) {
-        return true;
-    }
-    auto cacheCanvas = cacheSurface_->GetCanvas();
-    if (cacheCanvas == nullptr) {
-        return true;
-    }
-    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
-}
-
-bool RSRenderNode::NeedInitCacheCompletedSurface()
-{
-    Vector2f size = GetOptionalBufferSize();
-    int width = static_cast<int>(size.x_);
-    int height = static_cast<int>(size.y_);
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    if (cacheCompletedSurface_ == nullptr) {
-        return true;
-    }
-    auto cacheCanvas = cacheCompletedSurface_->GetCanvas();
-    if (cacheCanvas == nullptr) {
-        return true;
-    }
-    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
-}
-
-void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)
-{
-    RS_TRACE_NAME_FMT("InitCacheSurface");
-    if (func) {
-        cacheSurfaceThreadIndex_ = threadIndex;
-        if (!clearCacheSurfaceFunc_) {
-            clearCacheSurfaceFunc_ = func;
-        }
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        if (cacheSurface_) {
-            func(std::move(cacheSurface_), nullptr,
-                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            cacheSurface_ = nullptr;
-        }
-    } else {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        cacheSurface_ = nullptr;
-    }
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        cacheCleanupHelper_ = nullptr;
-    }
-#endif
-    auto cacheType = GetCacheType();
-    float width = 0.0f, height = 0.0f;
-    Vector2f size = GetOptionalBufferSize();
-    boundsWidth_ = size.x_;
-    boundsHeight_ = size.y_;
-    if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid() && !GetRenderProperties().IsAttractionValid()) {
-        const RectF boundsRect = GetRenderProperties().GetBoundsRect();
-        RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
-        RectI shadowRect;
-        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rrect, false);
-        width = shadowRect.GetWidth();
-        height = shadowRect.GetHeight();
-        shadowRectOffsetX_ = -shadowRect.GetLeft();
-        shadowRectOffsetY_ = -shadowRect.GetTop();
-    } else {
-        width = std::ceil(boundsWidth_);
-        height = std::ceil(boundsHeight_);
-    }
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-    if (gpuContext == nullptr) {
-        if (func) {
-            std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            ClearCacheSurface();
-        }
-        return;
-    }
-#ifdef RS_ENABLE_GL
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-        Drawing::ImageInfo info = Drawing::ImageInfo::MakeN32Premul(width, height);
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        cacheSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext, true, info);
-    }
-#endif
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        auto initCacheBackendTexture = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(GetId()));
-        auto vkTextureInfo = initCacheBackendTexture.GetTextureInfo().GetVKTextureInfo();
-        if (!initCacheBackendTexture.IsValid() || !vkTextureInfo) {
-            if (func) {
-                std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-                func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                    cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-                ClearCacheSurface();
-            }
-            return;
-        }
-        auto initCacheCleanupHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
-        auto initCacheSurface = Drawing::Surface::MakeFromBackendTexture(
-            gpuContext, initCacheBackendTexture.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
-            1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
-            NativeBufferUtils::DeleteVkImage, initCacheCleanupHelper);
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        cacheBackendTexture_ = initCacheBackendTexture;
-        cacheCleanupHelper_ = initCacheCleanupHelper;
-        cacheSurface_ = initCacheSurface;
-    }
-#endif
-#else
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    cacheSurface_ = Drawing::Surface::MakeRasterN32Premul(width, height);
-#endif
-}
-
-bool RSRenderNode::IsCacheSurfaceValid() const
-{
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    return  (cacheSurface_ != nullptr);
-}
-
-bool RSRenderNode::IsCacheCompletedSurfaceValid() const
-{
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    return  (cacheCompletedSurface_ != nullptr);
-}
-
 Vector2f RSRenderNode::GetOptionalBufferSize() const
 {
     if (boundsModifierNG_ != nullptr) {
@@ -3333,158 +3178,6 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
         return { frame.z_, frame.w_ };
     }
     return { 0.f, 0.f };
-}
-
-std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
-    RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
-{
-    if (isUIFirst) {
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        if (!cacheCompletedBackendTexture_.IsValid()) {
-            RS_LOGE("invalid grBackendTexture_");
-            return nullptr;
-        }
-#ifdef RS_ENABLE_VK
-        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-            if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
-                return nullptr;
-            }
-        }
-#endif
-        if (canvas.GetGPUContext() == nullptr) {
-            RS_LOGE("canvas GetGPUContext failed");
-            return nullptr;
-        }
-        auto image = std::make_shared<Drawing::Image>();
-        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-        Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
-            Drawing::ALPHATYPE_PREMUL };
-#ifdef RS_ENABLE_GL
-        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
-            OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-            image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
-                origin, info, nullptr);
-        }
-#endif
-
-#ifdef RS_ENABLE_VK
-        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-            image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
-                origin, info, nullptr,
-                NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
-        }
-#endif
-        return image;
-#endif
-    }
-
-    if (!cacheCompletedSurface_) {
-        RS_LOGE("DrawCacheSurface invalid cacheCompletedSurface");
-        return nullptr;
-    }
-    auto completeImage = cacheCompletedSurface_->GetImageSnapshot();
-    if (!completeImage) {
-        RS_LOGE("Get complete image failed");
-        return nullptr;
-    }
-    if (threadIndex == completedSurfaceThreadIndex_) {
-        return completeImage;
-    }
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-    auto backendTexture = completeImage->GetBackendTexture(false, &origin);
-    if (!backendTexture.IsValid()) {
-        RS_LOGE("get backendTexture failed");
-        return nullptr;
-    }
-    auto cacheImage = std::make_shared<Drawing::Image>();
-    Drawing::BitmapFormat info =
-        Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
-    if (canvas.GetGPUContext() == nullptr) {
-        RS_LOGE("canvas GetGPUContext failed");
-        return nullptr;
-    }
-    bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
-        origin, info, nullptr);
-    if (!ret) {
-        RS_LOGE("RSRenderNode::GetCompletedImage image BuildFromTexture failed");
-        return nullptr;
-    }
-    return cacheImage;
-#else
-    return completeImage;
-#endif
-}
-
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-void RSRenderNode::UpdateBackendTexture()
-{
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    if (cacheSurface_ == nullptr) {
-        return;
-    }
-    cacheBackendTexture_ = cacheSurface_->GetBackendTexture();
-}
-#endif
-
-std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_t threadIndex, bool needCheckThread,
-    bool releaseAfterGet)
-{
-    {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        if (releaseAfterGet) {
-#ifdef RS_ENABLE_VK
-            if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-                OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-                cacheCompletedCleanupHelper_ = nullptr;
-            }
-#endif
-            return cacheCompletedSurface_;
-        }
-        if (!needCheckThread || completedSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
-            return cacheCompletedSurface_;
-        }
-    }
-
-    // freeze cache scene
-    ClearCacheSurfaceInThread();
-    return nullptr;
-}
-
-void RSRenderNode::ClearCacheSurfaceInThread()
-{
-    if (clearCacheSurfaceFunc_) {
-        clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
-            completedSurfaceThreadIndex_);
-    }
-    ClearCacheSurface();
-}
-
-std::shared_ptr<Drawing::Surface> RSRenderNode::GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
-    bool releaseAfterGet)
-{
-    {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        if (releaseAfterGet) {
-#ifdef RS_ENABLE_VK
-            if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-                OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-                cacheCleanupHelper_ = nullptr;
-            }
-#endif
-            return std::move(cacheSurface_);
-        }
-        if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
-            return cacheSurface_;
-        }
-    }
-
-    // freeze cache scene
-    ClearCacheSurfaceInThread();
-    return nullptr;
 }
 
 bool RSRenderNode::IsForcedDrawInGroup() const
@@ -3999,52 +3692,7 @@ const std::string& RSRenderNode::GetNodeName() const
 {
     return nodeName_;
 }
-void RSRenderNode::UpdateCompletedCacheSurface()
-{
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    std::swap(cacheSurface_, cacheCompletedSurface_);
-    std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
-    }
-#endif
-    SetTextureValidFlag(true);
-#endif
-}
-void RSRenderNode::SetTextureValidFlag(bool isValid)
-{
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    isTextureValid_ = isValid;
-#endif
-}
-void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
-{
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    cacheSurface_ = nullptr;
-#ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        cacheCleanupHelper_ = nullptr;
-    }
-#endif
-    if (isClearCompletedCacheSurface) {
-        cacheCompletedSurface_ = nullptr;
-#ifdef RS_ENABLE_VK
-        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-            cacheCompletedCleanupHelper_ = nullptr;
-        }
-#endif
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-        isTextureValid_ = false;
-#endif
-    }
-}
+
 void RSRenderNode::SetCacheType(CacheType cacheType)
 {
     cacheType_ = cacheType;
@@ -4156,22 +3804,10 @@ void RSRenderNode::SetHasFilter(bool hasFilter)
 {
     hasFilter_ = hasFilter;
 }
-std::recursive_mutex& RSRenderNode::GetSurfaceMutex() const
-{
-    return surfaceMutex_;
-}
 
 void RSRenderNode::SetHasAbilityComponent(bool hasAbilityComponent)
 {
     hasAbilityComponent_ = hasAbilityComponent;
-}
-uint32_t RSRenderNode::GetCacheSurfaceThreadIndex() const
-{
-    return cacheSurfaceThreadIndex_;
-}
-uint32_t RSRenderNode::GetCompletedSurfaceThreadIndex() const
-{
-    return completedSurfaceThreadIndex_;
 }
 
 bool RSRenderNode::IsMainThreadNode() const
@@ -4218,15 +3854,7 @@ void RSRenderNode::SetParentScbScreen()
 {
     isParentScbScreen_ = true;
 }
-bool RSRenderNode::HasCachedTexture() const
-{
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    return isTextureValid_;
-#else
-    return true;
-#endif
-}
+
 void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
     if (rect && (rect->GetHeight() >= std::numeric_limits<uint16_t>::max() ||

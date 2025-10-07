@@ -564,8 +564,6 @@ public:
     const std::string& GetNodeName() const;
     bool HasSubSurface() const;
 
-    bool NeedInitCacheSurface();
-    bool NeedInitCacheCompletedSurface();
     bool IsPureContainer() const;
     bool IsContentNode() const;
     void SetDrawNodeType(DrawNodeType nodeType);
@@ -574,48 +572,13 @@ public:
     using ClearCacheSurfaceFunc =
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
-    void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 
     Vector2f GetOptionalBufferSize() const;
-
-    std::shared_ptr<Drawing::Surface> GetCacheSurface() const
-    {
-        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-        return cacheSurface_;
-    }
-
-    // use for uni render visitor
-    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
-        bool releaseAfterGet = false);
-
-    void UpdateCompletedCacheSurface();
-    void SetTextureValidFlag(bool isValid);
-    std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool needCheckThread = true, bool releaseAfterGet = false);
-    void ClearCacheSurfaceInThread();
-    void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
-    bool IsCacheCompletedSurfaceValid() const;
-    bool IsCacheSurfaceValid() const;
-
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    void UpdateBackendTexture();
-#endif
 
     void SetCacheType(CacheType cacheType);
     CacheType GetCacheType() const
     {
         return cacheType_;
-    }
-
-    void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
-    {
-        isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
-    }
-
-    bool GetCacheSurfaceNeedUpdated() const
-    {
-        return isCacheSurfaceNeedUpdate_;
     }
 
     int GetShadowRectOffsetX() const;
@@ -667,17 +630,11 @@ public:
         commandExecuted_ = commandExecuted;
     }
 
-    std::recursive_mutex& GetSurfaceMutex() const;
-
     bool HasAbilityComponent() const
     {
         return hasAbilityComponent_;
     }
     void SetHasAbilityComponent(bool hasAbilityComponent);
-
-    uint32_t GetCacheSurfaceThreadIndex() const;
-
-    uint32_t GetCompletedSurfaceThreadIndex() const;
 
     bool IsMainThreadNode() const;
     void SetIsMainThreadNode(bool isMainThreadNode);
@@ -708,8 +665,6 @@ public:
 
     bool IsParentScbScreen() const;
     void SetParentScbScreen();
-
-    bool HasCachedTexture() const;
 
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
     const std::shared_ptr<RectF>& GetDrawRegion() const;
@@ -1239,7 +1194,6 @@ private:
     const bool isPurgeable_;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
-    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::atomic<bool> commandExecuted_ = false;
     std::atomic_bool isUsedBySubThread_ = false;
     // shadowRectOffset means offset between shadowRect and absRect of node
@@ -1250,8 +1204,6 @@ private:
     uint32_t disappearingTransitionCount_ = 0;
     float globalAlpha_ = 1.0f;
     // collect subtree's surfaceNode including itself
-    uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
-    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
     float boundsWidth_ = 0.0f;
@@ -1276,8 +1228,6 @@ private:
     static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
@@ -1342,20 +1292,9 @@ private:
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::BackendTexture cacheBackendTexture_;
-    Drawing::BackendTexture cacheCompletedBackendTexture_;
-#ifdef RS_ENABLE_VK
-    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
-    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
-#endif
-    bool isTextureValid_ = false;
-#endif
     std::string nodeName_ = "";
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
-    mutable std::recursive_mutex surfaceMutex_;
-    ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
 
     std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
 
@@ -1401,9 +1340,6 @@ private:
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
-
-    std::shared_ptr<Drawing::Image> GetCompletedImage(
-        RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
 
     void UpdateDisplayList();
     void UpdateShadowRect();
