@@ -107,7 +107,7 @@ uint64_t RSUIContextManager::GenerateToken(int32_t tid)
 
 std::shared_ptr<RSUIContext> RSUIContextManager::GetRandomUITaskRunnerCtx() const
 {
-    if (!isMultiInstanceOpen_ || !g_instanceValid.load() || rsUIContextMap_.empty()) {
+    if (!isMultiInstanceOpen_ || !g_instanceValid.load()) {
         return nullptr;
     }
     std::unique_lock<std::mutex> lock(mutex_);

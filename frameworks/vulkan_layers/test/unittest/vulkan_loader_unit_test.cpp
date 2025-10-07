@@ -35,6 +35,9 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen;
 
+namespace {
+    constexpr uint32_t DAMAGE_SIZE = 10;
+}
 namespace vulkan::loader {
 class VulkanLoaderUnitTest : public testing::Test {
 public:
@@ -1107,27 +1110,28 @@ HWTEST_F(VulkanLoaderUnitTest, fpAcquireNextImage2KHR_Test, TestSize.Level1)
 
 /**
  * @tc.name: test fpQueuePresentKHR
- * @tc.desc: test fpQueuePresentKHR
+ * @tc.desc: test fpQueuePresentKHR with VkPresentRegionsKHR
  * @tc.type: FUNC
- * @tc.require: issueI6SKRO
+ * @tc.require: issue20109
  */
 HWTEST_F(VulkanLoaderUnitTest, fpQueuePresentKHR_Test, TestSize.Level1)
 {
     if (isSupportedVulkan_) {
-        VkRectLayerKHR pRectangles = {};
-
-        std::vector<VkPresentRegionKHR> pRegions;
-        VkPresentRegionKHR pRegion;
-        pRegion.rectangleCount = 1;
-        pRegion.pRectangles = &pRectangles;
-        pRegions.push_back(pRegion);
-
-        VkPresentRegionsKHR presentRegions;
-        presentRegions.sType = VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR;
-        presentRegions.pNext = NULL;
-        presentRegions.swapchainCount = 1;
-        presentRegions.pRegions = pRegions.data();
-
+        VkRectLayerKHR rect = {
+            .offset = {0, 0},
+            .extent = {DAMAGE_SIZE, DAMAGE_SIZE},
+            .layer = 0,
+        };
+        VkPresentRegionKHR presentRegion = {
+            .rectangleCount = 1,
+            .pRectangles = &rect,
+        };
+        VkPresentRegionsKHR presentRegions = {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR,
+            .pNext = NULL,
+            .swapchainCount = 1,
+            .pRegions = &presentRegion,
+        };
         VkQueue queue = nullptr;
         PFN_vkGetDeviceQueue vkGetDeviceQueue = reinterpret_cast<PFN_vkGetDeviceQueue>(
             vkGetInstanceProcAddr(instance_, "vkGetDeviceQueue"));
@@ -1238,4 +1242,34 @@ HWTEST_F(VulkanLoaderUnitTest, enumerateDeviceExtensionProperties_GetExtensionPr
     }
 }
 
+/**
+ * @tc.name: test vkEnumerateDeviceExtensionProperties VK_KHR_incremental_present
+ * @tc.desc: check if VK_KHR_incremental_present can be found in the list of device extensions
+ * @tc.type: FUNC
+ * @tc.require: issue20109
+ */
+HWTEST_F(VulkanLoaderUnitTest, enumerateDeviceExtensionProperties_VK_KHR_incremental_present_Test, TestSize.Level1)
+{
+    std::set<std::string> requiredExtensions = {
+        "VK_KHR_incremental_present",
+    };
+
+    if (isSupportedVulkan_) {
+        uint32_t pPropertyCount = 0;
+        const char* pLayerName = "VK_LAYER_OHOS_surface";
+        VkResult err = vkEnumerateDeviceExtensionProperties(physicalDevice_, pLayerName, &pPropertyCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        std::vector<VkExtensionProperties> pProperties(pPropertyCount);
+        if (pPropertyCount > 0) {
+            err = vkEnumerateDeviceExtensionProperties(
+                physicalDevice_, pLayerName, &pPropertyCount, pProperties.data());
+            EXPECT_EQ(err, VK_SUCCESS);
+        }
+        // Check that all required extensions are present
+        for (const auto& extension : pProperties) {
+            requiredExtensions.erase(extension.extensionName);
+        }
+        ASSERT_TRUE(requiredExtensions.empty());
+    }
+}
 } // vulkan::loader

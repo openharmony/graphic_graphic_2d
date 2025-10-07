@@ -80,6 +80,12 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     geFilter.SetParam(desc, value);
 }
 
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const RRect& value)
+{
+    // mask is passed to GE in RSSDFEffectFilter::DrawImageRect, so here we do not need to pass it.
+}
+
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, float value)
 {
     hash = hashFunc_(&value, sizeof(value), hash);
@@ -138,6 +144,12 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std:
     for (size_t i = 0; i < value.size(); i++) {
         hash = hashFunc_(&value[i], sizeof(float), hash);
     }
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
+{
+    hash = hashFunc_(&value.radius_, RRect::RECT_SIZE, hash);
+    hash = hashFunc_(&value.radius_, RRect::RADIUS_SIZE, hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

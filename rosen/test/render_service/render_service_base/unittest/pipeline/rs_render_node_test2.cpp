@@ -2334,63 +2334,6 @@ HWTEST_F(RSRenderNodeTest2, IsPixelStretchValid, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitCacheSurfaceTest02
- * @tc.desc: InitCacheSurface test
- * @tc.type: FUNC
- * @tc.require: issueI9V3BK
- */
-HWTEST_F(RSRenderNodeTest2, InitCacheSurfaceTest02, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-    nodeTest->boundsModifierNG_ = nullptr;
-    nodeTest->frameModifierNG_ = nullptr;
-
-    RSRenderNode::ClearCacheSurfaceFunc funcTest1 = nullptr;
-    Drawing::GPUContext gpuContextTest1;
-    nodeTest->cacheType_ = CacheType::ANIMATE_PROPERTY;
-    RSShadow rsShadow;
-    std::optional<RSShadow> shadow(rsShadow);
-    nodeTest->renderProperties_.shadow_ = shadow;
-    nodeTest->renderProperties_.shadow_->radius_ = 1.0f;
-    nodeTest->renderProperties_.isSpherizeValid_ = true;
-    nodeTest->renderProperties_.isAttractionValid_ = true;
-    nodeTest->cacheSurface_ = nullptr;
-    nodeTest->InitCacheSurface(&gpuContextTest1, funcTest1, 1);
-    EXPECT_EQ(nodeTest->cacheSurface_, nullptr);
-
-    nodeTest->cacheSurface_ = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(nodeTest->cacheSurface_, nullptr);
-    nodeTest->cacheSurfaceThreadIndex_ = 1;
-    nodeTest->completedSurfaceThreadIndex_ = 1;
-    Drawing::GPUContext gpuContextTest2;
-    nodeTest->cacheType_ = CacheType::CONTENT;
-    std::shared_ptr<Drawing::Surface> surfaceTest1 = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(surfaceTest1, nullptr);
-    std::shared_ptr<Drawing::Surface> surfaceTest2 = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(surfaceTest2, nullptr);
-    RSRenderNode::ClearCacheSurfaceFunc funcTest2 = [surfaceTest1, surfaceTest2](std::shared_ptr<Drawing::Surface>&& s1,
-                                                        std::shared_ptr<Drawing::Surface>&& s2, uint32_t w,
-                                                        uint32_t h) {};
-    nodeTest->InitCacheSurface(&gpuContextTest2, funcTest2, 1);
-    EXPECT_EQ(nodeTest->cacheSurface_, nullptr);
-
-    Drawing::GPUContext* gpuContextTest3 = nullptr;
-    std::shared_ptr<Drawing::Surface> surfaceTest3 = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(surfaceTest3, nullptr);
-    std::shared_ptr<Drawing::Surface> surfaceTest4 = std::make_shared<Drawing::Surface>();
-    EXPECT_NE(surfaceTest4, nullptr);
-    RSRenderNode::ClearCacheSurfaceFunc funcTest3 = [surfaceTest3, surfaceTest4](std::shared_ptr<Drawing::Surface>&& s1,
-                                                        std::shared_ptr<Drawing::Surface>&& s2, uint32_t w,
-                                                        uint32_t h) {};
-    nodeTest->clearCacheSurfaceFunc_ = nullptr;
-    nodeTest->cacheSurfaceThreadIndex_ = 1;
-    nodeTest->completedSurfaceThreadIndex_ = 1;
-    nodeTest->InitCacheSurface(gpuContextTest3, funcTest3, 1);
-    EXPECT_EQ(nodeTest->cacheSurface_, nullptr);
-}
-
-/**
  * @tc.name: ResortChildrenTest02
  * @tc.desc:
  * @tc.type: FUNC

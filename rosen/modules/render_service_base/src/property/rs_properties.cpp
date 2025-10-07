@@ -30,6 +30,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_mask_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
@@ -3302,6 +3303,33 @@ void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
     UpdateFilter();
 }
 
+void RSProperties::SetUseUnion(bool useUnion)
+{
+    useUnion_ = useUnion;
+    if (GetUseUnion()) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+}
+
+bool RSProperties::GetUseUnion() const
+{
+    return useUnion_;
+}
+
+void RSProperties::SetUnionSpacing(float spacing)
+{
+    unionSpacing_ = spacing;
+    geoDirty_ = true;
+    contentDirty_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetUnionSpacing() const
+{
+    return unionSpacing_;
+}
+
 void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 {
     if (useShadowBatching) {
@@ -4315,6 +4343,25 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // UseUnion
+    if (GetUseUnion()) {
+        dumpInfo.append(", UseUnion[true]");
+    }
+    // UnionSpacing
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for UnionSpacing, ret=" + std::to_string(ret);
+    }
+    float spacing = GetUnionSpacing();
+    if (!ROSEN_EQ(spacing, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", UnionSpacing[%.2f]", spacing) != -1) {
+        dumpInfo.append(buffer);
+    }
+    // SDFMask
+    auto sdfMask = GetSDFMask();
+    if (sdfMask) {
+        dumpInfo.append(", SDFMask[" + sdfMask->Dump() + "]");
+    }
     return dumpInfo;
 }
 
@@ -4683,6 +4730,19 @@ void RSProperties::SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBas
 std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
 {
     return fgRenderShader_;
+}
+
+void RSProperties::SetSDFMask(const std::shared_ptr<RSNGRenderMaskBase>& mask)
+{
+    renderSDFMask_ = mask;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderMaskBase> RSProperties::GetSDFMask() const
+{
+    return renderSDFMask_;
 }
 
 } // namespace Rosen

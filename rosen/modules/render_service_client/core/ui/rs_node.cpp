@@ -38,6 +38,7 @@
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -69,6 +70,7 @@
 #include "modifier_ng/appearance/rs_point_light_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
+#include "modifier_ng/appearance/rs_union_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
@@ -2576,6 +2578,26 @@ void RSNode::SetAlwaysSnapshot(bool enable)
 {
     SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetAlwaysSnapshot>(
         enable);
+}
+
+void RSNode::SetUseUnion(bool useUnion)
+{
+    SetPropertyNG<ModifierNG::RSUnionModifier, &ModifierNG::RSUnionModifier::SetUseUnion>(useUnion);
+}
+
+void RSNode::SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask)
+{
+    if (!mask) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::UNION);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_MASK)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_MASK);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSUnionModifier, &ModifierNG::RSUnionModifier::SetSDFMask>(mask);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

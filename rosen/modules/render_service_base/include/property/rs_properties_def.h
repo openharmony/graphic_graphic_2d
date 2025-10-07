@@ -381,6 +381,13 @@ enum class UseEffectType : int16_t {
     DEFAULT = EFFECT_COMPONENT,
     MAX = BEHIND_WINDOW
 };
+
+enum class UnionType : int16_t {
+    NONE = 0,
+    UNION,
+    SMOOTH_UNION,
+    MAX = SMOOTH_UNION
+};
 } // namespace Rosen
 } // namespace OHOS
 

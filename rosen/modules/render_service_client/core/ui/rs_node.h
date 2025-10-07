@@ -67,6 +67,7 @@ class RSObjAbsGeometry;
 class RSUIContext;
 class RSNGFilterBase;
 class RSNGShaderBase;
+class RSNGMaskBase;
 class Blender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
@@ -1523,6 +1524,20 @@ public:
     void SetColorBlendMode(RSColorBlendMode colorBlendMode);
 
     void SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType);
+
+    /**
+     * @brief Sets the flag to indicate the usage of SDF Union.
+     *
+     * @param useUnion Indicates whether to enable the SDF Union.
+     */
+    void SetUseUnion(bool useUnion);
+
+    /**
+     * @brief Sets the SDF Mask.
+     *
+     * @param mask SDF Mask (SDF Union OP mask, SDF Smooth Union OP Mask, SDF RRect Mask)
+     */
+    void SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask);
 
     // driven render was shelved, functions will be deleted soon [start]
     void MarkDrivenRender(bool flag) {}
