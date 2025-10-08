@@ -400,6 +400,35 @@ int32_t OH_NativeImage_ReleaseTextImage(OH_NativeImage* image);
  * @version 1.0
  */
 int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_ColorSpace* colorSpace);
+
+/**
+ * @brief Acquire a latest <b>OHNativeWindowBuffer</b> through an <b>OH_NativeImage</b> instance for content consumer.\n
+ * This method can get the latest <b>OHNativeWindowBuffer</b> and drop other <b>OHNativeWindowBuffers</b>, meanwhile
+ * producer will receive buffer released callbacks of dropped buffers.\n
+ * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
+ * This method will create an <b>OHNativeWindowBuffer</b>.\n
+ * If there is a situation when <b>OHNativeWindowBuffer</b> is still used after calling
+ * <b>OH_NativeImage_ReleaseNativeWindowBuffer</b>, you must pay attention to the following two points.\n
+ * 1) When using <b>OHNativeWindowBuffer</b>, need to increase its reference count
+ * by <b>OH_NativeWindow_NativeObjectReference</b>.\n
+ * 2) When the <b>OHNativeWindowBuffer</b> is used up, its reference count needs to be decremented
+ * by <b>OH_NativeWindow_NativeObjectUnreference</b>.\n
+ * This interface needs to be used in conjunction with <b>OH_NativeImage_ReleaseNativeWindowBuffer</b>,
+ * otherwise memory leaks will occur.\n
+ * When the fenceFd is used up, you need to close it.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param nativeWindowBuffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> point.
+ * @param fenceFd Indicates the pointer to a file descriptor handle.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image, nativeWindowBuffer, fenceFd is NULL.
+ *     {@link NATIVE_ERROR_NO_BUFFER} 40601000 - No buffer for consume.
+ * @since 22
+ * @version 1.0
+ */
+int32_t OH_NativeImage_AcquireLatestNativeWindowBuffer(OH_NativeImage* image,
+    OHNativeWindowBuffer** nativeWindowBuffer, int* fenceFd);
 #ifdef __cplusplus
 }
 #endif

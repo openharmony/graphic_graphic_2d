@@ -195,6 +195,16 @@ int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
     return image->consumer->AcquireNativeWindowBuffer(nativeWindowBuffer, fenceFd);
 }
 
+int32_t OH_NativeImage_AcquireLatestNativeWindowBuffer(OH_NativeImage* image,
+    OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->AcquireNativeWindowBuffer(nativeWindowBuffer, fenceFd, true);
+}
+
 int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
