@@ -336,8 +336,12 @@ bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
 bool RSImageDetailEnhancerThread::GetEnableStatus() const
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    return std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
-        isParamValidate_;
+    if (std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
+        RSSystemProperties::GetMemoryWatermarkEnabled() &&
+        isParamValidate_) {
+        return true;
+    }
+    return false;
 #endif
     return false;
 }

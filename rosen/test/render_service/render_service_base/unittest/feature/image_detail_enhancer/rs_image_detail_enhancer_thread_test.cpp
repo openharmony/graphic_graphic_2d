@@ -707,7 +707,13 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, GetEnableStatusTest, TestSize.Level1)
     bool result = rsImageDetailEnhancerThread.GetEnableStatus();
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     result = rsImageDetailEnhancerThread.GetEnableStatus();
-    EXPECT_TRUE(result);
+    system::SetParameter("resourceschedule.memmgr.min.memory.watermark", "true");
+    result = rsImageDetailEnhancerThread.GetEnableStatus();
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    result = rsImageDetailEnhancerThread.GetEnableStatus();
+    system::SetParameter("resourceschedule.memmgr.min.memory.watermark", "false");
+    result = rsImageDetailEnhancerThread.GetEnableStatus();
+    EXPECT_FALSE(result);
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
 
