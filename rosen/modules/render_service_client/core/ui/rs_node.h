@@ -567,7 +567,8 @@ public:
     /**
      * @brief Sets the corner apply type of the node.
      *
-     * @param type The type applied to each rounded corner, when the four corner radius are different, the offscreen type cannot be enabled.
+     * @param type The type applied to each rounded corner, when the four corner radius are different,
+     * the offscreen type cannot be enabled.
      */
     void SetCornerApplyType(RSCornerApplyType type);
 

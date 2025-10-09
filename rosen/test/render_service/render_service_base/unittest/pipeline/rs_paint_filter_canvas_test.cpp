@@ -1874,36 +1874,40 @@ HWTEST_F(RSPaintFilterCanvasTest, IsDarkColorModeTestTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SaveClipRRectTest
- * @tc.desc: SaveClipRRect
+ * @tc.name: DrawOptimizationClipRRectTest
+ * @tc.desc: DrawOptimizationClipRRect
  * @tc.type: FUNC
  * @tc.require: issue20176
  */
-HWTEST_F(RSPaintFilterCanvasTest, SaveClipRRectTest, TestSize.Level1)
+HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1)
 {
     auto canvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas paintFilterCanvas(canvas.get());
+    paintFilterCanvas.DrawOptimizationClipRRect(nullptr, nullptr);
+
+    auto canvasTest = std::make_unique<Drawing::Canvas>();
+    paintFilterCanvas.DrawOptimizationClipRRect(canvasTest.get(), nullptr);
+
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     Drawing::RectI drawRect(0, 0, 50, 50);
+    Drawing::RectI emptyRect;
+    ASSERT_TRUE(emptyRect.IsEmpty());
     Drawing::RoundRect roundRect;
-
     auto data1 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, drawRect);
-    auto data2 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, drawRect);
-    auto data3 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, drawRect);
-    auto data4 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, drawRect);
+    auto data2 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, emptyRect);
+    auto data3 = nullptr;
+    auto data4 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(nullptr, drawRect);
     std::array<std::shared_ptr<RSPaintFilterCanvasBase::CornerData>,
         RSPaintFilterCanvasBase::ClipRRectData::CORNER_DATA_SIZE> cornerDatas = { data1, data2, data3, data4 };
     auto clipRRectData = std::make_shared<RSPaintFilterCanvasBase::ClipRRectData>(
         cornerDatas, roundRect, paintFilterCanvas.GetSaveCount());
-    
-    paintFilterCanvas.SaveClipRRect(clipRRectData);
-    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 1);
-    paintFilterCanvas.Restore();
-    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 0);
+    paintFilterCanvas.DrawOptimizationClipRRect(canvasTest.get(), clipRRectData);
 
-    clipRRectData->saveCount_ = -1;
     paintFilterCanvas.SaveClipRRect(clipRRectData);
-    paintFilterCanvas.Restore();
+    paintFilterCanvas.RestoreClipRRect(-1);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 1);
+    paintFilterCanvas.RestoreClipRRect(1);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 0);
 }
 
 /**

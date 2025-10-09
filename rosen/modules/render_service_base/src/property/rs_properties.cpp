@@ -486,7 +486,10 @@ void RSProperties::SetCornerApplyType(int type)
 
 bool RSProperties::NeedCornerOptimization() const
 {
-    return cornerApplyType_ != static_cast<int>(RSCornerApplyType::FAST);
+    bool isSameRadius = ROSEN_EQ(GetCornerRadius().x_, GetCornerRadius().y_) &&
+                        ROSEN_EQ(GetCornerRadius().y_, GetCornerRadius().z_) &&
+                        ROSEN_EQ(GetCornerRadius().z_, GetCornerRadius().w_);
+    return isSameRadius && cornerApplyType_ != static_cast<int>(RSCornerApplyType::FAST);
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)

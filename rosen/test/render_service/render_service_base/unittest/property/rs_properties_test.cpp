@@ -1059,10 +1059,6 @@ HWTEST_F(RSPropertiesTest, SetGet001, TestSize.Level1)
     properties.SetCornerRadius(corner);
     properties.GetCornerRadius();
 
-    properties.SetCornerApplyType(static_cast<int>(RSCornerApplyType::OFFSCREEN));
-    ASSERT_EQ(static_cast<int>(RSCornerApplyType::OFFSCREEN), properties.GetCornerApplyType());
-    ASSERT_TRUE(properties.NeedCornerOptimization());
-
     properties.SetRotationX(1.0);
     properties.SetRotationY(1.0);
     properties.SetRotation(1.0);
@@ -1232,6 +1228,16 @@ HWTEST_F(RSPropertiesTest, SetGet003, TestSize.Level1)
     properties.shadow_ = shadow;
     properties.SetCornerRadius(corner);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
+
+    properties.SetCornerRadius(1.0);
+    properties.SetCornerApplyType(static_cast<int>(RSCornerApplyType::OFFSCREEN));
+    ASSERT_EQ(static_cast<int>(RSCornerApplyType::OFFSCREEN), properties.GetCornerApplyType());
+    ASSERT_TRUE(properties.NeedCornerOptimization());
+
+    properties.SetCornerRadius({ 1.0, 2.0, 3.0, 4.0 });
+    properties.SetCornerApplyType(static_cast<int>(RSCornerApplyType::OFFSCREEN));
+    ASSERT_EQ(static_cast<int>(RSCornerApplyType::OFFSCREEN), properties.GetCornerApplyType());
+    ASSERT_FALSE(properties.NeedCornerOptimization());
 }
 
 /**

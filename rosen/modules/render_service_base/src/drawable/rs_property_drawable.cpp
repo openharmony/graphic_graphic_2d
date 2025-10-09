@@ -182,6 +182,7 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
             }
             case RSClipToBoundsType::CLIP_RRECT: {
                 if (RSSystemProperties::GetClipRRectOptimizationEnabled() || ptr->isClipRRectOptimization_) {
+                    RS_TRACE_NAME_FMT("RSClipToBoundsDrawable ClipRRectOptimization NodeId[%llu]", ptr->nodeId_);
                     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
                     paintFilterCanvas->ClipRRectOptimization(ptr->clipRRect_);
                     canvas->ClipRect(ptr->clipRRect_.GetRect(), Drawing::ClipOp::INTERSECT, false);

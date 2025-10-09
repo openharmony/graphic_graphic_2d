@@ -157,7 +157,9 @@ public:
         uint32_t saveCount_ = 0;
     };
 
-    uint32_t SaveClipRRect(std::shared_ptr<RSPaintFilterCanvasBase::ClipRRectData> data);
+    uint32_t SaveClipRRect(std::shared_ptr<ClipRRectData> data);
+    void RestoreClipRRect(uint32_t saveCount);
+    void DrawOptimizationClipRRect(Drawing::Canvas* canvas, std::shared_ptr<ClipRRectData> data);
 
     /**
      * @brief DDK Draw HPS Effect on image
