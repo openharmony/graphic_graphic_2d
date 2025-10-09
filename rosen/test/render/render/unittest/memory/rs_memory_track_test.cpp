@@ -323,10 +323,10 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSMemoryTrackTest, AddPictureFdRecordTest, testing::ext::TestSize.Level1)
 {
-    uint32_t pid = 123;
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureFdRecord(pid);
-    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+    uint64_t uniqueId = static_cast<uint64_t>(123) << 32;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureFdRecord(uniqueId);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
 }
 
 /**
@@ -337,13 +337,13 @@ HWTEST_F(RSMemoryTrackTest, AddPictureFdRecordTest, testing::ext::TestSize.Level
  */
 HWTEST_F(RSMemoryTrackTest, RemovePictureFdRecordTest, testing::ext::TestSize.Level1)
 {
-    uint32_t pid = 123;
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureFdRecord(pid);
-    test1.AddPictureFdRecord(pid);
+    uint64_t uniqueId = static_cast<uint64_t>(234) << 32;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureFdRecord(uniqueId);
+    test1.AddPictureFdRecord(uniqueId);
 
-    test1.RemovePictureFdRecord(pid);
-    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+    test1.RemovePictureFdRecord(234);
+    EXPECT_EQ(test1.CountFdRecordOfPid(234), 1);
 }
 
 /**
@@ -354,11 +354,11 @@ HWTEST_F(RSMemoryTrackTest, RemovePictureFdRecordTest, testing::ext::TestSize.Le
  */
 HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest, testing::ext::TestSize.Level1)
 {
-    uint32_t pid = 1234;
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureFdRecord(pid);
+    uint64_t uniqueId = static_cast<uint64_t>(345) << 32;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureFdRecord(uniqueId);
 
-    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(345), 1);
 }
 
 /**
