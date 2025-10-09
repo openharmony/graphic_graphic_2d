@@ -408,7 +408,7 @@ bool RSHpaeOfflineProcessor::PostProcessOfflineTask(
 void RSHpaeOfflineProcessor::CheckAndPostClearOfflineResourceTask()
 {
     if (!loadSuccess_) {
-        RS_OFFLINE_LOGW("hape so is not loaded.");
+        RS_OFFLINE_LOGD("hape so is not loaded.");
         return;
     }
     if (offlineResultSync_.GetResultPoolSize() < 1 && preAllocBufferSucc_ && !isBusy_) {
