@@ -76,8 +76,8 @@ int32_t RSHeteroHDRManager::RoundFloorToEven(int32_t value, int32_t maxVal)
 
 RectI RSHeteroHDRManager::RectRound(RectI srcRect, int32_t width, int32_t height)
 {
-    int32_t srcWidth = RoundDownToEven(srcRect.width_, width);
-    int32_t srcHeight = RoundDownToEven(srcRect.height_, height);
+    int32_t srcWidth = RoundFloorToEven(srcRect.width_, width);
+    int32_t srcHeight = RoundFloorToEven(srcRect.height_, height);
 
     RectI dstRect = { srcRect.left_, srcRect.top_, srcWidth, srcHeight };
     return dstRect;
@@ -109,7 +109,7 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     // The precondition has already determined that the srcBuffer is not nullptr(ValidateSurface)
     sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
     auto bufferWidth = srcBuffer->GetSurfaceBufferWidth();
-    auto bufferHeight = ssrcBuffer->GetSurfaceBufferHeight();
+    auto bufferHeight = srcBuffer->GetSurfaceBufferHeight();
     // The precondition has already checked that this node is in nodeHdrStatusMap
     if (curHandleStatus_ == HdrStatus::AI_HDR_VIDEO_GAINMAP) {
         isFixedDstBuffer_ = true;
@@ -132,8 +132,8 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     bool sizeJudge = !(ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.0f) &&
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
     bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
-        (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height_));
-
+        (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
+    // The precondition has already determined that bufferWidth and bufferHeight are not nullptr(ValidateSurface)
     if (isVertical) {
         boundSize.y_ = hpaeBufferSize_.y_;
         boundSize.x_ = round(boundSize.y_ * bufferWidth / bufferHeight);
@@ -289,14 +289,15 @@ void RSHeteroHDRManager::ClearBufferCache()
     }
 }
 
-void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hapeSrcRect, Rect& validHpaeDstRect)
+void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams,
+    RectI& hapeSrcRect, RectI& validHpaeDstRect)
 {
     // The precondition has already determined that the srcBuffer and surfaceParams are not nullptr(ValidateSurface)
     sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
     const auto& srcRect = surfaceParams->GetLayerInfo().srcRect;
-    const auto& srcRect = surfaceParams->GetLayerInfo().srcRect;
+    const auto& dstRect = surfaceParams->GetLayerInfo().dstRect;
     auto bufferWidth = srcBuffer->GetSurfaceBufferWidth();
-    auto bufferHeight = ssrcBuffer->GetSurfaceBufferHeight();
+    auto bufferHeight = srcBuffer->GetSurfaceBufferHeight();
      /*
     * isFixedDstBuffer_ is true when hpae and GPU are used separately for scaling.
     * The precondition has already determined that the width and height of srcBuffer are not zero
@@ -311,8 +312,8 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, 
         // The precondition has already determined that srcRect.w and srcRect.h are not zero
         dst_.width_ = round(float(dstRect.w)/float(srcRect.w)*float(hapeSrcRect.width_));
         dst_.height_ = round(float(dstRect.h)/float(srcRect.h)*float(hapeSrcRect.height_));
-        validHpaeDstRect = { 0, 0, float(dst_.width)/float(hapeSrcRect.width_)*float(srcRect.w),
-            float(dst_.height)/float(hapeSrcRect.height_)*float(srcRect.h) };
+        validHpaeDstRect = { 0, 0, float(dst_.width_)/float(hapeSrcRect.width_)*float(srcRect.w),
+            float(dst_.height_)/float(hapeSrcRect.height_)*float(srcRect.h) };
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
     }
 }

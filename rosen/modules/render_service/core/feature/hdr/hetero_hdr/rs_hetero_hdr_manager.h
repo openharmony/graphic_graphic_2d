@@ -70,7 +70,7 @@ private:
 
     void ProcessParamsUpdate(RSPaintFilterCanvas& canvas,
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& drawableParams);
-    void GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hapeSrcRect, Rect& validHpaeDstRect);
+    void GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hapeSrcRect, RectI& validHpaeDstRect);
     void GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
         bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams);
     int32_t BuildHDRTask(RSSurfaceRenderParams* surfaceParams, MDCRectT srcRect, uint32_t* taskId,
