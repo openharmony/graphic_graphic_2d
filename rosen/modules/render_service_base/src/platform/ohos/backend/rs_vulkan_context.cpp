@@ -616,7 +616,8 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
             }
         }
         // 144000 : print once every 20min at most.
-        if (RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed) % 144000 == 0) {
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN &&
+            RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed) % 144000 == 0) {
             RS_LOGI("used fences, surface flush count[%{public}" PRIu64 "],"
                 "dup fence count[%{public}" PRIu64 "], rs deref count[%{public}" PRIu64 "],"
                 "call 2DEngineDeref count[%{public}" PRIu64 "], 2DEngine deref count[%{public}" PRIu64 "],"
