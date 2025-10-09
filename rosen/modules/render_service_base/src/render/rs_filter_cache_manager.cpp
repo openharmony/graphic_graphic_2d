@@ -163,8 +163,6 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     auto clipIBounds = dst;
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
-    // Only draw within the visible rect.
-    ClipVisibleRect(canvas);
     Drawing::Rect srcRect = Drawing::Rect(0, 0, cachedSnapshot_->cachedImage_->GetWidth(),
             cachedSnapshot_->cachedImage_->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
@@ -218,9 +216,6 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
 #endif
 
-    if (canvas.GetDeviceClipBounds().IsEmpty()) {
-        return;
-    }
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
     if (src.IsEmpty() || dst.IsEmpty()) {
         return;
@@ -251,9 +246,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 {
     takeNewSnapshot_ = false;
     RS_OPTIONAL_TRACE_FUNC();
-    if (canvas.GetDeviceClipBounds().IsEmpty()) {
-        return nullptr;
-    }
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
     if (src.IsEmpty() || dst.IsEmpty()) {
         return nullptr;
@@ -393,9 +385,6 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
     // Draw in device coordinates.
     Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
-
-    // Only draw within the visible rect.
-    ClipVisibleRect(canvas);
 
     // The cache type and parameters has been validated, dstRect must be subset of cachedFilteredSnapshot_->cachedRect_.
     Drawing::Rect dst = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom()};
@@ -813,18 +802,6 @@ FilterCacheType RSFilterCacheManager::GetCachedType() const
         return FilterCacheType::FILTERED_SNAPSHOT;
     }
     return FilterCacheType::BOTH;
-}
-
-inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas)
-{
-    auto visibleRectF = canvas.GetVisibleRect();
-    visibleRectF.Round();
-    Drawing::RectI visibleIRect = {(int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
-                                   (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()};
-    auto deviceClipRect = canvas.GetDeviceClipBounds();
-    if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
-        canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
-    }
 }
 
 const RectI& RSFilterCacheManager::GetCachedImageRegion() const
