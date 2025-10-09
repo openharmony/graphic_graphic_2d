@@ -705,15 +705,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:[%f], "
-        "preSub:[%d], currentFrameDirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d), "
-        "visibleRegion: [%s], opaqueRegion: [%s], transparentRegion: [%s]",
+        "preSub:[%d], currentFrameDirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d), visibleRegion: [%s]",
         name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
         GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
         mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
-        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str(),
-        surfaceParams->GetOpaqueRegion().GetRegionInfo().c_str(),
-        surfaceParams->GetTransparentRegion().GetRegionInfo().c_str());
+        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str());
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
             "OcclusionVisible:%{public}d Bound:%{public}s",
