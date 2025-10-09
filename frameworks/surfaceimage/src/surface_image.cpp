@@ -473,7 +473,8 @@ void SurfaceImageListener::OnBufferAvailable()
     surfaceImage->OnBufferAvailable();
 }
 
-SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
+SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd,
+    bool isLatest)
 {
     if (nativeWindowBuffer == nullptr || fenceFd == nullptr) {
         return SURFACE_ERROR_INVALID_PARAM;
@@ -482,8 +483,24 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp;
-    Rect damage;
-    SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    Rect damage = {0, 0, 0, 0};
+    SurfaceError ret = GSERROR_INTERNAL;
+    if (isLatest) {
+        AcquireBufferReturnValue returnValue;
+        ret = AcquireBuffer(returnValue, INT64_MAX, true);
+        if (ret != SURFACE_ERROR_OK) {
+            BLOGE("AcquireLatestBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 "", ret, uniqueId_);
+            return ret;
+        }
+        buffer = returnValue.buffer;
+        acquireFence = returnValue.fence;
+        timestamp = returnValue.timestamp;
+        if (returnValue.damages.size() != 0) {
+            damage = returnValue.damages.at(0);
+        }
+    } else {
+        ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    }
     if (ret != SURFACE_ERROR_OK) {
         BLOGD("AcquireBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return ret;

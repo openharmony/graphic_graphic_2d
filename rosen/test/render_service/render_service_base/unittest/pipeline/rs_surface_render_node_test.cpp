@@ -1187,7 +1187,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable002, TestSize.Level2)
     if (RSUniRenderJudgement::IsUniRender()) {
         node->InitRenderParams();
     }
-    node->SetHasFilter(true);
     
     ASSERT_EQ(node->QuerySubAssignable(false), false);
 }
@@ -1209,9 +1208,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable003, TestSize.Level2)
         node->InitRenderParams();
         childNode->InitRenderParams();
     }
-    childNode->SetHasFilter(true);
     node->SetChildHasVisibleFilter(true);
-    
+
     ASSERT_EQ(node->QuerySubAssignable(false), false);
 }
 
@@ -1233,10 +1231,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, QuerySubAssignable004, TestSize.Level2)
         node->InitRenderParams();
         childNode->InitRenderParams();
     }
-    childNode->SetHasFilter(true);
     node->SetChildHasVisibleFilter(true);
     node->SetAbilityBGAlpha(MAX_ALPHA);
-    
+
     ASSERT_EQ(node->QuerySubAssignable(false), true);
 }
 

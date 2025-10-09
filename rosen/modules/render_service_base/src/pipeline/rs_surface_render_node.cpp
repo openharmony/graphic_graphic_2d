@@ -2147,7 +2147,6 @@ void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
             return true;
         }
         node->SetDrawingCacheChanged(false);
-        node->GetFilterRectsInCache(allRects);
         return false;
     });
 }
@@ -2964,12 +2963,12 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     }
     UpdateTransparentSurface();
     RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, "
-        "hasFilter: %d, isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d", GetId(), hasTransparentSurface_,
-        ChildHasVisibleFilter(), HasFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(),
+        "isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d", GetId(), hasTransparentSurface_,
+        ChildHasVisibleFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(),
         GetGlobalAlpha(), GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED));
     bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ?
         !(isRotation && ROSEN_EQ(GetGlobalAlpha(), 0.0f)) : !isRotation;
-    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && rotateOptimize &&
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && rotateOptimize &&
         !GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
 }
 

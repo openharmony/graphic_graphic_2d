@@ -2938,27 +2938,6 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
     }
 }
 
-void RSUniRenderVisitor::UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
-{
-    if (surfaceNode == nullptr) {
-        return;
-    }
-    if (surfaceNode->HasBlurFilter()) {
-        surfaceNode->SetOccludedStatus(surfaceNode->IsOccludedByFilterCache());
-    }
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    for (auto& child : surfaceNode->GetVisibleFilterChild()) {
-        auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
-        if (filterNode == nullptr || !filterNode->HasBlurFilter()) {
-            continue;
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateOccludedStatusWithFilterNode "
-            "surfaceNode: %s, filterNode:[%lld], IsOccludedByFilterCache:%d", surfaceNode->GetName().c_str(),
-            filterNode->GetId(), surfaceNode->IsOccludedByFilterCache());
-        filterNode->SetOccludedStatus(surfaceNode->IsOccludedByFilterCache());
-    }
-}
-
 void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
 {
     auto nodeParent = node.GetParent().lock();
@@ -3280,7 +3259,6 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
                 !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight), EPSILON_SCALE);
         }
     }
-    node.SetIsScaleInPreFrame(node.IsScale());
     node.SetIsScale(isScale);
 }
 

@@ -29,6 +29,7 @@ class RSUifirstFrameRateControl {
 public:
     enum class SceneId {
         LAUNCHER_APP_LAUNCH_FROM_ICON,
+        LAUNCHER_APP_LAUNCH_FROM_DOCK,
         LAUNCHER_APP_SWIPE_TO_HOME,
         GESTURE_TO_RECENTS,
         LAUNCHER_APP_LAUNCH_FROM_RECENT,
@@ -44,6 +45,8 @@ public:
     {
         if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_ICON") {
             return SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON;
+        } else if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_DOCK") {
+            return SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK;
         } else if (sceneId == "LAUNCHER_APP_SWIPE_TO_HOME") {
             return SceneId::LAUNCHER_APP_SWIPE_TO_HOME;
         } else if (sceneId == "GESTURE_TO_RECENTS") {

@@ -753,7 +753,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     // 3. surfaceNode1 has animation and filter.
-    surfaceNode1->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     // 4. surfaceNode1 has animation, filter and rotation.
@@ -886,7 +885,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 5. surfaceNode1 is focus window, has animation and filter, not has transparent.
     surfaceNode1->hasTransparentSurface_ = false;
-    surfaceNode1->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     mainThread_->focusNodeId_ = 0;
@@ -905,12 +903,10 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 8. surfaceNode2 is not focus window, has filter and transparent.
-    surfaceNode2->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     // 9. surfaceNode2 is not focus window, not has filter and transparent, has display rotation.
     surfaceNode2->hasTransparentSurface_ = false;
-    surfaceNode2->SetHasFilter(false);
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
@@ -2164,7 +2160,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
     surfaceNode->forceUIFirst_ = true;
     surfaceNode->hasSharedTransitionNode_ = false;
-    surfaceNode->hasFilter_ = false;
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     uifirstManager_.rotationChanged_ = false;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);

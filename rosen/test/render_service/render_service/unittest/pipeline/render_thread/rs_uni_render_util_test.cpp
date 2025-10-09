@@ -378,30 +378,6 @@ HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask002, Function | SmallTest | 
 }
 
 /*
- * @tc.name: ClearNodeCacheSurface
- * @tc.desc: Test ClearNodeCacheSurface
- * @tc.type: FUNC
- * @tc.require: issueIATLPV
- */
-HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Level2)
-{
-    uint32_t threadIndex = 1;
-    RSUniRenderUtil::ClearNodeCacheSurface(nullptr, nullptr, threadIndex, 0);
-    NodeId id = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
-    ASSERT_NE(node, nullptr);
-    threadIndex = UNI_MAIN_THREAD_INDEX;
-    auto cacheSurface = node->GetCacheSurface(threadIndex, false);
-    auto completedSurface= node->GetCompletedCacheSurface(0, true);
-    RSUniRenderUtil::ClearNodeCacheSurface(std::move(cacheSurface), std::move(completedSurface), threadIndex, 0);
-    threadIndex = 1;
-    auto cacheSurface1 = node->GetCacheSurface(threadIndex, false);
-    auto completedSurface1= node->GetCompletedCacheSurface(0, true);
-    RSUniRenderUtil::ClearNodeCacheSurface(std::move(cacheSurface1), std::move(completedSurface1), threadIndex, 0);
-}
-
-/*
  * @tc.name: DrawRectForDfxTest
  * @tc.desc: Verify function DrawRectForDfx
  * @tc.type: FUNC

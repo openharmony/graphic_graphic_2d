@@ -1178,9 +1178,6 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
             } else {
                 it->second.first.push_back(node->GetId());
             }
-            if (!node->HasAbilityComponent()) {
-                continue;
-            }
             for (auto& nodeId : node->GetAbilityNodeIds()) {
                 pid_t abilityNodePid = ExtractPid(nodeId);
                 it = cacheCmdSkippedInfo_.find(abilityNodePid);
@@ -4693,29 +4690,6 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
     } else {
         return context_->activeNodesInRoot_.count(nodeId);
     }
-}
-
-bool RSMainThread::IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) const
-{
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
-    auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());
-    if (iter != context_->activeNodesInRoot_.end()) {
-        const auto& activeNodeIds = iter->second;
-        // do not need to check cacheroot node itself
-        // in case of tree change, parent node would set content dirty and reject before
-        auto cacheRootId = cacheRootNode.GetId();
-        auto groupNodeIds = cacheRootNode.GetVisitedCacheRootIds();
-        for (auto [id, subNode] : activeNodeIds) {
-            auto node = subNode.lock();
-            if (node == nullptr || id == cacheRootId) {
-                continue;
-            }
-            if (groupNodeIds.find(node->GetDrawingCacheRootId()) != groupNodeIds.end()) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 CM_INLINE void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(

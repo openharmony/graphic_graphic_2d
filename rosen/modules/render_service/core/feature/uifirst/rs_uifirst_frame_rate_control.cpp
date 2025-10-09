@@ -29,6 +29,10 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
             forceRefreshOnce_ = true;
             SetStartAnimation(true);
             break;
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
+            forceRefreshOnce_ = true;
+            SetStartAnimation(true);
+            break;
         case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
             forceRefreshOnce_ = true;
             SetStopAnimation(true);

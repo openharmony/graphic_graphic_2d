@@ -77,7 +77,8 @@ public:
     OnBufferAvailableListener listener_ = nullptr;
     void *context_ = nullptr;
 
-    SurfaceError AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd);
+    SurfaceError AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd,
+        bool isLatest = false);
     SurfaceError ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd);
 
     SurfaceError SetDefaultUsage(uint64_t usage);

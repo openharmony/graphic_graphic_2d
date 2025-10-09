@@ -1697,6 +1697,17 @@ bool RSSystemProperties::GetBootCompleted()
     return system::GetBoolParameter("bootevent.boot.completed", false);
 }
 
+bool RSSystemProperties::GetMemoryWatermarkEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("resourceschedule.memmgr.min.memory.watermark", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    if (enable == nullptr || strcmp(enable, "true") == 0) {
+        return false;
+    }
+    return true;
+}
+
 bool RSSystemProperties::GetClipRRectOptimizationEnabled()
 {
     static bool enable = system::GetIntParameter("persist.sys.graphic.clipRRectOptimizationEnabled", 0) != 0;

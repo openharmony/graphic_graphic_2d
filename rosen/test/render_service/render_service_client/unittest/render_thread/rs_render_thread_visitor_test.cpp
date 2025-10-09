@@ -561,21 +561,16 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1)
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
     EXPECT_TRUE(properties.isSpherizeValid_);
 
-    node.cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
     EXPECT_TRUE(properties.isSpherizeValid_);
 
-    node.cacheSurface_ = std::make_shared<Drawing::Surface>();
-    node.cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
     EXPECT_TRUE(properties.isSpherizeValid_);
 
-    node.cacheCompletedSurface_ = nullptr;
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
     EXPECT_TRUE(properties.isSpherizeValid_);
 
     properties.isSpherizeValid_ = false;
-    node.cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
     EXPECT_TRUE(!properties.isSpherizeValid_);
 }

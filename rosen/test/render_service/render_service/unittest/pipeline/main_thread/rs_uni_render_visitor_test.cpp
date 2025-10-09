@@ -3019,58 +3019,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceRenderNodeRotate001, TestSize.Leve
 }
 
 /*
- * @tc.name: UpdateOccludedStatusWithFilterNode
- * @tc.desc: Test RSUniRenderVisitorTest.UpdateOccludedStatusWithFilterNode while surface node nullptr
- * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode001, TestSize.Level2)
-{
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateOccludedStatusWithFilterNode(surfaceNode);
-}
-
-/*
- * @tc.name: UpdateOccludedStatusWithFilterNode
- * @tc.desc: Test RSUniRenderVisitorTest.UpdateOccludedStatusWithFilterNode with surfaceNode
- * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
- */
-HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize.Level2)
-{
-    RSSurfaceRenderNodeConfig surfaceConfig;
-    surfaceConfig.id = 1;
-    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
-    ASSERT_NE(surfaceNode1, nullptr);
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
-    surfaceNode1->renderProperties_.backgroundFilter_ = filter;
-    surfaceNode1->isOccludedByFilterCache_ = true;
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    NodeId id1 = 2;
-    auto filterNode1 = std::make_shared<RSRenderNode>(id1);
-    ASSERT_NE(filterNode1, nullptr);
-    pid_t pid1 = ExtractPid(id1);
-    nodeMap.renderNodeMap_[pid1][id1] = filterNode1;
-    NodeId id2 = 3;
-    pid_t pid2 = ExtractPid(id2);
-    auto filterNode2 = std::make_shared<RSRenderNode>(id2);
-    ASSERT_NE(filterNode2, nullptr);
-    filterNode2->renderProperties_.backgroundFilter_ = filter;
-    nodeMap.renderNodeMap_[pid2][id2] = filterNode2;
-    surfaceNode1->visibleFilterChild_.emplace_back(filterNode1->GetId());
-    surfaceNode1->visibleFilterChild_.emplace_back(filterNode2->GetId());
-
-    ASSERT_FALSE(filterNode1->isOccluded_);
-    ASSERT_FALSE(filterNode2->isOccluded_);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->UpdateOccludedStatusWithFilterNode(surfaceNode1);
-    ASSERT_TRUE(filterNode2->isOccluded_);
-}
-
-/*
  * @tc.name: MarkBlurIntersectWithDRM
  * @tc.desc: Test RSUniRenderVisitorTest.MarkBlurIntersectWithDRM001 while surface node nullptr
  * @tc.type: FUNC

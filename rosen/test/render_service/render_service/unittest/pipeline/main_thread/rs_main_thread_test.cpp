@@ -1471,7 +1471,6 @@ HWTEST_F(RSMainThreadTest, CheckParallelSubThreadNodesStatus, TestSize.Level1)
     node1->cacheProcessStatus_ = CacheProcessStatus::DOING;
     node1->name_ = "node1";
     node1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node1->hasAbilityComponent_ = true;
     node1->abilityNodeIds_.emplace(10);
     node1->abilityNodeIds_.emplace(11);
     auto node2 = std::make_shared<RSSurfaceRenderNode>(2);
@@ -1482,7 +1481,6 @@ HWTEST_F(RSMainThreadTest, CheckParallelSubThreadNodesStatus, TestSize.Level1)
     node3->cacheProcessStatus_ = CacheProcessStatus::DOING;
     node3->name_ = "node3";
     node3->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node3->hasAbilityComponent_ = false;
     // create child nodes
     auto childNode1 = std::make_shared<RSSurfaceRenderNode>(3);
     childNode1->name_ = "childNode1";
@@ -4189,21 +4187,6 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
         blackList.push_back(nodeId);
     }
     EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
-}
-
-/**
- * @tc.name: IsDrawingGroupChanged
- * @tc.desc: IsDrawingGroupChanged Test, not Classify By Root
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, IsDrawingGroupChanged, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    auto node = std::make_shared<RSRenderNode>(id);
-    mainThread->IsDrawingGroupChanged(*node);
 }
 
 /**
