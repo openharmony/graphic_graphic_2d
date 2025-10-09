@@ -68,7 +68,7 @@ RSHpaeOfflineProcessor& RSHpaeOfflineProcessor::GetOfflineProcessor()
     return processor;
 }
 
-void RSHpaeOfflineProcessor::CloseOfflineHandle(const string &errSymbol, const char* errNo)
+void RSHpaeOfflineProcessor::CloseOfflineHandle(const string& errSymbol, const char* errNo)
 {
     RS_OFFLINE_LOGW("load %{public}s failed, reason: %{public}s", errSymbol.c_str(), errNo);
     dlclose(preProcessHandle_);
