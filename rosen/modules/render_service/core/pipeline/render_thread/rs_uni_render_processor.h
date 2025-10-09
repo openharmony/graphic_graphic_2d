@@ -36,7 +36,7 @@ public:
     bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
-        const std::shared_ptr<ProcessOfflineResult> offlineResult = nullptr) override;
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessScreenSurface(RSScreenRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
@@ -50,7 +50,7 @@ public:
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
-        const std::shared_ptr<ProcessOfflineResult> offlineResult = nullptr) override;
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;
     void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) override;
     // hpae offline
     bool ProcessOfflineLayer(
@@ -61,7 +61,7 @@ private:
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
-        const std::shared_ptr<ProcessOfflineResult> offlineResult = nullptr);
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr);
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer);
     void ScaleLayerIfNeeded(RSLayerInfo& layerInfo);

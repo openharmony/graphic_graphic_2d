@@ -78,6 +78,7 @@ private:
     RSHpaeOfflineProcessor(const RSHpaeOfflineProcessor&&) = delete;
     RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&) = delete;
     RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&&) = delete;
+    void CloseOfflineHandle(const string& errSymbol, const char* errNo);
     bool LoadPreProcessHandle();
     bool InitForOfflineProcess();
     void CheckAndPostPreAllocBuffersTask();

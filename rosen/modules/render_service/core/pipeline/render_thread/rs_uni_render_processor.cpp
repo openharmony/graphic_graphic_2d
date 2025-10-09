@@ -96,7 +96,7 @@ void RSUniRenderProcessor::PostProcess()
 }
 
 void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
-    const std::shared_ptr<ProcessOfflineResult> offlineResult)
+    const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto buffer = offlineResult ? offlineResult->buffer : surfaceHandler->GetBuffer();
@@ -144,7 +144,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 }
 
 void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
-    const std::shared_ptr<ProcessOfflineResult> offlineResult)
+    const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
     auto& paramsSp = surfaceDrawable.GetRenderParams();
     if (!paramsSp) {
@@ -255,7 +255,7 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
 
 LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
-    const std::shared_ptr<ProcessOfflineResult> offlineResult)
+    const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto layerInfo = params.layerInfo_;
@@ -414,10 +414,6 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(
         }
     }
     std::shared_ptr<ProcessOfflineResult> processOfflineResult = std::make_shared<ProcessOfflineResult>();
-    if (!processOfflineResult) {
-        RS_LOGW("processOfflineResult: make_shared failed, go redraw");
-        return false;
-    }
     bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
         taskId, HPAE_OFFLINE_TIMEOUT, *processOfflineResult);
     if (waitSuccess && processOfflineResult->taskSuccess) {
@@ -438,10 +434,6 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNo
         return false;
     }
     std::shared_ptr<ProcessOfflineResult> processOfflineResult = std::make_shared<ProcessOfflineResult>();
-    if (!processOfflineResult) {
-        RS_LOGW("processOfflineResult: make_shared failed, go redraw");
-        return false;
-    }
     bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
         taskId, HPAE_OFFLINE_TIMEOUT, *processOfflineResult);
     if (waitSuccess && processOfflineResult->taskSuccess) {

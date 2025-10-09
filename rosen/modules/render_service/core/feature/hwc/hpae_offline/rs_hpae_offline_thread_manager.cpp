@@ -21,8 +21,8 @@
 #include "ffrt_inner.h"
 
 namespace {
-    ffrt::mutex g_ffrtThreadMutex;
-    constexpr uint32_t FFRT_QOS_LEVEL = 5;
+ffrt::mutex g_ffrtThreadMutex;
+constexpr uint32_t FFRT_QOS_LEVEL = 5;
 }
 #endif
 

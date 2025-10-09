@@ -54,7 +54,7 @@ public:
     virtual bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
-        const std::shared_ptr<ProcessOfflineResult> offlineResult = nullptr) {}
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessScreenSurface(RSScreenRenderNode& node) = 0;
     virtual void PostProcess() = 0;
@@ -64,7 +64,7 @@ public:
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
-        const std::shared_ptr<ProcessOfflineResult> offlineResult = nullptr) {}
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}
     virtual void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) {}
     virtual void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
 

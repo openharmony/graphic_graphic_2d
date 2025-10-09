@@ -660,7 +660,7 @@ public:
         return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
     }
 
-    // hpae offline: while creating layer, use srcRect&dstRect instead of bounds to create redraw metrix
+    // hpae offline: while creating layer, use srcRect & dstRect instead of bounds to create redraw metrix
     void SetUseDeviceOffline(bool useOffline) { useDeviceOffline_ = useOffline; }
     bool GetUseDeviceOffline() const { return useDeviceOffline_; }
 

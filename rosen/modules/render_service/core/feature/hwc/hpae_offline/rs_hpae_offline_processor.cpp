@@ -68,46 +68,41 @@ RSHpaeOfflineProcessor& RSHpaeOfflineProcessor::GetOfflineProcessor()
     return processor;
 }
 
+void RSHpaeOfflineProcessor::CloseOfflineHandle(const string &errSymbol, const char* errNo)
+{
+    RS_OFFLINE_LOGW("load %{public}s failed, reason: %{public}s", errSymbol.c_str(), errNo);
+    dlclose(preProcessHandle_);
+    preProcessHandle_ = nullptr;
+}
+
 bool RSHpaeOfflineProcessor::LoadPreProcessHandle()
 {
     loadSuccess_ = false;
     RS_TRACE_NAME_FMT("hpae_offline: LoadPreProcessHandle");
     preProcessHandle_ = dlopen("libdss_enhance.z.so", RTLD_NOW);
     if (preProcessHandle_ == nullptr) {
-        RS_OFFLINE_LOGW("[%{public}s]: load library failed, reason: %{public}s",
-            __func__, dlerror());
+        RS_OFFLINE_LOGW("[%{public}s]: load library failed, reason: %{public}s", __func__, dlerror());
         return false;
     }
+
     preProcessFunc_ = reinterpret_cast<ProcessOfflineFunc>(dlsym(preProcessHandle_, "ProcessOfflineSurface"));
     if (preProcessFunc_ == nullptr) {
-        RS_OFFLINE_LOGW("[%{public}s]: load ProcessOfflineSurface failed, reason: %{public}s",
-            __func__, dlerror());
-        dlclose(preProcessHandle_);
-        preProcessHandle_ = nullptr;
+        CloseOfflineHandle("ProcessOfflineSurface", dlerror());
         return false;
     }
     getConfigFunc_ = reinterpret_cast<GetOfflineConfigFunc>(dlsym(preProcessHandle_, "GetOfflineConfig"));
     if (getConfigFunc_ == nullptr) {
-        RS_OFFLINE_LOGW("[%{public}s]: load GetOfflineConfig failed, reason: %{public}s",
-            __func__, dlerror());
-        dlclose(preProcessHandle_);
-        preProcessHandle_ = nullptr;
+        CloseOfflineHandle("GetOfflineConfig", dlerror());
         return false;
     }
     initOfflineFunc_ = reinterpret_cast<InitOfflineResourceFunc>(dlsym(preProcessHandle_, "InitOfflineResource"));
     if (initOfflineFunc_ == nullptr) {
-        RS_OFFLINE_LOGW("[%{public}s]: load InitOfflineResource failed, reason: %{public}s",
-            __func__, dlerror());
-        dlclose(preProcessHandle_);
-        preProcessHandle_ = nullptr;
+        CloseOfflineHandle("InitOfflineResource", dlerror());
         return false;
     }
     deInitOfflineFunc_ = reinterpret_cast<DeInitOfflineResourceFunc>(dlsym(preProcessHandle_, "DeInitOfflineResource"));
     if (deInitOfflineFunc_ == nullptr) {
-        RS_OFFLINE_LOGW("[%{public}s]: load DeInitOfflineResource failed, reason: %{public}s",
-            __func__, dlerror());
-        dlclose(preProcessHandle_);
-        preProcessHandle_ = nullptr;
+        CloseOfflineHandle("DeInitOfflineResource", dlerror());
         return false;
     }
     RS_OFFLINE_LOGI("[%{public}s]: load success", __func__);
@@ -282,12 +277,12 @@ void RSHpaeOfflineProcessor::CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessO
     }
 }
 
-static void WaitFence(const sptr<OHOS::SyncFence> &srcAcquireFence, int32_t releaseFenceFd)
+static void WaitFence(const sptr<SyncFence>& srcAcquireFence, int32_t releaseFenceFd)
 {
     // wait acquire fence of source buffer and release fence of offline buffer
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Wait Offline Acquire & Release Fence.");
     RS_OFFLINE_LOGD("start to wait fence.");
-    sptr<OHOS::SyncFence> dstReleaseFence = new OHOS::SyncFence(releaseFenceFd);
+    sptr<SyncFence> dstReleaseFence = sptr<SyncFence>::MakeSptr(releaseFenceFd);
     dstReleaseFence->Wait(WAIT_FENCE_TIMEOUT_MS);
     srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
     RS_OFFLINE_LOGD("wait fence done.");
