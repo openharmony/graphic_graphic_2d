@@ -1944,49 +1944,13 @@ ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const
 
 ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
 {
-    ScreenInfo info;
     auto screen = GetScreen(id);
     if (screen == nullptr) {
         RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return info;
+        return ScreenInfo{};
     }
 
-    info.id = id;
-    info.width = screen->Width();
-    info.height = screen->Height();
-    info.phyWidth = screen->PhyWidth() ? screen->PhyWidth() : screen->Width();
-    info.phyHeight = screen->PhyHeight() ? screen->PhyHeight() : screen->Height();
-    info.offsetX = screen->GetOffsetX();
-    info.offsetY = screen->GetOffsetY();
-    info.isSamplingOn = screen->IsSamplingOn();
-    info.samplingTranslateX = screen->GetSamplingTranslateX();
-    info.samplingTranslateY = screen->GetSamplingTranslateY();
-    info.samplingScale = screen->GetSamplingScale();
-    auto ret = screen->GetScreenColorGamut(info.colorGamut);
-    if (ret != StatusCode::SUCCESS) {
-        info.colorGamut = COLOR_GAMUT_SRGB;
-    }
-
-    if (!screen->IsEnable()) {
-        info.state = ScreenState::DISABLED;
-    } else if (!screen->IsVirtual()) {
-        info.state = ScreenState::HDI_OUTPUT_ENABLE;
-    } else {
-        info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
-    }
-    info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
-    info.expectedRefreshRate = screen->GetScreenExpectedRefreshRate();
-    info.skipFrameStrategy = screen->GetScreenSkipFrameStrategy();
-    info.isEqualVsyncPeriod = screen->GetEqualVsyncPeriod();
-    screen->GetPixelFormat(info.pixelFormat);
-    screen->GetScreenHDRFormat(info.hdrFormat);
-    info.whiteList = screen->GetWhiteList();
-    info.enableVisibleRect = screen->GetEnableVisibleRect();
-    info.activeRect = screen->GetActiveRect();
-    info.maskRect = screen->GetMaskRect();
-    info.reviseRect = screen->GetReviseRect();
-    info.activeRefreshRate = screen->GetActiveRefreshRate();
-    return info;
+    return screen->GetScreenInfo();
 }
 
 bool RSScreenManager::GetCanvasRotation(ScreenId id) const

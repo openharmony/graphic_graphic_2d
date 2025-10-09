@@ -1579,6 +1579,56 @@ void RSScreen::SetVirtualScreenPlay(bool virtualScreenPlay)
 {
     virtualScreenPlay_ = virtualScreenPlay;
 }
+
+ScreenInfo RSScreen::GetScreenInfo() const
+{
+    ScreenInfo info;
+    {
+        std::shared_lock<std::shared_mutex> lock(screenMutex_);
+
+        info.id = id_;
+        info.width = width_;
+        info.height = height_;
+        info.phyWidth = phyWidth_ ? phyWidth_ : width_;
+        info.phyHeight = phyHeight_ ? phyHeight_ : height_;
+        info.offsetX = offsetX_;
+        info.offsetY = offsetY_;
+        info.isSamplingOn = isSamplingOn_;
+        info.samplingTranslateX = samplingTranslateX_;
+        info.samplingTranslateY = samplingTranslateY_;
+        info.samplingScale = samplingScale_;
+        info.activeRect = activeRect_;
+        info.maskRect = maskRect_;
+        info.reviseRect = reviseRect_;
+    }
+
+    info.pixelFormat = pixelFormat_;
+    GetScreenHDRFormat(info.hdrFormat);
+    auto ret = GetScreenColorGamut(info.colorGamut);
+    if (ret != StatusCode::SUCCESS) {
+        info.colorGamut = COLOR_GAMUT_SRGB;
+    }
+
+    if (!IsEnable()) {
+        info.state = ScreenState::DISABLED;
+    } else if (!IsVirtual()) {
+        info.state = ScreenState::HDI_OUTPUT_ENABLE;
+    } else {
+        info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
+    }
+
+    {
+        std::shared_lock<std::shared_mutex> lock(skipFrameMutex_);
+        info.skipFrameInterval = skipFrameInterval_;
+        info.expectedRefreshRate = expectedRefreshRate_;
+        info.skipFrameStrategy = skipFrameStrategy_;
+        info.isEqualVsyncPeriod = isEqualVsyncPeriod_;
+    }
+    info.whiteList = whiteList_;
+    info.enableVisibleRect = enableVisibleRect_;
+    return info;
+}
+
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

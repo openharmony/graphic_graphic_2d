@@ -29,6 +29,7 @@
 
 #include <common/rs_rect.h>
 #include <screen_manager/screen_types.h>
+#include <screen_manager/rs_screen_info.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -187,6 +188,8 @@ public:
     virtual void SetPSurfaceChange(bool pSurfaceChange) = 0;
     virtual bool GetAndResetVirtualScreenPlay() = 0;
     virtual void SetVirtualScreenPlay(bool virtualScreenPlay) = 0;
+
+    virtual ScreenInfo GetScreenInfo() const = 0;
 };
 
 namespace impl {
@@ -338,6 +341,8 @@ public:
     void SetPSurfaceChange(bool pSurfaceChange) override;
     bool GetAndResetVirtualScreenPlay() override;
     void SetVirtualScreenPlay(bool virtualScreenPlay) override;
+
+    ScreenInfo GetScreenInfo() const override;
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
