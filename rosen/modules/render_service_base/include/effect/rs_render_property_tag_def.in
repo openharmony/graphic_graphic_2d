@@ -187,6 +187,17 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, ColorNumber, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Blend, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, BlendK, float);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, TintColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RipplePosition, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RippleProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, DistortProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, DistortFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, ReflectionFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RefractionFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, MaterialFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, CornerRadius, float);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, LTWH, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, StretchFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, BarAngle, float);

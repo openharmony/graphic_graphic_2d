@@ -52,6 +52,9 @@ HWTEST_F(RSNGRenderShaderBaseTest, Create001, TestSize.Level1)
 
     auto lightCave = RSNGRenderShaderBase::Create(RSNGEffectType::LIGHT_CAVE);
     EXPECT_NE(lightCave, nullptr);
+
+    auto harmoniumEffect = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+    EXPECT_NE(harmoniumEffect, nullptr);
 }
 
 /**
@@ -282,6 +285,19 @@ HWTEST_F(RSNGRenderShaderBaseTest, SetCornerRadius001, TestSize.Level1)
                 EXPECT_EQ(val->Get(), cornerRadius);
             }
         head = head->nextEffect_;
+        }
+    }
+    {
+        head = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+        RSNGRenderShaderHelper::SetCornerRadius(head, cornerRadius);
+        while (head) {
+            if (head->GetType() == RSNGEffectType::HARMONIUM_EFFECT) {
+                auto borderLightShader = std::static_pointer_cast<RSNGRenderHarmoniumEffect>(head);
+                auto val = borderLightShader->Getter<HarmoniumEffectCornerRadiusRenderTag>();
+                EXPECT_NE(val, nullptr);
+                EXPECT_EQ(val->Get(), cornerRadius);
+            }
+            head = head->nextEffect_;
         }
     }
 }

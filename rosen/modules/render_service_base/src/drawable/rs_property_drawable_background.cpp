@@ -334,6 +334,8 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc(
         if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
             return;
         }
+        std::shared_ptr<Drawing::Image> cachedImage = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
+        ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, cachedImage);
         geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
     };
 }

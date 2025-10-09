@@ -1246,6 +1246,11 @@ HWTEST_F(RSPropertiesTest, UpdateBackgroundShader003, TestSize.Level1)
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
     properties.bgNGRenderShader_ = head;
     properties.UpdateBackgroundShader();
+
+    head = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+    properties.bgNGRenderShader_ = head;
+    properties.SetBackgroundNGShader(head);
+    properties.UpdateBackgroundShader();
  
     head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     properties.bgNGRenderShader_ = head;

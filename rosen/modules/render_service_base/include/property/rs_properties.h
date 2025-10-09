@@ -737,6 +737,8 @@ public:
         return illuminatedPtr_;
     }
 
+    bool HasHarmonium() const;
+
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
     void SetUseEffectType(int useEffectType);
@@ -865,6 +867,7 @@ private:
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool useEffect_ = false;
+    bool hasHarmonium_ = false;
     bool useUnion_ = false;
     bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;

@@ -553,9 +553,17 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
     params.SetShadowRect({0, 0, 10, 10});
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     adapter->drawCmdIndex_.shadowIndex_ = 2;
-    adapter->drawCmdIndex_.useEffectIndex_ = 1;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     adapter->drawCmdIndex_.useEffectIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.useEffectIndex_ = 3;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundFilterIndex_ = 4;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 5;
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }

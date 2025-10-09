@@ -95,6 +95,19 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
 );
 
+DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
+    ADD_PROPERTY_TAG(HarmoniumEffect, Mask),
+    ADD_PROPERTY_TAG(HarmoniumEffect, TintColor),
+    ADD_PROPERTY_TAG(HarmoniumEffect, RipplePosition),
+    ADD_PROPERTY_TAG(HarmoniumEffect, RippleProgress),
+    ADD_PROPERTY_TAG(HarmoniumEffect, DistortProgress),
+    ADD_PROPERTY_TAG(HarmoniumEffect, DistortFactor),
+    ADD_PROPERTY_TAG(HarmoniumEffect, ReflectionFactor),
+    ADD_PROPERTY_TAG(HarmoniumEffect, RefractionFactor),
+    ADD_PROPERTY_TAG(HarmoniumEffect, MaterialFactor),
+    ADD_PROPERTY_TAG(HarmoniumEffect, CornerRadius)
+);
+
 DECLARE_SHADER(LightCave, LIGHT_CAVE,
     ADD_PROPERTY_TAG(LightCave, ColorA),
     ADD_PROPERTY_TAG(LightCave, ColorB),

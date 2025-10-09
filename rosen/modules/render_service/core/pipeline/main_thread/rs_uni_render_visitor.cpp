@@ -2952,6 +2952,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
+    if ((node.GetRenderProperties().HasHarmonium() && node.ShouldPaint()) || node.ChildHasVisibleHarmonium()) {
+        nodeParent->SetChildHasVisibleHarmonium(true);
+    }
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);
     }

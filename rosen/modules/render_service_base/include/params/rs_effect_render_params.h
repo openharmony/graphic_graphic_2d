@@ -31,6 +31,9 @@ public:
     void SetHasEffectChildren(bool hasEffectChildren);
     bool GetHasEffectChildren() const;
 
+    void SetHasHarmoniumChildren(bool hasHarmoniumChildren);
+    bool GetHasHarmoniumChildren() const;
+
     void SetEffectIntersectWithDRM(bool intersect);
     bool GetEffectIntersectWithDRM() const;
     void SetDarkColorMode(bool isDark);
@@ -39,6 +42,7 @@ public:
 private:
     bool cacheValid_ = false;
     bool hasEffectChildren_ = false;
+    bool hasHarmoniumChildren_ = false;
     bool isIntersectWithDRM_ = false;
     bool isDarkColorMode_ = false;
 };

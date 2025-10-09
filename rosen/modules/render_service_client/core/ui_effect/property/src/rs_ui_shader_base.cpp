@@ -19,6 +19,7 @@
 
 #include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
+#include "ui_effect/effect/include/harmonium_effect_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::COLOR_GRADIENT_EFFECT, [] {
             return std::make_shared<RSNGColorGradientEffect>();
+        }
+    },
+    {RSNGEffectType::HARMONIUM_EFFECT, [] {
+            return std::make_shared<RSNGHarmoniumEffect>();
         }
     },
     {RSNGEffectType::BORDER_LIGHT, [] {
@@ -157,6 +162,27 @@ std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<V
     return colorGradientEffect;
 }
 
+std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
+{
+    auto effect = RSNGShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+    if (effect == nullptr || effectPara == nullptr) {
+        ROSEN_LOGE("ConvertHarmoniumEffectPara effect or effectPara is nullptr");
+        return nullptr;
+    }
+    auto harmoniumEffect = std::static_pointer_cast<RSNGHarmoniumEffect>(effect);
+    auto harmoniumEffectPara = std::static_pointer_cast<HarmoniumEffectPara>(effectPara);
+    harmoniumEffect->Setter<HarmoniumEffectMaskTag>(RSNGMaskBase::Create(harmoniumEffectPara->GetMask()));
+    harmoniumEffect->Setter<HarmoniumEffectRipplePositionTag>(harmoniumEffectPara->GetRipplePosition());
+    harmoniumEffect->Setter<HarmoniumEffectRippleProgressTag>(harmoniumEffectPara->GetRippleProgress());
+    harmoniumEffect->Setter<HarmoniumEffectTintColorTag>(harmoniumEffectPara->GetTintColor());
+    harmoniumEffect->Setter<HarmoniumEffectDistortProgressTag>(harmoniumEffectPara->GetDistortProgress());
+    harmoniumEffect->Setter<HarmoniumEffectDistortFactorTag>(harmoniumEffectPara->GetDistortFactor());
+    harmoniumEffect->Setter<HarmoniumEffectReflectionFactorTag>(harmoniumEffectPara->GetReflectionFactor());
+    harmoniumEffect->Setter<HarmoniumEffectRefractionFactorTag>(harmoniumEffectPara->GetRefractionFactor());
+    harmoniumEffect->Setter<HarmoniumEffectMaterialFactorTag>(harmoniumEffectPara->GetMaterialFactor());
+    return harmoniumEffect;
+}
+
 std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
     auto effect = RSNGShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
@@ -178,6 +204,7 @@ std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEff
 static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertorLUT = {
     { VisualEffectPara::ParaType::COLOR_GRADIENT_EFFECT, ConvertColorGradientEffectPara },
     { VisualEffectPara::ParaType::BORDER_LIGHT_EFFECT, ConvertBorderLightPara },
+    { VisualEffectPara::ParaType::HARMONIUM_EFFECT, ConvertHarmoniumEffectPara },
 };
 
 std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(RSNGEffectType type)

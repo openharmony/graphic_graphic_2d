@@ -66,6 +66,7 @@ struct DrawCmdIndex {
     int8_t bgSaveBoundsIndex_          = -1;
     int8_t clipToBoundsIndex_          = -1;
     int8_t backgroundColorIndex_       = -1;
+    int8_t backgroundNgShaderIndex_    = -1;
     int8_t backgroundImageIndex_       = -1;
     int8_t backgroundFilterIndex_      = -1;
     int8_t useEffectIndex_             = -1;
