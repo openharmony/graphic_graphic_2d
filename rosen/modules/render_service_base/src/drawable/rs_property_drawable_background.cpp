@@ -443,7 +443,7 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
-        RS_LOGD("MakeFromTextureForVK build image failed");
+        RS_LOGE_LIMIT(__func__, __line__, "MakeFromTextureForVK build image failed");
         return nullptr;
     }
     return dmaImage;

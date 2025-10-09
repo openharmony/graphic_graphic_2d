@@ -487,7 +487,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
-        RS_LOGD("MakeFromTextureForVK build image failed");
+        RS_LOGE_LIMIT(__func__, __line__, "MakeFromTextureForVK build image failed");
         return false;
     }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
