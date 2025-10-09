@@ -44,10 +44,12 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
 
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: ScreenManager is nullptr", __func__);
         return false;
     }
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     if (!params) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: ScreenParams is nullptr", __func__);
         return false;
     }
 

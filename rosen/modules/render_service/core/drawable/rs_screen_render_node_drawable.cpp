@@ -708,7 +708,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
             syncDirtyManager_->ResetDirtyAsSurfaceSize();
             syncDirtyManager_->UpdateDirty(false);
-            RS_LOGE("RSScreenRenderNodeDrawable::OnDraw processor init failed!");
+            RS_LOGD("RSScreenRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
         if (mirroredRenderParams) {
