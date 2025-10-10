@@ -432,15 +432,16 @@ void RSMainThread::TraverseCanvasDrawingNodes()
 {
     const auto& nodeMap = context_->GetNodeMap();
     bool hasCachedOp = false;
-    nodeMap.TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
-        if (canvasDrawingNode == nullptr) {
-            return;
-        }
-        // Check on tree status
-        canvasDrawingNode->ContentStyleSlotUpdate();
-        // Whether has cached op, if has, need render in next frame.
-        hasCachedOp |= canvasDrawingNode->CheckCachedOp();
-    });
+    nodeMap.TraverseCanvasDrawingNodes(
+        [&hasCachedOp](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
+            if (canvasDrawingNode == nullptr) {
+                return;
+            }
+            // Check on tree status
+            canvasDrawingNode->ContentStyleSlotUpdate();
+            // Whether has cached op, if has, need render in next frame.
+            hasCachedOp |= canvasDrawingNode->CheckCachedOp();
+        });
     if (hasCachedOp) {
         hasCanvasDrawingNodeCachedOp_ = true;
         RequestNextVsync();
