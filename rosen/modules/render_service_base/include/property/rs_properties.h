@@ -798,13 +798,13 @@ public:
 
 private:
 struct CommonEffectParams {
-    bool isAttractionValid_ false;
+    bool isAttractionValid_ = false;
     float attractFraction_ = 0.f;
     Vector2f attractDstPoint_ = {0.f, 0.f};
     RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
     float waterRippleProgress_ = 0.0f;
-    std::shared_ptr<RSWaterRipplePara> waterRippleParams_ = nullptr;
+    std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     bool isSpherizeValid_ = false;
     float spherizeDegree_ = 0.f;
     bool bgBlurDisableSystemAdaptation = true;
@@ -819,7 +819,7 @@ struct CommonEffectParams {
     bool greyCoefNeedUpdate_ = false;
     std::optional<Vector2f> greyCoef_;
     float flyOutDegree_ = 0.0f;
-    std::optional<RSFlyOutPara> flyOutParams_ == std::nullopt;
+    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
     std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     std::optional<float> dynamicLightUpRate_;
     std::optional<float> dynamicLightUpDegree_;
@@ -842,7 +842,7 @@ struct CommonEffectParams {
     std::optional<float> hueRotate_;
     bool distortionEffectDirty_ = false;
     std::optional<float> distortionK_ = std::nullopt;
-    std::shared_ptr<Drawing::ColorFilter> colorfilter_ = nullptr;
+    std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
     bool systemBarEffect_ = false;
     std::optional<Vector4f> aiInvert_;
     std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
@@ -857,7 +857,7 @@ struct CommonEffectParams {
     float backgroundBlurRadiusX_ = 0.f;
     float backgroundBlurRadiusY_ = 0.f;
     float foregroundBlurRadius_ = 0.f;
-    float foregroundBlurStauration_ = 1.f;
+    float foregroundBlurSaturation_ = 1.f;
     float foregroundBlurBrightness_ = 1.f;
     int foregroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
     float foregroundBlurRadiusX_ = 0.f;
@@ -875,7 +875,7 @@ struct CommonEffectParams {
     std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
-    std::shared_ptr<RSNGRenderShaderBase> fgRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> fgRendershader_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
 };
     inline float DecreasePrecision(float value)
