@@ -280,7 +280,15 @@ void NativeDrawingFontTest008(const uint8_t* data, size_t size)
     text[textLen - 1] = '\0';
     uint32_t count = 0;
     count = OH_Drawing_FontCountText(font, text, strlen(text), TEXT_ENCODING_UTF8);
-    uint16_t glyphs[count];
+
+    if(count > MAX_GLYPH_COUNT || count == 0) {
+        OH_Drawing_PenDestroy(pen);
+        OH_Drawing_BrushDestroy(brush);
+        OH_Drawing_FontDestroy(font);
+        return;
+    }
+    std::unique_ptr<uint16_t[]> glyphsPtr = std::make_unique<uint16_t[]>(count);
+    auto glyphs = glyphsPtr.get();
     OH_Drawing_FontTextToGlyphs(font, text, strlen(text), TEXT_ENCODING_UTF8, glyphs, count);
     int glyphsCount = 0;
     glyphsCount = OH_Drawing_FontTextToGlyphs(
