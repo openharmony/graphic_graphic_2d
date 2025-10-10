@@ -17,6 +17,7 @@
 #include "js_native_api_types.h"
 #include "mask_napi.h"
 #include "mask/include/pixel_map_mask_para.h"
+#include "mask/include/harmonium_effect_mask_para.h"
 #include "pixel_map.h"
 #include "ui_effect_napi_utils.h"
 
@@ -92,6 +93,7 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createHarmoniumEffectMask", CreateHarmoniumEffectMask),
     };
 
     napi_value constructor = nullptr;
@@ -453,10 +455,48 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
     return Create(env, para);
 }
 
+static bool ParseHarmoniumEffectMask(napi_env env, napi_value* argv, size_t realArgc, std::shared_ptr<HarmoniumEffectMaskPara> para)
+{
+    if (!para) {
+        return false;
+    }
+
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    if (!ParsePixelMap(env, argv[NUM_0], pixelMap)) {
+        MASK_LOG_E("ParsePixelMapMask parse pixelMap failed");
+        return false;
+    }
+    para->SetPixelMap(pixelMap);
+    return true;
+}
+
+napi_value MaskNapi::CreateHarmoniumEffectMask(napi_env env, napi_callback_info info)
+{
+    static const size_t maxArgc = NUM_1;
+    static const size_t minArgc = NUM_1;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc];
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateHarmoniumEffectMask parsing input fail."));
+    auto para = std::make_shared<HarmoniumEffectMaskPara>();
+    if (!ParseHarmoniumEffectMask(env, argv, realArgc, para)) {
+        MASK_LOG_E("MaskNapi CreateHarmoniumEffectMask parse param failed");
+        return nullptr;
+    }
+
+    return Create(env, para);
+}
+
 void MaskNapi::RegisterMaskParaUnmarshallingCallback()
 {
     PixelMapMaskPara::RegisterUnmarshallingCallback();
     RadialGradientMaskPara::RegisterUnmarshallingCallback();
+    HarmoniumEffectMaskPara::RegisterUnmarshallingCallback();
 }
 
 }  // namespace Rosen

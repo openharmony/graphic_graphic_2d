@@ -91,6 +91,7 @@ enum class RSNGEffectType : int16_t {
     SDF_UNION_OP_MASK,
     SDF_SMOOTH_UNION_OP_MASK,
     SDF_RRECT_MASK,
+    HARMONIUM_EFFECT_MASK,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     WAVY_RIPPLE_LIGHT,

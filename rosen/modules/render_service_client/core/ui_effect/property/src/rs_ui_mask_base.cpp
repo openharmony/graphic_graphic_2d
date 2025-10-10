@@ -21,6 +21,7 @@
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/mask/include/wave_gradient_mask_para.h"
+#include "ui_effect/mask/include/harmonium_effect_mask_para.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGMaskBase"
@@ -63,6 +64,10 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGSDFRRectMask>();
         }
     },
+    {RSNGEffectType::HARMONIUM_EFFECT_MASK, [] {
+            return std::make_shared<RSNGHarmoniumEffectMask>();
+        }
+    },
 };
 
 namespace {
@@ -94,6 +99,18 @@ std::shared_ptr<RSNGMaskBase> ConvertPixelMapMaskPara(std::shared_ptr<MaskPara> 
     pixelMapMask->Setter<PixelMapMaskFillColorTag>(pixelMapMaskPara->GetFillColor());
     pixelMapMask->Setter<PixelMapMaskImageTag>(pixelMapMaskPara->GetPixelMap());
     return pixelMapMask;
+}
+
+std::shared_ptr<RSNGMaskBase> ConvertHarmoniumEffectMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::HARMONIUM_EFFECT_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto harmoniumEffectMask = std::static_pointer_cast<RSNGHarmoniumEffectMask>(mask);
+    auto harmoniumEffectMaskPara = std::static_pointer_cast<HarmoniumEffectMaskPara>(maskPara);
+    harmoniumEffectMask->Setter<HarmoniumEffectMaskImageTag>(harmoniumEffectMaskPara->GetPixelMap());
+    return harmoniumEffectMask;
 }
 
 std::shared_ptr<RSNGMaskBase> ConvertRadialGradientMaskPara(std::shared_ptr<MaskPara> maskPara)
@@ -135,6 +152,7 @@ thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
     { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
     { MaskPara::Type::WAVE_GRADIENT_MASK, ConvertWaveGradientMaskPara },
+    { MaskPara::Type::HARMONIUM_EFFECT_MASK, ConvertHarmoniumEffectMaskPara}
 };
 
 std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(RSNGEffectType type)

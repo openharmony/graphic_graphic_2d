@@ -57,6 +57,10 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, HaloThickness)
 );
 
+DECLARE_MASK(HarmoniumEffectMask, HARMONIUM_EFFECT_MASK,
+    ADD_PROPERTY_TAG(HarmoniumEffectMask, Image)
+);
+
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
