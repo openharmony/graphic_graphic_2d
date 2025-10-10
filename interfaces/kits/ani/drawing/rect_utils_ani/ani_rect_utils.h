@@ -30,6 +30,13 @@ public:
     static ani_boolean Contains(ani_env* env, ani_object obj, ani_object aniRectObj, ani_object aniOtherRect);
     static void Inset(ani_env* env, ani_object obj, ani_object aniRectObj,
         ani_double left, ani_double top, ani_double right, ani_double bottom);
+    static void Sort(ani_env* env, ani_object obj, ani_object aniRectObj);
+    static ani_boolean IsEqual(ani_env* env, ani_object obj, ani_object aniRectObj, ani_object aniOtherRect);
+    static ani_double GetHeight(ani_env* env, ani_object obj, ani_object aniRectObj);
+    static ani_double GetWidth(ani_env* env, ani_object obj, ani_object aniRectObj);
+    static ani_boolean IsEmpty(ani_env* env, ani_object obj, ani_object aniRectObj);
+    static ani_boolean Intersect(ani_env* env, ani_object obj, ani_object aniRectObj, ani_object aniOtherRect);
+    static void Offset(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double dx, ani_double dy);
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
