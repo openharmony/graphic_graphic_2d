@@ -208,7 +208,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         }
     }
     screenBacklightLevel_ = GetScreenBacklight();
-
+    // Enable when an external screen is connected and the vsync rate doesn't match the active refresh rate.
     if (id_ != 0 && MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
         skipFrameStrategy_ = SKIP_FRAME_BY_ACTIVE_REFRESH_RATE;
     }

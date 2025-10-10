@@ -1050,7 +1050,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             uint32_t status = SetScreenActiveMode(id, modeId);
-            if (!reply.WriteInt32(status)) {
+            if (!reply.WriteUint32(status)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_ACTIVE_MODE Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
