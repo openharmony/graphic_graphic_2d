@@ -189,6 +189,61 @@ namespace common2D {
     z: double;
   }
   
+  /**
+   * Provide a color with an ARGB structure described by floating point numbers.
+   * @typedef Color4f
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 20
+   */
+  export interface Color4f {
+    /**
+     * Alpha component of color, represented as a floating point number between 0 and 1.
+     * @type { double }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    alpha: double;
+    /**
+     * Red component of color, represented as a floating point number between 0 and 1.
+     * @type { double }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    red: double;
+    /**
+     * Green component of color, represented as a floating point number between 0 and 1.
+     * @type { double }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    green: double;
+    /**
+     * Blue component of color, represented as a floating point number between 0 and 1.
+     * @type { double }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    blue: double;
+  }
+
+  class Color4fInternal implements common2D.Color4f {
+    alpha: double = 0;
+    red: double = 0;
+    green: double = 0;
+    blue: double = 0;
+    constructor(
+      alpha: double,
+      red: double,
+      green: double,
+      blue: double
+    ) {
+      this.alpha = alpha;
+      this.red = red;
+      this.green = green;
+      this.blue = blue;
+    }
+  }
+
 }
 
 export default common2D;
