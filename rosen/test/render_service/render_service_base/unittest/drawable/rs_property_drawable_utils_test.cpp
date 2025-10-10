@@ -720,12 +720,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
 
     // -1.0f: stretch offset param
     Vector4f pixelStretchTest(-1.0f, -1.0f, -1.0f, -1.0f);
-    properties.pixelStretch_ = pixelStretchTest;
+    properties.GetEffect().pixelStretch_ = pixelStretchTest;
     EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 
     // 1.0f: stretch offset param
     Vector4f pixelStretchTest2(1.0f, 1.0f, 1.0f, 1.0f);
-    properties.pixelStretch_ = pixelStretchTest2;
+    properties.GetEffect().pixelStretch_ = pixelStretchTest2;
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 }
 
