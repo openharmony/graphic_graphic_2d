@@ -235,7 +235,7 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
             return CreateAniUndefined(env);
         }
 
-        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(valueRef), "unboxed", ":d", &value);
+        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(valueRef), "toDouble", ":d", &value);
         if (ret != ANI_OK) {
             ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter get matrix array element failed %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array element.");

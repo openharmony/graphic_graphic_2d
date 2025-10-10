@@ -441,7 +441,7 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
         if (ANI_OK != env->Object_CallMethodByName_Ref(
             glyphs, "$_get", "i:C{std.core.Object}", &glyphRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(glyphRef), "unboxed", ":i", &glyph)) {
+                static_cast<ani_object>(glyphRef), "toInt", ":i", &glyph)) {
             ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
             return arrayObj;
         }
@@ -776,7 +776,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
         if (ANI_OK != env->Object_CallMethodByName_Ref(
             glyphs, "$_get", "i:C{std.core.Object}", &glyphRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(glyphRef), "unboxed", ":i", &glyph)) {
+                static_cast<ani_object>(glyphRef), "toInt", ":i", &glyph)) {
             ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");
             return arrayObj;
         }

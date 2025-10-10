@@ -61,7 +61,7 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
                 return false;
             }
             if ((ret = env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(dividerRef), "unboxed", ":i", &divider)) != ANI_OK) {
+                static_cast<ani_object>(dividerRef), "toInt", ":i", &divider)) != ANI_OK) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice Get divider failed. ret: %{public}d", ret);
                 return false;
             }
@@ -125,7 +125,7 @@ bool ProcessIntElement(ani_env* env, ani_object colorRef, std::vector<Color>& la
 {
     ani_int aniColor;
     if (ANI_OK != env->Object_CallMethodByName_Int(
-        colorRef, "unboxed", ":i", &aniColor)) {
+        colorRef, "toInt", ":i", &aniColor)) {
         ROSEN_LOGE("ProcessIntElement: failed to Object_CallMethodByName_Int");
         return false;
     }

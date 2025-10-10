@@ -357,7 +357,7 @@ static bool CaretOffsetsCallBack(
             return false;
         }
         ani_boolean result = false;
-        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":z", &result);
+        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "toBoolean", ":z", &result);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to get result, ani_status %{public}d", ret);
             return false;

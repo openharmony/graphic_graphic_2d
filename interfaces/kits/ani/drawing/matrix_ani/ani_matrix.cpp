@@ -332,7 +332,7 @@ void AniMatrix::SetMatrix(ani_env* env, ani_object obj, ani_object aniValueArray
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array element.");
             return;
         }
-        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(matrixRef), "unboxed", ":d", &matrixValue);
+        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(matrixRef), "toDouble", ":d", &matrixValue);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniMatrix::SetMatrix matrixRef is invalid. ret: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array element.");

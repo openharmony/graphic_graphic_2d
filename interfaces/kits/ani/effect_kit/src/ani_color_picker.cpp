@@ -281,7 +281,7 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
                 &doubleValueRef, (ani_int)i);
             ani_double doubleValue;
             status = env->Object_CallMethodByName_Double(static_cast<ani_object>(doubleValueRef),
-                "unboxed", ":d", &doubleValue);
+                "toDouble", ":d", &doubleValue);
             if (status != ANI_OK) {
                 EFFECT_LOG_E("[CreateColorPicker] region Object_CallMethodByName_Double failed at i=%d", i);
                 return AniEffectKitUtils::CreateAniUndefined(env);
