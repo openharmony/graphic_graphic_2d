@@ -49,8 +49,8 @@ public:
     {
         auto pixelMap =
             DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId());
-        pixelMap->crop({ 0, 0, 1200, 2000 });
         if (pixelMap) {
+            pixelMap->crop({ 0, 0, 1200, 2000 });
             const ::testing::TestInfo* const testInfo =
                 ::testing::UnitTest::GetInstance()->current_test_info();
             std::string fileName = "/data/local/graphic_test/rs_perform_feature/dirty_region/";
