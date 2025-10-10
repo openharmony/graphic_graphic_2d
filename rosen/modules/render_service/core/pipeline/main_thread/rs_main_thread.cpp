@@ -428,15 +428,23 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
-void RSMainThread::TraverseCanvasDrawingNodesNotOnTree()
+void RSMainThread::TraverseCanvasDrawingNodes()
 {
     const auto& nodeMap = context_->GetNodeMap();
+    bool hasCachedOp = false;
     nodeMap.TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
         if (canvasDrawingNode == nullptr) {
             return;
         }
+        // Check on tree status
         canvasDrawingNode->ContentStyleSlotUpdate();
+        // Whether has cached op, if has, need render in next frame.
+        hasCachedOp |= canvasDrawingNode->CheckCachedOp();
     });
+    if (hasCachedOp) {
+        hasCanvasDrawingNodeCachedOp_ = true;
+        RequestNextVsync();
+    }
 }
 
 void RSMainThread::Init()
@@ -469,12 +477,16 @@ void RSMainThread::Init()
         RS_PROFILER_ON_RENDER_BEGIN();
         // cpu boost feature start
         ffrt_cpu_boost_start(CPUBOOST_START_POINT);
+        if (hasCanvasDrawingNodeCachedOp_) {
+            SetDirtyFlag();
+            hasCanvasDrawingNodeCachedOp_ = false;
+        }
         // may mark rsnotrendering
         Render(); // now render is traverse tree to prepare
         RsFrameBlurPredict::GetInstance().UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
         // cpu boost feature end
         ffrt_cpu_boost_end(CPUBOOST_START_POINT);
-        TraverseCanvasDrawingNodesNotOnTree();
+        TraverseCanvasDrawingNodes();
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
         UIExtensionNodesTraverseAndCallback();

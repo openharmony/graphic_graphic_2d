@@ -5451,16 +5451,16 @@ HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
 }
 
 /**
- * @tc.name: TraverseCanvasDrawingNodesNotOnTree
- * @tc.desc: test TraverseCanvasDrawingNodesNotOnTree
+ * @tc.name: TraverseCanvasDrawingNodes
+ * @tc.desc: test TraverseCanvasDrawingNodes
  * @tc.type: FUNC
  * @tc.require: issueIB56EL
  */
-HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodesNotOnTree, TestSize.Level2)
+HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodes, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->TraverseCanvasDrawingNodesNotOnTree();
+    mainThread->TraverseCanvasDrawingNodes();
 }
 
 /**
