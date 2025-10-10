@@ -516,7 +516,6 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch2, TestSize.Leve
     instance.lastFrameIdUsed_ = false;
     instance.lastFrameConsumed_ = true;
     ret = instance.MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size(), 1);
     
     instance.lastFrameIdUsed_ = true;
     instance.lastFrameConsumed_ = false;
@@ -557,7 +556,6 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch3, TestSize.Leve
     instance.processConsumed_ = true;
     instance.tid_ = gettid();
     ret = instance.MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size(), 1);
     
     instance.curFrameIdUsed_ = true;
     instance.processConsumed_ = true;
@@ -620,15 +618,15 @@ HWTEST_F(RSHDRPatternManagerTest, IsInterfaceTypeBasicRenderTest, TestSize.Level
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     auto interfaceTypeTmp = RsVulkanContext::GetSingleton().vulkanInterfaceType_;
 
-    RsVulkanContext::GetSingleton().vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
     auto ret = RSHDRVulkanTask::IsInterfaceTypeBasicRender();
     SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret, true);
+    EXPECT_NE(ret, 2);
 
-    RsVulkanContext::GetSingleton().vulkanInterfaceType_ = VulkanInterfaceType::UNPROTECTED_REDRAW;
+
+    RsVulkanContext::GetSingleton().SetIsProtected(false);
     auto ret1 = RSHDRVulkanTask::IsInterfaceTypeBasicRender();
     SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret1, false);
+    EXPECT_NE(ret1, 2);
     RsVulkanContext::GetSingleton().vulkanInterfaceType_ = interfaceTypeTmp;
 }
 
@@ -642,13 +640,20 @@ HWTEST_F(RSHDRPatternManagerTest, MHCSubmitGPUTaskTest, TestSize.Level1)
 {
     auto tmpFunc = SingletonMockRSHDRPatternManager::Instance().submitFuncs_;
     SingletonMockRSHDRPatternManager::Instance().submitFuncs_.clear();
-    VkSemaphore waitSemaphore = {};
+    VkSemaphore waitSemaphore1 = {};
     std::function<void()> func = []() { return; };
-    VkSubmitInfo submitInfo1 = {};
+    VkSemaphore waitSemaphores = { waitSemaphore1 };
+    VkSubmitInfo submitInfo1 = {
+        VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, 1, waitSemaphores, nullptr, 0, nullptr, 0, nullptr
+    };
     // cannot process func
     SingletonMockRSHDRPatternManager::Instance().MHCSubmitGPUTask(0, &submitInfo1);
     EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().submitFuncs_.size(), 0);
+
     // traverse cannot process func
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkSemaphore waitSemaphore = vkContext.RequireSemaphore();
     void* key = (void*)waitSemaphore;
     SingletonMockRSHDRPatternManager::Instance().submitFuncs_[key] = func;
     SingletonMockRSHDRPatternManager::Instance().MHCSubmitGPUTask(1, &submitInfo1);

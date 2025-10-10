@@ -267,6 +267,25 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, ReleaseBufferTest, TestSize.Level1)
 
     mockRSHeteroHDRBufferLayer->ConsumeAndUpdateBuffer();
     mockRSHeteroHDRBufferLayer->ReleaseBuffer();
+
+    // test noNeedReleaseBuffer true
+    sptr<SurfaceBuffer> preBuffer = OHOS::SurfaceBuffer::Create();
+    sptr<SurfaceBuffer> buffer1 = OHOS::SurfaceBuffer::Create();
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
+    Rect damage = {10, 10, 100, 100};
+    int64_t timestamp = 0;
+    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(preBuffer, fence, damage, timestamp);
+    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(buffer1, fence, damage, timestamp);
+    EXPECT_NE(mockRSHeteroHDRBufferLayer->surfaceHandler_->GetPreBuffer(), nullptr);
+    mockRSHeteroHDRBufferLayer->ReleaseBuffer();
+
+    // test bufferToRelease_ != nullptr && bufferToRelease_ != preBuffer
+    mockRSHeteroHDRBufferLayer->bufferToRelease_ = buffer1;
+    mockRSHeteroHDRBufferLayer->ReleaseBuffer();
+
+    // test bufferToRelease_ == nullptr || bufferToRelease_ == preBuffer
+    mockRSHeteroHDRBufferLayer->bufferToRelease_ = preBuffer;
+    mockRSHeteroHDRBufferLayer->ReleaseBuffer();
 }
 
 /**
@@ -291,6 +310,10 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, CleanCacheTest, TestSize.Level1)
     EXPECT_EQ(ret, true);
     mockRSHeteroHDRBufferLayer->CleanCache();
  
+    // test consumer not nullptr and bufferToRelease_ not nullptr
+    mockRSHeteroHDRBufferLayer->bufferToRelease_ = OHOS::SurfaceBuffer::Create();
+    mockRSHeteroHDRBufferLayer->CleanCache();
+
     mockRSHeteroHDRBufferLayer->surfaceHandler_ = nullptr;
     mockRSHeteroHDRBufferLayer->CleanCache();
 }

@@ -344,8 +344,9 @@ void RSHDRPatternManager::MHCSubmitGPUTask(uint32_t submitCount, VkSubmitInfo* p
         return;
     }
 
+    std::vector<std::function<void()>> funcsToExecute;
     for (uint32_t j = 0; j < submitCount; j++) {
-        for (uint32_t i = 0; i < pSubmits[j].waitSemaphoreCount; i++) {
+        for (uint32_t i = 0; i < pSubmits[j].waitSemaphoreCount && pSubmits[j].pWaitSemaphores; i++) {
             auto it = submitFuncs_.find(pSubmits[j].pWaitSemaphores[i]);
             if (it != submitFuncs_.end()) {
                 auto func = it->second;
@@ -353,6 +354,11 @@ void RSHDRPatternManager::MHCSubmitGPUTask(uint32_t submitCount, VkSubmitInfo* p
                 submitFuncs_.erase(it);
             }
         }
+    }
+    lock.unlock();
+
+    for (auto& func : funcsToExecute) {
+        func();
     }
 }
 #endif // RS_ENABLE_VK

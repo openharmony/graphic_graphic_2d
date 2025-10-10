@@ -35,6 +35,7 @@ namespace {
 constexpr float DEGAMMA = 1.0f / 2.2f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int GRAPH_NUM = 3;
+constexpr int UN_EXECUTE_TASK_NUM_MAX = 2;
 constexpr int MAX_RELEASE_FRAME_NUM = 5;
 constexpr float RATIO_CHANGE_TH = 0.02f;
 }
@@ -236,6 +237,12 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
     if (!isHdrOn_ || surfaceParams->GetColorFollow()) {
         RS_LOGD("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode isHdrOn is false or GetColorFollow is true");
         ClearBufferCache();
+        return false;
+    }
+    uint32_t unExecuteTaskNum = RSHardwareThread::Instance().GetunExecuteTaskNum();
+    if (unExecuteTaskNum > UN_EXECUTE_TASK_NUM_MAX) {
+        RS_LOGW("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode unExecuteTaskNum%{public}" PRIu32,
+            unExecuteTaskNum);
         return false;
     }
     if (!CheckWindowOwnership(curNodeId_)) {
@@ -550,7 +557,6 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
             RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams hdrSurfaceHandler is nullptr");
             return false;
         }
-        rsHeteroHDRBufferLayer_.ReleaseBuffer();
         bool invalidBuffer =
             !RSBaseRenderUtil::ConsumeAndUpdateBuffer(*hdrSurfaceHandler, CONSUME_DIRECTLY, false, 0) ||
             !hdrSurfaceHandler->GetBuffer();
@@ -558,6 +564,7 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
             RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams ConsumeAndUpdateBuffer or GetBuffer failed");
             return false;
         }
+        rsHeteroHDRBufferLayer_.ReleaseBuffer();
         RSHDRPatternManager::Instance().SetThreadId(canvas);
 
         ProcessParamsUpdate(canvas, surfaceDrawable, drawableParams);
