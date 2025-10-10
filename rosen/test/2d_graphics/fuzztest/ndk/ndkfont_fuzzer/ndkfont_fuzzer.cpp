@@ -281,7 +281,7 @@ void NativeDrawingFontTest008(const uint8_t* data, size_t size)
     text[textLen - 1] = '\0';
     uint32_t count = 0;
     count = OH_Drawing_FontCountText(font, text, strlen(text), TEXT_ENCODING_UTF8);
-    if(count > MAX_GLYPH_COUNT || count == 0) {
+    if (count > MAX_GLYPH_COUNT || count == 0) {
         OH_Drawing_PenDestroy(pen);
         OH_Drawing_BrushDestroy(brush);
         OH_Drawing_FontDestroy(font);
