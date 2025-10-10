@@ -867,8 +867,9 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         rotationFixed ? static_cast<float>(dstRect.w) : static_cast<float>(boundRect.w),
         rotationFixed ? static_cast<float>(dstRect.h) : static_cast<float>(boundRect.h) };
     if (rotationFixed) {
-        DealWithRotationAndGravityForRotationFixed(transform, static_cast<Gravity>(layer->GetGravity()), localBounds,
-            params);
+        // while use hpae offline, redraw should resize srcBuffer to dstBuffer
+        Gravity gravity = layer->GetUseDeviceOffline() ? Gravity::RESIZE : static_cast<Gravity>(layer->GetGravity());
+        DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
     } else {
         RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
             localBounds, params);
