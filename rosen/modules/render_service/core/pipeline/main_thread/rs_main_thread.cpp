@@ -2515,9 +2515,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("DoDirectComposition: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
-        RSHardwareThread::Instance().DumpEventQueue();
+        RS_LOGW("DoDirectComposition: hardwareThread task has too many to Execute");
     }
 #ifdef RS_ENABLE_GPU
     auto screenId = screenNode->GetScreenId();

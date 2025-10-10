@@ -407,9 +407,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         }
     }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}u]", RSHardwareThread::Instance().GetunExecuteTaskNum());
-        RSHardwareThread::Instance().DumpEventQueue();
+        RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);
 
@@ -1009,9 +1007,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
-        RSHardwareThread::Instance().DumpEventQueue();
+        RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute");
     }
 
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable CommitLayer");
