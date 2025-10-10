@@ -875,7 +875,7 @@ struct CommonEffectParams {
     std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
-    std::shared_ptr<RSNGRenderShaderBase> fgRendershader_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
 };
     inline float DecreasePrecision(float value)
