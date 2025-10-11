@@ -1974,37 +1974,37 @@ const Color& RSProperties::GetShadowColor() const
 float RSProperties::GetShadowOffsetX() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetOffsetX() : DEFAULT_SHADOW_OFFSET_X;
+    return shadow ? shadow->GetOffsetX() : DEFAULT_SHADOW_OFFSET_X;
 }
 
 float RSProperties::GetShadowOffsetY() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetOffsetY() : DEFAULT_SHADOW_OFFSET_Y;
+    return shadow ? shadow->GetOffsetY() : DEFAULT_SHADOW_OFFSET_Y;
 }
 
 float RSProperties::GetShadowElevation() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetElevation() : 0.f;
+    return shadow ? shadow->GetElevation() : 0.f;
 }
 
 float RSProperties::GetShadowRadius() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetRadius() : DEFAULT_SHADOW_RADIUS;
+    return shadow ? shadow->GetRadius() : DEFAULT_SHADOW_RADIUS;
 }
 
 std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetPath() : nullptr;
+    return shadow ? shadow->GetPath() : nullptr;
 }
 
 int RSProperties::GetShadowMask() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetMask() : SHADOW_MASK_STRATEGY::MASK_NONE;
+    return shadow ? shadow->GetMask() : SHADOW_MASK_STRATEGY::MASK_NONE;
 }
 
 bool RSProperties::IsShadowMaskValid() const
@@ -2020,13 +2020,13 @@ bool RSProperties::IsShadowMaskValid() const
 bool RSProperties::GetShadowIsFilled() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetIsFilled() : false;
+    return shadow ? shadow->GetIsFilled() : false;
 }
 
 int RSProperties::GetShadowColorStrategy() const
 {
     const auto& shadow = GetShadow();
-    return shadow ? shadow->GetColor()->GetColorStrategy() : SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+    return shadow ? shadow->GetColorStrategy() : SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 }
 
 const std::optional<RSShadow>& RSProperties::GetShadow() const
