@@ -68,22 +68,26 @@ public:
     bool IsNeedProcess() const;
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
-    void PlaybackInCorrespondThread();
     const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
     void ClearResource() override;
     void ClearNeverOnTree() override;
     void CheckCanvasDrawingPostPlaybacked();
     bool GetIsPostPlaybacked();
+
+    void ApplyModifiers() override;
+    bool CheckCachedOp();
+
 private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifierNG(ModifierNG::RSModifierContext& context, ModifierNG::RSModifierType type);
-    void CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type, size_t originCmdListSize);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
     void InitRenderParams() override;
     void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
+    void SplitDrawCmdList(size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin);
+    void ApplyCachedCmdList(size_t& opCount);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
@@ -93,7 +97,6 @@ private:
 #endif
     bool isNeverOnTree_ = true;
     bool isPostPlaybacked_ = false;
-    bool lastOverflowStatus_ = false;
     std::atomic<bool> isNeedProcess_ = false;
     pid_t threadId_ = 0;
     // Used in uni render thread.
@@ -108,7 +111,8 @@ private:
     std::mutex taskMutex_;
     std::mutex drawCmdListsMutex_;
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
-    uint32_t cmdCount_ = 0;
+    ModifierCmdList outOfLimitCmdList_;
+    size_t cachedOpCount_ = 0;
 
     int64_t lastResetSurfaceTime_ = 0;
     size_t opCountAfterReset_ = 0;

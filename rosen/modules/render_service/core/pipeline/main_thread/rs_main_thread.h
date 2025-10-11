@@ -548,7 +548,7 @@ private:
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
-    void TraverseCanvasDrawingNodesNotOnTree();
+    void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
@@ -874,6 +874,8 @@ private:
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     HgmContext hgmContext_;
     std::mutex dumpInfoMutex_;
+
+    bool hasCanvasDrawingNodeCachedOp_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

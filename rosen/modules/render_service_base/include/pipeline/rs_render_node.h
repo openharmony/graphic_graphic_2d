@@ -728,10 +728,10 @@ public:
 
     void MarkNonGeometryChanged();
 
-    void ApplyModifiers();
+    virtual void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
-    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_);
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false);
 

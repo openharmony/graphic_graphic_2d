@@ -301,40 +301,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, InitRenderParamsTest, TestSize.Level1)
     EXPECT_TRUE(rsCanvasDrawingRenderNode->renderDrawable_ == nullptr);
 }
 
-/**
- * @tc.name: PlaybackInCorrespondThread
- * @tc.desc: test results of PlaybackInCorrespondThread
- * @tc.type: FUNC
- * @tc.require: issueI9W0GK
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::shared_ptr<RSContext> sharedContext = std::make_shared<RSContext>();
-    std::weak_ptr<RSContext> context = sharedContext;
-    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
-    auto ctxNode =
-        context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
-    EXPECT_TRUE(ctxNode == nullptr);
-    rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
-
-    auto& ctxNodeMap = context.lock()->GetMutableNodeMap();
-    NodeId rsCanvasDrawingRenderNodeId = rsCanvasDrawingRenderNode->GetId();
-    pid_t rsCanvasDrawingRenderNodePid = ExtractPid(rsCanvasDrawingRenderNodeId);
-    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNodePid][rsCanvasDrawingRenderNodeId] = rsCanvasDrawingRenderNode;
-    ctxNode = context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
-    EXPECT_TRUE(ctxNode != nullptr);
-    int32_t width = 1;
-    int32_t height = 1;
-    Drawing::Canvas canvas(width, height);
-    rsCanvasDrawingRenderNode->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
-    rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
-    rsCanvasDrawingRenderNode->surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode->isNeedProcess_.store(true);
-    rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
-    EXPECT_FALSE(rsCanvasDrawingRenderNode->isNeedProcess_);
-}
-
 #ifndef MODIFIER_NG
 /**
  * @tc.name: ApplyDrawCmdModifier
@@ -739,4 +705,19 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
     EXPECT_TRUE(lists2.empty());
 }
 #endif
+
+/**
+ * @tc.name: ApplyCachedCmdListTest
+ * @tc.desc: Test ApplyCachedCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyCachedCmdListTest, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(10, 10);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(9);
+    node->outOfLimitCmdList_.emplace_back(drawCmdList);
+    size_t opCount = 0;
+    node->ApplyCachedCmdList(opCount);
+    EXPECT_TRUE(node->outOfLimitCmdList_.empty());
+}
 } // namespace OHOS::Rosen
