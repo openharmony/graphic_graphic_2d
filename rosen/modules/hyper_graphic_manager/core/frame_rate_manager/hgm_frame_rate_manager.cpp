@@ -739,6 +739,13 @@ int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, flo
 int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velocityMM,
     float areaSqrMM, float lengthMM) const
 {
+    const auto curScreenStrategyId = curScreenStrategyId_;
+    const std::string settingMode = std::to_string(curRefreshRateMode_);
+    static bool isBeta = RSSystemProperties::GetVersionType() == "beta";
+    if (isBeta) {
+        RS_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, area: %f, length: %f, Id: %s, Mode: %s",
+            type.c_str(), velocityMM, areaSqrMM, lengthMM, curScreenStrategyId.c_str(), settingMode.c_str());
+    }
     auto& configData = HgmCore::Instance().GetPolicyConfigData();
     if (!configData) {
         return 0;
@@ -746,8 +753,6 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
     if (ROSEN_EQ(velocityMM, 0.f)) {
         return 0;
     }
-    const auto curScreenStrategyId = curScreenStrategyId_;
-    const std::string settingMode = std::to_string(curRefreshRateMode_);
     if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end() ||
         configData->screenConfigs_[curScreenStrategyId].find(settingMode) ==
         configData->screenConfigs_[curScreenStrategyId].end()) {
