@@ -5486,8 +5486,6 @@ OH_Drawing_Typography* LayoutForSplitRunsEllipsisSample(const char* text, float 
 skia::textlayout::ParagraphImpl* GetSkiaParagraphByDrawingTypography(OH_Drawing_Typography* typography)
 {
     OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
-    const OHOS::Rosen::Boundary& ellipsisRange = rosenTypography->GetEllipsisTextRange();
-    std::cout << "ellipsisRange: [" << ellipsisRange.leftIndex << ", " << ellipsisRange.rightIndex << "]" << std::endl; 
     OHOS::Rosen::SPText::ParagraphImpl* paragraph =
         reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
     return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
@@ -5510,8 +5508,8 @@ bool CheckEllipsisRunIndex(skia::textlayout::ParagraphImpl* paragraph, size_t ru
  */
 HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest001, TestSize.Level0)
 {
-    const char* text =
-        "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
+    const char* text = "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ \
+        সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
     // Test for layout width 119
     OH_Drawing_Typography* paragraph = LayoutForSplitRunsEllipsisSample(text, 119,
         OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_BOTTOM);
@@ -5530,8 +5528,8 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest001, TestS
  */
 HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest002, TestSize.Level0)
 {
-    const char* text =
-        "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
+    const char* text = "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ \
+        সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
     // Test for layout width 64
     OH_Drawing_Typography* paragraph = LayoutForSplitRunsEllipsisSample(text, 64,
         OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_CENTER);
