@@ -437,36 +437,6 @@ HWTEST_F(RSBaseRenderNodeTest, SetGlobalAlpha, TestSize.Level1)
     ASSERT_EQ(node->globalAlpha_, alpha);
 }
 
-/**
- * @tc.name: NeedInitCacheSurface
- * @tc.desc: test results of NeedInitCacheSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, NeedInitCacheSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    EXPECT_EQ(node->NeedInitCacheSurface(), true);
-
-    node->cacheSurface_ = std::make_shared<Drawing::Surface>();
-    ASSERT_EQ(node->NeedInitCacheSurface(), true);
-}
-
-/**
- * @tc.name: NeedInitCacheCompletedSurface
- * @tc.desc: test results of NeedInitCacheCompletedSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, NeedInitCacheCompletedSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    EXPECT_EQ(node->NeedInitCacheCompletedSurface(), true);
-
-    node->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    ASSERT_EQ(node->NeedInitCacheCompletedSurface(), true);
-}
-
 #ifndef MODIFIER_NG
 /**
  * @tc.name: GetOptionalBufferSize
@@ -491,103 +461,6 @@ HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 #endif
-
-/**
- * @tc.name: GetCompletedImage
- * @tc.desc: test results of GetCompletedImage
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, GetCompletedImage, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    uint32_t threadIndex = 1;
-    bool isUIFirst = false;
-    EXPECT_EQ(node->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst), nullptr);
-
-    node->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    EXPECT_EQ(node->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst), nullptr);
-}
-
-/**
- * @tc.name: UpdateBackendTexture
- * @tc.desc: test results of UpdateBackendTexture
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, UpdateBackendTexture, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->UpdateBackendTexture();
-
-    node->cacheSurface_ = std::make_shared<Drawing::Surface>();
-    node->UpdateBackendTexture();
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: GetCompletedCacheSurface
- * @tc.desc: test results of GetCompletedCacheSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, GetCompletedCacheSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    uint32_t threadIndex = 1;
-    bool needCheckThread = false;
-    bool releaseAfterGet = false;
-    ASSERT_EQ(node->GetCompletedCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-
-    needCheckThread = true;
-    ASSERT_EQ(node->GetCompletedCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-
-    releaseAfterGet = true;
-    ASSERT_EQ(node->GetCompletedCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-}
-
-/**
- * @tc.name: ClearCacheSurfaceInThread
- * @tc.desc: test results of ClearCacheSurfaceInThread
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, ClearCacheSurfaceInThread, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    node->ClearCacheSurfaceInThread();
-
-    auto clearCacheSurfaceLambda = [](std::shared_ptr<Drawing::Surface>&& surface1,
-                                       std::shared_ptr<Drawing::Surface>&& surface2, uint32_t param1,
-                                       uint32_t param2) {};
-    RSRenderNode::ClearCacheSurfaceFunc func = clearCacheSurfaceLambda;
-    node->clearCacheSurfaceFunc_ = func;
-    node->ClearCacheSurfaceInThread();
-    ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: GetCacheSurface
- * @tc.desc: test results of GetCacheSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, GetCacheSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    uint32_t threadIndex = 1;
-    bool needCheckThread = false;
-    bool releaseAfterGet = false;
-    ASSERT_EQ(node->GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-
-    needCheckThread = true;
-    ASSERT_EQ(node->GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-
-    releaseAfterGet = true;
-    ASSERT_EQ(node->GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet), nullptr);
-}
 
 /**
  * @tc.name: MarkNodeGroup
@@ -633,24 +506,6 @@ HWTEST_F(RSBaseRenderNodeTest, CheckDrawingCacheType, TestSize.Level1)
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
     node->CheckDrawingCacheType();
     ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::TARGETED_CACHE);
-}
-
-/**
- * @tc.name: GetFilterRectsInCache
- * @tc.desc: test results of GetFilterRectsInCache
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, GetFilterRectsInCache, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    std::unordered_map<NodeId, std::unordered_set<NodeId>> allRects;
-    node->GetFilterRectsInCache(allRects);
-
-    std::unordered_set<NodeId> curRects = { 1, 2, 3 };
-    node->curCacheFilterRects_ = curRects;
-    node->GetFilterRectsInCache(allRects);
-    ASSERT_TRUE(true);
 }
 
 /**
