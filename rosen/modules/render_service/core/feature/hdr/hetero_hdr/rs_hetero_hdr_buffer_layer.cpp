@@ -57,7 +57,7 @@ void RSHeteroHDRBufferLayer::CleanCache()
         auto consumer = surfaceHandler_->GetConsumer();
         std::lock_guard<std::mutex> lockGuard(surfaceHandleMutex_);
         if (consumer != nullptr && bufferToRelease_ != nullptr) {
-            consumer->ReleaseBuffer(bufferToRelease_, surfaceHandler_->GetPreBufferReleaseFence);
+            consumer->ReleaseBuffer(bufferToRelease_, surfaceHandler_->GetPreBufferReleaseFence());
             bufferToRelease_ = nullptr;
         }
         surfaceHandler_->CleanCache();
