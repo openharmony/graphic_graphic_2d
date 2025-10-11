@@ -1258,7 +1258,7 @@ HWTEST_F(RSPropertiesTest, UpdateBackgroundShader003, TestSize.Level1)
     properties.UpdateBackgroundShader();
 
     head = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
-    properties.bgNGRenderShader_ = head;
+    properties.GetEffect().bgNGRenderShader_ = head;
     properties.SetBackgroundNGShader(head);
     properties.UpdateBackgroundShader();
  
