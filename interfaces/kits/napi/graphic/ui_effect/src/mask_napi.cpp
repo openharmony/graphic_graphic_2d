@@ -473,6 +473,12 @@ static bool ParseHarmoniumEffectMask(napi_env env, napi_value* argv,
 
 napi_value MaskNapi::CreateHarmoniumEffectMask(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        MASK_LOG_E("MaskNapi CreateHarmoniumEffectMask failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "MaskNapi CreateHarmoniumEffectMask failed, is not system app");
+        return nullptr;
+    }
     static const size_t maxArgc = NUM_1;
     size_t realArgc = maxArgc;
     napi_value result = nullptr;
