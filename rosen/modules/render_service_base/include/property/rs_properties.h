@@ -713,12 +713,14 @@ public:
     bool IsDynamicDimValid() const;
     bool IsFgBrightnessValid() const
     {
-        return GetFgBrightnessParams().has_value() && GetFgBrightnessParams()->IsValid();
+        const auto& fgBrightnessParams = GetFgBrightnessParams();
+        return fgBrightnessParams.has_value() && fgBrightnessParams->IsValid();
     }
 
     bool IsBgBrightnessValid() const
     {
-        return GetBgBrightnessParams().has_value() && GetBgBrightnessParams()->IsValid();
+        const auto& bgBrightnessParams = GetBgBrightnessParams();
+        return bgBrightnessParams.has_value() && bgBrightnessParams->IsValid();
     }
     bool IsShadowBlenderValid() const;
     bool IsWaterRippleValid() const;
@@ -776,13 +778,15 @@ public:
     Vector4f GetLightPosition() const;
     inline float GetIlluminatedBorderWidth() const
     {
-        return GetIlluminated() ? GetIlluminated()->GetIlluminatedBorderWidth() : 0.f;
+        const auto& illuminatedPtr = GetIlluminated();
+        return illuminatedPtr ? illuminatedPtr->GetIlluminatedBorderWidth() : 0.f;
     }
 
     int GetIlluminatedType() const;
     inline float GetBloom() const
     {
-        return GetIlluminated() ? GetIlluminated()->GetBloomIntensity() : 0.f;
+        const auto& illuminatedPtr = GetIlluminated();
+        return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
 
     void CalculateAbsLightPosition();
@@ -833,8 +837,9 @@ public:
     }
     bool IsColorBlendModeValid() const
     {
-        return GetColorBlendMode() != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
-               GetColorBlendMode() != static_cast<int>(RSColorBlendMode::NONE);
+        const auto& colorBlendMode = GetColorBlendMode();
+        return colorBlendMode != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+               colorBlendMode != static_cast<int>(RSColorBlendMode::NONE);
     }
     bool IsColorBlendModeNone() const
     {
