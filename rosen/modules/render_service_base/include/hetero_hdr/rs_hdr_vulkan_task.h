@@ -37,7 +37,8 @@ public:
     static void SubmitWaitEventToGPU(uint64_t frameId);
     static void PrepareHDRSemaphoreVector(std::vector<GrBackendSemaphore>& semaphoreVec,
         std::shared_ptr<Drawing::Surface>& surface, std::vector<uint64_t>& frameIdVec);
-    static std::vector<void*> GetWaitSemaphoreKeys(VkSubmitInfo* pSubmits);
+    static bool IsInterfaceTypeBasicRender();
+
 private:
     RSHDRVulkanTask() = default;
     ~RSHDRVulkanTask() = default;

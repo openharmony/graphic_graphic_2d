@@ -177,19 +177,9 @@ public:
         std::unique_lock<std::mutex> lock(funcMutex_);
         submitFuncs_[key] = func;
     }
-
-    void MHCSubmitGPUTask(std::vector<void *> keys)
-    {
-        std::unique_lock<std::mutex> lock(funcMutex_);
-        for (auto key : keys) {
-            auto it = submitFuncs_.find(key);
-            if (it != submitFuncs_.end()) {
-                auto func = it->second;
-                func();
-                submitFuncs_.erase(it);
-            }
-        }
-    }
+#ifdef RS_ENABLE_VK
+    void MHCSubmitGPUTask(uint32_t submitCount, VkSubmitInfo* pSubmits);
+#endif // RS_ENABLE_VK
 
     void MHCClearGPUTaskFunc(std::vector<uint64_t> frameIdVec)
     {
