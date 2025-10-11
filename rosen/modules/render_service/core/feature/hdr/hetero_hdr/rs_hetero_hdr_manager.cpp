@@ -120,15 +120,15 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
     Vector2f boundSize = surfaceParams->GetCacheSize();
-
-    float ratio = float(srcRect.h) * float(dstRect.w) / (float(dstRect.h) * float(srcRect.w));
+    // The preconditon has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
+    float ratio = static_cast<float>(srcRect.h) * dstRect.w / (dstRect.h * srcRect.w);
     ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
     bool isVertical =
         (transform == GraphicTransformType::GRAPHIC_ROTATE_90 || transform == GraphicTransformType::GRAPHIC_ROTATE_270);
 
-    Vector2f hpaeBufferSize_ = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width)
-                                           : Vector2f(curScreenInfo.width, curScreenInfo.height);
+    Vector2f hpaeBufferSize_ = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width) :
+        Vector2f(curScreenInfo.width, curScreenInfo.height);
     bool sizeJudge = !(ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.0f) &&
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
     bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
@@ -289,8 +289,8 @@ void RSHeteroHDRManager::ClearBufferCache()
     }
 }
 
-void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams,
-    RectI& hapeSrcRect, RectI& validHpaeDstRect)
+void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hapeSrcRect,
+    RectI& validHpaeDstRect)
 {
     // The precondition has already determined that the srcBuffer and surfaceParams are not nullptr(ValidateSurface)
     sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
@@ -298,7 +298,7 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams,
     const auto& dstRect = surfaceParams->GetLayerInfo().dstRect;
     auto bufferWidth = srcBuffer->GetSurfaceBufferWidth();
     auto bufferHeight = srcBuffer->GetSurfaceBufferHeight();
-     /*
+    /*
     * isFixedDstBuffer_ is true when hpae and GPU are used separately for scaling.
     * The precondition has already determined that the width and height of srcBuffer are not zero
     */
@@ -310,10 +310,10 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams,
     } else {
         hapeSrcRect = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h), bufferWidth, bufferHeight);
         // The precondition has already determined that srcRect.w and srcRect.h are not zero
-        dst_.width_ = round(float(dstRect.w)/float(srcRect.w)*float(hapeSrcRect.width_));
-        dst_.height_ = round(float(dstRect.h)/float(srcRect.h)*float(hapeSrcRect.height_));
-        validHpaeDstRect = { 0, 0, float(dst_.width_)/float(hapeSrcRect.width_)*float(srcRect.w),
-            float(dst_.height_)/float(hapeSrcRect.height_)*float(srcRect.h) };
+        dst_.width_ = round(static_cast<float>(dstRect.w) / srcRect.w * hapeSrcRect.width_);
+        dst_.height_ = round(static_cast<float>(dstRect.h) / srcRect.h * hapeSrcRect.height_);
+        validHpaeDstRect = { 0, 0, static_cast<float>(dst_.width_) / hapeSrcRect.width_ * srcRect.w,
+            static_cast<float>(dst_.height_) / hapeSrcRect.height_ * srcRect.h };
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
     }
 }
