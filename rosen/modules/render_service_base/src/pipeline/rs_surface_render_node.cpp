@@ -2643,9 +2643,9 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
             dirtyGeoNodeNum_++;
         }
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%lu] contentStatic: %d, dirtyContentNode: %d, "
-        "dirtyGeoNode: %d", GetName().c_str(), GetId(),
-        surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%" PRIu64 "] "
+        "contentStatic: %d, dirtyContentNode: %zu, dirtyGeoNode: %zu",
+        GetName().c_str(), GetId(), surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
     // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
     surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
