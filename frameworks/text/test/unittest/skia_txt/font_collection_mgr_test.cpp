@@ -35,6 +35,7 @@ protected:
         mgr.RemoveSharedFontColleciton(key2);
         mgr.DestroyLocalInstance(envId1);
         mgr.DestroyLocalInstance(envId2);
+        mgr.hapPaths_.clear();
     }
 
     FontCollectionMgr& mgr = FontCollectionMgr::GetInstance();
@@ -210,5 +211,66 @@ HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0013, TestSize.Level0)
     mgr.InsertLocalInstance(envId2, fc2);
     uint64_t envId = mgr.GetEnvByFontCollection(fc2.get());
     EXPECT_EQ(envId, envId2);
+}
+
+/*
+ * @tc.name: FontCollectionMgrTest0014
+ * @tc.desc: test for InsertHapPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0014, TestSize.Level0)
+{
+    EXPECT_FALSE(mgr.InsertHapPath("", "", ""));
+    EXPECT_FALSE(mgr.InsertHapPath("", "module1", "/path/to/resource"));
+    EXPECT_FALSE(mgr.InsertHapPath("bundle1", "", "/path/to/resource"));
+    EXPECT_FALSE(mgr.InsertHapPath("bundle1", "module1", ""));
+    EXPECT_TRUE(mgr.InsertHapPath("bundle1", "module1", "/path/to/resource1"));
+}
+
+/*
+ * @tc.name: FontCollectionMgrTest0015
+ * @tc.desc: test for GetHapPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0015, TestSize.Level0)
+{
+    std::string bundle = "bundle1";
+    std::string module = "module1";
+    std::string module2 = "module2";
+    std::string path = "/path/to/resource1";
+    std::string path2 = "/path/to/resource2";
+
+    mgr.InsertHapPath(bundle, module, path);
+    EXPECT_EQ(path, mgr.GetHapPath(bundle, module));
+    mgr.InsertHapPath(bundle, module, path2);
+    mgr.InsertHapPath(bundle, module2, path);
+    EXPECT_EQ(path2, mgr.GetHapPath(bundle, module));
+    EXPECT_EQ(path, mgr.GetHapPath(bundle, module2));
+    EXPECT_EQ("", mgr.GetHapPath("nonexistent", module));
+    EXPECT_EQ("", mgr.GetHapPath(bundle, "nonexistent"));
+}
+
+/*
+ * @tc.name: FontCollectionMgrTest0016
+ * @tc.desc: test for DestoryHapPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0016, TestSize.Level0)
+{
+    std::string bundle = "bundle1";
+    std::string module = "module1";
+    std::string module2 = "module2";
+    std::string path = "/path/to/resource1";
+    std::string path2 = "/path/to/resource2";
+
+    mgr.DestoryHapPath("nonexistent", module);
+    mgr.InsertHapPath(bundle, module, path);
+    mgr.DestoryHapPath(bundle, "nonexistent");
+    EXPECT_EQ(path, mgr.GetHapPath(bundle, module));
+    mgr.InsertHapPath(bundle, module2, path2);
+    mgr.DestoryHapPath(bundle, module);
+    EXPECT_EQ("", mgr.GetHapPath(bundle, module));
+    EXPECT_EQ(path2, mgr.GetHapPath(bundle, module2));
+    mgr.DestoryHapPath(bundle, module2);
 }
 } // namespace OHOS::Rosen

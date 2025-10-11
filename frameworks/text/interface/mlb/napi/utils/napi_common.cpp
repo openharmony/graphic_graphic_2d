@@ -16,6 +16,7 @@
 #include <cstdint>
 
 #include "ability.h"
+#include "font_collection_mgr.h"
 #include "napi_common.h"
 #include "text_style.h"
 
@@ -1050,9 +1051,12 @@ std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std:
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {
-        TEXT_LOGW("Failed to get module context, bundle: %{public}s, module: %{public}s",
-            context->GetBundleName().c_str(), moduleName.c_str());
-        return context->GetResourceManager();
+        std::shared_ptr<Global::Resource::ResourceManager> manager(Global::Resource::CreateResourceManager(false));
+        std::string hapPath = FontCollectionMgr::GetInstance().GetHapPath(bundleName, moduleName);
+        manager->AddResource(hapPath.c_str());
+        TEXT_LOGI("Create Resource Mangager, bundle: %{public}s, module: %{public}s, hap path: %{public}s",
+            bundleName.c_str(), moduleName.c_str(), hapPath.c_str());
+        return manager;
     }
 }
 
