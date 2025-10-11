@@ -3330,7 +3330,7 @@ void RSProperties::GenerateMagnifierFilter()
 
 void RSProperties::GenerateWaterRippleFilter()
 {
-    auto waterRippleParams = GetWaterRippleParams();
+    const auto& waterRippleParams = GetWaterRippleParams();
     if (!waterRippleParams) {
         return;
     }

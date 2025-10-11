@@ -408,14 +408,13 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
         out["CornerRadius"] = { properties.GetCornerRadius().x_, properties.GetCornerRadius().y_,
             properties.GetCornerRadius().z_, properties.GetCornerRadius().w_ };
     }
-    const auto& pixelStretchMem = properties.GetPixelStretch();
-    if (pixelStretchMem.has_value()) {
+    if (properties.GetPixelStretch().has_value()) {
         auto& pixelStretch = out["PixelStretch"];
         pixelStretch.PushObject();
-        pixelStretch["left"] = pixelStretchMem->x_;
-        pixelStretch["top"] = pixelStretchMem->y_;
-        pixelStretch["right"] = pixelStretchMem->z_;
-        pixelStretch["bottom"] = pixelStretchMem->w_;
+        pixelStretch["left"] = properties.GetPixelStretch()->x_;
+        pixelStretch["top"] = properties.GetPixelStretch()->y_;
+        pixelStretch["right"] = properties.GetPixelStretch()->z_;
+        pixelStretch["bottom"] = properties.GetPixelStretch()->w_;
         pixelStretch.PopObject();
     }
     if (!ROSEN_EQ(properties.GetAlpha(), 1.f)) {
