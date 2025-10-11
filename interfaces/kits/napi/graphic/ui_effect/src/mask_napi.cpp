@@ -455,7 +455,8 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
     return Create(env, para);
 }
 
-static bool ParseHarmoniumEffectMask(napi_env env, napi_value* argv, size_t realArgc, std::shared_ptr<HarmoniumEffectMaskPara> para)
+static bool ParseHarmoniumEffectMask(napi_env env, napi_value* argv,
+    size_t realArgc, std::shared_ptr<HarmoniumEffectMaskPara> para)
 {
     if (!para) {
         return false;
