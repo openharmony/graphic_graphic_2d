@@ -28,6 +28,8 @@
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
 
+#include "effect/include/harmonium_effect_para.h"
+
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -70,6 +72,7 @@ private:
     static bool GetColorGradientArray(napi_env env, napi_value* argValue,
         std::shared_ptr<ColorGradientEffectPara>& para, uint32_t arraySize);
     static float GetSpecialValue(napi_env env, napi_value argValue);
+    static napi_value CreateHarmoniumEffect(napi_env env, napi_callback_info info);
 
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };

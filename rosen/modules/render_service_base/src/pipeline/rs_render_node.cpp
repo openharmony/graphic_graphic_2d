@@ -545,6 +545,7 @@ void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
+    childHasVisibleHarmonium_ = false;
     childHasSharedTransition_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
@@ -2983,6 +2984,8 @@ void RSRenderNode::UpdateDisplayList()
     // Update index of BACKGROUND_COLOR
     stagingDrawCmdIndex_.backgroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::BACKGROUND_COLOR);
 
+    stagingDrawCmdIndex_.backgroundNgShaderIndex_ = AppendDrawFunc(RSDrawableSlot::BACKGROUND_NG_SHADER);
+
     // Update index of BACKGROUND_IMAGE
     stagingDrawCmdIndex_.backgroundImageIndex_ = AppendDrawFunc(RSDrawableSlot::BACKGROUND_IMAGE);
 
@@ -3536,6 +3539,12 @@ void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();
     visibleEffectChild_.insert(childEffectNodes.begin(), childEffectNodes.end());
+}
+
+void RSRenderNode::SetChildHasVisibleHarmonium(bool val)
+{
+    childHasVisibleHarmonium_ = val;
+    stagingRenderParams_->SetChildHasVisibleHarmonium(val);
 }
 
 const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const

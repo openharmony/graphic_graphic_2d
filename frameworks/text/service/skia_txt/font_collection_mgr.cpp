@@ -96,4 +96,49 @@ uint64_t FontCollectionMgr::GetEnvByFontCollection(const FontCollection* fontCol
     }
     return 0;
 }
+
+bool FontCollectionMgr::InsertHapPath(const std::string& bundle, const std::string& module, const std::string& path)
+{
+    bool invalidCheck = bundle.empty() || module.empty() || path.empty();
+    if (invalidCheck) {
+        return false;
+    }
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    hapPaths_[bundle][module] = path;
+    return true;
+}
+
+void FontCollectionMgr::DestoryHapPath(const std::string& bundle, const std::string& module)
+{
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    auto bundleIter = hapPaths_.find(bundle);
+    if (bundleIter == hapPaths_.end()) {
+        return;
+    }
+
+    auto& moduleMap = bundleIter->second;
+    auto moduleIter = moduleMap.find(module);
+    if (moduleIter == moduleMap.end()) {
+        return;
+    }
+    moduleMap.erase(moduleIter);
+    if (moduleMap.empty()) {
+        hapPaths_.erase(bundleIter);
+    }
+}
+
+std::string FontCollectionMgr::GetHapPath(const std::string& bundle, const std::string& module)
+{
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    auto bundleIter = hapPaths_.find(bundle);
+    if (bundleIter == hapPaths_.end()) {
+        return "";
+    }
+    auto& moduleMap = bundleIter->second;
+    auto moduleIter = moduleMap.find(module);
+    if (moduleIter == moduleMap.end()) {
+        return "";
+    }
+    return moduleIter->second;
+}
 } // namespace OHOS::Rosen

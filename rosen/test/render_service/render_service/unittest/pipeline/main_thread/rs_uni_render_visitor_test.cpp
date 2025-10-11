@@ -3305,6 +3305,41 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo004, TestSize.Level2)
     EXPECT_EQ(parent->GetVisibleEffectChild().count(childNodeId), 1);
 }
 
+/**
+ * @tc.name: CollectEffectInfo005
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasHarmonium
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo005, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    node->GetMutableRenderProperties().hasHarmonium_ = true;
+    node->SetChildHasVisibleHarmonium(true);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(parent->ChildHasVisibleHarmonium());
+
+    node->GetMutableRenderProperties().hasHarmonium_ = false;
+    node->SetChildHasVisibleHarmonium(true);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(parent->ChildHasVisibleHarmonium());
+
+    node->GetMutableRenderProperties().hasHarmonium_ = false;
+    node->SetChildHasVisibleHarmonium(true);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_FALSE(parent->ChildHasVisibleHarmonium());
+}
+
 /*
  * @tc.name: CheckIsGpuOverDrawBufferOptimizeNode001
  * @tc.desc: Verify function CheckIsGpuOverDrawBufferOptimizeNode while node has no child

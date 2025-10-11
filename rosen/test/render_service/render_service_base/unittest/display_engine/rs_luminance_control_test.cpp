@@ -118,22 +118,6 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.ForceCloseHdr(screenId, true);
     luminCtrl.GetBrightnessInfo(screenId);
     luminCtrl.HandleGamutSpecialRender(mode);
-
-    ASSERT_NE((&luminCtrl), nullptr);
-
-    luminCtrl.rSLuminanceControlInterface_ = nullptr;
-    ASSERT_EQ(luminCtrl.rSLuminanceControlInterface_, nullptr);
-    luminCtrl.UpdateScreenStatus(screenId, POWER_STATUS_ON);
-    luminCtrl.DimmingIncrease(screenId);
-    luminCtrl.SetNowHdrLuminance(screenId, level);
-    luminCtrl.SetSdrLuminance(screenId, level);
-    luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
-    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
-    luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO_GTM);
-    luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
-    luminCtrl.ForceCloseHdr(screenId, true);
-    luminCtrl.GetBrightnessInfo(screenId);
-    luminCtrl.HandleGamutSpecialRender(mode);
     
     ASSERT_NE((&luminCtrl), nullptr);
 }

@@ -539,7 +539,8 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             }
             continue;
         }
-        if (index != drawCmdIndex_.useEffectIndex_ || index != drawCmdIndex_.backgroundFilterIndex_) {
+        if (index != drawCmdIndex_.useEffectIndex_ || index != drawCmdIndex_.backgroundFilterIndex_ ||
+            index == drawCmdIndex_.backgroundNgShaderIndex_) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "ClipHoleForBlur filterRect:[%.2f, %.2f]", bounds.GetWidth(), bounds.GetHeight());
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
@@ -619,7 +620,7 @@ void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& ca
 bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
-           drawCmdIndex_.useEffectIndex_ != -1;
+           drawCmdIndex_.useEffectIndex_ != -1 || drawCmdIndex_.backgroundNgShaderIndex_ != -1;
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()

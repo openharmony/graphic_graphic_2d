@@ -75,6 +75,26 @@ bool ParseJsDoubleValue(napi_env env, napi_value jsObject, const std::string& na
     return true;
 }
 
+bool ParseJsBoolValue(napi_env env, napi_value jsObject, const std::string& name, bool& data)
+{
+    napi_value value = nullptr;
+    if (napi_get_named_property(env, jsObject, name.c_str(), &value) != napi_ok) {
+        return false;
+    }
+    if (!value) {
+        return false;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, value, &valueType);
+    if (valueType == napi_undefined) {
+        return false;
+    }
+    if (napi_get_value_bool(env, value, &data) != napi_ok) {
+        return false;
+    }
+    return true;
+}
+
 bool ParseJsVector2f(napi_env env, napi_value jsObject, Vector2f& values)
 {
     uint32_t length = 0;

@@ -968,7 +968,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 }
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool dropFrameByPidEnable, uint64_t parentNodeId, bool deleteCacheDisable)
+    bool dropFrameByPidEnable, uint64_t parentNodeId)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -1065,7 +1065,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     DropFrameProcess(surfaceHandler, acquireTimeStamp);
 #ifdef RS_ENABLE_GPU
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (!renderEngine || deleteCacheDisable) {
+    if (!renderEngine) {
         return true;
     }
     renderEngine->RegisterDeleteBufferListener(surfaceHandler);

@@ -3465,6 +3465,11 @@ int RSProperties::GetUseEffectType() const
     return 0;
 }
 
+bool RSProperties::HasHarmonium() const
+{
+    return hasHarmonium_;
+}
+
 void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 {
     GetEffect().needDrawBehindWindow_ = needDrawBehindWindow;
@@ -4801,6 +4806,10 @@ void RSProperties::UpdateBackgroundShader()
         RSNGRenderShaderHelper::SetRotationAngle(GetBackgroundNGShader(), rotationAngle);
         RSNGRenderShaderHelper::SetCornerRadius(GetBackgroundNGShader(), cornerRadius);
     }
+    if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::HARMONIUM_EFFECT)) {
+        float cornerRadius = GetCornerRadius().x_;
+        RSNGRenderShaderHelper::SetCornerRadius(bgNGRenderShader_, cornerRadius);
+    }
 }
 
 void RSProperties::CalculatePixelStretch()
@@ -4930,6 +4939,10 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
+    hasHarmonium_ = false;
+    if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::HARMONIUM_EFFECT)) {
+        hasHarmonium_ = true;
+    }
 }
 
 std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBackgroundNGShader() const

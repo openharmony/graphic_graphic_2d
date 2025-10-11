@@ -85,6 +85,8 @@ public:
 
     static void SetCornerRadius(const std::shared_ptr<RSNGRenderShaderBase>& shader,
         float cornerRadius);
+
+    static std::shared_ptr<Drawing::Image> GetCachedBlurImage(Drawing::Canvas* canvas);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

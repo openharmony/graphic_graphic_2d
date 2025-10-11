@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <shared_mutex>
+#include <string>
 #include <unordered_map>
 
 #include "font_collection.h"
@@ -39,6 +40,10 @@ public:
     std::shared_ptr<FontCollection> FindSharedFontColleciton(void* key);
     bool RemoveSharedFontColleciton(void* key);
 
+    bool InsertHapPath(const std::string& bundle, const std::string& module, const std::string& path);
+    void DestoryHapPath(const std::string& bundle, const std::string& module);
+    std::string GetHapPath(const std::string& bundle, const std::string& module);
+
 private:
     FontCollectionMgr() = default;
     FontCollectionMgr(const FontCollectionMgr&) = delete;
@@ -49,6 +54,7 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<FontCollection>> localCollections_;
     std::unordered_map<void*, std::shared_ptr<FontCollection>> sharedCollections_;
     std::shared_mutex mutex_;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> hapPaths_;
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_TEXT_FONT_COLLECTION_MGR_H

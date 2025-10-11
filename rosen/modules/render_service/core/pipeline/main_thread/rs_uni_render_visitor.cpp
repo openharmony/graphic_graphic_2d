@@ -37,6 +37,7 @@
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -2210,6 +2211,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             continue;
         }
         if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
+            !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
             RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady()) {
             node->SetDeviceOfflineEnable(true);
             continue;
@@ -2956,6 +2958,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if ((node.GetRenderProperties().GetUseEffect() || node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
+    }
+    if ((node.GetRenderProperties().HasHarmonium() && node.ShouldPaint()) || node.ChildHasVisibleHarmonium()) {
+        nodeParent->SetChildHasVisibleHarmonium(true);
     }
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);

@@ -797,6 +797,8 @@ public:
         return defaultValue;
     }
 
+    bool HasHarmonium() const;
+
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
     void SetUseEffectType(int useEffectType);
@@ -1021,6 +1023,8 @@ struct CommonEffectParams {
     bool needFilter_ = false;
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
+    bool useEffect_ = false;
+    bool hasHarmonium_ = false;
     bool useUnion_ = false;
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
