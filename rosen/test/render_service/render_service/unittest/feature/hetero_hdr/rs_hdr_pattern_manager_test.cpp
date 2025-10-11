@@ -117,8 +117,10 @@ HWTEST_F(RSHDRPatternManagerTest, RSHDRPatternManagerInterfaceTest, TestSize.Lev
 
     uint64_t frameId = 1;
     SingletonMockRSHDRPatternManager::Instance().MHCRequestEGraph(frameId);
-    SingletonMockRSHDRPatternManager::Instance().MHCSubmitHDRTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr, nullptr);
-    SingletonMockRSHDRPatternManager::Instance().MHCSubmitVulkanTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr);
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitHDRTask(frameId, MHC_PATTERN_TASK_HDR_HPAE,
+        nullptr, nullptr, nullptr);
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitVulkanTask(frameId, MHC_PATTERN_TASK_HDR_HPAE,
+        nullptr, nullptr);
     SingletonMockRSHDRPatternManager::Instance().MHCWait(frameId, MHC_PATTERN_TASK_HDR_HPAE);
     SingletonMockRSHDRPatternManager::Instance().MHCGetVulkanTaskWaitEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
     SingletonMockRSHDRPatternManager::Instance().MHCGetVulkanTaskNotifyEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
