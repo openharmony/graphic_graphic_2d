@@ -243,7 +243,7 @@ int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen)
     return image->consumer->SetDropBufferSwitch(isOpen);
 }
 
-OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
+OH_NativeImage* OH_NativeImage_CreateWithSingleBufferMode(
     uint32_t textureId, uint32_t textureTarget, bool singleBufferMode)
 {
     OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage(textureId, textureTarget);
@@ -260,7 +260,7 @@ OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
     return nativeImage;
 }
 
-OH_NativeImage* OH_ConsumerSurface_Create_With_SingleBufferMode(bool singleBufferMode)
+OH_NativeImage* OH_ConsumerSurface_CreateWithSingleBufferMode(bool singleBufferMode)
 {
     OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage();
     sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
