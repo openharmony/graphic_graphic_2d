@@ -1846,6 +1846,35 @@ HWTEST_F(RSUifirstManagerTest, OnPurgePendingPostNodesInner, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CommonPendingNodePurgeTest
+ * @tc.desc: Test CommonPendingNodePurge
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, CommonPendingNodePurgeTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> map = { { nodeId, surfaceRenderNode } };
+    auto iter = map.begin();
+
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+
+    bool powerStatus = screenManagerImpl.screenPowerStatus_[screenId];
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(uifirstManager_.CommonPendingNodePurge(iter));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_TRUE(uifirstManager_.CommonPendingNodePurge(iter));
+    screenManagerImpl.screenPowerStatus_[screenId] = powerStatus;
+}
+
+/**
  * @tc.name: NeedPurgePendingPostNodesInner
  * @tc.desc: Test NeedPurgePendingPostNodesInner
  * @tc.type: FUNC
@@ -2939,6 +2968,64 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddPurgedNodeTest
+ * @tc.desc: Test AddPurgedNode
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, AddPurgedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.purgedNode_.clear();
+    NodeId id = 0;
+    uifirstManager_.AddPurgedNode(id);
+    ASSERT_TRUE(uifirstManager_.purgedNode_.empty());
+
+    id = 1;
+    uifirstManager_.AddPurgedNode(id);
+    ASSERT_FALSE(uifirstManager_.purgedNode_.empty());
+}
+
+/**
+ * @tc.name: ProcessPurgedNodeTest
+ * @tc.desc: Test ProcessPurgedNode
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessPurgedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.purgedNode_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.ProcessPurgedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostNodes_.empty());
+
+    NodeId id = 1;
+    uifirstManager_.AddPurgedNode(id);
+    uifirstManager_.ProcessPurgedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostCardNodes_.empty());
+}
+
+/**
+ * @tc.name: ProcessPurgedNodeTest
+ * @tc.desc: Test ProcessSubThreadSkipped
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessSubThreadSkippedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.subthreadProcessSkippedNode_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.ProcessSubThreadSkippedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostNodes_.empty());
+
+    NodeId id = 1;
+    uifirstManager_.AddProcessSkippedNode(id);
+    uifirstManager_.ProcessSubThreadSkippedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostCardNodes_.empty());
+}
+
+/**
  * @tc.name: ProcessSkippedNodeTest
  * @tc.desc: Test ProcessSkippedNode
  * @tc.type: FUNC
@@ -2946,32 +3033,31 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
 {
-    uifirstManager_.subthreadProcessSkippedNode_.clear();
-    uifirstManager_.ProcessSkippedNode();
-    ASSERT_EQ(uifirstManager_.subthreadProcessSkippedNode_.size(), 0);
+    uifirstManager_.pendingPostCardNodes_.clear();
+    std::unordered_set<NodeId> skippedNode_;
+    uifirstManager_.ProcessSkippedNode(skippedNode_, true);
+    ASSERT_TRUE(uifirstManager_.pendingPostCardNodes_.empty());
 
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
-    uifirstManager_.subthreadProcessSkippedNode_.insert(surfaceNode1->GetId());
+    skippedNode_.insert(surfaceNode1->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode1);
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     surfaceNode2->isOnTheTree_ = true;
     surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
-    uifirstManager_.subthreadProcessSkippedNode_.insert(surfaceNode2->GetId());
+    skippedNode_.insert(surfaceNode2->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode2);
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(++RSTestUtil::id);
-    uifirstManager_.subthreadProcessSkippedNode_.insert(canvasNode->GetId());
+    skippedNode_.insert(canvasNode->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(canvasNode);
-    auto tmp = uifirstManager_.subthreadProcessSkippedNode_;
-    uifirstManager_.ProcessSkippedNode();
+    uifirstManager_.ProcessSkippedNode(skippedNode_, true);
     ASSERT_EQ(uifirstManager_.pendingPostCardNodes_.size(), 1);
 
     auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
     surfaceNode2->isOnTheTree_ = true;
     surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
-    tmp.insert(surfaceNode3->GetId());
-    uifirstManager_.subthreadProcessSkippedNode_ = tmp;
+    skippedNode_.insert(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode3);
-    uifirstManager_.ProcessSkippedNode();
+    uifirstManager_.ProcessSkippedNode(skippedNode_, true);
     ASSERT_EQ(uifirstManager_.pendingPostNodes_.size(), 1);
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingPostNodes_.clear();
@@ -2979,7 +3065,6 @@ HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode2->GetId());
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
-    uifirstManager_.subthreadProcessSkippedNode_.clear();
 }
 
 /**
