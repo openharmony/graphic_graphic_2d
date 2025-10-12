@@ -155,6 +155,67 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
     return ANI_OK;
 }
 
+ani_object CreateFontDescriptorArray(ani_env* env, const std::vector<FontDescSharedPtr>& fontDescripters)
+{
+    std::set<FontDescSharedPtr> fontDescripterList(fontDescripters.begin(), fontDescripters.end());
+
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, fontDescripterList.size());
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to create arrayObject");
+        return AniTextUtils::CreateAniArray(env, 0);
+    }
+
+    ani_size index = 0;
+    for (const auto& item : fontDescripterList) {
+        ani_object aniObj = nullptr;
+        ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
+            continue;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
+            continue;
+        }
+        index++;
+    }
+    return arrayObj;
+}
+
+ani_object ProcessStringPath(ani_env* env, ani_object path)
+{
+    std::unique_ptr<uint8_t[]> data;
+    size_t dataLen = 0;
+
+    std::string pathStr;
+    ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
+    if (ret != ANI_OK) {
+        return AniTextUtils::CreateAniArray(env, 0);
+    }
+    if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
+        TEXT_LOGE("Failed to split absolute font path");
+        return AniTextUtils::CreateAniArray(env, 0);
+    }
+    auto fontDescripters = TextEngine::FontParser::ParserFontDescriptorsFromPath(pathStr);
+    return CreateFontDescriptorArray(env, fontDescripters);
+}
+
+ani_object ProcessResourcePath(ani_env* env, ani_object path)
+{
+    std::unique_ptr<uint8_t[]> data;
+    size_t dataLen = 0;
+    AniResource resource = AniResourceParser::ParseResource(env, path);
+    if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
+        TEXT_LOGE("Failed to resolve resource");
+        return AniTextUtils::CreateAniArray(env, 0);
+    }
+    auto fontDescripters = TextEngine::FontParser::ParserFontDescriptorsFromStream(data.get(), dataLen);
+    return CreateFontDescriptorArray(env, fontDescripters);
+}
+
 ani_object AniFontDescriptor::GetSystemFontFullNamesByType(ani_env* env, ani_enum_item fontType)
 {
     ani_int typeIndex;
@@ -265,55 +326,12 @@ ani_object AniFontDescriptor::GetFontDescriptorsFromPath(ani_env* env, ani_objec
         TEXT_LOGE("Failed to found std.core.String, ret %{public}d", ret);
         return AniTextUtils::CreateAniArray(env, 0);
     }
-    std::vector<std::shared_ptr<TextEngine::FontParser::FontDescriptor>> fontDescripters;
-
-    auto createFontDescriptorArray = [env](const std::vector<FontDescSharedPtr>& fontDescripters) {
-        std::set<FontDescSharedPtr> fontDescripterList(fontDescripters.begin(), fontDescripters.end());
-
-        ani_object arrayObj = AniTextUtils::CreateAniArray(env, fontDescripterList.size());
-        ani_boolean isUndefined;
-        env->Reference_IsUndefined(arrayObj, &isUndefined);
-        if (isUndefined) {
-            TEXT_LOGE("Failed to create arrayObject");
-            return AniTextUtils::CreateAniArray(env, 0);
-        }
-
-        ani_size index = 0;
-        for (const auto& item : fontDescripterList) {
-            ani_object aniObj = nullptr;
-            ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
-            if (status != ANI_OK) {
-                TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
-                continue;
-            }
-            status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
-            if (status != ANI_OK) {
-                TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
-                continue;
-            }
-            index++;
-        }
-        return arrayObj;
-    };
 
     ani_boolean isString = false;
     env->Object_InstanceOf(path, stringClass, &isString);
 
     if (isString) {
-        std::unique_ptr<uint8_t[]> data;
-        size_t dataLen = 0;
-
-        std::string pathStr;
-        ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
-        if (ret != ANI_OK) {
-            return AniTextUtils::CreateAniArray(env, 0);
-        }
-        if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
-            TEXT_LOGE("Failed to split absolute font path");
-            return AniTextUtils::CreateAniArray(env, 0);
-        }
-        fontDescripters = TextEngine::FontParser::ParserFontDescriptorsFromPath(pathStr);
-        return createFontDescriptorArray(fontDescripters);
+        return ProcessStringPath(env, path);
     }
 
     ani_class resourceClass = nullptr;
@@ -326,15 +344,7 @@ ani_object AniFontDescriptor::GetFontDescriptorsFromPath(ani_env* env, ani_objec
     env->Object_InstanceOf(path, resourceClass, &isResource);
 
     if (isResource) {
-        std::unique_ptr<uint8_t[]> data;
-        size_t dataLen = 0;
-        AniResource resource = AniResourceParser::ParseResource(env, path);
-        if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
-            TEXT_LOGE("Failed to resolve resource");
-            return AniTextUtils::CreateAniArray(env, 0);
-        }
-        fontDescripters = TextEngine::FontParser::ParserFontDescriptorsFromStream(data.get(), dataLen);
-        return createFontDescriptorArray(fontDescripters);
+        return ProcessResourcePath(env, path);
     }
 
     return AniTextUtils::CreateAniArray(env, 0);
