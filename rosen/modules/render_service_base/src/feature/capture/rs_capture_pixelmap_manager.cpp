@@ -232,7 +232,7 @@ std::unique_ptr<Media::PixelMap> RSCapturePixelMapManager::CreatePixelMap(const 
     opts.size.height = ceil(pixelMapHeight * captureConfig.scaleY);
     RS_LOGD("RSCapturePixelMapManager::CreatePixelMap:"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
-        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " created pixelmap width is [%{public}d], height is [%{public}d],"
         " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
         pixelMapWidth, pixelMapHeight, opts.size.width, opts.size.height,
         captureConfig.scaleX, captureConfig.scaleY);

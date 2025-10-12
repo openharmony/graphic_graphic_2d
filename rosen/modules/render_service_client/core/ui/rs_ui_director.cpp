@@ -645,13 +645,13 @@ void RSUIDirector::ProcessInstanceMessages(
 {
     auto counter = std::make_shared<std::atomic_size_t>(cmdMap.size());
     for (auto& [instanceId, commands] : cmdMap) {
-        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", messageId,
+        ROSEN_LOGD("Post messageId:%{public}u, cmdCount:%{public}lu, instanceId:%{public}d", messageId,
             static_cast<unsigned long>(commands.size()), instanceId);
         PostTask(
             [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter, messageId,
                 tempInstanceId = instanceId] {
                 RS_TRACE_NAME_FMT("RSUIDirector::ProcessInstanceMessages Process messageId:%lu", messageId);
-                ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", messageId,
+                ROSEN_LOGD("Process messageId:%{public}u, cmdCount:%{public}lu, instanceId:%{public}d", messageId,
                     static_cast<unsigned long>(cmds->size()), tempInstanceId);
                 for (auto& cmd : *cmds) {
                     RSContext context; // RSCommand->process() needs it
@@ -676,7 +676,7 @@ void RSUIDirector::ProcessUIContextMessages(
 {
     auto counter = std::make_shared<std::atomic_size_t>(cmdMap.size());
     for (auto& [token, commands] : cmdMap) {
-        ROSEN_LOGD("Post messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, messageId,
+        ROSEN_LOGD("Post messageId:%{public}u, cmdCount:%{public}lu, token:%{public}" PRIu64, messageId,
             static_cast<unsigned long>(commands.size()), token);
         auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
         if (rsUICtx == nullptr) {
@@ -692,7 +692,7 @@ void RSUIDirector::ProcessUIContextMessages(
         rsUICtx->PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
                               counter, messageId, tempToken = token, rsUICtx] {
             RS_TRACE_NAME_FMT("RSUIDirector::ProcessUIContextMessages Process messageId:%lu", messageId);
-            ROSEN_LOGD("Process messageId:%{public}d, cmdCount:%{public}lu, token:%{public}" PRIu64, messageId,
+            ROSEN_LOGD("Process messageId:%{public}u, cmdCount:%{public}lu, token:%{public}" PRIu64, messageId,
                 static_cast<unsigned long>(cmds->size()), tempToken);
             for (auto& cmd : *cmds) {
                 RSContext context; // RSCommand->process() needs it

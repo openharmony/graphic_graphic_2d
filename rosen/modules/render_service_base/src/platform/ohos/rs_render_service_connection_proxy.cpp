@@ -152,10 +152,10 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
         // 1. marshalling RSTransactionData
 #ifdef RS_ENABLE_VK
         RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d,%" PRIu64 "], tid:%d, "
-            "timestamp:%ld", transactionData->GetCommandCount(), pid_, transactionData->GetIndex(),
+            "timestamp:%lu", transactionData->GetCommandCount(), pid_, transactionData->GetIndex(),
             transactionData->GetSendingTid(), transactionData->GetTimestamp());
 #else
-        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d,%" PRIu64 "], timestamp:%ld",
+        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d,%" PRIu64 "], timestamp:%lu",
             transactionData->GetCommandCount(), pid_, transactionData->GetIndex(), transactionData->GetTimestamp());
 #endif
         ROSEN_LOGI_IF(DEBUG_PIPELINE,

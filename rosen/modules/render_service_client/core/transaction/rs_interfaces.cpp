@@ -160,7 +160,7 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         return false;
     }
     if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > WATERMARK_PIXELMAP_SIZE_LIMIT)) {
-        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}d] is error",
+        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}u] is error",
             watermark->IsAstc(), watermark->GetCapacity());
         return false;
     }
@@ -180,7 +180,7 @@ uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
         return SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR;
     }
     if (watermark && watermark->IsAstc()) {
-        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}d] is error",
+        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}u] is error",
             watermark->IsAstc(), watermark->GetCapacity());
         return SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR;
     }

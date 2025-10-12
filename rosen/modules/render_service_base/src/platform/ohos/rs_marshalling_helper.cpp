@@ -865,7 +865,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     uint32_t size = parcel.ReadUint32();
     if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
-        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}d", size);
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}u", size);
         return false;
     }
     bool isMalloc = false;
@@ -2253,7 +2253,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
     }
     uint32_t readableSize = parcel.GetReadableBytes() / (sizeof(uint32_t) * 2);    // 增加IPC异常保护，读取2个uint_32_t
     if (replacedOpListSize > readableSize) {
-        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing readableSize %{public}d less than size %{public}d",
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing readableSize %{public}u less than size %{public}u",
             readableSize, replacedOpListSize);
         val = nullptr;
         return false;
@@ -2352,7 +2352,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
             ret &= RSMarshallingHelper::Unmarshalling(parcel, object);
             if (!ret) {
                 ROSEN_LOGE(
-                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList imageObject: %{public}d", i);
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList imageObject: %{public}u", i);
                 return ret;
             }
             imageObjectVec.emplace_back(object);
@@ -2375,7 +2375,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
             ret &= RSMarshallingHelper::Unmarshalling(parcel, objectBase);
             if (!ret) {
                 ROSEN_LOGE(
-                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectBase: %{public}d", i);
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectBase: %{public}u", i);
                 return ret;
             }
             ObjectBaseVec.emplace_back(objectBase);
@@ -2398,7 +2398,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
             ret &= RSMarshallingHelper::Unmarshalling(parcel, objectNine);
             if (!ret) {
                 ROSEN_LOGE(
-                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectNine: %{public}d", i);
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectNine: %{public}u", i);
                 return ret;
             }
             ObjectNineVec.emplace_back(objectNine);
@@ -2421,7 +2421,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
             ret &= RSMarshallingHelper::Unmarshalling(parcel, objectLattice);
             if (!ret) {
                 ROSEN_LOGE(
-                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectLattice: %{public}d", i);
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectLattice: %{public}u", i);
                 return ret;
             }
             ObjectLatticeVec.emplace_back(objectLattice);
@@ -2479,7 +2479,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
                 GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
                 if (retCode != GSERROR_OK) {
                     ROSEN_LOGE("RSMarshallingHelper::Unmarshalling "
-                        "DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+                        "DrawCmdList failed read surfaceBuffer: %{public}u %{public}d", i, retCode);
                     return false;
                 }
             }

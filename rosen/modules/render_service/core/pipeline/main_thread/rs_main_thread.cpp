@@ -1530,7 +1530,7 @@ void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData
         }
     }
     RS_TRACE_NAME_FMT("ProcessSyncTransactionCount isNeedCloseSync:%d syncId:%" PRIu64 " parentPid:%d syncNum:%d "
-        "subSyncTransactionCounts_.size:%zd",
+        "subSyncTransactionCounts_.size:%lu",
         rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
         rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
 
@@ -3211,7 +3211,7 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
     if (receiver_ != nullptr) {
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
-            RS_LOGD("RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
+            RS_LOGD("RequestNextVSync too many times:%{public}u", requestNextVsyncNum_.load());
             if ((requestNextVsyncNum_ - currentNum_) >= REQUEST_VSYNC_DUMP_NUMBER) {
                 RS_LOGW("RequestNextVSync EventHandler is idle: %{public}d", handler_->IsIdle());
                 DumpEventHandlerInfo();
@@ -3829,7 +3829,7 @@ void RSMainThread::SendCommands()
             auto pid = transactionIter.first;
             auto appIter = applicationAgentMap_.find(pid);
             if (appIter == applicationAgentMap_.end()) {
-                RS_LOGW("SendCommand no application agent registered as pid %{public}d,"
+                RS_LOGW("SendCommand no application agent registered as pid %{public}u,"
                     "this will cause memory leak!", pid);
                 continue;
             }
@@ -4073,8 +4073,8 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
             transactionData->AddCommand(std::move(command), nodeId, FollowType::NONE);
             task.count++;
             RS_TRACE_NAME_FMT(
-                "DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
-            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%{public}u] node[%{public}" PRIu64
+                "DumpClientNodeTree add task[%u] pid[%d] node[%" PRIu64 "] token[%lu]", taskId, pid, nodeId, token);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%{public}d] node[%{public}" PRIu64
                     "] token[%{public}" PRIu64 "]",
                 taskId, pid, nodeId, token);
         }
@@ -4626,8 +4626,8 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
 
 bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%d] "
-        "systemAnimatedScenesListSize_[%d] isRegularAnimation_[%d]", __func__, systemAnimatedScenes,
+    RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%u] "
+        "systemAnimatedScenesListSize_[%u] isRegularAnimation_[%d]", __func__, systemAnimatedScenes,
         systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size(), isRegularAnimation);
     if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
             systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {

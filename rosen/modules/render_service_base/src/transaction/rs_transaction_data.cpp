@@ -340,7 +340,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             }
             auto command = (*func)(parcel);
             if (command == nullptr) {
-                ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}d subtype=%{public}d",
+                ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}u subtype=%{public}u",
                     commandType, commandSubType);
                 return false;
             }

@@ -347,7 +347,7 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
         return -1;
     }
 
-    HPAE_LOGD("mhc_so: taskName:%{public}d, waitevent:%{public}d, notifyevent:%{public}d,"
+    HPAE_LOGD("mhc_so: taskName:%{public}d, waitevent:%{public}u, notifyevent:%{public}d,"
          "frameId=%{public}" PRIu64 "\n", taskName, eventId[0], eventId[1], frameId);
 
     VkDevice vkDevice = RsVulkanContext::GetSingleton().GetDevice();
@@ -396,13 +396,13 @@ void RSSurfaceOhosVulkan::SubmitHapeTask(const uint64_t& curFrameId)
     std::lock_guard<std::mutex> lock(taskHandleMapMutex_);
     taskHandleMap_[curFrameId] = hpaeTask.taskPtr;
     HPAE_LOGD("mhc_so: GP before aae submit, curFrameId: %{public}" PRIu64 ", "
-        "taskId: %{public}d", curFrameId, hpaeTask.taskId);
+        "taskId: %{public}u", curFrameId, hpaeTask.taskId);
       
     void** taskHandleVec[3] = { &(taskHandleMap_[curFrameId]) }; // max count for multi-blur is 3
 
     auto hpaePostFunc = [curFrameId, taskId = hpaeTask.taskId, this] () {
         std::lock_guard<std::mutex> lock(taskHandleMapMutex_);
-        HPAE_LOGD("GP aae postfunc deinit[%d]", taskId);
+        HPAE_LOGD("GP aae postfunc deinit[%u]", taskId);
         HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
         taskHandleMap_.erase(curFrameId);
     };

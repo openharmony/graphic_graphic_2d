@@ -133,8 +133,8 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGD("RSSurfaceCaptureTask::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
-        " origin pixelmap width is [%{public}u], height is [%{public}u],"
-        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " origin pixelmap width is [%{public}d], height is [%{public}d],"
+        " created pixelmap width is [%{public}d], height is [%{public}d],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
         captureConfig_.scaleX, captureConfig_.scaleY);
@@ -169,7 +169,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}u], height is [%{public}u],"
-        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " created pixelmap width is [%{public}d], height is [%{public}d],"
         " the scale is scaleY:[%{public}f], scaleY:[%{public}f],",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
         captureConfig_.scaleX, captureConfig_.scaleY);
@@ -308,7 +308,7 @@ void RSSurfaceCaptureVisitor::ProcessScreenRenderNode(RSScreenRenderNode &node)
 {
     RS_TRACE_NAME("RSSurfaceCaptureVisitor::ProcessScreenRenderNode:" +
         std::to_string(node.GetId()));
-    RS_LOGD("RSSurfaceCaptureVisitor::ProcessScreenRenderNode child size:[%{public}d] total",
+    RS_LOGD("RSSurfaceCaptureVisitor::ProcessScreenRenderNode child size:[%{public}u] total",
         node.GetChildrenCount());
 
     if (canvas_ == nullptr) {

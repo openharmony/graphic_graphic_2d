@@ -358,7 +358,7 @@ void RSAshmemHelper::CopyFileDescriptor(
         const flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
         if (flat->hdr.type == BINDER_TYPE_FD) {
             if (!ashmemParcel->WriteFileDescriptor(flat->handle)) {
-                ROSEN_LOGE("RSAshmemHelper::CopyFileDescriptor failed, fd:%{public}d", flat->handle);
+                ROSEN_LOGE("RSAshmemHelper::CopyFileDescriptor failed, fd:%{public}u", flat->handle);
             }
         }
     }
@@ -381,7 +381,7 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
         if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
             int32_t val = ashmemParcel->ReadFileDescriptor();
             if (val < 0) {
-                ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%{public}d, handle:%{public}d", val,
+                ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%{public}d, handle:%{public}u", val,
                     flat->handle);
             }
             flat->handle = static_cast<uint32_t>(val);
