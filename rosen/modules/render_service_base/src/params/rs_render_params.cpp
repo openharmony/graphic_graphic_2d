@@ -444,6 +444,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasGlobalCorner_ = hasGlobalCorner_;
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
+    if (target->foregroundFilterCache_) {
+        target->foregroundFilterCache_->OnSync();
+    }
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
     target->isOpincSupportFlag_ = isOpincSupportFlag_;

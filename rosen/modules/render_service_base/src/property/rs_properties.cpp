@@ -4588,6 +4588,16 @@ void RSProperties::UpdateForegroundFilter()
         CreateHDRUIBrightnessFilter();
     } else if (fgNGRenderFilter_) {
         ComposeNGRenderFilter(foregroundFilter_, fgNGRenderFilter_);
+    } else if (renderSDFMask_) {
+        if (!sdfFilter_) {
+            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFMask_);
+        }
+
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = sdfFilter_;
+        } else {
+            foregroundFilter_ = sdfFilter_;
+        }
     }
 }
 
@@ -4772,6 +4782,18 @@ void RSProperties::SetSDFMask(const std::shared_ptr<RSNGRenderMaskBase>& mask)
 std::shared_ptr<RSNGRenderMaskBase> RSProperties::GetSDFMask() const
 {
     return renderSDFMask_;
+}
+
+const std::shared_ptr<RSSDFEffectFilter> RSProperties::GetSDFEffectFilter() const
+{
+    if (!GetSDFMask()) {
+        return nullptr;
+    }
+
+    if (IS_UNI_RENDER) {
+        return std::static_pointer_cast<RSSDFEffectFilter>(foregroundFilterCache_);
+    }
+    return std::static_pointer_cast<RSSDFEffectFilter>(foregroundFilter_);
 }
 
 } // namespace Rosen
