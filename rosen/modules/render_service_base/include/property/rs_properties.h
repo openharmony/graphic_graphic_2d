@@ -1004,6 +1004,12 @@ struct CommonEffectParams {
     RectI GetDirtyRect(RectI& drawRegion) const;
 
     std::unique_ptr<CommonEffectParams> effect_;
+
+    /**
+    * Avoid using this unless you need to modify CommonEffectParams.
+    * Creates the object with memory allocation if it doesn't exist.
+    * Prefer the const version for read-only access.
+    */
     CommonEffectParams& GetEffect()
     {
         if (effect_ == nullptr) {
