@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,13 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "render/rs_sdf_effect_filter.h"
-#include "effect/rs_render_mask_base.h"
+#include <cmath>
+#include <chrono>
+#include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
+#include <string_view>
 
-#include "common/rs_optional_trace.h"
+// ge
+#include "ge_render.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
+// rs
+#include "effect/rs_render_mask_base.h"
+#include "render/rs_sdf_effect_filter.h"
+// rs helper func
 #include "platform/common/rs_log.h"
 
 #ifdef USE_M133_SKIA
@@ -27,16 +37,6 @@
 #include "src/core/SkOpts.h"
 #endif
 
-#include "ge_render.h"
-#include "ge_visual_effect.h"
-#include "ge_visual_effect_container.h"
-#include <string_view>
-#include <sstream>
-
-#include <cmath>
-#include <chrono>
-
-#include <memory>
 
 namespace OHOS {
 namespace Rosen {
@@ -156,7 +156,25 @@ void RSSDFEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared
         return;
     }
 
+    if (!geContainer_) {
+        ROSEN_LOGE("RSSDFEffectFilter::GEContainer is null");
+    }
 
+    auto outImage = geRender_->ApplyImageEffect(
+        canvas, *geContainer_, image, src, dst, Drawing::SamplingOptions());
+    if (!outImage) {
+        ROSEN_LOGE("RSSDFEffectFilter::DrawImageRect outImage is Null");
+    }
+    Drawing::Brush brush;
+    canvas.AttachBrush(brush);
+    canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+
+    return;
+}
+
+void RSSDFEffectFilter::OnSync()
+{
     std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = SDFMask_ ? SDFMask_->GenerateGEVisualEffect() : nullptr;
     std::shared_ptr<Drawing::GEShaderMask> geMask = geVisualEffect ? geVisualEffect->GenerateShaderMask() : nullptr;
     geFilter_->SetParam(Drawing::GE_FILTER_SDF_MASK, geMask);
@@ -179,20 +197,8 @@ void RSSDFEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared
         geFilter_->SetParam(Drawing::GE_FILTER_SDF_MASK, shadow);
     }
 
-    auto outImage = geRender_->ApplyImageEffect(
-        canvas, *geContainer_, image, src, dst, Drawing::SamplingOptions());
-    
-    Drawing::Brush brush;
-    canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
-    canvas.DetachBrush();
-
-    return;
-}
-
-void RSSDFEffectFilter::OnSync()
-{
-
+    geContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    geContainer_->AddToChainedFilter(geFilter_);
 }
 }
 }

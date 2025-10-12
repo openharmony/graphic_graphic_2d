@@ -4597,6 +4597,8 @@ void RSProperties::UpdateForegroundFilter()
             foregroundFilterCache_ = sdfFilter_;
         } else {
             foregroundFilter_ = sdfFilter_;
+
+            
         }
     }
 }
