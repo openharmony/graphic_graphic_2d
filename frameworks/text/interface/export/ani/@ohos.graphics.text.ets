@@ -792,6 +792,22 @@ namespace text {
     });
   }
 
+  native function getFontDescriptorsFromPathSync(path: Resource | string): Array<FontDescriptor>;
+
+  export async function getSystemFontFullNamesByType(path: Resource | string): Promise<Array<FontDescriptor>> {
+    return await new Promise<Array<FontDescriptor>>((resolve, reject) => {
+      try {
+        taskpool.execute((): Array<FontDescriptor> => {
+          return getFontDescriptorsFromPathSync(path);
+        }).then((result) => {
+          resolve(result);
+        })
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
+  }
+  
   export enum SystemFontType {
     ALL = 1 << 0,
     GENERIC = 1 << 1,

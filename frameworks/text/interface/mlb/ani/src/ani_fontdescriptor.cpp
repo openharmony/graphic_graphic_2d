@@ -89,7 +89,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
             reinterpret_cast<void*>(GetFontDescriptorByFullName)},
         ani_native_function{"matchFontDescriptorsSync", matchFontDescriptorsSignature.c_str(),
             reinterpret_cast<void*>(MatchFontDescriptors)},
-        ani_native_function{"getFontDescriptorsFromPath", getFontDescriptorsFromPathSignature.c_str(),
+        ani_native_function{"getFontDescriptorsFromPathSync", getFontDescriptorsFromPathSignature.c_str(),
             reinterpret_cast<void*>(GetFontDescriptorsFromPath)},
     };
 
