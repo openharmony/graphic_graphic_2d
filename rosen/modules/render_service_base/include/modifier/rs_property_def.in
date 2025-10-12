@@ -37,6 +37,8 @@ DECLARE_PROPERTY(std::shared_ptr<RSMagnifierParams>, MAGNIFIER_PARAMS);
 DECLARE_PROPERTY(std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARAM);
 DECLARE_PROPERTY(std::vector<std::shared_ptr<EmitterUpdater>>, VECTOR_EMITTER_UPDATER);
 DECLARE_PROPERTY(std::shared_ptr<ParticleNoiseFields>, PARTICLE_NOISE_FIELD);
+DECLARE_PROPERTY(std::shared_ptr<ParticleRippleFields>, PARTICLE_RIPPLE_FIELD);
+DECLARE_PROPERTY(std::shared_ptr<ParticleVelocityFields>, PARTICLE_VELOCITY_FIELD);
 DECLARE_PROPERTY(std::shared_ptr<RSMask>, RS_MASK);
 DECLARE_PROPERTY(RSWaterRipplePara, WATER_RIPPLE_PARAMS);
 DECLARE_PROPERTY(RSFlyOutPara, FLY_OUT_PARAMS);

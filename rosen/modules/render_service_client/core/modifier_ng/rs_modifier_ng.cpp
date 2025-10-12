@@ -139,6 +139,8 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::MOTION_BLUR_PARA, ThresholdType::ZERO },
     { RSPropertyType::PARTICLE_EMITTER_UPDATER, ThresholdType::ZERO },
     { RSPropertyType::PARTICLE_NOISE_FIELD, ThresholdType::ZERO },
+    { RSPropertyType::PARTICLE_RIPPLE_FIELD, ThresholdType::ZERO },
+    { RSPropertyType::PARTICLE_VELOCITY_FIELD, ThresholdType::ZERO },
     { RSPropertyType::FLY_OUT_DEGREE, ThresholdType::COARSE },
     { RSPropertyType::FLY_OUT_PARAMS, ThresholdType::ZERO },
     { RSPropertyType::DISTORTION_K, ThresholdType::COARSE },

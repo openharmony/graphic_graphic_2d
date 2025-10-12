@@ -31,6 +31,8 @@
 #include "rs_trace.h"
 
 #include "animation/rs_particle_noise_field.h"
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -1264,6 +1266,128 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     return success;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleRippleField>& val)
+{
+    if (!val) {
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleRippleField is nullptr");
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleRippleField WriteInt32 failed");
+        }
+        return flag;
+    }
+    bool success = parcel.WriteInt32(1);
+    success &= Marshalling(parcel, val->center_);
+    success &= Marshalling(parcel, val->amplitude_);
+    success &= Marshalling(parcel, val->wavelength_);
+    success &= Marshalling(parcel, val->waveSpeed_);
+    success &= Marshalling(parcel, val->attenuation_);
+    success &= Marshalling(parcel, static_cast<uint32_t>(val->regionShape_));
+    success &= Marshalling(parcel, val->regionPosition_);
+    success &= Marshalling(parcel, val->regionSize_);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleRippleField failed");
+    }
+    return success;
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRippleField>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    
+    Vector2f center;
+    float amplitude = 0.0f;
+    float wavelength = 0.0f;
+    float waveSpeed = 0.0f;
+    float attenuation = 0.0f;
+ 
+    uint32_t regionShape = 0;
+    Vector2f regionPosition;
+    Vector2f regionSize;
+    
+    bool success = true;
+    success &= Unmarshalling(parcel, center);
+    success &= Unmarshalling(parcel, amplitude);
+    success &= Unmarshalling(parcel, wavelength);
+    success &= Unmarshalling(parcel, waveSpeed);
+    success &= Unmarshalling(parcel, attenuation);
+    success &= Unmarshalling(parcel, regionShape);
+    success &= Unmarshalling(parcel, regionPosition);
+    success &= Unmarshalling(parcel, regionSize);
+    if (success) {
+        val = std::make_shared<ParticleRippleField>();
+        if (!val) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleField failed to allocate memory");
+            return false;
+        }
+        val->center_ = center;
+        val->amplitude_ = amplitude;
+        val->wavelength_ = wavelength;
+        val->waveSpeed_ = waveSpeed;
+        val->attenuation_ = attenuation;
+        val->regionShape_ = static_cast<ShapeType>(regionShape);
+        val->regionPosition_ = regionPosition;
+        val->regionSize_ = regionSize;
+    }
+    return success;
+}
+ 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleVelocityField>& val)
+{
+    if (!val) {
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleVelocityField is nullptr");
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleVelocityField WriteInt32 failed");
+        }
+        return flag;
+    }
+    bool success = parcel.WriteInt32(1);
+    success &= Marshalling(parcel, val->velocity_);
+    success &= Marshalling(parcel, static_cast<uint32_t>(val->regionShape_));
+    success &= Marshalling(parcel, val->regionPosition_);
+    success &= Marshalling(parcel, val->regionSize_);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleVelocityField failed");
+    }
+    return success;
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocityField>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    
+    Vector2f velocity;
+ 
+    uint32_t regionShape = 0;
+    Vector2f regionPosition;
+    Vector2f regionSize;
+    
+    bool success = true;
+    success &= Unmarshalling(parcel, velocity);
+    success &= Unmarshalling(parcel, regionShape);
+    success &= Unmarshalling(parcel, regionPosition);
+    success &= Unmarshalling(parcel, regionSize);
+    if (success) {
+        val = std::make_shared<ParticleVelocityField>();
+        if (!val) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityField failed to allocate memory");
+            return false;
+        }
+        val->velocity_ = velocity;
+        val->regionShape_ = static_cast<ShapeType>(regionShape);
+        val->regionPosition_ = regionPosition;
+        val->regionSize_ = regionSize;
+    }
+    return success;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleNoiseFields>& val)
 {
     if (!val) {
@@ -1307,6 +1431,118 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     }
     if (success) {
         val = noiseFields;
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleRippleFields>& val)
+{
+    if (!val) {
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleRippleFields is nullptr");
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleRippleFields WriteInt32 failed");
+        }
+        return flag;
+    }
+    bool success = parcel.WriteInt32(1) && parcel.WriteUint32(static_cast<uint32_t>(val->rippleFields_.size()));
+    for (size_t i = 0; i < val->rippleFields_.size() && success; i++) {
+        success &= Marshalling(parcel, val->rippleFields_[i]);
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleRippleFields failed");
+    }
+    return success;
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRippleFields>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    uint32_t size = parcel.ReadUint32();
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields size exceeds limit: %{public}u", size);
+        return false;
+    }
+    bool success = true;
+    std::shared_ptr<ParticleRippleFields> rippleFields = std::make_shared<ParticleRippleFields>();
+    if (!rippleFields) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields failed to allocate memory");
+        return false;
+    }
+    for (size_t i = 0; i < size; i++) {
+        std::shared_ptr<ParticleRippleField> rippleField;
+        success &= Unmarshalling(parcel, rippleField);
+        if (!success) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleField failed at index %{public}zu", i);
+            return false;
+        }
+        if (!rippleField) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleField null at index %{public}zu", i);
+            return false;
+        }
+        rippleFields->AddRippleField(rippleField);
+    }
+    if (success) {
+        val = rippleFields;
+    }
+    return success;
+}
+ 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleVelocityFields>& val)
+{
+    if (!val) {
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling ParticleVelocityFields is nullptr");
+        bool flag = parcel.WriteInt32(-1);
+        if (!flag) {
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleVelocityFields WriteInt32 failed");
+        }
+        return flag;
+    }
+    bool success = parcel.WriteInt32(1) && parcel.WriteUint32(static_cast<uint32_t>(val->velocityFields_.size()));
+    for (size_t i = 0; i < val->velocityFields_.size() && success; i++) {
+        success &= Marshalling(parcel, val->velocityFields_[i]);
+    }
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling ParticleVelocityFields failed");
+    }
+    return success;
+}
+ 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocityFields>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    uint32_t size = parcel.ReadUint32();
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields size exceeds limit: %{public}u", size);
+        return false;
+    }
+    bool success = true;
+    std::shared_ptr<ParticleVelocityFields> velocityFields = std::make_shared<ParticleVelocityFields>();
+    if (!velocityFields) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields failed to allocate memory");
+        return false;
+    }
+    for (size_t i = 0; i < size; i++) {
+        std::shared_ptr<ParticleVelocityField> velocityField;
+        success &= Unmarshalling(parcel, velocityField);
+        if (!success) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityField failed at index %{public}zu", i);
+            return false;
+        }
+        if (!velocityField) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityField null at index %{public}zu", i);
+            return false;
+        }
+        velocityFields->AddVelocityField(velocityField);
+    }
+    if (success) {
+        val = velocityFields;
     }
     return success;
 }
@@ -2982,6 +3218,10 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)         \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRippleField>)         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRippleFields>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityField>)         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityFields>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \

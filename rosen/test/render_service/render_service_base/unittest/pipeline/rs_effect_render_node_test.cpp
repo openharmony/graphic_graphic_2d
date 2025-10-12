@@ -362,7 +362,8 @@ HWTEST_F(RSEffectRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestS
     EXPECT_NE(backgroundFilterDrawable, nullptr);
     backgroundFilterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     backgroundFilterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
-    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
+    renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]
+        = backgroundFilterDrawable;
     renderNode->CheckBlurFilterCacheNeedForceClearOrSave(true);
     EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
 }
@@ -411,7 +412,7 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterDebugEnabled001, TestSize.Level1)
     RSEffectRenderNode rsEffectRenderNode(nodeId);
     rsEffectRenderNode.MarkFilterDebugEnabled();
     auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
-    rsEffectRenderNode.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+    rsEffectRenderNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
         backgroundFilterDrawable;
     backgroundFilterDrawable->stagingCacheManager_ = nullptr;
     rsEffectRenderNode.MarkFilterDebugEnabled();

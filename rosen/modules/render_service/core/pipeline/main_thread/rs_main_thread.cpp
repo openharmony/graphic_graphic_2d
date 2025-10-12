@@ -2546,6 +2546,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             HandleTunnelLayerId(surfaceHandler, surfaceNode);
             if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
                 if (!surfaceNode->GetDeviceOfflineEnable()) {
+                    // while using hpae_offline, prebuffer is not consumed, should not be reset
                     params->SetPreBuffer(nullptr);
                 }
                 surfaceNode->AddToPendingSyncList();

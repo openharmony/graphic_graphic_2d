@@ -804,5 +804,10 @@ bool RSSystemProperties::GetClipRRectOptimizationEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetNodeMemClearEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -39,7 +39,6 @@ std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::RegisterPosted
 void RSHpaeOfflineProcessSyncer::MarkTaskDoneAndSetResult(
     std::shared_ptr<ProcessOfflineFuture> futurePtr, const ProcessOfflineResult& processOfflineResult)
 {
-    RS_OFFLINE_LOGD("task done, set result and notify.");
     {
         std::lock_guard<std::mutex> lock(futurePtr->mtx);
         futurePtr->done = true;
@@ -82,6 +81,7 @@ bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(uint64_t taskId,
         }
     }
     processOfflineResult = future->result;
+    RS_OFFLINE_LOGD("wait for task[%{public}" PRIu64 "] done!", taskId);
     return true;
 }
 

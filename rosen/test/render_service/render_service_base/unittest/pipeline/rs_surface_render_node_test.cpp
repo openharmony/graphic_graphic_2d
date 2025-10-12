@@ -2000,7 +2000,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     drawable->stagingCacheManager_->isFilterCacheValid_ = true;
-    filterNode.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
+    filterNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
     node->isFilterCacheFullyCovered_ = false;
     node->CheckValidFilterCacheFullyCoverTarget(filterNode, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);

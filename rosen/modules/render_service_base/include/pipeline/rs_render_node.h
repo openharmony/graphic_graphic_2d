@@ -85,7 +85,7 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     using ModifierNGContainer = std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>;
-    using ModifiersNGContainer = std::array<ModifierNGContainer, ModifierNG::MODIFIER_TYPE_COUNT>;
+    using ModifiersNGMap = std::map<ModifierNG::RSModifierType, ModifierNGContainer>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
     virtual RSRenderNodeType GetType() const
     {
@@ -540,8 +540,8 @@ public:
     void RemoveAllModifiersNG();
     std::shared_ptr<ModifierNG::RSRenderModifier> GetModifierNG(
         ModifierNG::RSModifierType type, ModifierId id = 0) const;
-    const ModifierNGContainer& GetModifiersNG(ModifierNG::RSModifierType type) const;
-    const ModifiersNGContainer& GetAllModifiers() const;
+    ModifierNGContainer GetModifiersNG(ModifierNG::RSModifierType type) const;
+    const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
     bool HasContentStyleModifierOnly() const;
 
@@ -1200,7 +1200,7 @@ private:
     std::vector<SharedPtr> cloneCrossNodeVec_;
     bool hasVisitedCrossNode_ = false;
 
-    std::array<ModifierNGContainer, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNG_;
+    ModifiersNGMap modifiersNG_;
     std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
@@ -1210,7 +1210,11 @@ private:
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
-    RSDrawable::Vec drawableVec_;
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
+#else
+    mutable RSDrawable::Vec drawableVec_;
+#endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
@@ -1283,6 +1287,19 @@ private:
 
     void ResetAndApplyModifiers();
 
+    void InitRenderDrawableAndDrawableVec();
+
+    bool IsNodeMemClearEnable()
+    {
+#ifdef NOT_BUILDFOR_OHOS_SDK
+        return RSSystemProperties::GetNodeMemClearEnable() && GetType() == RSRenderNodeType::CANVAS_NODE
+        && RSProperties::IS_UNI_RENDER && !isTextureExportNode_;
+#else
+        return false;
+#endif
+    }
+
+    RSDrawable::Vec& GetDrawableVec(const char*) const;
     friend class DrawFuncOpItem;
     friend class RSContext;
     friend class RSMainThread;

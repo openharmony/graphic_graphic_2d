@@ -357,7 +357,7 @@ int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen);
  * @since 22
  * @version 1.0
  */
-OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
+OH_NativeImage* OH_NativeImage_CreateWithSingleBufferMode(
     uint32_t textureId, uint32_t textureTarget, bool singleBufferMode);
 
 /**
@@ -366,12 +366,13 @@ OH_NativeImage* OH_NativeImage_Create_With_SingleBufferMode(
  * This interface needs to be used in conjunction with <b>OH_NativeImage_Destroy</b>,
  * otherwise memory leaks will occur.\n
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param singleBufferMode Whether to set single buffer mode.
  * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
  * returns <b>NULL</b> otherwise.
  * @since 22
  * @version 1.0
  */
-OH_NativeImage* OH_ConsumerSurface_Create_With_SingleBufferMode(bool singleBufferMode);
+OH_NativeImage* OH_ConsumerSurface_CreateWithSingleBufferMode(bool singleBufferMode);
 
 /**
  * @brief Release the <b>OH_NativeImage</b> in single buffer mode.\n

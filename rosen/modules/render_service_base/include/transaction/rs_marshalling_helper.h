@@ -65,6 +65,10 @@ class RSMagnifierParams;
 class EmitterUpdater;
 class ParticleNoiseField;
 class ParticleNoiseFields;
+class ParticleRippleField;
+class ParticleRippleFields;
+class ParticleVelocityField;
+class ParticleVelocityFields;
 template<typename T>
 class RenderParticleParaType;
 class AnnulusRegion;
@@ -245,6 +249,10 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<EmitterUpdater>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRippleField>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRippleFields>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityField>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderShaderBase>)

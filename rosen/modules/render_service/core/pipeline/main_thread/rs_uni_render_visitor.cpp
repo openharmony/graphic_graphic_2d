@@ -68,6 +68,8 @@
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 
 #include "rs_profiler.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -205,7 +207,7 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         isStencilPixelOcclusionCullingEnabled_ =
             RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() != StencilPixelOcclusionCullingType::DISABLED;
     }
-    
+
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ &= (partialRenderType_ > PartialRenderType::DISABLED);
 
@@ -2533,7 +2535,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
             needForceUpdateHwcNodes = true;
             continue;
         }
-        
+
         auto visibleRegion = surfaceNode->GetVisibleRegion();
         visibleRegion.MakeBound();
         auto visibleRectI = visibleRegion.GetBound().ToRectI();

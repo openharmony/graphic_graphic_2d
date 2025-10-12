@@ -111,8 +111,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
-    rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
-        vecModifier;
+    rsCanvasDrawingRenderNode.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
     std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
         printf("ProcessRenderContentsTest callbackFunc\n");
     };
@@ -206,8 +205,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
-    rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
-        vecModifier;
+    rsCanvasDrawingRenderNode.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 

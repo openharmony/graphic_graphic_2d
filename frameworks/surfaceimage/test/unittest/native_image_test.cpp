@@ -1515,27 +1515,27 @@ HWTEST_F(NativeImageTest, OH_NativeImage_SetDropBufferMode001, Function | Medium
 }
 
 /*
- * Function: OH_NativeImage_Create_With_SingleBufferMode001
+ * Function: OH_NativeImage_CreateWithSingleBufferMode001
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_Create_With_SingleBufferMode with textureId in multi buffer mode
- *                  2. call OH_NativeImage_Create_With_SingleBufferMode without textureId in multi buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in multi buffer mode
+ *                  2. call OH_NativeImage_CreateWithSingleBufferMode without textureId in multi buffer mode
  *                  3. check nativeImage, and nativeImage is not nullptr
  * @tc.require: issueI5KG61
  */
-HWTEST_F(NativeImageTest, OH_NativeImage_Create_With_SingleBufferMode001, Function | MediumTest | Level1)
+HWTEST_F(NativeImageTest, OH_NativeImage_CreateWithSingleBufferMode001, Function | MediumTest | Level1)
 {
     // create with textureId
     uint32_t textureId = 1;
     uint32_t textureTarget = 1;
     bool singleBufferMode = false;
     OH_NativeImage* nativeImage =
-        OH_NativeImage_Create_With_SingleBufferMode(textureId, textureTarget, singleBufferMode);
+        OH_NativeImage_CreateWithSingleBufferMode(textureId, textureTarget, singleBufferMode);
     ASSERT_NE(nativeImage, nullptr);
     OH_NativeImage_Destroy(&nativeImage);
     // create without textureId
-    nativeImage = OH_ConsumerSurface_Create_With_SingleBufferMode(singleBufferMode);
+    nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(singleBufferMode);
     ASSERT_NE(nativeImage, nullptr);
     OH_NativeImage_Destroy(&nativeImage);
 }
@@ -1545,8 +1545,8 @@ HWTEST_F(NativeImageTest, OH_NativeImage_Create_With_SingleBufferMode001, Functi
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_Create_With_SingleBufferMode with textureId in single buffer mode
- *                  2. call OH_NativeImage_Create_With_SingleBufferMode without textureId in single buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
+ *                  2. call OH_NativeImage_CreateWithSingleBufferMode without textureId in single buffer mode
  *                  3. check nativeImage, and nativeImage is not nullptr
  * @tc.require: issueI5KG61
  */
@@ -1557,11 +1557,11 @@ HWTEST_F(NativeImageTest, OH_NativeImage_Create_With_SingleBufferMode002, Functi
     uint32_t textureTarget = 1;
     bool singleBufferMode = true;
     OH_NativeImage* nativeImage =
-        OH_NativeImage_Create_With_SingleBufferMode(textureId, textureTarget, singleBufferMode);
+        OH_NativeImage_CreateWithSingleBufferMode(textureId, textureTarget, singleBufferMode);
     ASSERT_NE(nativeImage, nullptr);
     OH_NativeImage_Destroy(&nativeImage);
     // create without textureId
-    nativeImage = OH_ConsumerSurface_Create_With_SingleBufferMode(singleBufferMode);
+    nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(singleBufferMode);
     ASSERT_NE(nativeImage, nullptr);
     OH_NativeImage_Destroy(&nativeImage);
 }
@@ -1571,7 +1571,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_Create_With_SingleBufferMode002, Functi
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_Create_With_SingleBufferMode with textureId in single buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
  *                  2. image or image->consumer is nullptr
  *                  3. call OH_NativeImage_ReleaseTextImage to release surface texture
  *                  4. check ret
@@ -1597,7 +1597,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage001, Function | MediumT
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_Create_With_SingleBufferMode with textureId in single buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
  *                  2. call OH_NativeImage_ReleaseTextImage to release surface texture
  *                  2. call OH_NativeImage_ReleaseTextImage to release surface texture again
  *                  3. check nativeImage, and nativeImage is not nullptr, release surface texture success then fail
@@ -1605,7 +1605,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage001, Function | MediumT
  */
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumTest | Level1)
 {
-    OH_NativeImage* nativeImage = OH_ConsumerSurface_Create_With_SingleBufferMode(true);
+    OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
     ASSERT_NE(nativeWindow, nullptr);
@@ -1649,7 +1649,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumT
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_Create_With_SingleBufferMode with textureId in single buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
  *                  2. call OH_NativeWindow_NativeWindowRequestBuffer and OH_NativeWindow_NativeWindowFlushBuffer
  *                  3. call OH_NativeImage_UpdateSurfaceImage to update surface texture
  *                  4. call OH_NativeWindow_NativeWindowRequestBuffer to request buffer again
@@ -1662,7 +1662,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumT
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumTest | Level1)
 {
     InitEglContext();
-    OH_NativeImage* nativeImage = OH_ConsumerSurface_Create_With_SingleBufferMode(true);
+    OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
     ASSERT_NE(nativeWindow, nullptr);
@@ -1743,7 +1743,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_Create_With_SingleBufferMode with textureId in single buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
  *                  2. call OH_NativeWindow_NativeWindowRequestBuffer and OH_NativeWindow_NativeWindowFlushBuffer
  *                  3. call OH_NativeImage_UpdateSurfaceImage to update surface texture
  *                  4. call OH_NativeWindow_NativeWindowRequestBuffer to request buffer again
@@ -1755,7 +1755,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage004, Function | MediumTest | Level1)
 {
     InitEglContext();
-    OH_NativeImage* nativeImage = OH_ConsumerSurface_Create_With_SingleBufferMode(true);
+    OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
     ASSERT_NE(nativeWindow, nullptr);
@@ -1845,7 +1845,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_GetColorSpace002, Function | MediumTest
     uint32_t textureTarget = 1;
     bool singleBufferMode = true;
     OH_NativeImage* nativeImage =
-        OH_NativeImage_Create_With_SingleBufferMode(textureId, textureTarget, singleBufferMode);
+        OH_NativeImage_CreateWithSingleBufferMode(textureId, textureTarget, singleBufferMode);
     ASSERT_NE(nativeImage, nullptr);
 
     OH_NativeBuffer_ColorSpace colorSpace;

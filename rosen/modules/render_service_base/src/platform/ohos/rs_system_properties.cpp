@@ -1713,5 +1713,12 @@ bool RSSystemProperties::GetClipRRectOptimizationEnabled()
     static bool enable = system::GetIntParameter("persist.sys.graphic.clipRRectOptimizationEnabled", 0) != 0;
     return enable;
 }
+
+bool RSSystemProperties::GetNodeMemClearEnabled()
+{
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.node.mem.clear.enable", "1")).c_str()) != 0;
+    return enable;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -90,6 +90,8 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_particle_noise_field.cpp",
+    "src/animation/rs_particle_ripple_field.cpp",
+    "src/animation/rs_particle_velocity_field.cpp",
     "src/animation/rs_render_animation.cpp",
     "src/animation/rs_render_curve_animation.cpp",
     "src/animation/rs_render_interactive_implict_animator.cpp",

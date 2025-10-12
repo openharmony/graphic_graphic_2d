@@ -91,6 +91,10 @@ if (graphic_2d_feature_product == "tablet") {
 gpu_defines = []
 accessibility_defines = []
 
+if (graphic_2d_feature_product == "phone") {
+  gpu_defines += ["RS_ENABLE_MEMORY_DOWNTREE"]
+}
+
 if (graphic_2d_feature_screenless_enable) {
   gpu_defines += ["SCREENLESS_DEVICE"]
 }

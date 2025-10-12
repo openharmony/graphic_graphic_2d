@@ -260,7 +260,7 @@ void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& 
             type != static_cast<uint16_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME)) {
             continue;
         }
-        auto& slot = node.modifiersNG_[type];
+        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }

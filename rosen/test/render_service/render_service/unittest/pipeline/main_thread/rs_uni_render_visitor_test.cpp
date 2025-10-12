@@ -5592,7 +5592,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, INVALID_NODEID);
 
     auto rsChildrenDrawable = std::make_shared<RSChildrenDrawableAdapter>();
-    rsCanvasRenderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] =
+    rsCanvasRenderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] =
         std::move(rsChildrenDrawable);
     rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);

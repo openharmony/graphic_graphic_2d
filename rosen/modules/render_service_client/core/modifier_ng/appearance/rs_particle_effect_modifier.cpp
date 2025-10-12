@@ -35,4 +35,24 @@ std::shared_ptr<ParticleNoiseFields> RSParticleEffectModifier::GetParticleNoiseF
 {
     return Getter<std::shared_ptr<ParticleNoiseFields>>(RSPropertyType::PARTICLE_NOISE_FIELD, {});
 }
+
+void RSParticleEffectModifier::SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para)
+{
+    Setter<RSProperty, std::shared_ptr<ParticleRippleFields>>(RSPropertyType::PARTICLE_RIPPLE_FIELD, para);
+}
+
+std::shared_ptr<ParticleRippleFields> RSParticleEffectModifier::GetParticleRippleFields() const
+{
+    return Getter<std::shared_ptr<ParticleRippleFields>>(RSPropertyType::PARTICLE_RIPPLE_FIELD, {});
+}
+
+void RSParticleEffectModifier::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para)
+{
+    Setter<RSProperty, std::shared_ptr<ParticleVelocityFields>>(RSPropertyType::PARTICLE_VELOCITY_FIELD, para);
+}
+
+std::shared_ptr<ParticleVelocityFields> RSParticleEffectModifier::GetParticleVelocityFields() const
+{
+    return Getter<std::shared_ptr<ParticleVelocityFields>>(RSPropertyType::PARTICLE_VELOCITY_FIELD, {});
+}
 } // namespace OHOS::Rosen::ModifierNG

@@ -386,7 +386,11 @@ public:
     static bool GetMemoryWatermarkEnabled();
 
     static bool GetBootCompleted();
+
     static bool GetClipRRectOptimizationEnabled();
+
+    static bool GetNodeMemClearEnabled();
+
 
 private:
     RSSystemProperties() = default;

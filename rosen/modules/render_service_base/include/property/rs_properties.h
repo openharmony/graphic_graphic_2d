@@ -45,6 +45,8 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSNGRenderFilterBase;
+class ParticleRippleFields;
+class ParticleVelocityFields;
 namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
@@ -369,6 +371,8 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
+    void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
+    void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
@@ -443,6 +447,8 @@ public:
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
     const std::shared_ptr<ParticleNoiseFields>& GetParticleNoiseFields() const;
+    const std::shared_ptr<ParticleRippleFields>& GetParticleRippleFields() const;
+    const std::shared_ptr<ParticleVelocityFields>& GetParticleVelocityFields() const;
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const
     {
@@ -937,6 +943,8 @@ private:
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
     std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
+    std::shared_ptr<ParticleRippleFields> particleRippleFields_ = nullptr;
+    std::shared_ptr<ParticleVelocityFields> particleVelocityFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;

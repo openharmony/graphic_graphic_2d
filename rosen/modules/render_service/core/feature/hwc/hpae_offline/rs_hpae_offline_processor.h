@@ -56,12 +56,14 @@ struct OfflineProcessOutputInfo {
 
 using ProcessOfflineFunc = int32_t (*)(const OfflineProcessInputInfo &);
 using GetOfflineConfigFunc = int32_t (*)(OfflineProcessOutputInfo &);
+using InitOfflineResourceFunc = int32_t (*)();
+using DeInitOfflineResourceFunc = void (*)();
 
 class RSHpaeOfflineProcessor : public std::enable_shared_from_this<RSHpaeOfflineProcessor> {
 public:
     static RSHpaeOfflineProcessor& GetOfflineProcessor();
     ~RSHpaeOfflineProcessor();
-    
+
     bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         uint64_t taskId);
     bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& node, uint64_t taskId);
@@ -76,6 +78,7 @@ private:
     RSHpaeOfflineProcessor(const RSHpaeOfflineProcessor&&) = delete;
     RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&) = delete;
     RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&&) = delete;
+    void CloseOfflineHandle(const std::string& errSymbol, const char* errNo);
     bool LoadPreProcessHandle();
     bool InitForOfflineProcess();
     void CheckAndPostPreAllocBuffersTask();
@@ -91,6 +94,8 @@ private:
     void* preProcessHandle_ = nullptr;
     ProcessOfflineFunc preProcessFunc_ = nullptr;
     GetOfflineConfigFunc getConfigFunc_ = nullptr;
+    InitOfflineResourceFunc initOfflineFunc_ = nullptr;
+    DeInitOfflineResourceFunc deInitOfflineFunc_ = nullptr;
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSHpaeOfflineThreadManager offlineThreadManager_;
 

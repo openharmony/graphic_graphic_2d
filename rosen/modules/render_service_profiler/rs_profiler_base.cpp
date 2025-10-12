@@ -828,7 +828,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
     const auto snapshot = CreateSnapshotModifier(node, fileVersion);
 
     uint32_t modifierNGCount = snapshot ? 1u : 0u;
-    for (const auto& slot : node.GetAllModifiers()) {
+    for (const auto& [_, slot] : node.GetAllModifiers()) {
         for (auto& modifierNG : slot) {
             if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT ||
                 modifierNG->GetType() == ModifierNG::RSModifierType::INVALID) {
@@ -843,7 +843,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
     data.write(reinterpret_cast<const char*>(&modifierNGCount), sizeof(modifierNGCount));
 
     const auto includeImageOps = !IsBetaRecordEnabled();
-    for (const auto& slot : node.GetAllModifiers()) {
+    for (const auto& [_, slot] : node.GetAllModifiers()) {
         for (auto& modifierNG : slot) {
             if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT ||
                 modifierNG->GetType() == ModifierNG::RSModifierType::INVALID) {
@@ -1167,7 +1167,7 @@ std::string RSProfiler::DumpModifiers(const RSRenderNode& node)
     std::string out;
     out += "<";
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto& slot = node.GetAllModifiers()[type];
+        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }
@@ -1355,7 +1355,7 @@ uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
 {
     uint32_t nodeCmdListCount = 0;
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto& slot = node.GetAllModifiers()[type];
+        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }

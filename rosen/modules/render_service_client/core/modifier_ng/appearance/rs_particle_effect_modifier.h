@@ -34,6 +34,10 @@ public:
     std::vector<std::shared_ptr<EmitterUpdater>> GetEmitterUpdater() const;
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     std::shared_ptr<ParticleNoiseFields> GetParticleNoiseFields() const;
+    void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
+    std::shared_ptr<ParticleRippleFields> GetParticleRippleFields() const;
+    void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
+    std::shared_ptr<ParticleVelocityFields> GetParticleVelocityFields() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_PARTICLE_EFFECT_MODIFIER_H

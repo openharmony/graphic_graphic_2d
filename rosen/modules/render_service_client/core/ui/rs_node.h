@@ -854,6 +854,8 @@ public:
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
     void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
+    void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
+    void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
 
     /**
      * @brief Sets the foreground color of the node.

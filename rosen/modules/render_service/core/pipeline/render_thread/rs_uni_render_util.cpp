@@ -604,7 +604,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     if (consumer->GetAlphaType(alphaType) == GSERROR_OK) {
         params.alphaType = static_cast<Drawing::AlphaType>(alphaType);
     }
-    
+
     auto transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     if (consumer->GetSurfaceBufferTransformType(buffer, &transform) != GSERROR_OK) {
         RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam GetSurfaceBufferTransformType failed");
@@ -841,10 +841,11 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
-    bool rotationFixed = layer->GetRotationFixed();
+    bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
     auto dstRect = layer->GetLayerSize();
     if (rotationFixed) {
-        // if rotation fixed, not use [total matrix + bounds] to draw buffer, use [src + dst + transform]
+        // if rotation fixed or use hpae offline,
+        // not use [total matrix + bounds] to draw buffer, use [src + dst + transform]
         params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
         auto srcRect = layer->GetCropRect();
         params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
@@ -866,8 +867,9 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         rotationFixed ? static_cast<float>(dstRect.w) : static_cast<float>(boundRect.w),
         rotationFixed ? static_cast<float>(dstRect.h) : static_cast<float>(boundRect.h) };
     if (rotationFixed) {
-        DealWithRotationAndGravityForRotationFixed(transform, static_cast<Gravity>(layer->GetGravity()), localBounds,
-            params);
+        // while use hpae offline, redraw should resize srcBuffer to dstBuffer
+        Gravity gravity = layer->GetUseDeviceOffline() ? Gravity::RESIZE : static_cast<Gravity>(layer->GetGravity());
+        DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
     } else {
         RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
             localBounds, params);
@@ -1018,7 +1020,7 @@ std::vector<GrBackendSemaphore> RSUniRenderUtil::PrepareHdrSemaphoreVector(GrBac
     VkSemaphore notifySemaphore;
     std::vector<GrBackendSemaphore> semphoreVec = {backendSemaphore};
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGpuTask();
-    
+
     for (auto frameId : frameIdVec) {
         if (RSHDRVulkanTask::GetHTSNotifySemaphore(notifySemaphore, frameId)) {
             GrBackendSemaphore htsSemaphore;
@@ -1069,10 +1071,10 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
             new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
 
         std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
- 
+
         std::vector<GrBackendSemaphore> semaphoreVec = { backendSemaphore };
         RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
- 
+
         Drawing::FlushInfo drawingFlushInfo;
         drawingFlushInfo.backendSurfaceAccess = true;
         drawingFlushInfo.numSemaphores = semaphoreVec.size();
