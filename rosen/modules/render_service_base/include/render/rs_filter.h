@@ -86,6 +86,7 @@ public:
         BEZIER_WARP,
         DISPERSION,
         CONTENT_LIGHT,
+        SDF_EFFECT,
     };
     FilterType GetFilterType() const
     {

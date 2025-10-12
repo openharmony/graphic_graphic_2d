@@ -71,6 +71,8 @@ private:
     Drawing::Path stagingPath_;
     Color color_;
     Color stagingColor_;
+    bool drawWithSDF_ = false;
+    bool stagingDrawWithSDF_ = false;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {

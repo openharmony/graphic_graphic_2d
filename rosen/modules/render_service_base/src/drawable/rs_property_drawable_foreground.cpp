@@ -490,6 +490,13 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
+    if (auto sdfMask = properties.GetSDFEffectFilter(); sdfMask && border->GetStype() == BorderStyle::SOLOD) {
+        auto borderColor = border->GetColor();
+        Drawing::Color color(
+            borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
+        sdfMask->SetBorder(color, border->GetWidth());
+        return;
+    }
     Drawing::Brush brush;
     Drawing::Pen pen;
     brush.SetAntiAlias(true);

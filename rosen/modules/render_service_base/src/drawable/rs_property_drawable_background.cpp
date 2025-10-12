@@ -54,6 +54,7 @@
 #include "common/rs_rect.h"
 
 namespace OHOS::Rosen {
+class RSSDFEffectFilter;
 namespace DrawableV2 {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
@@ -93,6 +94,14 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingColorStrategy_ = properties.GetShadowColorStrategy();
     stagingRadius_ = properties.GetShadowRadius();
     needSync_ = true;
+
+    if (auto sdfMask = properties.GetSDFEffectFilter()) {
+        stagingDrawWithSDF_ = true;
+        Drawing::Color color(
+            stagingColor_.GetRed(), stagingColor_.GetGreen(), stagingColor_.GetBlue(), stagingColor_.GetAlpha());
+        
+        sdfMask->SetShadow(color, stagingOffsetX_, stagingOffsetY_, stagingRadius_, stagingPath_, stagingIsFilled_);
+    }
     return true;
 }
 
@@ -109,6 +118,7 @@ void RSShadowDrawable::OnSync()
     isFilled_ = stagingIsFilled_;
     radius_ = stagingRadius_;
     colorStrategy_ = stagingColorStrategy_;
+    drawWithSDF_ = stagingDrawWithSDF_;
     needSync_ = false;
 }
 
@@ -116,6 +126,10 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (ptr->drawWithSDF_) {
+            return;
+        }
+
         // skip shadow if cache is enabled
         if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
             ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
