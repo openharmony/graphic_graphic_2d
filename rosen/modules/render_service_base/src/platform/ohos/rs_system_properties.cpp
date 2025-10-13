@@ -1720,5 +1720,11 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.node.mem.clear.enable", "1")).c_str()) != 0;
     return enable;
 }
+
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
+{
+    static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
+    return isPhone;
+}
 } // namespace Rosen
 } // namespace OHOS

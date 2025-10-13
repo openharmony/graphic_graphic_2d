@@ -809,5 +809,10 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

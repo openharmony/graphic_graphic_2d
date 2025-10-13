@@ -401,6 +401,14 @@ HWTEST_F(RSMemoryTrackTest, AddNodeRecordTest001, testing::ext::TestSize.Level1)
     MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(ExtractPid(id));
     ASSERT_GT(result.GetCpuMemorySize(), 0);
     MemoryTrack::Instance().RemoveNodeRecord(id);
+
+    for (int i = 0; i < 40002; i++) {
+        NodeId id = 10000000000000 + i;
+        MemoryInfo info = {1024, ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+        MemoryTrack::Instance().AddNodeRecord(id, info);
+    }
+    EXPECT_TRUE(MemoryTrack::Instance().reportKillProcessSet_.count(ExtractPid(10000000000000)));
+    MemoryTrack::Instance().RemovePidRecord(ExtractPid(10000000000000));
 }
 
 /**

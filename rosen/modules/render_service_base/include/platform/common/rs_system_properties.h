@@ -391,6 +391,7 @@ public:
 
     static bool GetNodeMemClearEnabled();
 
+    static bool GetRSNodeExceedKillEnabled();
 
 private:
     RSSystemProperties() = default;

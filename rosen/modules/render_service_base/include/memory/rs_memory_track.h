@@ -138,7 +138,8 @@ private:
     std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
     // RS Node Size [pid, RenderNodeMemSize, DrawableNodeMemSize]
     std::unordered_map<pid_t, std::pair<size_t, size_t>> nodeMemOfPid_;
-
+    // number of node exceeds limit, report kill
+    std::unordered_set<pid_t> reportKillProcessSet_;
 #ifdef RS_MEMORY_INFO_MANAGER
     std::atomic<bool> globalRootNodeStatusChangeFlag{false};
 #endif
