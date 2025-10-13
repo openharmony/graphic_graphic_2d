@@ -1586,11 +1586,19 @@ const std::unique_ptr<RSRenderParams>& RSRenderNode::GetRenderParams() const
 
 RectI RSRenderNode::GetDrawCmdListRect() const
 {
-    for (auto& [_, slot] : modifiersNG_) {
+    int32_t width = 0;
+    int32_t height = 0;
+    RSRenderNode::ModifierNGContainer customModifiers[] = {
+        GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE),
+        GetModifiersNG(ModifierNG::RSModifierType::TRANSITION_STYLE),
+        GetModifiersNG(ModifierNG::RSModifierType::BACKGROUND_STYLE),
+        GetModifiersNG(ModifierNG::RSModifierType::FOREGROUND_STYLE),
+        GetModifiersNG(ModifierNG::RSModifierType::OVERLAY_STYLE),
+        GetModifiersNG(ModifierNG::RSModifierType::NODE_MODIFIER),
+    };
+
+    for (auto& slot : customModifiers) {
         for (auto& modifier : slot) {
-            if (!modifier->IsCustom()) {
-                continue;
-            }
             auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
             auto propertyPtr = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(
                 modifier->GetProperty(propertyType));
@@ -1598,10 +1606,11 @@ RectI RSRenderNode::GetDrawCmdListRect() const
             if (drawCmdListPtr == nullptr) {
                 continue;
             }
-            return RectI(0, 0, drawCmdListPtr->GetWidth(), drawCmdListPtr->GetHeight());
+            width = width > drawCmdListPtr->GetWidth() ? width : drawCmdListPtr->GetWidth();
+            height = height > drawCmdListPtr->GetHeight() ? height : drawCmdListPtr->GetHeight();
         }
     }
-    return RectI();
+    return RectI(0, 0, width, height);
 }
 
 void RSRenderNode::CollectAndUpdateRenderFitRect()
