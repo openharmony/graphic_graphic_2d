@@ -55,13 +55,13 @@ void RSMagnifierShaderFilter::GenerateGEVisualEffect(
         return;
     }
     magnifierFilter->SetParam("FACTOR", magnifierPara_->factor_);
-    magnifierFilter->SetParam("WIDTH", magnifierPara_->width_ * scaleX_);
-    magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_ * scaleY_);
-    magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_ * scaleY_);
-    magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_ * scaleY_);
-    magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_ * scaleX_);
-    magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_ * scaleY_);
-    magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_ * scaleY_);
+    magnifierFilter->SetParam("WIDTH", magnifierPara_->width_);
+    magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_);
+    magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_);
+    magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_);
+    magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_);
+    magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_);
+    magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_);
     magnifierFilter->SetParam("SHADOWSTRENGTH", magnifierPara_->shadowStrength_);
     magnifierFilter->SetParam("GRADIENTMASKCOLOR1", magnifierPara_->gradientMaskColor1_);
     magnifierFilter->SetParam("GRADIENTMASKCOLOR2", magnifierPara_->gradientMaskColor2_);
