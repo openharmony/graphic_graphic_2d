@@ -1196,6 +1196,7 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
         canvas.SaveLayer(maskLayerRec);
         ROSEN_LOGD("Dangerous offscreen blendmode may produce transparent pixels, add extra offscreen here.");
     }
+
     // fast blender
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         canvas.SetBlender(blender);
