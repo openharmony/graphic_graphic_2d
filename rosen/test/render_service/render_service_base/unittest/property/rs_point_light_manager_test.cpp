@@ -297,7 +297,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight003, TestSize.Level1)
     EXPECT_TRUE(instance->dirtyLightSourceList_.empty());
 
     instance->dirtyIlluminatedList_.push_back(sharedRenderNode);
-    sharedRenderNode->GetMutableRenderProperties().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     instance->PrepareLight();
     EXPECT_TRUE(instance->dirtyIlluminatedList_.empty());
 
@@ -377,7 +377,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated001, TestSize.Level1)
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_0);
     illuminatedNode->GetMutableRenderProperties().SetBounds({0, 0, 10, 10});
-    lightSourceNode->GetMutableRenderProperties().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(true);
     instance->SetScreenRotation(ScreenRotation::ROTATION_90);
@@ -413,7 +413,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(lightSourceNode != nullptr);
 
-    illuminatedNode->GetMutableRenderProperties().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(lightSourceNode != nullptr);
 

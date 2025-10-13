@@ -59,7 +59,7 @@ HWTEST_F(RSBackgroundFilterRenderModifierNGTypeTest, RSBackgroundFilterRenderMod
     EXPECT_EQ(properties.GetSystemBarEffect(), false);
     EXPECT_EQ(properties.GetWaterRippleProgress(), 0.0f);
     EXPECT_EQ(properties.GetWaterRippleParams(), std::nullopt);
-    EXPECT_EQ(properties.magnifierPara_, nullptr);
+    EXPECT_EQ(properties.GetEffect().magnifierPara_, nullptr);
     EXPECT_EQ(properties.GetBackgroundBlurRadius(), 0.0f);
     EXPECT_EQ(properties.GetBackgroundBlurSaturation(), 1.0f);
     EXPECT_EQ(properties.GetBackgroundBlurBrightness(), 1.0f);

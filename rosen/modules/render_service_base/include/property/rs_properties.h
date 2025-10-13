@@ -262,7 +262,10 @@ public:
 
     inline bool GetUseShadowBatching() const
     {
-        return useShadowBatching_;
+        if (effect_) {
+            return effect_->useShadowBatching_;
+        }
+        return false;
     }
 
     void SetUseShadowBatching(bool useShadowBatching);
@@ -364,7 +367,11 @@ public:
     void SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache);
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const
     {
-        return foregroundFilterCache_;
+        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->foregroundFilterCache_;
+        }
+        return defaultValue;
     }
 
     // filter properties
@@ -422,7 +429,11 @@ public:
     void SetDistortionK(const std::optional<float>& distortionK);
     const std::optional<float>& GetDistortionK() const
     {
-        return distortionK_;
+        static const std::optional<float> defaultValue = std::nullopt;
+        if (effect_) {
+            return effect_->distortionK_;
+        }
+        return defaultValue;
     }
 
     void SetBgBrightnessRates(const Vector4f& rates);
@@ -442,7 +453,11 @@ public:
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const
     {
-        return backgroundFilter_;
+        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->backgroundFilter_;
+        }
+        return defaultValue;
     }
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
@@ -452,7 +467,11 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const
     {
-        return filter_;
+        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->filter_;
+        }
+        return defaultValue;
     }
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
@@ -462,9 +481,20 @@ public:
     bool NeedSkipSubtreeParallel() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
+    bool IsGreyCoefNeedUpdate() const
+    {
+        if (effect_) {
+            return effect_->greyCoefNeedUpdate_;
+        }
+        return false;
+    }
     const std::shared_ptr<RSFilter>& GetForegroundFilter() const
     {
-        return foregroundFilter_;
+        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->foregroundFilter_;
+        }
+        return defaultValue;
     }
     void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
 
@@ -612,13 +642,21 @@ public:
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);
     inline const std::optional<Vector4f>& GetPixelStretch() const
     {
-        return pixelStretch_;
+        static const std::optional<Vector4f> defaultValue = std::nullopt;
+        if (effect_) {
+            return effect_->pixelStretch_;
+        }
+        return defaultValue;
     }
 
     void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
     inline const std::optional<Vector4f>& GetPixelStretchPercent() const
     {
-        return pixelStretchPercent_;
+        static const std::optional<Vector4f> defaultValue = std::nullopt;
+        if (effect_) {
+            return effect_->pixelStretchPercent_;
+        }
+        return defaultValue;
     }
 
     void SetPixelStretchTileMode(int stretchTileMode);
@@ -657,7 +695,10 @@ public:
 
     bool IsAttractionValid() const
     {
-        return isAttractionValid_;
+        if (effect_) {
+            return effect_->isAttractionValid_;
+        }
+        return false;
     }
     void SetAttractionFraction(float fraction);
     void SetAttractionDstPoint(Vector2f dstPoint);
@@ -666,7 +707,10 @@ public:
     void CreateAttractionEffectFilter();
     RectI GetAttractionEffectCurrentDirtyRegion() const
     {
-        return attractionEffectCurrentDirtyRegion_;
+        if (effect_) {
+            return effect_->attractionEffectCurrentDirtyRegion_;
+        }
+        return {0, 0, 0, 0};
     }
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
@@ -675,12 +719,14 @@ public:
     bool IsDynamicDimValid() const;
     bool IsFgBrightnessValid() const
     {
-        return fgBrightnessParams_.has_value() && fgBrightnessParams_->IsValid();
+        const auto& fgBrightnessParams = GetFgBrightnessParams();
+        return fgBrightnessParams.has_value() && fgBrightnessParams->IsValid();
     }
 
     bool IsBgBrightnessValid() const
     {
-        return bgBrightnessParams_.has_value() && bgBrightnessParams_->IsValid();
+        const auto& bgBrightnessParams = GetBgBrightnessParams();
+        return bgBrightnessParams.has_value() && bgBrightnessParams->IsValid();
     }
     bool IsShadowBlenderValid() const;
     bool IsWaterRippleValid() const;
@@ -696,7 +742,11 @@ public:
     void SetGrayScale(const std::optional<float>& grayScale);
     inline const std::optional<float>& GetGrayScale() const
     {
-        return grayScale_;
+        static const std::optional<float> defaultValue = std::nullopt;
+        if (effect_) {
+            return effect_->grayScale_;
+        }
+        return defaultValue;
     }
 
     void SetBrightness(const std::optional<float>& brightness);
@@ -716,7 +766,11 @@ public:
 
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const
     {
-        return colorFilter_;
+        static const std::shared_ptr<Drawing::ColorFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->colorFilter_;
+        }
+        return defaultValue;
     }
 
     void SetLightIntensity(float lightIntensity);
@@ -730,23 +784,33 @@ public:
     Vector4f GetLightPosition() const;
     inline float GetIlluminatedBorderWidth() const
     {
-        return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
+        const auto& illuminatedPtr = GetIlluminated();
+        return illuminatedPtr ? illuminatedPtr->GetIlluminatedBorderWidth() : 0.f;
     }
 
     int GetIlluminatedType() const;
     inline float GetBloom() const
     {
-        return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
+        const auto& illuminatedPtr = GetIlluminated();
+        return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
 
     void CalculateAbsLightPosition();
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
     {
-        return lightSourcePtr_;
+        static const std::shared_ptr<RSLightSource> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->lightSourcePtr_;
+        }
+        return defaultValue;
     }
     inline const std::shared_ptr<RSIlluminated>& GetIlluminated() const
     {
-        return illuminatedPtr_;
+        static const std::shared_ptr<RSIlluminated> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->illuminatedPtr_;
+        }
+        return defaultValue;
     }
 
     bool HasHarmonium() const;
@@ -758,7 +822,10 @@ public:
     void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
     bool GetNeedDrawBehindWindow() const
     {
-        return needDrawBehindWindow_;
+        if (effect_) {
+            return effect_->needDrawBehindWindow_;
+        }
+        return false;
     }
 
     void SetUseUnion(bool useUnion);
@@ -769,26 +836,33 @@ public:
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const
     {
-        return colorBlendMode_;
+        if (effect_) {
+            return effect_->colorBlendMode_;
+        }
+        return 0;
     }
     bool IsColorBlendModeValid() const
     {
-        return colorBlendMode_ != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
-               colorBlendMode_ != static_cast<int>(RSColorBlendMode::NONE);
+        const auto& colorBlendMode = GetColorBlendMode();
+        return colorBlendMode != static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+               colorBlendMode != static_cast<int>(RSColorBlendMode::NONE);
     }
     bool IsColorBlendModeNone() const
     {
-        return colorBlendMode_ == static_cast<int>(RSColorBlendMode::NONE);
+        return GetColorBlendMode() == static_cast<int>(RSColorBlendMode::NONE);
     }
 
     void SetColorBlendApplyType(int colorBlendApplyType);
     int GetColorBlendApplyType() const
     {
-        return colorBlendApplyType_;
+        if (effect_) {
+            return effect_->colorBlendApplyType_;
+        }
+        return 0;
     }
     bool IsColorBlendApplyTypeOffscreen() const
     {
-        return colorBlendApplyType_ != static_cast<int>(RSColorBlendApplyType::FAST);
+        return GetColorBlendApplyType() != static_cast<int>(RSColorBlendApplyType::FAST);
     }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -811,6 +885,87 @@ public:
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
 
 private:
+struct CommonEffectParams {
+    bool isAttractionValid_ = false;
+    float attractFraction_ = 0.f;
+    Vector2f attractDstPoint_ = {0.f, 0.f};
+    RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
+    std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
+    float waterRippleProgress_ = 0.0f;
+    std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
+    bool isSpherizeValid_ = false;
+    float spherizeDegree_ = 0.f;
+    bool bgBlurDisableSystemAdaptation = true;
+    bool fgBlurDisableSystemAdaptation = true;
+    bool useEffect_ = false;
+    bool haveEffectRegion_ = false;
+    std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
+    std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
+    RSRenderParticleVector particles_;
+    float lightUpEffectDegree_ = 1.0f;
+    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
+    bool greyCoefNeedUpdate_ = false;
+    std::optional<Vector2f> greyCoef_;
+    float flyOutDegree_ = 0.0f;
+    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
+    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
+    std::optional<float> dynamicLightUpRate_;
+    std::optional<float> dynamicLightUpDegree_;
+    std::optional<float> dynamicDimDegree_;
+    bool needDrawBehindWindow_ = false;
+    int useEffectType_ = 0;
+    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::optional<RSShadowBlenderPara> shadowBlenderParams_;
+    std::optional<std::vector<float>> complexShaderParam_;
+    int pixelStretchTileMode_ = 0;
+    std::optional<Vector4f> pixelStretch_;
+    std::optional<Vector4f> pixelStretchPercent_;
+    std::shared_ptr<RSMask> mask_ = nullptr;
+    std::optional<float> grayScale_;
+    std::optional<float> brightness_;
+    std::optional<float> contrast_;
+    std::optional<float> saturate_;
+    std::optional<float> sepia_;
+    std::optional<float> invert_;
+    std::optional<float> hueRotate_;
+    bool distortionEffectDirty_ = false;
+    std::optional<float> distortionK_ = std::nullopt;
+    std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
+    bool systemBarEffect_ = false;
+    std::optional<Vector4f> aiInvert_;
+    std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
+    std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
+    bool alwaysSnapshot_ = false;
+    bool useShadowBatching_ = false;
+    std::optional<RSShadow> shadow_;
+    float backgroundBlurRadius_ = 0.f;
+    float backgroundBlurSaturation_ = 1.f;
+    float backgroundBlurBrightness_ = 1.f;
+    int backgroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
+    float backgroundBlurRadiusX_ = 0.f;
+    float backgroundBlurRadiusY_ = 0.f;
+    float foregroundBlurRadius_ = 0.f;
+    float foregroundBlurSaturation_ = 1.f;
+    float foregroundBlurBrightness_ = 1.f;
+    int foregroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
+    float foregroundBlurRadiusX_ = 0.f;
+    float foregroundBlurRadiusY_ = 0.f;
+    Color backgroundMaskColor_ = RSColor();
+    Color foregroundMaskColor_ = RSColor();
+    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
+    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
+    float foregroundEffectRadius_ = 0.f;
+    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr;
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
+    int colorBlendMode_ = 0;
+    int colorBlendApplyType_ = 0;
+    std::optional<Color> colorBlend_;
+    std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
+    std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
+    std::shared_ptr<RSFilter> filter_ = nullptr;
+};
     inline float DecreasePrecision(float value)
     {
         // preserve two digital precision when calculating hash, this can reuse filterCache as much as possible.
@@ -854,6 +1009,21 @@ private:
     // added for update dirty region dfx
     RectI GetDirtyRect(RectI& drawRegion) const;
 
+    std::unique_ptr<CommonEffectParams> effect_;
+
+    /**
+    * Avoid using this unless you need to modify CommonEffectParams.
+    * Creates the object with memory allocation if it doesn't exist.
+    * Prefer the const version for read-only access.
+    */
+    CommonEffectParams& GetEffect()
+    {
+        if (effect_ == nullptr) {
+            effect_ = std::make_unique<CommonEffectParams>();
+        }
+        return *effect_;
+    }
+
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
@@ -863,7 +1033,6 @@ private:
     bool curContentDirty_ = false;
     bool curSubTreeAllDirty_ = false;
     bool hasBounds_ = false;
-    bool isSpherizeValid_ = false;
     bool clipToBounds_ = false;
     bool clipToFrame_ = false;
     // partial update
@@ -871,29 +1040,18 @@ private:
     bool pixelStretchNeedUpdate_ = false;
     bool bgShaderNeedUpdate_ = false;
     bool filterNeedUpdate_ = false;
-    bool greyCoefNeedUpdate_ = false;
     bool visible_ = true;
     bool isDrawn_ = false;
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
-    bool useEffect_ = false;
     bool hasHarmonium_ = false;
     bool useUnion_ = false;
-    bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
     bool alphaNeedApply_ = false;
-    bool systemBarEffect_ = false;
-    bool useShadowBatching_ = false;
     bool needSkipShadow_ = false;
-    bool distortionEffectDirty_ = false;
-    bool haveEffectRegion_ = false;
-    bool isAttractionValid_ = false;
-    bool bgBlurDisableSystemAdaptation = true;
-    bool fgBlurDisableSystemAdaptation = true;
-    bool alwaysSnapshot_ = false;
     bool localMagnificationCap_ = false;
     float hdrBrightnessFactor_ = 1.0f; // for displayNode
     float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
@@ -901,96 +1059,28 @@ private:
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
     float unionSpacing_ = 0.f;
-    int useEffectType_ = 0;
     Gravity frameGravity_ = Gravity::DEFAULT;
-    int colorBlendMode_ = 0;
-    int colorBlendApplyType_ = 0;
-    float waterRippleProgress_ = 0.0f;
-    float flyOutDegree_ = 0.0f;
-    float foregroundEffectRadius_ = 0.f;
-    float attractFraction_ = 0.f;
-    float spherizeDegree_ = 0.f;
     float hdrUIBrightness_ = 1.0f;
-    float lightUpEffectDegree_ = 1.0f;
     // filter property
-    float backgroundBlurRadius_ = 0.f;
-    float backgroundBlurSaturation_ = 1.f;
-    float backgroundBlurBrightness_ = 1.f;
-    int backgroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
-    float backgroundBlurRadiusX_ = 0.f;
-    float backgroundBlurRadiusY_ = 0.f;
-    float foregroundBlurRadius_ = 0.f;
-    float foregroundBlurSaturation_ = 1.f;
-    float foregroundBlurBrightness_ = 1.f;
-    int foregroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
-    float foregroundBlurRadiusX_ = 0.f;
-    float foregroundBlurRadiusY_ = 0.f;
-    int pixelStretchTileMode_ = 0;
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
-    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
-    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
-    std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
-    std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
-    std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
-    std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
     std::shared_ptr<RSNGRenderMaskBase> renderSDFMask_ = nullptr;
-    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
-    std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
-    std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
-    std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
-    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
-    std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
-    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
-    std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_ = nullptr;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
-    std::shared_ptr<RSMask> mask_ = nullptr;
-    std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
     std::weak_ptr<RSRenderNode> backref_;
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-    Vector2f attractDstPoint_ = {0.f, 0.f};
-    RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
     RRect rrect_ = RRect{};
     RSObjGeometry frameGeo_;
-    std::optional<Vector4f> pixelStretch_;
-    std::optional<Vector4f> pixelStretchPercent_;
     std::optional<Vector4f> cornerRadius_;
     int cornerApplyType_ = 0;
-    std::optional<RSShadow> shadow_;
 
-    std::shared_ptr<Drawing::RuntimeEffect> shaderEffect_ = nullptr;
-    std::optional<std::vector<float>> complexShaderParam_;
-
-    std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
-    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
-    std::optional<float> distortionK_ = std::nullopt;
-    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
-    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
-    std::optional<RSShadowBlenderPara> shadowBlenderParams_;
-    std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::optional<Decoration> decoration_;
     std::optional<Matrix3f> sublayerTransform_;
-    Color backgroundMaskColor_ = RSColor();
-    Color foregroundMaskColor_ = RSColor();
 
-    std::optional<Vector4f> aiInvert_;
-    std::optional<float> grayScale_;
-    std::optional<float> brightness_;
-    std::optional<float> contrast_;
-    std::optional<float> saturate_;
-    std::optional<float> sepia_;
-    std::optional<float> invert_;
-    std::optional<float> hueRotate_;
-    std::optional<float> dynamicLightUpRate_;
-    std::optional<float> dynamicLightUpDegree_;
-    std::optional<float> dynamicDimDegree_;
-    std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
-    std::optional<Vector2f> greyCoef_;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
@@ -1004,7 +1094,6 @@ private:
     void UpdateBackgroundShader();
 
     Drawing::Matrix prevAbsMatrix_;
-    RSRenderParticleVector particles_;
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();

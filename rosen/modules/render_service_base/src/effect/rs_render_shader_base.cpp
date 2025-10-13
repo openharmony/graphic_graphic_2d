@@ -126,7 +126,7 @@ bool RSNGRenderShaderHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase
     return false;
 }
 
-void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase>& shader,
+void RSNGRenderShaderHelper::SetRotationAngle(const std::shared_ptr<RSNGRenderShaderBase>& shader,
     const Vector3f& rotationAngle)
 {
     auto current = shader;
@@ -139,7 +139,7 @@ void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBa
     }
 }
 
-void RSNGRenderShaderHelper::SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase>& shader,
+void RSNGRenderShaderHelper::SetCornerRadius(const std::shared_ptr<RSNGRenderShaderBase>& shader,
     float cornerRadius)
 {
     auto current = shader;
