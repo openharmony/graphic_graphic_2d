@@ -31,6 +31,19 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class MockCmdListProperty : public RSAnimatableProperty<float> {
+public:
+    explicit MockCmdListProperty(const float& value) : RSAnimatableProperty<float>(value) {}
+    ~MockCmdListProperty() = default;
+
+protected:
+    RSPropertyType GetPropertyType() const
+    {
+        return RSPropertyType::DRAW_CMD_LIST;
+    }
+};
+} // namespace
 class RSImplicitAnimationParamTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -274,5 +287,23 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation002, TestSize.Level1)
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest CreateAnimation002 end";
+}
+
+/**
+ * @tc.name: CreateAnimation004
+ * @tc.desc: Verify the RSImplicitKeyframeAnimationParam CreateAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation004, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSImplicitCurveAnimationParam param(timingProtocol, timingCurve);
+    auto property = std::make_shared<MockCmdListProperty>(1.f);
+    auto startValue = std::make_shared<MockCmdListProperty>(0.f);
+    auto endValue = std::make_shared<MockCmdListProperty>(1.f);
+    ASSERT_TRUE(param.CreateAnimation(property, startValue, endValue));
 }
 } // namespace OHOS::Rosen
