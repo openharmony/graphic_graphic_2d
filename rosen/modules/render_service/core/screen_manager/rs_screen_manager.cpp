@@ -1953,6 +1953,17 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     return screen->GetScreenInfo();
 }
 
+uint32_t RSScreenManager::GetScreenActiveRefreshRate(ScreenId id) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return 0;
+    }
+
+    return screen->GetActiveRefreshRate();
+}
+
 bool RSScreenManager::GetCanvasRotation(ScreenId id) const
 {
     auto screen = GetScreen(id);

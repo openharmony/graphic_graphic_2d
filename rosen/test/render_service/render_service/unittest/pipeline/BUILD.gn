@@ -925,6 +925,7 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/utils/test_header:test_header",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   ]
   external_deps = [
     "c_utils:utils",

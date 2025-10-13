@@ -41,7 +41,7 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if ((FOLD_SCREEN_TYPE[0] == dualDisplay) && screenId != 0) {
         return;
     }
-    uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+    uint32_t currentRefreshRate = RSRealtimeRefreshRateManager::Instance().GetScreenCurrentRefreshRate(screenId);
     uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate(screenId);
     static bool showRealtimeRefreshRate = RSSystemProperties::GetVersionType() == "beta";
     std::string info = std::to_string(currentRefreshRate);

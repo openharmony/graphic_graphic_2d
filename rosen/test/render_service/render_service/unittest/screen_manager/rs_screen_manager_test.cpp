@@ -589,6 +589,25 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo_002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: GetScreenActiveRefreshRate_001
+ * @tc.desc: Test GetScreenActiveRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenActiveRefreshRate_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetDefaultScreenId(0);
+    ScreenId screenId = screenManager->GetDefaultScreenId();
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+    screenManager->GetScreenActiveRefreshRate(screenId);
+
+    screenId = INVALID_SCREEN_ID;
+    screenManager->GetScreenActiveRefreshRate(screenId);
+}
+
+/*
  * @tc.name: GetProducerSurface_001
  * @tc.desc: Test GetProducerSurface
  * @tc.type: FUNC
