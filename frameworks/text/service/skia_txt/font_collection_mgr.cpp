@@ -108,7 +108,7 @@ bool FontCollectionMgr::InsertHapPath(const std::string& bundle, const std::stri
     return true;
 }
 
-void FontCollectionMgr::DestoryHapPath(const std::string& bundle, const std::string& module)
+void FontCollectionMgr::DestroyHapPath(const std::string& bundle, const std::string& module)
 {
     std::unique_lock<std::shared_mutex> lock(mutex_);
     auto bundleIter = hapPaths_.find(bundle);
