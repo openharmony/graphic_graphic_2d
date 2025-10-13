@@ -64,6 +64,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFRRectMask>();
         }
     },
+    {RSNGEffectType::HARMONIUM_EFFECT_MASK, [] {
+            return std::make_shared<RSNGRenderHarmoniumEffectMask>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderMaskBase> RSNGRenderMaskBase::Create(RSNGEffectType type)

@@ -90,6 +90,7 @@ public:
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_MASK: return "SDFSmoothUnionOpMask";
             case RSNGEffectType::SDF_RRECT_MASK: return "SDFRRectMask";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
+            case RSNGEffectType::HARMONIUM_EFFECT_MASK: return "HarmoniumEffectMask";
             default:
                 return "UNKNOWN";
         }
