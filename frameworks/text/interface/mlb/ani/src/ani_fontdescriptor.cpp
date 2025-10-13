@@ -43,7 +43,8 @@ static const std::string ANI_STRING_DESCRIPTOR = "C{" + std::string(ANI_STRING) 
 static const std::string FONT_DESCRIPTOR_SIGN = ANI_STRING_DESCRIPTOR + ANI_STRING_DESCRIPTOR + ANI_STRING_DESCRIPTOR +
     ANI_STRING_DESCRIPTOR + ANI_STRING_DESCRIPTOR + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
     "}iizz:";
-const std::string GET_FONT_DESCRIPTORS_FROM_PATH_IN_SIGN = "X{C{global.resource.Resource}C{std.core.String}}";
+const std::string GET_FONT_DESCRIPTORS_FROM_PATH_IN_SIGN = "X{C{" + std::string(ANI_RESOURCE) + "}C{" +
+    std::string(ANI_STRING) + "}}";
 
 }
 
@@ -321,9 +322,9 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
 ani_object AniFontDescriptor::GetFontDescriptorsFromPath(ani_env* env, ani_object path)
 {
     ani_class stringClass = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, "std.core.String", stringClass);
+    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_ARRAY, stringClass);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to found std.core.String, ret %{public}d", ret);
+        TEXT_LOGE("Failed to found class, ret %{public}d", ret);
         return AniTextUtils::CreateAniArray(env, 0);
     }
 
@@ -335,9 +336,9 @@ ani_object AniFontDescriptor::GetFontDescriptorsFromPath(ani_env* env, ani_objec
     }
 
     ani_class resourceClass = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, "global.resource.Resource", resourceClass);
+    ret = AniTextUtils::FindClassWithCache(env, ANI_RESOURCE, resourceClass);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to found global.resource.Resource, ret %{public}d", ret);
+        TEXT_LOGE("Failed to found class, ret %{public}d", ret);
         return AniTextUtils::CreateAniArray(env, 0);
     }
     ani_boolean isResource = false;
