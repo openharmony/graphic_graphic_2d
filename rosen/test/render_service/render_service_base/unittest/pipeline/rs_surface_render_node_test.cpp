@@ -2458,8 +2458,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetAncoFlags, TestSize.Level1)
     ASSERT_NE(surfaceParams, nullptr);
  
     testNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    EXPECT_EQ(testNode->isForceRefresh_, false);
     EXPECT_EQ(surfaceParams->isForceRefresh_, false);
     testNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE));
+    EXPECT_EQ(testNode->isForceRefresh_, true);
     EXPECT_EQ(surfaceParams->isForceRefresh_, true);
 }
 
