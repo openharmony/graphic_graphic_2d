@@ -356,6 +356,10 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::PIXEL_STRETCH,
     RSDrawableSlot::RESTORE_FOREGROUND_FILTER,
 };
+constexpr std::array sdfUnionDirtyTypes = {
+    RSDrawableSlot::SHADOW,
+    RSDrawableSlot::BORDER,
+};
 constexpr std::array frameDirtyTypes = {
     RSDrawableSlot::CLIP_TO_FRAME,
     RSDrawableSlot::COMPOSITING_FILTER,
@@ -441,6 +445,10 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     // if frame changed, mark affected drawables as dirty
     if (dirtySlots.count(RSDrawableSlot::FRAME_OFFSET)) {
         MarkAffectedSlots(frameDirtyTypes, drawableVec, dirtySlots);
+    }
+
+    if (auto sdfEffectFilter = node.GetRenderProperties().GetSDFMask()) {
+        MarkAffectedSlots(sdfUnionDirtyTypes, drawableVec, dirtySlots);
     }
 
     // if border changed, mark affected drawables as dirty
