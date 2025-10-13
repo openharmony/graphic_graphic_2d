@@ -273,13 +273,13 @@ HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
     // create displayNode with async postTask (sync task processor not ready)
     RSDisplayNodeConfig displayNodeConfig = {};
     NodeId nodeId = 1;
-    EXPECT_TRUE(rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId));
+    EXPECT_TRUE(rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, true));
 
     // create displayNode with async postTask (sync task processor not ready, but isRunning_ was set to true)
     // at this time, CreateNode will first try to post sync task
     nodeId = 2;
     mainThread->isRunning_ = true;
-    EXPECT_TRUE(rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId));
+    EXPECT_TRUE(rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, true));
 }
 /**
  * @tc.name: RegisterTypefaceTest001
