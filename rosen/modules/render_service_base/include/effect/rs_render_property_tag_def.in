@@ -253,3 +253,17 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskY, MASK_PTR);
 
 // SDFRRectMask
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFRRectMask, RRect, RRect);
+
+// Gasify
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);

@@ -84,7 +84,10 @@ HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
         RSNGEffectType::EDGE_LIGHT,
         RSNGEffectType::SOUND_WAVE,
         RSNGEffectType::DISPERSION,
-        RSNGEffectType::EDGE_LIGHT
+        RSNGEffectType::EDGE_LIGHT,
+        RSNGEffectType::GASIFY_SCALE_TWIST,
+        RSNGEffectType::GASIFY_BLUR,
+        RSNGEffectType::GASIFY
     };
     for (const auto& type : filterTypes) {
         auto filter = RSNGRenderFilterBase::Create(type);

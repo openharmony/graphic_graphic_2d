@@ -86,6 +86,9 @@ public:
         BEZIER_WARP,
         DISPERSION,
         CONTENT_LIGHT,
+        GASIFY_SCALE_TWIST,
+        GASIFY_BLUR,
+        GASIFY,
     };
     FilterType GetFilterType() const
     {

@@ -103,7 +103,10 @@ enum class RSNGEffectType : int16_t {
     HARMONIUM_EFFECT,
     AIBAR_GLOW,
     ROUNDED_RECT_FLOWLIGHT,
-    GRADIENT_FLOW_COLORS
+    GRADIENT_FLOW_COLORS,
+    GASIFY_SCALE_TWIST,
+    GASIFY_BLUR,
+    GASIFY
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
