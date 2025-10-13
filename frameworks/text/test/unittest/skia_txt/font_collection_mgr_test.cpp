@@ -252,7 +252,7 @@ HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0015, TestSize.Level0)
 
 /*
  * @tc.name: FontCollectionMgrTest0016
- * @tc.desc: test for DestoryHapPath
+ * @tc.desc: test for DestroyHapPath
  * @tc.type: FUNC
  */
 HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0016, TestSize.Level0)
@@ -263,14 +263,14 @@ HWTEST_F(FontCollectionMgrTest, FontCollectionMgrTest0016, TestSize.Level0)
     std::string path = "/path/to/resource1";
     std::string path2 = "/path/to/resource2";
 
-    mgr.DestoryHapPath("nonexistent", module);
+    mgr.DestroyHapPath("nonexistent", module);
     mgr.InsertHapPath(bundle, module, path);
-    mgr.DestoryHapPath(bundle, "nonexistent");
+    mgr.DestroyHapPath(bundle, "nonexistent");
     EXPECT_EQ(path, mgr.GetHapPath(bundle, module));
     mgr.InsertHapPath(bundle, module2, path2);
-    mgr.DestoryHapPath(bundle, module);
+    mgr.DestroyHapPath(bundle, module);
     EXPECT_EQ("", mgr.GetHapPath(bundle, module));
     EXPECT_EQ(path2, mgr.GetHapPath(bundle, module2));
-    mgr.DestoryHapPath(bundle, module2);
+    mgr.DestroyHapPath(bundle, module2);
 }
 } // namespace OHOS::Rosen

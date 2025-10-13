@@ -41,7 +41,7 @@ public:
     bool RemoveSharedFontColleciton(void* key);
 
     bool InsertHapPath(const std::string& bundle, const std::string& module, const std::string& path);
-    void DestoryHapPath(const std::string& bundle, const std::string& module);
+    void DestroyHapPath(const std::string& bundle, const std::string& module);
     std::string GetHapPath(const std::string& bundle, const std::string& module);
 
 private:

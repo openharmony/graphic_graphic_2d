@@ -2058,7 +2058,7 @@ void RSRenderNode::UpdateDirtyRegion(
         }
 
         // Add node's pixelStretch region to dirtyRect
-        if (properties.pixelStretch_) {
+        if (properties.GetPixelStretch()) {
             auto stretchDirtyRect = properties.GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }
@@ -4101,11 +4101,11 @@ bool RSRenderNode::ShouldClearSurface()
 void RSRenderNode::ValidateLightResources()
 {
     auto& properties = GetMutableRenderProperties();
-    if (properties.lightSourcePtr_ && properties.lightSourcePtr_->IsLightSourceValid()) {
+    if (properties.GetLightSource() && properties.GetLightSource()->IsLightSourceValid()) {
         properties.CalculateAbsLightPosition();
         RSPointLightManager::Instance()->AddDirtyLightSource(weak_from_this());
     }
-    if (properties.illuminatedPtr_ && properties.illuminatedPtr_->IsIlluminatedValid()) {
+    if (properties.GetIlluminated() && properties.GetIlluminated()->IsIlluminatedValid()) {
         RSPointLightManager::Instance()->AddDirtyIlluminated(weak_from_this());
     }
 }

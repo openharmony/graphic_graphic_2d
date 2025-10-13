@@ -34,11 +34,14 @@
 #include "drawing_text_typography.h"
 #include "font_utils.h"
 #include "gtest/gtest.h"
+#include "impl/paragraph_impl.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
+#include "modules/skparagraph/src/ParagraphImpl.h"
 #include "text_style.h"
 #include "txt/text_bundle_config_parser.h"
+#include "typography_types.h"
 
 using namespace OHOS::Rosen;
 using namespace testing;
@@ -5454,6 +5457,131 @@ HWTEST_F(NdkTypographyTest, TypographyVerticalTest002, TestSize.Level0)
     EXPECT_FALSE(CompareRunBoundsBetweenTwoParagraphs(typographyThree, bottomAlignTypography));
     EXPECT_FALSE(
         ComparePlaceholderRectsBetweenTwoParagraphs(typographyWithPlaceholder, followTypographyWithPlaceholder));
+}
+
+OH_Drawing_Typography* LayoutForSplitRunsEllipsisSample(const char* text, float layoutWidth,
+    OH_Drawing_TextVerticalAlignment align)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextEllipsis(typoStyle, "...");
+    OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, OH_Drawing_EllipsisModal::ELLIPSIS_MODAL_TAIL);
+    OH_Drawing_SetTypographyVerticalAlignment(typoStyle, align);
+    // Test for maxLines 12
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 12);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, layoutWidth);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    return typography;
+}
+
+skia::textlayout::ParagraphImpl* GetSkiaParagraphByDrawingTypography(OH_Drawing_Typography* typography)
+{
+    OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
+    OHOS::Rosen::SPText::ParagraphImpl* paragraph =
+        reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
+    return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
+}
+
+bool CheckEllipsisRunIndex(skia::textlayout::ParagraphImpl* paragraph, size_t runIndex)
+{
+    auto lines = paragraph->lines();
+    auto ellipsisLine = std::find_if(lines.begin(), lines.end(), [](const auto& line) { return line.ellipsis(); });
+    if (ellipsisLine == lines.end()) {
+        return false;
+    }
+    return ellipsisLine->ellipsis()->index() == runIndex;
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest001
+ * @tc.desc: test for thai language triggering ellipsis and split runs scenarios
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest001, TestSize.Level0)
+{
+    const char* text = "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ \
+        সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
+    // Test for layout width 119
+    OH_Drawing_Typography* paragraph = LayoutForSplitRunsEllipsisSample(text, 119,
+        OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_BOTTOM);
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraphByDrawingTypography(paragraph);
+    // Test for ellipsis run index 17
+    size_t expectEllipsisRunIndex = 17;
+    EXPECT_TRUE(CheckEllipsisRunIndex(skiaParagraph, expectEllipsisRunIndex));
+    OH_Drawing_DestroyTypography(paragraph);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest002
+ * @tc.desc: test for thai language triggering ellipsis and split runs scenarios but layout width is 64
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest002, TestSize.Level0)
+{
+    const char* text = "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ \
+        সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
+    // Test for layout width 64
+    OH_Drawing_Typography* paragraph = LayoutForSplitRunsEllipsisSample(text, 64,
+        OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_CENTER);
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraphByDrawingTypography(paragraph);
+    ASSERT_NE(skiaParagraph, nullptr);
+    // Test for ellipsis run index 14
+    size_t expectEllipsisRunIndex = 14;
+    EXPECT_TRUE(CheckEllipsisRunIndex(skiaParagraph, expectEllipsisRunIndex));
+    OH_Drawing_DestroyTypography(paragraph);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest003
+ * @tc.desc: test for uyghur language triggering ellipsis and split runs scenarios
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest003, TestSize.Level0)
+{
+    const char* text =
+        " ئۇيغۇرچە، ياكى ئۇيغۇر تىلى، ئاساسلىقى شىنجاڭ ئۇيغۇر ئاپتونوم رايونى ۋە ئەتراپىدىكى رايونلاردا ئى\
+        شلىتىلىدۇ. ئۇيغۇرچە ئۇيغۇرلارنىڭ ئانىلىك تىلى بولۇپ، ئۇزاق تارىخقا ۋە مول مەدەنىيەت ميراسقا ئىگە";
+    // Test for layout width 64
+    OH_Drawing_Typography* paragraph = LayoutForSplitRunsEllipsisSample(text, 64,
+        OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_CENTER);
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraphByDrawingTypography(paragraph);
+    ASSERT_NE(skiaParagraph, nullptr);
+    // Test for ellipsis run index 14
+    size_t expectEllipsisRunIndex = 14;
+    EXPECT_TRUE(CheckEllipsisRunIndex(skiaParagraph, expectEllipsisRunIndex));
+    OH_Drawing_DestroyTypography(paragraph);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest004
+ * @tc.desc: test for chinese language triggering ellipsis and split runs scenarios
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest004, TestSize.Level0)
+{
+    const char* text = "比如单个字母出现的时候，比如「嫌疑者X的牺牲」中，这个X前后便有1/8EM的空格，因为单个字母太窄了";
+    // Test for layout width 175
+    OH_Drawing_Typography* paragraph = LayoutForSplitRunsEllipsisSample(text, 175,
+        OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_TOP);
+    ASSERT_NE(paragraph, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraphByDrawingTypography(paragraph);
+    ASSERT_NE(skiaParagraph, nullptr);
+    // Test for ellipsis run index 16
+    size_t expectEllipsisRunIndex = 16;
+    EXPECT_TRUE(CheckEllipsisRunIndex(skiaParagraph, expectEllipsisRunIndex));
+    OH_Drawing_DestroyTypography(paragraph);
 }
 
 /*

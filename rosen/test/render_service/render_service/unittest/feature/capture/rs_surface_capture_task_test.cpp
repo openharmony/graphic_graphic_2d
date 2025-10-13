@@ -797,12 +797,12 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode, Function | SmallTest
     id = 2;
     RSCanvasRenderNode node2(id);
     node2.shouldPaint_ = true;
-    node2.GetMutableRenderProperties().isSpherizeValid_ = true;
+    node2.GetMutableRenderProperties().GetEffect().isSpherizeValid_ = true;
     visitor_->ProcessCanvasRenderNode(node2);
     id = 3;
     RSCanvasRenderNode node3(id);
     node3.shouldPaint_ = true;
-    node3.GetMutableRenderProperties().isSpherizeValid_ = false;
+    node3.GetMutableRenderProperties().GetEffect().isSpherizeValid_ = false;
     node3.SetCacheType(CacheType::CONTENT);
     visitor_->ProcessCanvasRenderNode(node3);
     visitor_->isUniRender_ = isUniRender;
