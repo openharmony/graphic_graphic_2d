@@ -66,6 +66,9 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
             SetStartAnimation(false);
             break;
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
+            SetStartAnimation(false);
+            break;
         case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
             SetStopAnimation(false);
             break;
