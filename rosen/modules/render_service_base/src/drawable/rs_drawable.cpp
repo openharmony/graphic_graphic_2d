@@ -408,7 +408,8 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     // Step 1.2: expand dirty slots by rules
     // if bounds or cornerRadius changed, mark affected drawables as dirty
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS)) ||
-        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS))) {
+        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS)) ||
+        dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::UNION))) {
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
     }
 
