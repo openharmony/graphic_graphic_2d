@@ -68,7 +68,8 @@ private:
 
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+        bool isLite = false) const;
     void FPSDumpProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void DumpFps(std::string& dumpString, std::string& layerName) const;

@@ -28,10 +28,10 @@ namespace OHOS::Rosen {
 using GpuPidInfo = std::unordered_map<pid_t, std::tuple<float, std::vector<std::pair<std::string, float>>>>;
 class MemoryManager {
 public:
-    static void DumpMemoryUsage(DfxString& log, std::string& type);
+    static void DumpMemoryUsage(DfxString& log, std::string& type, bool isLite = false);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext,
-        std::vector<std::pair<NodeId, std::string>>& nodeTags);
+        std::vector<std::pair<NodeId, std::string>>& nodeTags, bool isLite = false);
     static void DumpExitPidMem(std::string& log, int pid);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const Drawing::GPUContext* gpuContext);
@@ -62,7 +62,7 @@ public:
         Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
 private:
     // rs memory = rs + skia cpu + skia gpu
-    static void DumpRenderServiceMemory(DfxString& log);
+    static void DumpRenderServiceMemory(DfxString& log, bool isLite = false);
     static void DumpDrawingCpuMemory(DfxString& log);
     static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name);

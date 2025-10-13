@@ -529,18 +529,37 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest004, testing::ext::TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpMemoryStatisticsTest
+ * @tc.name: DumpMemoryStatisticsTest001
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest001, testing::ext::TestSize.Level1)
 {
     DfxString log;
     std::string str1 = log.GetString();
     ASSERT_EQ(str1, "");
+    bool isLite = false;
     std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
-    MemoryTrack::Instance().DumpMemoryStatistics(log, func);
+    MemoryTrack::Instance().DumpMemoryStatistics(log, func, isLite);
+    std::string str2 = log.GetString();
+    ASSERT_NE(str2, "");
+}
+
+/**
+ * @tc.name: DumpMemoryStatisticsTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest002, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    std::string str1 = log.GetString();
+    ASSERT_EQ(str1, "");
+    bool isLite = true;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
+    MemoryTrack::Instance().DumpMemoryStatistics(log, func, isLite);
     std::string str2 = log.GetString();
     ASSERT_NE(str2, "");
 }
@@ -688,15 +707,63 @@ HWTEST_F(RSMemoryTrackTest, GenerateDumpTitleTest, testing::ext::TestSize.Level1
 }
 
 /**
- * @tc.name: DumpMemoryNodeStatisticsTest
+ * @tc.name: DumpMemoryNodeStatisticsTest001
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest001, testing::ext::TestSize.Level1)
 {
     DfxString log;
-    MemoryTrack::Instance().DumpMemoryNodeStatistics(log);
+    bool isLite = false;
+    MemoryTrack::Instance().DumpMemoryNodeStatistics(log, isLite);
+    std::string  str = log.GetString();
+    EXPECT_NE("", str);
+}
+
+/**
+ * @tc.name: DumpMemoryNodeStatisticsTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest002, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    bool isLite = true;
+    MemoryTrack::Instance().DumpMemoryNodeStatistics(log, isLite);
+    std::string  str = log.GetString();
+    EXPECT_NE("", str);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsTest001, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    bool isLite = false;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
+    MemoryTrack::Instance().DumpMemoryPicStatistics(log, func, isLite);
+    std::string  str = log.GetString();
+    EXPECT_NE("", str);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsTest002, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    bool isLite = true;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
+    MemoryTrack::Instance().DumpMemoryPicStatistics(log, func, isLite);
     std::string  str = log.GetString();
     EXPECT_NE("", str);
 }

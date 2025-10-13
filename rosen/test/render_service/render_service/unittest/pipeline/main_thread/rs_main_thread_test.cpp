@@ -5676,7 +5676,8 @@ HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level2)
     std::string dumpString;
     std::string type = "";
     pid_t pid = 0;
-    mainThread->DumpMem(argSets, dumpString, type, pid);
+    bool isLite = false;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
     ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
 }
 
@@ -5693,9 +5694,50 @@ HWTEST_F(RSMainThreadTest, DumpMem002, TestSize.Level2)
     mainThread->isUniRender_ = true;
     std::unordered_set<std::u16string> argSets;
     std::string dumpString;
+    std::string type = "";
+    pid_t pid = 0;
+    bool isLite = true;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem003
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpMem003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
     std::string type = "gpu";
     pid_t pid = 0;
-    mainThread->DumpMem(argSets, dumpString, type, pid);
+    bool isLite = false;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem004
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "gpu";
+    pid_t pid = 0;
+    bool isLite = true;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
     ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
 }
 

@@ -39,6 +39,21 @@ constexpr uint32_t NUM_OF_NODE_THRESHOLD = 40000;
 #ifdef RS_ENABLE_UNI_RENDER
 constexpr int KILL_PROCESS_TYPE = 301;
 #endif
+struct MemoryStats {
+    int64_t totalSize = 0;
+    int count = 0;
+    int totalWithoutDMASize = 0;
+    int countWithoutDMA = 0;
+    int totalNullNodeSize = 0;
+    int countNullNodes = 0;
+    int nullWithoutDMASize = 0;
+    int nullWithoutDMA = 0;
+    
+    int arrTotal[MEM_MAX_SIZE] = {0};
+    int arrCount[MEM_MAX_SIZE] = {0};
+    int arrWithoutDMATotal[MEM_MAX_SIZE] = {0};
+    int arrWithoutDMACount[MEM_MAX_SIZE] = {0};
+    };
 }
 
 MemoryNodeOfPid::MemoryNodeOfPid(size_t size, NodeId id, size_t drawableNodeSize)
@@ -285,26 +300,49 @@ float MemoryTrack::GetAppMemorySizeInMB()
 }
 
 void MemoryTrack::DumpMemoryStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func)
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func, bool isLite)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    DumpMemoryPicStatistics(log, func);
-    DumpMemoryNodeStatistics(log);
+    if (isLite) {
+        DumpMemoryPicStatistics(log, func, isLite);
+        DumpMemoryNodeStatistics(log, isLite);
+    } else {
+        DumpMemoryPicStatistics(log, func);
+        DumpMemoryNodeStatistics(log);
+    }
 }
 
-void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
+void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log, bool isLite)
 {
     log.AppendFormat("\nRSRenderNode:\n");
-
     uint64_t totalSize = 0;
     int count = 0;
-    //calculate by byte
-    for (auto& [nodeId, info] : memNodeMap_) {
-        //total of all
-        totalSize += static_cast<uint64_t>(info.size);
-        count++;
+    if (!isLite) {
+        // calculate by byte
+        for (auto& [nodeId, info] : memNodeMap_) {
+            // total of all
+            totalSize += static_cast<uint64_t>(info.size);
+            count++;
+        }
+        log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
+    } else {
+        std::unordered_map<int, int> pidCountMap;  // replace getNodeInfo
+        // calculate by byte
+        for (auto& [nodeId, info] : memNodeMap_) {
+            // total of all
+            totalSize += static_cast<uint64_t>(info.size);
+            count++;
+
+            pidCountMap[info.pid]++;
+        }
+        log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
+        std::string log_str = "Pid" + std::string("\t") + "Count";
+        log.AppendFormat("%s\n", log_str.c_str());
+        for (const auto& [pid, pidCount] : pidCountMap) {
+            log_str = std::to_string(pid) + "\t" + std::to_string(pidCount);
+            log.AppendFormat("%s\n", log_str.c_str());
+        }
     }
-    log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
 }
 
 void MemoryTrack::RemovePidRecord(const pid_t pid)
@@ -457,66 +495,55 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func)
+    std::function<std::tuple<uint64_t, std::string, RectI, bool>(uint64_t)> func, bool isLite)
 {
     log.AppendFormat("RSImageCache:\n");
-    log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
 
-    int arrTotal[MEM_MAX_SIZE] = {0};
-    int arrCount[MEM_MAX_SIZE] = {0};
-    int arrWithoutDMATotal[MEM_MAX_SIZE] = {0};
-    int arrWithoutDMACount[MEM_MAX_SIZE] = {0};
-    uint64_t totalSize = 0;
-    int count = 0;
-    int totalWithoutDMASize = 0;
-    int countWithoutDMA = 0;
-    int totalNullNodeSize = 0;
-    int countNullNodes = 0;
-    int nullWithoutDMASize = 0;
-    int nullWithoutDMA = 0;
-    //calculate by byte
+    MemoryStats stats;
+    if (!isLite) log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
+
     for (auto& [addr, info] : memPicRecord_) {
-        int size = static_cast<uint64_t>(info.size / BYTE_CONVERT); // k
-        //total of type
-        arrTotal[info.type] += size;
-        arrCount[info.type]++;
-
-        //total of all
-        totalSize += size;
-        count++;
+        int64_t size = static_cast<int64_t>(info.size / BYTE_CONVERT);
+        stats.arrTotal[info.type] += size;
+        stats.arrCount[info.type]++;
+        stats.totalSize += size;
+        stats.count++;
 
         if (info.allocType != OHOS::Media::AllocatorType::DMA_ALLOC) {
-            arrWithoutDMATotal[info.type] += size;
-            arrWithoutDMACount[info.type]++;
-            totalWithoutDMASize += size;
-            countWithoutDMA++;
+            stats.arrWithoutDMATotal[info.type] += size;
+            stats.arrWithoutDMACount[info.type]++;
+            stats.totalWithoutDMASize += size;
+            stats.countWithoutDMA++;
         }
-
         auto [windowId, windowName, nodeFrameRect, isNodeNull] = func(info.nid);
-        log.AppendFormat("%s", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
-        if (info.type == MEMORY_TYPE::MEM_PIXELMAP) {
+        if (!isLite) {
+            log.AppendFormat("%s", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
             log.AppendFormat("     %d\n", isNodeNull ? 1 : 0);
-            if (isNodeNull) {
-                totalNullNodeSize += size;
-                countNullNodes++;
+        }
+        if (info.type == MEMORY_TYPE::MEM_PIXELMAP && isNodeNull) {
+                stats.totalNullNodeSize += size;
+                stats.countNullNodes++;
                 if (info.allocType != OHOS::Media::AllocatorType::DMA_ALLOC) {
-                    nullWithoutDMASize += size;
-                    nullWithoutDMA++;
+                    stats.nullWithoutDMASize += size;
+                    stats.nullWithoutDMA++;
                 }
-            }
         }
     }
 
     for (uint32_t i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
         MEMORY_TYPE type = static_cast<MEMORY_TYPE>(i);
-        log.AppendFormat("  %s:Size = %d KB (%d entries)\n", MemoryType2String(type), arrTotal[i], arrCount[i]);
+        log.AppendFormat("  %s:Size = %d KB (%d entries)\n", MemoryType2String(type),
+            stats.arrTotal[i], stats.arrCount[i]);
         log.AppendFormat("  %s Without DMA:Size = %d KB (%d entries)\n",
-            MemoryType2String(type), arrWithoutDMATotal[i], arrWithoutDMACount[i]);
+            MemoryType2String(type), stats.arrWithoutDMATotal[i], stats.arrWithoutDMACount[i]);
     }
-    log.AppendFormat("Total Size = %d KB (%d entries)\n", totalSize, count);
-    log.AppendFormat("Total Without DMA Size = %d KB (%d entries)\n", totalWithoutDMASize, countWithoutDMA);
-    log.AppendFormat("MEM_PIXELMAP Null Nodes: Size = %d KB (%d entries)\n", totalNullNodeSize, countNullNodes);
-    log.AppendFormat("Null Nodes Without DMA: Size = %d KB (%d entries)\n", nullWithoutDMASize, nullWithoutDMA);
+    log.AppendFormat("Total Size = %d KB (%d entries)\n", stats.totalSize, stats.count);
+    log.AppendFormat("Total Without DMA Size = %d KB (%d entries)\n",
+        stats.totalWithoutDMASize, stats.countWithoutDMA);
+    log.AppendFormat("MEM_PIXELMAP Null Nodes: Size = %d KB (%d entries)\n",
+        stats.totalNullNodeSize, stats.countNullNodes);
+    log.AppendFormat("Null Nodes Without DMA: Size = %d KB (%d entries)\n",
+        stats.nullWithoutDMASize, stats.nullWithoutDMA);
 }
 
 void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)

@@ -3945,7 +3945,7 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
 {
     std::unordered_map<int, std::pair<int, int>> node_info; // [pid, [count, ontreecount]]
     std::unordered_map<int, int> nullnode_info; // [pid, count]
-    std::unordered_map<pid_t, size_t> modifierSize; //[pid, modifiersize]
+    std::unordered_map<pid_t, size_t> modifierSize; // [pid, modifiersize]
 
     GetNodeInfo(node_info, nullnode_info, modifierSize);
     std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
@@ -4226,7 +4226,7 @@ bool RSMainThread::IsResidentProcess(pid_t pid) const
 }
 
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-    std::string& type, pid_t pid)
+    std::string& type, pid_t pid, bool isLite)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
@@ -4237,12 +4237,21 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
                 RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
         });
     } else {
-        MemoryManager::DumpMemoryUsage(log, type);
+        if (isLite) {
+            MemoryManager::DumpMemoryUsage(log, type, isLite);
+        } else {
+            MemoryManager::DumpMemoryUsage(log, type);
+        }
     }
+
     if ((type.empty() || type == MEM_GPU_TYPE) && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
-            subThreadManager->DumpMem(log);
+            if (isLite) {
+                subThreadManager->DumpMem(log, isLite);
+            } else {
+                subThreadManager->DumpMem(log);
+            }
         }
     }
     dumpString.append("dumpMem: " + type + "\n");

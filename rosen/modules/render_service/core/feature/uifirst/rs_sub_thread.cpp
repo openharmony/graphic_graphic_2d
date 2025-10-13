@@ -102,7 +102,7 @@ void RSSubThread::RemoveTask(const std::string& name)
     }
 }
 
-void RSSubThread::DumpMem(DfxString& log)
+void RSSubThread::DumpMem(DfxString& log, bool isLite)
 {
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -113,9 +113,15 @@ void RSSubThread::DumpMem(DfxString& log)
         std::string name = node->GetName() + " " + std::to_string(node->GetId());
         nodeTags.push_back({node->GetId(), name});
     });
-    PostSyncTask([&log, &nodeTags, this]() {
+    if (isLite) {
+        PostSyncTask([&log, &nodeTags, this, isLite]() {
+        MemoryManager::DumpDrawingGpuMemory(log, grContext_.get(), nodeTags, isLite);
+    });
+    } else {
+        PostSyncTask([&log, &nodeTags, this]() {
         MemoryManager::DumpDrawingGpuMemory(log, grContext_.get(), nodeTags);
     });
+    }
 }
 
 float RSSubThread::GetAppGpuMemoryInMB()

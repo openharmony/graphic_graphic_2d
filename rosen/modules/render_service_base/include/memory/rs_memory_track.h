@@ -87,7 +87,7 @@ public:
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func);
+        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func, bool isLite = false);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void AddPictureFdRecord(uint64_t uniqueId);
     void RemovePictureRecord(const void* addr);
@@ -123,9 +123,9 @@ private:
     const std::string PixelFormat2String(OHOS::Media::PixelFormat);
     std::string GenerateDumpTitle();
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
-    void DumpMemoryNodeStatistics(DfxString& log);
+    void DumpMemoryNodeStatistics(DfxString& log, bool isLite = false);
     void DumpMemoryPicStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func);
+        std::function<std::tuple<uint64_t, std::string, RectI, bool>(uint64_t)> func, bool isLite = false);
     bool RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size);
     void RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id);
     std::mutex mutex_;
