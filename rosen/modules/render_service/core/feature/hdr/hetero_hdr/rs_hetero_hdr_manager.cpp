@@ -71,7 +71,7 @@ RSHeteroHDRManager::RSHeteroHDRManager()
 int32_t RSHeteroHDRManager::RoundFloorToEven(int32_t value, int32_t maxVal)
 {
     int32_t result = (value % 2 == 0) ? value : value + 1;
-    return (value > maxVal) ? maxVal : result;
+    return (result > maxVal) ? maxVal : result;
 }
 
 RectI RSHeteroHDRManager::RectRound(RectI srcRect, int32_t width, int32_t height)
@@ -120,14 +120,14 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
     Vector2f boundSize = surfaceParams->GetCacheSize();
-    // The preconditon has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
-    float ratio = static_cast<float>(srcRect.h) * dstRect.w / (dstRect.h * srcRect.w);
+    // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
+    float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
     ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
-    bool isVertical =
-        (transform == GraphicTransformType::GRAPHIC_ROTATE_90 || transform == GraphicTransformType::GRAPHIC_ROTATE_270);
+    bool isVertical = (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        transform == GraphicTransformType::GRAPHIC_ROTATE_270);
 
-    Vector2f hpaeBufferSize_ = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width) :
+    hpaeBufferSize_ = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width) :
         Vector2f(curScreenInfo.width, curScreenInfo.height);
     bool sizeJudge = !(ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.0f) &&
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
@@ -160,6 +160,13 @@ bool RSHeteroHDRManager::PrepareHpaeTask(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& nodeDrawable, RSSurfaceRenderParams* surfaceParams,
     uint64_t curFrameId)
 {
+    // Even number validation
+    bool isEvenNumber = (src_.width_ % 2 == 0) && (src_.height_ % 2 == 0) && (dst_.width_ % 2 == 0) &&
+        (dst_.height_ % 2 == 0);
+    if (!isEvenNumber) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask check even number failed");
+        return false;
+    }
     // 1. Hpae Device is ready
     if (!destroyedFlag_.load()) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask Hpae device is not ready");
@@ -305,16 +312,25 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, 
     if (isFixedDstBuffer_) {
         // this condition, crop and scale need to be handle by gpu
         hapeSrcRect = RectRound(RectI(0, 0, bufferWidth, bufferHeight), bufferWidth, bufferHeight);
-        validHpaeDstRect = { dst_.GetLeft(), dst_.GetTop(), dst_.GetRight(), dst_.GetBottom() };
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
+        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hapeSrcRect.width_ ) *
+            static_cast<float>(bufferWidth));
+        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hapeSrcRect.height_ ) *
+            static_cast<float>(bufferHeight));
+        validHpaeDstRect = { 0, 0, validW, validH };
     } else {
         hapeSrcRect = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h), bufferWidth, bufferHeight);
         // The precondition has already determined that srcRect.w and srcRect.h are not zero
-        dst_.width_ = round(static_cast<float>(dstRect.w) / srcRect.w * hapeSrcRect.width_);
-        dst_.height_ = round(static_cast<float>(dstRect.h) / srcRect.h * hapeSrcRect.height_);
-        validHpaeDstRect = { 0, 0, static_cast<float>(dst_.width_) / hapeSrcRect.width_ * srcRect.w,
-            static_cast<float>(dst_.height_) / hapeSrcRect.height_ * srcRect.h };
+        dst_.width_ = round(static_cast<float>(dstRect.w) / static_cast<float>(srcRect.w) *
+            static_cast<float>(hapeSrcRect.width_));
+        dst_.height_ = round(static_cast<float>(dstRect.h) / static_cast<float>(srcRect.h) *
+            static_cast<float>(hapeSrcRect.height_));
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
+        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hapeSrcRect.width_ ) *
+            static_cast<float>(srcRect.w));
+        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hapeSrcRect.height_ ) *
+            static_cast<float>(srcRect.h));
+        validHpaeDstRect = { 0, 0, validW, validH };
     }
 }
 
@@ -331,16 +347,15 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
     /* Whether nodeId is in the map has been determined in function CheckWindowOwnership. */
     bool isUiFirstMode = pendingNodes.count(ownedLeashWindowIdMap_[nodeId]);
     GetFixedDstRectStatus(nodeDrawable, isUiFirstMode, surfaceParams);
-    RectI src = {};
     RectI validDst = {};
-    GenerateHpaeRect(surfaceParams, src, validDst);
+    GenerateHpaeRect(surfaceParams, src_, validDst);
 
     RectI prevSrc = nodeSrcRectMap_[nodeId];
-    if (src != prevSrc) {
+    if (src_ != prevSrc) {
         need2Handle = true;
-        nodeSrcRectMap_[nodeId] = src;
+        nodeSrcRectMap_[nodeId] = src_;
     }
-    MDCRectT MDCSrcRect{ src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom() };
+    MDCRectT MDCSrcRect{ src_.GetLeft(), src_.GetTop(), src_.GetRight(), src_.GetBottom() };
     if (!need2Handle) {
         return true;
     }

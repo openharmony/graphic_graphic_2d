@@ -824,6 +824,56 @@ HWTEST_F(RSHeteroHDRManagerTest, PrepareAndSubmitHDRTaskTest002, TestSize.Level1
 }
 
 /**
+ * @tc.name: PrepareAndSubmitHDRTaskTest001
+ * @tc.desc: Test PrepareAndSubmitHDRTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, PrepareAndSubmitHDRTaskTest001, TestSize.Level1)
+{
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    auto surfaceParams = GetRenderParams(surfaceNode);
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSLayerInfo layerInfo;
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+
+    layerInfo.matrix.Set(Drawing::Matrix::SKEW_X, 1.0);
+    layerInfo.matrix.Set(Drawing::Matrix::SKEW_Y, 1.0);
+
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    surfaceParams->GetBuffer()->Alloc(requestConfig);
+    surfaceParams->GetBuffer()->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_FREEZE);
+
+    auto nodeId = surfaceNode->GetId();
+
+    mockRSHeteroHDRManager.src_ = { 400, 400, 400, 400 };
+    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId] = { 400, 400, 400, 400 };
+    mockRSHeteroHDRManager.PrepareAndSubmitHDRTask(surfaceDrawable, surfaceParams, nodeId, 1);
+
+    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId].width_ = 500; 
+    mockRSHeteroHDRManager.PrepareAndSubmitHDRTask(surfaceDrawable, surfaceParams, nodeId, 1);
+}
+
+/**
  * @tc.name: PostHDRSubTasksTest020
  * @tc.desc: Test PostHdrSubTask
  * @tc.type: FUNC
@@ -986,14 +1036,62 @@ HWTEST_F(RSHeteroHDRManagerTest, GenerateHpaeRectTest001, TestSize.Level1)
     surfaceParams->GetBuffer()->Alloc(requestConfig);
     surfaceParams->GetBuffer()->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_FREEZE);
 
-    RectI hpeaSrcRect = {};
+    RectI hpaeSrcRect = {};
     RectI validHpaeDstRect = {};
 
     mockRSHeteroHDRManager.isFixedDstBuffer_ = true;
-    mockRSHeteroHDRManager.GenerateHpaeRect(surfaceParams, hpeaSrcRect, validHpaeDstRect);
+    mockRSHeteroHDRManager.GenerateHpaeRect(surfaceParams, hpaeSrcRect, validHpaeDstRect);
 
     mockRSHeteroHDRManager.isFixedDstBuffer_ = false;
-    mockRSHeteroHDRManager.GenerateHpaeRect(surfaceParams, hpeaSrcRect, validHpaeDstRect);
+    mockRSHeteroHDRManager.GenerateHpaeRect(surfaceParams, hpaeSrcRect, validHpaeDstRect);
+}
+
+/**
+ * @tc.name: PrepareHpaeTaskTest001
+ * @tc.desc: Test PrepareHpaeTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, PrepareHpaeTaskTest001, TestSize.Level1)
+{
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    auto surfaceParams = GetRenderParams(surfaceNode);
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSLayerInfo layerInfo;
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
+
+    layerInfo.matrix.Set(Drawing::Matrix::SKEW_X, 1.0);
+    layerInfo.matrix.Set(Drawing::Matrix::SKEW_Y, 1.0);
+
+    surfaceParams->SetLayerInfo(layerInfo);
+    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    surfaceParams->GetBuffer()->Alloc(requestConfig);
+    surfaceParams->GetBuffer()->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_FREEZE);
+
+    auto temp = mockRSHeteroHDRManager.src_.width_;
+    mockRSHeteroHDRManager.PrepareHpaeTask(surfaceDrawable, surfaceParams, 1);
+
+    mockRSHeteroHDRManager.src_.width_ = temp + 1;
+    mockRSHeteroHDRManager.PrepareHpaeTask(surfaceDrawable, surfaceParams, 1);
+    mockRSHeteroHDRManager.src_.width_ = temp;
 }
 
 /**

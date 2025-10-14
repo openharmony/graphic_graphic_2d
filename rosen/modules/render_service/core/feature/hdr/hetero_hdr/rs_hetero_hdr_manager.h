@@ -118,6 +118,7 @@ private:
     int32_t buildHdrTaskStatus_ = 0;
     std::atomic<bool> destroyedFlag_{ true };
     bool isFixedDstBuffer_ = false;
+    RectI src_ = { 0, 0, 0, 0 };
     RectI dst_ = { 0, 0, 0, 0 };
     sptr<SurfaceBuffer> dstBuffer_ = nullptr;
     bool curFrameHeteroHandleCanBeUsed_ = false;
