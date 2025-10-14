@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_PIPELINE_RS_EXCEPTION_CHECK_H
 #define RENDER_SERVICE_BASE_PIPELINE_RS_EXCEPTION_CHECK_H
 
+#include <ctime>
+
 #include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
