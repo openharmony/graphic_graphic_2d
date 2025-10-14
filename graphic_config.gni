@@ -243,7 +243,9 @@ check_subtree_ext_file_args = [
     "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
 ]
 
-if (path_exists("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_ddgr_ext_file_args,
+                "string") == "True") {
   ddgr_ext_configs = {
     import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
   }
@@ -255,13 +257,15 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")) {
     }
   }
 }
-
-if (path_exists("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_igraphics_core_file_args,
+                "string") == "True") {
   graphic_2d_feature_use_igraphics_extend_hooks = true
   import("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")
 }
-
-if (path_exists("//vendor/huawei/domains/game/gameservice_server/performance/graphics/report/config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_igameservice_core_file_args,
+                "string") == "True") {
   graphic_2d_feature_use_aps_igameservice_func = true
   import("//foundation/graphic/graphic_2d_ext/aps_manager/config.gni")
   import(
@@ -270,7 +274,9 @@ if (path_exists("//vendor/huawei/domains/game/gameservice_server/performance/gra
 
 graphic_2d_delegator_configs = {
 }
-if (path_exists("//foundation/graphic/graphic_2d_ext/delegator/config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_delegator_ext_file_args,
+                "string") == "True") {
   graphic_2d_delegator_configs = {
     import("//foundation/graphic/graphic_2d_ext/delegator/config.gni")
   }
@@ -278,7 +284,9 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/delegator/config.gni")) {
 
 graphic_2d_broker_configs = {
 }
-if (path_exists("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_broker_ext_file_args,
+                "string") == "True") {
   graphic_2d_broker_configs = {
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")
   }
@@ -286,7 +294,9 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.
 
 graphic_2d_hgm_configs = {
 }
-if (path_exists("//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_hgm_ext_file_args,
+                "string") == "True") {
   graphic_2d_hgm_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
@@ -295,7 +305,9 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_confi
 
 graphic_2d_math_tools_configs = {
 }
-if (path_exists("//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_math_tools_ext_file_args,
+                "string") == "True") {
   graphic_2d_math_tools_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")
@@ -308,7 +320,9 @@ check_platform_ext_file_args = [
 ]
 graphic_2d_platform_configs = {
 }
-if (path_exists("//foundation/graphic/graphic_2d_ext/platform/config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_platform_ext_file_args,
+                "string") == "True") {
   graphic_2d_platform_configs = {
     import("//foundation/graphic/graphic_2d_ext/platform/config.gni")
   }
@@ -316,7 +330,9 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/platform/config.gni")) {
 
 graphic_2d_modifiers_draw_configs = {
 }
-if (path_exists("//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_modifiers_draw_ext_file_args,
+                "string") == "True") {
   graphic_2d_modifiers_draw_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni")
@@ -325,7 +341,9 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifi
 
 graphic_2d_subtree_config = {}
 
-if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni")) {
+if (exec_script(check_graphic_ext_file_script,
+                check_subtree_ext_file_args,
+                "string") == "True") {
   graphic_2d_subtree_config = {
     import(
       "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config/gni")
