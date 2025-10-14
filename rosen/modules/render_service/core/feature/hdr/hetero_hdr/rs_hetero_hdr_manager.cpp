@@ -296,7 +296,7 @@ void RSHeteroHDRManager::ClearBufferCache()
     }
 }
 
-void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hapeSrcRect,
+void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hpaeSrcRect,
     RectI& validHpaeDstRect)
 {
     // The precondition has already determined that the surfaceParams and srcBuffer are not nullptr(ValidateSurface)
@@ -315,9 +315,9 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, 
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
         // The precondition has already determined that width and height of hpaeSrcRect are not zero
         auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_ ) *
-            static_cast<float>(bufferWidth));
+            static_cast<float>(bufferWidth)) - 1;
         auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_ ) *
-            static_cast<float>(bufferHeight));
+            static_cast<float>(bufferHeight)) - 1;
         validHpaeDstRect = { 0, 0, validW, validH };
     } else {
         hpaeSrcRect = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h), bufferWidth, bufferHeight);
@@ -328,9 +328,9 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, 
             static_cast<float>(hpaeSrcRect.height_));
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
         auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_ ) *
-            static_cast<float>(srcRect.w));
+            static_cast<float>(srcRect.w)) - 1;
         auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_ ) *
-            static_cast<float>(srcRect.h));
+            static_cast<float>(srcRect.h)) - 1;
         validHpaeDstRect = { 0, 0, validW, validH };
     }
 }
