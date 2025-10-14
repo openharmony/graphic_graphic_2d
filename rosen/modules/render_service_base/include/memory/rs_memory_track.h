@@ -48,7 +48,7 @@ enum NODE_ON_TREE_STATUS {
 
 struct MemoryInfo {
     size_t size = 0;
-    int pid = 0;
+    uint32_t pid = 0;
     uint64_t nid = 0;
     uint64_t uid = 0;
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
