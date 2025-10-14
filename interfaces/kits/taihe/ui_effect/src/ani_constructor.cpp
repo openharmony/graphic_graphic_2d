@@ -14,6 +14,7 @@
  */
 
 #include "ohos.graphics.uiEffect.ani.hpp"
+#include "ohos.graphics.uiEffect.uiEffect.ani.hpp"
 
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
@@ -23,6 +24,10 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     }
     if (ANI_OK != ohos::graphics::uiEffect::ANIRegister(env)) {
         std::cerr << "Error from ohos::graphics::uiEffect::ANIRegister" << std::endl;
+        return ANI_ERROR;
+    }
+    if (ANI_OK != ohos::graphics::uiEffect::uiEffect::ANIRegister(env)) {
+        std::cerr << "Error from ohos::graphics::uiEffect::uiEffect::ANIRegister" << std::endl;
         return ANI_ERROR;
     }
     *result = ANI_VERSION_1;

@@ -13,45 +13,15 @@
  * limitations under the License.
  */
 
-@!namespace("@ohos.graphics.uiEffect", "uiEffect")
+@!namespace("@ohos.graphics.uiEffect")
 
-@!sts_inject("""
-static { loadLibrary("uieffect_taihe_native.z"); }
-""")
-
-enum TileMode: i32 {
-    CLAMP = 0,
-    REPEAT = 1,
-    MIRROR = 2,
-    DECAL = 3,
+struct BrightnessBlenderParam {
+  cubicRate: f64;
+  quadraticRate: f64;
+  linearRate: f64;
+  degree: f64;
+  saturation: f64;
+  positiveCoefficient: @sts_type("[double, double, double]") Opaque;
+  negativeCoefficient: @sts_type("[double, double, double]") Opaque;
+  fraction: f64;
 }
-
-enum WaterRippleMode: i32 {
-    SMALL2MEDIUM_RECV = 0,
-    SMALL2MEDIUM_SEND = 1,
-    SMALL2SMALL = 2,
-    MINI_RECV = 3
-}
-
-struct BrightnessBlender {
-    cubicRate: f64;
-    quadraticRate: f64;
-    linearRate: f64;
-    degree: f64;
-    saturation: f64;
-    positiveCoefficient: @sts_type("[double, double, double]") Opaque;
-    negativeCoefficient: @sts_type("[double, double, double]") Opaque;
-    fraction: f64;
-}
-
-interface Filter {
-    blur(blurRadius: f64): Filter;
-    pixelStretch(stretchSizes: Array<f64>, tileMode: TileMode): Filter;
-}
-
-interface VisualEffect {
-    backgroundColorBlender(blender: BrightnessBlender): VisualEffect;
-}
-
-function createFilter(): Filter;
-function createEffect(): VisualEffect;

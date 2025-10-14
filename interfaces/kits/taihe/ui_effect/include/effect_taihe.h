@@ -17,15 +17,15 @@
 #define TAIHE_INCLUDE_UIEFFECT_EFFECT_TAIHE_H
 
 #include "effect/include/visual_effect.h"
-#include "ohos.graphics.uiEffect.BrightnessBlender.proj.1.hpp"
-#include "ohos.graphics.uiEffect.VisualEffect.proj.1.hpp"
-#include "ohos.graphics.uiEffect.proj.hpp"
-#include "ohos.graphics.uiEffect.impl.hpp"
+#include "ohos.graphics.uiEffect.uiEffect.BrightnessBlender.proj.1.hpp"
+#include "ohos.graphics.uiEffect.uiEffect.VisualEffect.proj.1.hpp"
+#include "ohos.graphics.uiEffect.uiEffect.proj.hpp"
+#include "ohos.graphics.uiEffect.uiEffect.impl.hpp"
 #include "stdexcept"
 
 namespace ANI::UIEffect {
 using namespace taihe;
-using namespace ohos::graphics::uiEffect;
+using namespace ohos::graphics::uiEffect::uiEffect;
 
 class VisualEffectImpl {
 public:
@@ -33,7 +33,10 @@ public:
     explicit VisualEffectImpl(std::shared_ptr<OHOS::Rosen::VisualEffect> visualEffect);
     ~VisualEffectImpl();
 
-    VisualEffect backgroundColorBlender(BrightnessBlender const& brightnessBlender);
+    VisualEffect BackgroundColorBlender(BrightnessBlender const& brightnessBlender);
+    VisualEffect ColorGradient(array_view<Color> colors, array_view<uintptr_t> positions, array_view<double> strengths,
+        optional_view<Mask> alphaMask);
+    VisualEffect BorderLight(uintptr_t lightPosition, uintptr_t lightColor, double lightIntensity, double borderWidth);
 
 private:
     bool IsVisualEffectValid() const;

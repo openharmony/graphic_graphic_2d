@@ -24,7 +24,9 @@ rosen_is_ohos = current_os == "ohos"
 copy_taihe_idl("copy_uieffect_taihe") {
   sources = [
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.taihe",
+    "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.uiEffect.taihe",
   ]
+  external_deps = ["image_framework:copy_image_taihe"]
 }
 
 ohos_taihe("run_taihe") {
@@ -33,6 +35,8 @@ ohos_taihe("run_taihe") {
   outputs = [
     "$taihe_generated_file_path/src/ohos.graphics.uiEffect.ani.cpp",
     "$taihe_generated_file_path/src/ohos.graphics.uiEffect.abi.c",
+    "$taihe_generated_file_path/src/ohos.graphics.uiEffect.uiEffect.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.graphics.uiEffect.uiEffect.abi.c",
   ]
 }
 
@@ -60,6 +64,7 @@ taihe_shared_library("uieffect_taihe_native") {
     "src/ani_constructor.cpp",
     "src/effect_taihe.cpp",
     "src/filter_taihe.cpp",
+    "src/mask_taihe.cpp",
     "src/ui_effect_taihe_utils.cpp",
   ]
 
@@ -76,6 +81,7 @@ taihe_shared_library("uieffect_taihe_native") {
     "hilog:libhilog",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
+    "image_framework:image_taihe",
   ]
 
   if (rosen_is_ohos) {
