@@ -598,13 +598,17 @@ HWTEST_F(RSScreenManagerTest, GetScreenActiveRefreshRate_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
-    screenManager->SetDefaultScreenId(0);
-    ScreenId screenId = screenManager->GetDefaultScreenId();
-    ASSERT_NE(INVALID_SCREEN_ID, screenId);
-    screenManager->GetScreenActiveRefreshRate(screenId);
-
-    screenId = INVALID_SCREEN_ID;
-    screenManager->GetScreenActiveRefreshRate(screenId);
+    ScreenId id = 0;
+    impl::RSScreenManager& screenManagerImpl = static_cast<impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManager->SetDefaultScreenId(id);
+    auto screen = screenManagerImpl.GetScreen(id);
+    ASSERT_NE(screen, nullptr);
+    screenManager->GetScreenActiveRefreshRate(id);
+ 
+    id = INVALID_SCREEN_ID;
+    screenManager->GetScreenActiveRefreshRate(id);
 }
 
 /*
