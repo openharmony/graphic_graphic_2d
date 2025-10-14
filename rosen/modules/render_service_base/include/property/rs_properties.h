@@ -30,6 +30,8 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
+#include "render/rs_sdf_effect_filter.h"
+
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
@@ -497,6 +499,8 @@ public:
         return defaultValue;
     }
     void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
+
+    [[nodiscard]] const std::shared_ptr<RSSDFEffectFilter> GetSDFEffectFilter() const;
 
     void SetBackgroundBlurRadius(float backgroundBlurRadius);
     float GetBackgroundBlurRadius() const;
@@ -1082,6 +1086,7 @@ struct CommonEffectParams {
 
     std::optional<RectI> lastRect_;
 
+    std::shared_ptr<RSSDFEffectFilter> sdfFilter_;
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();
