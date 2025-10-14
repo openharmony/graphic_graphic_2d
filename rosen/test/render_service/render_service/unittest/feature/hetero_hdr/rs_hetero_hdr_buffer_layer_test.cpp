@@ -83,8 +83,8 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, PrepareHDRDstBufferTest, TestSize.Level1)
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
+        .width = 0x190,
+        .height = 0x190,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -93,11 +93,13 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, PrepareHDRDstBufferTest, TestSize.Level1)
     surfaceParams->GetBuffer()->Alloc(requestConfig);
     surfaceParams->GetBuffer()->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_FREEZE);
     RSLayerInfo layerInfo;
-    layerInfo.srcRect.w = 1;
-    layerInfo.srcRect.h = 1;
-    layerInfo.dstRect.w = 1;
-    layerInfo.dstRect.h = 1;
+    layerInfo.srcRect.w = 400;
+    layerInfo.srcRect.h = 400;
+    layerInfo.dstRect.w = 400;
+    layerInfo.dstRect.h = 400;
     surfaceParams->SetLayerInfo(layerInfo);
+    Vector2f boundSize = { 400.f, 400.f };
+    surfaceParams->SetCacheSize(boundSize);
 
     auto mockRSHeteroHDRBufferLayer = make_shared<MockRSHeteroHDRBufferLayer>("ut test", surfaceNode->GetId());
     sptr<SurfaceBuffer> surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(nullptr, 0);
