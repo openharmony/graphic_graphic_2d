@@ -1700,6 +1700,16 @@ void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect.ConvertTo<float>());
 }
 
+void RSRenderNode::CollectAndUpdateLocalMagnifierEffectRect()
+{
+    // update magnifier effect's dirty region if it changes
+    if (GetRenderProperties().GetMagnifierDirty()) {
+        RectI localMagnifierEffectRect;
+        RSPropertiesPainter::GetMagnifierEffectDirtyRect(localMagnifierEffectRect, GetRenderProperties());
+        selfDrawRect_ = selfDrawRect_.JoinRect(localMagnifierEffectRect.ConvertTo<float>());
+    }
+}
+
 void RSRenderNode::UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect)
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1756,6 +1766,7 @@ bool RSRenderNode::UpdateSelfDrawRect(RectF& selfDrawingNodeDirtyRect)
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
     CollectAndUpdateLocalDistortionEffectRect();
+    CollectAndUpdateLocalMagnifierEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
 
