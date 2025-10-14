@@ -133,14 +133,15 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
     bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
         (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
-    // The precondition has already determined that bufferWidth and bufferHeight are not nullptr(ValidateSurface)
     if (isVertical) {
         boundSize.y_ = hpaeBufferSize_.y_;
+        // The precondition has already determined that the bufferHeight are not zero(ValidateSurface)
         boundSize.x_ = round(boundSize.y_ * bufferWidth / bufferHeight);
         boundSize.x_ = (boundSize.x_ > hpaeBufferSize_.x_) ? hpaeBufferSize_.x_ : boundSize.x_;
         sizeJudge = true;
     } else {
         boundSize.x_ = hpaeBufferSize_.x_;
+        // The precondition has already determined that the bufferWidth are not zero(ValidateSurface)
         boundSize.y_ = round(boundSize.x_ * bufferHeight / bufferWidth);
         boundSize.y_ = (boundSize.y_ > hpaeBufferSize_.y_) ? hpaeBufferSize_.y_ : boundSize.y_;
     }
@@ -314,22 +315,23 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, 
         hpaeSrcRect = RectRound(RectI(0, 0, bufferWidth, bufferHeight), bufferWidth, bufferHeight);
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
         // The precondition has already determined that width and height of hpaeSrcRect are not zero
-        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_ ) *
+        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_) *
             static_cast<float>(bufferWidth)) - 1;
-        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_ ) *
+        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_) *
             static_cast<float>(bufferHeight)) - 1;
         validHpaeDstRect = { 0, 0, validW, validH };
     } else {
         hpaeSrcRect = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h), bufferWidth, bufferHeight);
-        // The precondition has already determined that width and height of srcRect and hpaeSrcRect are not zero
+        // The precondition has already determined that width and height of srcRect are not zero
         dst_.width_ = round(static_cast<float>(dstRect.w) / static_cast<float>(srcRect.w) *
             static_cast<float>(hpaeSrcRect.width_));
         dst_.height_ = round(static_cast<float>(dstRect.h) / static_cast<float>(srcRect.h) *
             static_cast<float>(hpaeSrcRect.height_));
         dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
-        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_ ) *
+        // The precondition has already determined that width and height of hpaeSrcRect are not zero
+        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_) *
             static_cast<float>(srcRect.w)) - 1;
-        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_ ) *
+        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_) *
             static_cast<float>(srcRect.h)) - 1;
         validHpaeDstRect = { 0, 0, validW, validH };
     }

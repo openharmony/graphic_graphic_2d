@@ -869,7 +869,7 @@ HWTEST_F(RSHeteroHDRManagerTest, PrepareAndSubmitHDRTaskTest010, TestSize.Level1
     mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId] = { 400, 400, 400, 400 };
     mockRSHeteroHDRManager.PrepareAndSubmitHDRTask(surfaceDrawable, surfaceParams, nodeId, 1);
 
-    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId].width_ = 500; 
+    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId].width_ = 500;
     mockRSHeteroHDRManager.PrepareAndSubmitHDRTask(surfaceDrawable, surfaceParams, nodeId, 1);
 }
 
