@@ -853,8 +853,8 @@ HWTEST_F(RSHeteroHDRManagerTest, PrepareAndSubmitHDRTaskTest010, TestSize.Level1
     surfaceParams->SetLayerInfo(layerInfo);
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
+        .width = 0x190,
+        .height = 0x190,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -865,11 +865,9 @@ HWTEST_F(RSHeteroHDRManagerTest, PrepareAndSubmitHDRTaskTest010, TestSize.Level1
 
     auto nodeId = surfaceNode->GetId();
 
-    mockRSHeteroHDRManager.src_ = { 400, 400, 400, 400 };
-    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId] = { 400, 400, 400, 400 };
-    mockRSHeteroHDRManager.PrepareAndSubmitHDRTask(surfaceDrawable, surfaceParams, nodeId, 1);
-
-    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId].width_ = 500;
+    RectI tempRect = { 0, 0, 400, 400 };
+    mockRSHeteroHDRManager.src_ = tempRect;
+    mockRSHeteroHDRManager.nodeSrcRectMap_[nodeId] = tempRect;
     mockRSHeteroHDRManager.PrepareAndSubmitHDRTask(surfaceDrawable, surfaceParams, nodeId, 1);
 }
 

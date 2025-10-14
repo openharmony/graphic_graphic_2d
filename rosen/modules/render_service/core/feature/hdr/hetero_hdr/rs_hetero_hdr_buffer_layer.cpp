@@ -80,25 +80,22 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
     config.width = buffer->GetSurfaceBufferWidth();
     config.height = buffer->GetSurfaceBufferHeight();
     HdrStatus hdrStatus = RSHeteroHDRManager::Instance().GetCurHandleStatus();
-    switch (hdrStatus) {
-        case HdrStatus::AI_HDR_VIDEO_GAINMAP:
+    if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP) {
             config.colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
-            break;
-        case HdrStatus::HDR_VIDEO:
-            config.format = GRAPHIC_PIXEL_FMT_YCBCR_P010;
-            config.colorGamut = GRAPHIC_COLOR_GAMUT_BT2020;
-            if (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
-                transform == GraphicTransformType::GRAPHIC_ROTATE_270) {
-                config.width = static_cast<int32_t>(curScreenInfo.height);
-                config.height = static_cast<int32_t>(curScreenInfo.width);
-            } else {
+    } else if (hdrStatus ==  HdrStatus::HDR_VIDEO){
+        config.format = GRAPHIC_PIXEL_FMT_YCBCR_P010;
+        config.colorGamut = GRAPHIC_COLOR_GAMUT_BT2020;
+        if (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+            transform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+            config.width = static_cast<int32_t>(curScreenInfo.height);
+            config.height = static_cast<int32_t>(curScreenInfo.width);
+        } else {
                 config.width = static_cast<int32_t>(curScreenInfo.width);
                 config.height = static_cast<int32_t>(curScreenInfo.height);
-            }
-            break;
-        default:
-            RS_LOGW("[hdrHetero]:RSHeteroHDRBufferLayer PrepareHDRDstBuffer this hdrStatus is not supported");
-            return nullptr;
+        }
+    } else {
+        RS_LOGW("[hdrHetero]:RSHeteroHDRBufferLayer PrepareHDRDstBuffer this hdrStatus is not supported");
+        return nullptr;
     }
     int32_t releaseFence = -1;
     sptr<SurfaceBuffer> dstBuffer = RequestSurfaceBuffer(config, releaseFence);

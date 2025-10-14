@@ -135,13 +135,13 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
         (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
     if (isVertical) {
         boundSize.y_ = hpaeBufferSize_.y_;
-        // The precondition has already determined that the bufferHeight are not zero(ValidateSurface)
+        // The precondition has already determined that the bufferHeight is not zero(ValidateSurface)
         boundSize.x_ = round(boundSize.y_ * bufferWidth / bufferHeight);
         boundSize.x_ = (boundSize.x_ > hpaeBufferSize_.x_) ? hpaeBufferSize_.x_ : boundSize.x_;
         sizeJudge = true;
     } else {
         boundSize.x_ = hpaeBufferSize_.x_;
-        // The precondition has already determined that the bufferWidth are not zero(ValidateSurface)
+        // The precondition has already determined that the bufferWidth is not zero(ValidateSurface)
         boundSize.y_ = round(boundSize.x_ * bufferHeight / bufferWidth);
         boundSize.y_ = (boundSize.y_ > hpaeBufferSize_.y_) ? hpaeBufferSize_.y_ : boundSize.y_;
     }
