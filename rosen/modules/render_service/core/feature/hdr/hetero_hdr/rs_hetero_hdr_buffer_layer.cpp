@@ -85,6 +85,7 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
             config.colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
             break;
         case HdrStatus::HDR_VIDEO:
+            config.format = GRAPHIC_PIXEL_FMT_YCBCR_P010;
             config.colorGamut = GRAPHIC_COLOR_GAMUT_BT2020;
             if (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
                 transform == GraphicTransformType::GRAPHIC_ROTATE_270) {
