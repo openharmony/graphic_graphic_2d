@@ -142,7 +142,7 @@ void BootVideoPlayer::StopVideo()
 {
     vSyncCallback_(userData_);
 #ifdef PLAYER_FRAMEWORK_ENABLE
-    mediaPlayer_.Release();
+    mediaPlayer_->Release();
 #endif
 }
 
