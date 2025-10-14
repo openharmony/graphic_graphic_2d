@@ -203,5 +203,38 @@ HWTEST_F(EffectImageChainUnittest, AlphaTypeConvertTest001, TestSize.Level1)
     alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL;
     ASSERT_EQ(ImageUtil::AlphaTypeToDrawingAlphaType(alphaType), Drawing::AlphaType::ALPHATYPE_UNPREMUL);
 }
+
+/**
+ * @tc.name: EffectCanvasTest
+ * @tc.desc: test EffectCanvas
+ */
+HWTEST_F(EffectImageChainUnittest, EffectCanvasTest, TestSize.Level1) {
+    class MockSurface : public Drawing::Surface {
+    public:
+        std::unique_ptr<Drawing::Canvas> GetCanvas() {
+            return nullptr;
+        }
+    };
+    std::shared_ptr<MockSurface> surface = std::make_shared<MockSurface>();
+    EffectCanvas effectCanvas(surface.get());
+
+    Drawing::Rect s = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::Rect d = { 0.0f, 0.0f, 1.0f, 1.0f };
+    Drawing::HpsBlurParameter blurParams = { s, d, 0.0f, 0.0f, 1.0f };
+
+    auto dimension = effectCanvas.CalcHpsBluredImageDimension(blurParams);
+    std::array<int, 2> expected = {0, 0};
+    EXPECT_EQ(dimension, expected);
+
+    auto attachBrush = Drawing::Brush();
+    auto& attachCanvas = effectCanvas.AttachBrush(attachBrush);
+    EXPECT_EQ(&attachCanvas, &effectCanvas);
+
+    auto bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    effectCanvas.DrawRect(bounds);
+
+    auto& detachCanvas = effectCanvas.DetachBrush();
+    EXPECT_EQ(&detachCanvas, &effectCanvas);
+}
 } // namespace Rosen
 } // namespace OHOS
