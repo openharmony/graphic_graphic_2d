@@ -26,6 +26,7 @@ copy_taihe_idl("copy_uieffect_taihe") {
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.taihe",
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.uiEffect.taihe",
   ]
+  external_deps = ["image_framework:copy_image_taihe"]
 }
 
 ohos_taihe("run_taihe") {
