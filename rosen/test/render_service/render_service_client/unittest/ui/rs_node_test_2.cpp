@@ -646,9 +646,9 @@ HWTEST_F(RSNodeTest2, SetSDFUnionOPMask, TestSize.Level1)
     EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
 
     rsNode->SetSDFMask(nullptr);
-    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
     rsNode->SetSDFMask(nullptr);
-    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
 }
 
 /**
@@ -684,9 +684,9 @@ HWTEST_F(RSNodeTest2, SetSDFSmoothUnionOPMask, TestSize.Level1)
     EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
 
     rsNode->SetSDFMask(nullptr);
-    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
     rsNode->SetSDFMask(nullptr);
-    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_MASK), properties.end());
 }
 
 
