@@ -112,6 +112,16 @@ void RSGpuDirtyCollector::SetGpuDirtyEnabled(const sptr<SurfaceBuffer> &buffer, 
         src->gpuDirtyEnable = RSSystemProperties::GetGpuDirtyApsEnabled() && gpuDirtyEnable;
     }
 }
+
+void RSGpuDirtyCollector::SetSelfDrawingBufferQueueId(const sptr<SurfaceBuffer> &buffer, const uint64_t bufferQueueId)
+{
+    if (buffer == nullptr) {
+        return;
+    }
+    if (auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer)) {
+        src->bufferQueueId = bufferQueueId;
+    }
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS
