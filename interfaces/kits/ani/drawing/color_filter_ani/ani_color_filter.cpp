@@ -217,7 +217,7 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param matrix.");
         return CreateAniUndefined(env);
     }
-    uint32_t arraySize = aniLength;
+    uint32_t arraySize = static_cast<uint32_t>(aniLength);
     if (arraySize != ColorMatrix::MATRIX_SIZE) {
         ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter aniMatrixArrayObj size is invalid %{public}u.", arraySize);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array size.");
