@@ -383,6 +383,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest001, TestSize.Level1)
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
     bmp.Build(800, 800, format);
     auto dstImage = std::make_shared<Drawing::Image>();
+    EXPECT_NE(dstImage, nullptr);
     dstImage->BuildFromBitmap(bmp);
     int srcWidth = 1000;
     int srcHeight = 1000;
@@ -414,7 +415,6 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest001, TestSize.Level1)
     rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
     rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
     rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
-    EXPECT_EQ(imageId, 12345);
 }
 
 /**
@@ -431,6 +431,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest002, TestSize.Level1)
     int dstWidth = 0;
     int dstHeight = 0;
     auto dstImage = std::make_shared<Drawing::Image>();
+    EXPECT_NE(dstImage, nullptr);
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     rsImageDetailEnhancerThread.SetProcessStatus(imageId, true);
     rsImageDetailEnhancerThread.SetProcessReady(imageId, true);
@@ -463,8 +464,6 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest002, TestSize.Level1)
     rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
     rsImageDetailEnhancerThread.SetOutImage(imageId, nullptr);
     rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
-
-    EXPECT_EQ(imageId, 12345);
 }
 
 /**
@@ -481,6 +480,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest003, TestSize.Level1)
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
     bmp.Build(800, 800, format);
     auto dstImage = std::make_shared<Drawing::Image>();
+    EXPECT_NE(dstImage, nullptr);
     dstImage->BuildFromBitmap(bmp);
     int srcWidth = 1000;
     int srcHeight = 1000;
@@ -516,7 +516,6 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ResetStatusTest003, TestSize.Level1)
     rsImageDetailEnhancerThread.SetProcessReady(imageId, false);
     rsImageDetailEnhancerThread.SetOutImage(imageId, nullptr);
     rsImageDetailEnhancerThread.ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
-    EXPECT_EQ(imageId, 12345);
 }
 
 /**
@@ -531,8 +530,8 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, MarkDirtyTest, TestSize.Level1)
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     rsImageDetailEnhancerThread.MarkDirty(nodeId);
     rsImageDetailEnhancerThread.callback_ = [](uint64_t) -> void {};
+    EXPECT_NE(rsImageDetailEnhancerThread.callback_, nullptr);
     rsImageDetailEnhancerThread.MarkDirty(nodeId);
-    EXPECT_EQ(nodeId, 123456);
 }
 
 /**
@@ -787,6 +786,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleByHDSamplerTest, TestSize.Level1)
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
     bmp.Build(1000, 1000, format);
     auto srcImage = std::make_shared<Drawing::Image>();
+    EXPECT_NE(srcImage, nullptr);
     srcImage->BuildFromBitmap(bmp);
     int dstWidth = 700;
     int dstHeight = 700;
@@ -814,7 +814,6 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleByHDSamplerTest, TestSize.Level1)
     EXPECT_EQ(result, nullptr);
     dstSurfaceBuffer = CreateSurfaceBuffer(dstWidth, dstHeight);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(dstWidth, dstHeight, dstSurfaceBuffer, srcImage);
-    EXPECT_EQ(dstHeight, 700);
 }
 
 /**
@@ -879,6 +878,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleImageAsyncTest, TestSize.Level1)
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
     bmp.Build(800, 800, format);
     auto image = std::make_shared<Drawing::Image>();
+    EXPECT_NE(image, nullptr);
     image->BuildFromBitmap(bmp);
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->editable_ = false;
@@ -902,7 +902,6 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleImageAsyncTest, TestSize.Level1)
     rsImageDetailEnhancerThread.ScaleImageAsync(pixelMap, dst, nodeId, imageId, image);
     image = nullptr;
     rsImageDetailEnhancerThread.ScaleImageAsync(pixelMap, dst, nodeId, imageId, image);
-    EXPECT_EQ(imageId, 45678);
 }
 
 /**
@@ -933,6 +932,7 @@ HWTEST_F(DetailEnhancerUtilsTest, InitSurfaceTest, TestSize.Level1)
 HWTEST_F(DetailEnhancerUtilsTest, MakeImageFromSurfaceBufferTest, TestSize.Level1)
 {
     auto image = std::make_shared<Drawing::Image>();
+    EXPECT_NE(image, nullptr);
     DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
     sptr<SurfaceBuffer> surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(600, 600);
     auto result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer, image);
@@ -952,7 +952,6 @@ HWTEST_F(DetailEnhancerUtilsTest, MakeImageFromSurfaceBufferTest, TestSize.Level
     int dstHeight = 512;
     sptr<SurfaceBuffer> surfaceBuffer3 = CreateSurfaceBuffer(dstWidth, dstHeight);
     detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer3, srcImage);
-    EXPECT_EQ(dstWidth, 512);
 }
 
 /**
