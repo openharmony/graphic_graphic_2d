@@ -387,6 +387,7 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
         "xcomponentIdSurface",
         "componentIdSurface",
         "SceneViewer Model totemweather0",
+        "UnityPlayerSurface",
     };
     if (IsYUVBufferFormat(node) || (videoLayers.count(node->GetName()) > 0)) {
         return true;
