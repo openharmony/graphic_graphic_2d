@@ -16,11 +16,20 @@
 #ifndef OHOS_UIEFFECT_NAPI_UTILS_H
 #define OHOS_UIEFFECT_NAPI_UTILS_H
 
+#include <hilog/log.h>
+
 #include "mask/include/radial_gradient_mask_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
+
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001405
+
+#undef LOG_TAG
+#define LOG_TAG "UiEffect_Util"
+#define UTIL_LOG_E(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 
 #define UIEFFECT_NAPI_CHECK_RET(x, res) \
 do \
@@ -106,6 +115,9 @@ class UIEffectNapiUtils {
 public:
     static napi_valuetype GetType(napi_env env, napi_value root);
     static bool IsSystemApp();
+    static bool IsFormRenderServiceCall();
+private:
+    static std::string GetBundleName();
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -176,10 +176,10 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
 
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
+    if (!UIEffectNapiUtils::IsSystemApp() && !UIEffectNapiUtils::IsFormRenderServiceCall()) {
         UIEFFECT_LOG_E("CreateBrightnessBlender failed");
         napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateBrightnessBlender failed, is not system app");
+            "EffectNapi CreateBrightnessBlender failed, is not system app or frs call");
         return nullptr;
     }
 
@@ -622,10 +622,10 @@ bool EffectNapi::ParseShadowBlender(napi_env env, napi_value jsObject, ShadowBle
  
 napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
+    if (!UIEffectNapiUtils::IsSystemApp() && !UIEffectNapiUtils::IsFormRenderServiceCall()) {
         UIEFFECT_LOG_E("SetBackgroundColorBlender failed");
         napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi SetBackgroundColorBlender failed, is not system app");
+            "EffectNapi SetBackgroundColorBlender failed, is not system app or frs call");
         return nullptr;
     }
     const size_t requireArgc = NUM_1;
