@@ -305,6 +305,10 @@ public:
         return hasSubNodeShouldPaint_;
     }
 
+    void SetCaptureEnableUifirst(bool val);
+
+    std::mutex& GetCaptureUiFirstMutex();
+
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
@@ -1998,6 +2002,7 @@ private:
     std::mutex mutex_;
     std::mutex mutexHDR_;
     std::mutex parallelVisitMutex_;
+    std::mutex captureUiFirstMutex_;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
 

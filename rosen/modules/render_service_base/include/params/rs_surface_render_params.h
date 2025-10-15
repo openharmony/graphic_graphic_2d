@@ -639,6 +639,14 @@ public:
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
+    inline void SetCaptureEnableUifirst(bool val)
+    {
+        captureEnableUifirst_ = val;
+    }
+    inline bool IsCaptureEnableUifirst()
+    {
+        return captureEnableUifirst_;
+    }
     inline bool HasSubSurfaceNodes() const
     {
         return hasSubSurfaceNodes_;
@@ -814,6 +822,7 @@ private:
     bool preSurfaceCacheContentStatic_ = false;
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
+    bool captureEnableUifirst_ = true;
     bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;

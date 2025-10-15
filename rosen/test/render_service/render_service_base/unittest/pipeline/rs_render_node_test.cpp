@@ -1561,9 +1561,33 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003, TestSize.Level1)
     EXPECT_NE(child2, nullptr);
     child2->parent_ = child1;
 
-    child2->SetParentTreeStateChangeDirty();
+    child2->SetParentTreeStateChangeDirty(true);
     EXPECT_TRUE(child1->IsTreeStateChangeDirty());
     EXPECT_TRUE(parent->IsTreeStateChangeDirty());
+}
+
+/**
+ * @tc.name: SetChildrenTreeStateChangeDirtyTest
+ * @tc.desc: SetChildrenTreeStateChangeDirty test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetChildrenTreeStateChangeDirtyTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(parent, nullptr);
+    std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(child1, nullptr);
+    parent->AddChild(child1, -1);
+    child1->parent_ = parent;
+    std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
+    EXPECT_NE(child2, nullptr);
+    child2->SetTreeStateChangeDirty(true);
+    child2->parent_ = child1;
+    parent->AddChild(child1, -1);
+
+    parent->SetChildrenTreeStateChangeDirty();
+    EXPECT_TRUE(child2->IsTreeStateChangeDirty());
 }
 
 /**

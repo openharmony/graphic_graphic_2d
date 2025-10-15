@@ -2805,5 +2805,42 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     ASSERT_FALSE(node->GetSurfaceBufferOpaque());
     ASSERT_EQ(node->GetBlendType(), GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
 }
+
+/**
+ * @tc.name: SetCaptureEnableUifirstTest
+ * @tc.desc: test results of SetCaptureEnableUifirst
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetCaptureEnableUifirstTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->ResetSurfaceNodeStates();
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->ResetSurfaceNodeStates();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->IsCaptureEnableUifirst());
+    testNode->SetCaptureEnableUifirst(false);
+    ASSERT_FALSE(surfaceParams->IsCaptureEnableUifirst());
+}
+
+/**
+ * @tc.name: GetCaptureUiFirstMutexTest
+ * @tc.desc: test results of GetCaptureUiFirstMutex
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetCaptureUiFirstMutexTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::lock_guard<std::mutex> lock(testNode->GetCaptureUiFirstMutex());
+    ASSERT_NE(testNode, nullptr);
+    testNode->ResetSurfaceNodeStates();
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

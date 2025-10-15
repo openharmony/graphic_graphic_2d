@@ -3501,6 +3501,19 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
     return abilityState_;
 }
 
+void RSSurfaceRenderNode::SetCaptureEnableUifirst(bool val)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetCaptureEnableUifirst(val);
+    }
+}
+
+std::mutex& RSSurfaceRenderNode::GetCaptureUiFirstMutex()
+{
+    return captureUiFirstMutex_;
+}
+
 bool RSSurfaceRenderNode::IsWaitUifirstFirstFrame() const
 {
     return isWaitUifirstFirstFrame_;
