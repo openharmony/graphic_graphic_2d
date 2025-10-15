@@ -67,10 +67,17 @@ config("effect_SKeffectChian_public_config") {
 }
 if (is_arkui_x) {
   ohos_source_set("skeffectchain") {
+    include_dirs = [
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
+    ]
+
     public_deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//foundation/arkui/ace_engine/adapter/${target_os}/build:libarkui_${target_os}",
       "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
 
     if (target_os == "android") {
@@ -86,20 +93,12 @@ if (is_arkui_x) {
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
         defines += gpu_defines
-        public_deps += [
-          "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-          "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
-        ]
       }
     }
 
     public_external_deps = [
       "c_utils:utilsbase",
       "skia:skia_canvaskit_static",
-    ]
-
-    deps = [
-      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
     ]
 
     sources = [
