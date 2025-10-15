@@ -63,6 +63,13 @@ void RSBackgroundThread::PostSyncTask(const std::function<void()>& task)
     }
 }
 
+void RSBackgroundThread::PostDelayedTask(const std::function<void()>& task, int64_t delayTime)
+{
+    if (handler_) {
+        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifdef RS_ENABLE_GL
 void RSBackgroundThread::CreateShareEglContext()

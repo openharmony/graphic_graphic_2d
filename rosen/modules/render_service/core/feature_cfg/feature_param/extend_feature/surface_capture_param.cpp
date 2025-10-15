@@ -21,8 +21,18 @@ bool SurfaceCaptureParam::IsUseOptimizedFlushAndSubmitEnabled() const
     return useOptimizedFlushAndSubmitEnabled_;
 }
 
+bool SurfaceCaptureParam::IsDeferredDmaSurfaceReleaseEnabled() const
+{
+    return deferredDmaSurfaceReleaseEnabled_;
+}
+
 void SurfaceCaptureParam::SetUseOptimizedFlushAndSubmitEnabled(bool enabled)
 {
     useOptimizedFlushAndSubmitEnabled_ = enabled;
+}
+
+void SurfaceCaptureParam::SetDeferredDmaSurfaceReleaseEnabled(bool enabled)
+{
+    deferredDmaSurfaceReleaseEnabled_ = enabled;
 }
 } // namespace OHOS::Rosen

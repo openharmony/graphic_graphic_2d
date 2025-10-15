@@ -60,6 +60,9 @@ int32_t SurfaceCaptureParamParse::ParseSurfaceCaptureInternal(FeatureParamMapTyp
         if (name == "UseOptimizedFlushAndSubmit") {
             surfaceCaptureParam_->SetUseOptimizedFlushAndSubmitEnabled(isEnabled);
             RS_LOGI("SurfaceCaptureParamParse useOptimizedFlushAndSubmitEnabled is %{public}d", isEnabled);
+        } else if (name == "DeferredDmaSurfaceRelease") {
+            surfaceCaptureParam_->SetDeferredDmaSurfaceReleaseEnabled(isEnabled);
+            RS_LOGI("SurfaceCaptureParamParse deferredDmaSurfaceReleaseEnabled is %{public}d", isEnabled);
         }
     }
 

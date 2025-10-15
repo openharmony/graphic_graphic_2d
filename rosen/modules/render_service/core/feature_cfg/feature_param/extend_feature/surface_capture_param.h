@@ -24,12 +24,15 @@ public:
     SurfaceCaptureParam() = default;
     ~SurfaceCaptureParam() = default;
     bool IsUseOptimizedFlushAndSubmitEnabled() const;
+    bool IsDeferredDmaSurfaceReleaseEnabled() const;
 
 protected:
     void SetUseOptimizedFlushAndSubmitEnabled(bool enabled);
+    void SetDeferredDmaSurfaceReleaseEnabled(bool enabled);
 
 private:
     bool useOptimizedFlushAndSubmitEnabled_ = true;
+    bool deferredDmaSurfaceReleaseEnabled_ = false;
 
     friend class SurfaceCaptureParamParse;
 };
