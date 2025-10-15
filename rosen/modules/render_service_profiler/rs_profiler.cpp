@@ -101,10 +101,10 @@ static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
-static std::mutex g_renderFrameMutex;
-static std::atomic<bool> g_renderFrameWorking = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
 static std::mutex g_mutexFirstFrameMarshalling;
+static std::mutex g_mutexJobMarshallingTick;
+static std::atomic<uint32_t> g_jobTickTaskCount = 0;
 } // namespace
 
 RSContext* RSProfiler::context_ = nullptr;
@@ -120,11 +120,113 @@ void RSProfiler::JobMarshallingKillPid(pid_t pid)
 {
     // FirstFrameMarshalling can be executing same time resulting the crash
     g_mutexFirstFrameMarshalling.lock();
+    std::vector<NodeId> list;
+    {
+        auto& jobGlobal = GetMarshallingJob();
+        std::unique_lock<std::mutex> lockJob(g_mutexJobMarshallingTick);
+        auto job = jobGlobal;
+        if (!job) {
+            return;
+        }
+        list = job->GetListForPid(pid);
+    }
+    for (auto nodeId : list) {
+        // save without drawcmdmodifiers
+        JobMarshallingTick(nodeId, true);
+    }
 }
 
 void RSProfiler::JobMarshallingKillPidEnd()
 {
     g_mutexFirstFrameMarshalling.unlock();
+}
+
+void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
+{
+    auto& jobGlobal = GetMarshallingJob();
+
+    std::unique_lock<std::mutex> lockJob(g_mutexJobMarshallingTick); // JobMarshallingTick call from different threads
+
+    auto job = jobGlobal;
+    if (!job) {
+        return;
+    }
+
+    if (nodeId && !job->IsUnfinished(nodeId)) {
+        return;
+    }
+
+    if (!nodeId) {
+        nodeId = job->GetNextUnfinished();
+        if (!nodeId) {
+            // ERROR: no next NodeId
+            return;
+        }
+    }
+
+    auto node = GetRenderNode(nodeId);
+    if (!node) {
+        job->MarkFinished(nodeId, "");
+        return;
+    }
+
+    std::stringstream ssData;
+    auto fileVersion = RSFILE_VERSION_LATEST;
+
+    SetSubMode(SubMode::WRITE_EMUL);
+    DisableSharedMemory();
+    MarshalNode(*node, ssData, fileVersion, skipDrawCmdModifiers, true);
+    EnableSharedMemory();
+    SetSubMode(SubMode::NONE);
+
+    job->MarkFinished(nodeId, ssData.str());
+
+    if (!job->GetUnfinishedCount()) {
+        std::string& data = job->GetNodeData();
+        g_recordFile.InsertHeaderData(job->offsetNodes, data);
+        jobGlobal = nullptr;
+    }
+}
+
+std::shared_ptr<ProfilerMarshallingJob> RSProfiler::GetJobForExecution()
+{
+    auto& jobGlobal = GetMarshallingJob();
+    std::shared_ptr<ProfilerMarshallingJob> job = nullptr;
+    {
+        std::unique_lock<std::mutex> lockJob(g_mutexJobMarshallingTick);
+        job = jobGlobal;
+    }
+    if (job && job->GetUnfinishedCount() && job->marshallingTick) {
+        return job;
+    }
+    return nullptr;
+}
+
+void RSProfiler::MarshalFirstFrameNodesLoop()
+{
+    auto job = GetJobForExecution();
+    while (job) {
+        constexpr auto waitTime = 100;
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
+        if (g_jobTickTaskCount) {
+            continue;
+        }
+        g_jobTickTaskCount++;
+        ScheduleTask([]() {
+            g_jobTickTaskCount--;
+            if (context_ && context_->animatingNodeList_.size()) {
+                // don't execute tick during animation
+                return;
+            }
+            // executes in main thread when mainLoop is sleeping
+            auto job = GetJobForExecution();
+            if (job) {
+                job->marshallingTick(0, false);
+            }
+        });
+
+        job = GetJobForExecution();
+    }
 }
 
 bool RSProfiler::IsPowerOffScreen()
@@ -458,9 +560,10 @@ void RSProfiler::OnWorkModeChanged()
         RecordStop(ArgList());
         PlaybackStop(ArgList());
 
-        g_recordFile.Close();
         g_playbackFile.Close();
-        Utils::FileDelete(RSFile::GetDefaultPath());
+        if (GetMode() == Mode::NONE) {
+            Utils::FileDelete(RSFile::GetDefaultPath());
+        }
     }
 }
 
@@ -472,6 +575,11 @@ void RSProfiler::ProcessSignalFlag()
 
     signalFlagChanged_--;
     if (!signalFlagChanged_) {
+        if (GetMode() == Mode::SAVING) {
+            constexpr int8_t flag = 2;
+            signalFlagChanged_ = flag;
+            return;
+        }
         bool newEnabled = RSSystemProperties::GetProfilerEnabled();
         bool newBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
         HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", newEnabled ? 1 : 0,
@@ -574,17 +682,10 @@ void RSProfiler::OnParallelRenderBegin()
     }
 
     g_frameRenderBeginTimestamp = RawNowNano();
-
-    g_renderFrameMutex.lock();
-    g_renderFrameWorking = true;
 }
 
 void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 {
-    if (g_renderFrameWorking) {
-        g_renderFrameWorking = false;
-        g_renderFrameMutex.unlock();
-    }
     g_renderServiceRenderCpuId = Utils::GetCpuId();
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameRenderBeginTimestamp;
     CalcNodeWeigthOnFrameEnd(frameLengthNanosecs);
@@ -887,14 +988,24 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
         HRPD("strstream error with typeface marshalling");
     }
 
-    SetMode(Mode::WRITE_EMUL);
+    SetSubMode(SubMode::WRITE_EMUL);
     DisableSharedMemory();
-    MarshalNodes(*context_, stream, fileVersion);
+
+    auto& jobGlobal = GetMarshallingJob();
+    if (IsBetaRecordStarted()) {
+        jobGlobal = std::make_shared<ProfilerMarshallingJob>();
+        if (jobGlobal) {
+            jobGlobal->marshallingTick =
+                std::bind(RSProfiler::JobMarshallingTick, std::placeholders::_1, std::placeholders::_2);
+        }
+    }
+
+    MarshalNodes(*context_, stream, fileVersion, jobGlobal);
     if (!stream.good()) {
         HRPD("strstream error with marshalling nodes");
     }
     EnableSharedMemory();
-    SetMode(Mode::NONE);
+    SetSubMode(SubMode::NONE);
 
     const int32_t focusPid = g_mainThread->focusAppPid_;
     stream.write(reinterpret_cast<const char*>(&focusPid), sizeof(focusPid));
@@ -933,13 +1044,13 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
         return errReason;
     }
 
-    SetMode(Mode::READ_EMUL);
+    SetSubMode(SubMode::READ_EMUL);
 
     DisableSharedMemory();
     errReason = UnmarshalNodes(*context_, stream, fileVersion);
     EnableSharedMemory();
 
-    SetMode(Mode::NONE);
+    SetSubMode(SubMode::NONE);
 
     if (errReason.size()) {
         return errReason;
@@ -1739,8 +1850,7 @@ void RSProfiler::RecordStart(const ArgList& args)
         g_recordFile.Create(path);
     }
 
-    g_recordMinVsync = 0;
-    g_recordMaxVsync = 0;
+    g_recordMinVsync = g_recordMaxVsync = 0;
 
     g_recordFile.AddLayer(); // add 0 layer
 
@@ -1752,6 +1862,14 @@ void RSProfiler::RecordStart(const ArgList& args)
 
         g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
     }
+
+    std::thread threadNodeMarshall([]() {
+        SetMarshalFirstFrameThreadFlag(true);
+        // marshall nodes for first frame in parallel
+        MarshalFirstFrameNodesLoop();
+        SetMarshalFirstFrameThreadFlag(false);
+    });
+    threadNodeMarshall.detach();
 
     const std::vector<pid_t> pids = GetConnectionsPids();
     for (pid_t pid : pids) {
@@ -1799,6 +1917,11 @@ void RSProfiler::RecordStop(const ArgList& args)
     std::thread thread([isBetaRecordingStarted]() {
         g_recordFile.SetWriteTime(g_recordStartTime);
 
+        // force finish first frame marshalling
+        while (GetMarshalFirstFrameThreadFlag()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
         if (isBetaRecordingStarted) {
             SaveBetaRecordFile(g_recordFile);
         } else {
@@ -1815,6 +1938,9 @@ void RSProfiler::RecordStop(const ArgList& args)
         SendMessage("Network: record_vsync_range %" PRIu64 "%" PRIu64, g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
 
         SetMode(Mode::NONE);
+        if (!IsEnabled()) {
+            Utils::FileDelete(RSFile::GetDefaultPath());
+        }
     });
 
     if (args.Includes("WAITFORFINISH")) {
@@ -2139,16 +2265,6 @@ uint32_t RSProfiler::GetFrameNumber()
     return g_frameNumber;
 }
 
-bool RSProfiler::IsRenderFrameWorking()
-{
-    return g_renderFrameWorking;
-}
-
-std::mutex& RSProfiler::RenderFrameMutexGet()
-{
-    return g_renderFrameMutex;
-}
-
 void RSProfiler::BlinkNodeUpdate()
 {
     if (g_blinkSavedParentChildren.empty()) {
@@ -2440,14 +2556,14 @@ void RSProfiler::MarshalSubTree(RSContext& context, std::stringstream& data,
         ImageCache::Reset();
     }
 
-    SetMode(Mode::WRITE_EMUL);
+    SetSubMode(SubMode::WRITE_EMUL);
     DisableSharedMemory();
 
     std::stringstream dataNodes(std::ios::in | std::ios::out | std::ios::binary);
     MarshalSubTreeLo(context, dataNodes, node, fileVersion);
 
     EnableSharedMemory();
-    SetMode(Mode::NONE);
+    SetSubMode(SubMode::NONE);
 
     std::stringstream dataPixelMaps(std::ios::in | std::ios::out | std::ios::binary);
     ImageCache::Serialize(dataPixelMaps);
@@ -2482,13 +2598,13 @@ std::string RSProfiler::UnmarshalSubTree(RSContext& context, std::stringstream& 
     uint32_t nodesSize = 0u;
     data.read(reinterpret_cast<char*>(&nodesSize), sizeof(nodesSize));
 
-    SetMode(Mode::READ_EMUL);
+    SetSubMode(SubMode::READ_EMUL);
     DisableSharedMemory();
 
     std::string errReason = UnmarshalSubTreeLo(context, data, attachNode, fileVersion);
 
     EnableSharedMemory();
-    SetMode(Mode::NONE);
+    SetSubMode(SubMode::NONE);
 
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.TraversalNodes([](const std::shared_ptr<RSBaseRenderNode>& node) {

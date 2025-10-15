@@ -27,7 +27,7 @@
 
 namespace OHOS::Rosen {
 
-static constexpr float INACTIVITY_THRESHOLD_SECONDS = 0.5f;
+static constexpr float INACTIVITY_THRESHOLD_SECONDS = 0.01f;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
 static std::atomic_bool g_started = false;
@@ -36,8 +36,6 @@ static double g_recordsTimestamp = 0.0;
 static double g_currentFrameDirtyRegion = 0.0;
 static uint64_t g_lastParcelTime = 0;
 static int g_animationCount = 0;
-static std::timed_mutex g_mutexBetaRecording;
-static bool g_mutexBetaRecordingLocked = false;
 
 // implemented in rs_profiler.cpp
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out);
@@ -95,9 +93,6 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
 void RSProfiler::BetaRecordOnFrameBegin()
 {
     if (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
-        const long long waitingTime = 1000;
-        g_mutexBetaRecording.try_lock_until(std::chrono::steady_clock::now() + std::chrono::milliseconds(waitingTime));
-        g_mutexBetaRecordingLocked = true;
         if (!IsNoneMode() && (IsSecureScreen() || IsPowerOffScreen())) {
             // don't record secure screens
             std::vector<std::string> argList;
@@ -105,31 +100,19 @@ void RSProfiler::BetaRecordOnFrameBegin()
             RecordStop(ArgList(argList));
             EnableBetaRecord();
         }
-    } else {
-        g_mutexBetaRecordingLocked = false;
     }
 }
 
 void RSProfiler::BetaRecordOnFrameEnd()
 {
-    if (g_mutexBetaRecordingLocked) {
-        g_mutexBetaRecording.unlock();
-        g_mutexBetaRecordingLocked = false;
-    }
 }
 
 void RSProfiler::StartBetaRecord()
 {
     if (HasInitializationFinished() && !IsBetaRecordStarted() && IsBetaRecordEnabled()) {
         g_inactiveTimestamp = Now();
-        g_recordsTimestamp = Now();
 
         LaunchBetaRecordMetricsUpdateThread();
-
-        if (!IsSecureScreen() && !IsPowerOffScreen()) {
-            // Start recording for the first file
-            RecordStart(ArgList());
-        }
 
         g_started = true;
 
@@ -140,7 +123,7 @@ void RSProfiler::StartBetaRecord()
 void RSProfiler::StopBetaRecord()
 {
     if (IsBetaRecordStarted()) {
-        RecordStop(ArgList({ "WAITFORFINISH" }));
+        RecordStop(ArgList());
         g_started = false;
         g_inactiveTimestamp = 0;
     }
@@ -170,19 +153,28 @@ void RSProfiler::SaveBetaRecord()
     bool saveMustBeDone = recordLength > recordMaxLengthSeconds;
 
     if (IsNoneMode()) {
-        if (!g_animationCount && g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS < Now() &&
-            RSUniRenderThread::Instance().IsTaskQueueEmpty() && !IsRenderFrameWorking() && !IsSecureScreen() &&
-            !IsPowerOffScreen()) {
-            // rendering thread doesn't work
-            constexpr int minMemoryNecessary = 32'000'000;
-            auto ptr = new (std::nothrow) uint8_t[minMemoryNecessary];
-            if (ptr) {
-                delete[] ptr;
-                std::unique_lock<std::timed_mutex> lockMainTread(g_mutexBetaRecording);
-                std::unique_lock<std::mutex> lockRenderTread(RenderFrameMutexGet());
-                RecordStart(ArgList());
-            }
+        if (!(!g_animationCount && g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS < Now() && !IsSecureScreen() &&
+                !IsPowerOffScreen())) {
+            return;
         }
+        // rendering thread doesn't work
+        constexpr int minMemoryNecessary = 32'000'000;
+        auto ptr = new (std::nothrow) uint8_t[minMemoryNecessary];
+        if (!ptr) {
+            return;
+        }
+        delete[] ptr;
+        ScheduleTask([]() {
+            // executes in main thread when mainLoop is sleeping
+            if (!IsBetaRecordStarted() || !IsBetaRecordEnabled()) {
+                return;
+            }
+            if (IsSecureScreen() || IsPowerOffScreen()) {
+                return;
+            }
+            g_recordsTimestamp = Now();
+            RecordStart(ArgList());
+        });
         return;
     }
 
@@ -196,7 +188,6 @@ void RSProfiler::SaveBetaRecord()
         return;
     }
 
-    std::unique_lock<std::timed_mutex> lock(g_mutexBetaRecording);
     RecordStop(ArgList());
     EnableBetaRecord();
 }
@@ -204,9 +195,7 @@ void RSProfiler::SaveBetaRecord()
 void RSProfiler::UpdateBetaRecord(const RSContext& context)
 {
     // the last time any rendering is done
-    if (g_currentFrameDirtyRegion > 0) {
-        g_inactiveTimestamp = Now();
-    }
+    g_inactiveTimestamp = Now();
     g_animationCount = static_cast<int>(context.animatingNodeList_.size());
 }
 
@@ -220,17 +209,11 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
     Utils::FileDelete(path);
     file.SetVersion(RSFILE_VERSION_LATEST);
     file.Create(path);
-
-    g_recordsTimestamp = Now();
     return true;
 }
 
 bool RSProfiler::SaveBetaRecordFile(RSFile& file)
 {
-    if (!IsBetaRecordStarted()) {
-        return false;
-    }
-
     constexpr uint32_t maxCacheFiles = 10u;
     static uint32_t index = 0u;
 

@@ -365,6 +365,9 @@ public:
     uint32_t SetupSurfaceBufferEntry(const std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList);
 #endif
 
+    void SetNoImageMarshallingFlag(bool flag);
+    bool GetNoImageMarshallingFlag();
+
 protected:
     void ProfilerPushObjects(std::stringstream& stream, size_t size);
     void ProfilerPopObjects(std::stringstream& stream, size_t size);
@@ -398,6 +401,7 @@ protected:
 #endif
     std::vector<std::shared_ptr<ExtendDrawFuncObj>> drawFuncObjVec_;
     std::mutex drawFuncObjMutex_;
+    bool noImageMarshallingFlag = false;
 };
 } // namespace Drawing
 } // namespace Rosen

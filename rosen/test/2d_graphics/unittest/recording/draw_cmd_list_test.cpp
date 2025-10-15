@@ -344,6 +344,29 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProfilerMarshallingDrawOpsReplacedOpListForVectorIsNotEmpty
+ * @tc.desc: Test ProfilerMarshallingDrawOps when replacedOpListForVector_ is not empty
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsReplacedOpListForVectorIsNotEmpty, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto secondDrawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    EXPECT_EQ(drawCmdList->drawOpItems_.size(), 1);
+
+    drawCmdList->replacedOpListForVector_.emplace_back();
+    drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
+    EXPECT_FALSE(secondDrawCmdList->lastOpItemOffset_.has_value());
+
+    delete drawCmdList;
+    delete secondDrawCmdList;
+}
+
+/**
  * @tc.name: ProfilerMarshallingDrawOpsDoesNotCopyImmediateCmdList
  * @tc.desc: ProfilerMarshallingDrawOps does not copy drawOpItems_ when mode_ = IMMEDIATE
  * @tc.type: FUNC
@@ -353,8 +376,8 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsDoesNotCopyImmediateCmdList,
     DrawCmdList src(DrawCmdList::UnmarshalMode::IMMEDIATE);
     src.drawOpItems_.emplace_back(std::make_shared<DrawWithPaintOpItem>(Drawing::Paint(), 0));
     DrawCmdList dst;
-    src.ProfilerMarshallingDrawOps(&dst, true);
-    src.ProfilerMarshallingDrawOps(&dst, false);
+    src.ProfilerMarshallingDrawOps(&dst);
+    src.ProfilerMarshallingDrawOps(&dst);
     EXPECT_TRUE(dst.drawOpItems_.empty());
 }
 
@@ -365,62 +388,12 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsDoesNotCopyImmediateCmdList,
  */
 HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsCopiesImageOpsWhenIncludeImageOpsIsTrue, TestSize.Level1)
 {
-    constexpr auto includeImageOps = true;
     const auto drawOp =
         std::make_shared<DrawImageOpItem>(Drawing::Image(), 0, 0, Drawing::SamplingOptions(), Drawing::Paint());
     DrawCmdList src(DrawCmdList::UnmarshalMode::DEFERRED);
     src.drawOpItems_.push_back(drawOp);
     DrawCmdList dst;
-    src.ProfilerMarshallingDrawOps(&dst, includeImageOps);
-    EXPECT_TRUE(dst.drawOpItems_.empty());
-}
-
-/**
- * @tc.name: ProfilerMarshallingDrawOpsDoesNotCopyImageOpsWhenIncludeImageOpsIsFalse
- * @tc.desc: ProfilerMarshallingDrawOps does not copy image draw ops when includeImageOps = false
- * @tc.type: FUNC
- */
-HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsDoesNotCopyImageOpsWhenIncludeImageOpsIsFalse, TestSize.Level1)
-{
-    auto image = Drawing::Image();
-    auto brush = Drawing::Brush();
-    constexpr auto includeImageOps = false;
-    const auto drawImageOp =
-        std::make_shared<DrawImageOpItem>(Drawing::Image(), 0, 0, Drawing::SamplingOptions(), Drawing::Paint());
-
-    const auto drawImageRectOp = std::make_shared<DrawImageRectOpItem>(Drawing::Image(), Drawing::Rect(0, 10, 10, 0),
-        Drawing::Rect(0, 10, 10, 0), Drawing::SamplingOptions(),
-        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, Drawing::Paint());
-    const auto drawImageLatticeOp = std::make_shared<DrawImageLatticeOpItem>(
-        &image, Drawing::Lattice(), Rect(0, 10, 10, 0), Drawing::FilterMode::LINEAR, Drawing::Paint());
-    const auto drawImageNineOp = std::make_shared<DrawImageNineOpItem>(
-        &image, Drawing::RectI(0, 10, 10, 0), Drawing::RectI(0, 10, 10, 0), Drawing::FilterMode::LINEAR, &brush);
-    const auto drawAtlasOp = std::make_shared<DrawAtlasOpItem>(&image, std::vector<Drawing::RSXform>(),
-        std::vector<Drawing::Rect>(), std::vector<Drawing::ColorQuad>(), Drawing::BlendMode::DARKEN,
-        Drawing::SamplingOptions(), false, Drawing::Rect(0, 10, 10, 0), Drawing::Paint());
-    const auto drawHybridRenderPixelMapSizeOp = std::make_shared<HybridRenderPixelMapSizeOpItem>(100, 200);
-    const auto drawImageWithParmOp = std::make_shared<DrawImageWithParmOpItem>(std::make_shared<Drawing::Image>(),
-        std::make_shared<Drawing::Data>(), Drawing::AdaptiveImageInfo(), Drawing::SamplingOptions(), Drawing::Paint());
-    const auto drawPixelmapWithParmOp = std::make_shared<DrawPixelMapWithParmOpItem>(
-        std::make_shared<Media::PixelMap>(), Drawing::AdaptiveImageInfo(),
-        Drawing::SamplingOptions(), Drawing::Paint());
-    const auto drawPixelmapRectOp = std::make_shared<DrawPixelMapRectOpItem>(std::make_shared<Media::PixelMap>(),
-        Drawing::Rect(0, 10, 10, 0), Drawing::Rect(0, 10, 10, 0), Drawing::SamplingOptions(),
-        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, Drawing::Paint());
-
-    DrawCmdList src(DrawCmdList::UnmarshalMode::DEFERRED);
-    src.drawOpItems_.push_back(drawImageOp);
-    src.drawOpItems_.push_back(drawImageRectOp);
-    src.drawOpItems_.push_back(drawImageLatticeOp);
-    src.drawOpItems_.push_back(drawImageNineOp);
-    src.drawOpItems_.push_back(drawAtlasOp);
-    src.drawOpItems_.push_back(drawHybridRenderPixelMapSizeOp);
-    src.drawOpItems_.push_back(drawImageWithParmOp);
-    src.drawOpItems_.push_back(drawPixelmapWithParmOp);
-    src.drawOpItems_.push_back(drawPixelmapRectOp);
-
-    DrawCmdList dst;
-    src.ProfilerMarshallingDrawOps(&dst, includeImageOps);
+    src.ProfilerMarshallingDrawOps(&dst);
     EXPECT_TRUE(dst.drawOpItems_.empty());
 }
 
