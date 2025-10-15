@@ -54,7 +54,7 @@ uint32_t RSSurfaceWatermarkHelper::SetSurfaceWatermark(pid_t pid,
             if (upperNodeSize && upperscreenSize) {
                 RS_LOGE("RSSurfaceWatermarkHelper::SetSurfaceWatermark watermark size error imgWidth:[%{public}d],"
                     "imgHeight:[%{public}d] nodeWidth:[%{public}d], nodeHeight:[%{public}d],"
-                    "screenWidth:[%{public}d], scrrenHeight:[%{public}d], nodeId:[%{public}llu]",
+                    "screenWidth:[%{public}d], scrrenHeight:[%{public}d], nodeId:[%{public}" PRIu64 "]",
                     imgWidth, imgHeight,
                     static_cast<int32_t>(node->GetRenderProperties().GetBoundsWidth()),
                     static_cast<int32_t>(node->GetRenderProperties().GetBoundsHeight()),
@@ -106,7 +106,7 @@ void RSSurfaceWatermarkHelper::TraverseAndOperateNodeList(const pid_t& pid, cons
         if (!surfaceNode) {
             RemoveNodeIdForWatermarkNameMapNodeId(name, nodeId);
             RS_LOGE("RSSurfaceWatermarkHelper::TraverseAndOperateNodeList not find node"
-                "nodeId:[%{public}llu]", nodeId);
+                "nodeId:[%{public}" PRIu64 "]", nodeId);
             globalErrorCode_ |= WATER_MARK_NOT_SURFACE_NODE_ERROR;
             continue;
         }
@@ -128,7 +128,7 @@ ScreenInfo RSSurfaceWatermarkHelper::GetScreenInfo(const std::shared_ptr<RSSurfa
     auto screenNode = mainContext.GetNodeMap().GetRenderNode<RSScreenRenderNode>(screenNodeId);
     if (!screenNode) {
         RS_LOGE("RSSurfaceWatermarkHelper::GetScreenInfo not find node"
-            "nodeId:[%{public}llu]", node->GetId());
+            "nodeId:[%{public}" PRIu64 "]", node->GetId());
         return info;
     }
     info = screenNode->GetScreenInfo();
@@ -168,7 +168,8 @@ void RSSurfaceWatermarkHelper::ClearSurfaceWatermark(pid_t pid, const std::strin
         node->ClearWatermarkEnabled(name, watermarkType);
         return WATER_MARK_SUCCESS;
     };
-    TraverseAndOperateNodeList(pid, name, nodeIdList, mainContext, func, isSystemCalling);
+    std::vector<NodeId> vecNodeIdList(nodeIdList.begin(), nodeIdList.end()); // compiler adapter
+    TraverseAndOperateNodeList(pid, name, vecNodeIdList, mainContext, func, isSystemCalling);
     registerSurfaceWatermarkCount_ = (registerSurfaceWatermarkCount_ > 0) ? --registerSurfaceWatermarkCount_ : 0;
     if (!isDeathMonitor) {
         surfaceWatermarks_.erase(name);
