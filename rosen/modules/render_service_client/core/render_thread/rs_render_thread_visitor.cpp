@@ -630,10 +630,6 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     RSAutoCanvasRestore acr(canvas_, RSPaintFilterCanvas::SaveType::kAll);
     node.ApplyAlphaAndBoundsGeometry(*canvas_);
 
-    if (node.GetCompletedCacheSurface()) {
-        node.SetCacheType(CacheType::NONE);
-        node.ClearCacheSurface();
-    }
     node.ProcessRenderBeforeChildren(*canvas_);
     node.ProcessRenderContents(*canvas_);
     ProcessChildren(node);

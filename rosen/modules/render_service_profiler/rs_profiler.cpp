@@ -1543,10 +1543,7 @@ void RSProfiler::PrintNodeCacheLo(const std::shared_ptr<RSRenderNode>& node)
                                              : drawingCacheTypes[drawingCacheType]);
     usual += (cacheType == RSDrawingCacheType::DISABLED_CACHE) ? 1 : 0;
 
-    DumpParameter(nodeStr, usual, "HasCachedTexture", node->HasCachedTexture());
     DumpParameter(nodeStr, usual, "DrawInGroup", node->IsSuggestedDrawInGroup());
-    DumpParameter(nodeStr, usual, "CacheSurfaceValid", node->IsCacheSurfaceValid());
-    DumpParameter(nodeStr, usual, "CacheCompletedSurfaceValid", node->IsCacheCompletedSurfaceValid());
     if (constexpr int usualParamCnt = 6; usual >= usualParamCnt) {
         return;
     }
