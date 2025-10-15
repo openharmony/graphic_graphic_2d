@@ -568,7 +568,7 @@ void MemoryTrack::RemovePictureRecord(const void* addr)
     std::lock_guard<std::mutex> lock(mutex_);
     uint32_t pid;
     if (memPicRecord_.find(addr) != memPicRecord_.end()) {
-        pid = memPicRecord_[addr].pid;
+        pid = static_cast<uint32_t>(memPicRecord_[addr].pid);
     } else {
         pid = 0;
     }
