@@ -24,8 +24,8 @@
 
 namespace OHOS::Text::ANI {
 struct RectRange {
-    int64_t start;
-    int64_t end;
+    int64_t start{0};
+    int64_t end{0};
 };
 
 class AniTextRectConverter {
