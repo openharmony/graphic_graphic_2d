@@ -336,6 +336,23 @@ Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNo
     return childEffectRegion;
 }
 
+RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNode& node)
+{
+    auto context = node.GetContext().lock();
+    RectI visibleFilterRect;
+    if (!context) {
+        RS_LOGE("GetVisibleFilterRect node%{public}" PRIu64 " context is nullptr", node.GetId());
+        return visibleFilterRect;
+    }
+    const auto& nodeMap = context->GetNodeMap();
+    for (auto& nodeId : node.GetVisibleFilterChild()) {
+        if (auto& subNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+            visibleFilterRect = visibleFilterRect.JoinRect(subNode->GetOldDirtyInSurface());
+        }
+    }
+    return visibleFilterRect;
+}
+
 void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
     const sptr<RSScreenManager>& screenManager)

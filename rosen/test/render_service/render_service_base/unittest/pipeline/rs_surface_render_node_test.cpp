@@ -2844,5 +2844,28 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetCaptureUiFirstMutexTest, TestSize.Level1)
     testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     ASSERT_NE(testNode->stagingRenderParams_, nullptr);
 }
+
+/**
+ * @tc.name: SetUIFirstVisibleFilterRectTest
+ * @tc.desc: Test set visible filter region to surface node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetUIFirstVisibleFilterRectTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    RectI rect { 0, 0, 50, 50 };
+    node->addedToPendingSyncList_ = false;
+    node->SetUIFirstVisibleFilterRect(rect);
+    ASSERT_FALSE(node->addedToPendingSyncList_);
+
+    auto context = std::make_shared<RSContext>();
+    node->context_ = context;
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+    node->SetUIFirstVisibleFilterRect(rect);
+    ASSERT_TRUE(node->addedToPendingSyncList_);
+    ASSERT_FALSE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+}
 } // namespace Rosen
 } // namespace OHOS

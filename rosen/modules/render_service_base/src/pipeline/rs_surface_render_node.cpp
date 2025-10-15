@@ -3850,5 +3850,15 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::DetermineGamutStandard(in
         return GRAPHIC_COLOR_GAMUT_SRGB;
     }
 }
+
+void RSSurfaceRenderNode::SetUIFirstVisibleFilterRect(const RectI& rect)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        return;
+    }
+    stagingSurfaceParams->SetUIFirstVisibleFilterRect(rect);
+    AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS

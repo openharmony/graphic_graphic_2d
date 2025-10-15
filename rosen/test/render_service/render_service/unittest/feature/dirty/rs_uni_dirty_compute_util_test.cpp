@@ -809,4 +809,33 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestS
     mirroredScreenDrawable = nullptr;
     displayDrawable = nullptr;
 }
+
+/**
+ * @tc.name: GetVisibleFilterRect_001
+ * @tc.desc: test GetVisibleFilterRect
+ * @tc.type: FUNC
+ * @tc.require: issue20192
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_001, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RectI filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_TRUE(filterRect.IsEmpty());
+
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    surfaceNode->context_ = context;
+    NodeId filterNodeId = 100;
+    auto filterNode = std::make_shared<RSRenderNode>(filterNodeId);
+    filterNode->SetOldDirtyInSurface(RectI(100, 100, 500, 500));
+    surfaceNode->visibleFilterChild_.push_back(filterNodeId);
+    filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_TRUE(filterRect.IsEmpty());
+
+    context->GetMutableNodeMap().RegisterRenderNode(filterNode);
+    filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
+    ASSERT_FALSE(filterRect.IsEmpty());
+}
 } // namespace OHOS::Rosen

@@ -266,6 +266,17 @@ public:
     {
         return childrenDirtyRect_;
     }
+
+    void SetUIFirstVisibleFilterRect(const RectI& rect)
+    {
+        uiFirstVisibleFilterRect_ = rect;
+    }
+
+    const RectI& GetUifirstVisibleFilterRect()
+    {
+        return uiFirstVisibleFilterRect_;
+    }
+
     const RectI& GetDstRect() const
     {
         return dstRect_;
@@ -796,6 +807,8 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
+    RectI uiFirstVisibleFilterRect_;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
     RectI screenRect_;
@@ -809,7 +822,6 @@ private:
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;
     Vector4<int> regionToBeMagnified_;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;

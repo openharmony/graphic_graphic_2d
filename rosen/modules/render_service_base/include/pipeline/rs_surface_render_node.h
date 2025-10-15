@@ -1426,6 +1426,8 @@ public:
         return uifirstStartTime_;
     }
 
+    void SetUIFirstVisibleFilterRect(const RectI& rect);
+
     RSBaseRenderNode::WeakPtr GetAncestorScreenNode() const
     {
         return ancestorScreenNode_;

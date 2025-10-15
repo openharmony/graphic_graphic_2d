@@ -213,6 +213,12 @@ public:
     {
         return !subthreadProcessingNode_.empty();
     }
+
+    bool IsUIFirstDirtyEnabled() const
+    {
+        return RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+            RSSystemProperties::GetUIFirstDirtyEnabled();
+    }
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;

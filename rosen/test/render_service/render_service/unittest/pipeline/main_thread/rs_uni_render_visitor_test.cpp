@@ -4183,6 +4183,42 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: PrepareForUIFirstNode002
+ * @tc.desc: Test PrepareForUIFirstNode with visible filter
+ * @tc.type: FUNC
+ * @tc.require: issue20192
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode002, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    ScreenId id = 1;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, id, rsContext->weak_from_this());
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+
+    rsSurfaceRenderNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(rsSurfaceRenderNode->stagingRenderParams_.get());
+    RSUifirstManager::Instance().uifirstType_ = UiFirstCcmType::SINGLE;
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    ASSERT_TRUE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+
+    RSUifirstManager::Instance().uifirstType_ = UiFirstCcmType::MULTI;
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    ASSERT_TRUE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+
+    RSUifirstManager::Instance().isUiFirstOn_ = true;
+    rsSurfaceRenderNode->SetUIFirstSwitch(RSUIFirstSwitch::FORCE_ENABLE);
+    rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    ASSERT_TRUE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+}
+
+/**
  * @tc.name: UpdateNodeVisibleRegion001
  * @tc.desc: Test UpdateNodeVisibleRegion when needRecalculateOcclusion_ is true
  * @tc.type: FUNC
