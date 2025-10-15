@@ -107,7 +107,7 @@ public:
 protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
-    void CalculateScreenTransformMatrix(const RSScreenRenderNode& node);
+    void CalculateScreenTransformMatrix(const RSLogicalDisplayRenderNode& node);
     void SetMirrorScreenSwap(const RSScreenRenderNode& node);
     void CalculateMirrorAdaptiveMatrix();
 

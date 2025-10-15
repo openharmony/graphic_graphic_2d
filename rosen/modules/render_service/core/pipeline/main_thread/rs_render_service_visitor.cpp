@@ -65,8 +65,9 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
         RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
         return;
     }
-    node.SetScreenInfo(screenManager->QueryScreenInfo(node.GetScreenId()));
+
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    node.SetScreenInfo(curScreenInfo);
     offsetX_ = curScreenInfo.offsetX;
     offsetY_ = curScreenInfo.offsetY;
     UpdateScreenNodeCompositeType(node, curScreenInfo);
@@ -74,17 +75,8 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
     ResetSurfaceNodeAttrsInScreenNode(node);
 
     curScreenNode_ = node.shared_from_this()->ReinterpretCastTo<RSScreenRenderNode>();
-
-    int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
-    int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
-    if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-        logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
-        logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
-    }
-
     auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
-    CreateCanvas(logicalScreenWidth, logicalScreenHeight);
     PrepareChildren(node);
     node.GetCurAllSurfaces().clear();
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), false, false);
@@ -92,19 +84,23 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
 {
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
+        return;
+    }
+    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
+    int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
+    if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
+        logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
+        logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
+        auto rotation = node.GetRotation();
+        if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+            std::swap(logicalScreenWidth, logicalScreenHeight);
+        }
+    }
     if (node.IsMirrorDisplay()) {
-        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-        if (!screenManager) {
-            RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
-            return;
-        }
-        ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-        int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
-        int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
-        if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-            logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
-            logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
-        }
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
@@ -117,6 +113,7 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
         PrepareChildren(*existingSource);
         return;
     }
+    CreateCanvas(logicalScreenWidth, logicalScreenHeight);
     PrepareChildren(node);
 }
 

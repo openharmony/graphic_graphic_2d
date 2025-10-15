@@ -26,6 +26,7 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "platform/common/rs_log.h"
 
 #ifdef SOC_PERF_ENABLE
@@ -105,6 +106,22 @@ bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offset
     mirroredId_ = mirroredId;
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
 
+    auto children = node.GetChildrenList();
+    if (!children.empty()) {
+        std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
+        for (const auto& child : children) {
+            if (auto node = child.lock()) {
+                displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+                break;
+            }
+        }
+        if (displayNode) {
+            screenInfo_.rotation = displayNode->GetRotation();
+            auto mirrorNode = displayNode->GetMirrorSource().lock();
+            CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : *displayNode);
+        }
+    }
+
     auto mirrorNode = node.GetMirrorSource().lock();
     CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : node);
 
@@ -127,12 +144,12 @@ void RSProcessor::SetMirrorScreenSwap(const RSScreenRenderNode& node)
     }
 }
 
-void RSProcessor::CalculateScreenTransformMatrix(const RSScreenRenderNode& node)
+void RSProcessor::CalculateScreenTransformMatrix(const RSLogicalDisplayRenderNode& node)
 {
     auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (boundsGeoPtr != nullptr) {
         boundsGeoPtr->UpdateByMatrixFromSelf();
-        screenTransformMatrix_ = boundsGeoPtr->GetMatrix();
+        screenTransformMatrix_ = boundsGeoPtr->GetAbsMatrix();
     }
 }
 
