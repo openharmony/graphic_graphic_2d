@@ -49,8 +49,8 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
-    rectRange.start = static_cast<size_t>(startTmp);
-    rectRange.end = static_cast<size_t>(endTmp);
+    rectRange.start = static_cast<int64_t>(startTmp);
+    rectRange.end = static_cast<int64_t>(endTmp);
     return ANI_OK;
 }
 
