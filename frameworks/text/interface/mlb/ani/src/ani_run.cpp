@@ -348,10 +348,10 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
 
     Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
     ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":");
-    ani_status ret = env->Object_CallMethodByName_Void(
-        fontObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFont));
+    ani_status ret = env->Object_SetFieldByName_Long(
+        fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to set type set textLine");
+        TEXT_LOGE("Failed to set font field");
         delete aniFont;
         aniFont = nullptr;
     }
@@ -384,28 +384,23 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    OHOS::Text::ANI::RectRange rectRange;
-    ani_boolean rangeIsUndefined = false;
+    ani_boolean rangeIsUndefined = ANI_TRUE;
     ani_status status = env->Reference_IsUndefined(range, &rangeIsUndefined);
-    if (status != ANI_OK) {
+    if (status != ANI_OK || rangeIsUndefined) {
         TEXT_LOGE("Failed to check if undefined, status %{public}d", static_cast<int32_t>(status));
         return AniTextUtils::CreateAniUndefined(env);
     }
-    if (rangeIsUndefined) {
-        rectRange.start = 0;
-        rectRange.end = 0;
-    } else {
-        if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
-            TEXT_LOGE("Failed to parse range");
-            AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-            return AniTextUtils::CreateAniUndefined(env);
-        }
-        if (rectRange.start < 0 || rectRange.end < 0) {
-            TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
-            return AniTextUtils::CreateAniUndefined(env);
-        }
+    OHOS::Text::ANI::RectRange rectRange;
+    if (ANI_OK != AniTextRectConverter::ParseRangeToNative(env, range, rectRange)) {
+        TEXT_LOGE("Failed to parse range");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
     }
-
+    if (rectRange.start < 0 || rectRange.end < 0) {
+        TEXT_LOGE("Invalid range, start %{public}zu, end %{public}zu", rectRange.start, rectRange.end);
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    
     std::vector<uint64_t> stringIndices = aniRun->run_->GetStringIndices(rectRange.start, rectRange.end);
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, stringIndices.size());
     ani_boolean isUndefined;

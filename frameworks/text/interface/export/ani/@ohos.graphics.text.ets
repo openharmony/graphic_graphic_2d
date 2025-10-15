@@ -743,6 +743,10 @@ namespace text {
     native getFont(): drawing.Font;
     native paint(canvas: drawing.Canvas, x: double, y: double): void;
     native getStringIndices(range?: Range): Array<int> | undefined;
+    getStringIndices(): Array<int> | undefined {
+      let range: Range = { start: 0, end: 0};
+      return this.getStringIndices(range);
+    }
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
