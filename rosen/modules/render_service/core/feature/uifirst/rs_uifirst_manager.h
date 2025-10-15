@@ -50,6 +50,7 @@ public:
     };
 
     void AddProcessDoneNode(NodeId id);
+    void AddPurgedNode(NodeId id);
     void AddProcessSkippedNode(NodeId id);
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
@@ -233,7 +234,9 @@ private:
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
     void ProcessResetNode();
-    void ProcessSkippedNode();
+    void ProcessPurgedNode();
+    void ProcessSubThreadSkippedNode();
+    void ProcessSkippedNode(const std::unordered_set<NodeId>& nodes, bool forceDraw);
     void ProcessDoneNode();
     void ProcessDoneNodeInner();
     void UpdateSkipSyncNode();
@@ -248,6 +251,7 @@ private:
     bool GetDrawableDirtyRect(const std::shared_ptr<RSSurfaceRenderNode>& node, RectI& rect);
     void OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRenderNode>& node,
         bool staticContent, DrawableV2::RsSubThreadCache& subThreadCache);
+    bool CommonPendingNodePurge(PendingPostNodeMap::iterator& it);
     bool NeedPurgePendingPostNodesInner(
         PendingPostNodeMap::iterator& it, std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
         bool cachedStaticContent);
@@ -353,6 +357,8 @@ private:
     std::vector<NodeId> subthreadProcessDoneNode_;
     std::mutex skippedNodeMutex_;
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;
+    std::mutex purgedNodeMutex_;
+    std::unordered_set<NodeId> purgedNode_;
 
     // pending post node: collect in main, use&clear in RT
     PendingPostNodeMap pendingPostNodes_;
