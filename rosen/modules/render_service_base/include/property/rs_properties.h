@@ -738,6 +738,7 @@ public:
     bool IsDistortionKValid() const;
     void SetDistortionDirty(bool distortionEffectDirty);
     bool GetDistortionDirty() const;
+    bool GetMagnifierDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
     std::string GetShadowBlenderDescription() const;

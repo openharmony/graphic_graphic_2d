@@ -1764,6 +1764,12 @@ void RSProperties::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& 
     contentDirty_ = true;
 }
 
+bool RSProperties::GetMagnifierDirty() const
+{
+    const auto& magnifierPara = GetMagnifierPara();
+    return magnifierPara && ROSEN_GNE(magnifierPara->factor_, 0.f);
+}
+
 const std::shared_ptr<RSMagnifierParams>& RSProperties::GetMagnifierPara() const
 {
     static const std::shared_ptr<RSMagnifierParams> defaultValue = nullptr;
