@@ -3141,7 +3141,7 @@ void RSProperties::GenerateBackgroundBlurFilter()
 void RSProperties::GenerateBackgroundMaterialBlurFilter()
 {
     if (GetBackgroundBlurColorMode() == BLUR_COLOR_MODE::FASTAVERAGE) {
-        SetBackgroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+        GetEffect().backgroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
 
     float radiusForHash = DecreasePrecision(GetBackgroundBlurRadius());
