@@ -15,6 +15,7 @@
 
 #include "feature/hdr/rs_colorspace_util.h"
 #include "gtest/gtest.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -69,6 +70,54 @@ HWTEST_F(RSColorSpaceUtilTest, ColorSpaceToDrawingColorSpace001, TestSize.Level1
     colorSpace = RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(ColorSpaceName::NONE);
     ASSERT_NE(colorSpace, nullptr);
     EXPECT_TRUE(colorSpace->IsSRGB());
+}
+
+/**
+ * @tc.name: DrawingColorSpaceToGraphicColorGamut001
+ * @tc.desc: test Drawing::ColorSpace to GraphicColorGamut case
+ * @tc.type: FUNC
+ * @tc.require: ICUM49
+ */
+HWTEST_F(RSColorSpaceUtilTest, DrawingColorSpaceToGraphicColorGamut001, TestSize.Level1)
+{
+    GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    gamut = RSColorSpaceUtil::DrawingColorSpaceToGraphicColorGamut(nullptr);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_SRGB);
+
+    auto colorspace = Drawing::ColorSpace::CreateSRGB();
+    gamut = RSColorSpaceUtil::DrawingColorSpaceToGraphicColorGamut(colorspace);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_SRGB);
+
+    colorspace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+    gamut = RSColorSpaceUtil::DrawingColorSpaceToGraphicColorGamut(colorspace);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    colorspace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+    gamut = RSColorSpaceUtil::DrawingColorSpaceToGraphicColorGamut(colorspace);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_BT2020);
+
+    colorspace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
+    gamut = RSColorSpaceUtil::DrawingColorSpaceToGraphicColorGamut(colorspace);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: GetColorGamutFromCanvas001
+ * @tc.desc: test Drawing::ColorSpace to GraphicColorGamut case
+ * @tc.type: FUNC
+ * @tc.require: ICUM49
+ */
+HWTEST_F(RSColorSpaceUtilTest, GetColorGamutFromCanvas001, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas;
+    auto gamut = RSColorSpaceUtil::GetColorGamutFromCanvas(drawingCanvas);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_INVALID);
+
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surface = std::make_shared<Drawing::Surface>();
+    canvas.surface_ = surface.get();
+    gamut = RSColorSpaceUtil::GetColorGamutFromCanvas(canvas);
+    EXPECT_EQ(gamut, GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
