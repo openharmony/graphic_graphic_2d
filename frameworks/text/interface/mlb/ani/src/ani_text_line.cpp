@@ -237,9 +237,9 @@ ani_object AniTextLine::CreateTruncatedLine(
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    ani_size index = 0;
+    ani_int index = 0;
     EllipsisModal ellipsisModal = EllipsisModal::HEAD;
-    ret = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ellipsisMode), &index);
+    ret = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ellipsisMode), &index);
     if (ret == ANI_OK) {
         ellipsisModal = static_cast<EllipsisModal>(index);
     }

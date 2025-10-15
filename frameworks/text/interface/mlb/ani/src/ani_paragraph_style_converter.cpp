@@ -38,10 +38,17 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
 
-    int maxLines;
-    if (AniTextUtils::ReadOptionalIntField(env, obj, "maxLines", maxLines) == ANI_OK) {
-        maxLines = maxLines < 0 ? 0 : maxLines;
-        paragraphStyle->maxLines = static_cast<size_t>(maxLines);
+    ani_ref ref = nullptr;
+    ret = AniTextUtils::ReadOptionalField(env, obj, "maxLines", ref);
+    if (ret == ANI_OK && ref != nullptr) {
+        int maxLines = 0;
+        ret = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "toInt", ":i", &maxLines);
+        if (ret == ANI_OK) {
+            maxLines = maxLines < 0 ? 0 : maxLines;
+            paragraphStyle->maxLines = static_cast<size_t>(maxLines);
+        } else {
+            TEXT_LOGE("Failed to get maxLines, ret %{public}d", ret);
+        }
     }
 
     ani_ref textStyleRef = nullptr;
