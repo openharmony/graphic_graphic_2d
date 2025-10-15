@@ -57,7 +57,7 @@ private:
     sptr<OHOS::Surface> producerSurface_ = nullptr;
     std::queue<std::unique_ptr<FrameBufferEntry>> availableBuffers_;
 
-    static constexpr uint32_t MAX_BUFFER_SIZE = 4;
+    static constexpr uint32_t MAX_BUFFER_SIZE = 3;
 
     HdiFramebufferSurface();
     virtual ~HdiFramebufferSurface() noexcept;
