@@ -160,7 +160,7 @@ ani_object AniFontCollection::GetLocalInstance(ani_env* env, ani_class cls)
     ani_status ret = env->Object_CallMethodByName_Void(
         obj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to create ani font collection obj");
+        TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
         delete aniFontCollection;
         return nullptr;
     }
@@ -182,7 +182,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
 
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, aniFontCollection->fontCollection_)) {
-        TEXT_LOGE("Failed to check local instance");
+        TEXT_LOGE("Failed to check local instance, familyName %{public}s", familyName.c_str());
         return;
     }
 
@@ -244,7 +244,7 @@ void AniFontCollection::UnloadFontSync(ani_env* env, ani_object obj, ani_string 
     }
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, aniFontCollection->fontCollection_)) {
-        TEXT_LOGE("Failed to check local instance");
+        TEXT_LOGE("Failed to check local instance, familyName %{public}s", familyName.c_str());
         return;
     }
 
