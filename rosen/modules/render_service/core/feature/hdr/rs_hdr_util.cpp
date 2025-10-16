@@ -570,10 +570,12 @@ GSError RSHdrUtil::EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFra
     auto ret = buffer->EraseMetadataKey(ATTRKEY_HDR_STATIC_METADATA);
     if (ret != GSERROR_OK) {
         RS_LOGD("RSHdrUtil::EraseHDRMetadataKey ATTRKEY_HDR_STATIC_METADATA ret = %{public}d", ret);
+        return ret;
     }
     ret = buffer->EraseMetadataKey(ATTRKEY_HDR_DYNAMIC_METADATA);
     if (ret != GSERROR_OK) {
         RS_LOGD("RSHdrUtil::EraseHDRMetadataKey ATTRKEY_HDR_DYNAMIC_METADATA ret = %{public}d", ret);
+        return ret;
     }
     return ret;
 }
