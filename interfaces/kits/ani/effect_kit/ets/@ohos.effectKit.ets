@@ -254,9 +254,9 @@ namespace effectKit {
         taskpool.execute((): image.PixelMap => {
           let pixelMap = this.getEffectPixelMapNative();
           return pixelMap;
-        }).then((ret: NullishType) => {
+        }).then((ret: Any) => {
           resolve(ret as image.PixelMap);
-        }).catch((err: NullishType) => {
+        }).catch((err: Any) => {
           reject(err as BusinessError);
         });
       });
@@ -324,9 +324,9 @@ namespace effectKit {
         taskpool.execute((): Color => {
           let color = this.getMainColorSync();
           return color;
-        }).then((ret: NullishType) => {
+        }).then((ret: Any) => {
           resolve(ret as Color);
-        }).catch((err: NullishType) => {
+        }).catch((err: Any) => {
           reject(err as BusinessError);
         });
       });
@@ -365,7 +365,7 @@ namespace effectKit {
       let cb = (): ColorPicker => {
         return createColorPickerNormal(source)
       };
-      taskpool.execute(cb).then((ret: NullishType): void => {
+      taskpool.execute(cb).then((ret: Any): void => {
         if (ret === null || ret === undefined) {
           let ret1: BusinessError<string> = {
             code: -1,
@@ -378,7 +378,7 @@ namespace effectKit {
           let colorpicker = ret as ColorPicker;
           resolve(colorpicker);
         }
-      }).catch((err: NullishType) => {
+      }).catch((err: Any) => {
         reject(err as BusinessError<string>);   
       });
     });
@@ -387,7 +387,7 @@ namespace effectKit {
   export function createColorPicker(source: image.PixelMap, region: Array<double>): Promise<ColorPicker> {
     return new Promise<ColorPicker>((resolve : (v: ColorPicker) => void, reject: RejectString) => {
       let cb = (): ColorPicker => { return createColorPickerWithRegion(source, region) };
-      taskpool.execute(cb).then((ret: NullishType): void => {
+      taskpool.execute(cb).then((ret: Any): void => {
         if (ret === null || ret === undefined) {
           let ret1: BusinessError<string> = {
             code: -1,
@@ -400,7 +400,7 @@ namespace effectKit {
           let colorpicker = ret as ColorPicker;
           resolve(colorpicker);
         }
-      }).catch((err: NullishType) => {
+      }).catch((err: Any) => {
         reject(err as BusinessError<string>);
       });
     });
