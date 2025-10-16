@@ -13,12 +13,6 @@
  * limitations under the License.
  */
 
-#ifdef ROSEN_OHOS
-#include <linux/dma-buf.h>
-#include <parameters.h>
-#include <sys/ioctl.h>
-#endif
-
 #include <thread>
 
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
@@ -27,6 +21,12 @@
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_pixel_map_util.h"
 #include "rs_trace.h"
+
+#ifdef ROSEN_OHOS
+#include <linux/dma-buf.h>
+#include <parameters.h>
+#include <sys/ioctl.h>
+#endif
 
 #ifdef RES_BASE_SCHED_ENABLE
 #include "qos.h"
@@ -464,7 +464,7 @@ Drawing::ColorType DetailEnhancerUtils::GetColorTypeWithVKFormat(VkFormat vkForm
 
 bool DetailEnhancerUtils::SetMemoryName(sptr<SurfaceBuffer>& buffer)
 {
-    static std::string MemoryName = "hpae_memory_asyncscaling";
+    static std::string MemoryName = "asynscaling_hpae_memory";
     if (buffer == nullptr) {
         RS_LOGE("DetailEnhancerUtils SetMemoryName failed, buffer is invalid!");
         return false;
