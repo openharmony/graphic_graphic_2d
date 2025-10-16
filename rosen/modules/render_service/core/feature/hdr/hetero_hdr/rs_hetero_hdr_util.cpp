@@ -46,10 +46,10 @@ void RSHeteroHDRUtil::GenDrawHDRBufferParams(const DrawableV2::RSSurfaceRenderNo
     if (!isFixedDstBuffer) {
         auto layerSrc = surfaceParams->GetLayerInfo().srcRect;
         Drawing::Matrix matrixLoc;
-        auto sx = static_cast<float>(layerSrc.w) / static_cast<float>(hpaeDstRect.right);
-        auto sy = static_cast<float>(layerSrc.h) / static_cast<float>(hpaeDstRect.bottom);
-        auto tx = static_cast<float>(layerSrc.x);
-        auto ty = static_cast<float>(layerSrc.y);
+        float sx = static_cast<float>(layerSrc.w) / static_cast<float>(hpaeDstRect.right);
+        float sy = static_cast<float>(layerSrc.h) / static_cast<float>(hpaeDstRect.bottom);
+        float tx = static_cast<float>(layerSrc.x);
+        float ty = static_cast<float>(layerSrc.y);
         matrixLoc.SetScaleTranslate(sx, sy, tx, ty);
         localParam.matrix = drawableParams.matrix;
         localParam.matrix.PreConcat(matrixLoc);
