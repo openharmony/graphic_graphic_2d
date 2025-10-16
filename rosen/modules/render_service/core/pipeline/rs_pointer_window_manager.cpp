@@ -54,6 +54,7 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
             isNeedForceCommitByPointer_ = true;
         } else {
             isNeedForceCommitByPointer_ = false;
+            // YYT
         }
     }
 }
