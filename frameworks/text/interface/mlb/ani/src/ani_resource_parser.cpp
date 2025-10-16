@@ -16,54 +16,32 @@
 #include "ani_resource_parser.h"
 
 #include "ability.h"
+#include "ani.h"
+#include "ani_common.h"
 #include "ani_text_utils.h"
 
 namespace OHOS::Text::ANI {
 namespace {
 constexpr int32_t RESOURCE_STRING = 10003;
 constexpr int32_t RESOURCE_RAWFILE = 30000;
-std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
-{
-    std::vector<std::string> result;
-
-    ani_size length;
-    ani_status ret = env->Array_GetLength(array, &length);
-    if (ret != ANI_OK) {
-        return result;
-    }
-    for (ani_size i = 0; i < length; i++) {
-        ani_ref aniString = nullptr;
-        ret = env->Array_Get(reinterpret_cast<ani_array>(array), i, &aniString);
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to get array element %{public}zu", i);
-            continue;
-        }
-        std::string utf8Str;
-        ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniString), utf8Str);
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to get str %{public}zu", i);
-            continue;
-        }
-        result.push_back(utf8Str);
-    }
-
-    return result;
-}
 } // namespace
 
 AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
 {
     AniResource result;
-    ani_double aniId = 0;
+    ani_long aniId = 0;
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
-    ani_ref aniParams = nullptr;
-    ani_double aniType = 0;
-    env->Object_GetPropertyByName_Double(obj, "id", &aniId);
+    ani_int aniType = 0;
+    env->Object_GetPropertyByName_Long(obj, "id", &aniId);
     env->Object_GetPropertyByName_Ref(obj, "bundleName", &aniBundleName);
     env->Object_GetPropertyByName_Ref(obj, "moduleName", &aniModuleName);
-    env->Object_GetPropertyByName_Ref(obj, "params", &aniParams);
-    env->Object_GetPropertyByName_Double(obj, "type", &aniType);
+    AniTextUtils::ReadOptionalArrayField(env, obj, "params", result.params, [](ani_env* env, ani_ref ref) {
+        std::string utf8Str;
+        AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
+        return utf8Str;
+    });
+    AniTextUtils::ReadOptionalIntField(env, obj, "type", aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
@@ -72,9 +50,6 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     }
     if (aniModuleName != nullptr) {
         AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniModuleName), result.moduleName);
-    }
-    if (aniParams != nullptr) {
-        result.params = AniToStdVectorString(env, reinterpret_cast<ani_array>(aniParams));
     }
 
     return result;

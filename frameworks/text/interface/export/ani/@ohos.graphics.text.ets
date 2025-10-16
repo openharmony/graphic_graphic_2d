@@ -27,11 +27,11 @@ const TEXT_LOG_DOMAIN = 0xD001408;
 const TEXT_LOG_TAG = "Text";
 
 namespace text {
-  loadLibrary('text_engine_ani.z');
+  loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
   const ERROR_INVALID_PARAM = 401;
 
   class Cleaner {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     private ptr: long = 0;
     private className: string;
     constructor(className: string, ptr: long) {
@@ -47,7 +47,7 @@ namespace text {
   let unregisterToken = new object();
 
   export class FontCollection {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
 
@@ -103,7 +103,7 @@ namespace text {
   }
 
   export class ParagraphBuilder {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     constructor(paragraphStyle: ParagraphStyle, fontCollection: FontCollection) {
@@ -148,7 +148,7 @@ namespace text {
   }
 
   export class Paragraph {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -674,7 +674,7 @@ namespace text {
   type CaretOffsetsCallback = (offset: int, index: int, leadingEdge: boolean) => boolean;
 
   export class TextLine {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -720,7 +720,7 @@ namespace text {
   }
 
   export class Run {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -743,6 +743,10 @@ namespace text {
     native getFont(): drawing.Font;
     native paint(canvas: drawing.Canvas, x: double, y: double): void;
     native getStringIndices(range?: Range): Array<int> | undefined;
+    getStringIndices(): Array<int> | undefined {
+      let range: Range = { start: 0, end: 0};
+      return this.getStringIndices(range);
+    }
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
@@ -789,7 +793,7 @@ namespace text {
   }
 
   export class LineTypeset {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
