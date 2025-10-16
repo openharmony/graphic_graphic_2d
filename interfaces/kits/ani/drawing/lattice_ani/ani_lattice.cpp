@@ -26,7 +26,7 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
         ROSEN_LOGE("AniLattice::CreateImageLattice dividers are invalid");
         return false;
     }
-    uint32_t dividersSize = aniLength;
+    uint32_t dividersSize = static_cast<uint32_t>(aniLength);
 
     if (dividersSize != count || dividersSize > 5) { // 5 is max value, the api limit max size
         ROSEN_LOGE("AniLattice::CreateImageLattice dividers are invalid");
@@ -62,7 +62,7 @@ bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count
         ROSEN_LOGE("AniLattice::CreateImageLattice rectTypes are invalid");
         return false;
     }
-    uint32_t rectTypesSize = aniLength;
+    uint32_t rectTypesSize = static_cast<uint32_t>(aniLength);
 
     if ((rectTypesSize != 0 && rectTypesSize != count) || rectTypesSize > 36) { // 36: max value, limit max size
         ROSEN_LOGE("AniLattice::CreateImageLattice rectTypes are invalid");
@@ -96,7 +96,7 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
         ROSEN_LOGE("AniLattice::CreateImageLattice colors are invalid");
         return false;
     }
-    uint32_t colorsSize = aniLength;
+    uint32_t colorsSize = static_cast<uint32_t>(aniLength);
 
     if ((colorsSize != 0 && colorsSize != count) || colorsSize > 36) { // 36: max value
         ROSEN_LOGE("AniLattice::CreateImageLattice colors are invalid");

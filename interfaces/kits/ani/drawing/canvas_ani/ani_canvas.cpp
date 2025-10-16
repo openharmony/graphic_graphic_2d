@@ -509,7 +509,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         return;
     }
 
-    uint32_t verticesSize = aniLength;
+    uint32_t verticesSize = static_cast<uint32_t>(aniLength);
     int64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("AniCanvas::DrawPixelMapMesh vertices are invalid");
