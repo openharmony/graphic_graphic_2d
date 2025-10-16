@@ -1103,7 +1103,7 @@ int32_t RSJankStats::GetTraceIdInit(const DataBaseRs& info, int64_t setTimeStead
     }
     traceIdRemainder_[info.uniqueId].setTimeSteady_ = setTimeSteady;
     int64_t mappedUniqueId = info.uniqueId * TRACE_ID_SCALE_PARAM + (traceIdRemainder_[info.uniqueId].remainder_++);
-    int32_t traceId = static_cast<int32_t>(mappedUniqueId);
+    int32_t traceId = static_cast<int32_t>(abs(mappedUniqueId) % INT32_MAX);
     return traceId;
 }
 
