@@ -15,8 +15,19 @@
 
 #include "text/typeface.h"
 
+#ifdef ENABLE_OHOS_ENHANCE
+#include "ashmem.h"
+#endif
+#include "static_factory.h"
+
 #include "impl_interface/typeface_impl.h"
 #include "static_factory.h"
+
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -57,6 +68,63 @@ std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream>
     const FontArguments& fontArguments)
 {
     return StaticFactory::MakeFromStream(std::move(memoryStream), fontArguments);
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    auto ashmem = std::make_unique<Ashmem>(fd, size);
+    bool mapResult = ashmem->MapReadOnlyAshmem();
+    const void* ptr = ashmem->ReadFromAshmem(size, 0);
+    if (!mapResult || ptr == nullptr) {
+        return nullptr;
+    }
+    auto stream = std::make_unique<MemoryStream>(
+        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    auto tf = Typeface::MakeFromStream(std::move(stream));
+    if (tf == nullptr) {
+        return nullptr;
+    }
+    tf->SetFd(fd);
+    if (hash == 0) {
+        hash = CalculateHash(reinterpret_cast<const uint8_t*>(ptr), size);
+    }
+    tf->SetHash(hash);
+    tf->SetSize(size);
+    return tf;
+#else
+    return nullptr;
+#endif
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
+    const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    int32_t fd = OHOS::AshmemCreate(name.c_str(), size);
+    auto ashmem = std::make_unique<Ashmem>(fd, size);
+    bool mapResult = ashmem->MapReadAndWriteAshmem();
+    bool writeResult = ashmem->WriteToAshmem(data, size, 0);
+    const void* ptr = ashmem->ReadFromAshmem(size, 0);
+    if (!mapResult || !writeResult || ptr == nullptr) {
+        return nullptr;
+    }
+    auto stream = std::make_unique<MemoryStream>(
+        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    auto tf = Typeface::MakeFromStream(std::move(stream));
+    if (tf == nullptr) {
+        return nullptr;
+    }
+    tf->SetFd(fd);
+    if (hash == 0) {
+        hash = CalculateHash(data, size);
+    }
+    tf->SetHash(hash);
+    tf->SetSize(size);
+    return tf;
+#else
+    return nullptr;
+#endif
 }
 
 std::shared_ptr<Typeface> Typeface::MakeFromName(const char familyName[], FontStyle fontStyle)
@@ -166,13 +234,13 @@ std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)
     return typeface;
 }
 
-std::function<bool(std::shared_ptr<Typeface>)> Typeface::registerTypefaceCallBack_ = nullptr;
-void Typeface::RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func)
+TypefaceRegisterCallback Typeface::registerTypefaceCallBack_ = nullptr;
+void Typeface::RegisterCallBackFunc(TypefaceRegisterCallback func)
 {
     registerTypefaceCallBack_ = func;
 }
 
-std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceRegisterCallBack()
+TypefaceRegisterCallback& Typeface::GetTypefaceRegisterCallBack()
 {
     return registerTypefaceCallBack_;
 }
@@ -222,6 +290,73 @@ uint32_t Typeface::GetSize()
 void Typeface::SetSize(uint32_t size)
 {
     size_ = size;
+}
+
+void Typeface::SetFd(int32_t fd)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetFd(fd);
+    }
+}
+
+int32_t Typeface::GetFd() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetFd();
+    }
+    return -1;
+}
+
+void Typeface::UpdateStream(std::unique_ptr<MemoryStream> stream)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->UpdateStream(std::move(stream));
+    }
+}
+
+// Opentype font table constants
+constexpr size_t MIN_HEADER_LEN = 6;            // first four bytes tell the type, two subsequent bytes toc size
+constexpr size_t TABLE_COUNT = 4;               // Tables count is defined in fourth and fifth bytes
+constexpr size_t STATIC_HEADER_LEN = 12;        // tables are listed after 12 bytes
+constexpr size_t TABLE_ENTRY_LEN = 16;          // table entry contains 16 bytes of data
+constexpr size_t COLLECTION_HEADER_LEN = 16;    // font collection header contains minimum 16 bytes of data
+constexpr size_t NUM_FONTS_SHIFT = 8;           // eight bytes from header begin
+constexpr size_t COLLECTION_TABLE_OFFSET = 12;  // tables are listed after 12 bytes
+// bit shift, read data as bytes to avoid possible endianess problems
+constexpr size_t ONE_BYTE_SHIFT = 8;            // one byte requires 8 bit shift
+
+template<typename T>
+T read(const uint8_t* data, size_t size = sizeof(T))
+{
+    T result = 0;
+    for (auto ii = size; ii > 0; ii--) {
+        result += (data[size - ii] << ((ii - 1) * ONE_BYTE_SHIFT));
+    }
+    return result;
+}
+
+uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen)
+{
+    uint32_t hash = 0;
+    size_t extraOffset = 0;
+    if (datalen >= MIN_HEADER_LEN) {
+        // if the font data points to font collection instead single font
+        if (datalen > COLLECTION_HEADER_LEN && strncmp(reinterpret_cast<const char*>(data), "ttfc", 4) == 0) {
+            if (read<uint32_t>(data + NUM_FONTS_SHIFT) > 0) {
+                extraOffset = read<uint32_t>(data + COLLECTION_TABLE_OFFSET);
+            } else {
+                return hash;
+            }
+        }
+        size_t size =
+            extraOffset + STATIC_HEADER_LEN + TABLE_ENTRY_LEN * read<uint16_t>(data + extraOffset + TABLE_COUNT);
+#ifdef USE_M133_SKIA
+        hash ^= SkChecksum::Hash32(data, size, datalen);
+#else
+        hash ^= SkOpts::hash(data, size, datalen);
+#endif
+    }
+    return hash;
 }
 } // namespace Drawing
 } // namespace Rosen

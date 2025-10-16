@@ -18,28 +18,6 @@
 #include <mutex>
 #include <unistd.h>
 
-namespace {
-#ifdef _WIN32
-#include <windows.h>
-#endif
-pid_t GetRealPid()
-{
-#ifdef _WIN32
-    return GetCurrentProcessId();
-#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__) || defined(CROSS_PLATFORM)
-    return getpid();
-#else
-    return getprocpid();
-#endif
-}
-
-uint64_t GenGlobalUniqueId(uint32_t id)
-{
-    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsigned number shift
-    return (shiftedPid | id);
-}
-}
-
 namespace OHOS::Rosen {
 TypefaceMap& TypefaceMap::GetInstance()
 {
@@ -47,10 +25,10 @@ TypefaceMap& TypefaceMap::GetInstance()
     return instance;
 }
 
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByUniqueId(uint64_t uniqueId)
+std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypeface(uint32_t id)
 {
     std::unique_lock guard(GetInstance().mutex_);
-    auto iter = GetInstance().typefaceMap_.find(uniqueId);
+    auto iter = GetInstance().typefaceMap_.find(id);
     if (iter != GetInstance().typefaceMap_.end()) {
         if (auto tf = iter->second.lock()) {
             return tf;
@@ -61,12 +39,12 @@ std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByUniqueId(uint64_t u
     return nullptr;
 }
 
-void TypefaceMap::InsertTypeface(uint32_t uniqueId, const std::shared_ptr<Drawing::Typeface>& tf)
+void TypefaceMap::InsertTypeface(uint32_t hash, const std::shared_ptr<Drawing::Typeface>& tf)
 {
     if (tf == nullptr) {
         return;
     }
     std::unique_lock guard(GetInstance().mutex_);
-    GetInstance().typefaceMap_.emplace(GenGlobalUniqueId(uniqueId), tf);
+    GetInstance().typefaceMap_.insert_or_assign(hash, tf);
 }
 } // namespace OHOS::Rosen

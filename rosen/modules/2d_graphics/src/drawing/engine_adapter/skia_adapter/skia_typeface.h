@@ -71,6 +71,9 @@ public:
     uint32_t GetHash() const override;
     /** store hash, storing a zero causes recalculating a hash when asked */
     void SetHash(uint32_t hash) override;
+    int32_t GetFd() const override;
+    void SetFd(int32_t fd) override;
+    void UpdateStream(std::unique_ptr<MemoryStream> stream) override;
 
 private:
     SkiaTypeface() = default;

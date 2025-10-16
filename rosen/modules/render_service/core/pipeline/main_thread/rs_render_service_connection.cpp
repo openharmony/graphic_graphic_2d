@@ -2636,6 +2636,24 @@ bool RSRenderServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     return true;
 }
 
+int32_t RSRenderServiceConnection::RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate)
+{
+    auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(id);
+    if (tf != nullptr) {
+        ::close(fd);
+        needUpdate = 1;
+        return tf->GetFd();
+    }
+    needUpdate = 0;
+    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id));
+    if (tf != nullptr) {
+        RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
+        return tf->GetFd();
+    }
+    RS_LOGE("RegisterTypeface: failed to register typeface");
+    return -1;
+}
+
 bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 {
     RS_LOGW("uneg typeface: pid[%{public}d], uniqueid:%{public}u",
@@ -2649,6 +2667,7 @@ bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
         auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
         if (context) {
             context->FreeCpuCache(uniqueId);
+            context->PurgeUnlockAndSafeCacheGpuResources();
         }
     };
     RSUniRenderThread::Instance().PostTask(task);

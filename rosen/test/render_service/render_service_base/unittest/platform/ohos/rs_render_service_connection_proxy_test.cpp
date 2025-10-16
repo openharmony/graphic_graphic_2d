@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include "feature/capture/rs_ui_capture.h"
+#include "file_ex.h"
 #include "platform/ohos/rs_render_service_connection_proxy.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "command/rs_animation_command.h"
@@ -1134,6 +1135,27 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, UnRegisterTypeface, TestSize.Level1
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     EXPECT_FALSE(proxy->RegisterTypeface(1, typeface));
     ASSERT_TRUE(proxy->UnRegisterTypeface(1));
+}
+
+/**
+ * @tc.name: RegisterSharedTypeface Test
+ * @tc.desc: RegisterSharedTypeface Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    int32_t needUpdate;
+    pid_t pid = getpid();
+    uint64_t id = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+    EXPECT_TRUE(proxy->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate));
+    EXPECT_EQ(needUpdate, 0);
+    EXPECT_TRUE(proxy->UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**

@@ -14,6 +14,7 @@
  */
 
 #include <memory>
+#include "file_ex.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
@@ -361,6 +362,31 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest001, TestSize.Level1
     EXPECT_TRUE(rsRenderServiceConnection->RegisterTypeface(uniqueId, tf));
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(uniqueId));
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(0));
+}
+
+/**
+ * @tc.name: RegisterTypefaceTest002
+ * @tc.desc: test register shared typeface and unregister shared typeface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection =
+        new RSRenderServiceConnection(0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    int32_t needUpdate;
+    pid_t pid = getpid();
+    uint64_t id = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+    EXPECT_NE(rsRenderServiceConnection->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate), -1);
+    EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**

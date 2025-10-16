@@ -29,6 +29,7 @@
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
+#include "utils/typeface_map.h"
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -543,23 +544,29 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
     }
 }
 
-bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 {
+    if (tf == nullptr) {
+        return -1;
+    }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        bool result = renderServiceClient_->RegisterTypeface(typeface);
-        if (result) {
-            RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
-                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-        } else {
-            RS_LOGE("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
-                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+        if (tf->GetFd() == -1) {
+            RS_LOGI("RSInterfaces: Register typeface without share memory, name: %{public}s hash: %{public}u",
+                tf->GetFamilyName().c_str(), tf->GetHash());
+            return renderServiceClient_->RegisterTypeface(tf);
         }
-        return result;
+        RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
+            tf->GetFamilyName().c_str(), tf->GetHash());
+        return renderServiceClient_->RegisterTypeface(tf->GetHash(), tf->GetSize(), tf->GetFd());
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
-        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-    return true;
+        tf->GetFamilyName().c_str(), tf->GetUniqueID());
+    if (tf->GetFd() == -1) {
+        TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+        return true;
+    }
+    return tf->GetFd();
 }
 
 bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)

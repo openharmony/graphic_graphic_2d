@@ -155,6 +155,32 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
     return new Typeface(typefaceImpl);
 }
 
+bool SkiaFontMgr::LoadDynamicFont(const std::string& familyName, std::shared_ptr<Typeface> tf)
+{
+    auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
+    if (dynamicFontMgr == nullptr || tf == nullptr) {
+        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        return false;
+    }
+    auto skiaTypeface = tf->GetImpl<SkiaTypeface>();
+    if (skiaTypeface == nullptr) {
+        return false;
+    }
+    auto typeface = skiaTypeface->GetTypeface();
+    if (!CheckDynamicFontValid(familyName, typeface)) {
+        return false;
+    }
+    if (typeface != nullptr) {
+        typeface->setIsCustomTypeface(true);
+    }
+    if (familyName.empty()) {
+        dynamicFontMgr->font_provider().RegisterTypeface(typeface);
+    } else {
+        dynamicFontMgr->font_provider().RegisterTypeface(typeface, familyName);
+    }
+    return true;
+}
+
 void SkiaFontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Typeface> typeface)
 {
     if (typeface == nullptr) {

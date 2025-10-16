@@ -1451,11 +1451,11 @@ bool DoGetScreenType002(const uint8_t *data, size_t size)
     client->GetBitmap(nodeId, bm);
     client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     client->RegisterTypeface(typeface);
+    client->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
     if (typeface) {
         client->UnRegisterTypeface(typeface->GetUniqueID());
-    } else {
-        client->UnRegisterTypeface(GetData<uint32_t>());
     }
+    client->UnRegisterTypeface(GetData<uint32_t>());
     client->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
     client->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     return true;

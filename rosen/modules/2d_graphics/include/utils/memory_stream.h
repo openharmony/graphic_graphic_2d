@@ -19,6 +19,7 @@
 #include <memory>
 #include <cstdint>
 
+#include "data.h"
 #include "impl_interface/memory_stream_impl.h"
 #include "utils/drawing_macros.h"
 
@@ -29,6 +30,7 @@ class DRAWING_API MemoryStream {
 public:
     MemoryStream();
     MemoryStream(const void* data, size_t length, bool copyData = false);
+    MemoryStream(const void* data, size_t length, DataReleaseProc proc, void* ctx);
     virtual ~MemoryStream() = default;
 
     template<typename T>

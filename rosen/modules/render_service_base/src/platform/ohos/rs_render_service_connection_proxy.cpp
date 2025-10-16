@@ -3479,6 +3479,43 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        RS_LOGE("RegisterTypeface: WriteInterfaceToken GetDescriptor err.");
+        return -1;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        RS_LOGE("RegisterTypeface: WriteUint64 id err.");
+        return -1;
+    }
+    if (!data.WriteUint32(size)) {
+        RS_LOGE("RegisterTypeface: WriteUint32 size err.");
+        return -1;
+    }
+    if (!data.WriteFileDescriptor(fd)) {
+        RS_LOGE("RegisterTypeface: WriteFileDescriptor fd err.");
+        return -1;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("RSRenderServiceConnectionProxy::RegisterTypeface: send request failed");
+        return -1;
+    }
+
+    if (reply.ReadInt32(needUpdate) && needUpdate == 0) {
+        return fd;
+    }
+    int32_t result = reply.ReadFileDescriptor();
+    return result;
+}
+
 bool RSRenderServiceConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueId)
 {
     MessageParcel data;

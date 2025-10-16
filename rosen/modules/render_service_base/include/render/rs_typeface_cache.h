@@ -45,6 +45,8 @@ public:
     bool HasTypeface(uint64_t globalUniqueId, uint32_t hash);
     void CacheDrawingTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface> typeface);
     std::shared_ptr<Drawing::Typeface> GetDrawingTypefaceCache(uint64_t globalUniqueId) const;
+    std::shared_ptr<Drawing::Typeface> GetDrawingTypefaceCacheByHash(uint64_t globalId) const;
+    std::shared_ptr<Drawing::Typeface> UpdateDrawingTypefaceRef(uint64_t globalId);
     void RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqueId);
     void RemoveDrawingTypefacesByPid(pid_t pid);
     void AddDelayDestroyQueue(uint64_t globalUniqueId);

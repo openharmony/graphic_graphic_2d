@@ -17,28 +17,6 @@
 
 #include "utils/typeface_map.h"
 
-namespace {
-#ifdef _WIN32
-#include <windows.h>
-#endif
-pid_t GetRealPid()
-{
-#ifdef _WIN32
-    return GetCurrentProcessId();
-#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__)
-    return getpid();
-#else
-    return getprocpid();
-#endif
-}
-
-uint64_t GenGlobalUniqueId(uint32_t id)
-{
-    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsigned number shift
-    return (shiftedPid | id);
-}
-} // namespace
-
 using namespace testing;
 using namespace testing::ext;
 
@@ -59,12 +37,14 @@ HWTEST_F(TypefaceMapTest, TypefaceMapTest001, TestSize.Level0)
     uint32_t uniqueId = typeface->GetUniqueID();
     instance.InsertTypeface(uniqueId, typeface);
     instance.InsertTypeface(uniqueId, nullptr);
-    auto result = instance.GetTypefaceByUniqueId(GenGlobalUniqueId(uniqueId));
-    ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result.get(), typeface.get());
+    {
+        auto result = instance.GetTypeface(uniqueId);
+        ASSERT_NE(result, nullptr);
+        EXPECT_EQ(result.get(), typeface.get());
+    }
     typeface.reset();
     EXPECT_EQ(instance.typefaceMap_.size(), 1);
-    EXPECT_EQ(instance.GetTypefaceByUniqueId(GenGlobalUniqueId(uniqueId)), nullptr);
+    EXPECT_EQ(instance.GetTypeface(uniqueId), nullptr);
     EXPECT_TRUE(instance.typefaceMap_.empty());
 }
 
