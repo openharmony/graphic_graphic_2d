@@ -493,6 +493,21 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
 #endif
 
 /**
+ * @tc.name: AddDirtyType
+ * @tc.desc: test results of AddDirtyType
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
+    node->outOfLimitCmdList_.emplace_back(drawCmdList);
+    EXPECT_FALSE(node->outOfLimitCmdList_.empty());
+    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(node->outOfLimitCmdList_.empty());
+}
+
+/**
  * @tc.name: ResetSurface
  * @tc.desc: test results of ResetSurface
  * @tc.type: FUNC
