@@ -5497,7 +5497,15 @@ HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodes, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    auto& context = mainThread->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0);
+    nodeMap.RegisterRenderNode(node);
     mainThread->TraverseCanvasDrawingNodes();
+    ASSERT_FALSE(node->HasCachedOp());
+    node->cachedOpCount_ = 1;
+    mainThread->TraverseCanvasDrawingNodes();
+    ASSERT_TRUE(node->HasCachedOp());
 }
 
 /**
