@@ -699,4 +699,35 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: ReserveImageInfoTest
+ * @tc.desc: Verify function ReserveImageInfoTest
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, ReserveImageInfoTest, TestSize.Level1)
+{
+    // create imageCache
+    RSImageCache& imageCache = RSImageCache::Instance();
+
+    // create rsImage
+    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
+
+    //create extendImageObject
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo imageInfo;
+    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+
+    NodeId id = 1;
+    imageCache.ReserveImageInfo(nullptr, id, extendImageObject->weak_from_this());
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+
+    EXPECT_NE(rsImage, nullptr);
+    imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+}
+#endif
 } // namespace OHOS::Rosen
