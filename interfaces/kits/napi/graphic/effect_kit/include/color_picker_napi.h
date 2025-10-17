@@ -69,7 +69,13 @@ private:
     static napi_value DiscriminatePitureLightDegree(napi_env env, napi_callback_info info);
     static napi_value GetReverseColor(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
+    static napi_value GetTopProportionColorsAndPercentage(napi_env env, napi_callback_info info);
+    static napi_value ComplexityDegree(napi_env env, napi_callback_info info);
+    static napi_value ShadeDegree(napi_env env, napi_callback_info info);
     static ImageType ParserArgumentType(napi_env env, napi_value argv);
+
+    static napi_value ShadeDegreeInit(napi_env env);
+    static napi_value ComplexityDegreeInit(napi_env env);
 
     // napi var
     napi_env env_ = nullptr;

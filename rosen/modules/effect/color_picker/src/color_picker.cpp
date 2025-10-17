@@ -667,6 +667,70 @@ std::vector<ColorManager::Color> ColorPicker::GetTopProportionColors(uint32_t co
     return colors;
 };
 
+// Get colors' top proportion
+std::vector<double> ColorPicker::GetTopProportion(uint32_t colorsNum) const
+{
+    if (featureColors_.empty() || colorsNum == 0 || colorValLen_ == 0) {
+        return {};
+    }
+    std::vector<double> percentages;
+    uint32_t num = std::min(static_cast<uint32_t>(featureColors_.size()), colorsNum);
+    for (uint32_t i = 0; i < num; i++) {
+        double result = std::floor(static_cast<double>(featureColors_[i].second) / colorValLen_ * 10000) / 10000.f;
+        percentages.emplace_back(result);
+    }
+    return percentages;
+}
+
+double ColorPicker::CalcComplexity() const
+{
+    const double SCALED_WIDTH = 100.f;
+    const double SCALED_HEIGHT = 100.f;
+
+    return distinctColorCount_ / (SCALED_WIDTH * SCALED_HEIGHT);
+}
+
+uint32_t ColorPicker::ComplexityDegree(PictureComplexityDegree &degree) const
+{
+    if (featureColors_.empty()) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    uint32_t grayVariance = grayMsd_;
+    double complexity = CalcComplexity();
+    if (grayVariance >= VERY_FLOWERY_PICTURE_GRAY_VARIANCE_THRESHOLD ||
+            complexity >= VERY_FLOWERY_PICTURE_COMPLEXITY_THRESHOLD) {
+        degree = VERY_FLOWERY_PICTURE;
+    } else {
+        degree = (complexity > MODERATE_COMPLEXITY_PICTURE_COMPLEXITY_THRESHOLD) ?
+            MODERATE_COMPLEXITY_PICTURE : PURE_PICTURE;
+    }
+    
+    return SUCCESS;
+}
+
+uint32_t ColorPicker::ShadeDegree(PictureShadeDegree &degree) const
+{
+    if (featureColors_.empty()) {
+        return ERR_EFFECT_INVALID_VALUE;
+    }
+    double lightness = contrastToWhite_;
+    if (lightness < EXTREMELY_LIGHT_PICTURE_LIGHTNESS_THRESHOLD) {
+        degree = EXTREMELY_LIGHT_PICTURE;
+    } else if (lightness < VERY_LIGHT_PICTURE_LIGHTNESS_THRESHOLD) {
+        degree = VERY_LIGHT_PICTURE;
+    } else if (lightness < LIGHT_PICTURE_LIGHTNESS_THRESHOLD) {
+        degree = LIGHT_PICTURE;
+    } else if (lightness < MODERATE_SHADE_PICTURE_LIGHTNESS_THRESHOLD) {
+        degree = MODERATE_SHADE_PICTURE;
+    } else if (lightness < DARK_PICTURE_LIGHTNESS_THRESHOLD) {
+        degree = DARK_PICTURE;
+    } else {
+        degree = EXTREMELY_DARK_PICTURE;
+    }
+
+    return SUCCESS;
+}
+
 bool ColorPicker::IsEquals(double val1, double val2) const
 {
     // 0.001 is used for double number compare.

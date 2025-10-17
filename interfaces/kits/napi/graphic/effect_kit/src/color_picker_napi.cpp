@@ -32,6 +32,28 @@ namespace {
     constexpr double PROPORTION_COLORS_NUM_LIMIT = 10.0; // proportion colors limit num 10
 }
 
+namespace {
+    const std::map<std::string, OHOS::Rosen::PictureComplexityDegree> COMPLEXITY_DEGREE_TO_JS_MAP = {
+        { "UNKNOWN_COMPLEXITY_DEGREE_PICTURE",
+            OHOS::Rosen::PictureComplexityDegree::UNKNOWN_COMPLEXITY_DEGREE_PICTURE },
+        { "PURE_PICTURE", OHOS::Rosen::PictureComplexityDegree::PURE_PICTURE },
+        { "MODERATE_COMPLEXITY_PICTURE", OHOS::Rosen::PictureComplexityDegree::MODERATE_COMPLEXITY_PICTURE },
+        { "VERY_FLOWERY_PICTURE", OHOS::Rosen::PictureComplexityDegree::VERY_FLOWERY_PICTURE },
+    };
+}
+
+namespace {
+    const std::map<std::string, OHOS::Rosen::PictureShadeDegree> SHADE_DEGREE_TO_JS_MAP = {
+        { "UNKNOWN_SHADE_DEGREE_PICTURE", OHOS::Rosen::PictureShadeDegree::UNKNOWN_SHADE_DEGREE_PICTURE },
+        { "EXTREMELY_LIGHT_PICTURE", OHOS::Rosen::PictureShadeDegree::EXTREMELY_LIGHT_PICTURE },
+        { "VERY_LIGHT_PICTURE", OHOS::Rosen::PictureShadeDegree::VERY_LIGHT_PICTURE },
+        { "LIGHT_PICTURE", OHOS::Rosen::PictureShadeDegree::LIGHT_PICTURE },
+        { "MODERATE_SHADE_PICTURE", OHOS::Rosen::PictureShadeDegree::MODERATE_SHADE_PICTURE },
+        { "DARK_PICTURE", OHOS::Rosen::PictureShadeDegree::DARK_PICTURE },
+        { "EXTREMELY_DARK_PICTURE", OHOS::Rosen::PictureShadeDegree::EXTREMELY_DARK_PICTURE },
+    };
+}
+
 namespace OHOS {
 namespace Rosen {
 static const std::string CLASS_NAME = "ColorPicker";
@@ -130,8 +152,11 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getImmersiveBackgroundColor", GetImmersiveBackgroundColor),
         DECLARE_NAPI_FUNCTION("getImmersiveForegroundColor", GetImmersiveForegroundColor),
         DECLARE_NAPI_FUNCTION("discriminatePitureLightDegree", DiscriminatePitureLightDegree),
+        DECLARE_NAPI_FUNCTION("ComplexityDegree", ComplexityDegree),
+        DECLARE_NAPI_FUNCTION("ShadeDegree", ShadeDegree),
         DECLARE_NAPI_FUNCTION("getReverseColor", GetReverseColor),
         DECLARE_NAPI_FUNCTION("getTopProportionColors", GetTopProportionColors),
+        DECLARE_NAPI_FUNCTION("getTopProportionColorsAndPercentage", GetTopProportionColorsAndPercentage),
     };
 
     napi_property_descriptor static_prop[] = {
@@ -140,11 +165,8 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
 
     napi_value constructor = nullptr;
 
-    napi_status status = napi_define_class(env, CLASS_NAME.c_str(),
-                                           NAPI_AUTO_LENGTH, Constructor,
-                                           nullptr,
-                                           EFFECT_ARRAY_SIZE(props), props,
-                                           &constructor);
+    napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
+        EFFECT_ARRAY_SIZE(props), props, &constructor);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("ColorPickerNapi Init define class fail"));
 
     status = napi_create_reference(env, constructor, 1, &sConstructor_);
@@ -163,6 +185,14 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
 
     status = napi_define_properties(env, exports, EFFECT_ARRAY_SIZE(static_prop), static_prop);
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("ColorPickerNapi Init define properties fail"));
+
+    auto complexityDegreeFormat = ComplexityDegreeInit(env);
+    status = napi_set_named_property(env, exports, "PictureComplexityDegree", complexityDegreeFormat);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("ColorPickerNapi Init set ComplexityDegree fail"));
+
+    auto shadeDegreeFormat = ShadeDegreeInit(env);
+    status = napi_set_named_property(env, exports, "PictureShadeDegree", shadeDegreeFormat);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("ColorPickerNapi Init set ShadeDegree fail"));
 
     EFFECT_LOG_I("Init success");
     return exports;
@@ -220,6 +250,47 @@ napi_value ColorPickerNapi::CreateColorPickerFromPtr(napi_env env, std::shared_p
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, pColorPickerNapi,
         EFFECT_LOG_E("ColorPickerNapi CreateColorPickerFromPtr wrap fail"));
     return objValue;
+}
+
+napi_value ColorPickerNapi::ShadeDegreeInit(napi_env env)
+{
+    EFFECT_NAPI_CHECK_RET_D(env != nullptr, nullptr, EFFECT_LOG_E("ColorPickerNapi ShadeDegreeInit env is nullptr"));
+    napi_value object = nullptr;
+    napi_status status = napi_create_object(env, &object);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ShadeDegreeInit fail to get object"));
+
+    for (auto& [ShadeDegreeName, shade_degree] : SHADE_DEGREE_TO_JS_MAP) {
+        napi_value value = nullptr;
+        status = napi_create_int32(env, static_cast<int32_t>(shade_degree), &value);
+        EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            EFFECT_LOG_E("ColorPickerNapi ShadeDegreeInit fail to create int32"));
+        status = napi_set_named_property(env, object, ShadeDegreeName.c_str(), value);
+        EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            EFFECT_LOG_E("ColorPickerNapi ShadeDegreeInit fail to set ShadeDegreeName"));
+    }
+    return object;
+}
+
+napi_value ColorPickerNapi::ComplexityDegreeInit(napi_env env)
+{
+    EFFECT_NAPI_CHECK_RET_D(env != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ComplexityDegreeInit env is nullptr"));
+    napi_value object = nullptr;
+    napi_status status = napi_create_object(env, &object);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ComplexityDegreeInit fail to get object"));
+
+    for (auto& [ComplexityDegreeName, complexity_degree] : COMPLEXITY_DEGREE_TO_JS_MAP) {
+        napi_value value = nullptr;
+        status = napi_create_int32(env, static_cast<int32_t>(complexity_degree), &value);
+        EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            EFFECT_LOG_E("ColorPickerNapi ComplexityDegreeInit fail to create int32"));
+        status = napi_set_named_property(env, object, ComplexityDegreeName.c_str(), value);
+        EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            EFFECT_LOG_E("ColorPickerNapi ComplexityDegreeInit fail to set ComplexityDegreeName"));
+    }
+    return object;
 }
 
 static void CreateColorPickerFromPixelMapExecute(napi_env env, void* data)
@@ -950,6 +1021,113 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
         napi_set_element(env, arrayValue, i, colorValue);
     }
     return arrayValue;
+}
+
+napi_value ColorPickerNapi::GetTopProportionColorsAndPercentage(napi_env env, napi_callback_info info)
+{
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    EFFECT_JS_ARGS(env, info, status, realArgc, argValue, thisVar);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors parsing input fail"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisColorPicker != nullptr &&
+        thisColorPicker->nativeColorPicker_ != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors unwrap native ColorPicker fail"));
+ 
+    unsigned int colorsNum = 0;
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
+        double number = 0;
+        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok) {
+            colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
+        }
+    }
+
+    std::vector<double> percentage = thisColorPicker->nativeColorPicker_->GetTopProportion(colorsNum);
+    std::vector<ColorManager::Color> colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
+    napi_value mapNapiValue {nullptr};
+    status = napi_create_map(env, &mapNapiValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && mapNapiValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportion create map fail"));
+    for (uint32_t i = 0; i < std::max(1u, static_cast<uint32_t>(percentage.size())); ++i) {
+        napi_value colorValue = i >= colors.size() ?  nullptr : BuildJsColor(env, colors[i]);
+        napi_value percentageValue = nullptr;
+        if (i < percentage.size()) {
+            napi_create_double(env, percentage[i], &percentageValue);
+        }
+        napi_map_set_property(env, mapNapiValue, colorValue, percentageValue);
+    }
+    return mapNapiValue;
+}
+
+napi_value ColorPickerNapi::ComplexityDegree(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ComplexityDegree parsing input fail"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisColorPicker != nullptr &&
+        thisColorPicker->nativeColorPicker_ != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ComplexityDegree unwrap native ColorPicker fail"));
+
+    uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+
+    napi_value result;
+    PictureComplexityDegree rst;
+    errorCode = thisColorPicker->nativeColorPicker_->ComplexityDegree(rst);
+    if (errorCode == SUCCESS) {
+        napi_create_int32(env, rst, &result);
+    } else {
+        rst = UNKNOWN_COMPLEXITY_DEGREE_PICTURE;
+        napi_create_int32(env, rst, &result);
+        EFFECT_LOG_E("ERR_EFFECT_INVALID_VALUE: ColorPickerNapi::ComplexityDegree get degree fail");
+    }
+    return result;
+}
+ 
+napi_value ColorPickerNapi::ShadeDegree(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ShadeDegree parsing input fail"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisColorPicker != nullptr &&
+        thisColorPicker->nativeColorPicker_ != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi ShadeDegree unwrap native ColorPicker fail"));
+
+    uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+
+    napi_value result;
+    PictureShadeDegree rst;
+    errorCode = thisColorPicker->nativeColorPicker_->ShadeDegree(rst);
+    if (errorCode == SUCCESS) {
+        napi_create_int32(env, rst, &result);
+    } else {
+        rst = UNKNOWN_SHADE_DEGREE_PICTURE;
+        napi_create_int32(env, rst, &result);
+        EFFECT_LOG_E("ERR_EFFECT_INVALID_VALUE: ColorPickerNapi::ShadeDegree get degree fail");
+    }
+    return result;
 }
 
 ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
