@@ -150,8 +150,7 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     dst_.top_ = 0;
     dst_.width_ = boundSize.x_;
     dst_.height_ = boundSize.y_;
-    isFixedDstBuffer_ = isUiFirstMode || ratioJudge || sizeJudge ||
-        transform == GraphicTransformType::GRAPHIC_ROTATE_180;
+    isFixedDstBuffer_ = isUiFirstMode || ratioJudge || sizeJudge;
     if (!isFixedDstBuffer_) {
         dst_.width_ = dstRect.w;
         dst_.height_ = dstRect.h;
@@ -314,9 +313,9 @@ void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, 
     auto bufferHeight = srcBuffer->GetSurfaceBufferHeight();
     auto bufferWidth = srcBuffer->GetSurfaceBufferWidth();
     /*
-    * isFixedDstBuffer_ is true when hpae and GPU are used separately for scaling.
-    * The precondition has already determined that the width and height of srcBuffer are not zero
-    */
+     * isFixedDstBuffer_ is true when hpae and GPU are used separately for scaling.
+     * The precondition has already determined that the width and height of srcBuffer are not zero
+     */
     if (isFixedDstBuffer_) {
         // this condition, crop and scale need to be handle by gpu
         hpaeSrcRect = RectRound(RectI(0, 0, bufferWidth, bufferHeight), bufferWidth, bufferHeight);

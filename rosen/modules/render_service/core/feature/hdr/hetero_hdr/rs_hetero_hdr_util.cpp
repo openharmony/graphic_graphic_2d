@@ -44,13 +44,15 @@ void RSHeteroHDRUtil::GenDrawHDRBufferParams(const DrawableV2::RSSurfaceRenderNo
     CalculateDrawBufferRectMatrix(surfaceParams, hpaeDstRect, isFixedDstBuffer, localParam);
     localParam.dstRect = { 0, 0, hpaeDstRect.right, hpaeDstRect.bottom };
     if (!isFixedDstBuffer) {
-        Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
-        Drawing::Matrix matrixInv;
-        if (!matrix.Invert(matrixInv)) {
-            RS_LOGE("[hdrHetero]:RSHeteroHDRUtil GenDrawHDRBufferParams canvas matrix is not invertible");
-            return;
-        }
-        localParam.matrix.PostConcat(matrixInv);
+        auto layerSrc = surfaceParams->GetLayerInfo().srcRect;
+        Drawing::Matrix matrixLoc;
+        float sx = static_cast<float>(layerSrc.w) / static_cast<float>(hpaeDstRect.right);
+        float sy = static_cast<float>(layerSrc.h) / static_cast<float>(hpaeDstRect.bottom);
+        float tx = static_cast<float>(layerSrc.x);
+        float ty = static_cast<float>(layerSrc.y);
+        matrixLoc.SetScaleTranslate(sx, sy, tx, ty);
+        localParam.matrix = drawableParams.matrix;
+        localParam.matrix.PreConcat(matrixLoc);
     } else {
         ScalingMode scalingMode = surfaceBuffer->GetSurfaceBufferScalingMode();
         if (ROSEN_EQ(drawableParams.srcRect.GetWidth(), 0.0f) || ROSEN_EQ(drawableParams.srcRect.GetHeight(), 0.0f)) {
@@ -113,7 +115,7 @@ void RSHeteroHDRUtil::CalculateDrawBufferRectMatrix(const RSSurfaceRenderParams*
             param.srcRect = { 0, 0, hpaeDstRect.bottom, hpaeDstRect.right };
         }
     } else {
-        param.dstRect = { dstRect.x, dstRect.y, dstRect.x + dstRect.w, dstRect.y + dstRect.h };
+        param.dstRect = param.srcRect;
     }
     bool sizeIsInvalid = (ROSEN_EQ(param.srcRect.GetWidth(), 0.0f) || ROSEN_EQ(param.srcRect.GetHeight(), 0.0f));
     if (sizeIsInvalid) {
