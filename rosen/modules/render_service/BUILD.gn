@@ -198,6 +198,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/performance_feature/subtree_parallel_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/uifirst_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/vrate_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/video_metadata_param.cpp",
     "core/feature_cfg/graphic_feature_param_manager.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/capture_base_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/color_gamut_param_parse.cpp",
@@ -221,6 +222,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/performance_feature_parser/subtree_parallel_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/uifirst_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/vrate_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/video_metadata_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
