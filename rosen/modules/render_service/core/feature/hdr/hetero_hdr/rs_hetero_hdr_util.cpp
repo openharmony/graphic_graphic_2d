@@ -115,7 +115,7 @@ void RSHeteroHDRUtil::CalculateDrawBufferRectMatrix(const RSSurfaceRenderParams*
             param.srcRect = { 0, 0, hpaeDstRect.bottom, hpaeDstRect.right };
         }
     } else {
-        param.dstRect = params.srcRect;
+        param.dstRect = param.srcRect;
     }
     bool sizeIsInvalid = (ROSEN_EQ(param.srcRect.GetWidth(), 0.0f) || ROSEN_EQ(param.srcRect.GetHeight(), 0.0f));
     if (sizeIsInvalid) {
