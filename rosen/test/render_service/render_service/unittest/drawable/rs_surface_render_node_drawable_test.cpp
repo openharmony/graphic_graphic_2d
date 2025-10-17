@@ -22,9 +22,10 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "params/rs_render_thread_params.h"
+#include "pipeline/rs_test_util.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 
 using namespace testing;
@@ -1390,26 +1391,42 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode001, TestSize.Level1)
 {
-    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto cloneRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(cloneRenderNode, nullptr);
+    auto cloneRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(cloneRenderNode));
+    ASSERT_NE(cloneRenderNodeDrawable, nullptr);
+
+    auto clonedRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(clonedRenderNode, nullptr);
+    auto clonedRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(clonedRenderNode));
+    ASSERT_NE(clonedRenderNodeDrawable, nullptr);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(cloneRenderNodeDrawable.get());
+    ASSERT_NE(surfaceDrawable, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(cloneRenderNodeDrawable->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
+
     surfaceParams->isCloneNode_ = true;
     surfaceParams->isClonedNodeOnTheTree_ = false;
     RSRenderThreadParams uniParams;
-
-    auto result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    auto result = surfaceDrawable->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
     ASSERT_FALSE(result);
 
     surfaceParams->isClonedNodeOnTheTree_ = true;
-    result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    result = surfaceDrawable->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
     ASSERT_FALSE(result);
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr clonedNodeRenderDrawableSharedPtr(drawable_);
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable(clonedNodeRenderDrawableSharedPtr);
-    surfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable;
-    result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, true);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr clonedNodeRenderDrawableSharedPtr(clonedRenderNodeDrawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawableWeakPtr(clonedNodeRenderDrawableSharedPtr);
+    surfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawableWeakPtr;
+    result = surfaceDrawable->DrawCloneNode(canvas, uniParams, *surfaceParams, true);
     ASSERT_TRUE(result);
+    clonedRenderNodeDrawable->renderParams_ = nullptr;
+    result = surfaceDrawable->DrawCloneNode(canvas, uniParams, *surfaceParams, true);
+    ASSERT_FALSE(result);
 }
 
 /**
