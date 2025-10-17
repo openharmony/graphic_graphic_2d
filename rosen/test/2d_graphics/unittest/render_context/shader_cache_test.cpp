@@ -385,9 +385,8 @@ HWTEST_F(ShaderCacheTest, SetAndGetMaxUniRenderSizeTest, TestSize.Level1)
     const int maxUniRenderSize = 20;
     cache.SetMaxUniRenderSize(maxUniRenderSize);
     EXPECT_EQ(20, cache.GetMaxUniRenderSize());
-    cache.~ShaderCache();
 }
- 
+
 /**
 *@tc.name: CalMaxUniRenderSize_test_001
 *@tc.desc: Verify the return value of the CalMaxUniRenderSize founction when the maxUniRenderSize_ is not set
@@ -403,7 +402,6 @@ HWTEST_F(ShaderCacheTest, CalMaxUniRenderSize_test_001, TestSize.Level1)
     const int maxUniRenderSize = 20;
     cache.SetMaxUniRenderSize(maxUniRenderSize);
     EXPECT_EQ(ShaderCache::MAX_VALUE_SIZE * maxUniRenderSize, result);
-    cache.~ShaderCache();
 }
 
 } // namespace Rosen
