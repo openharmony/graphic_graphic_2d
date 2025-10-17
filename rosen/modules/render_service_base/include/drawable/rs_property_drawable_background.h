@@ -122,6 +122,8 @@ private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
     std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
+    float cornerRadius_ = 0.f;
++   float stagingCornerRadius_ = 0.f;
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {

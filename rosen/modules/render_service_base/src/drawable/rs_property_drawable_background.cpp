@@ -327,6 +327,7 @@ bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingShader_ = shader;
+    stagingCornerRadius_ = node.GetRenderProperties().GetCornerRadius().x_;
     return true;
 }
 
@@ -339,6 +340,7 @@ void RSBackgroundNGShaderDrawable::OnSync()
         visualEffectContainer_ = visualEffectContainer;
         needSync_ = false;
     }
+    cornerRadius_ = stagingCornerRadius_;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc() const
@@ -349,8 +351,10 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc(
         if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
             return;
         }
-        std::shared_ptr<Drawing::Image> cachedImage = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
-        ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, cachedImage);
++       auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
++       ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_, effectData->cachedRect_.GetLeft(),
++            effectData->cachedRect_.GetTop());
++       ptr->visualEffectContainer_->UpdateCornerRadius(ptr->cornerRadius_);
         geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
     };
 }
