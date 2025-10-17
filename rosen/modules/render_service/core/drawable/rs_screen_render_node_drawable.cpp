@@ -987,16 +987,19 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
         RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
-#ifdef SUBTREE_PARALLEL_ENABLE
-    // Wait for all sub threads process completely.
-    RSParallelManager::Singleton().WaitUntilSubTreeFinish(curCanvas_);
-#endif
+
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
     RsFrameReport::GetInstance().CheckBeginFlushPoint();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
 
     renderFrame->Flush();
     RS_TRACE_END();
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+    // Wait for all sub threads process completely.
+    RSParallelManager::Singleton().WaitUntilSubTreeFinish(curCanvas_);
+#endif
+
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
         RS_LOGI("Drawing Performance Flush end %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
         Drawing::PerformanceCaculate::ResetCaculateTimeCount();

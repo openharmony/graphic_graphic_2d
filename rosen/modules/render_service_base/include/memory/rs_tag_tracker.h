@@ -37,6 +37,7 @@ public:
         TAG_COMMON_OFFSCREEN,
         TAG_RENDER_GROUP,
         TAG_OPINC,
+        TAG_SUBTREE_PARALLEL,
         TAG_UNTAGGED,
         TAG_CAPTURE,
     };
