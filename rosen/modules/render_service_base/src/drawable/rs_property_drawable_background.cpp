@@ -351,13 +351,13 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc(
         if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
             return;
         }
-+       auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
+        auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
         if (effectData == nullptr) {
             return;
         }
-+       ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_, effectData->cachedRect_.GetLeft(),
-+            effectData->cachedRect_.GetTop());
-+       ptr->visualEffectContainer_->UpdateCornerRadius(ptr->cornerRadius_);
+        ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_, effectData->cachedRect_.GetLeft(),
+             effectData->cachedRect_.GetTop());
+        ptr->visualEffectContainer_->UpdateCornerRadius(ptr->cornerRadius_);
         geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
     };
 }
