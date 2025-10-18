@@ -44,6 +44,8 @@ public:
     void SetClipToBounds(bool clipToBounds);
     void SetCornerRadius(const Vector4f& cornerRadius);
     Vector4f GetCornerRadius() const;
+    void SetCornerApplyType(RSCornerApplyType type);
+    RSCornerApplyType GetCornerApplyType() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H

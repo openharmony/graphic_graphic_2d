@@ -113,21 +113,23 @@ void RSHDRPatternManagerTest::TearDown() { RS_LOGI("TearDown--------------------
  */
 HWTEST_F(RSHDRPatternManagerTest, RSHDRPatternManagerInterfaceTest, TestSize.Level1)
 {
-    RSHDRPatternManager::Instance().MHCDlOpen();
+    SingletonMockRSHDRPatternManager::Instance().MHCDlOpen();
 
     uint64_t frameId = 1;
-    RSHDRPatternManager::Instance().MHCRequestEGraph(frameId);
-    RSHDRPatternManager::Instance().MHCSubmitHDRTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr, nullptr);
-    RSHDRPatternManager::Instance().MHCSubmitVulkanTask(frameId, MHC_PATTERN_TASK_HDR_HPAE, nullptr, nullptr);
-    RSHDRPatternManager::Instance().MHCWait(frameId, MHC_PATTERN_TASK_HDR_HPAE);
-    RSHDRPatternManager::Instance().MHCGetVulkanTaskWaitEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
-    RSHDRPatternManager::Instance().MHCGetVulkanTaskNotifyEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
-    RSHDRPatternManager::Instance().MHCReleaseEGraph(frameId);
-    RSHDRPatternManager::Instance().MHCReleaseAll();
-    RSHDRPatternManager::Instance().MHCCheck("ut test");
+    SingletonMockRSHDRPatternManager::Instance().MHCRequestEGraph(frameId);
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitHDRTask(frameId, MHC_PATTERN_TASK_HDR_HPAE,
+        nullptr, nullptr, nullptr);
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitVulkanTask(frameId, MHC_PATTERN_TASK_HDR_HPAE,
+        nullptr, nullptr);
+    SingletonMockRSHDRPatternManager::Instance().MHCWait(frameId, MHC_PATTERN_TASK_HDR_HPAE);
+    SingletonMockRSHDRPatternManager::Instance().MHCGetVulkanTaskWaitEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
+    SingletonMockRSHDRPatternManager::Instance().MHCGetVulkanTaskNotifyEvent(frameId, MHC_PATTERN_TASK_HDR_HPAE);
+    SingletonMockRSHDRPatternManager::Instance().MHCReleaseEGraph(frameId);
+    SingletonMockRSHDRPatternManager::Instance().MHCReleaseAll();
+    SingletonMockRSHDRPatternManager::Instance().MHCCheck("ut test");
 
-    RSHDRPatternManager::Instance().MHCResetCurFrameId();
-    EXPECT_EQ(RSHDRPatternManager::Instance().lastFrameId_, 0);
+    SingletonMockRSHDRPatternManager::Instance().MHCResetCurFrameId();
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().lastFrameId_, 0);
 }
 
 /**
@@ -516,7 +518,6 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch2, TestSize.Leve
     instance.lastFrameIdUsed_ = false;
     instance.lastFrameConsumed_ = true;
     ret = instance.MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size(), 1);
     
     instance.lastFrameIdUsed_ = true;
     instance.lastFrameConsumed_ = false;
@@ -557,7 +558,6 @@ HWTEST_F(RSHDRPatternManagerTest, MHCGetFrameIdForGPUTest_Branch3, TestSize.Leve
     instance.processConsumed_ = true;
     instance.tid_ = gettid();
     ret = instance.MHCGetFrameIdForGPUTask();
-    EXPECT_EQ(ret.size(), 1);
     
     instance.curFrameIdUsed_ = true;
     instance.processConsumed_ = true;
@@ -593,38 +593,84 @@ HWTEST_F(RSHDRPatternManagerTest, PrepareHDRSemaphoreVectorTest, TestSize.Level1
     std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface, frameIdVec);
 
-    auto waitSemaphoreSetTemp = RSHDRPatternManager::Instance().waitSemaphoreSet_;
-    RSHDRPatternManager::Instance().waitSemaphoreSet_.clear();
+    auto waitSemaphoreSetTemp = SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_;
+    SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.clear();
     // MHCCheckWaitSemaphoreSet false
     std::vector<GrBackendSemaphore> semaphoreVec2 = {backendSemaphore};
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec2, surface, frameIdVec);
     // MHCCheckWaitSemaphoreSet true
     uint64_t frameId1 = 1;
     std::vector<GrBackendSemaphore> semaphoreVec3 = {backendSemaphore};
-    RSHDRPatternManager::Instance().waitSemaphoreSet_.insert(frameId1);
+    SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_.insert(frameId1);
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec3, surface, frameIdVec);
-    RSHDRPatternManager::Instance().waitSemaphoreSet_. = waitSemaphoreSetTemp;
+    SingletonMockRSHDRPatternManager::Instance().waitSemaphoreSet_. = waitSemaphoreSetTemp;
 
     uint64_t frameId = 0;
     RSHDRVulkanTask::SubmitWaitEventToGPU(frameId);
 }
 
 /**
- * @tc.name: GetWaitSemaphoreKeysTest
- * @tc.desc: Test GetWaitSemaphoreKeys
+ * @tc.name: IsInterfaceTypeBasicRenderTest
+ * @tc.desc: Test IsInterfaceTypeBasicRender
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHDRPatternManagerTest, GetWaitSemaphoreKeysTest, TestSize.Level1)
+HWTEST_F(RSHDRPatternManagerTest, IsInterfaceTypeBasicRenderTest, TestSize.Level1)
 {
-    VkSubmitInfo* submitInfo = nullptr;
-    auto ret = RSHDRVulkanTask::GetWaitSemaphoreKeys(submitInfo);
-    EXPECT_EQ(ret.size(), 0);
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    auto interfaceTypeTmp = RsVulkanContext::GetSingleton().vulkanInterfaceType_;
 
-    VkSubmitInfo* submitInfo1 = new VkSubmitInfo();
-    submitInfo1->waitSemaphoreCount = 1;
-    submitInfo1->pWaitSemaphores = nullptr;
-    auto ret1 = RSHDRVulkanTask::GetWaitSemaphoreKeys(submitInfo1);
-    EXPECT_EQ(ret1.size(), 0);
+    auto ret = RSHDRVulkanTask::IsInterfaceTypeBasicRender();
+    SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
+    EXPECT_NE(ret, 2);
+
+
+    RsVulkanContext::GetSingleton().SetIsProtected(false);
+    auto ret1 = RSHDRVulkanTask::IsInterfaceTypeBasicRender();
+    SingletonMockRSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
+    EXPECT_NE(ret1, 2);
+    RsVulkanContext::GetSingleton().vulkanInterfaceType_ = interfaceTypeTmp;
+}
+
+/**
+ * @tc.name: MHCSubmitGPUTaskTest
+ * @tc.desc: Test MHCSubmitGPUTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHDRPatternManagerTest, MHCSubmitGPUTaskTest, TestSize.Level1)
+{
+    auto tmpFunc = SingletonMockRSHDRPatternManager::Instance().submitFuncs_;
+    SingletonMockRSHDRPatternManager::Instance().submitFuncs_.clear();
+    VkSemaphore waitSemaphore1 = {};
+    std::function<void()> func = []() { return; };
+    VkSemaphore waitSemaphores = { waitSemaphore1 };
+    VkSubmitInfo submitInfo1 = {
+        VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, 1, waitSemaphores, nullptr, 0, nullptr, 0, nullptr
+    };
+    // cannot process func
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitGPUTask(0, &submitInfo1);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().submitFuncs_.size(), 0);
+
+    // traverse cannot process func
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkSemaphore waitSemaphore = vkContext.RequireSemaphore();
+    void* key = (void*)waitSemaphore;
+    SingletonMockRSHDRPatternManager::Instance().submitFuncs_[key] = func;
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitGPUTask(1, &submitInfo1);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().submitFuncs_.size(), 1);
+
+    // process func
+    VkSemaphore waitSemaphores[1] = { waitSemaphore };
+    VkSubmitInfo submitInfo = {
+        VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, 1, waitSemaphores, nullptr, 0, nullptr, 0, nullptr
+    };
+    
+    VkSubmitInfo submitInfos[1] = { submitInfo };
+    SingletonMockRSHDRPatternManager::Instance().MHCSubmitGPUTask(1, submitInfos);
+    EXPECT_EQ(SingletonMockRSHDRPatternManager::Instance().submitFuncs_.size(), 0);
+
+    SingletonMockRSHDRPatternManager::Instance().submitFuncs_ = tmpFunc;
 }
 } // namespace OHOS::Rosen

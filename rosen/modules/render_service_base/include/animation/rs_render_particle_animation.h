@@ -47,6 +47,8 @@ public:
     bool Animate(int64_t time, int64_t& minLeftDelayTime) override;
     void UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdater);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
+    void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields);
+    void UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields);
     const std::shared_ptr<RSRenderParticleSystem>& GetParticleSystem()
     {
         return particleSystem_;
@@ -69,6 +71,8 @@ private:
     std::shared_ptr<RSRenderParticleSystem> particleSystem_;
     RSRenderParticleVector renderParticleVector_;
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_;
+    std::shared_ptr<ParticleRippleFields> particleRippleFields_;
+    std::shared_ptr<ParticleVelocityFields> particleVelocityFields_;
 };
 } // namespace Rosen
 } // namespace OHOS

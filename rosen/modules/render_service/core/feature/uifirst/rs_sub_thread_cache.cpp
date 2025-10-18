@@ -551,8 +551,7 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
 
 void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
 {
-    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
-        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+    if (!RSUifirstManager::Instance().IsUIFirstDirtyEnabled()) {
         return;
     }
     if (!surfaceDrawable) {
@@ -629,7 +628,7 @@ bool RsSubThreadCache::GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix
 }
 
 bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    Drawing::RectI& dirtyRect, bool isUifirstRootNode)
+    Drawing::RectI& dirtyRect, bool isUifirstRootNode, const Drawing::RectI& visibleFilterRect)
 {
     if (!surfaceDrawable) {
         RS_LOGE("CalculateUifirstDirtyRegion surfaceDrawable is nullptr");
@@ -652,6 +651,13 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
     if (latestDirtyRect.IsEmpty()) {
         dirtyRect = {};
         return true;
+    }
+
+    RectI filterRect = RectI(visibleFilterRect.GetLeft(), visibleFilterRect.GetTop(), visibleFilterRect.GetWidth(),
+        visibleFilterRect.GetHeight());
+    // if dirty region intersect with visible filter, we should expand dirty region.
+    if (latestDirtyRect.Intersect(filterRect)) {
+        latestDirtyRect = latestDirtyRect.JoinRect(filterRect);
     }
     auto absDrawRect = surfaceParams->GetAbsDrawRect();
     if (absDrawRect.GetWidth() == 0 || absDrawRect.GetHeight() == 0 ||
@@ -685,8 +691,7 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
 bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     Drawing::RectI& dirtyRects)
 {
-    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
-        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+    if (!RSUifirstManager::Instance().IsUIFirstDirtyEnabled()) {
         return false;
     }
     if (!surfaceDrawable) {
@@ -703,8 +708,12 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
         RS_LOGD("MergeUifirstAllSurfaceDirtyRegion not support");
         return false;
     }
+
+    const auto& filterRect = surfaceParams->GetUifirstVisibleFilterRect();
+    Drawing::RectI visibleFilterRect(filterRect.GetLeft(), filterRect.GetTop(), filterRect.GetRight(),
+        filterRect.GetBottom());
     Drawing::RectI tempRect = {};
-    bool isCalculateSucc = CalculateUifirstDirtyRegion(surfaceDrawable, tempRect, true);
+    bool isCalculateSucc = CalculateUifirstDirtyRegion(surfaceDrawable, tempRect, true, visibleFilterRect);
     uifirstMergedDirtyRegion_.SetRect(tempRect);
     dirtyRects.Join(tempRect);
     for (const auto& nestedDrawable : surfaceDrawable->
@@ -713,7 +722,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
         if (surfaceNodeDrawable) {
             tempRect = {};
             isCalculateSucc = isCalculateSucc && surfaceNodeDrawable->GetRsSubThreadCache().
-                CalculateUifirstDirtyRegion(surfaceNodeDrawable.get(), tempRect, false);
+                CalculateUifirstDirtyRegion(surfaceNodeDrawable.get(), tempRect, false, visibleFilterRect);
             Drawing::Region resultRegion;
             resultRegion.SetRect(tempRect);
             uifirstMergedDirtyRegion_.Op(resultRegion, Drawing::RegionOp::UNION);
@@ -726,8 +735,7 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
 void RsSubThreadCache::UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     bool isEnableDirtyRegion)
 {
-    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
-        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+    if (!RSUifirstManager::Instance().IsUIFirstDirtyEnabled()) {
         return;
     }
     if (!surfaceDrawable) {

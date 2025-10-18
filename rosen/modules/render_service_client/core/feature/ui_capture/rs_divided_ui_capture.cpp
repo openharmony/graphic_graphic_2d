@@ -355,7 +355,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (!conditionVariable_.wait_for(lock, std::chrono::milliseconds(timeOut), [this] { return IsReady(); })) {
-            ROSEN_LOGE("wait for %{public}lu timeout", timeOut);
+            ROSEN_LOGE("wait for %{public}ld timeout", timeOut);
         }
         return pixelMap_;
     }
@@ -364,7 +364,7 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (!conditionVariable_.wait_for(lock, std::chrono::milliseconds(timeOut), [this] { return IsReady(); })) {
-            ROSEN_LOGE("wait for %{public}lu timeout", timeOut);
+            ROSEN_LOGE("wait for %{public}ld timeout", timeOut);
         }
         return { pixelMap_, pixelMapHDR_ };
     }

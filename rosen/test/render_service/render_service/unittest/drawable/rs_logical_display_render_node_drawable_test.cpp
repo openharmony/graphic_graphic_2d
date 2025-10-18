@@ -44,6 +44,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr float FLOAT_DATA_EPSILON = 1e-6f;
 }
 class RSLogicalDisplayRenderNodeDrawableTest : public testing::Test {
 public:
@@ -1318,23 +1319,24 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
 {
     // set drawable screenInfo
     ASSERT_NE(displayDrawable_, nullptr);
-    auto mainParams = displayDrawable_->GetRenderParams() ?
+    auto params = displayDrawable_->GetRenderParams() ?
         static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mainParams, nullptr);
-    mainParams->SetBoundsRect({0, 0, 100, 100});
+    ASSERT_NE(params, nullptr);
+    auto [_, screenParams] = displayDrawable_->GetScreenParams(*params);
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetBoundsRect({0, 0, 50, 100});
 
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
-    auto [_, mirroredScreenParams] =
-        mirroredDisplayDrawable_->GetScreenParams(*mirroredDisplayDrawable_->GetRenderParams());
-    ASSERT_NE(mirroredScreenParams, nullptr);
-    mirroredScreenParams->SetBoundsRect({0, 0, 50, 100});
+    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
+    ASSERT_NE(mirroredParams, nullptr);
+    mirroredParams->fixedWidth_ = 100;
+    mirroredParams->fixedHeight_ = 100;
     // scale mirror screen
-    mirroredDisplayDrawable_->ScaleAndRotateMirrorForWiredScreen(*displayDrawable_);
-    ASSERT_NE(mirroredDisplayDrawable_->curCanvas_, nullptr);
-    ASSERT_EQ(mirroredDisplayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        static_cast<float>(mirroredScreenParams->GetBounds().GetWidth()) /
-        static_cast<float>(mainParams->GetBounds().GetWidth()));
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
+        screenParams->GetBounds().GetWidth() / mirroredParams->fixedWidth_, FLOAT_DATA_EPSILON);
 }
 
 /**
@@ -1347,24 +1349,24 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
 {
     // set drawable screenInfo
     ASSERT_NE(displayDrawable_, nullptr);
-    auto mainParams = displayDrawable_->GetRenderParams() ?
+    auto params = displayDrawable_->GetRenderParams() ?
         static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
-    ASSERT_NE(mainParams, nullptr);
-    mainParams->SetBoundsRect({0, 0, 100, 100});
+    ASSERT_NE(params, nullptr);
+    auto [_, screenParams] = displayDrawable_->GetScreenParams(*params);
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetBoundsRect({0, 0, 100, 50});
 
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
-    auto [_, mirroredScreenParams] =
-        mirroredDisplayDrawable_->GetScreenParams(*mirroredDisplayDrawable_->GetRenderParams());
-    ASSERT_NE(mirroredScreenParams, nullptr);
-    mirroredScreenParams->SetBoundsRect({0, 0, 100, 50});
-
+    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
+    ASSERT_NE(mirroredParams, nullptr);
+    mirroredParams->fixedWidth_ = 100;
+    mirroredParams->fixedHeight_ = 100;
     // scale mirror screen
-    mirroredDisplayDrawable_->ScaleAndRotateMirrorForWiredScreen(*displayDrawable_);
-    ASSERT_NE(mirroredDisplayDrawable_->curCanvas_, nullptr);
-    ASSERT_EQ(mirroredDisplayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        static_cast<float>(mirroredScreenParams->GetBounds().GetHeight()) /
-        static_cast<float>(mainParams->GetBounds().GetHeight()));
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
+        screenParams->GetBounds().GetHeight() / mirroredParams->fixedHeight_, FLOAT_DATA_EPSILON);
 }
 
 /**

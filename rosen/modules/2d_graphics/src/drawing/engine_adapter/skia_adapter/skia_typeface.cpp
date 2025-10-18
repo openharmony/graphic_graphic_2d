@@ -409,6 +409,31 @@ void SkiaTypeface::SetHash(uint32_t hash)
     }
     skTypeface_->SetHash(hash);
 }
+
+int32_t SkiaTypeface::GetFd() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return -1;
+    }
+    return skTypeface_->GetFd();
+}
+
+void SkiaTypeface::SetFd(int32_t fd)
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    skTypeface_->SetFd(fd);
+}
+
+void SkiaTypeface::UpdateStream(std::unique_ptr<MemoryStream> stream)
+{
+    if (skTypeface_ && stream) {
+        skTypeface_->updateStream(stream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream());
+    }
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

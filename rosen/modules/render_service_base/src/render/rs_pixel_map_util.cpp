@@ -437,7 +437,7 @@ bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap
         return false;
     }
     if (!CheckFormatConsistency(pixelMap)) {
-        RS_LOGE("RSPixelMapUtil::CheckFormatConsistency fail");
+        RS_LOGD("RSPixelMapUtil::CheckFormatConsistency fail");
         return false;
     }
     return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;

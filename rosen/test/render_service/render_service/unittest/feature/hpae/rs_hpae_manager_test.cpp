@@ -585,7 +585,7 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     NodeId id1 = 1;
     RSRenderNode node1(id1, context);
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = true;
-    node1.renderProperties_.backgroundFilter_ = nullptr;
+    node1.renderProperties_.GetEffect().backgroundFilter_ = nullptr;
     screenNode->screenInfo_.phyWidth = 1000;
     screenNode->screenInfo_.phyHeight = 2000;
     RSHpaeManager::GetInstance().RegisterHpaeCallback(node1, screenNode);
@@ -594,7 +594,7 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     RSRenderNode node2(id2, context);
     RSHpaeManager::GetInstance().stagingHpaeStatus_.hpaeBlurEnabled = true;
     auto rsDrawingFilter2 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node2.renderProperties_.backgroundFilter_ = std::static_pointer_cast<RSFilter>(rsDrawingFilter2);
+    node2.renderProperties_.GetEffect().backgroundFilter_ = std::static_pointer_cast<RSFilter>(rsDrawingFilter2);
     screenNode->screenInfo_.phyWidth = 0;
     screenNode->screenInfo_.phyHeight = 0;
     RSHpaeManager::GetInstance().RegisterHpaeCallback(node2, screenNode);
@@ -627,8 +627,8 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     std::shared_ptr<RSFilter> backgroundFilter3 = std::static_pointer_cast<RSFilter>(rsDrawingFilter3);
     RectI rect3{0, 0, 1000, 2000};
     node3.renderProperties_.boundsGeo_->absRect_ = rect3;
-    node3.renderProperties_.backgroundBlurRadius_ = 20.0f;
-    node3.renderProperties_.backgroundFilter_ = backgroundFilter3;
+    node3.renderProperties_.GetEffect().backgroundBlurRadius_ = 20.0f;
+    node3.renderProperties_.GetEffect().backgroundFilter_ = backgroundFilter3;
     node3.renderProperties_.SetBoundsWidth(1000);
     node3.renderProperties_.SetBoundsHeight(2000);
     screenNode->screenInfo_.phyWidth = 1000;
@@ -642,11 +642,11 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     RSRenderNode node4(id4, context);
     RSDrawableSlot slot4 = RSDrawableSlot::BACKGROUND_FILTER;
     auto filterDrawable = std::make_shared<RSChildrenDrawableAdapter>();
-    node4.drawableVec_[static_cast<uint32_t>(slot4)] = filterDrawable;
+    node4.GetDrawableVec(__func__)[static_cast<uint32_t>(slot4)] = filterDrawable;
     auto rsDrawingFilter5 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     std::shared_ptr<RSFilter> backgroundFilter4 = std::static_pointer_cast<RSFilter>(rsDrawingFilter5);
-    node4.renderProperties_.backgroundBlurRadius_ = 20.0f;
-    node4.renderProperties_.backgroundFilter_ = backgroundFilter4;
+    node4.renderProperties_.GetEffect().backgroundBlurRadius_ = 20.0f;
+    node4.renderProperties_.GetEffect().backgroundFilter_ = backgroundFilter4;
     RectI rect1{0, 0, 1000, 2000};
     node4.renderProperties_.boundsGeo_->absRect_ = rect1;
     screenNode->screenInfo_.phyWidth = 1000;
@@ -655,7 +655,7 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     ASSERT_EQ(RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode, true);
 
     RSDrawableSlot slot5 = RSDrawableSlot::PIXEL_STRETCH;
-    node4.drawableVec_[static_cast<uint32_t>(slot5)] = filterDrawable;
+    node4.GetDrawableVec(__func__)[static_cast<uint32_t>(slot5)] = filterDrawable;
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = false;
     screenNode->screenInfo_.phyWidth = 1000;
     screenNode->screenInfo_.phyHeight = 2000;
@@ -686,7 +686,7 @@ HWTEST_F(RSHpaeManagerTest, IsHpaeBlurNodeTest, TestSize.Level1)
     RSRenderNode node2(id2, context);
     RSDrawableSlot slot2 = RSDrawableSlot::BACKGROUND_FILTER;
     auto filterDrawable = std::make_shared<RSChildrenDrawableAdapter>();
-    node2.drawableVec_[static_cast<uint32_t>(slot2)] = filterDrawable;
+    node2.GetDrawableVec(__func__)[static_cast<uint32_t>(slot2)] = filterDrawable;
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node2, 1000, 2000) == false);
 
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = false;
@@ -705,12 +705,12 @@ HWTEST_F(RSHpaeManagerTest, IsHpaeBlurNodeTest, TestSize.Level1)
     NodeId id3 = 3;
     RSRenderNode node3(id3, context);
     RSDrawableSlot slot3 = RSDrawableSlot::BACKGROUND_FILTER;
-    node3.drawableVec_[static_cast<uint32_t>(slot3)] = filterDrawable;
+    node3.GetDrawableVec(__func__)[static_cast<uint32_t>(slot3)] = filterDrawable;
     auto rsDrawingFilter1 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     std::shared_ptr<RSFilter> backgroundFilter1 = std::static_pointer_cast<RSFilter>(rsDrawingFilter1);
 
-    node3.renderProperties_.backgroundFilter_ = backgroundFilter1;
-    node3.renderProperties_.backgroundBlurRadius_ = 20.0f;
+    node3.renderProperties_.GetEffect().backgroundFilter_ = backgroundFilter1;
+    node3.renderProperties_.GetEffect().backgroundBlurRadius_ = 20.0f;
     node3.renderProperties_.SetBoundsWidth(1000);
     node3.renderProperties_.SetBoundsHeight(2000);
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node3, 1000, 2000) == false);
@@ -719,24 +719,24 @@ HWTEST_F(RSHpaeManagerTest, IsHpaeBlurNodeTest, TestSize.Level1)
     NodeId id4 = 3;
     RSRenderNode node4(id4, context);
     RSDrawableSlot slot4 = RSDrawableSlot::BACKGROUND_FILTER;
-    node4.drawableVec_[static_cast<uint32_t>(slot4)] = filterDrawable;
+    node4.GetDrawableVec(__func__)[static_cast<uint32_t>(slot4)] = filterDrawable;
     auto rsDrawingFilter2 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     std::shared_ptr<RSFilter> backgroundFilter2 = std::static_pointer_cast<RSFilter>(rsDrawingFilter2);
-    node4.renderProperties_.backgroundBlurRadius_ = 1.0f;
-    node4.renderProperties_.backgroundFilter_ = backgroundFilter2;
+    node4.renderProperties_.GetEffect().backgroundBlurRadius_ = 1.0f;
+    node4.renderProperties_.GetEffect().backgroundFilter_ = backgroundFilter2;
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node4, 1000, 2000) == false);
-    node4.renderProperties_.backgroundBlurRadius_ = 500.0f;
+    node4.renderProperties_.GetEffect().backgroundBlurRadius_ = 500.0f;
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node4, 1000, 2000) == false);
 
     RSHpaeManager::GetInstance().stagingHpaeStatus_.gotHpaeBlurNode = false;
     NodeId id5 = 5;
     RSRenderNode node5(id5, context);
     RSDrawableSlot slot5 = RSDrawableSlot::BACKGROUND_FILTER;
-    node5.drawableVec_[static_cast<uint32_t>(slot5)] = filterDrawable;
+    node5.GetDrawableVec(__func__)[static_cast<uint32_t>(slot5)] = filterDrawable;
     auto rsDrawingFilter5 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     std::shared_ptr<RSFilter> backgroundFilter5 = std::static_pointer_cast<RSFilter>(rsDrawingFilter5);
-    node5.renderProperties_.backgroundBlurRadius_ = 20.0f;
-    node5.renderProperties_.backgroundFilter_ = backgroundFilter5;
+    node5.renderProperties_.GetEffect().backgroundBlurRadius_ = 20.0f;
+    node5.renderProperties_.GetEffect().backgroundFilter_ = backgroundFilter5;
     RectI rect1{0, 0, 1000, 2000};
     node5.renderProperties_.boundsGeo_->absRect_ = rect1;
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node5, 1000, 2000) == true);
@@ -763,7 +763,7 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest1, TestSize.Level1)
     RSHpaeManager hpaeManager;
     RSRenderNode node(1, context);
     auto filter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.renderProperties_.backgroundFilter_ = std::static_pointer_cast<RSFilter>(filter);
+    node.renderProperties_.GetEffect().backgroundFilter_ = std::static_pointer_cast<RSFilter>(filter);
 
     hpaeManager.stagingHpaeStatus_.hpaeBlurEnabled = false;
     hpaeManager.RegisterHpaeCallback(node, screenNode);

@@ -158,7 +158,7 @@ public:
 
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
-    virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
+    virtual uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
     virtual void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) = 0;
 
@@ -305,6 +305,7 @@ public:
     virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
     virtual bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) = 0;
+    virtual int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate) = 0;
     virtual bool UnRegisterTypeface(uint64_t globalUniqueId) = 0;
 
     virtual ErrCode SetScreenSkipFrameInterval(uint64_t id, uint32_t skipFrameInterval, int32_t& resCode) = 0;

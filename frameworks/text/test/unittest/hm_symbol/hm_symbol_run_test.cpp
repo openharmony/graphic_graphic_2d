@@ -296,7 +296,7 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level0)
 HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level0)
 {
     // step 1: init data
-    uint16_t glyphId = 3; // 3 is an existing GlyphID
+    uint16_t glyphId = 1000; // 1000 is an existing GlyphID
     RSSColor color = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
     HMSymbolTxt symbolTxt;
     symbolTxt.SetRenderColor(color);
@@ -1120,7 +1120,7 @@ HWTEST_F(OHHmSymbolRunTest, UpdateSymbolLayersGroups001, TestSize.Level0)
         animationFunc = nullptr;
     std::shared_ptr<RSTextBlob> textBlob = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textBlob, animationFunc);
-    uint16_t glyphId = 3; // 3 is an existing GlyphID
+    uint16_t glyphId = 1000; // 1000 is an existing GlyphID
     hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
     EXPECT_EQ(hmSymbolRun.symbolLayersGroups_.symbolGlyphId, glyphId);
 
@@ -1215,7 +1215,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level0)
  */
 HWTEST_F(OHHmSymbolRunTest, SetGradients001, TestSize.Level0)
 {
-    uint16_t glyphId = 3; // 3 is an existing GlyphID
+    uint16_t glyphId = 1000; // 1000 is an existing GlyphID
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     auto color1 = std::make_shared<SymbolGradient>();
     color1->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB

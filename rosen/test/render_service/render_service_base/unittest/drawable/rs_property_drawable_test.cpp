@@ -149,6 +149,61 @@ HWTEST_F(RSPropertyDrawableTest, OnUpdateTest004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSClipToBoundsDrawableOnSyncTest
+ * @tc.desc: class RSClipToBoundsDrawable OnSync test
+ * @tc.type: FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableOnSyncTest, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSClipToBoundsDrawable> clipToBoundsDrawable =
+        std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    EXPECT_NE(clipToBoundsDrawable, nullptr);
+    clipToBoundsDrawable->needSync_ = false;
+    clipToBoundsDrawable->OnSync();
+
+    clipToBoundsDrawable->needSync_ = true;
+    clipToBoundsDrawable->OnSync();
+    EXPECT_FALSE(clipToBoundsDrawable->needSync_);
+}
+
+/**
+ * @tc.name: RSClipToBoundsDrawableCreateDrawFuncTest
+ * @tc.desc: class RSClipToBoundsDrawable CreateDrawFunc test
+ * @tc.type: FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableCreateDrawFuncTest, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSClipToBoundsDrawable> clipToBoundsDrawable =
+        std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    EXPECT_NE(clipToBoundsDrawable, nullptr);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+
+    clipToBoundsDrawable->type_ = RSClipToBoundsType::CLIP_PATH;
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+
+    clipToBoundsDrawable->type_ = RSClipToBoundsType::CLIP_RRECT;
+    clipToBoundsDrawable->isClipRRectOptimization_ = true;
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+
+    clipToBoundsDrawable->type_ = RSClipToBoundsType::CLIP_RRECT;
+    clipToBoundsDrawable->isClipRRectOptimization_ = false;
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+
+    clipToBoundsDrawable->type_ = RSClipToBoundsType::CLIP_IRECT;
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+
+    clipToBoundsDrawable->type_ = RSClipToBoundsType::CLIP_RECT;
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+
+    clipToBoundsDrawable->type_ = RSClipToBoundsType::INVALID;
+    clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+}
+
+/**
  * @tc.name: OnGenerateAndOnUpdateTest005
  * @tc.desc: class RSClipToFrameDrawable OnGenerate and OnUpdate test
  * @tc.type:FUNC

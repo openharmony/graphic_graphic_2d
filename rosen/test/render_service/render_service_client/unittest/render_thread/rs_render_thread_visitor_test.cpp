@@ -557,27 +557,22 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1)
 
     rsRenderThreadVisitor.isOpDropped_ = false;
     auto& properties = node.GetMutableRenderProperties();
-    properties.isSpherizeValid_ = true;
+    properties.GetEffect().isSpherizeValid_ = true;
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.isSpherizeValid_);
+    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
 
-    node.cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.isSpherizeValid_);
+    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
 
-    node.cacheSurface_ = std::make_shared<Drawing::Surface>();
-    node.cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.isSpherizeValid_);
+    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
 
-    node.cacheCompletedSurface_ = nullptr;
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.isSpherizeValid_);
+    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
 
-    properties.isSpherizeValid_ = false;
-    node.cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
+    properties.GetEffect().isSpherizeValid_ = false;
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(!properties.isSpherizeValid_);
+    EXPECT_TRUE(!properties.GetEffect().isSpherizeValid_);
 }
 
 /**
@@ -1159,7 +1154,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessShadowFirst001, TestSize.Level1)
     visitor.ProcessShadowFirst(node);
     EXPECT_EQ(properties.GetUseShadowBatching(), false);
 
-    properties.useShadowBatching_ = true;
+    properties.GetEffect().useShadowBatching_ = true;
     visitor.ProcessShadowFirst(node);
     EXPECT_EQ(properties.GetUseShadowBatching(), true);
 

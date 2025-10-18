@@ -659,6 +659,11 @@ public:
         constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
         return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
     }
+
+    // hpae offline: while creating layer, use srcRect & dstRect instead of bounds to create redraw metrix
+    void SetUseDeviceOffline(bool useOffline) { useDeviceOffline_ = useOffline; }
+    bool GetUseDeviceOffline() const { return useDeviceOffline_; }
+
     /* hdiLayer get layer info end */
 
 private:
@@ -711,6 +716,8 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
     bool isMaskLayer_ = false;
     uint32_t ancoFlags_ = 0;
+    // hpae offline
+    bool useDeviceOffline_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

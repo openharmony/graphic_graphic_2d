@@ -27,7 +27,7 @@ const TEXT_LOG_DOMAIN = 0xD001408;
 const TEXT_LOG_TAG = "Text";
 
 namespace text {
-  loadLibrary('text_engine_ani.z');
+  loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
   const ERROR_INVALID_PARAM = 401;
 
   class Cleaner {
@@ -62,6 +62,7 @@ namespace text {
     }
 
     native static getGlobalInstance(): FontCollection;
+    native static getLocalInstance(): FontCollection;
     native loadFontSync(name: string, path: Resource | string): void;
     async loadFont(name: string, path: string | Resource): Promise<void> {
       await new Promise<void>((resolve, reject) => {
@@ -704,7 +705,7 @@ namespace text {
   type CaretOffsetsCallback = (offset: double, index: int, leadingEdge: boolean) => boolean;
 
   export class TextLine {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -750,7 +751,7 @@ namespace text {
   }
 
   export class Run {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -773,11 +774,15 @@ namespace text {
     native getFont(): drawing.Font;
     native paint(canvas: drawing.Canvas, x: double, y: double): void;
     native getStringIndices(range?: Range): Array<int> | undefined;
+    getStringIndices(): Array<int> | undefined {
+      let range: Range = { start: 0, end: 0};
+      return this.getStringIndices(range);
+    }
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
     native getTextDirection(): TextDirection;
-    native getAdvances(range: Range): Array<common2D.Point>;
+    native getAdvances(range: Range): Array<common2D.Point> | undefined;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
@@ -822,7 +827,7 @@ namespace text {
   }
 
   export class LineTypeset {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -898,6 +903,22 @@ namespace text {
       try {
         taskpool.execute((): Array<FontDescriptor> => {
           return matchFontDescriptorsSync(desc);
+        }).then((result) => {
+          resolve(result);
+        })
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
+  }
+
+  native function getFontDescriptorsFromPathSync(path: Resource | string): Array<FontDescriptor>;
+
+  export async function getFontDescriptorsFromPath(path: Resource | string): Promise<Array<FontDescriptor>> {
+    return await new Promise<Array<FontDescriptor>>((resolve, reject) => {
+      try {
+        taskpool.execute((): Array<FontDescriptor> => {
+          return getFontDescriptorsFromPathSync(path);
         }).then((result) => {
           resolve(result);
         })

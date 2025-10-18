@@ -33,6 +33,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
+#include "ge_render.h"
 #include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
@@ -48,7 +49,6 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "render/rs_render_kawase_blur_filter.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
@@ -590,7 +590,7 @@ static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::st
     return true;
 }
 
-void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, bool isLite) const
 {
     std::string type;
     bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpMem");
@@ -601,9 +601,14 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
     if (!type.empty() && IsNumber(type) && type.length() < 10) {
         pid = std::atoi(type.c_str());
     }
+
     mainThread_->ScheduleTask(
-        [this, &argSets, &dumpString, &type, &pid]() {
-            return mainThread_->DumpMem(argSets, dumpString, type, pid);
+        [this, &argSets, &dumpString, &type, &pid, isLite]() {
+            if (isLite) {
+                return mainThread_->DumpMem(argSets, dumpString, type, pid, isLite);
+            } else {
+                return mainThread_->DumpMem(argSets, dumpString, type, pid);
+            }
         }).wait();
 }
 
@@ -872,6 +877,12 @@ void RSRenderService::RegisterMemFuncs()
         DumpMem(argSets, dumpString);
     };
 
+    // Mem lite
+    RSDumpFunc memDumpLiteFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                    std::string &dumpString) -> void {
+        DumpMem(argSets, dumpString, true);
+    };
+
     // pid mem
     RSDumpFunc existPidMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                         std::string &dumpString) -> void {
@@ -883,6 +894,7 @@ void RSRenderService::RegisterMemFuncs()
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },
+        { RSDumpID::MEM_INFO_LITE, memDumpLiteFunc },
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
     };
 
@@ -993,7 +1005,7 @@ void RSRenderService::FilterCCMInit()
     RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
-    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GraphicsEffectEngine::GERender::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace Rosen

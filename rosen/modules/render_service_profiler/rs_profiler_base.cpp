@@ -55,6 +55,7 @@
 namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
+    static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
@@ -93,6 +94,9 @@ std::unordered_map<AnimationId, int64_t> RSProfiler::animationsTimes_;
 
 static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
 
+static std::shared_ptr<ProfilerMarshallingJob> g_marshallingJob;
+static bool g_marshalFirstFrameThread = false;
+
 constexpr size_t GetParcelMaxCapacity()
 {
     return PARCEL_MAX_CAPACITY;
@@ -129,7 +133,7 @@ bool RSProfiler::IsReadMode()
 
 bool RSProfiler::IsReadEmulationMode()
 {
-    return GetMode() == Mode::READ_EMUL;
+    return GetSubMode() == SubMode::READ_EMUL;
 }
 
 bool RSProfiler::IsWriteMode()
@@ -139,7 +143,7 @@ bool RSProfiler::IsWriteMode()
 
 bool RSProfiler::IsWriteEmulationMode()
 {
-    return GetMode() == Mode::WRITE_EMUL;
+    return GetSubMode() == SubMode::WRITE_EMUL;
 }
 
 bool RSProfiler::IsSavingMode()
@@ -391,6 +395,16 @@ Mode RSProfiler::GetMode()
     return static_cast<Mode>(mode_.load());
 }
 
+void RSProfiler::SetSubMode(SubMode subMode)
+{
+    g_subMode = static_cast<uint32_t>(subMode);
+}
+
+SubMode RSProfiler::GetSubMode()
+{
+    return static_cast<SubMode>(g_subMode);
+}
+
 void RSProfiler::SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent)
 {
     g_pids = pids;
@@ -638,7 +652,8 @@ NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
     return 0;
 }
 
-void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion)
+void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion,
+    std::shared_ptr<ProfilerMarshallingJob> job)
 {
     const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     const uint32_t count = static_cast<uint32_t>(map.GetSize());
@@ -654,14 +669,23 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
 
     for (const auto& [_, subMap] : map.renderNodeMap_) {
         for (const auto& [_, node] : subMap) {
-            if (node != nullptr) {
+            if (!node) {
+                continue;
+            }
+            if (job && node->GetId()) {
+                job->AddNode(node->GetId());
+            } else {
                 MarshalNode(*node, data, fileVersion);
-                std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
-                if (!parent && (node != rootRenderNode)) {
-                    nodes.emplace_back(node);
-                }
+            }
+            std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
+            if (!parent && (node != rootRenderNode)) {
+                nodes.emplace_back(node);
             }
         }
+    }
+
+    if (job) {
+        job->offsetNodes = data.str().size();
     }
 
     const uint32_t nodeCount = static_cast<uint32_t>(nodes.size());
@@ -669,6 +693,8 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
     for (const auto& node : nodes) { // no nullptr in nodes, omit check
         MarshalTree(*node, data, fileVersion);
     }
+
+    g_marshallingJob = job;
 }
 
 void RSProfiler::MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
@@ -688,7 +714,8 @@ void RSProfiler::MarshalTree(const RSRenderNode& node, std::stringstream& data, 
     }
 }
 
-void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
+    bool skipDrawCmdModifiers, bool isBetaRecording)
 {
     const RSRenderNodeType nodeType = node.GetType();
     data.write(reinterpret_cast<const char*>(&nodeType), sizeof(nodeType));
@@ -727,9 +754,6 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
     const float pivotZ = node.GetRenderProperties().GetPivotZ();
     data.write(reinterpret_cast<const char*>(&pivotZ), sizeof(pivotZ));
 
-    const NodePriorityType priority = const_cast<RSRenderNode&>(node).GetPriority();
-    data.write(reinterpret_cast<const char*>(&priority), sizeof(priority));
-
     const bool isOnTree = node.IsOnTheTree();
     data.write(reinterpret_cast<const char*>(&isOnTree), sizeof(isOnTree));
 
@@ -743,7 +767,7 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
         data.write(reinterpret_cast<const char*>(&isRepaintBoundary), sizeof(isRepaintBoundary));
     }
 
-    MarshalNodeModifiers(node, data, fileVersion);
+    MarshalNodeModifiers(node, data, fileVersion, skipDrawCmdModifiers, isBetaRecording);
 }
 
 static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data)
@@ -784,22 +808,27 @@ static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, 
     }
 }
 
-static void MarshalDrawCmdModifiers(ModifierNG::RSRenderModifier& modifier, bool includeImages, std::stringstream& data)
+static uint32_t MarshalDrawCmdModifiers(
+    ModifierNG::RSRenderModifier& modifier, bool skipDrawCmdModifiers, std::stringstream& data)
 {
     auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
     auto oldCmdList = modifier.Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+    if (oldCmdList && skipDrawCmdModifiers) {
+        return 0;
+    }
     if (!oldCmdList) {
         MarshalRenderModifier(modifier, data);
-        return;
+        return 1;
     }
 
     auto newCmdList = std::make_shared<Drawing::DrawCmdList>(
         oldCmdList->GetWidth(), oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
-    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get(), includeImages);
+    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
     newCmdList->PatchTypefaceIds(oldCmdList);
     modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, newCmdList);
     MarshalRenderModifier(modifier, data);
     modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, oldCmdList);
+    return 1;
 }
 
 static std::shared_ptr<ModifierNG::RSRenderModifier> CreateSnapshotModifier(const RSRenderNode& node, uint32_t version)
@@ -826,43 +855,39 @@ static std::shared_ptr<ModifierNG::RSRenderModifier> CreateSnapshotModifier(cons
     return ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::CONTENT_STYLE, property);
 }
 
-void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
+    bool skipDrawCmdModifiers, bool isBetaRecording)
 {
-    const auto snapshot = CreateSnapshotModifier(node, fileVersion);
+    data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
+    data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
 
-    uint32_t modifierNGCount = snapshot ? 1u : 0u;
-    for (const auto& slot : node.GetAllModifiers()) {
+    uint32_t modifierNGCount = 0;
+    long long countOffset = data.tellp();
+    data.write(reinterpret_cast<const char*>(&modifierNGCount), sizeof(modifierNGCount));
+    if (skipDrawCmdModifiers) {
+        return;
+    }
+
+    for (const auto& [_, slot] : node.GetAllModifiers()) {
         for (auto& modifierNG : slot) {
-            if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT ||
-                modifierNG->GetType() == ModifierNG::RSModifierType::INVALID) {
+            if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT) {
                 continue;
             }
+            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, skipDrawCmdModifiers, data);
+        }
+    }
+
+    if (!isBetaRecording) {
+        const auto snapshot = CreateSnapshotModifier(node, fileVersion);
+        if (snapshot) {
+            MarshalRenderModifier(*snapshot, data); // mustn't be called in beta-recording mode
             modifierNGCount++;
         }
     }
 
-    data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
-    data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
+    data.seekp(countOffset, std::ios_base::beg);
     data.write(reinterpret_cast<const char*>(&modifierNGCount), sizeof(modifierNGCount));
-
-    const auto includeImageOps = !IsBetaRecordEnabled();
-    for (const auto& slot : node.GetAllModifiers()) {
-        for (auto& modifierNG : slot) {
-            if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT ||
-                modifierNG->GetType() == ModifierNG::RSModifierType::INVALID) {
-                continue;
-            }
-            if (modifierNG->IsCustom()) {
-                MarshalDrawCmdModifiers(*modifierNG, includeImageOps, data);
-            } else {
-                MarshalRenderModifier(*modifierNG, data);
-            }
-        }
-    }
-
-    if (snapshot) {
-        MarshalRenderModifier(*snapshot, data);
-    }
+    data.seekp(0, std::ios_base::end);
 }
 
 static std::string CreateRenderSurfaceNode(RSContext& context,
@@ -1021,7 +1046,6 @@ std::string RSProfiler::UnmarshalNode(
     if (auto node = context.GetMutableNodeMap().GetRenderNode(nodeId)) {
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
-        node->SetPriority(priority);
         node->nodeGroupType_ = nodeGroupType;
 #ifdef SUBTREE_PARALLEL_ENABLE
         node->MarkRepaintBoundary(isRepaintBoundary);
@@ -1171,7 +1195,7 @@ std::string RSProfiler::DumpModifiers(const RSRenderNode& node)
     std::string out;
     out += "<";
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto& slot = node.GetAllModifiers()[type];
+        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }
@@ -1306,6 +1330,15 @@ void RSProfiler::PatchCommand(const Parcel& parcel, RSCommand* command)
     
     if (IsWriteMode()) {
         g_commandCount++;
+        MarshallingTouch(command->GetNodeId());
+    }
+}
+
+void RSProfiler::MarshallingTouch(NodeId nodeId)
+{
+    auto job = g_marshallingJob;
+    if (job && job->GetUnfinishedCount() && job->marshallingTick) {
+        job->marshallingTick(nodeId, false);
     }
 }
 
@@ -1359,7 +1392,7 @@ uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
 {
     uint32_t nodeCmdListCount = 0;
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto& slot = node.GetAllModifiers()[type];
+        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }
@@ -1702,7 +1735,7 @@ std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream
 
 TextureRecordType RSProfiler::GetTextureRecordType()
 {
-    if (IsBetaRecordEnabled()) {
+    if (IsBetaRecordEnabled() || g_marshalFirstFrameThread) {
         return TextureRecordType::ONE_PIXEL;
     }
     return g_textureRecordType;
@@ -1737,6 +1770,21 @@ bool RSProfiler::IsFirstFrameParcel(const Parcel& parcel)
         return false;
     }
     return IsWriteEmulationMode() || IsReadEmulationMode();
+}
+
+std::shared_ptr<ProfilerMarshallingJob>& RSProfiler::GetMarshallingJob()
+{
+    return g_marshallingJob;
+}
+
+void RSProfiler::SetMarshalFirstFrameThreadFlag(bool flag)
+{
+    g_marshalFirstFrameThread = flag;
+}
+
+bool RSProfiler::GetMarshalFirstFrameThreadFlag()
+{
+    return g_marshalFirstFrameThread;
 }
 
 void RSProfiler::SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize)

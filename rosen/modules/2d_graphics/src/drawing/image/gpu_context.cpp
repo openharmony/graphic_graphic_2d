@@ -250,17 +250,24 @@ void GPUContext::ResetContext()
 }
 
 // subtree parallel feature interface
-// generate submit information
-void GPUContext::GenerateSubmitInfo(int seq)
+// generate draw op
+void GPUContext::FlushCommands(bool isMainCtx)
 {
-    impl_->GenerateSubmitInfo(seq);
+    impl_->FlushCommands(isMainCtx);
 }
 
 // subtree parallel feature interface
-// generate draw op
-void GPUContext::FlushCommands()
+// callback for wait other dependent draw finish
+void GPUContext::RegisterWaitSemCallback(const std::function<void(int seq)>& callBack, int seq)
 {
-    impl_->FlushCommands();
+    impl_->RegisterWaitSemCallback(callBack, seq);
+}
+
+// subtree parallel feature interface
+// unregister wait sem callback
+void GPUContext::UnRegisterWaitSemCallback()
+{
+    impl_->UnRegisterWaitSemCallback();
 }
 
 #ifdef RS_ENABLE_VK

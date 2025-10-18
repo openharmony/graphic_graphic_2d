@@ -96,6 +96,7 @@ public:
     virtual double GetMaxScaler(ScreenId screenId) const = 0;
     virtual BrightnessInfo GetBrightnessInfo(ScreenId screenId) = 0;
     virtual bool IsBrightnessInfoChanged(ScreenId screenId) = 0;
+    virtual void HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes) = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -132,6 +133,7 @@ public:
     RSB_EXPORT double GetMaxScaler(ScreenId screenId) const;
     RSB_EXPORT BrightnessInfo GetBrightnessInfo(ScreenId screenId);
     RSB_EXPORT bool IsBrightnessInfoChanged(ScreenId screenId);
+    RSB_EXPORT void HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes);
 
 private:
     RSLuminanceControl() = default;

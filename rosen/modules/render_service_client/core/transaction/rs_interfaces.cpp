@@ -29,6 +29,7 @@
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
+#include "utils/typeface_map.h"
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -160,7 +161,7 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         return false;
     }
     if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > WATERMARK_PIXELMAP_SIZE_LIMIT)) {
-        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}d] is error",
+        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}u] is error",
             watermark->IsAstc(), watermark->GetCapacity());
         return false;
     }
@@ -180,7 +181,7 @@ uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string &name,
         return SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR;
     }
     if (watermark && watermark->IsAstc()) {
-        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}d] is error",
+        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}u] is error",
             watermark->IsAstc(), watermark->GetCapacity());
         return SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR;
     }
@@ -378,9 +379,9 @@ bool RSInterfaces::TakeSurfaceCapture(NodeId id,
 }
 
 #ifndef ROSEN_ARKUI_X
-void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    renderServiceClient_->SetScreenActiveMode(id, modeId);
+    return renderServiceClient_->SetScreenActiveMode(id, modeId);
 }
 #endif // !ROSEN_ARKUI_X
 void RSInterfaces::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -543,23 +544,29 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
     }
 }
 
-bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 {
+    if (tf == nullptr) {
+        return -1;
+    }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        bool result = renderServiceClient_->RegisterTypeface(typeface);
-        if (result) {
-            RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
-                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-        } else {
-            RS_LOGE("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
-                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+        if (tf->GetFd() == -1) {
+            RS_LOGI("RSInterfaces: Register typeface without share memory, name: %{public}s hash: %{public}u",
+                tf->GetFamilyName().c_str(), tf->GetHash());
+            return renderServiceClient_->RegisterTypeface(tf);
         }
-        return result;
+        RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
+            tf->GetFamilyName().c_str(), tf->GetHash());
+        return renderServiceClient_->RegisterTypeface(tf->GetHash(), tf->GetSize(), tf->GetFd());
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
-        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
-    return true;
+        tf->GetFamilyName().c_str(), tf->GetUniqueID());
+    if (tf->GetFd() == -1) {
+        TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+        return true;
+    }
+    return tf->GetFd();
 }
 
 bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)

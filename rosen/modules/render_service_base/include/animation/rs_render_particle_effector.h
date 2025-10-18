@@ -18,6 +18,8 @@
 
 #include "rs_render_particle.h"
 #include "rs_particle_noise_field.h"
+#include "rs_particle_ripple_field.h"
+#include "rs_particle_velocity_field.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -47,12 +49,16 @@ public:
     void UpdateAccelerationValue(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
 
     void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, float deltaTime);
+        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
+        const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+        const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, float deltaTime);
 
     void UpdateActiveTime(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
 
     void Update(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, int64_t deltaTime);
+        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
+        const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+        const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t deltaTime);
 };
 
 } // namespace Rosen

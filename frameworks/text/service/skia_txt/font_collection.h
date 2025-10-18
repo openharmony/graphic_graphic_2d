@@ -37,6 +37,7 @@ public:
     uint32_t GetHash() const;
     const std::string& GetAlias() const;
     const std::shared_ptr<Drawing::Typeface>& GetTypeface() const;
+    void UpdateTypefaceAshmem(int32_t fd, uint32_t size);
     bool operator==(const TypefaceWithAlias& other) const;
 
     struct Hasher {
@@ -93,7 +94,9 @@ private:
         const FontCallback& begin_;
         const FontCallback& end_;
     };
-    RegisterError RegisterTypeface(const TypefaceWithAlias& ta);
+    RegisterError RegisterTypeface(TypefaceWithAlias& ta);
+    static std::shared_ptr<Drawing::Typeface> CreateTypeface(
+        const std::string& familyName, const uint8_t* data, size_t datalen);
 
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;

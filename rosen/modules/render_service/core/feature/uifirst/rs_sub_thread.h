@@ -52,7 +52,7 @@ public:
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
     void ResetGrContext();
     void ThreadSafetyReleaseTexture();
-    void DumpMem(DfxString& log);
+    void DumpMem(DfxString& log, bool isLite = false);
     float GetAppGpuMemoryInMB();
     unsigned int GetDoingCacheProcessNum()
     {

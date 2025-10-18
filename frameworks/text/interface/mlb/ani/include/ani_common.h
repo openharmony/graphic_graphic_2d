@@ -35,6 +35,7 @@ constexpr const char* ANI_STRING = "std.core.String";
 constexpr const char* ANI_MAP = "escompat.Map";
 constexpr const char* ANI_ARRAY = "escompat.Array";
 constexpr const char* ANI_BUSINESS_ERROR = "@ohos.base.BusinessError";
+constexpr const char* ANI_RESOURCE = "global.resource.Resource";
 /**
  * define interface
  */

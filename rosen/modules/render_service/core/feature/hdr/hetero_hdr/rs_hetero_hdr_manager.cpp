@@ -35,6 +35,7 @@ namespace {
 constexpr float DEGAMMA = 1.0f / 2.2f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int GRAPH_NUM = 3;
+constexpr int UN_EXECUTE_TASK_NUM_MAX = 2;
 constexpr int MAX_RELEASE_FRAME_NUM = 5;
 constexpr float RATIO_CHANGE_TH = 0.02f;
 }
@@ -68,20 +69,18 @@ RSHeteroHDRManager::RSHeteroHDRManager()
     }
 }
 
-int32_t RSHeteroHDRManager::RoundDownToEven(int32_t value)
+int32_t RSHeteroHDRManager::RoundFloorToEven(int32_t value, int32_t maxVal)
 {
-    int32_t result = (value % 2 == 0) ? value : value - 1;
-    return (value > 0) ? result : 0;
+    int32_t result = (value % 2 == 0) ? value : value + 1;
+    return (result > maxVal) ? maxVal : result;
 }
 
-RectI RSHeteroHDRManager::RectRound(RectI srcRect)
+RectI RSHeteroHDRManager::RectRound(RectI srcRect, int32_t width, int32_t height)
 {
-    int32_t srcWidth = RoundDownToEven(srcRect.width_);
-    int32_t srcHeight = RoundDownToEven(srcRect.height_);
-    int32_t srcTop = RoundDownToEven(srcRect.top_);
-    int32_t srcLeft = RoundDownToEven(srcRect.left_);
+    int32_t srcWidth = RoundFloorToEven(srcRect.width_, width);
+    int32_t srcHeight = RoundFloorToEven(srcRect.height_, height);
 
-    RectI dstRect = { srcLeft, srcTop, srcWidth, srcHeight };
+    RectI dstRect = { srcRect.left_, srcRect.top_, srcWidth, srcHeight };
     return dstRect;
 }
 
@@ -108,9 +107,10 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager GetFixedDstRectStatus surfaceParams is nullptr");
         return;
     }
-    // The precondition has already determined that the surfaceParams->GetBuffer() is not nullptr(ValidateSurface)
-    auto bufferWidth = surfaceParams->GetBuffer()->GetSurfaceBufferWidth();
-    auto bufferHeight = surfaceParams->GetBuffer()->GetSurfaceBufferHeight();
+    // The precondition has already determined that the srcBuffer is not nullptr(ValidateSurface)
+    sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
+    auto bufferWidth = srcBuffer->GetSurfaceBufferWidth();
+    auto bufferHeight = srcBuffer->GetSurfaceBufferHeight();
     // The precondition has already checked that this node is in nodeHdrStatusMap
     if (curHandleStatus_ == HdrStatus::AI_HDR_VIDEO_GAINMAP) {
         isFixedDstBuffer_ = true;
@@ -120,50 +120,54 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     auto srcRect = surfaceParams->GetLayerInfo().srcRect;
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
-
-    float ratio = float(srcRect.h) * float(dstRect.w) / (float(dstRect.h) * float(srcRect.w));
-
-    bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH);
+    Vector2f boundSize = surfaceParams->GetCacheSize();
+    // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
+    float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
     ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
-    bool isVertical =
-        (transform == GraphicTransformType::GRAPHIC_ROTATE_90 || transform == GraphicTransformType::GRAPHIC_ROTATE_270);
+    bool isVertical = (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        transform == GraphicTransformType::GRAPHIC_ROTATE_270);
 
-    Vector2f hpaeBufferSize = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width)
-                                           : Vector2f(curScreenInfo.width, curScreenInfo.height);
-    Vector2f boundSize = surfaceParams->GetCacheSize();
+    hpaeBufferSize_ = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width) :
+        Vector2f(curScreenInfo.width, curScreenInfo.height);
     bool sizeJudge = !(ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.0f) &&
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
-
-    if (bufferHeight == 0 or bufferWidth == 0) {
-        return;
-    }
-
+    bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
+        (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
     if (isVertical) {
-        boundSize.y_ = hpaeBufferSize.y_;
+        boundSize.y_ = hpaeBufferSize_.y_;
+        // The precondition has already determined that the bufferHeight is not zero(ValidateSurface)
         boundSize.x_ = round(boundSize.y_ * bufferWidth / bufferHeight);
-        boundSize.x_ = (boundSize.x_ > hpaeBufferSize.x_) ? hpaeBufferSize.x_ : boundSize.x_;
+        boundSize.x_ = (boundSize.x_ > hpaeBufferSize_.x_) ? hpaeBufferSize_.x_ : boundSize.x_;
         sizeJudge = true;
     } else {
-        boundSize.x_ = hpaeBufferSize.x_;
+        boundSize.x_ = hpaeBufferSize_.x_;
+        // The precondition has already determined that the bufferWidth is not zero(ValidateSurface)
         boundSize.y_ = round(boundSize.x_ * bufferHeight / bufferWidth);
-        boundSize.y_ = (boundSize.y_ > hpaeBufferSize.y_) ? hpaeBufferSize.y_ : boundSize.y_;
+        boundSize.y_ = (boundSize.y_ > hpaeBufferSize_.y_) ? hpaeBufferSize_.y_ : boundSize.y_;
     }
-    dst_.left_, dst_.top_ = 0, 0;
-    dst_.width_, dst_.height_ = boundSize.x_, boundSize.y_;
-    isFixedDstBuffer_ = isUiFirstMode || ratioJudge || sizeJudge ||
-        transform == GraphicTransformType::GRAPHIC_ROTATE_180;
+    dst_.left_ = 0;
+    dst_.top_ = 0;
+    dst_.width_ = boundSize.x_;
+    dst_.height_ = boundSize.y_;
+    isFixedDstBuffer_ = isUiFirstMode || ratioJudge || sizeJudge;
     if (!isFixedDstBuffer_) {
         dst_.width_ = dstRect.w;
         dst_.height_ = dstRect.h;
     }
-    dst_ = RectRound(dst_);
 }
 
 bool RSHeteroHDRManager::PrepareHpaeTask(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& nodeDrawable, RSSurfaceRenderParams* surfaceParams,
     uint64_t curFrameId)
 {
+    // Even number validation
+    bool isEvenNumber = (src_.width_ % 2 == 0) && (src_.height_ % 2 == 0) && (dst_.width_ % 2 == 0) &&
+        (dst_.height_ % 2 == 0);
+    if (!isEvenNumber) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask check even number failed");
+        return false;
+    }
     // 1. Hpae Device is ready
     if (!destroyedFlag_.load()) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask Hpae device is not ready");
@@ -238,6 +242,12 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
         ClearBufferCache();
         return false;
     }
+    uint32_t unExecuteTaskNum = RSHardwareThread::Instance().GetunExecuteTaskNum();
+    if (unExecuteTaskNum > UN_EXECUTE_TASK_NUM_MAX) {
+        RS_LOGW("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode unExecuteTaskNum%{public}" PRIu32,
+            unExecuteTaskNum);
+        return false;
+    }
     if (!CheckWindowOwnership(curNodeId_)) {
         return false;
     }
@@ -293,6 +303,46 @@ void RSHeteroHDRManager::ClearBufferCache()
     }
 }
 
+void RSHeteroHDRManager::GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hpaeSrcRect,
+    RectI& validHpaeDstRect)
+{
+    // The precondition has already determined that the surfaceParams and srcBuffer are not nullptr(ValidateSurface)
+    sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
+    const auto& srcRect = surfaceParams->GetLayerInfo().srcRect;
+    const auto& dstRect = surfaceParams->GetLayerInfo().dstRect;
+    auto bufferHeight = srcBuffer->GetSurfaceBufferHeight();
+    auto bufferWidth = srcBuffer->GetSurfaceBufferWidth();
+    /*
+     * isFixedDstBuffer_ is true when hpae and GPU are used separately for scaling.
+     * The precondition has already determined that the width and height of srcBuffer are not zero
+     */
+    if (isFixedDstBuffer_) {
+        // this condition, crop and scale need to be handle by gpu
+        hpaeSrcRect = RectRound(RectI(0, 0, bufferWidth, bufferHeight), bufferWidth, bufferHeight);
+        dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
+        // The precondition has already determined that width and height of hpaeSrcRect are not zero
+        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_) *
+            static_cast<float>(bufferWidth)) - 1;
+        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_) *
+            static_cast<float>(bufferHeight)) - 1;
+        validHpaeDstRect = { 0, 0, validW, validH };
+    } else {
+        hpaeSrcRect = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h), bufferWidth, bufferHeight);
+        // The precondition has already determined that width and height of srcRect are not zero
+        dst_.width_ = round(static_cast<float>(dstRect.w) / static_cast<float>(srcRect.w) *
+            static_cast<float>(hpaeSrcRect.width_));
+        dst_.height_ = round(static_cast<float>(dstRect.h) / static_cast<float>(srcRect.h) *
+            static_cast<float>(hpaeSrcRect.height_));
+        dst_ = RectRound(dst_, hpaeBufferSize_.x_, hpaeBufferSize_.y_);
+        // The precondition has already determined that width and height of hpaeSrcRect are not zero
+        auto validW = round(static_cast<float>(dst_.width_) / static_cast<float>(hpaeSrcRect.width_) *
+            static_cast<float>(srcRect.w)) - 1;
+        auto validH = round(static_cast<float>(dst_.height_) / static_cast<float>(hpaeSrcRect.height_) *
+            static_cast<float>(srcRect.h)) - 1;
+        validHpaeDstRect = { 0, 0, validW, validH };
+    }
+}
+
 bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& nodeDrawable,
     RSSurfaceRenderParams* surfaceParams, NodeId nodeId, uint64_t curFrameId)
 {
@@ -306,24 +356,15 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
     /* Whether nodeId is in the map has been determined in function CheckWindowOwnership. */
     bool isUiFirstMode = pendingNodes.count(ownedLeashWindowIdMap_[nodeId]);
     GetFixedDstRectStatus(nodeDrawable, isUiFirstMode, surfaceParams);
-    RectI src = {};
-    /*
-    * isFixedDstBuffer_ is true when hpae and GPU are used separately for scaling.
-    * The precondition has already determined that the width and height of srcBuffer are not zero
-    */
-    if (isFixedDstBuffer_) {
-        // this condition, crop and scale need to be handle by gpu
-        src = { 0, 0, srcBuffer->GetSurfaceBufferWidth(), srcBuffer->GetSurfaceBufferHeight() };
-    } else {
-        src = RectRound(RectI(srcRect.x, srcRect.y, srcRect.w, srcRect.h));
-    }
+    RectI validDst = {};
+    GenerateHpaeRect(surfaceParams, src_, validDst);
 
     RectI prevSrc = nodeSrcRectMap_[nodeId];
-    if (src != prevSrc) {
+    if (src_ != prevSrc) {
         need2Handle = true;
-        nodeSrcRectMap_[nodeId] = src;
+        nodeSrcRectMap_[nodeId] = src_;
     }
-    MDCRectT MDCSrcRect{ src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom() };
+    MDCRectT MDCSrcRect{ src_.GetLeft(), src_.GetTop(), src_.GetRight(), src_.GetBottom() };
     if (!need2Handle) {
         return true;
     }
@@ -332,6 +373,7 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
         return false;
     }
     hpaeDstRect_ = { dst_.GetLeft(), dst_.GetTop(), dst_.GetRight(), dst_.GetBottom() };
+    validHpaeDstRect_ = { validDst.GetLeft(), validDst.GetTop(), validDst.GetRight(), validDst.GetBottom() };
 
     destroyedFlag_.store(false);
 
@@ -354,6 +396,12 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
     return submitRet;
 }
 
+bool RSHeteroHDRManager::HasHdrHeteroNode()
+{
+    uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
+    return (pendingPostNodes_.size() == 1 && curFrameId != 0);
+}
+
 void RSHeteroHDRManager::PostHDRSubTasks()
 {
     if (!isHeteroComputingHdrOn_) {
@@ -364,7 +412,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
     RSHDRPatternManager::Instance().MHCSetVsyncId(curFrameId);
     FindParentLeashWindowNode();
 
-    if (pendingPostNodes_.size() == 1 && curFrameId != 0) {
+    if (HasHdrHeteroNode()) {
         curFrameHeteroHandleCanBeUsed_ = ProcessPendingNode(pendingPostNodes_.front(), curFrameId);
     } else {
         curFrameHeteroHandleCanBeUsed_ = false;
@@ -446,11 +494,6 @@ void RSHeteroHDRManager::FindParentLeashWindowNode()
         "AppWindowNode:%{public}" PRIu64, ownedLeashWindowIdMap_[nodeId], ownedAppWindowIdMap_[nodeId]);
 }
 
-bool RSHeteroHDRManager::ReleaseBuffer()
-{
-    return rsHeteroHDRBufferLayer_.ReleaseBuffer();
-}
-
 int32_t RSHeteroHDRManager::BuildHDRTask(
     RSSurfaceRenderParams* surfaceParams, MDCRectT srcRect, uint32_t* taskId, void** taskPtr, HdrStatus curHandleStatus)
 {
@@ -526,6 +569,12 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
     if (!isHeteroComputingHdrOn_) {
         return false;
     }
+#ifdef RS_ENABLE_VK
+    if (!RSHDRVulkanTask::IsInterfaceTypeBasicRender()) {
+        RS_LOGW("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams not basic render");
+        return false;
+    }
+#endif // RS_ENABLE_VK
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable.GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams surfaceParams is nullptr");
@@ -543,7 +592,6 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
             RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams hdrSurfaceHandler is nullptr");
             return false;
         }
-        rsHeteroHDRBufferLayer_.ReleaseBuffer();
         bool invalidBuffer =
             !RSBaseRenderUtil::ConsumeAndUpdateBuffer(*hdrSurfaceHandler, CONSUME_DIRECTLY, false, 0) ||
             !hdrSurfaceHandler->GetBuffer();
@@ -551,6 +599,7 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
             RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams ConsumeAndUpdateBuffer or GetBuffer failed");
             return false;
         }
+        rsHeteroHDRBufferLayer_.ReleaseBuffer();
         RSHDRPatternManager::Instance().SetThreadId(canvas);
 
         ProcessParamsUpdate(canvas, surfaceDrawable, drawableParams);
@@ -581,7 +630,7 @@ void RSHeteroHDRManager::ProcessParamsUpdate(RSPaintFilterCanvas& canvas,
             hdrHeteroType = RSHeteroHDRUtilConst::HDR_HETERO_NO;
             break;
     }
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(surfaceDrawable, hpaeDstRect_, isFixedDstBuffer_, drawableParams);
+    RSHeteroHDRUtil::GenDrawHDRBufferParams(surfaceDrawable, validHpaeDstRect_, isFixedDstBuffer_, drawableParams);
     drawableParams.buffer = hdrSurfaceHandler->GetBuffer();
     drawableParams.acquireFence = hdrSurfaceHandler->GetAcquireFence();
     drawableParams.hdrHeteroType = hdrHeteroType;

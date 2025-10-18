@@ -33,6 +33,7 @@ ani_status AniRegion::AniInit(ani_env *env)
         ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Region;:V",
             reinterpret_cast<void*>(ConstructorWithRegion) },
         ani_native_function { "constructorNative", "IIII:V", reinterpret_cast<void*>(ConstructorWithRect) },
+        ani_native_function { "setEmpty", ":V", reinterpret_cast<void*>(SetEmpty) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -81,6 +82,18 @@ void AniRegion::ConstructorWithRect(ani_env* env, ani_object obj, ani_int left, 
         delete aniRegion;
         return;
     }
+}
+
+void AniRegion::SetEmpty(ani_env* env, ani_object obj)
+{
+    auto aniRegion = GetNativeFromObj<AniRegion>(env, obj);
+    if (aniRegion == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRegion::SetEmpty invalid params: obj. ");
+        return;
+    }
+
+    aniRegion->GetRegion().SetEmpty();
 }
 
 

@@ -407,9 +407,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         }
     }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}u]", RSHardwareThread::Instance().GetunExecuteTaskNum());
-        RSHardwareThread::Instance().DumpEventQueue();
+        RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);
 
@@ -708,7 +706,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
             syncDirtyManager_->ResetDirtyAsSurfaceSize();
             syncDirtyManager_->UpdateDirty(false);
-            RS_LOGE("RSScreenRenderNodeDrawable::OnDraw processor init failed!");
+            RS_LOGD("RSScreenRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
         if (mirroredRenderParams) {
@@ -989,16 +987,19 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
         RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
-#ifdef SUBTREE_PARALLEL_ENABLE
-    // Wait for all sub threads process completely.
-    RSParallelManager::Singleton().WaitUntilSubTreeFinish(curCanvas_);
-#endif
+
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
     RsFrameReport::GetInstance().CheckBeginFlushPoint();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
 
     renderFrame->Flush();
     RS_TRACE_END();
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+    // Wait for all sub threads process completely.
+    RSParallelManager::Singleton().WaitUntilSubTreeFinish(curCanvas_);
+#endif
+
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
         RS_LOGI("Drawing Performance Flush end %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
         Drawing::PerformanceCaculate::ResetCaculateTimeCount();
@@ -1009,9 +1010,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
-        RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute"
-                " TaskNum:[%{public}d]", RSHardwareThread::Instance().GetunExecuteTaskNum());
-        RSHardwareThread::Instance().DumpEventQueue();
+        RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute");
     }
 
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable CommitLayer");
@@ -1179,6 +1178,12 @@ bool RSScreenRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scre
             break;
         case SKIP_FRAME_BY_REFRESH_RATE:
             needSkip = SkipFrameByRefreshRate(refreshRate, screenInfo.expectedRefreshRate);
+            break;
+        case SKIP_FRAME_BY_ACTIVE_REFRESH_RATE:
+            if (refreshRate > screenInfo.activeRefreshRate) {
+                needSkip = SkipFrameByRefreshRate(refreshRate, screenInfo.activeRefreshRate);
+                GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
+            }
             break;
         default:
             break;

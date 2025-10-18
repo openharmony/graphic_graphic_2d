@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import uiEffect from './@ohos.graphics.uiEffect';
- 
+
 function main() {
   console.log('Test uiEffect start');
-  
+
   let visualEffect: uiEffect.VisualEffect = uiEffect.createEffect();
-  if (visualEffect == undefined) {
+  if (visualEffect === undefined) {
     console.log('createEffect failed');
   } else {
     console.log('createEffect SUCCEED');
@@ -34,55 +34,55 @@ function main() {
     negativeCoefficient: [0.5, 2.0, 0.5],
     fraction: 0.5
   });
-  if (brightnessBlender == undefined) {
+  if (brightnessBlender === undefined) {
     console.log('createBrightnessBlender failed');
   } else {
     console.log('createBrightnessBlender SUCCEED, value is correct');
   }
   let result: uiEffect.VisualEffect = visualEffect.backgroundColorBlender(brightnessBlender);
-  if (result == undefined) {
+  if (result === undefined) {
     console.log('backgroundColorBlender failed');
   } else {
     console.log('backgroundColorBlender SUCCEED');
   }  
   let filter: uiEffect.Filter = uiEffect.createFilter();
-  if (filter == undefined) {
+  if (filter === undefined) {
     console.log('createFilter failed');
   } else {
     console.log('createFilter succ');
   }
   let blurResult: uiEffect.Filter = filter.blur(0.5);
-  if (blurResult == undefined) {
+  if (blurResult === undefined) {
     console.log('blur failed');
   } else {
     console.log('blur succ');
   }
   let pixelStretchResult: uiEffect.Filter = filter.pixelStretch([0.2, 0.2, 0.2, 0.2], uiEffect.TileMode.CLAMP);
-  if (pixelStretchResult == undefined) {
+  if (pixelStretchResult === undefined) {
     console.log('pixelStretch failed');
   } else {
     console.log('pixelStretch succ');
   }
 
   let flyResult: uiEffect.Filter = filter.flyInFlyOutEffect(0.5, uiEffect.FlyMode.TOP);
-  if (flyResult == undefined) {
+  if (flyResult === undefined) {
     console.log('fly failed');
   } else {
     console.log('fly succ');
   }
   let waterRippleResult: uiEffect.Filter = filter.waterRipple(0.2, 0.2, 0.2, 0.2,
     uiEffect.WaterRippleMode.SMALL2MEDIUM_RECV);
-  if (waterRippleResult == undefined) {
+  if (waterRippleResult === undefined) {
     console.log('waterRipple failed');
   } else {
     console.log('waterRipple succ');
   }  
   let distortResult: uiEffect.Filter = filter.distort(0.5);
-  if (distortResult == undefined) {
+  if (distortResult === undefined) {
     console.log('distort failed');
   } else {
     console.log('distort succ');
-  }  
-  
+  }
+
   console.log('Test uiEffect end');
 }

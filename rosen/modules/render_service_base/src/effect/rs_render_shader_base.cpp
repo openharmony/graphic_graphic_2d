@@ -48,6 +48,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderColorGradientEffect>();
         }
     },
+    {RSNGEffectType::HARMONIUM_EFFECT, [] {
+            return std::make_shared<RSNGRenderHarmoniumEffect>();
+        }
+    },
     {RSNGEffectType::LIGHT_CAVE, [] {
             return std::make_shared<RSNGRenderLightCave>();
         }
@@ -122,7 +126,7 @@ bool RSNGRenderShaderHelper::CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase
     return false;
 }
 
-void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase>& shader,
+void RSNGRenderShaderHelper::SetRotationAngle(const std::shared_ptr<RSNGRenderShaderBase>& shader,
     const Vector3f& rotationAngle)
 {
     auto current = shader;
@@ -135,7 +139,7 @@ void RSNGRenderShaderHelper::SetRotationAngle(std::shared_ptr<RSNGRenderShaderBa
     }
 }
 
-void RSNGRenderShaderHelper::SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase>& shader,
+void RSNGRenderShaderHelper::SetCornerRadius(const std::shared_ptr<RSNGRenderShaderBase>& shader,
     float cornerRadius)
 {
     auto current = shader;
@@ -144,8 +148,31 @@ void RSNGRenderShaderHelper::SetCornerRadius(std::shared_ptr<RSNGRenderShaderBas
             auto borderLightShader = std::static_pointer_cast<RSNGRenderBorderLight>(current);
             borderLightShader->Setter<BorderLightCornerRadiusRenderTag>(cornerRadius);
         }
+        if (current->GetType() == RSNGEffectType::HARMONIUM_EFFECT) {
+            auto harmoniumEffect = std::static_pointer_cast<RSNGRenderHarmoniumEffect>(current);
+            harmoniumEffect->Setter<HarmoniumEffectCornerRadiusRenderTag>(cornerRadius);
+        }
         current =  current->nextEffect_;
     }
+}
+
+std::shared_ptr<Drawing::Image> RSNGRenderShaderHelper::GetCachedBlurImage(Drawing::Canvas* canvas)
+{
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (paintFilterCanvas == nullptr) {
+        ROSEN_LOGE("HarmoniumEffect paintFilterCanvas null");
+        return nullptr;
+    }
+    const auto& effectData = paintFilterCanvas->GetEffectData();
+    if (effectData == nullptr) {
+        ROSEN_LOGE("HarmoniumEffect effectData null");
+        return nullptr;
+    }
+    if (effectData->cachedImage_ == nullptr) {
+        ROSEN_LOGE("HarmoniumEffect effectData->cachedImage_ null");
+        return nullptr;
+    }
+    return effectData->cachedImage_;
 }
 } // namespace Rosen
 } // namespace OHOS

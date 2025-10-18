@@ -90,6 +90,40 @@ void RectFuzzTest001(const uint8_t* data, size_t size)
     OH_Drawing_RectDestroy(rect1);
     return;
 }
+
+void RectFuzzTest002(const uint8_t* data, size_t size)
+{
+    float left = GetObject<float>();
+    float top = GetObject<float>();
+    float right = GetObject<float>();
+    float bottom = GetObject<float>();
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(left, top, right, bottom);
+    OH_Drawing_Rect *other = OH_Drawing_RectCreate(left, top, right, bottom);
+    bool isContains = GetObject<bool>();
+    
+    OH_Drawing_RectContains(rect, other, &isContains);
+    OH_Drawing_RectContains(nullptr, other, &isContains);
+    OH_Drawing_RectContains(rect, nullptr, &isContains);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RectDestroy(other);
+    return;
+}
+
+void RectFuzzTest003(const uint8_t* data, size_t size)
+{
+    float left = GetObject<float>();
+    float top = GetObject<float>();
+    float right = GetObject<float>();
+    float bottom = GetObject<float>();
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(left, top, right, bottom);
+    
+    OH_Drawing_RectInset(rect, left, top, right, bottom);
+    OH_Drawing_RectInset(nullptr, left, top, right, bottom);
+    
+    OH_Drawing_RectDestroy(rect);
+    return;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -105,5 +139,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::RectFuzzTest000(data, size);
     OHOS::Rosen::Drawing::RectFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::RectFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::RectFuzzTest003(data, size);
     return 0;
 }

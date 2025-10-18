@@ -165,6 +165,14 @@ inline bool CheckInt32OutOfRange(ani_int val, int32_t lowerBound, int32_t upperB
     return val < lowerBound || val > upperBound;
 }
 
+inline void DrawingRectConvertToAniRect(ani_env* env, ani_object obj, const Drawing::Rect& rect)
+{
+    env->Object_SetPropertyByName_Double(obj, "left", rect.GetLeft());
+    env->Object_SetPropertyByName_Double(obj, "top", rect.GetTop());
+    env->Object_SetPropertyByName_Double(obj, "right", rect.GetRight());
+    env->Object_SetPropertyByName_Double(obj, "bottom", rect.GetBottom());
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

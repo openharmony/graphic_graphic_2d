@@ -69,10 +69,9 @@ private:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool IsTypeSupport(const std::shared_ptr<Media::PixelMap>& pixelMap);
     std::shared_ptr<Drawing::Image> ScaleByHDSampler(int dstWidth, int dstHeight,
-        std::shared_ptr<Drawing::Surface>& newSurface, std::shared_ptr<Drawing::Canvas>& newCanvas,
-        const std::shared_ptr<Drawing::Image>& srcImage);
+        sptr<SurfaceBuffer>& dstSurfaceBuffer, const std::shared_ptr<Drawing::Image>& srcImage);
     std::shared_ptr<Drawing::Image> ScaleByAAE(sptr<SurfaceBuffer>& dstSurfaceBuffer,
-        const std::shared_ptr<Drawing::Image>& srcImage, std::shared_ptr<Drawing::Canvas>& newCanvas);
+        const std::shared_ptr<Drawing::Image>& srcImage);
     void ExecuteTaskAsync(int dstWidth, int dstHeight, const std::shared_ptr<Drawing::Image>& image,
         uint64_t nodeId, uint64_t imageId);
 #endif
@@ -99,8 +98,8 @@ public:
     sptr<SurfaceBuffer> CreateSurfaceBuffer(int width, int height);
     std::shared_ptr<Drawing::Surface> InitSurface(int dstWidth, int dstHeight, sptr<SurfaceBuffer>& dstSurfaceBuffer,
         const std::shared_ptr<Drawing::Image>& image);
-    std::shared_ptr<Drawing::Image> MakeImageFromSurfaceBuffer(std::shared_ptr<Drawing::Canvas>& canvas,
-        sptr<SurfaceBuffer>& surfaceBuffer, const std::shared_ptr<Drawing::Image>& image);
+    std::shared_ptr<Drawing::Image> MakeImageFromSurfaceBuffer(sptr<SurfaceBuffer>& surfaceBuffer,
+        const std::shared_ptr<Drawing::Image>& image);
     Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat);
 #endif
 };

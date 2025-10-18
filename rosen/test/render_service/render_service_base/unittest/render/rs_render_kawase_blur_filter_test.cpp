@@ -65,12 +65,6 @@ HWTEST_F(RSKawaseBlurShaderFilterTest, GetDescriptionTest, TestSize.Level1)
     std::string out = "";
     kawaseShaderFilter->GetDescription(out);
     EXPECT_EQ(out, filterString);
-
-    kawaseShaderFilter->isMesablurAllEnable_ = true;
-    filterString += ", replaced by Mesa.";
-    out = "";
-    kawaseShaderFilter->GetDescription(out);
-    EXPECT_EQ(out, filterString);
 }
 
 /**
@@ -82,7 +76,6 @@ HWTEST_F(RSKawaseBlurShaderFilterTest, GetDescriptionTest, TestSize.Level1)
 HWTEST_F(RSKawaseBlurShaderFilterTest, GenerateGEVisualEffectTest, TestSize.Level1)
 {
     int radius = 0;
-    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(false);
     auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
     ASSERT_NE(kawaseBlurShaderFilter, nullptr);
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
@@ -122,10 +115,6 @@ HWTEST_F(RSKawaseBlurShaderFilterTest, GenerateGEVisualEffectTestMinRadius, Test
     ASSERT_NE(kawaseBlurShaderFilter, nullptr);
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     ASSERT_NE(visualEffectContainer, nullptr);
-    kawaseBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
-    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
-
-    kawaseBlurShaderFilter->isMesablurAllEnable_ = true;
     kawaseBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }

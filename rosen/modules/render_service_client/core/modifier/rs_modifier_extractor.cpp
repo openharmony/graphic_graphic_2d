@@ -151,6 +151,12 @@ Vector4f RSModifierExtractor::GetCornerRadius() const
     GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, CLIP_TO_BOUNDS, CORNER_RADIUS, Vector4f(), =);
 }
 
+int RSModifierExtractor::GetCornerApplyType() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_NG(
+        int, CLIP_TO_BOUNDS, CORNER_APPLY_TYPE, static_cast<int>(RSCornerApplyType::FAST), =);
+}
+
 Color RSModifierExtractor::GetForegroundColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(Color, FOREGROUND_COLOR, FOREGROUND_COLOR, RgbPalette::Transparent(), =);

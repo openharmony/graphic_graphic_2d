@@ -174,9 +174,10 @@ void RSScreen::PhysicalScreenInit() noexcept
         phyHeight_ = activeMode->height;
         width_ = phyWidth_;
         height_ = phyHeight_;
+        activeRefreshRate_ = activeMode->freshRate;
         RS_LOGI("%{public}s activeMode, screenId:%{public}" PRIu64
-                ", activeModeId: %{public}d, size:[%{public}u, %{public}u]",
-                __func__, id_, activeMode->id, activeMode->width, activeMode->height);
+                ", activeModeId: %{public}d, size:[%{public}u, %{public}u], activeRefreshRate: %{public}u",
+                __func__, id_, activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenPowerStatus.",
@@ -207,6 +208,10 @@ void RSScreen::PhysicalScreenInit() noexcept
         }
     }
     screenBacklightLevel_ = GetScreenBacklight();
+    // Enable when an external screen is connected and the vsync rate doesn't match the active refresh rate.
+    if (id_ != 0 && MultiScreenParam::IsSkipFrameByActiveRefreshRate()) {
+        skipFrameStrategy_ = SKIP_FRAME_BY_ACTIVE_REFRESH_RATE;
+    }
 }
 
 void RSScreen::ScreenCapabilityInit() noexcept
@@ -340,7 +345,7 @@ RectI RSScreen::GetReviseRect() const
 
 bool RSScreen::IsEnable() const
 {
-    if (id_ == INVALID_SCREEN_ID) {
+    if (id_ == INVALID_SCREEN_ID || resolutionChanging_.load()) {
         return false;
     }
 
@@ -393,19 +398,45 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     }
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
-    if (hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0) {
+    const auto& targetModeInfo = supportedModes_[modeId];
+    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[%{public}dx%{public}d %{public}u],"
+        "CurMode:[%{public}dx%{public}d %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
+        targetModeInfo.height, targetModeInfo.freshRate, phyWidth_, phyHeight_, activeRefreshRate_);
+    resolutionChanging_.store(targetModeInfo.width != phyWidth_ || targetModeInfo.height != phyHeight_);
+    int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
+    constexpr int32_t hdfErrNotSupport = -2;
+    auto ret = StatusCode::SUCCESS;
+    if (hdiErr < 0) {
         HILOG_COMM_ERROR("SetActiveMode: Hdi SetScreenMode fails.");
-        return StatusCode::SET_RATE_ERROR;
+        if (hdiErr != hdfErrNotSupport) {
+            resolutionChanging_.store(false);
+            return StatusCode::SET_RATE_ERROR;
+        }
+
+        // When HDI return HDF_ERR_NOT_SUPPORT, the hardware will downgrade to a lower resolution,
+        // so it should not directly return, active mode info must be update
+        ret = StatusCode::HDI_ERR_NOT_SUPPORT;
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
         std::unique_lock<std::shared_mutex> lock(screenMutex_);
         phyWidth_ = activeMode->width;
         phyHeight_ = activeMode->height;
+        activeRefreshRate_ = activeMode->freshRate;
         lock.unlock();
         WriteHisyseventEpsLcdInfo(activeMode.value());
+        RS_LOGI("%{public}s screenId:%{public}" PRIu64
+            ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
+            __func__, id_, activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
-    return StatusCode::SUCCESS;
+    resolutionChanging_.store(false);
+    return ret;
+}
+
+uint32_t RSScreen::GetActiveRefreshRate() const
+{
+    std::unique_lock<std::shared_mutex> lock(screenMutex_);
+    return activeRefreshRate_;
 }
 
 uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
@@ -485,7 +516,7 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     if ((width == 0 || height == 0) ||
         (width == width_ && height == height_) ||
         (width > phyWidth_ || height > phyHeight_)) {
-        RS_LOGD("%{public}s: width: %{public}d, height: %{public}d.", __func__, width, height);
+        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
         return;
     }
     sharedLock.unlock();
@@ -496,8 +527,8 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
     width_ = width;
     height_ = height;
-    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}d,"
-        " height: %{public}d, phywidth: %{public}d, phyHeight: %{public}d.",
+    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
+        " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",
         __func__, id_, width_, height_, phyWidth_, phyHeight_);
 }
 
@@ -627,7 +658,7 @@ uint32_t RSScreen::GetPowerStatus()
         return INVALID_POWER_STATUS;
     }
     powerStatus_ = static_cast<ScreenPowerStatus>(status);
-    RS_LOGW("%{public}s cached powerStatus is INVALID_POWER_STATUS and GetScreenPowerStatus %{public}d",
+    RS_LOGW("%{public}s cached powerStatus is INVALID_POWER_STATUS and GetScreenPowerStatus %{public}u",
         __func__, static_cast<uint32_t>(status));
     return static_cast<uint32_t>(status);
 }
@@ -1051,7 +1082,7 @@ int32_t RSScreen::SetScreenGamutMap(ScreenGamutMap mode)
 
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
-    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}d.", __func__,
+    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") ,ScreenRotation: %{public}u.", __func__,
         id_, static_cast<uint32_t>(screenRotation));
     screenRotation_ = screenRotation;
 }
@@ -1548,6 +1579,56 @@ void RSScreen::SetVirtualScreenPlay(bool virtualScreenPlay)
 {
     virtualScreenPlay_ = virtualScreenPlay;
 }
+
+ScreenInfo RSScreen::GetScreenInfo() const
+{
+    ScreenInfo info;
+    {
+        std::shared_lock<std::shared_mutex> lock(screenMutex_);
+
+        info.id = id_;
+        info.width = width_;
+        info.height = height_;
+        info.phyWidth = phyWidth_ ? phyWidth_ : width_;
+        info.phyHeight = phyHeight_ ? phyHeight_ : height_;
+        info.offsetX = offsetX_;
+        info.offsetY = offsetY_;
+        info.isSamplingOn = isSamplingOn_;
+        info.samplingTranslateX = samplingTranslateX_;
+        info.samplingTranslateY = samplingTranslateY_;
+        info.samplingScale = samplingScale_;
+        info.activeRect = activeRect_;
+        info.maskRect = maskRect_;
+        info.reviseRect = reviseRect_;
+    }
+
+    info.pixelFormat = pixelFormat_;
+    GetScreenHDRFormat(info.hdrFormat);
+    auto ret = GetScreenColorGamut(info.colorGamut);
+    if (ret != StatusCode::SUCCESS) {
+        info.colorGamut = COLOR_GAMUT_SRGB;
+    }
+
+    if (!IsEnable()) {
+        info.state = ScreenState::DISABLED;
+    } else if (!IsVirtual()) {
+        info.state = ScreenState::HDI_OUTPUT_ENABLE;
+    } else {
+        info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
+    }
+
+    {
+        std::shared_lock<std::shared_mutex> lock(skipFrameMutex_);
+        info.skipFrameInterval = skipFrameInterval_;
+        info.expectedRefreshRate = expectedRefreshRate_;
+        info.skipFrameStrategy = skipFrameStrategy_;
+        info.isEqualVsyncPeriod = isEqualVsyncPeriod_;
+    }
+    info.whiteList = whiteList_;
+    info.enableVisibleRect = enableVisibleRect_;
+    return info;
+}
+
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

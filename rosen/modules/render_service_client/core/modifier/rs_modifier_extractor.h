@@ -193,6 +193,13 @@ public:
     Vector4f GetCornerRadius() const;
 
     /**
+     * @brief Gets the corner apply type of modifier.
+     *
+     * @return The apply type for each corner.
+     */
+    int GetCornerApplyType() const;
+
+    /**
      * @brief Gets the foreground color of modifier.
      *
      * @return The foreground color.

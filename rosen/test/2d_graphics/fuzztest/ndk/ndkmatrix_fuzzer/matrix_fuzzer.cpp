@@ -252,6 +252,43 @@ void NativeMatrixTest006(const uint8_t* data, size_t size)
     OH_Drawing_MatrixDestroy(matrix2);
 }
 
+void NativeMatrixTest007(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    float scaleX = GetObject<float>();
+    float skewX = GetObject<float>();
+    float transX = GetObject<float>();
+    float skewY = GetObject<float>();
+    float scaleY = GetObject<float>();
+    float transY = GetObject<float>();
+    float persp0 = GetObject<float>();
+    float persp1 = GetObject<float>();
+    float persp2 = GetObject<float>();
+    float scaleXOther = GetObject<float>();
+    float skewXOther = GetObject<float>();
+    float transXOther = GetObject<float>();
+    float skewYOther = GetObject<float>();
+    float scaleYOther = GetObject<float>();
+    float transYOther = GetObject<float>();
+    float persp0Other = GetObject<float>();
+    float persp1Other = GetObject<float>();
+    float persp2Other = GetObject<float>();
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* other = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixSetMatrix(matrix, scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+    OH_Drawing_MatrixSetMatrix(other, scaleXOther, skewXOther, transXOther, skewYOther, scaleYOther,
+        transYOther, persp0Other, persp1Other, persp2Other);
+    OH_Drawing_MatrixPreConcat(matrix, other);
+    OH_Drawing_MatrixPreConcat(matrix, nullptr);
+    OH_Drawing_MatrixPreConcat(nullptr, other);
+
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_MatrixDestroy(other);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -271,5 +308,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeMatrixTest004(data, size);
     OHOS::Rosen::Drawing::NativeMatrixTest005(data, size);
     OHOS::Rosen::Drawing::NativeMatrixTest006(data, size);
+    OHOS::Rosen::Drawing::NativeMatrixTest007(data, size);
     return 0;
 }

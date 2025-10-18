@@ -52,20 +52,20 @@ public:
 
 class DirtyStatusAutoUpdate {
 public:
-    DirtyStatusAutoUpdate(RSRenderThreadParams& uniParams, bool isSingleLogicalDisplay) : uniParams_(uniParams)
+    DirtyStatusAutoUpdate(RSRenderThreadParams& uniParam, bool isSingleLogicalDisplay) : uniParam_(uniParam)
     {
-        isVirtualDirtyEnabled_ = uniParams_.IsVirtualDirtyEnabled();
-        isVirtualExpandScreenDirtyEnabled_ = uniParams_.IsVirtualExpandScreenDirtyEnabled();
-        uniParams_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_ && isSingleLogicalDisplay);
-        uniParams_.SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled_ && isSingleLogicalDisplay);
+        isVirtualDirtyEnabled_ = uniParam_.IsVirtualDirtyEnabled();
+        isVirtualExpandScreenDirtyEnabled_ = uniParam_.IsVirtualExpandScreenDirtyEnabled();
+        uniParam_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_ && isSingleLogicalDisplay);
+        uniParam_.SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled_ && isSingleLogicalDisplay);
     }
     ~DirtyStatusAutoUpdate()
     {
-        uniParams_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_);
-        uniParams_.SetVirtualDirtyEnabled(isVirtualExpandScreenDirtyEnabled_);
+        uniParam_.SetVirtualDirtyEnabled(isVirtualDirtyEnabled_);
+        uniParam_.SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled_);
     }
 private:
-    RSRenderThreadParams& uniParams_;
+    RSRenderThreadParams& uniParam_;
     bool isVirtualDirtyEnabled_;
     bool isVirtualExpandScreenDirtyEnabled_;
 };
@@ -78,6 +78,7 @@ public:
     static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix,
         bool dirtyAlign = false);
+    static RectI GetVisibleFilterRect(const RSSurfaceRenderNode& node);
 private:
     static bool DealWithFilterDirtyForScreen(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix);

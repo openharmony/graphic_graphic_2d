@@ -57,8 +57,9 @@ public:
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
 
-    virtual void GenerateSubmitInfo(int seq) {}
-    virtual void FlushCommands() {}
+    virtual void FlushCommands(bool isMainCtx) {}
+    virtual void RegisterWaitSemCallback(const std::function<void(int seq)>& callBack, int seq) {}
+    virtual void UnRegisterWaitSemCallback() {}
 
     virtual void Submit() = 0;
     virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;

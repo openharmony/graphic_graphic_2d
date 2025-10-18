@@ -616,7 +616,8 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
             }
         }
         // 144000 : print once every 20min at most.
-        if (RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed) % 144000 == 0) {
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN &&
+            RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed) % 144000 == 0) {
             RS_LOGI("used fences, surface flush count[%{public}" PRIu64 "],"
                 "dup fence count[%{public}" PRIu64 "], rs deref count[%{public}" PRIu64 "],"
                 "call 2DEngineDeref count[%{public}" PRIu64 "], 2DEngine deref count[%{public}" PRIu64 "],"
@@ -882,8 +883,7 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
         RS_LOGD("%{public}s queue", __func__);
         RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
         VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
-        std::vector<void*> keys = RSHDRVulkanTask::GetWaitSemaphoreKeys(pSubmits);
-        RSHDRPatternManager::Instance().MHCSubmitGPUTask(keys);
+        RSHDRPatternManager::Instance().MHCSubmitGPUTask(submitCount, pSubmits);
         return ret;
     }
     RS_LOGE("%{public}s abnormal queue occured", __func__);

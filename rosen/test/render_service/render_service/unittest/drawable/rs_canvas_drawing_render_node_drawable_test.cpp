@@ -474,7 +474,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest001, TestSize.Le
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0);
+    auto node2 = node;
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::GPUContext* grContext = nullptr;
     drawable->GetBitmap(grContext);
@@ -487,6 +488,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
     drawable->GetBitmap(gpuContext.get());
     EXPECT_NE(gpuContext, nullptr);
+
+    EXPECT_TRUE(node2 != nullptr);
+    node2->cachedOpCount_ = 1;
+    drawable->GetBitmap(gpuContext.get());
+    EXPECT_NE(gpuContext, nullptr);
 }
 
 /**
@@ -497,7 +503,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0);
+    auto node2 = node;
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     Drawing::Rect* rect = nullptr;
@@ -528,6 +535,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1
     ASSERT_FALSE(res);
     drawable->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
 #endif
+    res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
+    ASSERT_FALSE(res);
+    ASSERT_TRUE(node2 != nullptr);
+    node2->cachedOpCount_ = 1;
     res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
     ASSERT_FALSE(res);
 }

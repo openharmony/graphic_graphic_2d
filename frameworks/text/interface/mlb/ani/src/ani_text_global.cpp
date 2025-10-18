@@ -66,8 +66,8 @@ ani_status AniTextGlobal::AniInit(ani_vm* vm, uint32_t* result)
 
 void AniTextGlobal::SetTextHighContrast(ani_env* env, ani_enum_item action)
 {
-    ani_size textHighContrast = 0;
-    ani_status status = env->EnumItem_GetIndex(action, &textHighContrast);
+    ani_int textHighContrast = 0;
+    ani_status status = env->EnumItem_GetValue_Int(action, &textHighContrast);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to get text high contrast index, ret %{public}d", status);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Argv convert failed");
@@ -75,13 +75,13 @@ void AniTextGlobal::SetTextHighContrast(ani_env* env, ani_enum_item action)
     }
     auto result = TextGlobalConfig::SetTextHighContrast(static_cast<uint32_t>(textHighContrast));
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text high contrast, high contrast value: %{public}zu", textHighContrast);
+        TEXT_LOGE("Failed to set text high contrast, high contrast value: %{public}d", textHighContrast);
     }
 }
 void AniTextGlobal::SetTextUndefinedGlyphDisplay(ani_env* env, ani_enum_item noGlyphShow)
 {
-    ani_size textUndefinedGlyphDisplay = 0;
-    ani_status status = env->EnumItem_GetIndex(noGlyphShow, &textUndefinedGlyphDisplay);
+    ani_int textUndefinedGlyphDisplay = 0;
+    ani_status status = env->EnumItem_GetValue_Int(noGlyphShow, &textUndefinedGlyphDisplay);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to get text undefined glyph display index, ret %{public}d", status);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Argv convert failed");
@@ -89,7 +89,7 @@ void AniTextGlobal::SetTextUndefinedGlyphDisplay(ani_env* env, ani_enum_item noG
     }
     auto result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(static_cast<uint32_t>(textUndefinedGlyphDisplay));
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text undefined glyph display, undefined glyph display: %{public}zu",
+        TEXT_LOGE("Failed to set text undefined glyph display, undefined glyph display: %{public}d",
             textUndefinedGlyphDisplay);
     }
 }

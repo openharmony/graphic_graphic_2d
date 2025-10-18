@@ -241,3 +241,38 @@ OH_Drawing_ErrorCode OH_Drawing_RectDestroyArray(OH_Drawing_Array* rectArray)
     delete obj;
     return OH_DRAWING_SUCCESS;
 }
+
+OH_Drawing_ErrorCode OH_Drawing_RectContains(OH_Drawing_Rect* cRect, OH_Drawing_Rect* other, bool* isContains)
+{
+    if (cRect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Rect* rect = CastToRect(cRect);
+
+    if (other == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Rect* otherRect = CastToRect(other);
+    
+    *isContains = rect->Contains(*otherRect);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectInset(OH_Drawing_Rect* cRect, float left, float top, float right, float bottom)
+{
+    Rect* rect = CastToRect(cRect);
+    if (rect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    float originalLeft = rect->GetLeft();
+    float originalTop = rect->GetTop();
+    float originalRight = rect->GetRight();
+    float originalBottom = rect->GetBottom();
+    rect->SetLeft(originalLeft + left);
+    rect->SetTop(originalTop + top);
+    rect->SetRight(originalRight - right);
+    rect->SetBottom(originalBottom - bottom);
+
+    return OH_DRAWING_SUCCESS;
+}

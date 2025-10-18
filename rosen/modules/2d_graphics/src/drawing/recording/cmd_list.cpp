@@ -480,6 +480,16 @@ std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
     return drawFuncObjVec_[id];
 }
 
+void CmdList::SetNoImageMarshallingFlag(bool flag)
+{
+    noImageMarshallingFlag = flag;
+}
+
+bool CmdList::GetNoImageMarshallingFlag()
+{
+    return noImageMarshallingFlag;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -267,8 +267,9 @@ int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessIn
     return 0;
 }
 
-void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
+    return 0;
 }
 
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -536,6 +537,11 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelM
 }
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
 {
     return {};
 }

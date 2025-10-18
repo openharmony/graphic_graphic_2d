@@ -18,6 +18,7 @@
 #include "limit_number.h"
 #include "parameters.h"
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#include "feature_cfg/feature_param/performance_feature/video_metadata_param.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "iconsumer_surface.h"
 
@@ -228,7 +229,10 @@ HWTEST_F(TvMetadataTest, UpdateTvMetadata_001, TestSize.Level1)
     auto buffer = rsSurface->GetCurrentBuffer();
     ASSERT_NE(rsSurface, nullptr);
     ASSERT_EQ(true, buffer != nullptr);
- 
+
+    std::string bundleName = "com.test.app";
+    std::string val = "1";
+    VideoMetadataParam::AddVideoMetadataApp(bundleName, val);
     RectI screenRect(0, 0, 3840, 2160);
     RSLayerInfo layerInfo;
     layerInfo.dstRect.w = 3840;
@@ -236,6 +240,7 @@ HWTEST_F(TvMetadataTest, UpdateTvMetadata_001, TestSize.Level1)
     RSSurfaceRenderParams params(0);
     params.RecordScreenRect(screenRect);
     params.SetLayerInfo(layerInfo);
+    params.bundleName_ = bundleName;
     CM_ColorSpaceInfo colorSpaceInfo;
     colorSpaceInfo.primaries = COLORPRIMARIES_BT2020;
     MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
@@ -263,7 +268,10 @@ HWTEST_F(TvMetadataTest, RecordTvMetadata_001, TestSize.Level1)
     auto buffer = rsSurface->GetCurrentBuffer();
     ASSERT_NE(rsSurface, nullptr);
     ASSERT_EQ(true, buffer != nullptr);
- 
+
+    std::string bundleName = "com.test.app";
+    std::string val = "1";
+    VideoMetadataParam::AddVideoMetadataApp(bundleName, val);
     RectI screenRect(0, 0, 3840, 2160);
     RSLayerInfo layerInfo;
     layerInfo.dstRect.w = 3840;
@@ -271,6 +279,7 @@ HWTEST_F(TvMetadataTest, RecordTvMetadata_001, TestSize.Level1)
     RSSurfaceRenderParams params(0);
     params.RecordScreenRect(screenRect);
     params.SetLayerInfo(layerInfo);
+    params.bundleName_ = bundleName;
     CM_ColorSpaceInfo colorSpaceInfo;
     colorSpaceInfo.primaries = COLORPRIMARIES_BT2020;
     MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
@@ -366,5 +375,35 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     ASSERT_EQ(60, tvMetadata1.uiFrameCnt);
     ASSERT_EQ(25, tvMetadata1.vidFrameCnt);
     ASSERT_EQ(2, tvMetadata1.dpPixFmt);
+}
+
+/**
+ * @tc.name: IsSdpInfoApp_001
+ * @tc.desc: Test IsSdpInfoApp
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, IsSdpInfoApp_001, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sdpAppMap = { {"com.example.app", "1"} };
+    EXPECT_CALL(VideoMetadataParam::GetVideoMetadataAppMap(), sdpAppMap).Times(1);
+
+    bool result = RSTvMetadataManager::IsSdpInfoApp("com.example.app");
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSdpInfoApp_002
+ * @tc.desc: Test IsSdpInfoApp
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, IsSdpInfoApp_002, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sdpAppMap = { {"com.example.app", "1"} };
+    EXPECT_CALL(VideoMetadataParam::GetVideoMetadataAppMap(), sdpAppMap).Times(1);
+
+    bool result = RSTvMetadataManager::IsSdpInfoApp("com.other.app");
+    EXPECT_FALSE(result);
 }
 }

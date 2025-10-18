@@ -15,6 +15,7 @@
 
 #include "hgm_task_handle_thread.h"
 
+#include <cinttypes>
 #include <unistd.h>
 
 #include "ffrt_inner.h"
@@ -46,6 +47,7 @@ HgmTaskHandleThread::HgmTaskHandleThread()
     queue_ = std::make_shared<ffrt::queue>(
         static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "HgmTaskHandleThread",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+    PostSyncTask([this]() { this->queueId_ = ffrt::get_queue_id(); });
     PostTask([]() { HiviewDFX::Watchdog::GetInstance().InitFfrtWatchdog(); }, WATCHDOG_DELAY_TIME);
 }
 
@@ -89,12 +91,11 @@ void HgmTaskHandleThread::RemoveEvent(std::string eventId)
 
 void HgmTaskHandleThread::DetectMultiThreadingCalls()
 {
-    if (auto newTid = gettid(); curThreadId_ != newTid) {
-        // -1 means default curThreadId
-        if (curThreadId_ != -1) {
-            HGM_LOGD("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
+    if (int64_t newQueueId = ffrt::get_queue_id(); queueId_ != newQueueId) {
+        if (queueId_ != -1) {
+            HGM_LOGE(
+                "Concurrent access queueId: %{public}" PRId64 " newQueueId: %{public}" PRId64, queueId_, newQueueId);
         }
-        curThreadId_ = newTid;
     }
 }
 }

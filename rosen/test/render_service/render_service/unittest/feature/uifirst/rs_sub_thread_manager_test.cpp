@@ -92,10 +92,30 @@ HWTEST_F(RsSubThreadManagerTest, DumpMemTest001, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContext>();
     std::shared_ptr<RSSubThread> curThread = nullptr;
     auto curThreadf = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    rsSubThreadManager->DumpMem(log);
+    rsSubThreadManager->DumpMem(log, false);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->threadList_.push_back(curThreadf);
-    rsSubThreadManager->DumpMem(log);
+    rsSubThreadManager->DumpMem(log, false);
+    EXPECT_FALSE(rsSubThreadManager->threadList_.empty());
+    rsSubThreadManager->threadList_.clear();
+}
+
+/**
+ * @tc.name: DumpMemTest002
+ * @tc.desc: Verify function DumpMem
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadManagerTest, DumpMemTest002, TestSize.Level1)
+{
+    auto rsSubThreadManager = RSSubThreadManager::Instance();
+    DfxString log;
+    auto renderContext = std::make_shared<RenderContext>();
+    std::shared_ptr<RSSubThread> curThread = nullptr;
+    auto curThreadf = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    rsSubThreadManager->DumpMem(log, true);
+    rsSubThreadManager->threadList_.push_back(curThread);
+    rsSubThreadManager->threadList_.push_back(curThreadf);
+    rsSubThreadManager->DumpMem(log, true);
     EXPECT_FALSE(rsSubThreadManager->threadList_.empty());
     rsSubThreadManager->threadList_.clear();
 }

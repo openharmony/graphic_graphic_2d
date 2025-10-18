@@ -149,6 +149,9 @@ void DoDumpSingleArg(sptr<RSRenderService> renderService)
     dumpResult = GetDumpResult(renderService, u"dumpMem");
     ASSERT_TRUE(dumpResult.find("dumpMem") != std::string::npos);
 
+    dumpResult = GetDumpResult(renderService, u"dumpMemLite");
+    ASSERT_TRUE(dumpResult.find("dumpMemLite") != std::string::npos);
+
     dumpResult = GetDumpResult(renderService, u"surfacenode");
     ASSERT_TRUE(dumpResult.find("surfacenode") != std::string::npos);
 

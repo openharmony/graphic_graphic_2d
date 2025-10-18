@@ -225,10 +225,10 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect001, TestSize.Level1)
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
     EXPECT_TRUE(!properties.IsShadowValid());
 
-    properties.shadow_ = std::make_optional<RSShadow>();
-    properties.shadow_->elevation_ = 1.f;
-    properties.shadow_->color_.alpha_ = 255;
-    properties.shadow_->radius_ = 1.f;
+    properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
+    properties.GetEffect().shadow_->elevation_ = 1.f;
+    properties.GetEffect().shadow_->color_.alpha_ = 255;
+    properties.GetEffect().shadow_->radius_ = 1.f;
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
     EXPECT_TRUE(properties.IsShadowValid());
 
@@ -239,12 +239,12 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect001, TestSize.Level1)
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
     EXPECT_TRUE(properties.GetClipBounds());
 
-    properties.shadow_->path_ = std::make_shared<RSPath>();
-    properties.shadow_->path_->drPath_ = new Drawing::Path();
+    properties.GetEffect().shadow_->path_ = std::make_shared<RSPath>();
+    properties.GetEffect().shadow_->path_->drPath_ = new Drawing::Path();
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
     EXPECT_TRUE(properties.GetShadowPath());
-    delete properties.shadow_->path_->drPath_;
-    properties.shadow_->path_->drPath_ = nullptr;
+    delete properties.GetEffect().shadow_->path_->drPath_;
+    properties.GetEffect().shadow_->path_->drPath_ = nullptr;
 }
 
 /**
@@ -496,41 +496,41 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadow008, TestSize.Level1)
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(!properties.IsShadowValid());
 
-    properties.shadow_ = std::make_optional<RSShadow>();
-    properties.shadow_->elevation_ = 1.f;
-    properties.shadow_->color_.alpha_ = 255;
-    properties.shadow_->radius_ = 1.f;
+    properties.GetEffect().shadow_ = std::make_optional<RSShadow>();
+    properties.GetEffect().shadow_->elevation_ = 1.f;
+    properties.GetEffect().shadow_->color_.alpha_ = 255;
+    properties.GetEffect().shadow_->radius_ = 1.f;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.IsShadowValid());
 
-    properties.shadow_->isFilled_ = true;
+    properties.GetEffect().shadow_->isFilled_ = true;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.GetShadowIsFilled());
-    properties.shadow_->isFilled_ = false;
+    properties.GetEffect().shadow_->isFilled_ = false;
 
     RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
     EXPECT_TRUE(properties.IsShadowValid());
 
-    properties.shadow_->isFilled_ = true;
+    properties.GetEffect().shadow_->isFilled_ = true;
     RSPropertiesPainter::DrawShadow(properties, canvas, nullptr);
     EXPECT_TRUE(properties.GetShadowIsFilled());
-    properties.shadow_->isFilled_ = false;
+    properties.GetEffect().shadow_->isFilled_ = false;
 
     properties.clipPath_ = std::make_shared<RSPath>();
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.GetClipBounds());
 
-    properties.shadow_->isFilled_ = true;
+    properties.GetEffect().shadow_->isFilled_ = true;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.GetShadowIsFilled());
 
-    properties.shadow_->path_ = std::make_shared<RSPath>();
-    properties.shadow_->path_->drPath_ = new Drawing::Path();
-    properties.shadow_->imageMask_ = true;
+    properties.GetEffect().shadow_->path_ = std::make_shared<RSPath>();
+    properties.GetEffect().shadow_->path_->drPath_ = new Drawing::Path();
+    properties.GetEffect().shadow_->imageMask_ = true;
     RSPropertiesPainter::DrawShadow(properties, canvas, &rrect);
     EXPECT_TRUE(properties.GetShadowMask());
-    delete properties.shadow_->path_->drPath_;
-    properties.shadow_->path_->drPath_ = nullptr;
+    delete properties.GetEffect().shadow_->path_->drPath_;
+    properties.GetEffect().shadow_->path_->drPath_ = nullptr;
 }
 
 /**
@@ -546,11 +546,11 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect001, TestSize.Leve
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(!properties.GetForegroundFilter());
 
-    properties.foregroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffect().foregroundFilter_ = std::make_shared<RSFilter>();
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(properties.GetForegroundFilter());
 
-    properties.foregroundFilter_->type_ = RSFilter::FOREGROUND_EFFECT;
+    properties.GetEffect().foregroundFilter_->type_ = RSFilter::FOREGROUND_EFFECT;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(properties.GetForegroundFilter());
 
@@ -558,11 +558,11 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect001, TestSize.Leve
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(!properties.GetForegroundFilterCache());
 
-    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
+    properties.GetEffect().foregroundFilterCache_ = std::make_shared<RSFilter>();
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(properties.GetForegroundFilterCache());
 
-    properties.foregroundFilterCache_->type_ = RSFilter::FOREGROUND_EFFECT;
+    properties.GetEffect().foregroundFilterCache_->type_ = RSFilter::FOREGROUND_EFFECT;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(properties.GetForegroundFilterCache());
 }
@@ -579,13 +579,13 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Leve
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
 
-    properties.foregroundFilterCache_ = std::make_shared<RSFilter>();
-    properties.foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
+    properties.GetEffect().foregroundFilterCache_ = std::make_shared<RSFilter>();
+    properties.GetEffect().foregroundFilterCache_->type_ = RSFilter::COLORFUL_SHADOW;
     RSShadow shadow;
     RRect rrect({ 0.0f, 0.0f, 10.0f, 10.0f }, { 1.0f, 1.0f, 1.0f, 1.0f });
     shadow.SetMask(true);
     shadow.SetRadius(1.0f);
-    properties.shadow_ = shadow;
+    properties.GetEffect().shadow_ = shadow;
     properties.rrect_ = rrect;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
@@ -677,7 +677,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
-    properties.backgroundFilter_ = rsFilter;
+    properties.GetEffect().backgroundFilter_ = rsFilter;
     EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
     properties.GenerateBackgroundFilter();
     RSPropertiesPainter::DrawFilter(
@@ -698,7 +698,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
-    properties.backgroundFilter_ = rsFilter;
+    properties.GetEffect().backgroundFilter_ = rsFilter;
     properties.GenerateBackgroundFilter();
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
@@ -716,7 +716,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter003, TestSize.Level1)
 {
     RSProperties properties;
     auto kawaseBlurFilter = std::make_shared<RSKawaseBlurShaderFilter>(1.0f);
-    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(kawaseBlurFilter);
+    properties.GetEffect().backgroundFilter_ = std::make_shared<RSDrawingFilter>(kawaseBlurFilter);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvas.surface_ = nullptr;
@@ -736,7 +736,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter004, TestSize.Level1)
     RSProperties properties;
     auto magnifierPara = std::make_shared<RSMagnifierParams>();
     auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara);
-    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(magnifierFilter);
+    properties.GetEffect().backgroundFilter_ = std::make_shared<RSDrawingFilter>(magnifierFilter);
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::RectI srcRect { 0, 0, 100, 100 };
@@ -781,7 +781,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawBackgroundEffect001, TestSize.Level1)
     EXPECT_TRUE(true);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.backgroundFilter_ = backgroundFilter;
+    properties.GetEffect().backgroundFilter_ = backgroundFilter;
     RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
     EXPECT_TRUE(backgroundFilter != nullptr);
 
@@ -805,7 +805,7 @@ HWTEST_F(RSPropertiesPainterTest, GetPixelStretchDirtyRect001, TestSize.Level1)
     RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
     EXPECT_TRUE(!properties.needFilter_);
 
-    properties.pixelStretch_ = Vector4f { 1.f, 1.f, 1.f, 1.f };
+    properties.GetEffect().pixelStretch_ = Vector4f { 1.f, 1.f, 1.f, 1.f };
     RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
     EXPECT_TRUE(!properties.needFilter_);
 }
@@ -1000,7 +1000,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Leve
     fractionStops.push_back(std::make_pair(1.f, 1.f));
     auto para = std::make_shared<RSLinearGradientBlurPara>(16, fractionStops, GradientDirection::BOTTOM);
     auto linearGradientFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.0f, 1.0f);
-    properties.filter_ = std::make_shared<RSDrawingFilter>(linearGradientFilter);
+    properties.GetEffect().filter_ = std::make_shared<RSDrawingFilter>(linearGradientFilter);
 
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -1147,29 +1147,29 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ == nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ == nullptr);
 
-    properties.mask_ = std::make_shared<RSMask>();
-    properties.mask_->type_ = MaskType::PIXEL_MAP;
-    properties.mask_->image_ = std::make_shared<Drawing::Image>();
+    properties.GetEffect().mask_ = std::make_shared<RSMask>();
+    properties.GetEffect().mask_->type_ = MaskType::PIXEL_MAP;
+    properties.GetEffect().mask_->image_ = std::make_shared<Drawing::Image>();
     RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
 
-    properties.mask_->type_ = MaskType::PATH;
+    properties.GetEffect().mask_->type_ = MaskType::PATH;
     RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
 
-    properties.mask_->type_ = MaskType::GRADIENT;
+    properties.GetEffect().mask_->type_ = MaskType::GRADIENT;
     RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
 
-    properties.mask_->type_ = MaskType::SVG;
+    properties.GetEffect().mask_->type_ = MaskType::SVG;
     RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
 
-    properties.mask_->svgPicture_ = std::make_shared<Drawing::Picture>();
+    properties.GetEffect().mask_->svgPicture_ = std::make_shared<Drawing::Picture>();
     RSPropertiesPainter::DrawMask(properties, canvas, maskBounds);
-    EXPECT_TRUE(properties.mask_->svgPicture_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_->svgPicture_ != nullptr);
 }
 
 /**
@@ -1191,8 +1191,8 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask002, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
-    EXPECT_TRUE(properties.mask_->svgDom_ == nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_->svgDom_ == nullptr);
 }
 
 /**
@@ -1212,7 +1212,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask003, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
 }
 
 /**
@@ -1232,7 +1232,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask004, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     Drawing::Rect maskBounds = Drawing::Rect(0, 0, w, h);
     RSPropertiesPainter::DrawMask(properties, drawingCanvas, maskBounds);
-    EXPECT_TRUE(properties.mask_ != nullptr);
+    EXPECT_TRUE(properties.GetEffect().mask_ != nullptr);
 }
 
 /**
@@ -1262,6 +1262,32 @@ HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
     properties.SetDistortionK(0.2f);
     RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
+}
+
+/**
+ * @tc.name: GetMagnifierEffectDirtyRectTest
+ * @tc.desc: GetMagnifierEffectDirtyRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetMagnifierEffectDirtyRectTest, TestSize.Level1)
+{
+    RectI localDistortionEffectRect(0, 0, 0, 0);
+    RSProperties properties;
+    float width = 200.0f; // set width 200
+    float height = 200.0f; // set height 200
+    Vector4f bounds(0.0, 0.0, width, height);
+    properties.SetBounds(bounds);
+
+    RSPropertiesPainter::GetMagnifierEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_EQ(localDistortionEffectRect.left_, 0);
+
+    std::shared_ptr<RSMagnifierParams> para = std::make_shared<RSMagnifierParams>();
+    para->offsetX_ = 50.f; // set offset 50 of X
+    para->offsetY_ = 100.f; // set offset 100 of Y
+    para->factor_ = 0.5f; // set factor 0.5
+    properties.SetMagnifierParams(para);
+    RSPropertiesPainter::GetMagnifierEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_NE(localDistortionEffectRect.left_, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

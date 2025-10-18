@@ -48,7 +48,7 @@ enum NODE_ON_TREE_STATUS {
 
 struct MemoryInfo {
     size_t size = 0;
-    int pid = 0;
+    uint32_t pid = 0;
     uint64_t nid = 0;
     uint64_t uid = 0;
     MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
@@ -87,7 +87,7 @@ public:
     void AddNodeRecord(const NodeId id, const MemoryInfo& info);
     void RemoveNodeRecord(const NodeId id);
     void DumpMemoryStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func);
+        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func, bool isLite = false);
     void AddPictureRecord(const void* addr, MemoryInfo info);
     void AddPictureFdRecord(uint64_t uniqueId);
     void RemovePictureRecord(const void* addr);
@@ -123,10 +123,9 @@ private:
     const std::string PixelFormat2String(OHOS::Media::PixelFormat);
     std::string GenerateDumpTitle();
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
-    void DumpMemoryNodeStatistics(DfxString& log);
+    void DumpMemoryNodeStatistics(DfxString& log, bool isLite = false);
     void DumpMemoryPicStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func,
-        const std::vector<MemoryInfo>& memPicRecord = {});
+        std::function<std::tuple<uint64_t, std::string, RectI, bool>(uint64_t)> func, bool isLite = false);
     bool RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size);
     void RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id);
     std::mutex mutex_;
@@ -139,7 +138,8 @@ private:
     std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
     // RS Node Size [pid, RenderNodeMemSize, DrawableNodeMemSize]
     std::unordered_map<pid_t, std::pair<size_t, size_t>> nodeMemOfPid_;
-
+    // number of node exceeds limit, report kill
+    std::unordered_set<pid_t> reportKillProcessSet_;
 #ifdef RS_MEMORY_INFO_MANAGER
     std::atomic<bool> globalRootNodeStatusChangeFlag{false};
 #endif

@@ -240,6 +240,11 @@ public:
     {
         return childHasVisibleEffect_;
     }
+    void SetChildHasVisibleHarmonium(bool val);
+    bool ChildHasVisibleHarmonium() const
+    {
+        return childHasVisibleHarmonium_;
+    }
 
     void SetCacheSize(Vector2f size);
     inline Vector2f GetCacheSize() const
@@ -539,6 +544,7 @@ private:
     bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
+    bool childHasVisibleHarmonium_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;

@@ -361,6 +361,20 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::ParserFontD
     return CreateFontDescriptors(typefaces, locale);
 }
 
+std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::ParserFontDescriptorsFromStream(
+    const void* data, size_t byteLength, const std::string& locale)
+{
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    int index = 0;
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    while ((typeface = Drawing::Typeface::MakeFromStream(
+        std::make_unique<Drawing::MemoryStream>(data, byteLength), index)) != nullptr) {
+        typefaces.push_back(typeface);
+        index++;
+    }
+    return CreateFontDescriptors(typefaces, locale);
+}
+
 std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     const std::shared_ptr<Drawing::Typeface>& typeface, unsigned int languageId)
 {

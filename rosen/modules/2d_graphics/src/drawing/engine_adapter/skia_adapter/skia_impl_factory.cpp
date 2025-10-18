@@ -293,6 +293,12 @@ std::shared_ptr<MemoryStreamImpl> SkiaImplFactory::CreateMemoryStream(const void
     return std::make_shared<SkiaMemoryStream>(data, length, copyData);
 }
 
+std::shared_ptr<MemoryStreamImpl> SkiaImplFactory::CreateMemoryStream(
+    const void* data, size_t length, DataReleaseProc proc, void* context)
+{
+    return std::make_shared<SkiaMemoryStream>(data, length, proc, context);
+}
+
 std::shared_ptr<ResourceHolderImpl> SkiaImplFactory::CreateResourceHolder()
 {
     return std::make_shared<SkiaResourceHolder>();

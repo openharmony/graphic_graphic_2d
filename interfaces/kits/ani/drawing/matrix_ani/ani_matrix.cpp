@@ -37,6 +37,8 @@ ani_status AniMatrix::AniInit(ani_env *env)
         ani_native_function { "getValue", "I:D", reinterpret_cast<void*>(GetValue) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
         ani_native_function { "setTranslation", "DD:V", reinterpret_cast<void*>(SetTranslation) },
+        ani_native_function { "preConcat", "L@ohos/graphics/drawing/drawing/Matrix;:V",
+            reinterpret_cast<void*>(preConcat)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -109,6 +111,23 @@ ani_double AniMatrix::GetValue(ani_env* env, ani_object obj, ani_int index)
     }
 
     return aniMatrix->GetMatrix().Get(index);
+}
+
+void AniMatrix::preConcat(ani_env* env, ani_object obj, ani_object aniMatrixObj)
+{
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj);
+    if (aniMatrix == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniMatrix::preConcat invalid params: aniMatrix. ");
+        return;
+    }
+
+    auto otherMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj);
+    if (otherMatrix == nullptr) {
+        AniThrowError(env, "AniMatrix::preConcat invalid params: otherMatrix. ");
+        return;
+    }
+    aniMatrix->GetMatrix().PreConcat(otherMatrix->GetMatrix());
 }
 
 

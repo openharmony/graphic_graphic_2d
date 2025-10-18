@@ -511,6 +511,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::CreateShadowSurfaceNode()
     surfaceNode->SetRSUIContext(rsUIContext);
     surfaceNode->isShadowNode_ = true;
     surfaceNode->SetSkipCheckInMultiInstance(true);
+    surfaceNode->skipDestroyCommandInDestructor_ = true;
     return surfaceNode;
 }
 

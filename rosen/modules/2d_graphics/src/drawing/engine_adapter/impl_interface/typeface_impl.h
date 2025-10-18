@@ -23,6 +23,7 @@
 #include "text/font_arguments.h"
 #include "text/font_style.h"
 #include "utils/data.h"
+#include "utils/memory_stream.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,6 +47,9 @@ public:
     // provide default implementation for hashes
     virtual uint32_t GetHash() const = 0;
     virtual void SetHash(uint32_t) = 0;
+    virtual int32_t GetFd() const = 0;
+    virtual void SetFd(int32_t fd) = 0;
+    virtual void UpdateStream(std::unique_ptr<MemoryStream> stream) = 0;
 
 protected:
     TypefaceImpl() noexcept = default;

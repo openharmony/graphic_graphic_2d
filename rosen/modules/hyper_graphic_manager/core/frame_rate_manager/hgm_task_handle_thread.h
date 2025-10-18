@@ -85,7 +85,7 @@ private:
     HgmTaskHandleThread& operator=(const HgmTaskHandleThread&);
     HgmTaskHandleThread& operator=(const HgmTaskHandleThread&&);
 
-    int32_t curThreadId_ = -1;
+    int64_t queueId_ = -1;
     std::shared_ptr<ffrt::queue> queue_ = nullptr;
 };
 }

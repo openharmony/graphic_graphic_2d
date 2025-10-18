@@ -37,6 +37,7 @@ public:
     static void CombineMetadataForAllLayers(const std::vector<LayerInfoPtr>& layers);
     void UpdateTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
+    static bool IsSdpInfoAppId(const std::string& bundleName);
 
 private:
     static void CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata);

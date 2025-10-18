@@ -92,3 +92,22 @@ DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
     ADD_PROPERTY_TAG(ContentLight, Intensity),
     ADD_PROPERTY_TAG(ContentLight, RotationAngle)
 );
+
+DECLARE_FILTER(GasifyScaleTwist, GASIFY_SCALE_TWIST,
+    ADD_PROPERTY_TAG(GasifyScaleTwist, Progress),
+    ADD_PROPERTY_TAG(GasifyScaleTwist, SourceImage),
+    ADD_PROPERTY_TAG(GasifyScaleTwist, Scale),
+    ADD_PROPERTY_TAG(GasifyScaleTwist, Mask)
+);
+
+DECLARE_FILTER(GasifyBlur, GASIFY_BLUR,
+    ADD_PROPERTY_TAG(GasifyBlur, Progress),
+    ADD_PROPERTY_TAG(GasifyBlur, SourceImage),
+    ADD_PROPERTY_TAG(GasifyBlur, Mask)
+);
+
+DECLARE_FILTER(Gasify, GASIFY,
+    ADD_PROPERTY_TAG(Gasify, Progress),
+    ADD_PROPERTY_TAG(Gasify, SourceImage),
+    ADD_PROPERTY_TAG(Gasify, Mask)
+);

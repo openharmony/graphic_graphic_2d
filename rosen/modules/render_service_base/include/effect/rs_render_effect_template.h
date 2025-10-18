@@ -86,6 +86,14 @@ public:
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
+            case RSNGEffectType::SDF_UNION_OP_MASK: return "SDFUnionOpMask";
+            case RSNGEffectType::SDF_SMOOTH_UNION_OP_MASK: return "SDFSmoothUnionOpMask";
+            case RSNGEffectType::SDF_RRECT_MASK: return "SDFRRectMask";
+            case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
+            case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
+            case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
+            case RSNGEffectType::GASIFY: return "Gasify";
+            case RSNGEffectType::HARMONIUM_EFFECT_MASK: return "HarmoniumEffectMask";
             default:
                 return "UNKNOWN";
         }
@@ -123,6 +131,12 @@ private:
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, const std::vector<float>& value);
 
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const RRect& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, std::shared_ptr<Drawing::Image> value);
+
     static void CalculatePropTagHashImpl(uint32_t& hash, float value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, bool value);
@@ -140,6 +154,10 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Media::PixelMap> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const RRect& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value);
 
 #ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;

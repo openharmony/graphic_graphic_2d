@@ -407,25 +407,26 @@ public:
 
     /**
      * @brief Register typeface.
-     * @param typeface font's typeface.
-     * @return return true if register success, else return false.
+     * @param tf font's typeface.
+     * @return return -1 if register failed, else return fd.
      */
-    bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
+    int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf);
 
     /**
      * @brief UnRegister typeface.
-     * @param typeface font's typeface.
+     * @param id font's uniqueId or hash.
      * @return return true if unRegister success, else return false.
      */
-    bool UnRegisterTypeface(uint32_t uniqueId);
+    bool UnRegisterTypeface(uint32_t id);
 #ifndef ROSEN_ARKUI_X
     /**
      * @brief Set active mode of the screen(The combination of resolution and refresh rate is a mode.
      * the display calls back the mode set by the user and then set is to RS.)
      * @param id id of screen.
      * @param modeId the id of the active mode to set to the screen.
+     * @return return 0 if change screen active mode success, otherwise failed, see StatusCode
      */
-    void SetScreenActiveMode(ScreenId id, uint32_t modeId);
+    uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
     /**
      * @brief Statistics of application GPU memory.

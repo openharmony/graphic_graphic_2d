@@ -54,10 +54,11 @@
 #include "common/rs_rect.h"
 
 namespace OHOS::Rosen {
+class RSSDFEffectFilter;
 namespace DrawableV2 {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK))
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL))
 constexpr uint8_t ASTC_HEADER_SIZE = 16;
 #endif
 }
@@ -93,6 +94,15 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingColorStrategy_ = properties.GetShadowColorStrategy();
     stagingRadius_ = properties.GetShadowRadius();
     needSync_ = true;
+
+    if (auto sdfEffectFilter = properties.GetSDFEffectFilter()) {
+        stagingDrawWithSDF_ = true;
+        Drawing::Color color(
+            stagingColor_.GetRed(), stagingColor_.GetGreen(), stagingColor_.GetBlue(), stagingColor_.GetAlpha());
+        
+        sdfEffectFilter->SetShadow(color, stagingOffsetX_, stagingOffsetY_,
+            stagingRadius_, stagingPath_, stagingIsFilled_);
+    }
     return true;
 }
 
@@ -109,6 +119,7 @@ void RSShadowDrawable::OnSync()
     isFilled_ = stagingIsFilled_;
     radius_ = stagingRadius_;
     colorStrategy_ = stagingColorStrategy_;
+    drawWithSDF_ = stagingDrawWithSDF_;
     needSync_ = false;
 }
 
@@ -116,6 +127,10 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (ptr->drawWithSDF_) {
+            return;
+        }
+
         // skip shadow if cache is enabled
         if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
             ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
@@ -334,6 +349,8 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc(
         if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
             return;
         }
+        std::shared_ptr<Drawing::Image> cachedImage = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
+        ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, cachedImage);
         geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
     };
 }
@@ -443,12 +460,14 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
-        RS_LOGE("MakeFromTextureForVK build image failed");
+        RS_LOGE_LIMIT(__func__, __line__, "MakeFromTextureForVK build image failed");
         return nullptr;
     }
     return dmaImage;
 }
+#endif
 
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL))
 void RSBackgroundImageDrawable::SetCompressedDataForASTC()
 {
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
@@ -458,6 +477,7 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
     }
     std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
     // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
@@ -474,7 +494,9 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
             RS_LOGE("SetCompressedDataForASTC data BuildFromOHNativeBuffer fail");
             return;
         }
-    } else {
+    } else
+#endif
+    {
         const void* data = pixelMap->GetPixels();
         if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
             (data == nullptr || !fileData->BuildWithoutCopy(
@@ -526,9 +548,9 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() c
         if (!bgImage) {
             return;
         }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         RSTagTracker tagTracker(canvas->GetGPUContext(),
             RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDIMAGEDRAWABLE);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         if (bgImage->GetPixelMap() && !bgImage->GetPixelMap()->IsAstc() &&
             bgImage->GetPixelMap()->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
             if (!bgImage->GetPixelMap()->GetFd()) {
@@ -538,6 +560,8 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() c
                 ptr->MakeFromTextureForVK(*canvas, reinterpret_cast<SurfaceBuffer*>(bgImage->GetPixelMap()->GetFd()));
             bgImage->SetDmaImage(dmaImage);
         }
+#endif
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL))
         if (bgImage->GetPixelMap() && bgImage->GetPixelMap()->IsAstc()) {
             ptr->SetCompressedDataForASTC();
         }
@@ -683,6 +707,15 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
             std::ceil(absRect.GetHeight()));
         bounds = bounds.IntersectRect(deviceRect);
         Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
+        // When the drawing area of a useEffect node is empty in the current frame,
+        // it won't be collected by the effect node, effect data is null(RSRenderNode::UpdateVisibleEffectChild).
+        // if useEffect is within a node group, it will draw with fallback branch,
+        // causing an increase in RSPropertyDrawableUtils::DrawBackgroundEffect g_blurCnt and
+        // triggering frequency boosting. so add check for boundsRect: skip DrawBackgroundEffect to reduce blur count.
+        if (boundsRect.IsEmpty()) {
+            RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect boundsRect is empty");
+            return;
+        }
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
             paintFilterCanvas, ptr->filter_, ptr->cacheManager_, boundsRect);

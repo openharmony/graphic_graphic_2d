@@ -39,6 +39,7 @@ ohos_unittest("RSRenderServiceAppearanceModifierNGTest") {
     "rs_shadow_render_modifier_test.cpp",
     "rs_use_effect_render_modifier_test.cpp",
     "rs_visibility_render_modifier_test.cpp",
+    "rs_union_render_modifier_test.cpp",
   ]
 
   configs = [

@@ -335,8 +335,14 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     surfaceParams->absDrawRect_ = {0, 0, 15, 15};
     Drawing::RectI dirtyRect = {};
+    Drawing::RectI visibleFilterRect = {};
     bool isCalculateSucc = surfaceDrawable_->GetRsSubThreadCache().CalculateUifirstDirtyRegion(surfaceDrawable_.get(),
-        dirtyRect, false);
+        dirtyRect, false, visibleFilterRect);
+    ASSERT_EQ(isCalculateSucc, false);
+
+    visibleFilterRect = {0, 0, 10, 10};
+    isCalculateSucc = surfaceDrawable_->GetRsSubThreadCache().CalculateUifirstDirtyRegion(surfaceDrawable_.get(),
+        dirtyRect, false, visibleFilterRect);
     ASSERT_EQ(isCalculateSucc, false);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->Clear();
@@ -416,6 +422,8 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.L
     surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
     Drawing::RectF bounds = {1, 1, 2, 2};
     surfaceParams->boundsRect_ = bounds;
+    RectI filterRect = { 0, 0, 5, 5 };
+    surfaceParams->SetUIFirstVisibleFilterRect(filterRect);
     dirtyEnableFlag = surfaceDrawable_->GetRsSubThreadCache().MergeUifirstAllSurfaceDirtyRegion(
         surfaceDrawable_.get(), dirtyRect);
     ASSERT_EQ(dirtyEnableFlag, false);

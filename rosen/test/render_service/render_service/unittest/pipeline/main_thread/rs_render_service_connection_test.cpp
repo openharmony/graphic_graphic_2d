@@ -14,9 +14,11 @@
  */
 
 #include <memory>
+#include "file_ex.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
+#include "ipc_callbacks/surface_capture_callback.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
@@ -40,6 +42,63 @@ void RSRenderServiceConnectionTest::SetUpTestCase()
 void RSRenderServiceConnectionTest::TearDownTestCase() {}
 void RSRenderServiceConnectionTest::SetUp() {}
 void RSRenderServiceConnectionTest::TearDown() {}
+
+class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
+public:
+    bool isCallbackCalled_ = false;
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        Media::PixelMap* pixelmapHDR = nullptr) override
+    {
+        isCallbackCalled_ = true;
+    }
+};
+
+/**
+ * @tc.name: TakeSurfaceCaptureForUiParallel001
+ * @tc.desc: TakeSurfaceCaptureForUiParallel
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, TakeSurfaceCaptureForUiParallel001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    NodeId surfaceNodeId = 1357;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    mainThread->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    RSSurfaceCaptureBlurParam blurParam;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    rsRenderServiceConnection->TakeSurfaceCapture(surfaceNodeId, mockCallback, captureConfig, blurParam,
+        specifiedAreaRect, permissions);
+    captureConfig.isSync = true;
+    rsRenderServiceConnection->TakeSurfaceCapture(surfaceNodeId, mockCallback, captureConfig, blurParam,
+        specifiedAreaRect, permissions);
+    surfaceNode->SetDirty();
+    rsRenderServiceConnection->TakeSurfaceCapture(surfaceNodeId, mockCallback, captureConfig, blurParam,
+        specifiedAreaRect, permissions);
+    captureConfig.isSync = false;
+    rsRenderServiceConnection->TakeSurfaceCapture(surfaceNodeId, mockCallback, captureConfig, blurParam,
+        specifiedAreaRect, permissions);
+    NodeId surfaceNodeId2 = 1359;
+    rsRenderServiceConnection->TakeSurfaceCapture(surfaceNodeId2, mockCallback, captureConfig, blurParam,
+        specifiedAreaRect, permissions);
+
+    ASSERT_EQ(mockCallback->isCallbackCalled_, false);
+}
 
 /**
  * @tc.name: GetMemoryGraphic001
@@ -257,6 +316,35 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceCustomWatermarkTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateNode
+ * @tc.desc: CreateNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    
+    // create displayNode with async postTask (sync task processor not ready)
+    RSDisplayNodeConfig displayNodeConfig = {};
+    NodeId nodeId = 1;
+    bool result = true;
+    rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
+    EXPECT_TRUE(result);
+
+    // create displayNode with async postTask (sync task processor not ready, but isRunning_ was set to true)
+    // at this time, CreateNode will first try to post sync task
+    nodeId = 2;
+    mainThread->isRunning_ = true;
+    rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
+    EXPECT_TRUE(result);
+}
+
+/**
  * @tc.name: RegisterTypefaceTest001
  * @tc.desc: test register typeface and unregister typeface
  * @tc.type: FUNC
@@ -274,6 +362,31 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest001, TestSize.Level1
     EXPECT_TRUE(rsRenderServiceConnection->RegisterTypeface(uniqueId, tf));
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(uniqueId));
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(0));
+}
+
+/**
+ * @tc.name: RegisterTypefaceTest002
+ * @tc.desc: test register shared typeface and unregister shared typeface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection =
+        new RSRenderServiceConnection(0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    int32_t needUpdate;
+    pid_t pid = getpid();
+    uint64_t id = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+    EXPECT_NE(rsRenderServiceConnection->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate), -1);
+    EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**

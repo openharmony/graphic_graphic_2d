@@ -1233,10 +1233,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedFilter_001, Function | SmallTest | 
 {
     NodeId id = 0;
     RSRenderNode node(id);
-    node.renderProperties_.useEffect_ = true;
+    node.renderProperties_.GetEffect().useEffect_ = true;
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
 
-    node.renderProperties_.useEffect_ = false;
+    node.renderProperties_.GetEffect().useEffect_ = false;
     node.GetHwcRecorder().SetBlendWithBackground(true);
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
 
@@ -1246,7 +1246,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedFilter_001, Function | SmallTest | 
     std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
         std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
-    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR)].emplace_back(modifier);
+    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
+    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifiers);
     EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
 }
 
@@ -1313,7 +1314,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function |
     std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
         std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
-    node.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR)].emplace_back(modifier);
+    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
+    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifiers);
     auto result = RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node);
     EXPECT_TRUE(result);
 }

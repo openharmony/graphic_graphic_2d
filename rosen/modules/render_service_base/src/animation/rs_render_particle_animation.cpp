@@ -123,6 +123,33 @@ void RSRenderParticleAnimation::UpdateNoiseField(const std::shared_ptr<ParticleN
     }
 }
 
+void RSRenderParticleAnimation::UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields)
+{
+    if (particleRippleFields == nullptr) {
+        return;
+    } else if (particleRippleFields_ != nullptr && *particleRippleFields_ == *particleRippleFields) {
+        return;
+    }
+    particleRippleFields_ = particleRippleFields;
+    if (particleSystem_) {
+        particleSystem_->UpdateRippleField(particleRippleFields);
+    }
+}
+
+void RSRenderParticleAnimation::UpdateVelocityField(
+    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields)
+{
+    if (particleVelocityFields == nullptr) {
+        return;
+    } else if (particleVelocityFields_ != nullptr && *particleVelocityFields_ == *particleVelocityFields) {
+        return;
+    }
+    particleVelocityFields_ = particleVelocityFields;
+    if (particleSystem_) {
+        particleSystem_->UpdateVelocityField(particleVelocityFields);
+    }
+}
+
 void RSRenderParticleAnimation::OnAttach()
 {
     auto target = GetTarget();

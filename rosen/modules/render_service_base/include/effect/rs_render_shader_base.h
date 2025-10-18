@@ -80,11 +80,13 @@ class RSNGRenderShaderHelper {
 public:
     static bool CheckEnableEDR(std::shared_ptr<RSNGRenderShaderBase>& shader);
 
-    static void SetRotationAngle(std::shared_ptr<RSNGRenderShaderBase>& shader,
+    static void SetRotationAngle(const std::shared_ptr<RSNGRenderShaderBase>& shader,
         const Vector3f& rotationAngle);
 
-    static void SetCornerRadius(std::shared_ptr<RSNGRenderShaderBase>& shader,
+    static void SetCornerRadius(const std::shared_ptr<RSNGRenderShaderBase>& shader,
         float cornerRadius);
+
+    static std::shared_ptr<Drawing::Image> GetCachedBlurImage(Drawing::Canvas* canvas);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

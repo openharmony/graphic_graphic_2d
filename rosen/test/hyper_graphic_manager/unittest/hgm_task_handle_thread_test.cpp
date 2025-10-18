@@ -220,17 +220,46 @@ HWTEST_F(HgmTaskHandleThreadTest, RemoveEvent001, TestSize.Level0)
  * @tc.name: DetectMultiThreadingCalls
  * @tc.desc: Test DetectMultiThreadingCalls
  * @tc.type: FUNC
- * @tc.require:issueIB3MVN
+ * @tc.require: issueIB3MVN
  */
 HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level0)
 {
     HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
-    instance.DetectMultiThreadingCalls();
-    int32_t curThreadId = instance.curThreadId_;
-    instance.DetectMultiThreadingCalls();
-    EXPECT_EQ(curThreadId, instance.curThreadId_);
-    std::thread([&instance]() { instance.DetectMultiThreadingCalls(); }).join();
-    EXPECT_NE(curThreadId, instance.curThreadId_);
+    instance.queueId_ = ffrt::get_queue_id();
+    EXPECT_EQ(instance.queueId_, -1);
+    instance.PostSyncTask([&]() {
+        instance.queueId_ = -1;
+        instance.DetectMultiThreadingCalls();
+    });
+
+    int64_t queueId = -1;
+    instance.PostSyncTask([&]() { instance.queueId_ = ffrt::get_queue_id(); });
+    instance.PostSyncTask([&]() {
+        queueId = ffrt::get_queue_id();
+        EXPECT_EQ(queueId, instance.queueId_);
+        instance.DetectMultiThreadingCalls();
+    });
+
+    auto queue = std::make_unique<ffrt::queue>("HgmTaskHandleThreadTest");
+    auto handle = queue->submit_h([&]() {
+        queueId = ffrt::get_queue_id();
+        EXPECT_NE(queueId, instance.queueId_);
+        instance.DetectMultiThreadingCalls();
+    });
+    queue->wait(handle);
+
+    auto task = ffrt::submit_h([&]() {
+        queueId = ffrt::get_queue_id();
+        EXPECT_NE(queueId, instance.queueId_);
+        instance.DetectMultiThreadingCalls();
+    });
+    ffrt::wait({ task });
+
+    std::thread([&]() {
+        queueId = ffrt::get_queue_id();
+        EXPECT_NE(queueId, instance.queueId_);
+        instance.DetectMultiThreadingCalls();
+    }).join();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -712,7 +712,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSLogicalDisplayRen
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, curScreenParams->GetScreenInfo());
 
     auto width = mirroredParams->GetFixedWidth();
-    auto height = mirroredParams->GetFixedWidth();
+    auto height = mirroredParams->GetFixedHeight();
 
     auto cacheImage = mirroredScreenDrawable->GetCacheImgForCapture();
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
@@ -901,7 +901,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         CreateOrGetScreenManager()->GetVirtualScreenStatus(mirroredParams->GetScreenId()) == VIRTUAL_SCREEN_PAUSE;
     // if specialLayer is visible and no CacheImg
     if ((mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() && specialLayerType == HAS_SPECIAL_LAYER)
-        || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause) {
+        || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause ||
+        screenParams->GetHDRPresent()) {
         MirrorRedrawDFX(true, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, *uniParam);
@@ -1425,13 +1426,15 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
         return;
     }
     bool createOffscreenSurface = !params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || !offscreenSurface_ ||
-        (screenParams->GetHDRPresent() &&
+        ((screenParams->GetHDRPresent() || curCanvas_->GetHDREnabledVirtualScreen()) &&
         offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16);
-    bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
+    bool hdrOrScRGB = screenParams->GetHDRPresent() || EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace()) ||
+        curCanvas_->GetHDREnabledVirtualScreen();
     RSTagTracker tagTracker(curCanvas_->GetGPUContext(),
         hdrOrScRGB ? RSTagTracker::TAGTYPE::TAG_HDR_OFFSCREEN : RSTagTracker::TAGTYPE::TAG_COMMON_OFFSCREEN);
     if (createOffscreenSurface) {
-        RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
+        RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d], HDR:%d", offscreenWidth, offscreenHeight,
+            hdrOrScRGB);
         if (hdrOrScRGB) {
             RS_LOGD("HDR PrepareHdrDraw");
             if (!params->GetNeedOffscreen() && useCanvasSize) {

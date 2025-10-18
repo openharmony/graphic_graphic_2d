@@ -19,6 +19,7 @@
 #include "mask/include/mask_para.h"
 #include "mask/include/pixel_map_mask_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
+#include "mask/include/harmonium_effect_mask_para.h"
 #include "image/bitmap.h"
 #include "draw/surface.h"
 #include "mask/include/mask_unmarshalling_singleton.h"
@@ -323,5 +324,44 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectMaskParamTest, TestSize.Level1)
 
     EXPECT_EQ(maskParam->Clone(), nullptr);
 }
+
+/**
+ * @tc.name: RSUIEffectHarmoniumEffectMaskParaTest
+ * @tc.desc: Verify the HarmoniumEffectMaskPara func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectMaskTest, RSUIEffectHarmoniumEffectMaskParaTest, TestSize.Level1)
+{
+    auto maskPara = std::make_shared<HarmoniumEffectMaskPara>();
+    auto pixelMap = CreatePixelMap(50, 50);
+    EXPECT_NE(nullptr, pixelMap);
+    maskPara->SetPixelMap(pixelMap);
+
+    Parcel parcel;
+    EXPECT_EQ(true, maskPara->Marshalling(parcel));
+    std::shared_ptr<MaskPara> val = nullptr;
+    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
+    EXPECT_NE(nullptr, val);
+    auto clonePara = maskPara->Clone();
+    EXPECT_NE(nullptr, clonePara);
+
+    // test create
+    maskPara = std::make_shared<HarmoniumEffectMaskPara>();
+    EXPECT_NE(maskPara, nullptr);
+    auto maskPara1 = std::make_shared<HarmoniumEffectMaskPara>(*maskPara);
+
+    // test OnUnmarshalling
+    std::shared_ptr<MaskPara> valTest = nullptr;
+    Parcel parcelTest;
+    EXPECT_EQ(false, HarmoniumEffectMaskPara::OnUnmarshalling(parcelTest, valTest));
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(666);
+    EXPECT_EQ(false, HarmoniumEffectMaskPara::OnUnmarshalling(parcelTest, valTest));
+
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::HARMONIUM_EFFECT_MASK));
+    EXPECT_EQ(false, HarmoniumEffectMaskPara::OnUnmarshalling(parcelTest, valTest));
+}
+
 } // namespace Rosen
 } // namespace OHOS

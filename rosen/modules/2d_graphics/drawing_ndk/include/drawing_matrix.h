@@ -382,6 +382,27 @@ void OH_Drawing_MatrixConcat(OH_Drawing_Matrix* total, const OH_Drawing_Matrix* 
 OH_Drawing_ErrorCode OH_Drawing_MatrixGetAll(OH_Drawing_Matrix* matrix, float value[9]);
 
 /**
+ * @brief Matrix a left-multiplied by matrix b.
+ *       Given:
+ *                    | A B C |          | J K L |
+ *                a = | D E F |,     b = | M N O |
+ *                    | G H I |          | P Q R |
+ *       Get:
+ *                   | J K L |     | A B C |     | AJ+DK+GL BJ+EK+HL CJ+FK+IL |
+ *           b * a = | M N O |  *  | D E F |  =  | AM+DN+GO BM+EN+HO CM+FN+IO |
+ *                   | P Q R |     | G H I |     | AP+DQ+GR BP+EQ+HR CP+FQ+IR |
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param a Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param b Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if a or b is nullptr.
+ * @since 22
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_MatrixPreConcat(OH_Drawing_Matrix* a, OH_Drawing_Matrix* b);
+
+/**
  * @brief Get one matrix value. Index is between the range of 0-8.
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.

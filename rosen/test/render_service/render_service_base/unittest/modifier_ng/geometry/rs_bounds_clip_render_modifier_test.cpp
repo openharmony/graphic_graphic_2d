@@ -53,5 +53,6 @@ HWTEST_F(RSBoundsClipRenderModifierNGTypeTest, RSBoundsClipRenderModifierTest, T
     EXPECT_EQ(properties.GetClipBounds(), nullptr);
     EXPECT_EQ(properties.GetClipToBounds(), false);
     EXPECT_EQ(properties.GetCornerRadius(), Vector4f());
+    EXPECT_EQ(properties.GetCornerApplyType(), 0);
 }
 } // namespace OHOS::Rosen

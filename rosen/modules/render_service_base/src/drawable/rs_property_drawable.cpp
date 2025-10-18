@@ -133,26 +133,80 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    auto& canvas = *updater.GetRecordingCanvas();
     if (properties.GetClipBounds() != nullptr) {
-        canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
+        stagingType_ = RSClipToBoundsType::CLIP_PATH;
+        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (properties.GetClipToRRect()) {
-        canvas.ClipRoundRect(
-            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
+        stagingType_ = RSClipToBoundsType::CLIP_RRECT;
+        stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
+        stagingIsClipRRectOptimization_ = properties.NeedCornerOptimization();
     } else if (!properties.GetCornerRadius().IsZero()) {
-        canvas.ClipRoundRect(
-            RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+        stagingType_ = RSClipToBoundsType::CLIP_RRECT;
+        stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect());
+        stagingIsClipRRectOptimization_ = properties.NeedCornerOptimization();
     } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation() &&
         node.ReinterpretCastTo<RSSurfaceRenderNode>()->IsAppWindow()) {
-        Drawing::Rect rect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
-        Drawing::RectI iRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-        canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
+        stagingType_ = RSClipToBoundsType::CLIP_IRECT;
+        stagingBoundsRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     } else {
-        canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
+        stagingType_ = RSClipToBoundsType::CLIP_RECT;
+        stagingBoundsRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     }
+    stagingNodeId_ = node.GetId();
+    needSync_ = true;
     return true;
+}
+
+void RSClipToBoundsDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    drawingPath_ = stagingDrawingPath_;
+    clipRRect_ = stagingClipRRect_;
+    boundsRect_ = stagingBoundsRect_;
+    type_ = stagingType_;
+    nodeId_ = stagingNodeId_;
+    isClipRRectOptimization_ = stagingIsClipRRectOptimization_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSClipToBoundsDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas *canvas, const Drawing::Rect *rect) {
+        switch (ptr->type_) {
+            case RSClipToBoundsType::CLIP_PATH: {
+                canvas->ClipPath(ptr->drawingPath_, Drawing::ClipOp::INTERSECT, true);
+                break;
+            }
+            case RSClipToBoundsType::CLIP_RRECT: {
+                if (RSSystemProperties::GetClipRRectOptimizationEnabled() || ptr->isClipRRectOptimization_) {
+                    RS_TRACE_NAME_FMT("RSClipToBoundsDrawable ClipRRectOptimization NodeId[%llu]", ptr->nodeId_);
+                    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+                    paintFilterCanvas->ClipRRectOptimization(ptr->clipRRect_);
+                    canvas->ClipRect(ptr->clipRRect_.GetRect(), Drawing::ClipOp::INTERSECT, false);
+                } else {
+                    canvas->ClipRoundRect(ptr->clipRRect_, Drawing::ClipOp::INTERSECT, true);
+                }
+                break;
+            }
+            case RSClipToBoundsType::CLIP_IRECT: {
+                canvas->ClipIRect(Drawing::RectI(
+                    static_cast<int>(ptr->boundsRect_.GetLeft()),
+                    static_cast<int>(ptr->boundsRect_.GetTop()),
+                    static_cast<int>(ptr->boundsRect_.GetRight()),
+                    static_cast<int>(ptr->boundsRect_.GetBottom())), Drawing::ClipOp::INTERSECT);
+                break;
+            }
+            case RSClipToBoundsType::CLIP_RECT: {
+                canvas->ClipRect(ptr->boundsRect_, Drawing::ClipOp::INTERSECT, false);
+                break;
+            }
+            default:
+                break;
+        }
+    };
 }
 
 RSDrawable::Ptr RSClipToFrameDrawable::OnGenerate(const RSRenderNode& node)

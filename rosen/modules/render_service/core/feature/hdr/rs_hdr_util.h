@@ -84,6 +84,7 @@ public:
         RSPaintFilterCanvas* canvas);
     static bool SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
         const Drawing::SamplingOptions& sampling);
+    static GSError EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFrame);
     static GSError SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
         std::unique_ptr<RSRenderFrame>& renderFrame);
     static GSError SetMetadata(SurfaceBuffer* buffer,

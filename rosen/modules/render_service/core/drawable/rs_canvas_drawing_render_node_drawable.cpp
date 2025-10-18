@@ -94,7 +94,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped());
-    if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect())) {
+    if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDropNodeExt_) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
@@ -526,6 +526,12 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
         RS_LOGE("Failed to get bitmap, grContext is null!");
         return bitmap;
     }
+    if (auto renderNode = renderNode_.lock()) {
+        auto canvasDrawingRenderNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(renderNode);
+        if (canvasDrawingRenderNode->HasCachedOp()) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetBitmap: has unused OP, bitmap may be incorrect.");
+        }
+    }
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     Drawing::TextureOrigin origin = GetTextureOrigin();
@@ -583,6 +589,12 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
         return false;
     }
 
+    if (auto renderNode = renderNode_.lock()) {
+        auto canvasDrawingRenderNode = std::static_pointer_cast<const RSCanvasDrawingRenderNode>(renderNode);
+        if (canvasDrawingRenderNode->HasCachedOp()) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: has unused OP, pixelMap may be incorrect.");
+        }
+    }
     Drawing::ImageInfo info = Drawing::ImageInfo { pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     if (!drawCmdList) {

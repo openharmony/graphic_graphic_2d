@@ -42,8 +42,6 @@ public:
     bool UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& drawableParams);
     void GenerateHDRHeteroShader(BufferDrawParam& param, std::shared_ptr<Drawing::ShaderEffect>& imageShader);
-    
-    bool ReleaseBuffer();
 
     std::shared_ptr<RSSurfaceHandler> GetHDRSurfaceHandler()
     {
@@ -53,6 +51,9 @@ public:
     {
         return curHandleStatus_;
     }
+
+    bool HasHdrHeteroNode();
+
     virtual ~RSHeteroHDRManager() = default;
 private:
     RSHeteroHDRManager();
@@ -60,8 +61,8 @@ private:
     RSHeteroHDRManager(const RSHeteroHDRManager&&) = delete;
     RSHeteroHDRManager& operator=(const RSHeteroHDRManager&) = delete;
     RSHeteroHDRManager& operator=(const RSHeteroHDRManager&&) = delete;
-    int32_t RoundDownToEven(int32_t value);
-    RectI RectRound(RectI src);
+    int32_t RoundFloorToEven(int32_t value, int32_t maxVal);
+    RectI RectRound(RectI src, int32_t width, int32_t height);
 
     bool GetCurFrameHeteroHandleCanBeUsed(NodeId nodeId) const
     {
@@ -70,7 +71,7 @@ private:
 
     void ProcessParamsUpdate(RSPaintFilterCanvas& canvas,
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& drawableParams);
-
+    void GenerateHpaeRect(RSSurfaceRenderParams* surfaceParams, RectI& hpaeSrcRect, RectI& validHpaeDstRect);
     void GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
         bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams);
     int32_t BuildHDRTask(RSSurfaceRenderParams* surfaceParams, MDCRectT srcRect, uint32_t* taskId,
@@ -118,6 +119,7 @@ private:
     int32_t buildHdrTaskStatus_ = 0;
     std::atomic<bool> destroyedFlag_{ true };
     bool isFixedDstBuffer_ = false;
+    RectI src_ = { 0, 0, 0, 0 };
     RectI dst_ = { 0, 0, 0, 0 };
     sptr<SurfaceBuffer> dstBuffer_ = nullptr;
     bool curFrameHeteroHandleCanBeUsed_ = false;
@@ -126,6 +128,9 @@ private:
     NodeId curNodeId_ = 0;
     bool preFrameHeteroHandleCanBeUsed_ = false;
     MDCRectT hpaeDstRect_;
+    MDCRectT validHpaeDstRect_;
+    Vector2f hpaeBufferSize_;
+
     HdrStatus curHandleStatus_ = HdrStatus::NO_HDR;
     bool isHdrOn_ = false; // whether hdr is turn on in current screen
 };

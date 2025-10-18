@@ -76,6 +76,7 @@ public:
 
     const std::string& GetHeaderFirstFrame() const;
     void AddHeaderFirstFrame(const std::string& dataFirstFrame);
+    void InsertHeaderData(size_t offset, const std::string& data);
 
     const std::vector<std::pair<uint64_t, int64_t>>& GetAnimeStartTimes() const;
     void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes);

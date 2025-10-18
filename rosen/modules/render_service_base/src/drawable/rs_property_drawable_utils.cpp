@@ -266,6 +266,19 @@ void RSPropertyDrawableUtils::GetDarkColor(RSColor& color)
     }
 }
 
+inline void RSPropertyDrawableUtils::ClipVisibleRect(RSPaintFilterCanvas* canvas)
+{
+    auto visibleRectF = canvas->GetVisibleRect();
+    visibleRectF.Round();
+    auto visibleIRect = Drawing::RectI(
+        static_cast<int>(visibleRectF.GetLeft()), static_cast<int>(visibleRectF.GetTop()),
+        static_cast<int>(visibleRectF.GetRight()), static_cast<int>(visibleRectF.GetBottom()));
+    auto deviceClipRect = canvas->GetDeviceClipBounds();
+    if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
+        canvas->ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
+    }
+}
+
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
     NodeId nodeId, const bool isForegroundFilter)
@@ -304,6 +317,11 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
     if (paintFilterCanvas == nullptr) {
+        return;
+    }
+    // Only draw within the visible rect.
+    ClipVisibleRect(paintFilterCanvas);
+    if (canvas->GetDeviceClipBounds().IsEmpty()) {
         return;
     }
     RSAutoCanvasRestore autoCanvasStore(paintFilterCanvas, isForegroundFilter ?
@@ -471,6 +489,9 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     if (RSProperties::filterCacheEnabled_ && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
+        }
+        if (canvas->GetDeviceClipBounds().IsEmpty()) {
+            return;
         }
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
@@ -1141,14 +1162,7 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
     // Align the current coordinate system with the one that the effect data was generated from. In most cases,
     // the two coordinate systems are the same, so the cachedMatrix_ should be set to identity.
     canvas->SetMatrix(effectData->cachedMatrix_);
-    auto visibleRect = canvas->GetVisibleRect();
-    visibleRect.Round();
-    auto visibleIRect = Drawing::RectI(
-        static_cast<int>(visibleRect.GetLeft()), static_cast<int>(visibleRect.GetTop()),
-        static_cast<int>(visibleRect.GetRight()), static_cast<int>(visibleRect.GetBottom()));
-    if (!visibleIRect.IsEmpty()) {
-        canvas->ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
-    }
+    ClipVisibleRect(canvas);
     Drawing::Brush brush;
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content

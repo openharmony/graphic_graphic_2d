@@ -41,6 +41,14 @@ Typeface* FontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t*
     return nullptr;
 }
 
+bool FontMgr::LoadDynamicFont(const std::string& familyName, std::shared_ptr<Typeface> typeface)
+{
+    if (fontMgrImpl_) {
+        return fontMgrImpl_->LoadDynamicFont(familyName, typeface);
+    }
+    return false;
+}
+
 Typeface* FontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,
     const uint8_t* data, size_t dataLength)
 {

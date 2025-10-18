@@ -186,6 +186,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK),
@@ -422,7 +423,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS)) {
-        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}d", code);
+        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}u", code);
         return ERR_INVALID_STATE;
     }
     int ret = ERR_NONE;
@@ -1049,7 +1050,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetScreenActiveMode(id, modeId);
+            uint32_t status = SetScreenActiveMode(id, modeId);
+            if (!reply.WriteUint32(status)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_ACTIVE_MODE Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE): {
@@ -2567,6 +2572,44 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             } else {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission UNREGISTER_TYPEFACE", callingPid);
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE): {
+            int32_t result{0};
+            uint64_t id{0};
+            int32_t fd{-1};
+            uint32_t size{0};
+            int32_t needUpdate{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(size)) {
+                RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            fd = data.ReadFileDescriptor();
+            if (fd == -1) {
+                RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            // safe check
+            if (IsValidCallingPid(ExtractPid(id), callingPid)) {
+                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, id);
+                result = RegisterTypeface(id, size, fd, needUpdate);
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                    "no permission REGISTER_SHARED_TYPEFACE", callingPid);
+            }
+            if (!reply.WriteInt32(needUpdate)) {
+                RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SHARED_TYPEFACE Write needUpdate failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            if (needUpdate == 0) {
+                break;
+            }
+            if (!reply.WriteFileDescriptor(result)) {
+                RS_LOGE("RSRenderServiceConnectionStub::REGISTER_SHARED_TYPEFACE Write result failed!");
+                ret = ERR_INVALID_REPLY;
             }
             break;
         }

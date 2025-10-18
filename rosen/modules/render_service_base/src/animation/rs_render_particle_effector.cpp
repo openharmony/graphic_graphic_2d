@@ -250,7 +250,9 @@ void RSRenderParticleEffector::UpdateAccelerationValue(
 }
 
 void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, float deltaTime)
+    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
+    const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, float deltaTime)
 {
     if (particle == nullptr) {
         return;
@@ -259,6 +261,12 @@ void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderPart
     auto fieldForce = Vector2f(0.f, 0.f);
     if (particleNoiseFields != nullptr) {
         fieldForce = particleNoiseFields->ApplyAllFields(position, deltaTime);
+    }
+    if (particleRippleFields != nullptr) {
+        fieldForce += particleRippleFields->ApplyAllRippleFields(position, deltaTime);
+    }
+    if (particleVelocityFields != nullptr) {
+        fieldForce += particleVelocityFields->ApplyAllVelocityFields(position, deltaTime);
     }
     auto accelerationValue = particle->GetAccelerationValue();
     auto accelerationAngle = particle->GetAccelerationAngle();
@@ -293,7 +301,9 @@ void RSRenderParticleEffector::UpdateActiveTime(const std::shared_ptr<RSRenderPa
 
 // Apply effector to particle
 void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields, int64_t deltaTime)
+    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
+    const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t deltaTime)
 {
     if (particle == nullptr) {
         return;
@@ -305,7 +315,7 @@ void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& p
     UpdateOpacity(particle, dt);
     UpdateScale(particle, dt);
     UpdateSpin(particle, dt);
-    UpdatePosition(particle, particleNoiseFields, dt);
+    UpdatePosition(particle, particleNoiseFields, particleRippleFields, particleVelocityFields, dt);
     UpdateActiveTime(particle, deltaTime);
 }
 

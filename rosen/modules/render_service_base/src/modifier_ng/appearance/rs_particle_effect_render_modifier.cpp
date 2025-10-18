@@ -24,6 +24,12 @@ const RSParticleEffectRenderModifier::LegacyPropertyApplierMap
         { RSPropertyType::PARTICLE_NOISE_FIELD,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<ParticleNoiseFields>,
                 &RSProperties::SetParticleNoiseFields> },
+        { RSPropertyType::PARTICLE_RIPPLE_FIELD,
+            RSRenderModifier::PropertyApplyHelper<std::shared_ptr<ParticleRippleFields>,
+                &RSProperties::SetParticleRippleFields> },
+        { RSPropertyType::PARTICLE_VELOCITY_FIELD,
+            RSRenderModifier::PropertyApplyHelper<std::shared_ptr<ParticleVelocityFields>,
+                &RSProperties::SetParticleVelocityFields> },
         { RSPropertyType::PARTICLE,
             RSRenderModifier::PropertyApplyHelper<RSRenderParticleVector, &RSProperties::SetParticles> },
     };
@@ -32,6 +38,8 @@ void RSParticleEffectRenderModifier::ResetProperties(RSProperties& properties)
 {
     properties.SetEmitterUpdater({});
     properties.SetParticleNoiseFields(nullptr);
+    properties.SetParticleRippleFields(nullptr);
+    properties.SetParticleVelocityFields(nullptr);
     properties.SetParticles({});
 }
 } // namespace OHOS::Rosen::ModifierNG

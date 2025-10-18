@@ -64,6 +64,10 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
 
 OpDataHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const Image& image)
 {
+    if (cmdList.GetNoImageMarshallingFlag()) {
+        auto emptyImage = std::make_shared<Image>();
+        return cmdList.AddImage(*emptyImage);
+    }
     return cmdList.AddImage(image);
 }
 

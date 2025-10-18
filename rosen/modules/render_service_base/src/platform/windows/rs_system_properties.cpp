@@ -798,5 +798,15 @@ bool RSSystemProperties::GetBootCompleted()
 {
     return false;
 }
+
+bool RSSystemProperties::GetClipRRectOptimizationEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -67,6 +67,27 @@ HWTEST_F(CmdListHelperTest, AddImageToCmdList001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddImageToCmdList002
+ * @tc.desc: Test the AddImageToCmdList function with flag.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, AddImageToCmdList002, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    OpDataHandle handle = CmdListHelper::AddImageToCmdList(*cmdList, *image);
+    EXPECT_EQ(handle.offset, 0);
+    EXPECT_EQ(handle.size, 0);
+
+    auto cmdList_v2 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    std::shared_ptr<Image> image_v2 = std::make_shared<Image>();
+    OpDataHandle handle_v2 = CmdListHelper::AddImageToCmdList(*cmdList_v2, *image_v2);
+    EXPECT_EQ(handle_v2.offset, 0);
+    EXPECT_EQ(handle_v2.size, 0);
+}
+
+/**
  * @tc.name: GetImageFromCmdList001
  * @tc.desc: Test the GetImageFromCmdList function.
  * @tc.type: FUNC

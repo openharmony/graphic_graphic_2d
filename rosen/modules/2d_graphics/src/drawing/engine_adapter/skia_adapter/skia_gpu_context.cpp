@@ -378,9 +378,7 @@ void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
         LOGD("SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources, grContext_ is nullptr");
         return;
     }
-#ifndef TODO_M133_SKIA
     grContext_->purgeUnlockAndSafeCacheGpuResources();
-#endif
 }
 
 void SkiaGPUContext::PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,

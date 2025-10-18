@@ -68,6 +68,14 @@ public:
     Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
 
     /**
+     * @brief             Load dynamic font typeface.
+     * @param familyName  Font family name.
+     * @param typeface    Typeface
+     * @return whether the dynamic font was successfully loaded
+    */
+    bool LoadDynamicFont(const std::string& familyName, std::shared_ptr<Drawing::Typeface> typeface);
+
+    /**
      * @brief             Load theme font typeface.
      * @param familyName  Font family name.
      * @param themeName   Theme name.

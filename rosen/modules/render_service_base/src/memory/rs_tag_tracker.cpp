@@ -88,6 +88,9 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_RENDER_FRAME :
             tagType = "render_frame";
             break;
+        case TAG_SUBTREE_PARALLEL :
+            tagType = "subtree_parallel";
+            break;
         case TAG_HDR_OFFSCREEN :
             tagType = "hdr_offscreen";
             break;

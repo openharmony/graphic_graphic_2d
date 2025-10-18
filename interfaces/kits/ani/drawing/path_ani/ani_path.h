@@ -34,6 +34,7 @@ public:
     static void ArcTo(ani_env* env, ani_object obj, ani_double x1, ani_double y1, ani_double x2,
         ani_double y2, ani_double startDeg, ani_double sweepDeg);
     static void Reset(ani_env* env, ani_object obj);
+    static ani_boolean IsRect(ani_env* env, ani_object obj, ani_object aniRectObj);
 
     Path& GetPath();
 

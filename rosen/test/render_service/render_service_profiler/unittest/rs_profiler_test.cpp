@@ -315,7 +315,7 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
 {
     RSProfiler::testing_ = true;
 
-    RSProfiler::SetMode(Mode::READ_EMUL);
+    RSProfiler::SetSubMode(SubMode::READ_EMUL);
 
     auto data = std::make_shared<Drawing::Data>();
     constexpr size_t length = 40'000;

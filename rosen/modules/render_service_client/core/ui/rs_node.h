@@ -67,6 +67,7 @@ class RSObjAbsGeometry;
 class RSUIContext;
 class RSNGFilterBase;
 class RSNGShaderBase;
+class RSNGMaskBase;
 class Blender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
@@ -564,6 +565,14 @@ public:
     void SetCornerRadius(const Vector4f& cornerRadius);
 
     /**
+     * @brief Sets the corner apply type of the node.
+     *
+     * @param type The type applied to each rounded corner, when the four corner radius are different,
+     * the offscreen type cannot be enabled.
+     */
+    void SetCornerApplyType(RSCornerApplyType type);
+
+    /**
      * @brief Sets the rotation of the node.
      *
      * @param quaternion A Quaternion representing the rotation to be applied to the node.
@@ -845,6 +854,8 @@ public:
         std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback = nullptr);
     void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
+    void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
+    void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
 
     /**
      * @brief Sets the foreground color of the node.
@@ -1523,6 +1534,20 @@ public:
     void SetColorBlendMode(RSColorBlendMode colorBlendMode);
 
     void SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType);
+
+    /**
+     * @brief Sets the flag to indicate the usage of SDF Union.
+     *
+     * @param useUnion Indicates whether to enable the SDF Union.
+     */
+    void SetUseUnion(bool useUnion);
+
+    /**
+     * @brief Sets the SDF Mask.
+     *
+     * @param mask SDF Mask (SDF Union OP mask, SDF Smooth Union OP Mask, SDF RRect Mask)
+     */
+    void SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask);
 
     // driven render was shelved, functions will be deleted soon [start]
     void MarkDrivenRender(bool flag) {}

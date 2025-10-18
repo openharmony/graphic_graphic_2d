@@ -202,6 +202,8 @@ typedef enum : uint32_t {
     SET_RATE_ERROR,
     VIRTUAL_SCREEN,
     READ_PARCEL_ERR,
+    IPC_ERROR,
+    HDI_ERR_NOT_SUPPORT,
 } StatusCode;
 
 typedef enum : uint32_t {
@@ -294,6 +296,7 @@ inline int32_t ScreenRotationMapping(ScreenRotation screenCorrection)
 typedef enum {
     SKIP_FRAME_BY_INTERVAL,
     SKIP_FRAME_BY_REFRESH_RATE,
+    SKIP_FRAME_BY_ACTIVE_REFRESH_RATE,
 } SkipFrameStrategy;
 } // namespace Rosen
 } // namespace OHOS

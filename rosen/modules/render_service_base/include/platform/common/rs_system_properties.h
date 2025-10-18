@@ -383,8 +383,15 @@ public:
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
+    static bool GetMemoryWatermarkEnabled();
 
     static bool GetBootCompleted();
+
+    static bool GetClipRRectOptimizationEnabled();
+
+    static bool GetNodeMemClearEnabled();
+
+    static bool GetRSNodeExceedKillEnabled();
 
 private:
     RSSystemProperties() = default;

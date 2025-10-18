@@ -14,6 +14,8 @@
 */
 
 #include "rs_tv_metadata_manager.h"
+
+#include "feature_cfg/feature_param/performance_feature/video_metadata_param.h"
 #include "platform/common/rs_log.h"
 
 #undef LOG_TAG
@@ -204,9 +206,14 @@ void RSTvMetadataManager::UpdateTvMetadata(const RSSurfaceRenderParams& params, 
     if (buffer == nullptr) {
         return;
     }
-    TvPQMetadata info{};
-    if (MetadataHelper::GetVideoTVMetadata(buffer, info) != GSERROR_OK) {
+    std::string bundleName = params.GetBundleName();
+    if (!IsSdpInfoAppId(bundleName)) {
         return;
+    }
+    TvPQMetadata info{};
+    static_cast<void>(MetadataHelper::GetVideoTVMetadata(buffer, info));
+    if (info.sceneTag < VIDEO_PLAYING_SCENE) {
+        info.sceneTag = VIDEO_PLAYING_SCENE;
     }
     CollectTvMetadata(params, buffer, info);
     info.scaleMode = 0;
@@ -218,9 +225,14 @@ void RSTvMetadataManager::RecordTvMetadata(const RSSurfaceRenderParams& params, 
     if (buffer == nullptr) {
         return;
     }
-    TvPQMetadata info{};
-    if (MetadataHelper::GetVideoTVMetadata(buffer, info) != GSERROR_OK) {
+    std::string bundleName = params.GetBundleName();
+    if (!IsSdpInfoAppId(bundleName)) {
         return;
+    }
+    TvPQMetadata info{};
+    static_cast<void>(MetadataHelper::GetVideoTVMetadata(buffer, info));
+    if (info.sceneTag < VIDEO_PLAYING_SCENE) {
+        info.sceneTag = VIDEO_PLAYING_SCENE;
     }
     CollectTvMetadata(params, buffer, info);
     info.scaleMode = SCALER_MODE_GPU;
@@ -283,5 +295,12 @@ void RSTvMetadataManager::CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQ
     if (MetadataHelper::GetHDRMetadataType(buffer, hdrMetadataType) == GSERROR_OK) {
         metaData.hdr = hdrMetadataType;
     }
+}
+
+bool RSTvMetadataManager::IsSdpInfoAppId(const std::string& bundleName)
+{
+    const auto& sdpAppMap = VideoMetadataParam::GetVideoMetadataAppMap();
+    auto it = sdpAppMap.find(bundleName);
+    return (it != sdpAppMap.end());
 }
 } // namespace OHOS::Rosen

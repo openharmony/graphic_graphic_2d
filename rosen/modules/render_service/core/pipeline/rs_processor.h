@@ -25,6 +25,8 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render_thread/rs_base_render_engine.h"
+// hpae offline
+#include "feature/hwc/hpae_offline/rs_hpae_offline_result.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -51,7 +53,8 @@ public:
     void operator=(const RSProcessor&) = delete;
     virtual bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
-    virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
+    virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessScreenSurface(RSScreenRenderNode& node) = 0;
     virtual void PostProcess() = 0;
@@ -60,7 +63,8 @@ public:
     virtual bool InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual bool UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
-    virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
+    virtual void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+        const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}
     virtual void ProcessScreenSurfaceForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable) {}
     virtual void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) {}
 

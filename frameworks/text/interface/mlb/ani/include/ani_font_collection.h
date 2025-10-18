@@ -27,6 +27,7 @@ class AniFontCollection final {
 public:
     AniFontCollection();
     static ani_object GetGlobalInstance(ani_env* env, ani_class cls);
+    static ani_object GetLocalInstance(ani_env* env, ani_class cls);
     static void LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path);
     static void UnloadFontSync(ani_env* env, ani_object obj, ani_string name);
     static void ClearCaches(ani_env* env, ani_object obj);

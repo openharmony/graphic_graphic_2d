@@ -1874,6 +1874,116 @@ HWTEST_F(RSPaintFilterCanvasTest, IsDarkColorModeTestTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawOptimizationClipRRectTest
+ * @tc.desc: DrawOptimizationClipRRect
+ * @tc.type: FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
+    paintFilterCanvas.DrawOptimizationClipRRect(nullptr, nullptr);
+
+    auto canvasTest = std::make_unique<Drawing::Canvas>();
+    paintFilterCanvas.DrawOptimizationClipRRect(canvasTest.get(), nullptr);
+
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    Drawing::RectI drawRect(0, 0, 50, 50);
+    Drawing::RectI emptyRect;
+    ASSERT_TRUE(emptyRect.IsEmpty());
+    Drawing::RoundRect roundRect;
+    auto data1 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, drawRect);
+    auto data2 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(image, emptyRect);
+    auto data3 = nullptr;
+    auto data4 = std::make_shared<RSPaintFilterCanvasBase::CornerData>(nullptr, drawRect);
+    std::array<std::shared_ptr<RSPaintFilterCanvasBase::CornerData>,
+        RSPaintFilterCanvasBase::ClipRRectData::CORNER_DATA_SIZE> cornerDatas = { data1, data2, data3, data4 };
+    auto clipRRectData = std::make_shared<RSPaintFilterCanvasBase::ClipRRectData>(
+        cornerDatas, roundRect, paintFilterCanvas.GetSaveCount());
+    paintFilterCanvas.DrawOptimizationClipRRect(canvasTest.get(), clipRRectData);
+
+    paintFilterCanvas.SaveClipRRect(clipRRectData);
+    paintFilterCanvas.RestoreClipRRect(-1);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 1);
+    paintFilterCanvas.RestoreClipRRect(1);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 0);
+}
+
+/**
+ * @tc.name: ClipRRectOptimizationTest
+ * @tc.desc: ClipRRectOptimization
+ * @tc.type: FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSPaintFilterCanvasTest, ClipRRectOptimizationTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    paintFilterCanvas.surface_ = surfacePtr.get();
+    ASSERT_NE(paintFilterCanvas.surface_, nullptr);
+
+    Drawing::RoundRect clipRRect1;
+    paintFilterCanvas.ClipRRectOptimization(clipRRect1);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 1);
+    paintFilterCanvas.Restore();
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 0);
+
+    auto clipRRect2 = Drawing::RoundRect(Drawing::Rect(200, 200, 400, 400), 50.0f, 50.0f);
+    paintFilterCanvas.ClipRRectOptimization(clipRRect2);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 1);
+
+    auto clipRRect3 = Drawing::RoundRect(Drawing::Rect(200, 200, 800, 800), 50.0f, 50.0f);
+    paintFilterCanvas.ClipRRectOptimization(clipRRect3);
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 2);
+
+    paintFilterCanvas.Restore();
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 1);
+
+    paintFilterCanvas.Restore();
+    EXPECT_EQ(paintFilterCanvas.clipRRectStack_.size(), 0);
+}
+
+/**
+ * @tc.name: GenerateCornerDataTest
+ * @tc.desc: GenerateCornerData
+ * @tc.type: FUNC
+ * @tc.require: issue20176
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GenerateCornerDataTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Drawing::Canvas>();
+    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
+    Drawing::RoundRect roundRect;
+    Drawing::Matrix matrix;
+    auto data = paintFilterCanvas.GenerateCornerData(
+        roundRect, Drawing::RoundRect::CornerPos::TOP_LEFT_POS, matrix, nullptr);
+    EXPECT_EQ(data, nullptr);
+
+    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
+    data = paintFilterCanvas.GenerateCornerData(
+        roundRect, Drawing::RoundRect::CornerPos::TOP_LEFT_POS, matrix, surfacePtr.get());
+    EXPECT_NE(data, nullptr);
+
+    data = paintFilterCanvas.GenerateCornerData(
+        roundRect, Drawing::RoundRect::CornerPos::TOP_RIGHT_POS, matrix, surfacePtr.get());
+    EXPECT_NE(data, nullptr);
+
+    data = paintFilterCanvas.GenerateCornerData(
+        roundRect, Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS, matrix, surfacePtr.get());
+    EXPECT_NE(data, nullptr);
+
+    data = paintFilterCanvas.GenerateCornerData(
+        roundRect, Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS, matrix, surfacePtr.get());
+    EXPECT_NE(data, nullptr);
+
+    data = paintFilterCanvas.GenerateCornerData(
+        roundRect, Drawing::RoundRect::CornerPos::CORNER_NUMBER, matrix, surfacePtr.get());
+    EXPECT_EQ(data, nullptr);
+}
+
+/**
  * @tc.name: DrawImageEffectHPSTest
  * @tc.desc: DrawImageEffectHPS test
  * @tc.type: FUNC

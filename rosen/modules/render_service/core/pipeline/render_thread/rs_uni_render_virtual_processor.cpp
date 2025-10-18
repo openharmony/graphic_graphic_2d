@@ -44,10 +44,12 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
 
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: ScreenManager is nullptr", __func__);
         return false;
     }
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
     if (!params) {
+        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s: ScreenParams is nullptr", __func__);
         return false;
     }
 
@@ -153,6 +155,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+    RSHdrUtil::EraseHDRMetadataKey(renderFrame_);
     if (mirrorScreenHDR || expandScreenHDR) {
         if (RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame_) != GSERROR_OK) {
             RS_LOGD("RSUniRenderVirtualProcessor::Init SetMetadata failed");
@@ -546,6 +549,8 @@ void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
         mirrorScaleX_ = mirrorWidth / mainWidth;
         mirrorScaleY_ = mirrorHeight / mainHeight;
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+        RS_LOGD("RSUniRenderVirtualProcessor::Fill: scaleX: %{public}f, scaleY: %{public}f",
+            mirrorScaleX_, mirrorScaleY_);
     }
 }
 
@@ -584,7 +589,8 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
 
     canvas.Scale(mirrorScaleX_, mirrorScaleY_);
     canvas.Translate(startX, startY);
-    RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f", startX, startY);
+    RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Translate startX: %{public}f, startY: %{public}f"
+        " scaleX: %{public}f, scaleY: %{public}f", startX, startY, mirrorScaleX_, mirrorScaleY_);
 }
 
 bool RSUniRenderVirtualProcessor::EnableSlrScale()

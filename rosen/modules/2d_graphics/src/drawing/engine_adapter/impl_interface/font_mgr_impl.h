@@ -30,6 +30,7 @@ public:
     ~FontMgrImpl() override = default;
 
     virtual Typeface* LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) = 0;
+    virtual bool LoadDynamicFont(const std::string& familyName, std::shared_ptr<Typeface> typeface) = 0;
     virtual Typeface* LoadThemeFont(const std::string& familyName, const std::string& themeName,
         const uint8_t* data, size_t dataLength) = 0;
     virtual void LoadThemeFont(const std::string& themeName, std::shared_ptr<Typeface> typeface) = 0;

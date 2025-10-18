@@ -54,7 +54,8 @@ namespace {
 const uint8_t DO_REGISTER_TYPEFACE = 0;
 const uint8_t DO_UNREGISTER_TYPEFACE = 1;
 const uint8_t DO_NEED_REGISTER_TYPEFACE = 2;
-const uint8_t TARGET_SIZE = 3;
+const uint8_t DO_REGISTER_SHARED_TYPEFACE = 3;
+const uint8_t TARGET_SIZE = 4;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -135,6 +136,23 @@ void DoRegisterTypeface()
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
+void DoRegisterSharedTypeface()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    uint64_t id = static_cast<NodeId>(g_pid) << 32;
+    uint32_t hash = GetData<uint32_t>();
+    id |= static_cast<uint64_t>(hash);
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint32(GetData<uint32_t>());
+    dataParcel.WriteFileDescriptor(GetData<int32_t>());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 void DoUnRegisterTypeface()
 {
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE);
@@ -188,6 +206,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_NEED_REGISTER_TYPEFACE:
             OHOS::Rosen::DoRegisterTypeface();
+            break;
+        case OHOS::Rosen::DO_REGISTER_SHARED_TYPEFACE:
+            OHOS::Rosen::DoRegisterSharedTypeface();
             break;
         default:
             return -1;

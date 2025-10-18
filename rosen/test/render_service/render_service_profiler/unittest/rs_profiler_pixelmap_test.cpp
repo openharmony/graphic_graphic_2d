@@ -81,7 +81,7 @@ HWTEST(RSProfilerPixelMap, PlaybackParcel, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     RSProfiler::testing_ = true;
-    RSProfiler::SetMode(Mode::READ_EMUL);
+    RSProfiler::SetSubMode(SubMode::READ_EMUL);
 
     std::vector<uint32_t> colors(HUNDRED);
     for (int i = 0; i < colors.size(); ++i) {

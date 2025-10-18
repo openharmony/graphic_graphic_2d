@@ -17,6 +17,7 @@
 #define RS_COLORSPACE_UTIL_H
 
 #include "color_space.h"
+#include "draw/canvas.h"
 #include "effect/color_space.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include <v1_0/cm_color_space.h>
@@ -35,6 +36,9 @@ public:
 
     static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
         ColorManager::ColorSpaceName colorSpaceName);
+    static GraphicColorGamut DrawingColorSpaceToGraphicColorGamut(
+        const std::shared_ptr<Drawing::ColorSpace>& colorSpace);
+    static GraphicColorGamut GetColorGamutFromCanvas(const Drawing::Canvas& canvas);
     static GraphicColorGamut ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name);
     static GraphicColorGamut SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2);
 

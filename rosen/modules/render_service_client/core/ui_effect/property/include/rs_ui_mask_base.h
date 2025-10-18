@@ -57,6 +57,10 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, HaloThickness)
 );
 
+DECLARE_MASK(HarmoniumEffectMask, HARMONIUM_EFFECT_MASK,
+    ADD_PROPERTY_TAG(HarmoniumEffectMask, Image)
+);
+
 DECLARE_MASK(PixelMapMask, PIXEL_MAP_MASK,
     ADD_PROPERTY_TAG(PixelMapMask, Src),
     ADD_PROPERTY_TAG(PixelMapMask, Dst),
@@ -84,6 +88,23 @@ DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
     ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
     ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
     ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
+);
+
+// SDF OP mask
+DECLARE_MASK(SDFUnionOpMask, SDF_UNION_OP_MASK,
+    ADD_PROPERTY_TAG(SDFUnionOpMask, MaskX),
+    ADD_PROPERTY_TAG(SDFUnionOpMask, MaskY)
+);
+
+DECLARE_MASK(SDFSmoothUnionOpMask, SDF_SMOOTH_UNION_OP_MASK,
+    ADD_PROPERTY_TAG(SDFSmoothUnionOpMask, Spacing),
+    ADD_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskX),
+    ADD_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskY)
+);
+
+// SDF shape mask
+DECLARE_MASK(SDFRRectMask, SDF_RRECT_MASK,
+    ADD_PROPERTY_TAG(SDFRRectMask, RRect)
 );
 
 #undef DECLARE_MASK

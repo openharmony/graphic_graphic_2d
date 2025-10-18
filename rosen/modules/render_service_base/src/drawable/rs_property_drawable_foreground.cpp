@@ -33,6 +33,87 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
 constexpr int PARAM_TWO = 2;
+constexpr char NORMAL_LIGHT_SHADER_STRING[](R"(
+    uniform vec2 iResolution;
+    uniform float cornerRadius;
+    uniform vec4 lightPos[12];
+    uniform vec4 viewPos[12];
+    uniform vec4 specularLightColor[12];
+    uniform float specularStrength[12];
+    uniform float roundCurvature;
+    uniform float bumpFactor;
+    uniform float gradientRadius;
+    uniform float bulgeRadius;
+    uniform float eps;
+
+    float sdf_g2_rounded_box(vec2 p, vec2 b, float r, float k)
+    {
+        vec2 q = abs(p) - b;
+        float v_x =  max(q.x, 0.0);
+        float v_y =  max(q.y, 0.0);
+        float dist_corner_shape;
+        if (abs(k - 2.0) < 0.001) {
+            dist_corner_shape = length(vec2(v_x, v_y));
+            return dist_corner_shape + min(max(q.x, q.y), 0.0) - r;
+        } else {
+            if (v_x == 0.0 && v_y == 0.0) {
+                dist_corner_shape = 0.0;
+            } else {
+                dist_corner_shape = pow(pow(v_x, k) + pow(v_y, k), 1.0 / k);
+            }
+            return dist_corner_shape + min(max(q.x, q.y), 0.0) - r;
+        }
+    }
+
+    float sdScene(vec2 fragCoord)
+    {
+        vec2 boxSize = iResolution.xy * 0.5 - cornerRadius;
+        vec2 boxCenter = iResolution.xy * 0.5;
+        vec2 p = fragCoord - boxCenter;
+        return sdf_g2_rounded_box(p, boxSize, cornerRadius, roundCurvature);
+    }
+
+    float height(vec2 p, float radius)
+    {
+        float d = sdScene(p);
+        float h = 0.0;
+        if (d < 0.0 && d > -radius) {
+            float arg = 2.0 * radius * abs(d) - d * d;
+            h = sqrt(max(arg, 0.0));
+        } else if (d <= -radius) {
+            h = radius;
+        }
+        return h;
+    }
+
+    vec2 computeGradient(vec2 p) {
+        vec2 epsVec = vec2(eps, 0.0);
+        float dx = height(p - epsVec.xy, gradientRadius) - height(p + epsVec.xy, gradientRadius);
+        float dy = height(p - epsVec.yx, gradientRadius) - height(p + epsVec.yx, gradientRadius);
+        return vec2(dx, dy);
+    }
+
+    mediump vec4 main(vec2 drawing_coord)
+    {
+        float shininess = 8.0;
+        mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        vec2 grad = computeGradient(drawing_coord);
+        float h = height(drawing_coord, bulgeRadius);
+        vec3 norm = normalize(vec3(grad * bumpFactor, h));
+
+        for (int i = 0; i < 12; i++) {
+            if (abs(specularStrength[i]) > 0.01) {
+                vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
+                vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
+                vec3 halfwayDir = normalize(lightDir + viewDir);                             // half vector
+                float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);
+                vec4 specularColor = specularLightColor[i];
+                fragColor += specularColor * spec * specularStrength[i];
+            }
+        }
+        return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
+    }
+)");
 } // namespace
 
 const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
@@ -370,6 +451,7 @@ RSDrawable::Ptr RSForegroundFilterRestoreDrawable::OnGenerate(const RSRenderNode
 
 bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
 {
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetForegroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -388,6 +470,7 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDraw
         RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
             RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
 #endif
+        RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, ptr->foregroundFilter_);
     };
 }
@@ -397,6 +480,7 @@ void RSForegroundFilterRestoreDrawable::OnSync()
     if (needSync_ == false) {
         return;
     }
+    renderNodeId_ = stagingNodeId_;
     foregroundFilter_ = std::move(stagingForegroundFilter_);
     if (foregroundFilter_) {
         foregroundFilter_->OnSync();
@@ -490,6 +574,14 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
+    const std::shared_ptr<RSSDFEffectFilter> sdfEffectFilter = properties.GetSDFEffectFilter();
+    if (sdfEffectFilter && border->GetStyle() == BorderStyle::SOLID) {
+        auto borderColor = border->GetColor();
+        Drawing::Color color(
+            borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
+        sdfEffectFilter->SetBorder(color, border->GetWidth());
+        return;
+    }
     Drawing::Brush brush;
     Drawing::Pen pen;
     brush.SetAntiAlias(true);
@@ -609,27 +701,63 @@ void RSPointLightDrawable::OnSync()
     }
     illuminatedType_ = properties_.GetIlluminated()->GetIlluminatedType();
     borderWidth_ = std::ceil(properties_.GetIlluminatedBorderWidth());
+    borderWidth_ = borderWidth_ > 0.0f ? borderWidth_ : 0.0f;
     auto& rrect = properties_.GetRRect();
-    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT ||
-        illuminatedType_ == IlluminatedType::BORDER ||
-        illuminatedType_ == IlluminatedType::BLEND_BORDER ||
-        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT ||
-        illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
-        // half width and half height requires divide by 2.0f
-        Vector4f width = { borderWidth_ / 2.0f };
-        auto borderRRect = rrect.Inset(width);
-        borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
-    }
-    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT ||
-        illuminatedType_ == IlluminatedType::CONTENT ||
-        illuminatedType_ == IlluminatedType::BLEND_CONTENT ||
-        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT ||
-        illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
-        contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
-    }
+    // half width and half height requires divide by 2.0f
+    Vector4f width = { borderWidth_ / 2.0f };
+    auto borderRRect = rrect.Inset(width);
+    borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
+    contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
     if (properties_.GetBoundsGeometry()) {
         rect_ = properties_.GetBoundsGeometry()->GetAbsRect();
     }
+}
+
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeFeatheringBoardLightShaderBuilder() const
+{
+    auto builder = GetFeatheringBoardLightShaderBuilder();
+    if (!builder) {
+        return nullptr;
+    }
+    float rectWidth = contentRRect_.GetRect().GetWidth();
+    float rectHeight = contentRRect_.GetRect().GetHeight();
+    builder->SetUniform("iResolution", rectWidth, rectHeight);
+    builder->SetUniform("contentBorderRadius",
+        contentRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
+    builder->SetUniform("borderWidth", borderWidth_);
+    return builder;
+}
+
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalLightShaderBuilder() const
+{
+    auto builder = GetNormalLightShaderBuilder();
+    if (!builder) {
+        return nullptr;
+    }
+    constexpr float DEFAULT_BUMP_FACTOR = 3.0f;
+    constexpr float DEFAULT_GRADIENT_RADIUS = 10.0f;
+    constexpr float DEFAULT_BULGE_RADIUS = 15.0f;
+    constexpr float DEFAULT_EPSLION = 1.0f;
+    constexpr float CORNER_RADIUS_SCALE_FACTOR = 1.31f;
+    constexpr float CORNER_THRESHOLD_FACTOR = 1.7f;
+    constexpr float G2_CURVEATURE_K = 2.77f;
+    constexpr float G1_CURVEATURE_K = 2.0f;
+    float rectWidth = contentRRect_.GetRect().GetWidth();
+    float rectHeight = contentRRect_.GetRect().GetHeight();
+    builder->SetUniform("iResolution", rectWidth, rectHeight);
+    float cornerRadius = contentRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX();
+    builder->SetUniform("bumpFactor", DEFAULT_BUMP_FACTOR);
+    builder->SetUniform("gradientRadius", DEFAULT_GRADIENT_RADIUS);
+    builder->SetUniform("bulgeRadius", DEFAULT_BULGE_RADIUS);
+    builder->SetUniform("eps", DEFAULT_EPSLION);
+    if (cornerRadius * CORNER_THRESHOLD_FACTOR * PARAM_TWO < std::min(rectWidth, rectHeight)) {
+        builder->SetUniform("roundCurvature", G2_CURVEATURE_K);
+        builder->SetUniform("cornerRadius", cornerRadius * CORNER_RADIUS_SCALE_FACTOR);
+    } else {
+        builder->SetUniform("roundCurvature", G1_CURVEATURE_K);
+        builder->SetUniform("cornerRadius", cornerRadius);
+    }
+    return builder;
 }
 
 void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
@@ -637,17 +765,16 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     if (lightSourcesAndPosVec_.empty()) {
         return;
     }
-    auto phongShaderBuilder = GetPhongShaderBuilder();
-    if (!phongShaderBuilder) {
-        return;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder = nullptr;
+    if (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT) {
+        builder = MakeNormalLightShaderBuilder();
+    } else if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
+        builder = MakeFeatheringBoardLightShaderBuilder();
+    } else {
+        builder = GetPhongShaderBuilder();
     }
-    if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
-        phongShaderBuilder = GetFeatheringBoardLightShaderBuilder();
-        float rectWidth = contentRRect_.GetRect().GetWidth();
-        float rectHeight = contentRRect_.GetRect().GetHeight();
-        phongShaderBuilder->SetUniform("iResolution", rectWidth, rectHeight);
-        phongShaderBuilder->SetUniform("contentBorderRadius",
-            contentRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
+    if (!builder) {
+        return;
     }
     constexpr int vectorLen = 4;
     float lightPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
@@ -672,36 +799,32 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
         iter++;
         cnt++;
     }
-    phongShaderBuilder->SetUniform("lightPos", lightPosArray, vectorLen * MAX_LIGHT_SOURCES);
-    phongShaderBuilder->SetUniform("viewPos", viewPosArray, vectorLen * MAX_LIGHT_SOURCES);
-    phongShaderBuilder->SetUniform("specularLightColor", lightColorArray, vectorLen * MAX_LIGHT_SOURCES);
+    builder->SetUniform("lightPos", lightPosArray, vectorLen * MAX_LIGHT_SOURCES);
+    builder->SetUniform("viewPos", viewPosArray, vectorLen * MAX_LIGHT_SOURCES);
+    builder->SetUniform("specularLightColor", lightColorArray, vectorLen * MAX_LIGHT_SOURCES);
     Drawing::Pen pen;
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
     ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d", illuminatedType_);
     if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
-        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
-        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
-        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT)) {
+        DrawContentLight(*canvas, builder, brush, lightIntensityArray);
+        DrawBorderLight(*canvas, builder, pen, lightIntensityArray);
     } else if ((illuminatedType_ == IlluminatedType::CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_CONTENT)) {
-        DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
+        DrawContentLight(*canvas, builder, brush, lightIntensityArray);
     } else if ((illuminatedType_ == IlluminatedType::BORDER) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
         (illuminatedType_ == IlluminatedType::FEATHERING_BORDER)) {
-        DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
+        DrawBorderLight(*canvas, builder, pen, lightIntensityArray);
     }
 }
 
 const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetPhongShaderBuilder()
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder;
-    if (phongShaderBuilder) {
-        return phongShaderBuilder;
-    }
-    std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
-    const static std::string lightString(R"(
+    static constexpr char phongShaderString[](R"(
         uniform vec4 lightPos[12];
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
@@ -736,24 +859,12 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
             return fragColor;
         }
     )");
-    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(lightString);
-    if (!effect) {
-        ROSEN_LOGE("light effect error");
-        return phongShaderBuilder;
-    }
-    lightEffect = std::move(effect);
-    phongShaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(lightEffect);
-    return phongShaderBuilder;
+    return GetLightShaderBuilder<phongShaderString>();
 }
 
 const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetFeatheringBoardLightShaderBuilder()
 {
-    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> featheringBoardLightShaderBuilder;
-    if (featheringBoardLightShaderBuilder) {
-        return featheringBoardLightShaderBuilder;
-    }
-    std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
-    const static std::string lightString(R"(
+    static constexpr char featheringBoardLightShaderString[](R"(
         uniform vec2 iResolution;
         uniform float contentBorderRadius;
         uniform vec4 lightPos[12];
@@ -812,13 +923,12 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
             return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
         }
     )");
-    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(lightString);
-    if (!effect) {
-        ROSEN_LOGE("light effect error");
-        return featheringBoardLightShaderBuilder;
-    }
-    featheringBoardLightShaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
-    return featheringBoardLightShaderBuilder;
+    return GetLightShaderBuilder<featheringBoardLightShaderString>();
+}
+
+const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetNormalLightShaderBuilder()
+{
+    return GetLightShaderBuilder<NORMAL_LIGHT_SHADER_STRING>();
 }
 
 void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,

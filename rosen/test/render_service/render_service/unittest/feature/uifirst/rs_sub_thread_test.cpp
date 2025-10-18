@@ -168,7 +168,24 @@ HWTEST_F(RsSubThreadTest, DumpMemTest001, TestSize.Level1)
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    curThread->DumpMem(log);
+    curThread->DumpMem(log, false);
+    EXPECT_TRUE(curThread->grContext_);
+}
+
+/**
+ * @tc.name: DumpMemTest002
+ * @tc.desc: Verify function DumpMem
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, DumpMemTest002, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    DfxString log;
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
+    curThread->DumpMem(log, true);
     EXPECT_TRUE(curThread->grContext_);
 }
 

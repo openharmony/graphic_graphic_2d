@@ -768,6 +768,15 @@ void RSFile::AddHeaderFirstFrame(const std::string& dataFirstFrame)
     wasChanged_ = true;
 }
 
+void RSFile::InsertHeaderData(size_t offset, const std::string& data)
+{
+    if (offset >= headerFirstFrame_.size()) {
+        return;
+    }
+    headerFirstFrame_.insert(offset, data);
+    wasChanged_ = true;
+}
+
 const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() const
 {
     return headerAnimeStartTimes_;

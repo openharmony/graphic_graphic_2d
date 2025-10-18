@@ -147,6 +147,7 @@ public:
     {
         return isAccumulatedHdrStatusChanged_;
     }
+
     void SetAccumulatedSpecialLayerStatusChanged(bool isAccumulatedSpecialLayerStatusChanged)
     {
         isAccumulatedSpecialLayerStatusChanged_ = isAccumulatedSpecialLayerStatusChanged;

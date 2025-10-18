@@ -24,6 +24,9 @@ MemoryStream::MemoryStream() : memoryStreamImpl_(ImplFactory::CreateMemoryStream
 
 MemoryStream::MemoryStream(const void* data, size_t length, bool copyData)
     : memoryStreamImpl_(ImplFactory::CreateMemoryStreamImpl(data, length, copyData)) {}
+
+MemoryStream::MemoryStream(const void* data, size_t length, DataReleaseProc proc, void* ctx)
+    : memoryStreamImpl_(ImplFactory::CreateMemoryStreamImpl(data, length, proc, ctx)) {}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

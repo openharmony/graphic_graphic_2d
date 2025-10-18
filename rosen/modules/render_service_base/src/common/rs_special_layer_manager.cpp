@@ -91,7 +91,7 @@ void RSSpecialLayerManager::AddIds(uint32_t type, NodeId id)
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
         auto IsSpecial = isType & 1;
-        if (IsSpecial) {
+        if (IsSpecial && specialLayerIds_[currentType].size() < MAX_IDS_SIZE) {
             specialLayerIds_[currentType].insert(id);
             AddType(specialLayerType_, currentType << SPECIAL_TYPE_NUM);
         }
@@ -138,6 +138,11 @@ bool RSSpecialLayerManager::FindWithScreen(uint64_t screenId, uint32_t type) con
 void RSSpecialLayerManager::ClearScreenSpecialLayer()
 {
     screenSpecialLayer_.clear();
+}
+
+void RSSpecialLayerManager::ClearSpecialLayerIds()
+{
+    specialLayerIds_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS
