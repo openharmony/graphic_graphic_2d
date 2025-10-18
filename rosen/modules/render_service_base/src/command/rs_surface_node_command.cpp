@@ -357,6 +357,10 @@ void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId
         return;
     }
     node->SetAbilityState(abilityState);
+#ifdef RS_ENABLE_NODE_MEM_CLEAR
+    RSRenderNodeGC::Instance().SetAbilityState(ExtractPid(nodeId),
+        abilityState == RSSurfaceNodeAbilityState::BACKGROUND);
+#endif
 }
 
 void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion)

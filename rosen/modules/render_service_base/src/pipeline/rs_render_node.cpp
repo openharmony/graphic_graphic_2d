@@ -550,28 +550,27 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     RSMemoryInfoManager::ResetRootNodeStatusChangeFlag(GetId(), instanceRootNodeId);
 #endif
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
-    if (IsNodeMemClearEnable() && !IsOnTheTree()) {
-        auto instanceRootNode = GetInstanceRootNode();
-        if (instanceRootNode == nullptr) {
-            ROSEN_LOGD("RSCanvasRenderNode::SetIsOnTheTree is down from the tree, instanceRootNode is nullptr");
-            return;
-        }
-        auto status = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetInstanceRootNode())->GetAbilityState();
-        if (status != RSSurfaceNodeAbilityState::BACKGROUND) {
-            ROSEN_LOGD("RSCanvasRenderNode::SetIsOnTheTree is down from the tree, status is not background, 
-                node[id:%{public}"PRIu64 "]", GetId());
-            return;
-        }
-        ROSEN_LOGD("RSRenderNode::SetIsOnTheTree is down from the tree, node[id:%{public}" PRIu64 "]", GetId());
-        renderDrawable_.reset();
-        DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(GetId());
-        if (!drawableVec_) {
-            RS_LOGE("RSRenderNode::SetIsOnTheTree drawableVec_ is nullptr when down from the tree");
-        }
-        drawableVec_.reset();
-        drawableVecStatus_ = 0;
+    if (IsNodeMemClearEnable()) {
+        RSRenderNodeGC::GetInstance().SetIsOnTheTree(GetId(), weak_from_this(), isOnTheTree_);
     }
 #endif
+#endif
+}
+
+void RSRenderNode::ReleaseNodeMem()
+{
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    if (isOnTheTree_) {
+        return;
+    }
+    ROSEN_LOGD("RSRenderNode::ReleaseNodeMem, node[id:%{public}" PRIu64 "]", GetId());
+    if (renderDrawable_) {
+        renderDrawable_.reset();
+        DrawableV2::RSRenderNodeDrawableAdapter::RemoveNodeDrawableAdapter(GetId());
+    }
+    if (drawableVec_) {
+        drawableVec_.reset();
+        drawableVecStatus = 0;
 #endif
 }
 
@@ -1381,6 +1380,12 @@ void RSRenderNode::PrepareChildrenForApplyModifiers()
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
 #ifdef RS_ENABLE_GPU
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    if (IsNodeMemClearEnabled()) {
+        ROSEN_LOGD("RSRenderNode::ReleaseNodeMem, node[id:%{public}" PRIu64 "]", GetId());
+        InitRenderDrawableAndDrawableVec();
+    }
+#endif
     ApplyModifiers();
     PrepareChildrenForApplyModifiers();
 
@@ -4206,7 +4211,6 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
     isUifirstDelay_ = 0;
 }
 
-
 void RSRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
     RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
@@ -4803,18 +4807,17 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
         RS_LOGD("RSRenderNode::InitRenderDrawableAndDrawableVec init renderDrawable_ failed");
 #endif
     }
-    if (drawableVec_) {
-        RS_LOGE("drawableVec_ is not nullptr when ontree");
-    } else {
+    if (!drawableVec_) {
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
-    }
-    SetDirty();
-    for (auto& slot : modifiersNG_) {
-        for (auto& modifier : slot) {
-            AddDirtyType(modifier->GetType());
-            break;
+        SetDirty();
+        for (auto& [_, slot] : modifiersNG_) {
+            for (auto& modifier : slot) {
+                AddDirtyType(modifier->GetType());
+                break;
+            }
         }
     }
+    
 #endif
 }
 } // namespace Rosen
