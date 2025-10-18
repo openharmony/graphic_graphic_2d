@@ -232,14 +232,19 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     switch (hdrProperties.screenshotType) {
         case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
-            parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
+            parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
+                RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
             break;
         case RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT:
             parameter.tmoNits = parameter.currentDisplayNits;
             break;
         default:
-            parameter.tmoNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_HDR_NITS :
-                std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            if (hdrProperties.isHDREnabledVirtualScreen) {
+                parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
+                    RSLuminanceConst::DEFAULT_CAST_HDR_NITS : RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
+            } else {
+                parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            }
             break;
     }
     // color temperature

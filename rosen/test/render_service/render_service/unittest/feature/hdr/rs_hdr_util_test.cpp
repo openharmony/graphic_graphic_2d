@@ -676,7 +676,7 @@ HWTEST_F(RSHdrUtilTest, HDRCastProcess002, TestSize.Level2)
     auto surface2 = std::make_shared<Drawing::Surface>();
     filterCanvas->surface_ = surface2.get();
     ASSERT_TRUE(canvas->GetGPUContext());
-    ASSERT_TRUE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, filterCanvas.get()));
+    EXPECT_FALSE(RSHdrUtil::HDRCastProcess(image, brush, sampling, surface, filterCanvas.get()));
 }
 
 /**
@@ -693,6 +693,37 @@ HWTEST_F(RSHdrUtilTest, SetHDRCastShader001, TestSize.Level2)
     EXPECT_FALSE(RSHdrUtil::SetHDRCastShader(image, brush, sampling));
     image = std::make_shared<Drawing::Image>();
     ASSERT_TRUE(RSHdrUtil::SetHDRCastShader(image, brush, sampling));
+}
+
+/**
+ * @tc.name: EraseHDRMetadataKey001
+ * @tc.desc: EraseHDRMetadataKey test.
+ * @tc.type:FUNC
+ * @tc.require:issuesIBKZFK
+ */
+HWTEST_F(RSHdrUtilTest, EraseHDRMetadataKey001, TestSize.Level2)
+{
+    std::unique_ptr<RSRenderFrame> renderFrame = nullptr;
+    auto res = RSHdrUtil::EraseHDRMetadataKey(renderFrame);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    renderFrame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    res = RSHdrUtil::EraseHDRMetadataKey(renderFrame);
+    EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
+
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer2 = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface2 = Surface::CreateSurfaceAsProducer(producer2);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+
+    pSurface2->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+    res = RSHdrUtil::EraseHDRMetadataKey(renderFrame);
+    EXPECT_NE(GSERROR_OK, res);
 }
 
 /**

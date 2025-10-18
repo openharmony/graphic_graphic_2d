@@ -155,6 +155,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata failed.");
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+    RSHdrUtil::EraseHDRMetadataKey(renderFrame_);
     if (mirrorScreenHDR || expandScreenHDR) {
         if (RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame_) != GSERROR_OK) {
             RS_LOGD("RSUniRenderVirtualProcessor::Init SetMetadata failed");
