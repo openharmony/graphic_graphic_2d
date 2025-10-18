@@ -1141,7 +1141,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredSc
  * @tc.name: CalculateVirtualDirtyForWiredScreenTest002
  * @tc.desc: Test CalculateVirtualDirtyForWiredScreen, curVisibleRect_.top/left is not zero
  * @tc.type: FUNC
- * @tc.require: #IA76UC
+ * @tc.require: #20348
  */
 HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreenTest008, TestSize.Level1)
 {
@@ -2607,7 +2607,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest012, TestSize
  * @tc.name: DrawMirrorCopyTest013
  * @tc.desc: Test DrawMirrorCopy when curVisibleRect_.top/left is not zero
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #20348
  */
 HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest013, TestSize.Level1)
 {
