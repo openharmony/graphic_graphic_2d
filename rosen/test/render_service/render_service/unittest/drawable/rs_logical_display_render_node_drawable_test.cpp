@@ -2574,6 +2574,41 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest012, TestSize
     displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
     EXPECT_TRUE(mirroredScreenParams->GetScreenInfo().isSamplingOn);
 }
+/**
+ * @tc.name: DrawMirrorCopyTest013
+ * @tc.desc: Test DrawMirrorCopy when curVisibleRect_.top/left is not zero
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest013, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    virtualProcesser->canvas_ = drawingFilterCanvas_;
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    auto& uniParamsRet = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParamsRet, nullptr);
+
+    uniParamsRet->isVirtualDirtyEnabled_ = true;
+    displayDrawable_->enableVisibleRect_ = true;
+    displayDrawable_->curVisibleRect_ = {0, 0, 1, 1};
+    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
+
+    displayDrawable_->curVisibleRect_ = {1, 0, 1, 1};
+    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
+
+    displayDrawable_->curVisibleRect_ = {0, 1, 1, 1};
+    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
+
+    displayDrawable_->enableVisibleRect_ = false;
+    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
+
+    uniParamsRet->isVirtualDirtyEnabled_ = false;
+    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
+}
 
 /**
  * @tc.name: DrawMirror
