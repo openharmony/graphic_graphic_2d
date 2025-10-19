@@ -141,6 +141,9 @@ std::shared_ptr<Media::Player> BootVideoPlayer::GetMediaPlayer() const
 void BootVideoPlayer::StopVideo()
 {
     vSyncCallback_(userData_);
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    mediaPlayer_->Release();
+#endif
 }
 
 bool BootVideoPlayer::IsNormalBoot()
