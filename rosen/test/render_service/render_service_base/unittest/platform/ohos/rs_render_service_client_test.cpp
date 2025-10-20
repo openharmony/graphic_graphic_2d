@@ -1373,6 +1373,36 @@ HWTEST_F(RSClientTest, ProfilerServicePopulateFilesTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level1)
+{
+    BrightnessInfo result = { 0 };
+    BrightnessInfoChangeCallback callback = [&](ScreenId id, BrightnessInfo info) -> void { result = info; };
+    ASSERT_EQ(rsClient->SetBrightnessInfoChangeCallback(callback), 0);
+    ASSERT_EQ(rsClient->SetBrightnessInfoChangeCallback(nullptr), 0);
+    RSRenderServiceConnectHub::Destroy();
+    ASSERT_EQ(rsClient->SetBrightnessInfoChangeCallback(nullptr), RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: GetBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientTest, GetBrightnessInfoTest, TestSize.Level1)
+{
+    BrightnessInfo brightnessInfo = { 0 };
+    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), 0);
+    RSRenderServiceConnectHub::Destroy();
+    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
  * @tc.name: ClearUifirstCache Test
  * @tc.desc: ClearUifirstCache
  * @tc.type:FUNC

@@ -135,6 +135,45 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdatePropertyTest001
+ * @tc.desc: Test the function UpdateProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdatePropertyTest001, TestSize.Level1)
+{
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    RSAnimationTimingProtocol timingProtocol(1);
+
+    // case1: OPACITY and INTERPOLATING
+    auto timingCurve = RSAnimationTimingCurve::LINEAR;
+    rsCustomModifier->SetContentTransitionParam(ContentTransitionType::OPACITY, timingProtocol, timingCurve);
+    rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
+    ASSERT_EQ(rsCustomModifier->contentTransitionType_, ContentTransitionType::OPACITY);
+    ASSERT_EQ(rsCustomModifier->timingCurve_.type_, RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    // case2: not OPACITY and INTERPOLATING
+    rsCustomModifier->SetContentTransitionParam(ContentTransitionType::IDENTITY, timingProtocol, timingCurve);
+    rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
+    ASSERT_NE(rsCustomModifier->contentTransitionType_, ContentTransitionType::OPACITY);
+    ASSERT_EQ(rsCustomModifier->timingCurve_.type_, RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    // case3: OPACITY and not INTERPOLATING
+    RSAnimationTimingCurve springTimeCurve(1.0f, 1.f, 1.f, 1.f);
+    rsCustomModifier->SetContentTransitionParam(ContentTransitionType::OPACITY, timingProtocol, springTimeCurve);
+    rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
+    ASSERT_EQ(rsCustomModifier->contentTransitionType_, ContentTransitionType::OPACITY);
+    ASSERT_NE(rsCustomModifier->timingCurve_.type_, RSAnimationTimingCurve::CurveType::INTERPOLATING);
+
+    // case4: not OPACITY and not INTERPOLATING
+    rsCustomModifier->SetContentTransitionParam(ContentTransitionType::IDENTITY, timingProtocol, springTimeCurve);
+    rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
+    ASSERT_NE(rsCustomModifier->contentTransitionType_, ContentTransitionType::OPACITY);
+    ASSERT_NE(rsCustomModifier->timingCurve_.type_, RSAnimationTimingCurve::CurveType::INTERPOLATING);
+}
+
+/**
  * @tc.name: UpdatePropertyTest002
  * @tc.desc: Test the function UpdateProperty
  * @tc.type: FUNC
@@ -154,5 +193,67 @@ HWTEST_F(RSCustomModifierHelperTest, UpdatePropertyTest002, TestSize.Level1)
     node = std::make_shared<RSNodeMock>();
     rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
     ASSERT_TRUE(node->NeedForcedSendToRemote());
+}
+
+/**
+ * @tc.name: UpdateToRenderTest
+ * @tc.desc: Test the function UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest, TestSize.Level1)
+{
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+
+    // case1: node is null
+    rsCustomModifier->UpdateToRender();
+    ASSERT_FALSE(rsCustomModifier->node_.lock());
+
+    // case2: last DrawCmdList empty and DrawCmdList not empty
+    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
+    rsCustomModifier->node_ = node;
+    rsCustomModifier->lastDrawCmdListEmpty_ = true;
+    rsCustomModifier->UpdateToRender();
+    ASSERT_FALSE(rsCustomModifier->lastDrawCmdListEmpty_);
+
+    // case3: last DrawCmdList not empty and DrawCmdList not empty
+    rsCustomModifier->lastDrawCmdListEmpty_ = false;
+    rsCustomModifier->UpdateToRender();
+    ASSERT_FALSE(rsCustomModifier->lastDrawCmdListEmpty_);
+
+    // case4: last DrawCmdList empty and DrawCmdList empty
+    RSDisplayNodeConfig displayNodeConfig = {};
+    node = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_TRUE(node);
+    rsCustomModifier->node_ = node;
+    rsCustomModifier->lastDrawCmdListEmpty_ = true;
+    rsCustomModifier->UpdateToRender();
+    ASSERT_TRUE(rsCustomModifier->lastDrawCmdListEmpty_);
+
+    // case5: last DrawCmdList not empty and DrawCmdList empty
+    rsCustomModifier->lastDrawCmdListEmpty_ = false;
+    rsCustomModifier->UpdateToRender();
+    ASSERT_TRUE(rsCustomModifier->lastDrawCmdListEmpty_);
+
+    auto type = rsCustomModifier->GetInnerPropertyType();
+    auto it = rsCustomModifier->properties_.find(type);
+    ASSERT_EQ(it, rsCustomModifier->properties_.end());
+
+    // case6: invalid property
+    node = RSCanvasNode::Create();
+    rsCustomModifier->node_ = node;
+    rsCustomModifier->properties_[type] = nullptr;
+    rsCustomModifier->UpdateToRender();
+    it = rsCustomModifier->properties_.find(type);
+    ASSERT_NE(it, rsCustomModifier->properties_.end());
+    ASSERT_FALSE(it->second);
+
+    // case7: valid property
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    rsCustomModifier->lastDrawCmdListEmpty_ = false;
+    rsCustomModifier->properties_[type] = property;
+    rsCustomModifier->UpdateToRender();
+    it = rsCustomModifier->properties_.find(type);
+    ASSERT_NE(it, rsCustomModifier->properties_.end());
+    ASSERT_TRUE(it->second);
 }
 } // namespace OHOS::Rosen

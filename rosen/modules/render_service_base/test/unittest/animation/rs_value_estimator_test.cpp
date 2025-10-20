@@ -64,5 +64,60 @@ HWTEST_F(RSValueEstimatorTest, EstimateFraction001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSValueEstimatorTest EstimateFraction001 end";
 }
 
+/**
+ * @tc.name: InitCurveAnimationValueTest
+ * @tc.desc: Verify the InitCurveAnimationValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTest, TestSize.Level1)
+{
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<Drawing::DrawCmdListPtr>>();
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+
+    curveValueEstimator->InitCurveAnimationValue(nullptr, nullptr, nullptr, nullptr);
+    EXPECT_EQ(curveValueEstimator->property_, nullptr);
+
+    curveValueEstimator->InitCurveAnimationValue(property, nullptr, nullptr, nullptr);
+    EXPECT_EQ(curveValueEstimator->property_, nullptr);
+
+    curveValueEstimator->InitCurveAnimationValue(nullptr, nullptr, endValue, nullptr);
+    EXPECT_EQ(curveValueEstimator->property_, nullptr);
+
+    curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    EXPECT_NE(curveValueEstimator->property_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateAnimationValueTest
+ * @tc.desc: Verify the UpdateAnimationValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, UpdateAnimationValueTest, TestSize.Level1)
+{
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<Drawing::DrawCmdListPtr>>();
+    EXPECT_EQ(curveValueEstimator->property_, nullptr);
+    curveValueEstimator->UpdateAnimationValue(0.f, true);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+    curveValueEstimator->property_ = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+
+    auto animationValue = curveValueEstimator->property_->Get();
+    EXPECT_EQ(animationValue, nullptr);
+    curveValueEstimator->UpdateAnimationValue(0.f, true);
+
+    Drawing::DrawCmdListPtr value = std::make_shared<Drawing::DrawCmdList>();
+    EXPECT_NE(value->GetType(), Drawing::CmdList::Type::RS_DRAW_CMD_LIST);
+    curveValueEstimator->property_->Set(value);
+    curveValueEstimator->UpdateAnimationValue(0.f, true);
+
+    Drawing::DrawCmdListPtr value1 = std::make_shared<RSDrawCmdList>(nullptr, nullptr);
+    EXPECT_EQ(value1->GetType(), Drawing::CmdList::Type::RS_DRAW_CMD_LIST);
+    curveValueEstimator->property_->Set(value1);
+    curveValueEstimator->UpdateAnimationValue(0.f, true);
+}
 } // namespace Rosen
 } // namespace OHOS

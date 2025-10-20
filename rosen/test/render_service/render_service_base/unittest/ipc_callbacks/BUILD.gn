@@ -47,6 +47,7 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
     "rs_uiextension_callback_stub_test.cpp",
     "screen_change_callback_proxy_test.cpp",
     "screen_change_callback_stub_test.cpp",
+    "brightness_info_change_callback_stub_test.cpp",
     "surface_capture_callback_proxy_test.cpp",
     "surface_capture_callback_stub_test.cpp",
   ]

@@ -18,6 +18,7 @@
 
 #include "animation/rs_interpolating_spring_animation.h"
 #include "animation/rs_spring_animation.h"
+#include "animation/rs_spring_interpolator.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -513,9 +514,14 @@ HWTEST_F(RSSpringAnimationTest, TargetTest002, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest002 end";
 }
 
+/**
+ * @tc.name: TargetTest003
+ * @tc.desc: Verify the SetIsCustom of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSSpringAnimationTest, TargetTest003, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest002 start";
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest003 start";
     /**
      * @tc.steps: step1. init animation
      */
@@ -548,5 +554,29 @@ HWTEST_F(RSSpringAnimationTest, TargetTest003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSSpringAnimationTest TargetTest003 end";
 }
 #endif
+
+/**
+ * @tc.name: InterpolateImplTest
+ * @tc.desc: Verify the InterpolateImpl
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, InterpolateImplTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolateImplTest start";
+    RSSpringInterpolator interpolator(1.f, 1.f, 0.f);
+
+    // case1: fraction <= 0
+    float fraction = -1.0f;
+    ASSERT_EQ(interpolator.InterpolateImpl(fraction), 0);
+
+    // case2: fraction >= 1
+    fraction = 1.5f;
+    ASSERT_EQ(interpolator.InterpolateImpl(fraction), 1);
+
+    // case3: 0 < fraction < 1
+    fraction = 0.5f;
+    ASSERT_NE(interpolator.InterpolateImpl(fraction), 0);
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest InterpolateImplTest end";
+}
 } // namespace Rosen
 } // namespace OHOS

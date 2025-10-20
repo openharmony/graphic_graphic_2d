@@ -169,5 +169,175 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticle003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle003 end";
 }
 
+/**
+ * @tc.name: PreEmitTest001
+ * @tc.desc: Verify the PreEmit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEmitterTest, PreEmitTest001, TestSize.Level1)
+{
+    auto params = std::make_shared<ParticleRenderParams>();
+    RSRenderParticleEmitter emitter(params);
+
+    // case1: updater random and end value <= 0 and random end <= 0
+    params->opacity_.updator_ = ParticleUpdator::RANDOM;
+    params->opacity_.val_.end_ = 0.f;
+    params->opacity_.random_.end_ = 0.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case2: updater random and end value <= 0 and random end > 0
+    params->opacity_.val_.end_ = 0.f;
+    params->opacity_.random_.end_ = 1.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case3: updater random and end value > 0 and random end > 0
+    params->opacity_.val_.end_ = 1.f;
+    params->opacity_.random_.end_ = 1.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case4: not random updater
+    params->opacity_.updator_ = ParticleUpdator::CURVE;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+}
+
+/**
+ * @tc.name: PreEmitTest002
+ * @tc.desc: Verify the PreEmit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEmitterTest, PreEmitTest002, TestSize.Level1)
+{
+    auto params = std::make_shared<ParticleRenderParams>();
+    RSRenderParticleEmitter emitter(params);
+    params->opacity_.updator_ = ParticleUpdator::CURVE;
+
+    // case1: updator none and endvalue <= 0
+    params->scale_.updator_ = ParticleUpdator::NONE;
+    params->scale_.val_.end_ = 0.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case2: updator none and endvalue > 0
+    params->scale_.val_.end_ = 1.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case3: updater random and end value <= 0 and random end <= 0
+    params->scale_.updator_ = ParticleUpdator::RANDOM;
+    params->scale_.val_.end_ = 0.f;
+    params->scale_.random_.end_ = 0.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case4: updater random and end value <= 0 and random end > 0
+    params->scale_.val_.end_ = 0.f;
+    params->scale_.random_.end_ = 1.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case5: updater random and end value > 0 and random end > 0
+    params->scale_.val_.end_ = 1.f;
+    params->scale_.random_.end_ = 1.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case6: not random updater
+    params->scale_.updator_ = ParticleUpdator::CURVE;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+}
+
+/**
+ * @tc.name: PreEmitTest003
+ * @tc.desc: Verify the PreEmit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEmitterTest, PreEmitTest003, TestSize.Level1)
+{
+    auto params = std::make_shared<ParticleRenderParams>();
+    RSRenderParticleEmitter emitter(params);
+    params->opacity_.updator_ = ParticleUpdator::CURVE;
+    params->scale_.updator_ = ParticleUpdator::CURVE;
+
+    // case1: image is null
+    params->emitterConfig_.type_ = ParticleType::IMAGES;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case2: size.x <= 0
+    params->emitterConfig_.image_ = std::make_shared<RSImage>();
+    params->emitterConfig_.imageSize_[0] = 0.f;
+    params->emitterConfig_.imageSize_[1] = 0.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case3: size.x > 0 and size.y <= 0
+    params->emitterConfig_.imageSize_[0] = 1.f;
+    params->emitterConfig_.imageSize_[1] = 0.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case4: test radius
+    params->emitterConfig_.type_ = ParticleType::POINTS;
+    params->emitterConfig_.radius_ = 0.f;
+    emitter.emitFinish_ = false;
+    emitter.PreEmit();
+    params->emitterConfig_.radius_ = 1.f;
+    emitter.PreEmit();
+    ASSERT_TRUE(emitter.emitFinish_);
+}
+
+/**
+ * @tc.name: EmitParticleTest
+ * @tc.desc: Verify the EmitParticle
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, TestSize.Level1)
+{
+    auto params = std::make_shared<ParticleRenderParams>();
+    RSRenderParticleEmitter emitter(params);
+    emitter.emitFinish_ = false;
+
+    // case1: particleCount_ < 0
+    params->emitterConfig_.particleCount_ = -1;
+    emitter.EmitParticle(0);
+    params->emitterConfig_.particleCount_ = -2;
+    emitter.EmitParticle(0);
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case2: lifeTime end
+    params->emitterConfig_.particleCount_ = 1;
+    params->emitterConfig_.lifeTime_.start_ = 0;
+    params->emitterConfig_.lifeTime_.end_ = 0;
+    emitter.emitFinish_ = false;
+    emitter.EmitParticle(0);
+    ASSERT_TRUE(emitter.emitFinish_);
+
+    // case3: particleCount_ > particleCount_
+    params->emitterConfig_.particleCount_ = 1;
+    params->emitterConfig_.lifeTime_.start_ = 0;
+    params->emitterConfig_.lifeTime_.end_ = 1;
+    emitter.particleCount_ = 2;
+    emitter.emitFinish_ = false;
+    emitter.EmitParticle(0);
+    ASSERT_TRUE(emitter.emitFinish_);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -623,5 +623,109 @@ HWTEST_F(RSRenderParticleAnimationTest, Unmarshalling001, TestSize.Level1)
     EXPECT_TRUE(renderParticleAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Unmarshalling001 end";
 }
+
+/**
+ * @tc.name: DumpAnimationInfoTest
+ * @tc.desc: Verify the DumpAnimationInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, DumpAnimationInfoTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest DumpAnimationInfoTest start";
+    auto renderParticleAnimation = RSRenderParticleAnimation(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    std::string out = "";
+    renderParticleAnimation.DumpAnimationInfo(out);
+    ASSERT_FALSE(out.empty());
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest DumpAnimationInfoTest end";
+}
+
+/**
+ * @tc.name: AnimateTest
+ * @tc.desc: Verify the Animate
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, AnimateTest, TestSize.Level1)
+{
+    auto renderParticleAnimation = RSRenderParticleAnimation(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderParticleAnimation.target_ = renderNode.get();
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    renderParticleAnimation.property_ = property;
+    int64_t time = 1;
+    int64_t delay = 0;
+
+    // case1: invisible
+    renderNode->GetMutableRenderProperties().SetVisible(false);
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
+
+    // case2: particleSystem_ is null
+    renderNode->GetMutableRenderProperties().SetVisible(true);
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
+
+    // case3: particleSystem_ not null
+    renderParticleAnimation.particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
+    renderParticleAnimation.target_ = nullptr;
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
+
+    // case4: property_ not null
+    renderParticleAnimation.target_ = renderNode.get();
+    ASSERT_TRUE(renderParticleAnimation.Animate(time, delay));
+}
+
+/**
+ * @tc.name: UpdateRippleFieldTest
+ * @tc.desc: Verify the UpdateRippleField
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, UpdateRippleFieldTest, TestSize.Level1)
+{
+    auto renderParticleAnimation = RSRenderParticleAnimation(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    renderParticleAnimation.UpdateRippleField(nullptr);
+    auto particleRippleFields = std::make_shared<ParticleRippleFields>();
+    renderParticleAnimation.UpdateRippleField(particleRippleFields);
+    renderParticleAnimation.particleRippleFields_ = nullptr;
+    renderParticleAnimation.particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
+    renderParticleAnimation.UpdateRippleField(particleRippleFields);
+
+    // repated invocation
+    renderParticleAnimation.UpdateRippleField(particleRippleFields);
+    ASSERT_TRUE(renderParticleAnimation.particleRippleFields_);
+}
+
+/**
+ * @tc.name: UpdateVelocityFieldTest
+ * @tc.desc: Verify the UpdateVelocityField
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, UpdateVelocityFieldTest, TestSize.Level1)
+{
+    auto renderParticleAnimation = RSRenderParticleAnimation(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    renderParticleAnimation.UpdateVelocityField(nullptr);
+    auto particleVelocityFields = std::make_shared<ParticleVelocityFields>();
+    renderParticleAnimation.UpdateVelocityField(particleVelocityFields);
+    renderParticleAnimation.particleVelocityFields_ = nullptr;
+    renderParticleAnimation.particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
+    renderParticleAnimation.UpdateVelocityField(particleVelocityFields);
+
+    // repated invocation
+    renderParticleAnimation.UpdateVelocityField(particleVelocityFields);
+    ASSERT_TRUE(renderParticleAnimation.particleVelocityFields_);
+}
+
+/**
+ * @tc.name: OnDetachTest
+ * @tc.desc: Verify the OnDetach
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, OnDetachTest, TestSize.Level1)
+{
+    auto renderParticleAnimation = RSRenderParticleAnimation(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderParticleAnimation.target_ = renderNode.get();
+    renderParticleAnimation.OnDetach();
+    renderParticleAnimation.particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
+    renderParticleAnimation.OnDetach();
+    ASSERT_FALSE(renderParticleAnimation.particleSystem_);
+}
 } // namespace Rosen
 } // namespace OHOS

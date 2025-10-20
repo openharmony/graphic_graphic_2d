@@ -62,6 +62,7 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(UIExtensionCallbackSptr),
     DECLARE_WRITE_RANDOM(ScreenChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(SurfaceCaptureCallbackSptr),
+    DECLARE_WRITE_RANDOM(BrightnessInfoChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(TransactionDataCallbackSptr),
     DECLARE_WRITE_RANDOM(SelfDrawingNodeRectChangeCallbackSptr),
 
@@ -353,6 +354,19 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(Mes
     sptr<RSISurfaceCaptureCallback> obj = new SurfaceCaptureCallbackDirector(rsClient);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomBrightnessInfoChangeCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    BrightnessInfoChangeCallback callback = [](ScreenId screenId, const BrightnessInfo& brightnessInfo) {};
+    sptr<RSIBrightnessInfoChangeCallback> obj = new BrightnessInfoChangeCallbackDirector(callback);
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomBrightnessInfoChangeCallbackSptr "
             "WriteRemoteObject failed");
         return false;
     }

@@ -37,6 +37,15 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockRSBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockRSBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+} // namespace
 class RSRenderServiceConnectionProxyTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1424,6 +1433,76 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
     int64_t hdrOnDuration;
     proxy->GetHdrOnDuration(hdrOnDuration);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: test results of SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    sptr<MockRSBrightnessInfoChangeCallback> callback = nullptr;
+    ASSERT_NE(proxy->SetBrightnessInfoChangeCallback(callback), SUCCESS);
+    callback = new MockRSBrightnessInfoChangeCallback();
+    ASSERT_NE(proxy->SetBrightnessInfoChangeCallback(callback), SUCCESS);
+}
+
+/**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: test results of GetBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetBrightnessInfoTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    ScreenId screenId = 0;
+    BrightnessInfo brightnessInfo = { 0 };
+    ASSERT_NE(proxy->GetBrightnessInfo(screenId, brightnessInfo), SUCCESS);
+    screenId = INVALID_SCREEN_ID;
+    ASSERT_NE(proxy->GetBrightnessInfo(screenId, brightnessInfo), SUCCESS);
+}
+
+/**
+ * @tc.name: ReadBrightnessInfoTest
+ * @tc.desc: test results of ReadBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, ReadBrightnessInfoTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    BrightnessInfo brightnessInfo = { 0 };
+
+    // case 1: valid data
+    {
+        MessageParcel data;
+        data.WriteFloat(1.0f);
+        data.WriteFloat(1.0f);
+        data.WriteFloat(1.0f);
+        ASSERT_TRUE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 2: invalid data
+    {
+        MessageParcel data;
+        data.WriteFloat(1.0f);
+        data.WriteFloat(1.0f);
+        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 3: invalid data
+    {
+        MessageParcel data;
+        data.WriteFloat(1.0f);
+        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 4: invalid data
+    {
+        MessageParcel data;
+        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
 }
 
 /**

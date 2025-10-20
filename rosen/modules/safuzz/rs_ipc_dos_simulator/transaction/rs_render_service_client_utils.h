@@ -19,6 +19,7 @@
 #include "common/safuzz_log.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
+#include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
@@ -290,6 +291,22 @@ public:
 
 private:
     RSRenderServiceClient* client_;
+};
+
+class BrightnessInfoChangeCallbackDirector : public RSBrightnessInfoChangeCallbackStub {
+public:
+    explicit BrightnessInfoChangeCallbackDirector(const BrightnessInfoChangeCallback& callback) : cb_(callback) {}
+    ~BrightnessInfoChangeCallbackDirector() override {}
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, brightnessInfo);
+        }
+    }
+
+private:
+    BrightnessInfoChangeCallback cb_;
 };
 
 class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
