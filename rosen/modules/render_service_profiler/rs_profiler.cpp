@@ -1158,6 +1158,38 @@ void RSProfiler::HiddenSpaceTurnOn()
     AwakeRenderServiceThread();
 }
 
+void RSProfiler::PrintVsync(const ArgList& args)
+{
+    if (!g_playbackFile.IsOpen()) {
+        SendMessage("Replay file wasn't opened");
+        return;
+    }
+    std::set<int64_t> vsyncSet;
+    g_playbackFile.GetVsyncList(vsyncSet);
+
+    std::string response = "VSYNC";
+    for (auto id : vsyncSet) {
+        response += std::to_string(id) + " ";
+    }
+    SendMessage("%s", response.c_str());
+}
+
+void RSProfiler::PrintTime(const ArgList& args)
+{
+    if (!g_playbackFile.IsOpen()) {
+        SendMessage("Replay file wasn't opened");
+        return;
+    }
+    std::pair<double, double> startAndEndTime;
+    g_playbackFile.GetStartAndEndTime(startAndEndTime);
+
+    std::string response = "StartTime and EndTime: ";
+    response += std::to_string(startAndEndTime.first) + " ";
+    response += std::to_string(startAndEndTime.second);
+
+    SendMessage("%s", response.c_str());
+}
+
 std::shared_ptr<RSRenderNode> RSProfiler::GetLogicalDisplay()
 {
     const auto& rootRenderNode = context_->GetGlobalRootRenderNode();

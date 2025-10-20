@@ -30,8 +30,12 @@ namespace Rosen {
 constexpr int64_t INIT_WAIT_TIME = 50;
 constexpr int64_t SOCKET_REFRESH_TIME = 20;
 constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
-const std::string RESPOND_PAUSE_AT = "PlaybackPauseAt OK";
-const std::string RESPOND_PLAYBACK_PREPARE = "awake_frame 0";
+constexpr int REPLAY_TIME_INDEX = 2;
+static const std::vector<std::string> expectedMessages = {
+    "PlaybackPauseAt OK",
+    "awake_frame 0",
+    "StartTime and EndTime:"
+};
 
 RSGraphicTestProfilerThread::~RSGraphicTestProfilerThread()
 {
@@ -127,6 +131,9 @@ void RSGraphicTestProfilerThread::SendMessage()
     if (message.empty()) {
         return;
     }
+
+    std::cout << "send message:" << message << std::endl;
+
     Packet packet(Packet::COMMAND);
     packet.Write(message);
     auto data = packet.Release();
@@ -143,6 +150,13 @@ void RSGraphicTestProfilerThread::SendMessage()
         sent += actualSentBytes;
         bytes += actualSentBytes;
     }
+}
+
+std::pair<double, double> RSGraphicTestProfilerThread::ReceiveTimeInfo() const
+{
+    std::lock_guard<std::mutex> lock{timeRange_mutex_};
+    std::cout << timeRange_.first << " " << timeRange_.second << std::endl;
+    return timeRange_;
 }
 
 void RSGraphicTestProfilerThread::RecieveMessage()
@@ -175,10 +189,21 @@ void RSGraphicTestProfilerThread::RecieveMessage()
     }
 
     if (packet.GetType() == Packet::LOG) {
-        std::string out(data.begin(), data.end());
-        std::cout << out << std::endl;
+        std::string out(data.begin(), data.end()); // get message from RSProfiler
+        std::cout << "received message:" << out << std::endl;
+
+        if (out.rfind(expectedMessages[REPLAY_TIME_INDEX], 0) == 0) {
+            std::istringstream iss(out.substr(expectedMessages[REPLAY_TIME_INDEX].size()));
+            double startTime = 0.0;
+            double endTime = 0.0;
+            if (iss >> startTime >> endTime) {
+                std::lock_guard<std::mutex> lock{timeRange_mutex_};
+                timeRange_ = {startTime, endTime};
+            }
+        }
+
         if (waitReceive_) {
-            bool reveive = IsReceiveWaitMessage(out);
+            bool reveive = IsReceiveWaitMessage(out); // judge expected information
             if (reveive) {
                 std::unique_lock lock(wait_mutex_);
                 waitReceive_ = false;
@@ -190,7 +215,12 @@ void RSGraphicTestProfilerThread::RecieveMessage()
 
 bool RSGraphicTestProfilerThread::IsReceiveWaitMessage(const std::string& message)
 {
-    return (message == RESPOND_PAUSE_AT || message == RESPOND_PLAYBACK_PREPARE);
+    for (const auto& perfix : expectedMessages) {
+        if (message.rfind(perfix, 0) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)

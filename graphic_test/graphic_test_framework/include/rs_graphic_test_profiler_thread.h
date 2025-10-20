@@ -36,6 +36,7 @@ public:
     void Start();
     void Stop();
     void SendCommand(const std::string command, int outTime);
+    std::pair<double, double> ReceiveTimeInfo() const;
 private:
     void MainLoop();
     void SendMessage();
@@ -51,6 +52,8 @@ private:
     std::mutex queue_mutex_;
     std::mutex wait_mutex_;
     std::condition_variable cv_;
+    std::pair<double, double> timeRange_{0.0, 0.0};
+    mutable std::mutex timeRange_mutex_;
 #else
     void Start() {}
     void Stop() {}

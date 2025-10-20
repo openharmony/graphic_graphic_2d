@@ -19,12 +19,14 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <set>
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
 
 #include "rs_profiler_cache.h"
+#include "rs_profiler_command.h"
 
 namespace OHOS::Rosen {
 
@@ -824,6 +826,20 @@ int64_t RSFile::ConvertTime2VsyncId(double time) const
         }
     }
     return 0;
+}
+
+void RSFile::GetVsyncList(std::set<int64_t>& vsyncList)
+{
+    vsyncList.clear();
+    for (auto& item : mapVsyncId2Time_) {
+        vsyncList.insert(item.first);
+    }
+}
+
+void RSFile::GetStartAndEndTime(std::pair<double, double>& startAndEndTime)
+{
+    startAndEndTime.first = mapVsyncId2Time_.begin()->second;
+    startAndEndTime.second = mapVsyncId2Time_.rbegin()->second;
 }
 
 void RSFile::CacheVsyncId2Time(uint32_t layer)
