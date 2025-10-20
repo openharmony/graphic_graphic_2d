@@ -97,6 +97,15 @@ void SurfaceImage::UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t ti
         buffer->GetWidth(),
         buffer->GetHeight()
     };
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo colorSpaceInfo;
+    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+        BLOGD("UpdateBasicInfo failed.");
+        return;
+    }
+    CM_ColorSpaceType colorSpaceType = CM_COLORSPACE_NONE;
+    MetadataHelper::ConvertColorSpaceInfoToType(colorSpaceInfo, colorSpaceType);
+    ConvertColorSpaceTypeToNativeBufferColorSpace(static_cast<int32_t>(colorSpaceType), &colorSpace_);
 }
 
 void SurfaceImage::UpdateSurfaceInfo(sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
@@ -464,7 +473,8 @@ void SurfaceImageListener::OnBufferAvailable()
     surfaceImage->OnBufferAvailable();
 }
 
-SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
+SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd,
+    bool isLatest)
 {
     if (nativeWindowBuffer == nullptr || fenceFd == nullptr) {
         return SURFACE_ERROR_INVALID_PARAM;
@@ -473,8 +483,24 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp;
-    Rect damage;
-    SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    Rect damage = {0, 0, 0, 0};
+    SurfaceError ret = GSERROR_INTERNAL;
+    if (isLatest) {
+        AcquireBufferReturnValue returnValue;
+        ret = AcquireBuffer(returnValue, INT64_MAX, true);
+        if (ret != SURFACE_ERROR_OK) {
+            BLOGE("AcquireLatestBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 "", ret, uniqueId_);
+            return ret;
+        }
+        buffer = returnValue.buffer;
+        acquireFence = returnValue.fence;
+        timestamp = returnValue.timestamp;
+        if (returnValue.damages.size() != 0) {
+            damage = returnValue.damages.at(0);
+        }
+    } else {
+        ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    }
     if (ret != SURFACE_ERROR_OK) {
         BLOGD("AcquireBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return ret;
@@ -560,5 +586,43 @@ SurfaceError SurfaceImage::OnBufferAvailable()
     }
     listener(context);
     return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::ReleaseTextImage()
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+
+    // validate egl state
+    SurfaceError ret = ValidateEglState();
+    if (ret != SURFACE_ERROR_OK) {
+        return ret;
+    }
+
+    // release old buffer
+    int releaseFence = -1;
+    auto iter = imageCacheSeqs_.find(currentSurfaceImage_);
+    if (iter != imageCacheSeqs_.end() && iter->second.eglSync_ != EGL_NO_SYNC_KHR) {
+        releaseFence = eglDupNativeFenceFDANDROID(eglDisplay_, iter->second.eglSync_);
+    }
+    // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
+    ret = ReleaseBuffer(currentSurfaceBuffer_, releaseFence);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("ReleaseBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
+        return ret;
+    }
+    currentSurfaceBuffer_ = nullptr;
+    bufferProperties_ = { { 0, 0, 0, 0 }, GraphicTransformType::GRAPHIC_ROTATE_NONE, 0, 0 };
+    preBufferProperties_ = bufferProperties_;
+    currentTimeStamp_ = 0;
+    currentSurfaceImage_ = UINT_MAX;
+    colorSpace_ = OH_COLORSPACE_NONE;
+    return ret;
+}
+
+int32_t SurfaceImage::GetColorSpace(OH_NativeBuffer_ColorSpace* colorSpace)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    *colorSpace = colorSpace_;
+    return OHOS::SURFACE_ERROR_OK;
 }
 } // namespace OHOS

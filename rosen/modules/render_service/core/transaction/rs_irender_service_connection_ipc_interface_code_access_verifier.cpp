@@ -99,6 +99,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_CAPABILITY");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BRIGHTNESS_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_BRIGHTNESS_INFO");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_POWER_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_POWER_STATUS");
             break;

@@ -36,7 +36,7 @@ using namespace OHOS::Rosen;
 namespace {
 constexpr size_t ARGC_TWO = 2;
 const std::string GET_TEXT_RANGE_SIGN = ":C{" + std::string(ANI_INTERFACE_RANGE) + "}";
-const std::string GET_LYPH_RUNS_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
+const std::string GET_GLYPH_RUNS_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
 const std::string PAINT_SIGN = "C{" + std::string(ANI_CLASS_CANVAS) + "}dd:";
 const std::string CREATE_TRUNCATED_LINE_SIGN =
     "dE{" + std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{std.core.String}:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
@@ -64,7 +64,7 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     std::array methods = {
         ani_native_function{"getGlyphCount", ":i", reinterpret_cast<void*>(GetGlyphCount)},
         ani_native_function{"getTextRange", GET_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetTextRange)},
-        ani_native_function{"getGlyphRuns", GET_LYPH_RUNS_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
+        ani_native_function{"getGlyphRuns", GET_GLYPH_RUNS_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphRuns)},
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{
             "createTruncatedLine", CREATE_TRUNCATED_LINE_SIGN.c_str(), reinterpret_cast<void*>(CreateTruncatedLine)},
@@ -223,9 +223,9 @@ ani_object AniTextLine::CreateTruncatedLine(
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    ani_size index = 0;
+    ani_int index = 0;
     EllipsisModal ellipsisModal = EllipsisModal::HEAD;
-    ret = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ellipsisMode), &index);
+    ret = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ellipsisMode), &index);
     if (ret == ANI_OK) {
         ellipsisModal = static_cast<EllipsisModal>(index);
     }
@@ -331,8 +331,8 @@ static bool CaretOffsetsCallBack(
 {
     ani_object jsIndex = AniTextUtils::CreateAniIntObj(env, index);
     for (size_t i = 0; i < ARGC_TWO; i++) {
-        ani_object jsOffset =
-            (i == 0) ? AniTextUtils::CreateAniIntObj(env, leftOffset) : AniTextUtils::CreateAniIntObj(env, rightOffset);
+        ani_object jsOffset = (i == 0) ? AniTextUtils::CreateAniDoubleObj(env, leftOffset) :
+            AniTextUtils::CreateAniDoubleObj(env, rightOffset);
         ani_object jsLeadingEdge =
             (i == 0) ? AniTextUtils::CreateAniBooleanObj(env, true) : AniTextUtils::CreateAniBooleanObj(env, false);
         std::vector<ani_ref> vec = {jsOffset, jsIndex, jsLeadingEdge};
@@ -343,7 +343,7 @@ static bool CaretOffsetsCallBack(
             return false;
         }
         ani_boolean result = false;
-        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "unboxed", ":z", &result);
+        ret = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(fnReturnVal), "toBoolean", ":z", &result);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to get result, ani_status %{public}d", ret);
             return false;

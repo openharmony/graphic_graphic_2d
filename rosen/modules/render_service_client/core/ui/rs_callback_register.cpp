@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "render/rs_typeface_cache.h"
 #include "text/typeface.h"
 #include "transaction/rs_interfaces.h"
 #include "utils/typeface_map.h"
@@ -22,19 +23,15 @@ class TypefaceAutoRegister {
 public:
     TypefaceAutoRegister()
     {
-        std::function<bool(std::shared_ptr<Drawing::Typeface>)> registerTypefaceFunc =
-            [](std::shared_ptr<Drawing::Typeface> typeface) -> bool {
-            static Rosen::RSInterfaces& rsInterface = Rosen::RSInterfaces::GetInstance();
-            return rsInterface.RegisterTypeface(typeface);
-        };
-        Drawing::Typeface::RegisterCallBackFunc(registerTypefaceFunc);
+        Drawing::Typeface::RegisterCallBackFunc([](std::shared_ptr<Drawing::Typeface> tf) {
+            return Rosen::RSInterfaces::GetInstance().RegisterTypeface(tf);
+        });
 
-        std::function<void(uint32_t)> typefaceDestroyedFunc = [](uint32_t uniqueID) {
-            static Rosen::RSInterfaces& rsInterface = Rosen::RSInterfaces::GetInstance();
-            rsInterface.UnRegisterTypeface(uniqueID);
-        };
-        Drawing::Typeface::RegisterOnTypefaceDestroyed(typefaceDestroyedFunc);
-        Drawing::Typeface::RegisterUniqueIdCallBack(TypefaceMap::GetTypefaceByUniqueId);
+        Drawing::Typeface::RegisterOnTypefaceDestroyed(
+            [](uint32_t id) { Rosen::RSInterfaces::GetInstance().UnRegisterTypeface(id); });
+
+        Drawing::Typeface::RegisterUniqueIdCallBack(
+            [](uint64_t id) { return TypefaceMap::GetTypeface(RSTypefaceCache::GetTypefaceId(id)); });
     }
 
     ~TypefaceAutoRegister()

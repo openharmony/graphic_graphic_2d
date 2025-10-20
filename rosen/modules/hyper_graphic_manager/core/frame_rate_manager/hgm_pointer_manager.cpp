@@ -31,10 +31,11 @@ constexpr int32_t RS_IDLE_TIMEOUT_MS = 1200;
 }
 
 HgmPointerManager::HgmPointerManager() : HgmStateMachine<PointerState, PointerEvent>(PointerState::POINTER_IDLE_STATE),
-    activeTimeoutTimer_("up_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this]() {
+    activeTimeoutTimer_("up_pointer_timeout_timer", std::chrono::milliseconds(UP_TIMEOUT_MS), nullptr, [this]() {
         OnEvent(PointerEvent::POINTER_ACTIVE_TIMEOUT_EVENT);
     }),
-    rsIdleTimeoutTimer_("rs_idle_timeout_timer", std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this]() {
+    rsIdleTimeoutTimer_("rs_pointer_idle_timeout_timer",
+        std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), nullptr, [this]() {
         OnEvent(PointerEvent::POINTER_RS_IDLE_TIMEOUT_EVENT);
     })
 {

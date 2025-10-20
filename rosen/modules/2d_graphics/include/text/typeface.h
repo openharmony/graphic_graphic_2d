@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+using TypefaceRegisterCallback = std::function<int32_t(std::shared_ptr<Typeface>)>;
 class DRAWING_API Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
@@ -40,10 +41,13 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
         const FontArguments& fontArguments);
+    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(
+        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name);
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
-    static void RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
-    static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceRegisterCallBack();
+    static void RegisterCallBackFunc(TypefaceRegisterCallback func);
+    static TypefaceRegisterCallback& GetTypefaceRegisterCallBack();
     static void RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb);
     static void RegisterUniqueIdCallBack(std::function<std::shared_ptr<Typeface>(uint64_t)> cb);
     static std::function<std::shared_ptr<Typeface>(uint64_t)> GetUniqueIdCallBack();
@@ -133,9 +137,30 @@ public:
      */
     void SetSize(uint32_t size);
 
+    /**
+     * @brief   Get ashmem fd for this typeface.
+     * @return  ashmem fd
+     */
+    int32_t GetFd() const;
+
+    /**
+     * @brief Set a ashmem fd for this typeface.
+     */
+    void SetFd(int32_t fd);
+
+    /**
+     * @brief   Calculate hash for this typeface.
+     * @return  hash
+     */
+    static uint32_t CalculateHash(const uint8_t* data, size_t size);
+
+    /**
+     * @brief   Update stream for this typeface.
+     */
+    void UpdateStream(std::unique_ptr<MemoryStream> stream);
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
-    static std::function<bool(std::shared_ptr<Typeface>)> registerTypefaceCallBack_;
+    static TypefaceRegisterCallback registerTypefaceCallBack_;
     static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_;
     uint32_t size_ = 0;
 };

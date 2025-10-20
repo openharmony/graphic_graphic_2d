@@ -71,6 +71,8 @@ private:
     Drawing::Path stagingPath_;
     Color color_;
     Color stagingColor_;
+    bool drawWithSDF_ = false;
+    bool stagingDrawWithSDF_ = false;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {
@@ -120,6 +122,8 @@ private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
     std::shared_ptr<RSNGRenderShaderBase> stagingShader_;
+    float cornerRadius_ = 0.f;
+    float stagingCornerRadius_ = 0.f;
 };
 
 class RSBackgroundImageDrawable : public RSPropertyDrawable {
@@ -138,12 +142,14 @@ private:
     static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
     void ReleaseNativeWindowBuffer();
-    void SetCompressedDataForASTC();
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     pid_t tid_ = 0;
     uint32_t pixelMapId_ = 0;
     Drawing::BackendTexture backendTexture_ = {};
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+#endif
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    void SetCompressedDataForASTC();
 #endif
     std::shared_ptr<RSImage> stagingBgImage_ = nullptr;
     Drawing::Rect stagingBoundsRect_;

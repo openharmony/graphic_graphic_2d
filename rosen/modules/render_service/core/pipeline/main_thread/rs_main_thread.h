@@ -109,7 +109,7 @@ public:
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
     void RemoveTask(const std::string& name);
-    void PostSyncTask(RSTaskMessage::RSTask task);
+    bool PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
     void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
@@ -174,8 +174,6 @@ public:
      * If its pid is in activeProcessPids_ set, return true
      */
     bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
-    // check if active app has static drawing cache
-    bool IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) const;
     // check if active instance only move or scale it's main window surface without rearrangement
     // instanceNodeId should be MainWindowType, or it cannot grep correct app's info
     void CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const;
@@ -224,7 +222,8 @@ public:
     void CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
+        pid_t pid = 0, bool isLite = false);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
@@ -467,6 +466,8 @@ public:
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
 
+    bool IsReadyForSyncTask() const;
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -550,7 +551,7 @@ private:
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
-    void TraverseCanvasDrawingNodesNotOnTree();
+    void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
@@ -876,6 +877,8 @@ private:
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
     HgmContext hgmContext_;
     std::mutex dumpInfoMutex_;
+
+    bool hasCanvasDrawingNodeCachedOp_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

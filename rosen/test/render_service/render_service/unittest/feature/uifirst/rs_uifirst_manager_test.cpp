@@ -753,7 +753,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     // 3. surfaceNode1 has animation and filter.
-    surfaceNode1->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     // 4. surfaceNode1 has animation, filter and rotation.
@@ -886,7 +885,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 5. surfaceNode1 is focus window, has animation and filter, not has transparent.
     surfaceNode1->hasTransparentSurface_ = false;
-    surfaceNode1->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
     ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     mainThread_->focusNodeId_ = 0;
@@ -905,12 +903,10 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 8. surfaceNode2 is not focus window, has filter and transparent.
-    surfaceNode2->SetHasFilter(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
     // 9. surfaceNode2 is not focus window, not has filter and transparent, has display rotation.
     surfaceNode2->hasTransparentSurface_ = false;
-    surfaceNode2->SetHasFilter(false);
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
@@ -1850,6 +1846,35 @@ HWTEST_F(RSUifirstManagerTest, OnPurgePendingPostNodesInner, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CommonPendingNodePurgeTest
+ * @tc.desc: Test CommonPendingNodePurge
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, CommonPendingNodePurgeTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> map = { { nodeId, surfaceRenderNode } };
+    auto iter = map.begin();
+
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+
+    bool powerStatus = screenManagerImpl.screenPowerStatus_[screenId];
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(uifirstManager_.CommonPendingNodePurge(iter));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_TRUE(uifirstManager_.CommonPendingNodePurge(iter));
+    screenManagerImpl.screenPowerStatus_[screenId] = powerStatus;
+}
+
+/**
  * @tc.name: NeedPurgePendingPostNodesInner
  * @tc.desc: Test NeedPurgePendingPostNodesInner
  * @tc.type: FUNC
@@ -2164,7 +2189,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
     surfaceNode->forceUIFirst_ = true;
     surfaceNode->hasSharedTransitionNode_ = false;
-    surfaceNode->hasFilter_ = false;
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     uifirstManager_.rotationChanged_ = false;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
@@ -2515,11 +2539,17 @@ HWTEST_F(RSUifirstManagerTest, ForceUpdateUifirstNodes002, TestSize.Level1)
     ASSERT_FALSE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
     // force enable
     surfaceNode->MarkUifirstNode(true, true);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONFOCUS_WINDOW);
 
     // force disable
     surfaceNode->MarkUifirstNode(true, false);
@@ -2944,6 +2974,64 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddPurgedNodeTest
+ * @tc.desc: Test AddPurgedNode
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, AddPurgedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.purgedNode_.clear();
+    NodeId id = 0;
+    uifirstManager_.AddPurgedNode(id);
+    ASSERT_TRUE(uifirstManager_.purgedNode_.empty());
+
+    id = 1;
+    uifirstManager_.AddPurgedNode(id);
+    ASSERT_FALSE(uifirstManager_.purgedNode_.empty());
+}
+
+/**
+ * @tc.name: ProcessPurgedNodeTest
+ * @tc.desc: Test ProcessPurgedNode
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessPurgedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.purgedNode_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.ProcessPurgedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostNodes_.empty());
+
+    NodeId id = 1;
+    uifirstManager_.AddPurgedNode(id);
+    uifirstManager_.ProcessPurgedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostCardNodes_.empty());
+}
+
+/**
+ * @tc.name: ProcessPurgedNodeTest
+ * @tc.desc: Test ProcessSubThreadSkipped
+ * @tc.type: FUNC
+ * @tc.require: issue20223
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessSubThreadSkippedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.subthreadProcessSkippedNode_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.ProcessSubThreadSkippedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostNodes_.empty());
+
+    NodeId id = 1;
+    uifirstManager_.AddProcessSkippedNode(id);
+    uifirstManager_.ProcessSubThreadSkippedNode();
+    ASSERT_TRUE(uifirstManager_.pendingPostCardNodes_.empty());
+}
+
+/**
  * @tc.name: ProcessSkippedNodeTest
  * @tc.desc: Test ProcessSkippedNode
  * @tc.type: FUNC
@@ -2951,32 +3039,31 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
 {
-    uifirstManager_.subthreadProcessSkippedNode_.clear();
-    uifirstManager_.ProcessSkippedNode();
-    ASSERT_EQ(uifirstManager_.subthreadProcessSkippedNode_.size(), 0);
+    uifirstManager_.pendingPostCardNodes_.clear();
+    std::unordered_set<NodeId> skippedNode_;
+    uifirstManager_.ProcessSkippedNode(skippedNode_, true);
+    ASSERT_TRUE(uifirstManager_.pendingPostCardNodes_.empty());
 
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
-    uifirstManager_.subthreadProcessSkippedNode_.insert(surfaceNode1->GetId());
+    skippedNode_.insert(surfaceNode1->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode1);
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     surfaceNode2->isOnTheTree_ = true;
     surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
-    uifirstManager_.subthreadProcessSkippedNode_.insert(surfaceNode2->GetId());
+    skippedNode_.insert(surfaceNode2->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode2);
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(++RSTestUtil::id);
-    uifirstManager_.subthreadProcessSkippedNode_.insert(canvasNode->GetId());
+    skippedNode_.insert(canvasNode->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(canvasNode);
-    auto tmp = uifirstManager_.subthreadProcessSkippedNode_;
-    uifirstManager_.ProcessSkippedNode();
+    uifirstManager_.ProcessSkippedNode(skippedNode_, true);
     ASSERT_EQ(uifirstManager_.pendingPostCardNodes_.size(), 1);
 
     auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
     surfaceNode2->isOnTheTree_ = true;
     surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
-    tmp.insert(surfaceNode3->GetId());
-    uifirstManager_.subthreadProcessSkippedNode_ = tmp;
+    skippedNode_.insert(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode3);
-    uifirstManager_.ProcessSkippedNode();
+    uifirstManager_.ProcessSkippedNode(skippedNode_, true);
     ASSERT_EQ(uifirstManager_.pendingPostNodes_.size(), 1);
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingPostNodes_.clear();
@@ -2984,7 +3071,6 @@ HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode2->GetId());
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
-    uifirstManager_.subthreadProcessSkippedNode_.clear();
 }
 
 /**

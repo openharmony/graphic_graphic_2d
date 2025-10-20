@@ -705,12 +705,12 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     ASSERT_NE(uniParams, nullptr);
     bool secExemption = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    captureParam.ignoreSpecialLayer = false;
+    captureParam.needCaptureSpecialLayer = false;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
     bool secExemption1 = uniParams == nullptr ? false : uniParams->GetSecExemption();
     ASSERT_EQ(secExemption, secExemption1);
 
-    captureParam.ignoreSpecialLayer = true;
+    captureParam.needCaptureSpecialLayer = true;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
     bool secExemption2 = uniParams == nullptr ? false : uniParams->GetSecExemption();
     ASSERT_EQ(secExemption, secExemption2);

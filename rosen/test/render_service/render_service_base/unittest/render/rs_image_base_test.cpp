@@ -1364,7 +1364,9 @@ HWTEST_F(RSImageBaseTest, DrawImageLatticeTest001, TestSize.Level1)
     auto imageBase = std::make_shared<RSImageBase>();
     Drawing::Canvas canvas;
     Drawing::Lattice lat;
-    Drawing::Rect dst;
+    Drawing::Rect dst(2, 2, 2, 2);
+    auto pixelmap = std::make_shared<Media::PixelMap>();
+    imageBase->SetPixelMap(pixelmap);
     imageBase->DrawImageLattice(canvas, lat, dst);
     auto image = std::make_shared<Drawing::Image>();
     imageBase->SetImage(image);

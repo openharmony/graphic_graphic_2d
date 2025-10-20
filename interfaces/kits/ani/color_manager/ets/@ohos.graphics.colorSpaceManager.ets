@@ -47,6 +47,7 @@ namespace colorSpaceManager {
     DISPLAY_P3_HLG = P3_HLG,
     DISPLAY_P3_PQ = P3_PQ,
     H_LOG = 26,
+    DISPLAY_BT2020_SRGB = 27,
     CUSTOM = 5
   }
 

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "file_ex.h"
 #include "gtest/gtest.h"
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
@@ -194,6 +195,24 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface001, TestSize.Level1)
     typefaceCache.typefaceHashCode_.emplace(globalUniqueId, 0);
     instance.RegisterTypeface(typeface);
     typefaceCache.typefaceHashCode_.clear();
+}
+
+/**
+ * @tc.name: RegisterTypeface002
+ * @tc.desc: test register shared mem typeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, RegisterTypeface002, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    auto typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    int32_t result = instance.RegisterTypeface(typeface);
+    EXPECT_NE(result, -1);
+    EXPECT_TRUE(instance.UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**

@@ -507,7 +507,7 @@ void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
 
 void HgmFrameRateManager::FrameRateReport()
 {
-    if (!schedulePreferredFpsChange_) {
+    if (!schedulePreferredFpsChange_ && !slideModeChange) {
         return;
     }
     std::unordered_map<pid_t, uint32_t> rates;
@@ -518,6 +518,10 @@ void HgmFrameRateManager::FrameRateReport()
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
         rates[UNI_APP_PID] = OLED_120_HZ;
+    }
+    if (isLowPowerSlide && currRefreshRate_ == OLED_60_HZ) {
+        rates[UNI_APP_PID] = OLED_60_HZ;
+        slideModeChange = false;
     }
     HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
@@ -735,6 +739,13 @@ int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, flo
 int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velocityMM,
     float areaSqrMM, float lengthMM) const
 {
+    const auto curScreenStrategyId = curScreenStrategyId_;
+    const std::string settingMode = std::to_string(curRefreshRateMode_);
+    static bool isBeta = RSSystemProperties::GetVersionType() == "beta";
+    if (isBeta) {
+        RS_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, area: %f, length: %f, Id: %s, Mode: %s",
+            type.c_str(), velocityMM, areaSqrMM, lengthMM, curScreenStrategyId.c_str(), settingMode.c_str());
+    }
     auto& configData = HgmCore::Instance().GetPolicyConfigData();
     if (!configData) {
         return 0;
@@ -742,8 +753,6 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
     if (ROSEN_EQ(velocityMM, 0.f)) {
         return 0;
     }
-    const auto curScreenStrategyId = curScreenStrategyId_;
-    const std::string settingMode = std::to_string(curRefreshRateMode_);
     if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end() ||
         configData->screenConfigs_[curScreenStrategyId].find(settingMode) ==
         configData->screenConfigs_[curScreenStrategyId].end()) {
@@ -841,6 +850,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     } else if (eventName == "ENERGY_CONSUMPTION_ASSURANCE") {
         HgmEnergyConsumptionPolicy::Instance().SetEnergyConsumptionAssuranceSceneInfo(eventInfo);
+        return;
+    } else if (eventName == "VOTER_LOW_POWER_SLIDE") {
+        HandleLowPowerSlideSceneEvent(eventInfo.description, eventInfo.eventStatus);
         return;
     }
     auto voters = frameVoter_.GetVoters();
@@ -1170,6 +1182,15 @@ void HgmFrameRateManager::HandleStylusSceneEvent(const std::string& sceneName)
     } else if (sceneName == "STYLUS_WAKEUP") {
         isStylusWakeUp_ = true;
     }
+}
+
+void HgmFrameRateManager::HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus)
+{
+    bool slideMode = isLowPowerSlide;
+    if (sceneName == "LOW_POWER_SLIDE_MODE") {
+        isLowPowerSlide = eventStatus;
+    }
+    slideModeChange = (slideMode != isLowPowerSlide);
 }
 
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, const EventInfo& eventInfo)
@@ -1564,6 +1585,10 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
         return;
     }
     if (touchManager_.GetState() == TouchState::IDLE_STATE) {
+        isNeedUpdateAppOffset_ = true;
+        return;
+    }
+    if (isLowPowerSlide && refreshRate == OLED_60_HZ) {
         isNeedUpdateAppOffset_ = true;
         return;
     }

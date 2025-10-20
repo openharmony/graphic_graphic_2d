@@ -44,6 +44,26 @@ public:
     static Drawing::AlphaType AlphaTypeToDrawingAlphaType(const Media::AlphaType& alphaType);
 };
 
+class EffectCanvas : public Drawing::Canvas {
+public:
+    EffectCanvas(Drawing::Surface* surface);
+    ~EffectCanvas() override = default;
+    
+    Drawing::Surface* GetSurface() const override;
+
+    std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
+    
+    Drawing::CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
+    
+    void DrawRect(const Drawing::Rect& rect) override;
+    
+    Drawing::CoreCanvas& DetachBrush() override;
+    
+private:
+    Drawing::Surface* surface_ = nullptr;
+    Drawing::Canvas* canvas_ = nullptr;
+};
+
 class EffectImageChain {
 public:
     EffectImageChain() = default;

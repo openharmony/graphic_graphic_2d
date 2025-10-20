@@ -62,6 +62,9 @@ public:
         MASK_TRANSITION,
         DIRECTION_LIGHT,
         VARIABLE_RADIUS_BLUR,
+        GASIFY_SCALE_TWIST,
+        GASIFY_BLUR,
+        GASIFY,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;

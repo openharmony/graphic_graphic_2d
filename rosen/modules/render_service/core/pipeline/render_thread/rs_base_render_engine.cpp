@@ -620,7 +620,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
         return nullptr;
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "  - Buffer info: width=%{public}u, height=%{public}u, format=%{public}d, seqNum=%{public}" PRIu64 "",
+        "  - Buffer info: width=%{public}d, height=%{public}d, format=%{public}d, seqNum=%{public}" PRIu64,
         params.buffer->GetWidth(), params.buffer->GetHeight(),
         params.buffer->GetFormat(), params.buffer->GetBufferId());
     videoInfo.drawingColorSpace_ = Drawing::ColorSpace::CreateSRGB();

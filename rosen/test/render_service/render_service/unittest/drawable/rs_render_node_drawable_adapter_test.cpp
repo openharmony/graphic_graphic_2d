@@ -199,7 +199,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     auto childNode = std::make_shared<RSRenderNode>(id + 2);
     auto childAdapter = std::make_shared<RSRenderNodeDrawable>(std::move(childNode));
     childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
-    renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
+    renderNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
     adapter->renderNode_ = renderNode;
     context.GetMutableNodeMap().RegisterRenderNode(renderNode);
     adapter->DumpDrawableTree(depth, out, context);
@@ -238,9 +238,11 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     EXPECT_TRUE(retStr.empty());
     auto renderNode = std::make_shared<RSRenderNode>(id + 1);
     auto rSChildrenDrawableBrother = std::make_shared<RSChildrenDrawableBrotherAdapter>();
-    renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = std::move(rSChildrenDrawableBrother);
+    renderNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]
+        = std::move(rSChildrenDrawableBrother);
     auto foregroundStyle = std::make_shared<RSChildrenDrawableBrotherAdapter>();
-    renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
+    renderNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)]
+        = std::move(foregroundStyle);
     adapter->renderNode_ = renderNode;
     retStr = adapter->DumpDrawableVec(node);
     EXPECT_LE(retStr.length(), 2);
@@ -553,9 +555,17 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
     params.SetShadowRect({0, 0, 10, 10});
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     adapter->drawCmdIndex_.shadowIndex_ = 2;
-    adapter->drawCmdIndex_.useEffectIndex_ = 1;
-    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     adapter->drawCmdIndex_.useEffectIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.useEffectIndex_ = 3;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundFilterIndex_ = 4;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 5;
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }

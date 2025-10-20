@@ -1,0 +1,123 @@
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.graphics.uiEffect", "uiEffect")
+from ohos.graphics.uiEffect use BrightnessBlenderParam;
+from ohos.multimedia.image.image use PixelMap;
+
+@!sts_inject("""
+static { loadLibrary("uieffect_taihe_native.z"); }
+""")
+@!sts_inject_into_module("import common2D from '@ohos.graphics.common2D';")
+
+enum TileMode: i32 {
+  CLAMP = 0,
+  REPEAT = 1,
+  MIRROR = 2,
+  DECAL = 3,
+}
+
+enum WaterRippleMode: i32 {
+  SMALL2MEDIUM_RECV = 0,
+  SMALL2MEDIUM_SEND = 1,
+  SMALL2SMALL = 2,
+  MINI_RECV = 3
+}
+
+struct BrightnessBlender {
+  cubicRate: f64;
+  quadraticRate: f64;
+  linearRate: f64;
+  degree: f64;
+  saturation: f64;
+  positiveCoefficient: @sts_type("[double, double, double]") Opaque;
+  negativeCoefficient: @sts_type("[double, double, double]") Opaque;
+  fraction: f64;
+}
+
+struct Color {
+  red: f64;
+  green: f64;
+  blue: f64;
+  alpha: f64;
+}
+
+enum FlyMode : i32 {
+  BOTTOM = 0,
+  TOP = 1,
+}
+
+interface Filter {
+  Blur(blurRadius: f64): Filter;
+  PixelStretch(stretchSizes: Array<f64>, tileMode: TileMode): Filter;
+  Distort(distortionK: f64): Filter;
+  BezierWarp(controlPoints: Array<@sts_type("common2D.Point") Opaque>): Filter;
+  FlyInFlyOutEffect(degree: f64, flyMode: FlyMode): Filter;
+  WaterRipple(progress: f64, waveCount: i32, x: f64, y: f64, rippleMode: WaterRippleMode): Filter;
+  HdrBrightnessRatio(ratio: f64): Filter;
+  MaskTransition(alphaMask: Mask, @optional factor: Optional<f64>, @optional inverse: Optional<bool>): Filter;
+  DirectionLight(direction: @sts_type("common2D.Point3d") Opaque, color: Color, intensity: f64,
+    @optional mask: Optional<Mask>, @optional factor: Optional<f64>): Filter;
+  DisplacementDistort(displacementMap: Mask, @optional factor: Optional<@sts_type("[double, double]") Opaque>): Filter;
+  VariableRadiusBlur(radius: f64, radiusMap: Mask): Filter;
+  ContentLight(lightPosition: @sts_type("common2D.Point3d") Opaque, lightColor: @sts_type("common2D.Color") Opaque,
+    lightIntensity: f64, @optional displacementMap: Optional<Mask>): Filter;
+  MaskDispersion(dispersionMap: Mask, alpha: f64, @optional rFactor: Optional<@sts_type("[double, double]") Opaque>,
+    @optional gFactor: Optional<@sts_type("[double, double]") Opaque>,
+    @optional bFactor: Optional<@sts_type("[double, double]") Opaque>): Filter;
+  EdgeLight(alpha: f64, @optional color: Optional<Color>, @optional mask: Optional<Mask>,
+    @optional bloom: Optional<bool>): Filter;
+  ColorGradient(colors: Array<Color>, positions: Array<@sts_type("common2D.Point") Opaque>, strengths: Array<f64>,
+    @optional alphaMask: Optional<Mask>): Filter;
+}
+
+@class
+interface Mask {
+  GetImplPtr(): i64;
+}
+@static("Mask")
+function CreateRippleMask(center: @sts_type("common2D.Point") Opaque, radius: f64, width: f64,
+  @optional offset: Optional<f64>): Mask;
+
+@static("Mask")
+function CreatePixelMapMask(pixelMap: PixelMap, srcRect: @sts_type("common2D.Rect") Opaque,
+  dstRect: @sts_type("common2D.Rect") Opaque, @optional fillColor: Optional<Color>): Mask;
+
+@static("Mask")
+function CreateWaveGradientMask(center: @sts_type("common2D.Point") Opaque, width: f64, propagationRadius: f64,
+  blurRadius: f64, @optional turbulenceStrength: Optional<f64>): Mask;
+
+@static("Mask")
+function CreateRadialGradientMask(center: @sts_type("common2D.Point") Opaque, radiusX: f64, radiusY: f64,
+  gradients: Array<@sts_type("[double, double]") Opaque>): Mask;
+
+
+interface VisualEffect {
+  BackgroundColorBlender(blender: BrightnessBlender): VisualEffect;
+  ColorGradient(colors: Array<Color>, positions: Array<@sts_type("common2D.Point") Opaque>, strengths: Array<f64>,
+    @optional alphaMask: Optional<Mask>): VisualEffect;
+  BorderLight(lightPosition: @sts_type("common2D.Point3d") Opaque, lightColor: @sts_type("common2D.Color") Opaque,
+    lightIntensity: f64, borderWidth: f64): VisualEffect;
+}
+
+function CreateBrightnessBlender(param: BrightnessBlenderParam): BrightnessBlender;
+
+struct HdrBrightnessBlender {
+  @extends brightnessBlender: BrightnessBlender;
+}
+function CreateHdrBrightnessBlender(param: BrightnessBlenderParam): HdrBrightnessBlender;
+
+function CreateFilter(): Filter;
+function CreateEffect(): VisualEffect;

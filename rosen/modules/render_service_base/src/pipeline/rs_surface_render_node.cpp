@@ -1296,7 +1296,7 @@ void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
     surfaceParams->SetAncoFlags(flags);
     if (static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE) ==
         (flags & static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE))) {
-        surfaceParams->SetForceRefresh(true);
+        SetForceRefresh(true);
     }
 }
 
@@ -2147,7 +2147,6 @@ void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
             return true;
         }
         node->SetDrawingCacheChanged(false);
-        node->GetFilterRectsInCache(allRects);
         return false;
     });
 }
@@ -2644,9 +2643,9 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
             dirtyGeoNodeNum_++;
         }
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%lu] contentStatic: %d, dirtyContentNode: %d, "
-        "dirtyGeoNode: %d", GetName().c_str(), GetId(),
-        surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%" PRIu64 "] "
+        "contentStatic: %d, dirtyContentNode: %zu, dirtyGeoNode: %zu",
+        GetName().c_str(), GetId(), surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
     // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
     surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
@@ -2964,12 +2963,12 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     }
     UpdateTransparentSurface();
     RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, "
-        "hasFilter: %d, isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d", GetId(), hasTransparentSurface_,
-        ChildHasVisibleFilter(), HasFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(),
+        "isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d", GetId(), hasTransparentSurface_,
+        ChildHasVisibleFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(),
         GetGlobalAlpha(), GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED));
     bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ?
         !(isRotation && ROSEN_EQ(GetGlobalAlpha(), 0.0f)) : !isRotation;
-    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && rotateOptimize &&
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && rotateOptimize &&
         !GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED);
 }
 
@@ -3502,6 +3501,19 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
     return abilityState_;
 }
 
+void RSSurfaceRenderNode::SetCaptureEnableUifirst(bool val)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetCaptureEnableUifirst(val);
+    }
+}
+
+std::mutex& RSSurfaceRenderNode::GetCaptureUiFirstMutex()
+{
+    return captureUiFirstMutex_;
+}
+
 bool RSSurfaceRenderNode::IsWaitUifirstFirstFrame() const
 {
     return isWaitUifirstFirstFrame_;
@@ -3837,6 +3849,16 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::DetermineGamutStandard(in
     } else {
         return GRAPHIC_COLOR_GAMUT_SRGB;
     }
+}
+
+void RSSurfaceRenderNode::SetUIFirstVisibleFilterRect(const RectI& rect)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        return;
+    }
+    stagingSurfaceParams->SetUIFirstVisibleFilterRect(rect);
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

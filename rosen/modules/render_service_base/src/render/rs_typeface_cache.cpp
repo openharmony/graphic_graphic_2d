@@ -230,6 +230,34 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCache(uint
     return nullptr;
 }
 
+std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCacheByHash(uint64_t uniqueId) const
+{
+    std::lock_guard lock(mapMutex_);
+    auto hash = GetTypefaceId(uniqueId);
+    if (typefaceHashMap_.count(hash)) {
+        auto [typeface, ref] = typefaceHashMap_.at(hash);
+        return typeface;
+    }
+    return nullptr;
+}
+
+std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(uint64_t globalId)
+{
+    std::lock_guard lock(mapMutex_);
+    auto hash = GetTypefaceId(globalId);
+    auto iter = typefaceHashMap_.find(hash);
+    if (iter != typefaceHashMap_.end()) {
+        typefaceHashCode_[globalId] = hash;
+        std::get<1>(iter->second) += 1;
+        pid_t pid = GetTypefacePid(globalId);
+        if (pid) {
+            MemorySnapshot::Instance().AddCpuMemory(pid, (std::get<0>(iter->second))->GetSize());
+        }
+        return std::get<0>(iter->second);
+    }
+    return nullptr;
+}
+
 static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::vector<uint64_t>>& map)
 {
     // go through queued items;

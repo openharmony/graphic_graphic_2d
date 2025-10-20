@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
@@ -23,6 +24,7 @@
 #include <unistd.h>
 
 #include "feature/capture/rs_ui_capture.h"
+#include "file_ex.h"
 #include "platform/ohos/rs_render_service_connection_proxy.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "command/rs_animation_command.h"
@@ -54,6 +56,39 @@ void RSRenderServiceConnectionProxyTest::SetUpTestCase()
 void RSRenderServiceConnectionProxyTest::TearDownTestCase() {}
 void RSRenderServiceConnectionProxyTest::SetUp() {}
 void RSRenderServiceConnectionProxyTest::TearDown() {}
+
+class IRemoteObjectMock : public IRemoteObject {
+public:
+    IRemoteObjectMock() : IRemoteObject {u"IRemoteObjectMock"}
+    {
+    }
+
+    ~IRemoteObjectMock()
+    {
+    }
+
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
+    {
+        return true;
+    }
+
+    int Dump(int fd, const std::vector<std::u16string> &args)
+    {
+        return 0;
+    }
+
+    MOCK_METHOD4(SendRequest, int32_t(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));
+};
 
 /**
  * @tc.name: CommitTransaction Test
@@ -427,6 +462,12 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveMode, TestSize.Level
     uint32_t modeId = 1;
     proxy->SetScreenActiveMode(id, modeId);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSRenderServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->SetScreenActiveMode(id, modeId);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 
 /**
@@ -1094,6 +1135,27 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, UnRegisterTypeface, TestSize.Level1
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     EXPECT_FALSE(proxy->RegisterTypeface(1, typeface));
     ASSERT_TRUE(proxy->UnRegisterTypeface(1));
+}
+
+/**
+ * @tc.name: RegisterSharedTypeface Test
+ * @tc.desc: RegisterSharedTypeface Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    int32_t needUpdate;
+    pid_t pid = getpid();
+    uint64_t id = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+    EXPECT_TRUE(proxy->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate));
+    EXPECT_EQ(needUpdate, 0);
+    EXPECT_TRUE(proxy->UnRegisterTypeface(typeface->GetHash()));
 }
 
 /**

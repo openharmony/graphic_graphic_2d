@@ -307,7 +307,10 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
             context->fontDescriptersOutput = TextEngine::FontParser::ParserFontDescriptorsFromPath(context->filePath);
         } else {
             auto pathCB = [context](std::string& path) -> bool { return ProcessFontPath(context, path); };
-            auto fileCB = [context](const void* data, size_t size) -> bool { return true; };
+            auto fileCB = [context](const void* data, size_t size) -> bool {
+                context->fontDescriptersOutput = TextEngine::FontParser::ParserFontDescriptorsFromStream(data, size);
+                return true;
+            };
             TEXT_ERROR_CHECK(ProcessResource(context->info, pathCB, fileCB), return,
                 "Failed to execute function, path is invalid");
         }

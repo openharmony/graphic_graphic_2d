@@ -30,6 +30,7 @@ public:
     static bool IsRsReportHwcDead();
     static bool IsRsSetScreenPowerStatus();
     static bool IsMirrorDisplayCloseP3();
+    static bool IsSkipFrameByActiveRefreshRate();
     static Drawing::MipmapMode GetMipmapMode();
 
 protected:
@@ -39,6 +40,7 @@ protected:
     static void SetRsSetScreenPowerStatus(bool isEnabled);
     static void SetMirrorDisplayCloseP3(bool isEnabled);
     static void SetMipmapMode(Drawing::MipmapMode modeValue);
+    static void SetSkipFrameByActiveRefreshRate(bool isEnabled);
 
 private:
     inline static bool isExternalScreenSecure_ = false;
@@ -46,6 +48,7 @@ private:
     inline static bool isRsReportHwcDead_ = false;
     inline static bool isRsSetScreenPowerStatus_ = true;
     inline static bool isMirrorDisplayCloseP3_ = true;
+    inline static bool isSkipFrameByActiveRefreshRate_ = false;
     inline static Drawing::MipmapMode mipMapModeValue_ = Drawing::MipmapMode::NEAREST;
  
     friend class MultiScreenParamParse;

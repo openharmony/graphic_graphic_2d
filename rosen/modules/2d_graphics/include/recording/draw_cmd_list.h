@@ -149,7 +149,7 @@ public:
     /**
      * @brief   Marshalling Draw Ops Param from vector to contiguous buffers. For Profiler Only.
      */
-    void ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist, bool includeImageOps = false);
+    void ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist);
 
     /**
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector

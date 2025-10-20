@@ -416,7 +416,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationRandom001, TestSize.Lev
     ASSERT_TRUE(noiseFields != nullptr);
     ASSERT_TRUE(effector != nullptr);
     noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, activeTime);
+    effector->Update(particle, noiseFields, nullptr, nullptr, activeTime);
     EXPECT_TRUE(particle->GetActiveTime() == 200000);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationRandom001 end";
 }
@@ -502,7 +502,7 @@ HWTEST_F(RSRenderParticleEffectorTest, Update001, TestSize.Level1)
     ASSERT_TRUE(effector != nullptr);
     ASSERT_TRUE(particle != nullptr);
     noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, activeTime);
+    effector->Update(particle, noiseFields, nullptr, nullptr, activeTime);
     EXPECT_TRUE(particle->GetActiveTime() == activeTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update001 end";
 }
@@ -531,7 +531,7 @@ HWTEST_F(RSRenderParticleEffectorTest, Update002, TestSize.Level1)
     ASSERT_TRUE(effector != nullptr);
     ASSERT_TRUE(particle != nullptr);
     noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, activeTime);
+    effector->Update(particle, noiseFields, nullptr, nullptr, activeTime);
     EXPECT_TRUE(particle->GetActiveTime() == activeTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update002 end";
 }
@@ -560,7 +560,7 @@ HWTEST_F(RSRenderParticleEffectorTest, Update003, TestSize.Level1)
     ASSERT_TRUE(effector != nullptr);
     ASSERT_TRUE(particle != nullptr);
     noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, 0);
+    effector->Update(particle, noiseFields, nullptr, nullptr, 0);
     EXPECT_TRUE(particle->GetActiveTime() == 0);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update003 end";
 }

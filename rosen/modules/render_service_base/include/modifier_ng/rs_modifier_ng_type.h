@@ -65,6 +65,7 @@ enum class RSModifierType : uint16_t {
     BEHIND_WINDOW_FILTER = 33,
     BACKGROUND_NG_SHADER = 34,
     FOREGROUND_SHADER = 35,
+    UNION = 36,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -140,6 +141,7 @@ public:
             case RSModifierType::BEHIND_WINDOW_FILTER: return "BehindWindowFilter";
             case RSModifierType::BACKGROUND_NG_SHADER: return "BackgroundNgShader";
             case RSModifierType::FOREGROUND_SHADER: return "ForegroundShader";
+            case RSModifierType::UNION: return "Union";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
         }
@@ -168,6 +170,7 @@ public:
             case RSPropertyType::TRANSLATE_Z: return "TranslateZ";
             case RSPropertyType::SUBLAYER_TRANSFORM: return "SublayerTransform";
             case RSPropertyType::CORNER_RADIUS: return "CornerRadius";
+            case RSPropertyType::CORNER_APPLY_TYPE: return "CornerApplyType";
             case RSPropertyType::ALPHA: return "Alpha";
             case RSPropertyType::ALPHA_OFFSCREEN: return "AlphaOffscreen";
             case RSPropertyType::FOREGROUND_COLOR: return "ForegroundColor";
@@ -260,6 +263,8 @@ public:
             case RSPropertyType::MOTION_BLUR_PARA: return "MotionBlurPara";
             case RSPropertyType::PARTICLE_EMITTER_UPDATER: return "ParticleEmitterUpdater";
             case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";
+            case RSPropertyType::PARTICLE_RIPPLE_FIELD: return "ParticleRippleField";
+            case RSPropertyType::PARTICLE_VELOCITY_FIELD: return "ParticleVelocityField";
             case RSPropertyType::FLY_OUT_DEGREE: return "FlyOutDegree";
             case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
             case RSPropertyType::DISTORTION_K: return "DistortionK";
@@ -304,6 +309,9 @@ public:
             case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
             case RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR: return "BehindWindowFilterMaskColor";
             case RSPropertyType::FOREGROUND_SHADER: return "ForegroundShader";
+            case RSPropertyType::USE_UNION: return "UseUnion";
+            case RSPropertyType::UNION_SPACING: return "UnionSpacing";
+            case RSPropertyType::SDF_MASK: return "SDFMask";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

@@ -64,7 +64,9 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_SHADOW_BLENDER_PARA = 0x0125,
     UPDATE_MODIFIER_VECTOR_VECTOR2F = 0x0126,
     UPDATE_MODIFIER_SHORT = 0x0127,
-    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0128,
+    UPDATE_MODIFIER_RIPPLE_FIELD_PTR = 0x0128,
+    UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x0129,
+    UPDATE_MODIFIER_DRAW_CMD_LIST = 0x012A,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -249,6 +251,14 @@ ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleNoiseFields>>,
         NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleRippleFields,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RIPPLE_FIELD_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleRippleFields>>,
+        NodeId, std::shared_ptr<ParticleRippleFields>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleVelocityFields,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VELOCITY_FIELD_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleVelocityFields>>,
+        NodeId, std::shared_ptr<ParticleVelocityFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSShader>>,

@@ -51,6 +51,19 @@ enum EffectResourceRequest {
     AIHDR_HIGHLIGHT_MODE = 1ULL << 4,
     AIHDR_ENHANCE_LUT = 1ULL << 5,
     AIHDR_HIGHLIGHT_LUT = 1ULL << 6,
+    STYLIZED_3D_LUT = 1ULL << 7, // Camera use HDR GMP
+};
+
+enum GenericDataTag {
+    GENERIC_DATA_TAG_NONE = 0,
+    HDR_GMP_LUT_LOW = 1,
+    HDR_GMP_LUT_HIGH = 2,
+};
+
+struct GenericData {
+    void *buf;
+    size_t size;
+    int tag; // GenericDataTag
 };
 
 using MDCContentsT = struct MDCCopybitContents {
@@ -179,6 +192,12 @@ using MDCContentsT = struct MDCCopybitContents {
     */
     float displaySdrNit = 500.0f;
     float displayHdrNit = 500.0f;
+
+    /*
+    * stylize, user: Camera
+    */
+    uint32_t dataCnt = 0;
+    struct GenericData *genericData = nullptr;
 };
 
 /*

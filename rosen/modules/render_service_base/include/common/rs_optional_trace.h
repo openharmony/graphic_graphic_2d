@@ -136,7 +136,7 @@ public:
     }
 
 private:
-    const int maxSize_ = 256;
+    static const int maxSize_ = 256;
 };
 
 class RSOptionalTrace {

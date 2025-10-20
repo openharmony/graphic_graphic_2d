@@ -49,6 +49,23 @@ enum PictureLightColorDegree {
     EXTREMELY_FLOWERY_PICTURE = 6,
 };
 
+enum PictureShadeDegree {
+    UNKNOWN_SHADE_DEGREE_PICTURE = 0,
+    EXTREMELY_LIGHT_PICTURE = 1,
+    VERY_LIGHT_PICTURE = 2,
+    LIGHT_PICTURE = 3,
+    MODERATE_SHADE_PICTURE = 4,
+    DARK_PICTURE = 5,
+    EXTREMELY_DARK_PICTURE = 6,
+};
+
+enum PictureComplexityDegree {
+    UNKNOWN_COMPLEXITY_DEGREE_PICTURE = 0,
+    PURE_PICTURE = 1,
+    MODERATE_COMPLEXITY_PICTURE = 2,
+    VERY_FLOWERY_PICTURE = 3,
+};
+
 
 struct HSV {
     int h;  // 色度取值(0-360)
@@ -75,6 +92,14 @@ public:
     static constexpr double LUMINANCE_RATIO_RED = 0.2126;
     static constexpr double LUMINANCE_RATIO_GREEN = 0.7152;
     static constexpr double LUMINANCE_RATIO_BLUE = 0.0722;
+    static constexpr uint32_t VERY_FLOWERY_PICTURE_GRAY_VARIANCE_THRESHOLD = 6000;
+    static constexpr double VERY_FLOWERY_PICTURE_COMPLEXITY_THRESHOLD = 0.4;
+    static constexpr double MODERATE_COMPLEXITY_PICTURE_COMPLEXITY_THRESHOLD = 0.1;
+    static constexpr double EXTREMELY_LIGHT_PICTURE_LIGHTNESS_THRESHOLD = 1.5;
+    static constexpr double VERY_LIGHT_PICTURE_LIGHTNESS_THRESHOLD = 1.9;
+    static constexpr double LIGHT_PICTURE_LIGHTNESS_THRESHOLD = 3.0;
+    static constexpr double MODERATE_SHADE_PICTURE_LIGHTNESS_THRESHOLD = 7.0;
+    static constexpr double DARK_PICTURE_LIGHTNESS_THRESHOLD = 14.0;
     NATIVEEXPORT uint32_t GetLargestProportionColor(ColorManager::Color &color) const;
     NATIVEEXPORT uint32_t GetHighestSaturationColor(ColorManager::Color &color) const;
     NATIVEEXPORT uint32_t GetAverageColor(ColorManager::Color &color) const;
@@ -87,6 +112,9 @@ public:
     NATIVEEXPORT uint32_t DiscriminatePitureLightDegree(PictureLightColorDegree &degree) const;
     NATIVEEXPORT uint32_t GetReverseColor(ColorManager::Color &color) const;
     NATIVEEXPORT std::vector<ColorManager::Color> GetTopProportionColors(uint32_t colorsNum) const;
+    NATIVEEXPORT std::vector<double> GetTopProportion(uint32_t colorsNum) const;
+    NATIVEEXPORT uint32_t ComplexityDegree(PictureComplexityDegree &degree) const;
+    NATIVEEXPORT uint32_t ShadeDegree(PictureShadeDegree &degree) const;
 
 private:
     void AdjustLowSaturationBrightColor(HSV &colorHsv, HSV &mainHsv, HSV &secondaryHsv,
@@ -108,6 +136,7 @@ private:
     uint32_t CalcGrayVariance() const;
     double CalcContrastRatioWithWhite() const;
     double CalcRelaticeLuminance(uint32_t color) const;
+    double CalcComplexity() const;
 };
 } // namespace Rosen
 } // namespace OHOS

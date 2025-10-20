@@ -1471,7 +1471,6 @@ HWTEST_F(RSMainThreadTest, CheckParallelSubThreadNodesStatus, TestSize.Level1)
     node1->cacheProcessStatus_ = CacheProcessStatus::DOING;
     node1->name_ = "node1";
     node1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node1->hasAbilityComponent_ = true;
     node1->abilityNodeIds_.emplace(10);
     node1->abilityNodeIds_.emplace(11);
     auto node2 = std::make_shared<RSSurfaceRenderNode>(2);
@@ -1482,7 +1481,6 @@ HWTEST_F(RSMainThreadTest, CheckParallelSubThreadNodesStatus, TestSize.Level1)
     node3->cacheProcessStatus_ = CacheProcessStatus::DOING;
     node3->name_ = "node3";
     node3->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node3->hasAbilityComponent_ = false;
     // create child nodes
     auto childNode1 = std::make_shared<RSSurfaceRenderNode>(3);
     childNode1->name_ = "childNode1";
@@ -4192,21 +4190,6 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsDrawingGroupChanged
- * @tc.desc: IsDrawingGroupChanged Test, not Classify By Root
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, IsDrawingGroupChanged, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    auto node = std::make_shared<RSRenderNode>(id);
-    mainThread->IsDrawingGroupChanged(*node);
-}
-
-/**
  * @tc.name: CheckAndUpdateInstanceContentStaticStatus003
  * @tc.desc: CheckAndUpdateInstanceContentStaticStatus Test, nullptr
  * @tc.type: FUNC
@@ -4808,6 +4791,43 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
+
+    mainThread->ProcessUiCaptureTasks();
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+
+    mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
+}
+
+/**
+ * @tc.name: AddUiCaptureTaskTest
+ * @tc.desc: test AddUiCaptureTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, AddUiCaptureTaskTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto node1 = RSTestUtil::CreateSurfaceNode();
+    auto node2 = RSTestUtil::CreateSurfaceNode();
+    auto task = []() {};
+
+    mainThread->ProcessUiCaptureTasks();
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+
+    mainThread->context_->nodeMap.RegisterRenderNode(node1);
+    mainThread->AddUiCaptureTask(node1->GetId(), task);
+    mainThread->AddUiCaptureTask(node2->GetId(), task);
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
+    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
+
+    node1->SetDirty();
+    mainThread->AddUiCaptureTask(node1->GetId(), task);
     mainThread->PrepareUiCaptureTasks(nullptr);
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
@@ -5468,16 +5488,24 @@ HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
 }
 
 /**
- * @tc.name: TraverseCanvasDrawingNodesNotOnTree
- * @tc.desc: test TraverseCanvasDrawingNodesNotOnTree
+ * @tc.name: TraverseCanvasDrawingNodes
+ * @tc.desc: test TraverseCanvasDrawingNodes
  * @tc.type: FUNC
  * @tc.require: issueIB56EL
  */
-HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodesNotOnTree, TestSize.Level2)
+HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodes, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->TraverseCanvasDrawingNodesNotOnTree();
+    auto& context = mainThread->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(0);
+    nodeMap.RegisterRenderNode(node);
+    mainThread->TraverseCanvasDrawingNodes();
+    ASSERT_FALSE(node->HasCachedOp());
+    node->cachedOpCount_ = 1;
+    mainThread->TraverseCanvasDrawingNodes();
+    ASSERT_TRUE(node->HasCachedOp());
 }
 
 /**
@@ -5693,7 +5721,8 @@ HWTEST_F(RSMainThreadTest, DumpMem001, TestSize.Level2)
     std::string dumpString;
     std::string type = "";
     pid_t pid = 0;
-    mainThread->DumpMem(argSets, dumpString, type, pid);
+    bool isLite = false;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
     ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
 }
 
@@ -5710,9 +5739,50 @@ HWTEST_F(RSMainThreadTest, DumpMem002, TestSize.Level2)
     mainThread->isUniRender_ = true;
     std::unordered_set<std::u16string> argSets;
     std::string dumpString;
+    std::string type = "";
+    pid_t pid = 0;
+    bool isLite = true;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem003
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpMem003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
     std::string type = "gpu";
     pid_t pid = 0;
-    mainThread->DumpMem(argSets, dumpString, type, pid);
+    bool isLite = false;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
+    ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMem004
+ * @tc.desc: test DumpMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "gpu";
+    pid_t pid = 0;
+    bool isLite = true;
+    mainThread->DumpMem(argSets, dumpString, type, pid, isLite);
     ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
 }
 
@@ -6683,5 +6753,57 @@ HWTEST_F(RSMainThreadTest, MarkNodeImageDirty001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     uint64_t nodeId = 12345;
     mainThread->MarkNodeImageDirty(nodeId);
+}
+
+/**
+ * @tc.name: IsReadyForSyncTask001
+ * @tc.desc: Test RSMainThreadTest.IsReadyForSyncTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsReadyForSyncTask001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isRunning_ = false;
+    EXPECT_FALSE(mainThread->IsReadyForSyncTask());
+    mainThread->isRunning_ = true;
+    EXPECT_TRUE(mainThread->IsReadyForSyncTask());
+}
+
+/**
+ * @tc.name: IsReadyForSyncTask002
+ * @tc.desc: Test RSMainThreadTest.IsReadyForSyncTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsReadyForSyncTask, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    // launch multiple threads to read the state (expect false)
+    mainThread->isRunning_ = false;
+    const int numThreads = 11;
+    std::thread threads[numThreads];
+    for (int idx = 0; idx < numThreads; ++idx) {
+        threads[idx] = std::thread([] () {
+            EXPECT_FALSE(RSMainThread::Instance()->IsReadyForSyncTask());
+        });
+    }
+    for (int idx = 0; idx < numThreads; ++idx) {
+        threads[idx].join();
+    }
+
+    // launch multiple threads to read the state (expect true)
+    mainThread->isRunning_ = true;
+    for (int idx = 0; idx < numThreads; ++idx) {
+        threads[idx] = std::thread([] () {
+            EXPECT_TRUE(RSMainThread::Instance()->IsReadyForSyncTask());
+        });
+    }
+    for (int idx = 0; idx < numThreads; ++idx) {
+        threads[idx].join();
+    }
 }
 } // namespace OHOS::Rosen

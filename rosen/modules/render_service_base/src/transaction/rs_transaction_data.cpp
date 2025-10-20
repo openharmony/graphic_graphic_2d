@@ -130,7 +130,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                     marshallingIndex_);
                 success = false;
             }
-            if (OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled()) {
+            if (OHOS::Rosen::RSSystemProperties::GetAnimationTraceEnabled()) {
                 RS_OPTIONAL_TRACE_NAME_TESTMODE("RSTransactionData::Marshalling nodeId:%ld type:%s",
                     command->GetNodeId(), command->PrintType().c_str());
             }
@@ -340,7 +340,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             }
             auto command = (*func)(parcel);
             if (command == nullptr) {
-                ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}d subtype=%{public}d",
+                ROSEN_LOGE("failed RSTransactionData::UnmarshallingCommand, type=%{public}u subtype=%{public}u",
                     commandType, commandSubType);
                 return false;
             }

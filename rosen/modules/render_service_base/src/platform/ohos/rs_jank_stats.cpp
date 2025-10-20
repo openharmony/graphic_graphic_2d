@@ -1103,7 +1103,7 @@ int32_t RSJankStats::GetTraceIdInit(const DataBaseRs& info, int64_t setTimeStead
     }
     traceIdRemainder_[info.uniqueId].setTimeSteady_ = setTimeSteady;
     int64_t mappedUniqueId = info.uniqueId * TRACE_ID_SCALE_PARAM + (traceIdRemainder_[info.uniqueId].remainder_++);
-    int32_t traceId = static_cast<int32_t>(mappedUniqueId);
+    int32_t traceId = static_cast<int32_t>(abs(mappedUniqueId) % INT32_MAX);
     return traceId;
 }
 
@@ -1192,12 +1192,12 @@ void RSJankStats::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         RS_LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size not equal surfaceNameList size");
         return;
     }
-    int uniqueIdListSize = uniqueIdList.size();
+    size_t uniqueIdListSize = uniqueIdList.size();
     if (uniqueIdListSize > ACVIDEO_VECTOR_MAX_LENGTH) {
         RS_LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size exceeds maxium limit");
         return;
     }
-    for (int i = 0; i < uniqueIdListSize; i++) {
+    for (size_t i = 0; i < uniqueIdListSize; i++) {
         uint64_t uniqueId = uniqueIdList[i];
         AvcodecVideoParam& info = avcodecVideoMap_[uniqueId];
         info.surfaceName = surfaceNameList[i];
@@ -1220,12 +1220,12 @@ void RSJankStats::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         RS_LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size not equal surfaceNameList size");
         return;
     }
-    int uniqueIdListSize = uniqueIdList.size();
+    size_t uniqueIdListSize = uniqueIdList.size();
     if (uniqueIdListSize > ACVIDEO_VECTOR_MAX_LENGTH) {
         RS_LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size exceeds maxium limit");
         return;
     }
-    for (int i = 0; i < uniqueIdListSize; i++) {
+    for (size_t i = 0; i < uniqueIdListSize; i++) {
         uint64_t uniqueId = uniqueIdList[i];
         auto it = avcodecVideoMap_.find(uniqueId);
         if (it == avcodecVideoMap_.end()) {

@@ -316,6 +316,52 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddPictureFdRecordTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureFdRecordTest, testing::ext::TestSize.Level1)
+{
+    uint64_t uniqueId = static_cast<uint64_t>(123) << 32;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureFdRecord(uniqueId);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
+}
+
+/**
+ * @tc.name: RemovePictureFdRecordTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureFdRecordTest, testing::ext::TestSize.Level1)
+{
+    uint64_t uniqueId = static_cast<uint64_t>(234) << 32;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureFdRecord(uniqueId);
+    test1.AddPictureFdRecord(uniqueId);
+
+    test1.RemovePictureFdRecord(234);
+    EXPECT_EQ(test1.CountFdRecordOfPid(234), 1);
+}
+
+/**
+ * @tc.name: CountFdRecordOfPidTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest, testing::ext::TestSize.Level1)
+{
+    uint64_t uniqueId = static_cast<uint64_t>(345) << 32;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureFdRecord(uniqueId);
+
+    EXPECT_EQ(test1.CountFdRecordOfPid(345), 1);
+}
+
+/**
  * @tc.name: RemovePictureRecordTest
  * @tc.desc: test
  * @tc.type: FUNC

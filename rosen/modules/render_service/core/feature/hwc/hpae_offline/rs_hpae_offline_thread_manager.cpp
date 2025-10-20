@@ -19,6 +19,11 @@
 #include "rs_trace.h"
 #if defined(ROSEN_OHOS)
 #include "ffrt_inner.h"
+
+namespace {
+ffrt::mutex g_ffrtThreadMutex;
+constexpr uint32_t FFRT_QOS_LEVEL = 5;
+}
 #endif
 
 namespace OHOS::Rosen {
@@ -26,9 +31,9 @@ bool RSHpaeOfflineThreadManager::PostTask(const std::function<void()>& task)
 {
 #if defined(ROSEN_OHOS)
     ffrt::submit_h([this, task]() {
-        std::unique_lock<std::mutex> lock(ffrtThreadMutex_);
+        std::unique_lock<ffrt::mutex> lock(g_ffrtThreadMutex);
         task();
-    }, {}, {}, ffrt::task_attr().qos(5));
+    }, {}, {}, ffrt::task_attr().qos(FFRT_QOS_LEVEL));
 #endif
     return true;
 }

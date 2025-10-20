@@ -52,8 +52,8 @@ void RSDrawCmdList::Playback(Drawing::Canvas& canvas, const Drawing::Rect* rect)
         paintFilterCanvas.RestoreAlpha();
     };
 
-    processValue(endValue_);
     processValue(startValue_);
+    processValue(endValue_);
 }
 
 int32_t RSDrawCmdList::GetWidth() const
@@ -86,9 +86,6 @@ void RSDrawCmdList::Estimate(float fraction)
         CleanOpacity();
         return;
     }
-    startValue_.second.lastOpacity = startValue_.second.opacity;
-    startValue_.second.opacity =
-        startValue_.second.startOpacity * (1.0f - fraction) + startValue_.second.endOpacity * fraction;
 
     endValue_.second.lastOpacity = endValue_.second.opacity;
     endValue_.second.opacity =

@@ -247,6 +247,16 @@ int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
 }
 #endif
 
+int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
+{
+    return 0;
+}
+
+int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     return 0;
@@ -257,8 +267,9 @@ int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwit
     return 0;
 }
 
-void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
+    return 0;
 }
 
 void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
@@ -535,6 +546,11 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::
 }
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
 {
     return {};
 }

@@ -31,6 +31,7 @@ public:
 
     SkiaMemoryStream();
     SkiaMemoryStream(const void* data, size_t length, bool copyData);
+    SkiaMemoryStream(const void* data, size_t length, void (*proc)(const void*, void*), void* context);
     ~SkiaMemoryStream() override = default;
 
     AdapterType GetType() const override

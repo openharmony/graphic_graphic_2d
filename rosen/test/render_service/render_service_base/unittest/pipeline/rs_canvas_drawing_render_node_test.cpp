@@ -111,8 +111,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
-    rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
-        vecModifier;
+    rsCanvasDrawingRenderNode.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
     std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
         printf("ProcessRenderContentsTest callbackFunc\n");
     };
@@ -206,8 +205,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
-    rsCanvasDrawingRenderNode.modifiersNG_[static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)] =
-        vecModifier;
+    rsCanvasDrawingRenderNode.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 
@@ -301,40 +299,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, InitRenderParamsTest, TestSize.Level1)
     EXPECT_TRUE(rsCanvasDrawingRenderNode->renderDrawable_ == nullptr);
 }
 
-/**
- * @tc.name: PlaybackInCorrespondThread
- * @tc.desc: test results of PlaybackInCorrespondThread
- * @tc.type: FUNC
- * @tc.require: issueI9W0GK
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::shared_ptr<RSContext> sharedContext = std::make_shared<RSContext>();
-    std::weak_ptr<RSContext> context = sharedContext;
-    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
-    auto ctxNode =
-        context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
-    EXPECT_TRUE(ctxNode == nullptr);
-    rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
-
-    auto& ctxNodeMap = context.lock()->GetMutableNodeMap();
-    NodeId rsCanvasDrawingRenderNodeId = rsCanvasDrawingRenderNode->GetId();
-    pid_t rsCanvasDrawingRenderNodePid = ExtractPid(rsCanvasDrawingRenderNodeId);
-    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNodePid][rsCanvasDrawingRenderNodeId] = rsCanvasDrawingRenderNode;
-    ctxNode = context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
-    EXPECT_TRUE(ctxNode != nullptr);
-    int32_t width = 1;
-    int32_t height = 1;
-    Drawing::Canvas canvas(width, height);
-    rsCanvasDrawingRenderNode->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
-    rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
-    rsCanvasDrawingRenderNode->surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode->isNeedProcess_.store(true);
-    rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
-    EXPECT_FALSE(rsCanvasDrawingRenderNode->isNeedProcess_);
-}
-
 #ifndef MODIFIER_NG
 /**
  * @tc.name: ApplyDrawCmdModifier
@@ -386,6 +350,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetBitmap, TestSize.Level1)
     ASSERT_NE(rsCanvasDrawingRenderNode.GetBitmap(tid).bmpImplPtr, nullptr);
 
     rsCanvasDrawingRenderNode.GetBitmap();
+
+    rsCanvasDrawingRenderNode.drawingNodeRenderID = UINT32_MAX - 1;
+    rsCanvasDrawingRenderNode.cachedOpCount_ = 1;
+    ASSERT_TRUE(rsCanvasDrawingRenderNode.HasCachedOp());
+    ASSERT_NE(rsCanvasDrawingRenderNode.GetBitmap(UINT32_MAX - 1).bmpImplPtr, nullptr);
+    rsCanvasDrawingRenderNode.cachedOpCount_ = 0;
+    ASSERT_FALSE(rsCanvasDrawingRenderNode.HasCachedOp());
+    ASSERT_NE(rsCanvasDrawingRenderNode.GetBitmap(UINT32_MAX - 1).bmpImplPtr, nullptr);
 }
 
 /**
@@ -448,6 +420,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetPixelmapSurfaceImgValidTest, TestSize
     EXPECT_FALSE(rsCanvasDrawingRenderNode->GetPixelmap(pixelmap, &rect, tid, drawCmdList));
 
     tid = rsCanvasDrawingRenderNode->GetTid();
+    rsCanvasDrawingRenderNode->cachedOpCount_ = 1;
+    EXPECT_FALSE(rsCanvasDrawingRenderNode->GetPixelmap(pixelmap, &rect, tid, drawCmdList));
+    rsCanvasDrawingRenderNode->cachedOpCount_ = 0;
     EXPECT_FALSE(rsCanvasDrawingRenderNode->GetPixelmap(pixelmap, &rect, tid, drawCmdList));
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -516,6 +491,21 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     EXPECT_TRUE(curDrawCmdLists.empty());
 }
 #endif
+
+/**
+ * @tc.name: AddDirtyType
+ * @tc.desc: test results of AddDirtyType
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
+    node->outOfLimitCmdList_.emplace_back(drawCmdList);
+    EXPECT_FALSE(node->outOfLimitCmdList_.empty());
+    node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    EXPECT_TRUE(node->outOfLimitCmdList_.empty());
+}
 
 /**
  * @tc.name: ResetSurface
@@ -682,37 +672,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
     rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlaybacked();
 }
 
-/**
- * @tc.name: ContentStyleSlotUpdateTest
- * @tc.desc: Test ContentStyleSlotUpdateTest
- * @tc.type: FUNC
- * @tc.require: issueIB8OVD
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Level1)
-{
-    NodeId nodeId = 7;
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    EXPECT_NE(node, nullptr);
-
-    node->waitSync_ = true;
-    node->ContentStyleSlotUpdate();
-
-    node->waitSync_ = false;
-    node->isOnTheTree_ = true;
-    node->ContentStyleSlotUpdate();
-
-    node->waitSync_ = false;
-    node->isOnTheTree_ = false;
-    node->isNeverOnTree_ = true;
-    node->ContentStyleSlotUpdate();
-
-    node->waitSync_ = false;
-    node->isOnTheTree_ = false;
-    node->isNeverOnTree_ = false;
-    node->isTextureExportNode_ = true;
-    node->ContentStyleSlotUpdate();
-}
-
 #ifndef MODIFIER_NG
 /**
  * @tc.name: GetDrawCmdListsTest
@@ -739,4 +698,123 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawCmdListsTest, TestSize.Level1)
     EXPECT_TRUE(lists2.empty());
 }
 #endif
+
+/**
+ * @tc.name: ApplyCachedCmdListTest
+ * @tc.desc: Test ApplyCachedCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyCachedCmdListTest, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(10, 10);
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(9);
+    node->outOfLimitCmdList_.emplace_back(drawCmdList);
+    node->ApplyCachedCmdList();
+    EXPECT_TRUE(node->outOfLimitCmdList_.empty());
+    node->ApplyCachedCmdList();
+    EXPECT_TRUE(node->outOfLimitCmdList_.empty());
+}
+
+/**
+ * @tc.name: ApplyModifiersTest
+ * @tc.desc: Test ApplyModifiers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyModifiersTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(10);
+    node->cachedOpCount_ = 0;
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), false);
+    node->ApplyModifiers();
+    EXPECT_FALSE(node->HasCachedOp());
+    node->cachedOpCount_ = 1;
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    node->ApplyModifiers();
+    EXPECT_TRUE(node->HasCachedOp());
+    node->cachedOpCount_ = 0;
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    node->ApplyModifiers();
+    EXPECT_FALSE(node->HasCachedOp());
+    node->cachedOpCount_ = 1;
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), false);
+    node->ApplyModifiers();
+    EXPECT_TRUE(node->HasCachedOp());
+}
+
+/**
+ * @tc.name: CheckCachedOpTest
+ * @tc.desc: Test CheckCachedOp
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCachedOpTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(11);
+    node->cachedOpCount_ = 0;
+    EXPECT_FALSE(node->CheckCachedOp());
+    node->cachedOpCount_ = 1;
+    EXPECT_TRUE(node->CheckCachedOp());
+    node->cachedOpCount_ = 1;
+    node->isOnTheTree_ = true;
+    EXPECT_TRUE(node->CheckCachedOp());
+}
+
+/**
+ * @tc.name: ContentStyleSlotUpdateTest
+ * @tc.desc: Test ContentStyleSlotUpdate
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(12);
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
+    node->stagingRenderParams_->surfaceParams_ = { 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB };
+    node->isTextureExportNode_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->ContentStyleSlotUpdate();
+    EXPECT_FALSE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+
+    node->dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
+    node->waitSync_ = true;
+    node->isOnTheTree_ = false;
+    node->stagingRenderParams_ = nullptr;
+    node->isTextureExportNode_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    node->ContentStyleSlotUpdate();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = true;
+    node->stagingRenderParams_ = nullptr;
+    node->isTextureExportNode_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    node->ContentStyleSlotUpdate();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->stagingRenderParams_ = nullptr;
+    node->isTextureExportNode_ = true;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    node->ContentStyleSlotUpdate();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
+    node->isTextureExportNode_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    node->ContentStyleSlotUpdate();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->stagingRenderParams_ = nullptr;
+    node->isTextureExportNode_ = false;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    node->ContentStyleSlotUpdate();
+    EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
+}
 } // namespace OHOS::Rosen

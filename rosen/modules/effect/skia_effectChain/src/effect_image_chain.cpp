@@ -74,6 +74,45 @@ Drawing::AlphaType ImageUtil::AlphaTypeToDrawingAlphaType(const Media::AlphaType
     }
 }
 
+EffectCanvas::EffectCanvas(Drawing::Surface* surface)
+    : surface_(surface), canvas_(surface ? surface->GetCanvas().get() : nullptr) {}
+
+Drawing::Surface* EffectCanvas::GetSurface() const
+{
+    return surface_;
+}
+
+std::array<int, 2> EffectCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
+{
+    if (canvas_ != nullptr) {
+        return canvas_->CalcHpsBluredImageDimension(blurParams);
+    }
+    return {0, 0};
+}
+
+Drawing::CoreCanvas& EffectCanvas::AttachBrush(const Drawing::Brush& brush)
+{
+    if (canvas_ != nullptr) {
+        return canvas_->AttachBrush(brush);
+    }
+    return *this;
+}
+
+void EffectCanvas::DrawRect(const Drawing::Rect& rect)
+{
+    if (canvas_ != nullptr) {
+        return canvas_->DrawRect(rect);
+    }
+}
+
+Drawing::CoreCanvas& EffectCanvas::DetachBrush()
+{
+    if (canvas_ != nullptr) {
+        return canvas_->DetachBrush();
+    }
+    return *this;
+}
+
 DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU)
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
@@ -165,8 +204,7 @@ DrawingError EffectImageChain::ApplyHpsBlur(float radius)
         if (std::ceil(radius) == 0) { // exception when applying hps blur on 0, need handle separately
             break;
         }
-
-        RSPaintFilterCanvas canvas(surface_.get());
+        EffectCanvas canvas(surface_.get());
         Drawing::AutoCanvasRestore autoRestore(canvas, true);
         auto hpsParam = Drawing::HpsBlurParameter(Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
             Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()), radius, 1.f, 1.f);

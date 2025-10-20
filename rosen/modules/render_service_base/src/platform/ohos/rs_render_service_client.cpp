@@ -30,6 +30,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
+#include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
@@ -848,14 +849,57 @@ int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwit
     return renderService->SetScreenSwitchingNotifyCallback(cb);
 }
 
-void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+class CustomBrightnessInfoChangeCallback : public RSBrightnessInfoChangeCallbackStub
+{
+public:
+    explicit CustomBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback) : cb_(callback) {}
+    ~CustomBrightnessInfoChangeCallback() override {}
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override
+    {
+        if (cb_ != nullptr) {
+            cb_(screenId, brightnessInfo);
+        }
+    }
+
+private:
+    BrightnessInfoChangeCallback cb_;
+};
+
+int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
-        return;
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s renderService is null", __func__);
+        return RENDER_SERVICE_NULL;
     }
 
-    renderService->SetScreenActiveMode(id, modeId);
+    sptr<CustomBrightnessInfoChangeCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomBrightnessInfoChangeCallback(callback);
+    }
+
+    return renderService->SetBrightnessInfoChangeCallback(cb);
+}
+
+int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s renderService is null", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetBrightnessInfo(screenId, brightnessInfo);
+}
+
+uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetScreenActiveMode(id, modeId);
 }
 
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -1519,6 +1563,21 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     // timer: 3s
     OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + typeface->GetFamilyName(), 3);
     return renderService->RegisterTypeface(globalUniqueId, typeface);
+}
+
+
+int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: renderService is nullptr");
+        return false;
+    }
+    uint64_t id = RSTypefaceCache::GenGlobalUniqueId(hash);
+    ROSEN_LOGD("RSRenderServiceClient::RegisterTypeface: pid[%{public}d] register typface[%{public}u]",
+        RSTypefaceCache::GetTypefacePid(id), RSTypefaceCache::GetTypefaceId(id));
+    int32_t needUpdate = 0;
+    return renderService->RegisterTypeface(id, size, fd, needUpdate);
 }
 
 bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)

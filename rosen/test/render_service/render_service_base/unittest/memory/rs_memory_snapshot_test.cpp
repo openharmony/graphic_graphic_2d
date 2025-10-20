@@ -205,26 +205,6 @@ HWTEST_F(RSMemorySnapshotTest, GetMemorySnapshotTest001, testing::ext::TestSize.
 }
 
 /**
- * @tc.name: GetTotalMemoryTest001
- * @tc.desc: Test GetTotalMemory after adding/removing memory.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Level1)
-{
-    pid_t pid = 5001;
-    size_t initialTotal = MemorySnapshot::Instance().GetTotalMemory();
-    MemorySnapshot::Instance().AddCpuMemory(pid, 1024);
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
-    MemorySnapshot::Instance().RemoveCpuMemory(pid, 512);
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
-    MemorySnapshot::Instance().EraseSnapshotInfoByPid({pid});
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
-    std::set<pid_t> exitedPids = {pid};
-    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
-}
-
-/**
  * @tc.name: InitMemoryLimitTest001
  * @tc.desc: Test InitMemoryLimit initializes only once.
  * @tc.type: FUNC

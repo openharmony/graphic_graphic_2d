@@ -19,6 +19,10 @@
 #include "pipeline/rs_render_node.h"
 #include "render/rs_render_filter_base.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "parcel.h"
+#include "render/rs_path.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,6 +40,22 @@ void RSRenderFilterBaseTest::SetUpTestCase() {}
 void RSRenderFilterBaseTest::TearDownTestCase() {}
 void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
+
+/**
+ * @tc.name: UpdateVisualEffectParamImpl001
+ * @tc.desc: Test the UpdateVisualEffectParamImpl
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl001, TestSize.Level1)
+{
+    auto testEffect = std::make_shared<Drawing::GEVisualEffect>(
+        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::DISPLACEMENT_DISTORT));
+    EXPECT_NE(testEffect, nullptr);
+
+    RectT<float> rect;
+    RRect testRRect(rect, 0.5f, 0.5f);
+    RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(*testEffect, "test", testRRect);
+}
 
 /**
  * @tc.name: GenerateGEVisualEffect
@@ -64,7 +84,10 @@ HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
         RSNGEffectType::EDGE_LIGHT,
         RSNGEffectType::SOUND_WAVE,
         RSNGEffectType::DISPERSION,
-        RSNGEffectType::EDGE_LIGHT
+        RSNGEffectType::EDGE_LIGHT,
+        RSNGEffectType::GASIFY_SCALE_TWIST,
+        RSNGEffectType::GASIFY_BLUR,
+        RSNGEffectType::GASIFY
     };
     for (const auto& type : filterTypes) {
         auto filter = RSNGRenderFilterBase::Create(type);
@@ -389,5 +412,19 @@ HWTEST_F(RSRenderFilterBaseTest, CheckEnableEDR001, TestSize.Level1)
     Vector4f color{0.5f, 0.5f, 1.5f, 1.0f};
     filter2->Setter<EdgeLightColorRenderTag>(color);
     EXPECT_TRUE(RSNGRenderFilterHelper::CheckEnableEDR(filter1));
+}
+
+/**
+ * @tc.name: CalculatePropTagHashImplRRect
+ * @tc.desc: test CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CalculatePropTagHashImplRRect, TestSize.Level1)
+{
+    uint32_t hash = 0;
+
+    RectT<float> rect;
+    RRect value(rect, 0.5f, 0.5f);
+    RSNGRenderEffectHelper::CalculatePropTagHashImpl(hash, value);
 }
 } // namespace OHOS::Rosen

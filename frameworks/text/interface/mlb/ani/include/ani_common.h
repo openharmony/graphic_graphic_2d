@@ -35,6 +35,7 @@ constexpr const char* ANI_STRING = "std.core.String";
 constexpr const char* ANI_MAP = "escompat.Map";
 constexpr const char* ANI_ARRAY = "escompat.Array";
 constexpr const char* ANI_BUSINESS_ERROR = "@ohos.base.BusinessError";
+constexpr const char* ANI_RESOURCE = "global.resource.Resource";
 /**
  * define interface
  */
@@ -96,6 +97,10 @@ constexpr const char* ANI_ENUM_RECT_HEIGHT_STYLE = "@ohos.graphics.text.text.Rec
 constexpr const char* ANI_ENUM_TEXT_DIRECTION = "@ohos.graphics.text.text.TextDirection";
 constexpr const char* ANI_ENUM_AFFINITY = "@ohos.graphics.text.text.Affinity";
 constexpr const char* ANI_ENUM_SYSTEM_FONT_TYPE = "@ohos.graphics.text.text.SystemFontType";
+constexpr const char* ANI_ENUM_TEXT_VERTICAL_ALIGN = "@ohos.graphics.text.text.TextVerticalAlign";
+constexpr const char* ANI_ENUM_TEXT_BADGE_TYPE = "@ohos.graphics.text.text.TextBadgeType";
+constexpr const char* ANI_ENUM_TEXT_HIGH_CONTRAST = "@ohos.graphics.text.text.TextHighContrast";
+constexpr const char* ANI_ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY = "@ohos.graphics.text.text.TextUndefinedGlyphDisplay";
 
 enum class TextErrorCode : int32_t {
     OK = 0,

@@ -24,6 +24,9 @@
 #include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_gasify_blur_para.h"
+#include "ui_effect/filter/include/filter_gasify_para.h"
+#include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
 #include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
@@ -85,6 +88,18 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::CONTENT_LIGHT, [] {
             return std::make_shared<RSNGContentLightFilter>();
         }
+    },
+    {RSNGEffectType::GASIFY_SCALE_TWIST, [] {
+            return std::make_shared<RSNGGasifyScaleTwistFilter>();
+        }
+    },
+    {RSNGEffectType::GASIFY_BLUR, [] {
+            return std::make_shared<RSNGGasifyBlurFilter>();
+        }
+    },
+    {RSNGEffectType::GASIFY, [] {
+            return std::make_shared<RSNGGasifyFilter>();
+        }
     }
 };
 
@@ -100,6 +115,49 @@ std::shared_ptr<RSNGFilterBase> ConvertDisplacementDistortFilterPara(std::shared
     dispDistortFilter->Setter<DispDistortFactorTag>(dispDistortFilterPara->GetFactor());
     dispDistortFilter->Setter<DispDistortMaskTag>(RSNGMaskBase::Create(dispDistortFilterPara->GetMask()));
     return dispDistortFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertGasifyScaleTwistPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::GASIFY_SCALE_TWIST);
+    if (filter == nullptr) {
+        return nullptr;
+    }
+    auto gasifyScaleTwistFilter = std::static_pointer_cast<RSNGGasifyScaleTwistFilter>(filter);
+    auto gasifyScaleTwistFilterPara = std::static_pointer_cast<GasifyScaleTwistPara>(filterPara);
+    gasifyScaleTwistFilter->Setter<GasifyScaleTwistProgressTag>(gasifyScaleTwistFilterPara->GetProgress());
+    gasifyScaleTwistFilter->Setter<GasifyScaleTwistSourceImageTag>(gasifyScaleTwistFilterPara->GetSourceImage());
+    gasifyScaleTwistFilter->Setter<GasifyScaleTwistScaleTag>(gasifyScaleTwistFilterPara->GetScale());
+    gasifyScaleTwistFilter->Setter<GasifyScaleTwistMaskTag>(gasifyScaleTwistFilterPara->GetMaskImage());
+    return gasifyScaleTwistFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertGasifyBlurPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::GASIFY_BLUR);
+    if (filter == nullptr) {
+        return nullptr;
+    }
+    auto gasifyBlurFilter = std::static_pointer_cast<RSNGGasifyBlurFilter>(filter);
+    auto gasifyBlurFilterPara = std::static_pointer_cast<GasifyBlurPara>(filterPara);
+    gasifyBlurFilter->Setter<GasifyBlurProgressTag>(gasifyBlurFilterPara->GetProgress());
+    gasifyBlurFilter->Setter<GasifyBlurSourceImageTag>(gasifyBlurFilterPara->GetSourceImage());
+    gasifyBlurFilter->Setter<GasifyBlurMaskTag>(gasifyBlurFilterPara->GetMaskImage());
+    return gasifyBlurFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertGasifyPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::GASIFY);
+    if (filter == nullptr) {
+        return nullptr;
+    }
+    auto gasifyFilter = std::static_pointer_cast<RSNGGasifyFilter>(filter);
+    auto gasifyFilterPara = std::static_pointer_cast<GasifyPara>(filterPara);
+    gasifyFilter->Setter<GasifyProgressTag>(gasifyFilterPara->GetProgress());
+    gasifyFilter->Setter<GasifySourceImageTag>(gasifyFilterPara->GetSourceImage());
+    gasifyFilter->Setter<GasifyMaskTag>(gasifyFilterPara->GetMaskImage());
+    return gasifyFilter;
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<FilterPara> filterPara)
@@ -236,6 +294,9 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::VARIABLE_RADIUS_BLUR, ConvertVariableRadiusBlurFilterPara },
     { FilterPara::ParaType::BEZIER_WARP, ConvertBezierWarpFilterPara },
     { FilterPara::ParaType::CONTENT_LIGHT, ConvertContentLightFilterPara },
+    { FilterPara::ParaType::GASIFY_SCALE_TWIST, ConvertGasifyScaleTwistPara },
+    { FilterPara::ParaType::GASIFY_BLUR, ConvertGasifyBlurPara },
+    { FilterPara::ParaType::GASIFY, ConvertGasifyPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

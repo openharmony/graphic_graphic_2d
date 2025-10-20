@@ -54,6 +54,12 @@ RSHeteroHDRBufferLayer::~RSHeteroHDRBufferLayer()
 void RSHeteroHDRBufferLayer::CleanCache()
 {
     if (surfaceHandler_ != nullptr) {
+        auto consumer = surfaceHandler_->GetConsumer();
+        std::lock_guard<std::mutex> lockGuard(surfaceHandleMutex_);
+        if (consumer != nullptr && bufferToRelease_ != nullptr) {
+            consumer->ReleaseBuffer(bufferToRelease_, surfaceHandler_->GetPreBufferReleaseFence());
+            bufferToRelease_ = nullptr;
+        }
         surfaceHandler_->CleanCache();
         RS_LOGD("[hdrHetero]:RSHeteroHDRBufferLayer CleanCache surfaceHandler clean done");
     }
@@ -85,14 +91,14 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
             config.colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
             break;
         case HdrStatus::HDR_VIDEO:
+            config.format = GRAPHIC_PIXEL_FMT_YCBCR_P010;
             config.colorGamut = GRAPHIC_COLOR_GAMUT_BT2020;
+            config.width = static_cast<int32_t>(curScreenInfo.width);
+            config.height = static_cast<int32_t>(curScreenInfo.height);
             if (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
                 transform == GraphicTransformType::GRAPHIC_ROTATE_270) {
                 config.width = static_cast<int32_t>(curScreenInfo.height);
                 config.height = static_cast<int32_t>(curScreenInfo.width);
-            } else {
-                config.width = static_cast<int32_t>(curScreenInfo.width);
-                config.height = static_cast<int32_t>(curScreenInfo.height);
             }
             break;
         default:
@@ -118,12 +124,12 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
 
 void RSHeteroHDRBufferLayer::ConsumeAndUpdateBuffer()
 {
-    // The log information related to the failure has been printed within the function.
-    ReleaseBuffer();
     if (surfaceHandler_ == nullptr) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ConsumeAndUpdateBuffer surfaceHandler is nullptr");
         return;
     }
+    // The log information related to the failure has been printed within the function.
+    ReleaseBuffer();
     RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler_);
 }
 
@@ -203,13 +209,18 @@ bool RSHeteroHDRBufferLayer::ReleaseBuffer()
         return false;
     }
     auto preBuffer = surfaceHandler_->GetPreBuffer();
-    if (preBuffer != nullptr) {
-        auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler_->GetPreBufferReleaseFence());
+    std::lock_guard<std::mutex> lockGuard(surfaceHandleMutex_);
+    if (bufferToRelease_ == preBuffer) {
+        return true;
+    }
+    if (bufferToRelease_ != nullptr) {
+        auto ret = consumer->ReleaseBuffer(bufferToRelease_, surfaceHandler_->GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ReleaseBuffer surfaceHandler ReleaseBuffer failed");
+            RS_LOGE("[hdrHetero]:RSHeteroHDRBufferLayer ReleaseBuffer consumer failed, maybe normal");
             return false;
         }
     }
+    bufferToRelease_ = preBuffer;
     return true;
 }
 

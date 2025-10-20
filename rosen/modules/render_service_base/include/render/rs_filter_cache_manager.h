@@ -140,6 +140,8 @@ public:
         if all two conditions are met, the cache needs to be cleared.
     */
     void ClearEffectCacheWithDrawnRegion(const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound);
+
+    void MarkDebugEnabled();
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect);
@@ -153,7 +155,6 @@ private:
     // Validate the input srcRect and dstRect, and return the validated rects.
     std::tuple<Drawing::RectI, Drawing::RectI> ValidateParams(RSPaintFilterCanvas& canvas,
         const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect);
-    inline static void ClipVisibleRect(RSPaintFilterCanvas& canvas);
     // Check if the cache is valid in current GrContext, since FilterCache will never be used in multi-thread
     // environment, we don't need to attempt to reattach SkImages.
     void CheckCachedImages(RSPaintFilterCanvas& canvas);
@@ -162,6 +163,8 @@ private:
 
     void UpdateFlags(FilterCacheType type, bool cacheValid);
     void ClearFilterCache();
+
+    void PrintDebugInfo(NodeId nodeID);
 
     // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
@@ -222,10 +225,14 @@ private:
     // last stagingInForegroundFilter_ value
     NodeId lastInForegroundFilter_ = INVALID_NODEID;
 
+    bool lastStagingFilterInteractWithDirty_ = false;
+
     bool takeNewSnapshot_ = false;
     std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
     bool isHpaeCachedFilteredSnapshot_ = false;
     bool snapshotNeedUpdate_ = false;
+
+    bool debugEnabled_ = false;
 public:
     static bool isCCMFilterCacheEnable_;
     static bool isCCMEffectMergeEnable_;

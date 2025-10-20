@@ -112,6 +112,8 @@ public:
     static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilder();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream(const void* data, size_t length, bool copyData);
+    static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream(
+        const void* data, size_t length, DataReleaseProc proc, void* context);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolder();
 };
 } // namespace Drawing

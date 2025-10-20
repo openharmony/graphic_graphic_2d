@@ -1543,6 +1543,164 @@ HWTEST_F(ColorPickerUnittest, GetTopProportionColors, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetTopProportion
+ * @tc.desc: check Proportion info's correction
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetTopProportion, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest GetTopProportion start";
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    std::vector<double> percentages = pColorPicker->GetTopProportion(1); // the color num limit is 10
+    ASSERT_EQ(percentages.size(), 1);
+    pColorPicker->featureColors_.clear();
+    percentages = pColorPicker->GetTopProportion(1);
+    ASSERT_EQ(percentages.size(), 0);
+
+    std::pair<uint32_t, uint32_t> featureColor;
+    featureColor.first = 0;
+    featureColor.second = 20;
+    pColorPicker->featureColors_.emplace_back(featureColor);
+    pColorPicker->colorValLen_ = 0;
+    percentages = pColorPicker->GetTopProportion(1);
+    ASSERT_EQ(percentages.size(), 0);
+    pColorPicker->colorValLen_ = 20;
+    percentages = pColorPicker->GetTopProportion(0);
+    ASSERT_EQ(percentages.size(), 0);
+    percentages = pColorPicker->GetTopProportion(1);
+    ASSERT_EQ(percentages.size(), 1);
+}
+
+/**
+ * @tc.name: ComplexityDegree001
+ * @tc.desc: ComplexityDegree's degree is PURE_PICTURE
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, ComplexityDegree001, TestSize.Level1)
+{
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    pColorPicker->grayMsd_ = 5000;
+    pColorPicker->contrastToWhite_ = 9;
+    pColorPicker->distinctColorCount_ = 1000;
+    PictureComplexityDegree degree = UNKNOWN_COMPLEXITY_DEGREE_PICTURE;
+    pColorPicker->ComplexityDegree(degree);
+    EXPECT_EQ(degree, PURE_PICTURE);
+    pColorPicker->distinctColorCount_ = 4000;
+    pColorPicker->ComplexityDegree(degree);
+    EXPECT_EQ(degree, VERY_FLOWERY_PICTURE);
+    pColorPicker->distinctColorCount_ = 3000;
+    pColorPicker->ComplexityDegree(degree);
+    EXPECT_EQ(degree, MODERATE_COMPLEXITY_PICTURE);
+    pColorPicker->grayMsd_ = 6000;
+    pColorPicker->ComplexityDegree(degree);
+    EXPECT_EQ(degree, VERY_FLOWERY_PICTURE);
+    pColorPicker->featureColors_.clear();
+    uint32_t ret = pColorPicker->ComplexityDegree(degree);
+    EXPECT_EQ(ret, ERR_EFFECT_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: ShadeDegree001
+ * @tc.desc: ShadeDegree's degree is EXTREMELY_DARK_PICTURE
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, ShadeDegree001, TestSize.Level1)
+{
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    pColorPicker->contrastToWhite_ = 15.f;
+    PictureShadeDegree degree = UNKNOWN_SHADE_DEGREE_PICTURE;
+    pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(degree, EXTREMELY_DARK_PICTURE);
+    pColorPicker->contrastToWhite_ = 9.f;
+    pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(degree, DARK_PICTURE);
+    pColorPicker->contrastToWhite_ = 6.f;
+    pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(degree, MODERATE_SHADE_PICTURE);
+    pColorPicker->contrastToWhite_ = 2.f;
+    pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(degree, LIGHT_PICTURE);
+    pColorPicker->contrastToWhite_ = 1.6f;
+    pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(degree, VERY_LIGHT_PICTURE);
+    pColorPicker->contrastToWhite_ = 1.4f;
+    pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(degree, EXTREMELY_LIGHT_PICTURE);
+    pColorPicker->featureColors_.clear();
+    uint32_t ret = pColorPicker->ShadeDegree(degree);
+    EXPECT_EQ(ret, ERR_EFFECT_INVALID_VALUE);
+}
+
+/**
  * @tc.name: AdjustHSVToDefinedIterval
  * @tc.desc: check hsv to defined iterval.
  * @tc.type: FUNC

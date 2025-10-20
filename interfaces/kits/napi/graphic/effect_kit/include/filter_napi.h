@@ -53,7 +53,6 @@ private:
 
     void AddEffectFilter(std::shared_ptr<EffectImageFilter> filter);
     DrawingError Render(bool forceCPU);
-    static void Finalizer(napi_env env, void* data, void* hint);
 
     std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;

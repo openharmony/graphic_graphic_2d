@@ -25,15 +25,9 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_RANGE, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
-    }
     ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj || ret != ANI_OK) {
+    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_RANGE, &isObj);
+    if (ret != ANI_OK || !isObj) {
         TEXT_LOGE("Object mismatch:%{public}d", ret);
         return ret;
     }
@@ -49,16 +43,16 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
-    rectRange.start = static_cast<size_t>(startTmp);
-    rectRange.end = static_cast<size_t>(endTmp);
+    rectRange.start = static_cast<int64_t>(startTmp);
+    rectRange.end = static_cast<int64_t>(endTmp);
     return ANI_OK;
 }
 
 ani_status AniTextRectConverter::ParseWidthStyleToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::TextRectWidthStyle& widthStyle)
 {
-    ani_size index = 0;
-    ani_status result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(obj), &index);
+    ani_int index = 0;
+    ani_status result = env->EnumItem_GetValue_Int(static_cast<ani_enum_item>(obj), &index);
     if (result != ANI_OK) {
         TEXT_LOGE("Failed to enum widthStyle, ret %{public}d", result);
         return result;
@@ -70,8 +64,8 @@ ani_status AniTextRectConverter::ParseWidthStyleToNative(
 ani_status AniTextRectConverter::ParseHeightStyleToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::TextRectHeightStyle& heightStyle)
 {
-    ani_size index = 0;
-    ani_status result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(obj), &index);
+    ani_int index = 0;
+    ani_status result = env->EnumItem_GetValue_Int(static_cast<ani_enum_item>(obj), &index);
     if (result != ANI_OK) {
         TEXT_LOGE("Failed to enum heightStyle, ret %{public}d", result);
         return result;

@@ -37,6 +37,7 @@
  * @version 1.0
  */
 
+#include "drawing_error_code.h"
 #include "drawing_types.h"
 
 #ifdef __cplusplus
@@ -157,6 +158,19 @@ bool OH_Drawing_RegionSetPath(OH_Drawing_Region* region, const OH_Drawing_Path* 
  * @version 1.0
  */
 void OH_Drawing_RegionDestroy(OH_Drawing_Region*);
+
+/**
+ * @brief Set an <b>OH_Drawing_Region</b> empty.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region is nullptr.
+ * @since 22
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionEmpty(OH_Drawing_Region* region);
 
 #ifdef __cplusplus
 }

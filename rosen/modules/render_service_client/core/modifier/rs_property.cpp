@@ -511,6 +511,18 @@ void RSProperty<std::shared_ptr<ParticleNoiseFields>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyParticleNoiseFields, value, type);
 }
 template<>
+void RSProperty<std::shared_ptr<ParticleRippleFields>>::UpdateToRender(
+    const std::shared_ptr<ParticleRippleFields>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyParticleRippleFields, value, type);
+}
+template<>
+void RSProperty<std::shared_ptr<ParticleVelocityFields>>::UpdateToRender(
+    const std::shared_ptr<ParticleVelocityFields>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyParticleVelocityFields, value, type);
+}
+template<>
 void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
     const std::shared_ptr<RSShader>& value, PropertyUpdateType type) const
 {

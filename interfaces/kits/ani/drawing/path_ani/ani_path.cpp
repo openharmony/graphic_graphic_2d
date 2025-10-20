@@ -34,6 +34,7 @@ ani_status AniPath::AniInit(ani_env *env)
             reinterpret_cast<void*>(ConstructorWithPath) },
         ani_native_function { "arcTo", "DDDDDD:V", reinterpret_cast<void*>(ArcTo) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "isRect", nullptr, reinterpret_cast<void*>(IsRect) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -93,6 +94,29 @@ void AniPath::ArcTo(ani_env* env, ani_object obj, ani_double x1, ani_double y1, 
 
     aniPath->GetPath().ArcTo(x1, y1, x2, y2, startDeg, sweepDeg);
     return;
+}
+
+ani_boolean AniPath::IsRect(ani_env* env, ani_object obj, ani_object aniRectObj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    if (aniPath == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
+        return false;
+    }
+    ani_boolean isNull = ANI_TRUE;
+    env->Reference_IsNull(aniRectObj, &isNull);
+    if (isNull) {
+        return aniPath->GetPath().IsRect(nullptr);
+    }
+    Drawing::Rect drawingRect;
+    if (!GetRectFromAniRectObj(env, aniRectObj, drawingRect)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+        return false;
+    }
+    bool result = aniPath->GetPath().IsRect(&drawingRect);
+    DrawingRectConvertToAniRect(env, aniRectObj, drawingRect);
+    return result;
 }
 
 

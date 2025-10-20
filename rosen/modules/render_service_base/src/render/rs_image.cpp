@@ -18,6 +18,7 @@
 
 #include "common/rs_common_tools.h"
 #include "common/rs_rect.h"
+#include "feature/hdr/rs_colorspace_util.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/sk_resource_manager.h"
@@ -120,7 +121,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
-    auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
+    auto targetColorSpace = RSColorSpaceUtil::GetColorGamutFromCanvas(canvas);
     auto shotType = rscanvas.GetScreenshotType();
     bool isSDRCapture = shotType == RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT ||
         shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;

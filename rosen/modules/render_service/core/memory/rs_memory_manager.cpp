@@ -103,10 +103,14 @@ uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
 
-void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
+void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type, bool isLite)
 {
     if (type.empty() || type == MEM_RS_TYPE) {
-        DumpRenderServiceMemory(log);
+        if (isLite) {
+            DumpRenderServiceMemory(log, isLite);
+        } else {
+            DumpRenderServiceMemory(log);
+        }
     }
     if (type.empty() || type == MEM_CPU_TYPE) {
         DumpDrawingCpuMemory(log);
@@ -360,12 +364,27 @@ static std::tuple<uint64_t, std::string, RectI, bool> FindGeoById(uint64_t nodeI
     return { windowId, windowName, nodeFrameRect, false };
 }
 
-void MemoryManager::DumpRenderServiceMemory(DfxString& log)
+static std::tuple<uint64_t, std::string, RectI, bool> FindGeoByIdLite(uint64_t nodeId)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return { 0, "", RectI(), true };
+    }
+    return { 0, "", RectI(), false};
+}
+
+void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
 {
     log.AppendFormat("\n----------\nRenderService caches:\n");
-    MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
-    RSMainThread::Instance()->RenderServiceAllNodeDump(log);
-    RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
+    if (isLite) {
+        MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
+        RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
+    } else {
+        MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
+        RSMainThread::Instance()->RenderServiceAllNodeDump(log);
+        RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
+    }
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
     memStat.DumpMemoryStatistics(&gpuTracer);
@@ -502,7 +521,7 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
 }
 
 void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext,
-    std::vector<std::pair<NodeId, std::string>>& nodeTags)
+    std::vector<std::pair<NodeId, std::string>>& nodeTags, bool isLite)
 {
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");
@@ -521,25 +540,28 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
     // Get memory of window by tag
-    DumpAllGpuInfo(log, gpuContext, nodeTags);
-    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
-        Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
-        DumpGpuCache(log, gpuContext, &tag, tagTypeName);
-    }
-    // cache limit
-    size_t cacheLimit = 0;
-    size_t cacheUsed = 0;
-    gpuContext->GetResourceCacheLimits(nullptr, &cacheLimit);
-    gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
-    log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
+    if (!isLite) {
+        DumpAllGpuInfo(log, gpuContext, nodeTags);
+        for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE;
+            tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
+            std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
+            Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
+            DumpGpuCache(log, gpuContext, &tag, tagTypeName);
+        }
+        // cache limit
+        size_t cacheLimit = 0;
+        size_t cacheUsed = 0;
+        gpuContext->GetResourceCacheLimits(nullptr, &cacheLimit);
+        gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
+        log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
 
-    /* ShaderCache */
-    log.AppendFormat("\n---------------\nShader Caches:\n");
-    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-    log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
-    // gpu stat
-    DumpGpuStats(log, gpuContext);
+        /* ShaderCache */
+        log.AppendFormat("\n---------------\nShader Caches:\n");
+        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+        log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
+        // gpu stat
+        DumpGpuStats(log, gpuContext);
+    }
 #endif
 }
 

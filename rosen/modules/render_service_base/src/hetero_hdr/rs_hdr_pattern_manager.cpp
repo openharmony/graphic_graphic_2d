@@ -308,6 +308,12 @@ void RSHDRPatternManager::SetThreadId(RSPaintFilterCanvas& canvas)
 std::vector<uint64_t> RSHDRPatternManager::MHCGetFrameIdForGPUTask()
 {
     std::vector<uint64_t> frameIdVec{};
+#ifdef RS_ENABLE_VK
+    if (RSHDRVulkanTask::IsInterfaceTypeBasicRender() == false) {
+        RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCGetFrameIdForGPUTask not basic render");
+        return frameIdVec;
+    }
+#endif // RS_ENABLE_VK
 #ifdef ROSEN_OHOS
     std::unique_lock<std::mutex> lock(frameIdMutex_);
     if (lastFrameIdUsed_ && curFrameIdUsed_) {
@@ -327,5 +333,35 @@ std::vector<uint64_t> RSHDRPatternManager::MHCGetFrameIdForGPUTask()
 #endif
     return frameIdVec;
 }
+
+#ifdef RS_ENABLE_VK
+void RSHDRPatternManager::MHCSubmitGPUTask(uint32_t submitCount, VkSubmitInfo* pSubmits)
+{
+    std::unique_lock<std::mutex> lock(funcMutex_);
+    bool noNeedSubmitGPUTask = submitFuncs_.empty() || submitCount == 0 || !pSubmits;
+    if (noNeedSubmitGPUTask) {
+        RS_LOGD("[hdrHetero]:RSHDRPatternManager MHCSubmitGPUTask no need submit task");
+        return;
+    }
+
+    std::vector<std::function<void()>> funcsToExecute;
+    for (uint32_t j = 0; j < submitCount; j++) {
+        for (uint32_t i = 0; i < pSubmits[j].waitSemaphoreCount && pSubmits[j].pWaitSemaphores; i++) {
+            auto it = submitFuncs_.find(pSubmits[j].pWaitSemaphores[i]);
+            if (it != submitFuncs_.end()) {
+                auto func = it->second;
+                func();
+                submitFuncs_.erase(it);
+            }
+        }
+    }
+    lock.unlock();
+
+    for (auto& func : funcsToExecute) {
+        func();
+    }
+}
+#endif // RS_ENABLE_VK
+
 } // namespace Rosen
 } // namespace OHOS

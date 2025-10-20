@@ -80,6 +80,22 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     geFilter.SetParam(desc, value);
 }
 
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const RRect& value)
+{
+    OHOS::Rosen::Drawing::GERRect geRRect(value.rect_.left_, value.rect_.top_,
+                                          value.rect_.width_, value.rect_.height_,
+                                          value.radius_->x_, value.radius_->y_);
+
+    geFilter.SetParam(desc, geRRect);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, std::shared_ptr<Drawing::Image> value)
+{
+    geFilter.SetParam(desc, value);
+}
+
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, float value)
 {
     hash = hashFunc_(&value, sizeof(value), hash);
@@ -138,6 +154,17 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std:
     for (size_t i = 0; i < value.size(); i++) {
         hash = hashFunc_(&value[i], sizeof(float), hash);
     }
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
+{
+    hash = hashFunc_(&value, sizeof(RRect), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value)
+{
+    auto imageUniqueID = value->GetUniqueID();
+    hash = hashFunc_(&imageUniqueID, sizeof(imageUniqueID), hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

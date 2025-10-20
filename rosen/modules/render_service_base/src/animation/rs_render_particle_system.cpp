@@ -65,12 +65,15 @@ void RSRenderParticleSystem::UpdateParticle(
     if (activeParticles.empty()) {
         return;
     }
+    if (particleRippleFields_ != nullptr) {
+        particleRippleFields_->UpdateAllRipples(static_cast<float>(deltaTime) / NS_TO_S);
+    }
     for (auto it = activeParticles.begin(); it != activeParticles.end();) {
         // std::shared_ptr<RSRenderParticle> particle = *it;
         if ((*it) == nullptr || !(*it)->IsAlive()) {
             it = activeParticles.erase(it);
         } else {
-            Update((*it), particleNoiseFields_, deltaTime);
+            Update((*it), particleNoiseFields_, particleRippleFields_, particleVelocityFields_, deltaTime);
             ++it;
         }
     }
@@ -99,6 +102,15 @@ void RSRenderParticleSystem::UpdateEmitter(
 void RSRenderParticleSystem::UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields)
 {
     particleNoiseFields_ = particleNoiseFields;
+}
+
+void RSRenderParticleSystem::UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields)
+{
+    particleRippleFields_ = particleRippleFields;
+}
+void RSRenderParticleSystem::UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields)
+{
+    particleVelocityFields_ = particleVelocityFields;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -38,6 +38,7 @@
 #define NDK_INCLUDE_NATIVE_IMAGE_H_
 
 #include <stdint.h>
+#include "native_buffer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -342,6 +343,93 @@ int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, 
  * @version 1.0
  */
 int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen);
+
+/**
+ * @brief Create a <b>OH_NativeImage</b> related to an Opengl ES texture and target with textureId, \n
+ * and choose whether to set single buffer mode.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param textureId Indicates the id of the Opengl ES texture which the native image attached to.
+ * @param textureTarget Indicates the Opengl ES target.
+ * @param singleBufferMode Whether to set single buffer mode.
+ * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
+ * returns <b>NULL</b> otherwise.
+ * @since 22
+ * @version 1.0
+ */
+OH_NativeImage* OH_NativeImage_CreateWithSingleBufferMode(
+    uint32_t textureId, uint32_t textureTarget, bool singleBufferMode);
+
+/**
+ * @brief Create a <b>OH_NativeImage</b> as surface consumer, and choose whether to set single buffer mode. \n
+ * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
+ * This interface needs to be used in conjunction with <b>OH_NativeImage_Destroy</b>,
+ * otherwise memory leaks will occur.\n
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param singleBufferMode Whether to set single buffer mode.
+ * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
+ * returns <b>NULL</b> otherwise.
+ * @since 22
+ * @version 1.0
+ */
+OH_NativeImage* OH_ConsumerSurface_CreateWithSingleBufferMode(bool singleBufferMode);
+
+/**
+ * @brief Release the <b>OH_NativeImage</b> in single buffer mode.\n
+ * This interface suggest be called after the producer flushes the buffer to let the buffer queue rotate, \n
+ * in the single buffer mode.
+ * This interface is a non-thread-safe type interface.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
+ * @since 22
+ * @version 1.0
+ */
+int32_t OH_NativeImage_ReleaseTextImage(OH_NativeImage* image);
+
+/**
+ * @brief Get the colorSpace of <b>OH_NativeImage</b>.\n
+ * This interface is a non-thread-safe type interface.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param colorSpace Indicates the colorSpace of <b>OH_NativeImage</b>.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ * @since 22
+ * @version 1.0
+ */
+int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_ColorSpace* colorSpace);
+
+/**
+ * @brief Acquire a latest <b>OHNativeWindowBuffer</b> through an <b>OH_NativeImage</b> instance for content consumer.\n
+ * This method can get the latest <b>OHNativeWindowBuffer</b> and drop other <b>OHNativeWindowBuffers</b>, meanwhile
+ * producer will receive buffer released callbacks of dropped buffers.\n
+ * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
+ * This method will create an <b>OHNativeWindowBuffer</b>.\n
+ * If there is a situation when <b>OHNativeWindowBuffer</b> is still used after calling
+ * <b>OH_NativeImage_ReleaseNativeWindowBuffer</b>, you must pay attention to the following two points.\n
+ * 1) When using <b>OHNativeWindowBuffer</b>, need to increase its reference count
+ * by <b>OH_NativeWindow_NativeObjectReference</b>.\n
+ * 2) When the <b>OHNativeWindowBuffer</b> is used up, its reference count needs to be decremented
+ * by <b>OH_NativeWindow_NativeObjectUnreference</b>.\n
+ * This interface needs to be used in conjunction with <b>OH_NativeImage_ReleaseNativeWindowBuffer</b>,
+ * otherwise memory leaks will occur.\n
+ * When the fenceFd is used up, you need to close it.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param nativeWindowBuffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> point.
+ * @param fenceFd Indicates the pointer to a file descriptor handle.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image, nativeWindowBuffer, fenceFd is NULL.
+ *     {@link NATIVE_ERROR_NO_BUFFER} 40601000 - No buffer for consume.
+ * @since 22
+ * @version 1.0
+ */
+int32_t OH_NativeImage_AcquireLatestNativeWindowBuffer(OH_NativeImage* image,
+    OHNativeWindowBuffer** nativeWindowBuffer, int* fenceFd);
 #ifdef __cplusplus
 }
 #endif

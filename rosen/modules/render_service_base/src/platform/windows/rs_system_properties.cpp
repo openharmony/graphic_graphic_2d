@@ -556,6 +556,11 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetSkipUnpremulEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
@@ -790,6 +795,16 @@ bool RSSystemProperties::GetGpuDirtyApsEnabled()
 }
 
 bool RSSystemProperties::GetBootCompleted()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetClipRRectOptimizationEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     return false;
 }

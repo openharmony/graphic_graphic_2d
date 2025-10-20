@@ -80,6 +80,8 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, Dst, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PixelMapMask, FillColor, Vector4f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(PixelMapMask, Image, std::shared_ptr<Media::PixelMap>);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffectMask, Image, std::shared_ptr<Media::PixelMap>);
+
 DECLARE_NONANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Contour, std::vector<Vector2f>);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Start, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, Line1Length, float);
@@ -187,6 +189,18 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(ColorGradientEffect, ColorNumber, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Blend, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, BlendK, float);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Mask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffect, MaskClock, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, TintColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RipplePosition, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RippleProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, DistortProgress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, DistortFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, ReflectionFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RefractionFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, MaterialFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, CornerRadius, float);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, LTWH, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, StretchFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, BarAngle, float);
@@ -227,3 +241,29 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientBegin, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientEnd, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, EffectAlpha, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Progress, float);
+
+// SDFUnionOpMask
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpMask, MaskX, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpMask, MaskY, MASK_PTR);
+
+// SDFSmoothUnionOpMask
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpMask, Spacing, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskX, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskY, MASK_PTR);
+
+// SDFRRectMask
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFRRectMask, RRect, RRect);
+
+// Gasify
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);

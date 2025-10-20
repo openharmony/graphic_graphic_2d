@@ -150,13 +150,20 @@ public:
 
     /**
      * @brief   subtree parallel feature interface to generate draw op.
+     * @param isMainCtx    Whether main contextFlush commands or not.
      */
-    void FlushCommands();
+    void FlushCommands(bool isMainCtx = false);
 
     /**
-     * @brief   subtree parallel feature interface to generate submit information.
+     * @brief   subtree parallel feature interface to wait dependent draw finish.
      */
-    void GenerateSubmitInfo(int seq);
+    void RegisterWaitSemCallback(const std::function<void(int seq)>& callBack, int seq = -1);
+
+    /**
+     * @brief   subtree parallel feature interface to unregister wait sem callback.
+     */
+    void UnRegisterWaitSemCallback();
+
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
      */

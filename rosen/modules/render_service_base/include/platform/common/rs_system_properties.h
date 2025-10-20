@@ -278,6 +278,7 @@ public:
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
+    static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();
     static uint32_t GetSubtreeDebugOption();
     static bool GetSurfaceOffscreenEnadbled();
@@ -382,8 +383,15 @@ public:
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
+    static bool GetMemoryWatermarkEnabled();
 
     static bool GetBootCompleted();
+
+    static bool GetClipRRectOptimizationEnabled();
+
+    static bool GetNodeMemClearEnabled();
+
+    static bool GetRSNodeExceedKillEnabled();
 
 private:
     RSSystemProperties() = default;

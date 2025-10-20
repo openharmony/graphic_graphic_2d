@@ -244,6 +244,8 @@ private:
 
     // [Attention] Only used in PC window resize scene now
     NodeId linkedRootNodeId_ = INVALID_NODEID;
+
+    Drawing::DrawCmdListPtr drawCmdList_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

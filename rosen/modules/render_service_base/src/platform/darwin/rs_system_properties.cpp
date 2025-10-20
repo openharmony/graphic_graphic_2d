@@ -507,6 +507,11 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetSkipUnpremulEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -791,6 +796,21 @@ bool RSSystemProperties::GetGpuDirtyApsEnabled()
     return {};
 }
 bool RSSystemProperties::GetBootCompleted()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetClipRRectOptimizationEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetNodeMemClearEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     return false;
 }

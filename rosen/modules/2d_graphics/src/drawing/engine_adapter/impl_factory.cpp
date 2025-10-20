@@ -491,6 +491,17 @@ std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl(const void
     return EngineImplFactory::CreateMemoryStream(data, length, copyData);
 }
 
+std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl(
+    const void* data, size_t length, DataReleaseProc proc, void* context)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateMemoryStream(data, length, proc, context);
+    }
+#endif
+    return EngineImplFactory::CreateMemoryStream(data, length, proc, context);
+}
+
 std::shared_ptr<ResourceHolderImpl> ImplFactory::CreateResourceHolderImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

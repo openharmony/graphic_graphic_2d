@@ -339,6 +339,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         // remove all fallback animations belong to given pid
         fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
     }
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
+#endif
 }
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const

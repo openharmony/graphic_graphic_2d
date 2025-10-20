@@ -355,6 +355,22 @@ OH_Drawing_ErrorCode OH_Drawing_MatrixGetAll(OH_Drawing_Matrix* cMatrix, float v
     return OH_DRAWING_SUCCESS;
 }
 
+OH_Drawing_ErrorCode OH_Drawing_MatrixPreConcat(OH_Drawing_Matrix* cMatrix, OH_Drawing_Matrix* other)
+{
+    if (cMatrix == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Matrix* matrix = CastToMatrix(cMatrix);
+
+    if (other == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Matrix* otherMatrix = CastToMatrix(other);
+
+    matrix->PreConcat(*otherMatrix);
+    return OH_DRAWING_SUCCESS;
+}
+
 void OH_Drawing_MatrixDestroy(OH_Drawing_Matrix* cMatrix)
 {
     if (!cMatrix) {

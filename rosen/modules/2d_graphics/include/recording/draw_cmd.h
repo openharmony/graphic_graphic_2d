@@ -132,6 +132,14 @@ public:
     {
         return Rect { 0, 0, 0, 0 };
     }
+
+    void SetNoImageMarshalling(bool value)
+    {
+        noImageMarshalling = value;
+    }
+
+protected:
+    bool noImageMarshalling = false;
 };
 
 class DRAWING_API UnmarshallingHelper {

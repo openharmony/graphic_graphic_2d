@@ -72,6 +72,7 @@ public:
     static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
     static bool GetRGBA1010108Enabled();
+    static void CheckNotifyCallback(RSContext& context, ScreenId screenId);
     static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
     static void UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut);
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
@@ -83,6 +84,7 @@ public:
         RSPaintFilterCanvas* canvas);
     static bool SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
         const Drawing::SamplingOptions& sampling);
+    static GSError EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFrame);
     static GSError SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
         std::unique_ptr<RSRenderFrame>& renderFrame);
     static GSError SetMetadata(SurfaceBuffer* buffer,

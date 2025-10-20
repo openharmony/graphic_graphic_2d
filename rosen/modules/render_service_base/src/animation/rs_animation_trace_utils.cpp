@@ -272,6 +272,9 @@ void RSAnimationTraceUtils::AddAnimationFrameTrace(const RSRenderNode* target, c
 
     std::ostringstream oss;
     oss << "frame animation node[" << nodeId << "]";
+    if (target == nullptr) {
+        oss << " target[nullptr]";
+    }
 
     if (!nodeName.empty()) {
         oss << " name[" << nodeName << "]";

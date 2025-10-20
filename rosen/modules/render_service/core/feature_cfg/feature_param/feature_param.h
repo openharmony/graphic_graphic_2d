@@ -46,6 +46,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "RotateOffScreenConfig",
     "SubtreeConfig",
     "ImageEnhanceConfig",
+    "VideoMetadataConfig",
 };
 
 enum FeatureModule {
@@ -71,6 +72,7 @@ enum FeatureModule {
     ROTATEOFFSCREEN,
     SUBTREEPARALLEL,
     IMAGE_ENHANCE,
+    VIDEO_METADATA,
     // Do not change it.
     ENUM_LENGTH,
 };

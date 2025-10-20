@@ -49,6 +49,7 @@ private:
     std::string layerName_;
     sptr<Surface> surface_ = nullptr;
     std::mutex surfaceHandleMutex_;
+    sptr<SurfaceBuffer> bufferToRelease_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -72,6 +72,18 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::CONTENT_LIGHT, [] {
             return std::make_shared<RSNGRenderContentLightFilter>();
         }
+    },
+    {RSNGEffectType::GASIFY_SCALE_TWIST, [] {
+            return std::make_shared<RSNGRenderGasifyScaleTwistFilter>();
+        }
+    },
+    {RSNGEffectType::GASIFY_BLUR, [] {
+            return std::make_shared<RSNGRenderGasifyBlurFilter>();
+        }
+    },
+    {RSNGEffectType::GASIFY, [] {
+            return std::make_shared<RSNGRenderGasifyFilter>();
+        }
     }
 };
 

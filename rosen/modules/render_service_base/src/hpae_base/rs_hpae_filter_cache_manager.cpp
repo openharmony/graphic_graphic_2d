@@ -280,7 +280,7 @@ int RSHpaeFilterCacheManager::ProcessHianimationBlur(const std::shared_ptr<RSDra
     }
     blurItem.gpFrameId_ = curFrameId;
     RSHpaeFfrtPatternManager::Instance().MHCSetCurFrameId(curFrameId);
-    HPAE_LOGI("HianimationBlur: taskId: %{public}d, radius=%{public}f",
+    HPAE_LOGD("HianimationBlur: taskId: %{public}d, radius=%{public}f",
         blurItem.hpaeTask_.taskId, radius);
     RSHpaeFfrtPatternManager::Instance().SetUpdatedFlag();
     RSHpaeScheduler::GetInstance().CacheHpaeItem(blurItem); // cache and notify after flush
@@ -508,7 +508,7 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
             }
             result = hpaeBlurOutputQueue_.front();
             if (useCacheImage && hpaeBlurOutputQueue_.size() == 1) {
-                HPAE_LOGI("Clear cache for first frame");
+                HPAE_LOGD("Clear cache for first frame");
                 hpaeBlurOutputQueue_.clear();
             }
         }

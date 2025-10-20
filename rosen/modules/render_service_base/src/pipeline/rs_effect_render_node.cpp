@@ -276,6 +276,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
         return;
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
+    effectParams->SetHasHarmoniumChildren(ChildHasVisibleHarmonium());
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
@@ -350,6 +351,17 @@ void RSEffectRenderNode::SetDarkColorMode(bool isDark)
         return;
     }
     effectParams->SetDarkColorMode(isDark);
+}
+
+void RSEffectRenderNode::MarkFilterDebugEnabled()
+{
+#ifdef RS_ENABLE_GPU
+    auto filterDrawable = GetFilterDrawable(false);
+    if (filterDrawable == nullptr) {
+        return;
+    }
+    filterDrawable->MarkDebugEnabled();
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

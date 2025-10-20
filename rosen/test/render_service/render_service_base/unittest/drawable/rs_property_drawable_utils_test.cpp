@@ -133,7 +133,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     // first: DrawFilter test
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
-    Drawing::Canvas canvasTest1;
+    Drawing::Canvas canvasTest1(400, 400);
     RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
     std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
@@ -170,6 +170,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     cacheManager->renderClearFilteredCacheAfterDrawing_ = true;
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
+    Drawing::Rect visibleRect = Drawing::Rect(0.0f, 0.0f, 300.0f, 300.0f);
+    paintFilterCanvasTest1.SetVisibleRect(visibleRect);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
+    paintFilterCanvasTest1.ClipIRect(Drawing::RectI(0, 0, 0, 0));
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
 
     // second: BeginForegroundFilter test
     Drawing::Canvas canvasTest2;
@@ -205,7 +210,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawFilterTest002, testing::ext::TestSize.
     NodeId id = 1;
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
-    Drawing::Canvas canvasTest1;
+    Drawing::Canvas canvasTest1(400, 400);
     RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
     std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
@@ -720,12 +725,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
 
     // -1.0f: stretch offset param
     Vector4f pixelStretchTest(-1.0f, -1.0f, -1.0f, -1.0f);
-    properties.pixelStretch_ = pixelStretchTest;
+    properties.GetEffect().pixelStretch_ = pixelStretchTest;
     EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 
     // 1.0f: stretch offset param
     Vector4f pixelStretchTest2(1.0f, 1.0f, 1.0f, 1.0f);
-    properties.pixelStretch_ = pixelStretchTest2;
+    properties.GetEffect().pixelStretch_ = pixelStretchTest2;
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 }
 

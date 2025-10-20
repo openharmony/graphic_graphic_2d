@@ -25,6 +25,10 @@ SkiaMemoryStream::SkiaMemoryStream() : skMemoryStream_(std::make_unique<SkMemory
 SkiaMemoryStream::SkiaMemoryStream(const void* data, size_t length, bool copyData)
     : skMemoryStream_(std::make_unique<SkMemoryStream>(data, length, copyData)) {}
 
+SkiaMemoryStream::SkiaMemoryStream(const void* data, size_t length, void (*proc)(const void*, void*), void* context)
+    : skMemoryStream_(std::make_unique<SkMemoryStream>(SkData::MakeWithProc(data, length, proc, context)))
+{}
+
 std::unique_ptr<SkMemoryStream> SkiaMemoryStream::GetSkMemoryStream()
 {
     return std::move(skMemoryStream_);

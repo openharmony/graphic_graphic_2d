@@ -29,7 +29,18 @@ namespace Rosen {
 namespace {
 constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t MAX_SIZE = 5000;
+constexpr size_t BLOCK_TIME = 1000000;
 } // namespace
+namespace StubWaitSemCallback {
+std::function<void(int)> empty()
+{
+    return std::function<void(int)>();
+}
+std::function<void(int)> long_block()
+{
+    return [](int seq) {usleep(BLOCK_TIME);};
+}
+} // namespace StubWaitSemCallback
 namespace Drawing {
 /*
  * 测试以下 GPUContext 接口：
@@ -184,6 +195,38 @@ bool GPUContextFuzzTest003(const uint8_t* data, size_t size)
     gpuContext->GetHpsEffectSupport(extensionProperties);
     return true;
 }
+
+/*
+ * 测试以下 GPUContext 接口：
+ * 1. RegisterWaitSemCallback(const std::function<void(int seq)>& callBack, int seq)
+ * 2. FlushCommands(bool isMainCtx)
+ * 3. UnRegisterWaitSemCallback()
+ */
+bool GPUContextFuzzTest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return false;
+    }
+
+    std::vector<std::function<void(int)>> callbacks = {
+        StubWaitSemCallback::empty(),
+        StubWaitSemCallback::long_block()
+    };
+    uint32_t index = GetObject<uint32_t>();
+    auto& cb = callbacks[index % callbacks.size()];
+
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+
+    int seq = GetObject<int>();
+    gpuContext->RegisterWaitSemCallback(cb, seq);
+
+    bool isMainCtx = GetObject<bool>();
+    gpuContext->FlushCommands(isMainCtx);
+
+    gpuContext->UnRegisterWaitSemCallback();
+
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -200,5 +243,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::GPUContextFuzzTest001(data, size);
     OHOS::Rosen::Drawing::GPUContextFuzzTest002(data, size);
     OHOS::Rosen::Drawing::GPUContextFuzzTest003(data, size);
+    OHOS::Rosen::Drawing::GPUContextFuzzTest004(data, size);
     return 0;
 }

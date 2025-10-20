@@ -917,7 +917,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_009, Function | SmallTest | Level2)
 {
     ComposeInfo info;
     std::shared_ptr<RSFilter> bgFilter = RSFilter::CreateBlurFilter(5.0f, 5.0f);
-    node_->GetMutableRenderProperties().backgroundFilter_ = bgFilter;
+    node_->GetMutableRenderProperties().GetEffect().backgroundFilter_ = bgFilter;
     bool needClient = RSBaseRenderUtil::IsNeedClient(*node_, info);
     ASSERT_EQ(needClient, true);
 }
@@ -932,7 +932,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_010, Function | SmallTest | Level2)
 {
     ComposeInfo info;
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(5.0f, 5.0f);
-    node_->GetMutableRenderProperties().filter_ = filter;
+    node_->GetMutableRenderProperties().GetEffect().filter_ = filter;
     bool needClient = RSBaseRenderUtil::IsNeedClient(*node_, info);
     ASSERT_EQ(needClient, true);
 }

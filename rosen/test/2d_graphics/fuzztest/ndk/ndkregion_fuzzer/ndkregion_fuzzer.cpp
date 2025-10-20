@@ -75,6 +75,25 @@ void NativeDrawingRegionTest001(const uint8_t* data, size_t size)
     OH_Drawing_RegionDestroy(nullptr);
 }
 
+void NativeDrawingRegionTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Region* region = OH_Drawing_RegionCreate();
+    
+    OH_Drawing_RegionEmpty(nullptr);
+    OH_Drawing_RegionEmpty(region);
+
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RegionDestroy(nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -84,5 +103,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingRegionTest001(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingRegionTest002(data, size);
     return 0;
 }

@@ -429,7 +429,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
 
     // Dump children drawable(s)
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
-        renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
+        renderNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
     if (childrenDrawable) {
         const auto& childrenVec = childrenDrawable->needSync_ ? childrenDrawable->stagingChildrenDrawableVec_
             : childrenDrawable->childrenDrawableVec_;
@@ -445,7 +445,7 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec(const std::shared_ptr<R
     if (renderNode == nullptr) {
         return "";
     }
-    const auto& drawableVec = renderNode->drawableVec_;
+    const auto& drawableVec = renderNode->GetDrawableVec(__func__);
     std::string str;
     for (uint8_t i = 0; i < drawableVec.size(); ++i) {
         if (drawableVec[i]) {
@@ -539,7 +539,8 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             }
             continue;
         }
-        if (index != drawCmdIndex_.useEffectIndex_ || index != drawCmdIndex_.backgroundFilterIndex_) {
+        if (index != drawCmdIndex_.useEffectIndex_ || index != drawCmdIndex_.backgroundFilterIndex_ ||
+            index == drawCmdIndex_.backgroundNgShaderIndex_) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "ClipHoleForBlur filterRect:[%.2f, %.2f]", bounds.GetWidth(), bounds.GetHeight());
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
@@ -619,7 +620,7 @@ void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& ca
 bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
-           drawCmdIndex_.useEffectIndex_ != -1;
+           drawCmdIndex_.useEffectIndex_ != -1 || drawCmdIndex_.backgroundNgShaderIndex_ != -1;
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()

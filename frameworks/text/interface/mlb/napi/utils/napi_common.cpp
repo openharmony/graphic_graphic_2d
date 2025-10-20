@@ -16,6 +16,7 @@
 #include <cstdint>
 
 #include "ability.h"
+#include "font_collection_mgr.h"
 #include "napi_common.h"
 #include "text_style.h"
 
@@ -1040,25 +1041,29 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
     return true;
 }
 
-std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& moduleName)
+std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& bundleName,
+    const std::string& moduleName)
 {
     std::shared_ptr<AbilityRuntime::ApplicationContext> context =
         AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
-    auto moduleContext = context->CreateModuleContext(moduleName);
+    auto moduleContext = context->CreateModuleContext(bundleName, moduleName);
     if (moduleContext != nullptr) {
         return moduleContext->GetResourceManager();
     } else {
-        TEXT_LOGW("Failed to get module context, bundle: %{public}s, module: %{public}s",
-            context->GetBundleName().c_str(), moduleName.c_str());
-        return context->GetResourceManager();
+        std::shared_ptr<Global::Resource::ResourceManager> manager(Global::Resource::CreateResourceManager(false));
+        std::string hapPath = FontCollectionMgr::GetInstance().GetHapPath(bundleName, moduleName);
+        manager->AddResource(hapPath.c_str());
+        TEXT_LOGI("Create Resource Mangager, bundle: %{public}s, module: %{public}s, hap path: %{public}s",
+            bundleName.c_str(), moduleName.c_str(), hapPath.c_str());
+        return manager;
     }
 }
 
 bool ProcessResource(ResourceInfo& info, std::function<bool(std::string&)> pathCB,
     std::function<bool(const void*, size_t)> fileCB)
 {
-    auto resourceManager = GetResourceManager(info.moduleName);
+    auto resourceManager = GetResourceManager(info.bundleName, info.moduleName);
     TEXT_ERROR_CHECK(resourceManager != nullptr, return false,
         "Failed to get resourceManager, resourceManager is nullptr");
 

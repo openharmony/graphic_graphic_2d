@@ -566,6 +566,7 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
 void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
     cacheEnabledForRotation_ = flag;
+    RS_LOGI("SetCacheEnabledForRotation flag:%{public}d", flag);
 }
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
@@ -980,6 +981,14 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.wide.colorspace.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetSkipUnpremulEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipUnpremul.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1686,6 +1695,36 @@ bool RSSystemProperties::GetGpuDirtyApsEnabled()
 bool RSSystemProperties::GetBootCompleted()
 {
     return system::GetBoolParameter("bootevent.boot.completed", false);
+}
+
+bool RSSystemProperties::GetMemoryWatermarkEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("resourceschedule.memmgr.min.memory.watermark", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    if (enable == nullptr || strcmp(enable, "true") == 0) {
+        return false;
+    }
+    return true;
+}
+
+bool RSSystemProperties::GetClipRRectOptimizationEnabled()
+{
+    static bool enable = system::GetIntParameter("persist.sys.graphic.clipRRectOptimizationEnabled", 0) != 0;
+    return enable;
+}
+
+bool RSSystemProperties::GetNodeMemClearEnabled()
+{
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.node.mem.clear.enable", "1")).c_str()) != 0;
+    return enable;
+}
+
+bool RSSystemProperties::GetRSNodeExceedKillEnabled()
+{
+    static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
+    return isPhone;
 }
 } // namespace Rosen
 } // namespace OHOS

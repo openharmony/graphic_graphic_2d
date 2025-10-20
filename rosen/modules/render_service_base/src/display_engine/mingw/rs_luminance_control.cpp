@@ -129,5 +129,10 @@ bool RSLuminanceControl::IsBrightnessInfoChanged(ScreenId screenId)
 {
     return false;
 }
+
+void RSLuminanceControl::HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes)
+{
+    // Update screen supported color gamut
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -27,7 +27,7 @@ const TEXT_LOG_DOMAIN = 0xD001408;
 const TEXT_LOG_TAG = "Text";
 
 namespace text {
-  loadLibrary('text_engine_ani.z');
+  loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
   const ERROR_INVALID_PARAM = 401;
 
   class Cleaner {
@@ -62,12 +62,27 @@ namespace text {
     }
 
     native static getGlobalInstance(): FontCollection;
+    native static getLocalInstance(): FontCollection;
     native loadFontSync(name: string, path: Resource | string): void;
     async loadFont(name: string, path: string | Resource): Promise<void> {
       await new Promise<void>((resolve, reject) => {
         try {
           taskpool.execute((): void => {
             this.loadFontSync(name, path);
+          }).then(() => {
+            resolve(undefined);
+          })
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
+    }
+    native unloadFontSync(name: string): void;
+    async unloadFont(name: string): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          taskpool.execute((): void => {
+            this.unloadFontSync(name);
           }).then(() => {
             resolve(undefined);
           })
@@ -150,6 +165,8 @@ namespace text {
     };
 
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
+    native updateColor(color: common2D.Color): void;
+    native updateDecoration(decoration: Decoration): void;
   }
 
   enum FontWidth {
@@ -178,6 +195,13 @@ namespace text {
     JUSTIFY = 3,
     START = 4,
     END = 5,
+  }
+
+  enum TextVerticalAlign {
+    BASELINE = 0,
+    BOTTOM = 1,
+    CENTER = 2,
+    TOP = 3
   }
 
   enum TextDirection {
@@ -227,6 +251,9 @@ namespace text {
     strutStyle?: StrutStyle;
     textHeightBehavior?: TextHeightBehavior;
     tab?: TextTab;
+    trailingSpaceOptimized?: boolean;
+    autoSpace?: boolean;
+    verticalAlign?: TextVerticalAlign;
   }
 
   interface TextShadow {
@@ -271,6 +298,7 @@ namespace text {
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
+    badgeType?: TextBadgeType;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -294,6 +322,7 @@ namespace text {
     textShadows?: Array<TextShadow>;
     backgroundRect?: RectStyle;
     fontVariations?: Array<FontVariation>;
+    badgeType?: TextBadgeType;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -313,7 +342,8 @@ namespace text {
       baselineShift: double,
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
-      backgroundRect: RectStyle
+      backgroundRect: RectStyle,
+      badgeType: TextBadgeType
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -334,6 +364,7 @@ namespace text {
       this.fontFeatures = fontFeatures;
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
+      this.badgeType = badgeType;
     }
   }
 
@@ -602,10 +633,10 @@ namespace text {
     DOWNSTREAM,
   }
 
-  type CaretOffsetsCallback = (offset: int, index: int, leadingEdge: boolean) => boolean;
+  type CaretOffsetsCallback = (offset: double, index: int, leadingEdge: boolean) => boolean;
 
   export class TextLine {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -628,7 +659,7 @@ namespace text {
   }
 
   export class Run {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -651,9 +682,15 @@ namespace text {
     native getFont(): drawing.Font;
     native paint(canvas: drawing.Canvas, x: double, y: double): void;
     native getStringIndices(range?: Range): Array<int> | undefined;
+    getStringIndices(): Array<int> | undefined {
+      let range: Range = { start: 0, end: 0};
+      return this.getStringIndices(range);
+    }
     native getStringRange(): Range;
     native getTypographicBounds(): TypographicBounds;
     native getImageBounds(): common2D.Rect;
+    native getTextDirection(): TextDirection;
+    native getAdvances(range: Range): Array<common2D.Point> | undefined;
   }
 
   export interface PlaceholderSpan {
@@ -671,10 +708,11 @@ namespace text {
     TOP_OF_ROW_BOX,
     BOTTOM_OF_ROW_BOX,
     CENTER_OF_ROW_BOX,
+    FOLLOW_PARAGRAPH,
   }
 
   export class LineTypeset {
-    static { loadLibrary('text_engine_ani.z') }
+    static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
     bindNative(ptr: long): void {
@@ -759,6 +797,22 @@ namespace text {
     });
   }
 
+  native function getFontDescriptorsFromPathSync(path: Resource | string): Array<FontDescriptor>;
+
+  export async function getFontDescriptorsFromPath(path: Resource | string): Promise<Array<FontDescriptor>> {
+    return await new Promise<Array<FontDescriptor>>((resolve, reject) => {
+      try {
+        taskpool.execute((): Array<FontDescriptor> => {
+          return getFontDescriptorsFromPathSync(path);
+        }).then((result) => {
+          resolve(result);
+        })
+      } catch (err) {
+        reject(err as BusinessError);
+      }
+    });
+  }
+
   export enum SystemFontType {
     ALL = 1 << 0,
     GENERIC = 1 << 1,
@@ -815,4 +869,25 @@ namespace text {
       this.symbolic = symbolic;
     }
   }
+
+  enum TextBadgeType {
+    TEXT_BADGE_NONE,
+    TEXT_SUPERSCRIPT,
+    TEXT_SUBSCRIPT,
+  }
+
+  enum TextHighContrast {
+    TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST,
+    TEXT_APP_DISABLE_HIGH_CONTRAST,
+    TEXT_APP_ENABLE_HIGH_CONTRAST,
+  }
+
+  native function setTextHighContrast(action: TextHighContrast): void;
+
+  enum TextUndefinedGlyphDisplay {
+    USE_DEFAULT,
+    USE_TOFU,
+  }
+
+  native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
 }

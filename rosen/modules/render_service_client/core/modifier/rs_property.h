@@ -900,6 +900,7 @@ private:
     }
 
     friend class RSPropertyAnimation;
+    friend class ModifierNG::RSCustomModifier;
     friend class RSPathAnimation;
     friend class RSNGEffectUtils;
 };

@@ -1119,6 +1119,14 @@ namespace drawing {
      * @since 12
      */
     native getValue(index: int): double;
+
+    /**
+     * Compute the left mltiplication of the marix.
+     * @param { Matrix } matrix - The matrix object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native preConcat(matrix: Matrix): void;
   }
 
   /**
@@ -1216,6 +1224,17 @@ namespace drawing {
      * @since 11
      */
     native reset(): void;
+
+    /**
+     * Check if the path represents a rectangle.
+     *
+     * @param { common2D.Rect | null } rect - Indicates the Rect object.
+     * @returns { boolean } Returns true if the path represents a rectangle; returns false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native isRect(rect: common2D.Rect | null): boolean;
   }
 
   /**
@@ -1276,6 +1295,14 @@ namespace drawing {
      * @since 20
      */
     native constructorNative(left: int, top: int, right: int, bottom: int): void;
+
+    /**
+     * Set the current region to empty.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native setEmpty(): void;
   }
 
   /**
@@ -1434,6 +1461,151 @@ namespace drawing {
      * @since 12
      */
     REPLACE = 5
+  }
+
+  /**
+   * This class offers a comprehensive set of operations to handle for common2D Rect object.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @crossplatform
+   * @since 20
+   */
+  export class RectUtils {
+    static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
+    private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("RectUtils", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
+    /**
+     * Determine whether one 2D rectangular object totally contains another 2D rectangular object.
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { common2D.Rect } other - Indicates the other Rect object.
+     * @returns { boolean } - Returns true if rect totally contains other; returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native contains(rect: common2D.Rect, other: common2D.Rect): boolean;
+
+    /**
+     * Add the specified values to the left and top boundaried of an 2D rectangular object.
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { double } left - Indicates the value added to the left boundary of the rectangle.
+     * @param { double } top - Indicates the value added to the top boundary of the rectangle.
+     * @param { double } right - Indicates the value added to the right boundary of the rectangle.
+     * @param { double } bottom - Indicates the value added to the bottom boundary of the rectangle.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native inset(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): void;
+
+    /**
+     * Gets the width of a 2D rectangular object.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object to query.
+     * @returns { double } - Returns the width.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native getWidth(rect: common2D.Rect): double;
+
+    /**
+     * Gets the height of a 2D rectangular object.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object to query.
+     * @returns { double } - Returns the height.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native getHeight(rect: common2D.Rect): double;
+
+    /**
+     * Relpace a 2D rectangular object by the intersection of itself and another.
+     * If the intersection is empty, nothing is done.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { common2D.Rect } other - Indicates the other Rect object.
+     * @returns { boolean } - Returns true if have area in common and 'rect' will be replaced by the intersection;
+     * returns false if the intersection is empty and 'rect' will not be modified.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native intersect(rect: common2D.Rect, other: common2D.Rect): boolean;
+
+    /**
+     * Checks if the 2D rectangular object is empty.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @returns { boolean } - Returns true if the rectangle is empty (left >= right or top >= bottom);
+     *     returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native isEmpty(rect: common2D.Rect): boolean;
+
+    /**
+     * Offsets the 2D rectangular object by adding dx to its left and right coordinates,
+     * and adding dy to its top and bottom coordinates.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { double } dx - Indicates the amount to add to the rectangle's left and right coordinates.
+     * @param { double } dy - Indicates the amount to add to the rectangle's top and bottom coordinates.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native offset(rect: common2D.Rect, dx: double, dy: double): void;
+
+    /**
+     * Normalizes the 2D rectangular object to ensuer validity.
+     * Swaps the left and right if the left is greater than right;
+     * and swaps top and bottom if the top is greater than bottom.
+     * If the edges are already valid, then nothing is done.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native sort(rect: common2D.Rect): void;
+
+    /**
+     * Checks if the 2D rectangular object has the same coordinates value with another.
+     *
+     * @param { common2D.Rect } rect - Indicates the Rect object.
+     * @param { common2D.Rect } other - Indicates the other Rect object for comparison.
+     * @returns { boolean } Returns true if left, top, right and bottom of rect and other are equal;
+     *     returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native isEqual(rect: common2D.Rect, other: common2D.Rect): boolean;
   }
 }
 

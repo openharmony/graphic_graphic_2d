@@ -96,6 +96,8 @@ enum class RSPropertyType : uint8_t {
     MOTION_BLUR_PARAM,
     VECTOR_EMITTER_UPDATER,
     PARTICLE_NOISE_FIELD,
+    PARTICLE_RIPPLE_FIELD,
+    PARTICLE_VELOCITY_FIELD,
     RS_MASK,
     WATER_RIPPLE_PARAMS,
     FLY_OUT_PARAMS,
@@ -436,12 +438,22 @@ protected:
 
     std::shared_ptr<RSValueEstimator> CreateRSValueEstimator(const RSValueEstimatorType type) override
     {
-        return nullptr;
+        switch (type) {
+            case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {
+                return std::make_shared<RSCurveValueEstimator<T>>();
+            }
+            case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {
+                return std::make_shared<RSKeyframeValueEstimator<T>>();
+            }
+            default: {
+                return nullptr;
+            }
+        }
     }
 
     std::shared_ptr<RSSpringValueEstimatorBase> CreateRSSpringValueEstimator() override
     {
-        return nullptr;
+        return std::make_shared<RSSpringValueEstimator<T>>();
     }
 
     bool Marshalling(Parcel& parcel) override
@@ -580,12 +592,7 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
     void RSRenderProperty<T>::Dump(std::string& out) const; \
     extern template class PROPERTY_EXPORT RSRenderProperty<T>
 
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)                                                              \
-    template<>                                                                                                 \
-    std::shared_ptr<RSValueEstimator> RSRenderAnimatableProperty<T>::CreateRSValueEstimator(                   \
-        const RSValueEstimatorType type);                                                                      \
-    template<>                                                                                                 \
-    std::shared_ptr<RSSpringValueEstimatorBase> RSRenderAnimatableProperty<T>::CreateRSSpringValueEstimator(); \
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)           \
     extern template class PROPERTY_EXPORT RSRenderAnimatableProperty<T>
 
 #define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>

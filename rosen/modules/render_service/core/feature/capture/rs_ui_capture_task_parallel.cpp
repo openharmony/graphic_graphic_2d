@@ -433,7 +433,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByRect(
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByRect:"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
-        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " created pixelmap width is [%{public}d], height is [%{public}d],"
         " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
         pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
         captureConfig_.scaleX, captureConfig_.scaleY);
@@ -450,7 +450,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
-        " created pixelmap width is [%{public}u], height is [%{public}u],"
+        " created pixelmap width is [%{public}d], height is [%{public}d],"
         " the scale is scaleX:[%{public}f], scaleY:[%{public}f]",
         node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
         captureConfig_.scaleX, captureConfig_.scaleY);

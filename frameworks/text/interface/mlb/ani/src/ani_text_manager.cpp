@@ -23,6 +23,7 @@
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
 #include "ani_run.h"
+#include "ani_text_global.h"
 #include "ani_text_line.h"
 #include "ani_text_utils.h"
 #include "line_typography.h"
@@ -36,7 +37,9 @@ namespace OHOS::Text::ANI {
 
 // add new struct in this macro
 STRUCT_LIST(
-    AniFontCollection, AniParagraph, AniParagraphBuilder, AniLineTypeset, AniTextLine, AniRun, AniFontDescriptor);
+    AniFontCollection, AniParagraph, AniParagraphBuilder, AniLineTypeset, AniTextLine, AniRun, AniFontDescriptor,
+    AniTextGlobal
+);
 
 template <typename T>
 static ani_status InitOneStruct(ani_vm* vm, uint32_t* result)

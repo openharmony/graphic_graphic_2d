@@ -73,7 +73,7 @@ void RSSubThreadManager::PostTask(const std::function<void()>& task, uint32_t th
     }
 }
 
-void RSSubThreadManager::DumpMem(DfxString& log)
+void RSSubThreadManager::DumpMem(DfxString& log, bool isLite)
 {
     if (threadList_.empty()) {
         return;
@@ -82,7 +82,11 @@ void RSSubThreadManager::DumpMem(DfxString& log)
         if (!subThread) {
             continue;
         }
-        subThread->DumpMem(log);
+        if (isLite) {
+            subThread->DumpMem(log, isLite);
+        } else {
+            subThread->DumpMem(log);
+        }
     }
 }
 

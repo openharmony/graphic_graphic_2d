@@ -252,6 +252,10 @@ static const VkExtensionProperties g_deviceExtensions[] = {
     {
         .extensionName = VK_EXT_HDR_METADATA_EXTENSION_NAME,
         .specVersion = 2,
+    },
+    {
+        .extensionName = VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME,
+        .specVersion = 2,
     }
 };
 

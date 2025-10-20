@@ -62,6 +62,11 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
     static const char *className = ANI_CLASS_COLOR.c_str();
     
     result = AniEffectKitUtils::CreateAniObject(env, className, nullptr, reinterpret_cast<ani_long>(nullptr));
+    ani_boolean resultIsUndefined = ANI_TRUE;
+    env->Reference_IsUndefined(result, &resultIsUndefined);
+    if (resultIsUndefined) {
+        return result;
+    }
 
     ani_int colorRed = static_cast<ani_int>(color.r * 255.0f);
     ani_int colorGreen = static_cast<ani_int>(color.g * 255.0f);

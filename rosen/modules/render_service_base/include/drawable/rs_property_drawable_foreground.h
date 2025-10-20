@@ -146,6 +146,9 @@ private:
     bool needSync_ = false;
     std::shared_ptr<RSFilter> foregroundFilter_;
     std::shared_ptr<RSFilter> stagingForegroundFilter_;
+
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId renderNodeId_ = INVALID_NODEID;
 };
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {
@@ -205,10 +208,33 @@ private:
     void DrawLight(Drawing::Canvas* canvas) const;
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetFeatheringBoardLightShaderBuilder();
+    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetNormalLightShaderBuilder();
+
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeFeatheringBoardLightShaderBuilder() const;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeNormalLightShaderBuilder() const;
     void DrawContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
         Drawing::Brush& brush, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
     void DrawBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
         Drawing::Pen& pen, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
+
+    template <const char* lightString>
+    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetLightShaderBuilder()
+    {
+        thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+        if (shaderBuilder) {
+            return shaderBuilder;
+        }
+        std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
+
+        std::shared_ptr<Drawing::RuntimeEffect> effect =
+            Drawing::RuntimeEffect::CreateForShader(std::string(lightString));
+        if (!effect) {
+            return shaderBuilder;
+        }
+        lightEffect = std::move(effect);
+        shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(lightEffect);
+        return shaderBuilder;
+    }
 };
 
 // ============================================================================

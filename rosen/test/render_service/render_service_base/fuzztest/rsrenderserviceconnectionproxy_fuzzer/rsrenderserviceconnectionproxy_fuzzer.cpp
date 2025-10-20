@@ -253,6 +253,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
     rsRenderServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
     rsRenderServiceConnectionProxy.RegisterTypeface(id1, typeface);
+    rsRenderServiceConnectionProxy.RegisterTypeface(id1, id2, screenId, resCode);
     rsRenderServiceConnectionProxy.UnRegisterTypeface(id1);
     rsRenderServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width, resCode);
     rsRenderServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);

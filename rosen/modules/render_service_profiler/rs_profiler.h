@@ -37,6 +37,8 @@
 #include "params/rs_screen_render_params.h"
 #include "recording/draw_cmd_list.h"
 
+#include "rs_profiler_utils.h"
+
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime) RSProfiler::OnFrameBegin(syncTime)
 #define RS_PROFILER_ON_FRAME_END() RSProfiler::OnFrameEnd()
@@ -198,13 +200,71 @@ class ArgList;
 class JsonWriter;
 class RSFile;
 
-enum class Mode : uint32_t { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4, SAVING = 5 };
+enum class Mode : uint32_t { NONE = 0, READ = 1, WRITE = 2, SAVING = 5 };
+enum class SubMode : uint32_t { NONE = 0, READ_EMUL = 1, WRITE_EMUL = 2 };
 
 enum class TextureRecordType : int {
     ONE_PIXEL = 0,
     JPEG = 1,
     LZ4 = 2,
     NO_COMPRESSION = 3,
+};
+
+class ProfilerMarshallingJob final {
+public:
+    std::function<void(NodeId, bool)> marshallingTick;
+    size_t offsetNodes;
+
+private:
+    std::string nodeData;
+    std::unordered_set<NodeId> unfinishedNodeList;
+
+public:
+    ProfilerMarshallingJob() : marshallingTick(nullptr), offsetNodes(0) {}
+    void AddNode(NodeId nodeId)
+    {
+        unfinishedNodeList.insert(nodeId);
+    }
+
+    void MarkFinished(NodeId nodeId, std::string data)
+    {
+        unfinishedNodeList.erase(nodeId);
+        nodeData += data;
+    }
+
+    bool IsUnfinished(NodeId nodeId)
+    {
+        return unfinishedNodeList.count(nodeId);
+    }
+
+    size_t GetUnfinishedCount()
+    {
+        return unfinishedNodeList.size();
+    }
+
+    NodeId GetNextUnfinished()
+    {
+        if (!GetUnfinishedCount()) {
+            return 0;
+        }
+        return *unfinishedNodeList.begin();
+    }
+
+    std::string& GetNodeData()
+    {
+        return nodeData;
+    }
+
+    std::vector<NodeId> GetListForPid(pid_t pid)
+    {
+        std::vector<NodeId> list;
+        for (auto nodeId : unfinishedNodeList) {
+            if (Utils::ExtractPid(nodeId) == pid) {
+                list.emplace_back(nodeId);
+            }
+        }
+        return list;
+    }
 };
 
 enum class RSProfilerLogType : int {
@@ -461,6 +521,7 @@ public:
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
     RSB_EXPORT static std::vector<RSRenderNode::WeakPtr>& GetChildOfDisplayNodesPostponed();
+    RSB_EXPORT static void MarshallingTouch(NodeId nodeId);
 
     RSB_EXPORT static void SendMessageBase(const std::string& msg);
     RSB_EXPORT static std::string ReceiveMessageBase();
@@ -490,6 +551,7 @@ public:
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
 
     RSB_EXPORT static Mode GetMode();
+    RSB_EXPORT static SubMode GetSubMode();
     RSB_EXPORT static bool IsNoneMode();
     RSB_EXPORT static bool IsReadMode();
     RSB_EXPORT static bool IsReadEmulationMode();
@@ -512,6 +574,11 @@ public:
     RSB_EXPORT static void SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize);
 
     RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
+    RSB_EXPORT static void JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers = false);
+    RSB_EXPORT static std::shared_ptr<ProfilerMarshallingJob>& GetMarshallingJob();
+
+    RSB_EXPORT static void SetMarshalFirstFrameThreadFlag(bool flag);
+    RSB_EXPORT static bool GetMarshalFirstFrameThreadFlag();
 
     RSB_EXPORT static void RsMetricClear();
     RSB_EXPORT static void RsMetricSet(std::string name, std::string value);
@@ -528,6 +595,8 @@ public:
 
 private:
     static const char* GetProcessNameByPid(int pid);
+    RSB_EXPORT static std::shared_ptr<ProfilerMarshallingJob> GetJobForExecution();
+    RSB_EXPORT static void MarshalFirstFrameNodesLoop();
 
     RSB_EXPORT static void MarkReplayNodesDirty(RSContext& context);
 
@@ -561,6 +630,7 @@ private:
     static void BetaRecordSetLastParcelTime();
 
     RSB_EXPORT static void SetMode(Mode mode);
+    RSB_EXPORT static void SetSubMode(SubMode mode);
     RSB_EXPORT static bool IsEnabled();
     RSB_EXPORT static bool IsHrpServiceEnabled();
 
@@ -585,9 +655,6 @@ private:
     RSB_EXPORT static bool IsSecureScreen();
     RSB_EXPORT static bool IsPowerOffScreen();
 
-    RSB_EXPORT static bool IsRenderFrameWorking();
-    RSB_EXPORT static std::mutex& RenderFrameMutexGet();
-
     RSB_EXPORT static std::shared_ptr<RSScreenRenderNode> GetScreenNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 
@@ -601,11 +668,13 @@ private:
     RSB_EXPORT static size_t GetRenderNodeCount(const RSContext& context);
     RSB_EXPORT static NodeId GetRandomSurfaceNode(const RSContext& context);
 
-    RSB_EXPORT static void MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static void MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion,
+        std::shared_ptr<ProfilerMarshallingJob> job);
     RSB_EXPORT static void MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static void MarshalNodeModifiers(
-        const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
+        bool skipDrawCmdMoifiers = false, bool isBetaRecording = false);
+    RSB_EXPORT static void MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
+        bool skipDrawCmdModifiers, bool isBetaRecording);
 
     RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);

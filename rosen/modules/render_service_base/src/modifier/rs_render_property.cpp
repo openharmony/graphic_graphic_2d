@@ -19,6 +19,8 @@
 
 #include "rs_profiler.h"
 
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
@@ -457,6 +459,24 @@ void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& o
 }
 
 template<>
+void RSRenderProperty<std::shared_ptr<ParticleRippleFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleVelocityFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
 void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const
 {
     auto property = Get();
@@ -805,29 +825,7 @@ RSRenderPropertyBase::RSPropertyUnmarshallingFuncRegister RSRenderAnimatableProp
 
 // explicit instantiation
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>;
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)                                                             \
-    template<>                                                                                                \
-    std::shared_ptr<RSValueEstimator> RSRenderAnimatableProperty<T>::CreateRSValueEstimator(                  \
-        const RSValueEstimatorType type)                                                                      \
-    {                                                                                                         \
-        switch (type) {                                                                                       \
-            case RSValueEstimatorType::CURVE_VALUE_ESTIMATOR: {                                               \
-                return std::make_shared<RSCurveValueEstimator<T>>();                                          \
-            }                                                                                                 \
-            case RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR: {                                            \
-                return std::make_shared<RSKeyframeValueEstimator<T>>();                                       \
-            }                                                                                                 \
-            default: {                                                                                        \
-                return nullptr;                                                                               \
-            }                                                                                                 \
-        }                                                                                                     \
-    }                                                                                                         \
-    template<>                                                                                                \
-    std::shared_ptr<RSSpringValueEstimatorBase> RSRenderAnimatableProperty<T>::CreateRSSpringValueEstimator() \
-    {                                                                                                         \
-        return std::make_shared<RSSpringValueEstimator<T>>();                                                 \
-    }                                                                                                         \
-    template class RSRenderAnimatableProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSRenderAnimatableProperty<T>
 
 #define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGRenderShaderBase>

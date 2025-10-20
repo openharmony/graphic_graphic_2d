@@ -266,6 +266,17 @@ public:
     {
         return childrenDirtyRect_;
     }
+
+    void SetUIFirstVisibleFilterRect(const RectI& rect)
+    {
+        uiFirstVisibleFilterRect_ = rect;
+    }
+
+    const RectI& GetUifirstVisibleFilterRect()
+    {
+        return uiFirstVisibleFilterRect_;
+    }
+
     const RectI& GetDstRect() const
     {
         return dstRect_;
@@ -639,6 +650,14 @@ public:
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
+    inline void SetCaptureEnableUifirst(bool val)
+    {
+        captureEnableUifirst_ = val;
+    }
+    inline bool IsCaptureEnableUifirst()
+    {
+        return captureEnableUifirst_;
+    }
     inline bool HasSubSurfaceNodes() const
     {
         return hasSubSurfaceNodes_;
@@ -788,6 +807,8 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
+    RectI uiFirstVisibleFilterRect_;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
     RectI screenRect_;
@@ -801,7 +822,6 @@ private:
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;
     Vector4<int> regionToBeMagnified_;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
@@ -814,6 +834,7 @@ private:
     bool preSurfaceCacheContentStatic_ = false;
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
+    bool captureEnableUifirst_ = true;
     bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;

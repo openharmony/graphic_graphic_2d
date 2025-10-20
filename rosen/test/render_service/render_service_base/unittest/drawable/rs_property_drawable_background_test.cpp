@@ -67,12 +67,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSShadowDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
     node.GetMutableRenderProperties().SetShadowIsFilled(true);
-    node.GetMutableRenderProperties().shadow_->radius_ = 1.0f;
+    node.GetMutableRenderProperties().GetEffect().shadow_->radius_ = 1.0f;
     ASSERT_TRUE(node.GetRenderProperties().IsShadowValid());
-    node.GetMutableRenderProperties().shadow_->SetMask(true);
+    node.GetMutableRenderProperties().GetEffect().shadow_->SetMask(true);
     std::shared_ptr<RSDrawable> drawableTwo = DrawableV2::RSShadowDrawable::OnGenerate(node);
-    node.GetMutableRenderProperties().shadow_->SetMask(false);
-    node.GetMutableRenderProperties().shadow_->SetElevation(1.0f);
+    node.GetMutableRenderProperties().GetEffect().shadow_->SetMask(false);
+    node.GetMutableRenderProperties().GetEffect().shadow_->SetElevation(1.0f);
     ASSERT_TRUE(node.GetRenderProperties().GetShadowElevation() > 0.f);
     std::shared_ptr<RSDrawable> drawableThree = DrawableV2::RSShadowDrawable::OnGenerate(node);
     std::shared_ptr<DrawableV2::RSShadowDrawable> rsShadowDrawable =
@@ -83,7 +83,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
     rsShadowDrawable->needSync_ = true;
     rsShadowDrawable->OnSync();
     ASSERT_FALSE(rsShadowDrawable->needSync_);
-    node.GetMutableRenderProperties().shadow_->SetElevation(0);
+    node.GetMutableRenderProperties().GetEffect().shadow_->SetElevation(0);
     std::shared_ptr<RSDrawable> drawableFour = DrawableV2::RSShadowDrawable::OnGenerate(node);
     ASSERT_NE(drawableFour, nullptr);
 }
@@ -135,15 +135,15 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_EQ(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->svgPicture_ = std::make_shared<Drawing::Picture>();
-    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().GetEffect().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::GRADIENT;
-    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().GetEffect().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::PATH;
-    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().GetEffect().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
     mask->type_ = MaskType::PIXEL_MAP;
@@ -153,7 +153,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     auto pixelMap = Media::PixelMap::Create(opts);
     auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
     mask->SetPixelMap(shpPixelMap);
-    node.GetMutableRenderProperties().mask_.reset();
+    node.GetMutableRenderProperties().GetEffect().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
 }
@@ -449,10 +449,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     ASSERT_EQ(drawable, nullptr);
     std::shared_ptr<RSFilter> backgroundFilter =
         std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
-    node.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
+    node.GetMutableRenderProperties().GetEffect().backgroundFilter_ = backgroundFilter;
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);
-    nodeTwo.GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
+    nodeTwo.GetMutableRenderProperties().GetEffect().backgroundFilter_ = backgroundFilter;
     ASSERT_TRUE(nodeTwo.IsInstanceOf<RSEffectRenderNode>());
     ASSERT_TRUE(nodeTwo.GetRenderProperties().GetBackgroundFilter());
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundEffectDrawable>(
@@ -461,7 +461,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     drawableTwo->OnSync();
     ASSERT_TRUE(drawableTwo->CreateDrawFunc());
     auto drawableThree = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
-    node.GetMutableRenderProperties().backgroundFilter_ = nullptr;
+    node.GetMutableRenderProperties().GetEffect().backgroundFilter_ = nullptr;
     ASSERT_FALSE(drawableThree->OnUpdate(node));
     auto drawableFour = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     ASSERT_FALSE(drawableFour->OnUpdate(node));
@@ -524,12 +524,33 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
 #endif
 
 /**
- * @tc.name: RSBackgroundEffectDrawable
+ * @tc.name: RSBackgroundEffectDrawableCreateDrawFuncTest001
  * @tc.desc: Test CreateDrawFunc
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawable, TestSize.Level1)
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncTest001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
+    int width = 1270;
+    int height = 2560;
+    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    Drawing::Surface* surfacePtr = surface.get();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(surfacePtr);
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSBackgroundEffectDrawableCreateDrawFuncTest002
+ * @tc.desc: Test CreateDrawFunc with empty rect
+ * @tc.type:FUNC
+ * @tc.require: issue20322
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncTest002, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     int width = 1270;

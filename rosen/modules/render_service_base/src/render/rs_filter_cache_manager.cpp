@@ -163,8 +163,6 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     auto clipIBounds = dst;
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
-    // Only draw within the visible rect.
-    ClipVisibleRect(canvas);
     Drawing::Rect srcRect = Drawing::Rect(0, 0, cachedSnapshot_->cachedImage_->GetWidth(),
             cachedSnapshot_->cachedImage_->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
@@ -218,9 +216,6 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
 #endif
 
-    if (canvas.GetDeviceClipBounds().IsEmpty()) {
-        return;
-    }
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
     if (src.IsEmpty() || dst.IsEmpty()) {
         return;
@@ -228,8 +223,8 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 
     RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState().c_str());
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_FILTERCACHEENABLEVMA);
     RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_FILTERCACHEENABLEVMA);
 #endif
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
@@ -251,9 +246,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 {
     takeNewSnapshot_ = false;
     RS_OPTIONAL_TRACE_FUNC();
-    if (canvas.GetDeviceClipBounds().IsEmpty()) {
-        return nullptr;
-    }
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
     if (src.IsEmpty() || dst.IsEmpty()) {
         return nullptr;
@@ -393,9 +385,6 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
     // Draw in device coordinates.
     Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
-
-    // Only draw within the visible rect.
-    ClipVisibleRect(canvas);
 
     // The cache type and parameters has been validated, dstRect must be subset of cachedFilteredSnapshot_->cachedRect_.
     Drawing::Rect dst = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom()};
@@ -587,6 +576,7 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
 
     // save staging param value
     lastInForegroundFilter_ = stagingInForegroundFilter_;
+    lastStagingFilterInteractWithDirty_ = stagingFilterInteractWithDirty_;
 
     // stagingParams init
     stagingFilterHashChanged_ = false;
@@ -606,6 +596,8 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     isFilterCacheValid_ = false;
 
     stagingInForegroundFilter_ = false;
+
+    debugEnabled_ = false;
 }
 
 void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
@@ -638,6 +630,7 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
     }
 
     stagingIsSkipFrame_ = stagingIsLargeArea_ && canSkipFrame_ && !stagingFilterRegionChanged_;
+    PrintDebugInfo(nodeId);
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
@@ -811,18 +804,6 @@ FilterCacheType RSFilterCacheManager::GetCachedType() const
     return FilterCacheType::BOTH;
 }
 
-inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas)
-{
-    auto visibleRectF = canvas.GetVisibleRect();
-    visibleRectF.Round();
-    Drawing::RectI visibleIRect = {(int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
-                                   (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()};
-    auto deviceClipRect = canvas.GetDeviceClipBounds();
-    if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
-        canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
-    }
-}
-
 const RectI& RSFilterCacheManager::GetCachedImageRegion() const
 {
     static const auto emptyRect = RectI();
@@ -933,6 +914,28 @@ void RSFilterCacheManager::ClearEffectCacheWithDrawnRegion(
     if (isCacheInvalid) {
         InvalidateFilterCache(FilterCacheType::BOTH);
     }
+}
+
+void RSFilterCacheManager::MarkDebugEnabled()
+{
+    debugEnabled_ = true;
+}
+
+void RSFilterCacheManager::PrintDebugInfo(NodeId nodeID)
+{
+    if (!debugEnabled_) {
+        return;
+    }
+
+    if (lastStagingFilterInteractWithDirty_ == stagingFilterInteractWithDirty_) {
+        return;
+    }
+
+    ROSEN_LOGI("RSFilterDrawable::PrintDebugInfo nodeID: %{public}" PRIu64 ", forceUseCache_:%{public}d,"
+        " forceClearCache_:%{public}d, belowDirty_:%{public}d, cacheUpdateInterval_:%{public}d,"
+        " pendingPurge_:%{public}d,",
+        nodeID, stagingForceUseCache_, stagingForceClearCache_, stagingFilterInteractWithDirty_,
+        cacheUpdateInterval_, pendingPurge_);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -112,3 +112,14 @@ void OH_Drawing_RegionDestroy(OH_Drawing_Region* cRegion)
     }
     delete CastToRegion(cRegion);
 }
+
+OH_Drawing_ErrorCode OH_Drawing_RegionEmpty(OH_Drawing_Region* cRegion)
+{
+    if (cRegion == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Region* region = CastToRegion(cRegion);
+
+    region->SetEmpty();
+    return OH_DRAWING_SUCCESS;
+}

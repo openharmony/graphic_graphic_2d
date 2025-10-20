@@ -159,6 +159,15 @@ void RSRenderParams::SetChildHasVisibleEffect(bool val)
     needSync_ = true;
 }
 
+void RSRenderParams::SetChildHasVisibleHarmonium(bool val)
+{
+    if (childHasVisibleHarmonium_ == val) {
+        return;
+    }
+    childHasVisibleHarmonium_ = val;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetCacheSize(Vector2f size)
 {
     if (cacheSize_ == size) {
@@ -417,6 +426,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->frameGravity_ = frameGravity_;
     target->childHasVisibleFilter_ = childHasVisibleFilter_;
     target->childHasVisibleEffect_ = childHasVisibleEffect_;
+    target->childHasVisibleHarmonium_ = childHasVisibleHarmonium_;
     // use flag in render param and staging render param to determine if cache should be updated
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
@@ -434,6 +444,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasGlobalCorner_ = hasGlobalCorner_;
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
+    if (target->foregroundFilterCache_) {
+        target->foregroundFilterCache_->OnSync();
+    }
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
     target->isOpincSupportFlag_ = isOpincSupportFlag_;

@@ -1044,14 +1044,6 @@ bool DoSetVmaCacheStatus(const uint8_t* data, size_t size)
 
 bool DoRegisterUIExtensionCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     uint64_t userId = GetData<uint64_t>();
     UIExtensionCallback callback;
@@ -1061,14 +1053,6 @@ bool DoRegisterUIExtensionCallback(const uint8_t* data, size_t size)
 
 bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     bool direct = GetData<bool>();
     client->SetAncoForceDoDirect(direct);
@@ -1077,14 +1061,6 @@ bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
 
 bool DoSetVirtualScreenStatus(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     VirtualScreenStatus screenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
@@ -1094,14 +1070,6 @@ bool DoSetVirtualScreenStatus(const uint8_t* data, size_t size)
 
 bool DoRegisterSurfaceBufferCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     pid_t pid = GetData<pid_t>();
     uint64_t uid = GetData<uint64_t>();
@@ -1113,14 +1081,6 @@ bool DoRegisterSurfaceBufferCallback(const uint8_t* data, size_t size)
 
 bool DoTriggerSurfaceBufferCallback(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     uint64_t uid = GetData<uint64_t>();
     std::vector<uint32_t> surfaceBufferIds;
@@ -1135,14 +1095,6 @@ bool DoTriggerSurfaceBufferCallback(const uint8_t* data, size_t size)
 
 bool DoSetLayerTop(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     std::string nodeIdStr = "nodeIdStr";
     bool isTop = GetData<bool>();
@@ -1152,14 +1104,6 @@ bool DoSetLayerTop(const uint8_t* data, size_t size)
 
 bool DoSetForceRefresh(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     std::string nodeIdStr = "nodeIdStr";
     bool isForceRefresh = GetData<bool>();
@@ -1507,11 +1451,11 @@ bool DoGetScreenType002(const uint8_t *data, size_t size)
     client->GetBitmap(nodeId, bm);
     client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     client->RegisterTypeface(typeface);
+    client->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
     if (typeface) {
         client->UnRegisterTypeface(typeface->GetUniqueID());
-    } else {
-        client->UnRegisterTypeface(GetData<uint32_t>());
     }
+    client->UnRegisterTypeface(GetData<uint32_t>());
     client->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
     client->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     return true;

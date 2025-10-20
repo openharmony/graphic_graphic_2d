@@ -1019,6 +1019,7 @@ ohos_unittest("RSRenderServiceConnectionProxyTest") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
+    "googletest:gmock",
   ]
 
   subsystem_name = "graphic"

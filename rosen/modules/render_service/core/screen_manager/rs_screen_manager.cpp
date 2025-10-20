@@ -1931,7 +1931,7 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
 
     std::lock_guard<std::shared_mutex> lock(backLightAndCorrectionMutex_);
     if (screenBacklight_[id] == level) {
-        RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %d", __func__, id, level);
+        RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %u", __func__, id, level);
         return;
     }
     screenBacklight_[id] = level;
@@ -1944,48 +1944,13 @@ ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const
 
 ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
 {
-    ScreenInfo info;
     auto screen = GetScreen(id);
     if (screen == nullptr) {
         RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return info;
+        return ScreenInfo{};
     }
 
-    info.id = id;
-    info.width = screen->Width();
-    info.height = screen->Height();
-    info.phyWidth = screen->PhyWidth() ? screen->PhyWidth() : screen->Width();
-    info.phyHeight = screen->PhyHeight() ? screen->PhyHeight() : screen->Height();
-    info.offsetX = screen->GetOffsetX();
-    info.offsetY = screen->GetOffsetY();
-    info.isSamplingOn = screen->IsSamplingOn();
-    info.samplingTranslateX = screen->GetSamplingTranslateX();
-    info.samplingTranslateY = screen->GetSamplingTranslateY();
-    info.samplingScale = screen->GetSamplingScale();
-    auto ret = screen->GetScreenColorGamut(info.colorGamut);
-    if (ret != StatusCode::SUCCESS) {
-        info.colorGamut = COLOR_GAMUT_SRGB;
-    }
-
-    if (!screen->IsEnable()) {
-        info.state = ScreenState::DISABLED;
-    } else if (!screen->IsVirtual()) {
-        info.state = ScreenState::HDI_OUTPUT_ENABLE;
-    } else {
-        info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
-    }
-    info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
-    info.expectedRefreshRate = screen->GetScreenExpectedRefreshRate();
-    info.skipFrameStrategy = screen->GetScreenSkipFrameStrategy();
-    info.isEqualVsyncPeriod = screen->GetEqualVsyncPeriod();
-    screen->GetPixelFormat(info.pixelFormat);
-    screen->GetScreenHDRFormat(info.hdrFormat);
-    info.whiteList = screen->GetWhiteList();
-    info.enableVisibleRect = screen->GetEnableVisibleRect();
-    info.activeRect = screen->GetActiveRect();
-    info.maskRect = screen->GetMaskRect();
-    info.reviseRect = screen->GetReviseRect();
-    return info;
+    return screen->GetScreenInfo();
 }
 
 bool RSScreenManager::GetCanvasRotation(ScreenId id) const
@@ -2367,7 +2332,7 @@ int32_t RSScreenManager::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFr
     }
     screen->SetScreenSkipFrameInterval(skipFrameInterval);
     screen->SetEqualVsyncPeriod(skipFrameInterval == 1);
-    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), skipFrameInterval(%{public}d).",
+    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), skipFrameInterval(%{public}u).",
         __func__, id, skipFrameInterval);
     return StatusCode::SUCCESS;
 }
@@ -2391,7 +2356,7 @@ int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRe
         maxRefreshRate = MAX_VIRTUAL_SCREEN_REFRESH_RATE;
     }
     screen->SetScreenExpectedRefreshRate(maxRefreshRate);
-    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), maxRefreshRate(%{public}d).",
+    RS_LOGI("%{public}s: screen(id %{public}" PRIu64 "), maxRefreshRate(%{public}u).",
         __func__, id, maxRefreshRate);
     actualRefreshRate = maxRefreshRate;
     return StatusCode::SUCCESS;
@@ -2670,16 +2635,8 @@ void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenCha
     HILOG_COMM_INFO("%{public}s: id %{public}" PRIu64
             "event %{public}u reason %{public}u screenChangeCallbacks_.size() %{public}zu",
             __func__, id, static_cast<uint8_t>(event), static_cast<uint8_t>(reason), screenChangeCallbacks_.size());
-    auto task = [screenChangeCallbacks = screenChangeCallbacks_, id, event, reason] {
-        for (const auto& cb: screenChangeCallbacks) {
-            cb->OnScreenChanged(id, event, reason);
-        }
-    };
-    auto mainThread = RSMainThread::Instance();
-    if (mainThread != nullptr) {
-        mainThread->PostTask(task);
-    } else {
-        RS_LOGW("%{public}s: mainThread is nullptr!", __func__);
+    for (const auto& cb : screenChangeCallbacks_) {
+        cb->OnScreenChanged(id, event, reason);
     }
 }
 

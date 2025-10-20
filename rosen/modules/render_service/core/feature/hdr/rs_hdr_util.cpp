@@ -365,6 +365,18 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     }
 }
 
+void RSHdrUtil::CheckNotifyCallback(RSContext& context, ScreenId screenId)
+{
+    bool needNotifyCallback = !context.IsBrightnessInfoChangeCallbackMapEmpty() &&
+        RSLuminanceControl::Get().IsBrightnessInfoChanged(screenId);
+    if (needNotifyCallback) {
+        BrightnessInfo info = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
+        context.NotifyBrightnessInfoChangeCallback(screenId, info);
+        RS_TRACE_NAME_FMT("%s curHeadroom:%f maxHeadroom:%f sdrNits:%f screenId:%" PRIu64 "",
+            __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits, screenId);
+    }
+}
+
 ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
     ScreenColorGamut screenColorGamut;
@@ -487,11 +499,15 @@ bool RSHdrUtil::HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::
     }
     // Get color space from main screen canvas
     auto colorSpace = canvasSurface->GetImageInfo().GetColorSpace();
+    auto format = surface->GetImageInfo().GetColorType();
+    auto textureInfo = surface->GetBackendTexture().GetTextureInfo();
     image = std::make_shared<Drawing::Image>();
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
-    Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL };
-    image->BuildFromTexture(*gpuContext, surface->GetBackendTexture().GetTextureInfo(),
-        origin, info, colorSpace);
+    Drawing::BitmapFormat info = Drawing::BitmapFormat{ format, Drawing::ALPHATYPE_PREMUL };
+    if (!image->BuildFromTexture(*gpuContext, textureInfo, origin, info, colorSpace)) {
+        RS_LOGE("RSHdrUtil::HDRCastProcess BuildFromTexture fail");
+        return false;
+    }
     return SetHDRCastShader(image, paint, sampling);
 }
 
@@ -535,9 +551,38 @@ bool RSHdrUtil::SetHDRCastShader(std::shared_ptr<Drawing::Image>& image, Drawing
     return true;
 }
 
-GSError RSHdrUtil::SetMetadata(const Media::VideoProcessingEngine::CM_ColorSpaceInfo& colorspaceInfo,
+GSError RSHdrUtil::EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFrame)
+{
+    if (renderFrame == nullptr) {
+        RS_LOGD("RSHdrUtil::EraseHDRMetadataKey renderFrame is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto rsSurface = renderFrame->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("RSHdrUtil::EraseHDRMetadataKey surface is null.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("RSHdrUtil::EraseHDRMetadataKey buffer is null.");
+        return GSERROR_NO_BUFFER;
+    }
+    auto ret = buffer->EraseMetadataKey(ATTRKEY_HDR_STATIC_METADATA);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSHdrUtil::EraseHDRMetadataKey ATTRKEY_HDR_STATIC_METADATA ret = %{public}d", ret);
+        return ret;
+    }
+    ret = buffer->EraseMetadataKey(ATTRKEY_HDR_DYNAMIC_METADATA);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSHdrUtil::EraseHDRMetadataKey ATTRKEY_HDR_DYNAMIC_METADATA ret = %{public}d", ret);
+    }
+    return ret;
+}
+
+GSError RSHdrUtil::SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
     std::unique_ptr<RSRenderFrame>& renderFrame)
 {
+    RS_TRACE_NAME_FMT("RSHdrUtil::SetMetadata HDRCast");
     if (renderFrame == nullptr) {
         RS_LOGD("RSHdrUtil::SetMetadata renderFrame is null.");
         return GSERROR_INVALID_ARGUMENTS;
@@ -552,7 +597,8 @@ GSError RSHdrUtil::SetMetadata(const Media::VideoProcessingEngine::CM_ColorSpace
         RS_LOGD("RSHdrUtil::SetMetadata buffer is null.");
         return GSERROR_NO_BUFFER;
     }
-    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    HdrStaticMetadata staticMetadata;
     staticMetadata.cta861.maxContentLightLevel = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
     auto ret = MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
     if (ret != GSERROR_OK) {
@@ -564,16 +610,13 @@ GSError RSHdrUtil::SetMetadata(const Media::VideoProcessingEngine::CM_ColorSpace
         RS_LOGD("RSHdrUtil::SetMetadata SetHDRDynamicMetadata failed %{public}d", ret);
         return ret;
     }
-    std::vector<uint8_t> metadata;
-    metadata.resize(sizeof(colorspaceInfo));
-    errno_t errRet = memcpy_s(metadata.data(), metadata.size(), &colorspaceInfo, sizeof(colorspaceInfo));
-    if (errRet != EOK) {
-        RS_LOGD("RSHdrUtil::SetMetadata colorspace failed %{public}d", errRet);
-        return GSERROR_OUT_OF_RANGE;
+    ret = MetadataHelper::SetColorSpaceInfo(buffer, colorspaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSHdrUtil::SetMetadata SetColorSpaceInfo failed %{public}d", ret);
+        return ret;
     }
     RS_LOGD("RSHdrUtil::SetMetadata SetMetadata end");
-    // Metadata will overwrite the metadata in SetColorSpaceForMetadata, BT2020 is wider than P3
-    return buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_COLORSPACE_INFO, metadata);
+    return ret;
 }
 
 GSError RSHdrUtil::SetMetadata(SurfaceBuffer* buffer,

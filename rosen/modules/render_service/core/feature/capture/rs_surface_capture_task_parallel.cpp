@@ -49,6 +49,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr int64_t SURFACE_RELEASE_DELAY_MS = 100;
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
@@ -745,6 +746,11 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_DUAL);
         if (ret != GSERROR_OK) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Set SDR metadata error with: %{public}d", ret);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
         ret = RSHdrUtil::SetMetadata(reinterpret_cast<SurfaceBuffer*>(pixelmapHDR->GetFd()),
@@ -752,6 +758,11 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
         if (ret != GSERROR_OK) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Set HDR metadata error with: %{public}d", ret);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<1>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
 #endif
@@ -799,6 +810,10 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
         }
         auto tmpImg = std::make_shared<Drawing::Image>();
         DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
+        if (GetFeatureParamValue("SurfaceCaptureConfig",
+            &SurfaceCaptureParam::IsDeferredDmaSurfaceReleaseEnabled).value_or(false)) {
+            RSBackgroundThread::Instance().PostDelayedTask([dmaSurface = surface](){}, SURFACE_RELEASE_DELAY_MS);
+        }
     } else {
 #else
     {
@@ -824,9 +839,7 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() / 2) |
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() - 1, pixelmap->GetHeight() / 2) |
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() - 1);
-    if ((pixelDump & ALPHA_MASK) != 0) {
-        RS_LOGI("RSSurfaceCaptureTaskParallel::PixelMapCopy pixelmap is Non-transparent");
-    } else {
+    if ((pixelDump & ALPHA_MASK) == 0) {
         RS_LOGW("RSSurfaceCaptureTaskParallel::PixelMapCopy pixelmap is transparent");
     }
     pixelmap->SetMemoryName("RSSurfaceCaptureForClient");
@@ -841,10 +854,10 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParams) {
         secExemption = uniParams->GetSecExemption();
-        uniParams->SetSecExemption(captureParam.ignoreSpecialLayer || secExemption);
+        uniParams->SetSecExemption(captureParam.needCaptureSpecialLayer || secExemption);
     }
     CaptureParam param(true, false, false);
-    param.ignoreSpecialLayer_ = captureParam.ignoreSpecialLayer;
+    param.needCaptureSpecialLayer_ = captureParam.needCaptureSpecialLayer;
     RSUniRenderThread::SetCaptureParam(param);
     canvas.SetScreenshotType(type);
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode

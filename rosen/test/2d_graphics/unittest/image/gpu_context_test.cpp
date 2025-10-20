@@ -678,16 +678,29 @@ HWTEST_F(GpuContextTest, SetEarlyZFlagTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateSubmitInfoTest
- * @tc.desc: Test for GenerateSubmitInfo
+ * @tc.name: RegisterWaitSemCallbackTest
+ * @tc.desc: Test for register wait sem callback
  * @tc.type: FUNC
  * @tc.require: IC8TIV
  */
-HWTEST_F(GpuContextTest, GenerateSubmitInfoTest, TestSize.Level1)
+HWTEST_F(GpuContextTest, RegisterWaitSemCallbackTest, TestSize.Level1)
 {
     auto gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->GenerateSubmitInfo(0);
+    gpuContext->RegisterWaitSemCallback(nullptr, 0);
+}
+
+/**
+ * @tc.name: UnRegisterWaitSemCallbackTest
+ * @tc.desc: Test for unregister wait sem callback
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(GpuContextTest, UnRegisterWaitSemCallbackTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->UnRegisterWaitSemCallback();
 }
 
 /**
@@ -700,7 +713,7 @@ HWTEST_F(GpuContextTest, FlushCommandsTest, TestSize.Level1)
 {
     auto gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->FlushCommands();
+    gpuContext->FlushCommands(true);
 }
 
 /**

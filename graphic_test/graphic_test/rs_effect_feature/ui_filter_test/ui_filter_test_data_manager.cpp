@@ -48,9 +48,9 @@ SharedMaskParams InitializeSharedMaskParameters()
     params.radialGradientMaskPara->SetCenter(gradientCenter);
     params.radialGradientMaskPara->SetRadiusX(0.5f);
     params.radialGradientMaskPara->SetRadiusY(0.5f);
-    std::vector<float> colors = {0.5f, 0.5f, 0.5f, 0.5f};
+    std::vector<float> colors = {1.0f, 0.5f, 0.8f, 0.0f};
     params.radialGradientMaskPara->SetColors(colors);
-    std::vector<float> positions = {0.5f, 0.5f};
+    std::vector<float> positions = {0.0f, 0.5f, 0.8f, 1.0f};
     params.radialGradientMaskPara->SetPositions(positions);
     
     auto testPixelMap = UIFilterTestDataManager::CreatePixelMap(100, 100);
@@ -166,7 +166,7 @@ std::vector<FilterTestData> CreateTestDataValidData3(const SharedMaskParams& mas
         { FilterPara::ParaType::RADIUS_GRADIENT_BLUR,
             RadiusGradientBlurParams { 80.0f, { { 0.6f, 0.6f } }, GradientDirection::RIGHT } },
         { FilterPara::ParaType::DISPLACEMENT_DISTORT,
-            DisplacementDistortParams { { 6.0f, 6.0f }, maskParams.radialGradientMaskPara } },
+            DisplacementDistortParams { { 1.0f, 1.0f }, maskParams.radialGradientMaskPara } },
         { FilterPara::ParaType::COLOR_GRADIENT,
             ColorGradientParams { { 0.6f, 0.6f, 0.6f }, { 0.6f, 0.6f, 0.6f }, { 2.0f },
             maskParams.radialGradientMaskPara } },

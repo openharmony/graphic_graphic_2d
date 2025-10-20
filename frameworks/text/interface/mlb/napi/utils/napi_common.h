@@ -578,7 +578,8 @@ napi_status NewInstanceFromConstructor(
 
 bool SplitAbsolutePath(std::string& absolutePath);
 
-std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& moduleName);
+std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& bundleName,
+    const std::string& moduleName);
 
 bool ProcessResource(ResourceInfo& info, std::function<bool(std::string&)> pathCB,
     std::function<bool(const void*, size_t)> fileCB);

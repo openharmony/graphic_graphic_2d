@@ -18,7 +18,8 @@
         ],
         "device_extensions": [
             { "name": "VK_KHR_swapchain", "spec_version": "70" },
-            { "name": "VK_EXT_hdr_metadata", "spec_version": "2" }
+            { "name": "VK_EXT_hdr_metadata", "spec_version": "2" },
+            { "name": "VK_KHR_incremental_present", "spec_version": "2" }
         ]
     }
 }

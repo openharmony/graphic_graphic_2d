@@ -36,7 +36,7 @@ std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
 OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
 constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
-constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 50;
+constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 80;
 
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::GetInstance()
 {
@@ -72,7 +72,9 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
     if (renderService_->AsObject() && deathRecipient_) {
         renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
-    if ((token_ != nullptr) && (token_->GetSptrRefCount() > TOKEN_STRONG_REF_COUNT)) {
+    int32_t refCount = token_->GetSptrRefCount();
+    ROSEN_LOGI("RefCount: %{public}d", refCount);
+    if ((token_ != nullptr) && (refCount > TOKEN_STRONG_REF_COUNT)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME_FOR_DEC_STRONG_REF));
     }
 }

@@ -694,6 +694,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
+    targetSurfaceParams->captureEnableUifirst_ = captureEnableUifirst_;
+    targetSurfaceParams->uiFirstVisibleFilterRect_ = uiFirstVisibleFilterRect_;
     RSRenderParams::OnSync(target);
 }
 

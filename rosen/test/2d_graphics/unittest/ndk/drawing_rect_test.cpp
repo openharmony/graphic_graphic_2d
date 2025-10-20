@@ -688,6 +688,54 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_DestroyArray002, TestSize.
 {
     EXPECT_EQ(OH_Drawing_RectDestroyArray(nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
 }
+
+/*
+ * @tc.name: NativeDrawingRectTest_RectContains007
+ * @tc.desc: test for normal use of OH_Drawing_RectContains
+ * @tc.type: FUNC
+ * @tc.require: SR20250827411768
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectContains007, TestSize.Level1)
+{
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(10, 20, 40, 30);
+    OH_Drawing_Rect *other = OH_Drawing_RectCreate(5, 5, 100, 100);
+
+    bool isContains;
+    EXPECT_EQ(OH_Drawing_RectContains(rect, other, &isContains), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(isContains);
+    EXPECT_EQ(OH_Drawing_RectContains(other, rect, &isContains), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isContains);
+    EXPECT_EQ(OH_Drawing_RectContains(nullptr, other, &isContains), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectContains(rect, nullptr, &isContains), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RectDestroy(other);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_Inset007
+ * @tc.desc: test for normal use of OH_Drawing_RectInset
+ * @tc.type: FUNC
+ * @tc.require: SR20250827411768
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Inset007, TestSize.Level1)
+{
+    // rect left[10], top[20], right[40], bottom[30]
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(10, 20, 40, 30);
+    float left = 1;
+    float top = 5;
+    float right = 2;
+    float bottom = 6;
+
+    EXPECT_EQ(OH_Drawing_RectInset(nullptr, left, top, right, bottom), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectInset(rect, left, top, right, bottom), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 11);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 25);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 38);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 24);
+    OH_Drawing_RectDestroy(rect);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

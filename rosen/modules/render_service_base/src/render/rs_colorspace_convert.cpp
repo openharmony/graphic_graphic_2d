@@ -29,6 +29,25 @@ namespace Rosen {
 namespace {
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr size_t MATRIX_SIZE = 9;
+constexpr uint32_t PIXEL_FORMAT_KEY = 88;
+
+void GetPixelFormat(const sptr<SurfaceBuffer>& buffer, uint32_t& format)
+{
+    format = 0; // 0 is default format.
+    if (buffer == nullptr) {
+        RS_LOGE("buffer is nullptr. Failed to get GetPixelFormat.");
+        return;
+    }
+    std::vector<uint8_t> value;
+    GSError ret = buffer->GetMetadata(PIXEL_FORMAT_KEY, value);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetPixelFormat failed with ret: %{public}u.", ret);
+    }
+    if (value.size() == sizeof(uint32_t)) {
+        format = *reinterpret_cast<uint32_t*>(value.data());
+    }
+}
+
 }; // namespace
 
 RSColorSpaceConvert::RSColorSpaceConvert()
@@ -189,6 +208,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata, ret);
     GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata, ret);
     GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata);
+    GetPixelFormat(surfaceBuffer, parameter.pixelFormat);
 
     float scaler = DEFAULT_SCALER;
     auto& rsLuminance = RSLuminanceControl::Get();
@@ -212,14 +232,19 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     switch (hdrProperties.screenshotType) {
         case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
-            parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
+            parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
+                RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
             break;
         case RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT:
             parameter.tmoNits = parameter.currentDisplayNits;
             break;
         default:
-            parameter.tmoNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_HDR_NITS :
-                std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            if (hdrProperties.isHDREnabledVirtualScreen) {
+                parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
+                    RSLuminanceConst::DEFAULT_CAST_HDR_NITS : RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
+            } else {
+                parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            }
             break;
     }
     // color temperature

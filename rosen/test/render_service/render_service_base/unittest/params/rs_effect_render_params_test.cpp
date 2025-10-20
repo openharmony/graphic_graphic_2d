@@ -143,4 +143,25 @@ HWTEST_F(RSEffectRenderParamsTest, SetDarkColorMode001, TestSize.Level1)
     params.SetDarkColorMode(true);
     EXPECT_TRUE(params.GetDarkColorMode());
 }
+
+/**
+ * @tc.name: SetHasHarmoniumChildren001
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderParamsTest, SetHasHarmoniumChildren001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSEffectRenderParams>(id);
+    RSEffectRenderParams params(id);
+    params.hasHarmoniumChildren_ = false;
+    params.SetHasHarmoniumChildren(true);
+
+    params.hasHarmoniumChildren_ = true;
+    params.SetHasHarmoniumChildren(true);
+
+    EXPECT_TRUE(params.GetHasEffectChildren());
+}
+
 } // namespace OHOS::Rosen

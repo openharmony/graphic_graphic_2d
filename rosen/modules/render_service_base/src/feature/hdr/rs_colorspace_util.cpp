@@ -15,16 +15,26 @@
 
 #include <unordered_map>
 
+#include "draw/surface.h"
 #include "feature/hdr/rs_colorspace_util.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+
+static constexpr Drawing::CMSTransferFunction TRANSFUNC_2DOT6 = { 2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+static constexpr Drawing::CMSMatrix3x3 MATRIX_DCI_P3 = {{
+    { 0.486143,    0.323835,  0.154234  },
+    { 0.226676,    0.710327,  0.0629966 },
+    { 0.000800549, 0.0432385, 0.78275   },
+}};
 
 std::shared_ptr<Drawing::ColorSpace> RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(
     ColorManager::ColorSpaceName colorSpaceName)
 {
     switch (colorSpaceName) {
         case ColorManager::ColorSpaceName::DCI_P3:
+            return Drawing::ColorSpace::CreateCustomRGB(TRANSFUNC_2DOT6, MATRIX_DCI_P3);
         case ColorManager::ColorSpaceName::DISPLAY_P3:
             return Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
@@ -41,6 +51,33 @@ std::shared_ptr<Drawing::ColorSpace> RSColorSpaceUtil::ColorSpaceToDrawingColorS
         default:
             return Drawing::ColorSpace::CreateSRGB();
     }
+}
+
+GraphicColorGamut RSColorSpaceUtil::DrawingColorSpaceToGraphicColorGamut(
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+{
+    // Function only applicable to the target color space.
+    if (colorSpace == nullptr || colorSpace->IsSRGB()) {
+        return GRAPHIC_COLOR_GAMUT_SRGB;
+    } else if (colorSpace->Equals(Drawing::ColorSpace::CreateRGB(
+        Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3))) {
+        return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    } else if (colorSpace->Equals(Drawing::ColorSpace::CreateRGB(
+        Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020))) {
+        return GRAPHIC_COLOR_GAMUT_BT2020;
+    }
+    return GRAPHIC_COLOR_GAMUT_SRGB;
+}
+
+GraphicColorGamut RSColorSpaceUtil::GetColorGamutFromCanvas(const Drawing::Canvas& canvas)
+{
+    auto surface = canvas.GetSurface();
+    if (surface == nullptr) {
+        RS_LOGE("GetColorGamutFromCanvas surface is nullptr");
+        return GRAPHIC_COLOR_GAMUT_INVALID;
+    }
+    auto colorSpace = surface->GetImageInfo().GetColorSpace();
+    return DrawingColorSpaceToGraphicColorGamut(colorSpace);
 }
 
 GraphicColorGamut RSColorSpaceUtil::ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name)

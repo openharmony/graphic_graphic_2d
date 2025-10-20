@@ -163,7 +163,7 @@ template<>
 void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::UpdateAnimationValue(const float fraction, const bool isAdditive);
 
 template<typename T>
-class RSB_EXPORT RSKeyframeValueEstimator : public RSValueEstimator {
+class RSB_EXPORT_TMP RSKeyframeValueEstimator : public RSValueEstimator {
 public:
     RSKeyframeValueEstimator() = default;
     virtual ~RSKeyframeValueEstimator() = default;
@@ -346,7 +346,7 @@ public:
 };
 
 template<typename T>
-class RSB_EXPORT RSSpringValueEstimator : public RSSpringValueEstimatorBase {
+class RSB_EXPORT_TMP RSSpringValueEstimator : public RSSpringValueEstimatorBase {
 public:
     RSSpringValueEstimator() : RSSpringValueEstimatorBase()
     {

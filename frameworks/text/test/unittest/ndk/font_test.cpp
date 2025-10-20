@@ -124,7 +124,7 @@ HWTEST_F(NdkFontTest, GetMetrics003, TestSize.Level0)
     EXPECT_NEAR(fontMetrics.descent, 1.440000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.bottom, 1.440000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 12.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 12.012001, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.maxCharWidth, 19.092001, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.xMin, -0.684000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.xMax, 18.408001, FLOAT_DATA_EPSILON);

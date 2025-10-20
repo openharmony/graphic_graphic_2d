@@ -38,6 +38,11 @@
 #define gettid []()->int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
 #endif
 
+// win API conflict handle
+#ifdef DIFFERENCE
+#undef DIFFERENCE
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -882,6 +887,12 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
 void RSPaintFilterCanvasBase::Restore()
 {
 #ifdef SKP_RECORDING_ENABLED
+    // ClipRRect Optimization
+    if (!pCanvasList_.empty()) {
+        if (auto canvas = *pCanvasList_.begin()) {
+            RestoreClipRRect(canvas->GetSaveCount());
+        }
+    }
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
             (*iter)->Restore();
@@ -889,6 +900,7 @@ void RSPaintFilterCanvasBase::Restore()
     }
 #else
     if (canvas_ != nullptr) {
+        RestoreClipRRect(canvas_->GetSaveCount()); // ClipRRect Optimization
         canvas_->Restore();
     }
 #endif
@@ -1808,5 +1820,108 @@ bool RSPaintFilterCanvas::GetDarkColorMode() const
 {
     return isDarkColorMode_;
 }
+
+uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> data)
+{
+    clipRRectStack_.push(data);
+    return clipRRectStack_.size();
+}
+
+void RSPaintFilterCanvasBase::RestoreClipRRect(uint32_t saveCount)
+{
+    if (clipRRectStack_.empty()) {
+        return;
+    }
+    if (saveCount != clipRRectStack_.top()->saveCount_) {
+        return;
+    }
+    auto data = clipRRectStack_.top();
+    clipRRectStack_.pop();
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        auto canvas = *iter;
+        DrawOptimizationClipRRect(canvas, data);
+    }
+#else
+    DrawOptimizationClipRRect(canvas_, data);
+#endif
+}
+
+void RSPaintFilterCanvasBase::DrawOptimizationClipRRect(Drawing::Canvas* canvas, std::shared_ptr<ClipRRectData> data)
+{
+    if (canvas == nullptr || data == nullptr) {
+        return;
+    }
+    canvas->Save();
+    canvas->ClipRoundRect(data->rRect_, Drawing::ClipOp::DIFFERENCE, true);
+    canvas->ResetMatrix();
+    for (auto& corner : data->data_) {
+        if (corner != nullptr && corner->image_ != nullptr && !corner->rect_.IsEmpty()) {
+            Drawing::Brush brush;
+            brush.SetBlendMode(Drawing::BlendMode::SRC);
+            canvas->AttachBrush(brush);
+            canvas->DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
+            canvas->DetachBrush();
+        }
+    }
+    canvas->Restore();
+}
+
+std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::GenerateCornerData(
+    Drawing::RoundRect rRect, Drawing::RoundRect::CornerPos pos, Drawing::Matrix mat, Drawing::Surface *surface)
+{
+    if (!surface) {
+        return nullptr;
+    }
+    auto rect = rRect.GetRect();
+    auto radius = rRect.GetCornerRadius(pos);
+    Drawing::Rect relativeRect;
+    switch (pos) {
+        case Drawing::RoundRect::CornerPos::TOP_LEFT_POS: {
+            relativeRect = Drawing::Rect(rect.GetLeft(), rect.GetTop(), radius.GetX(), radius.GetY());
+            break;
+        }
+        case Drawing::RoundRect::CornerPos::TOP_RIGHT_POS: {
+            relativeRect = Drawing::Rect(radius.GetX(), rect.GetTop(), rect.GetRight(), radius.GetY());
+            break;
+        }
+        case Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS: {
+            relativeRect = Drawing::Rect(rect.GetLeft(), radius.GetY(), radius.GetX(), rect.GetBottom());
+            break;
+        }
+        case Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS: {
+            relativeRect = Drawing::Rect(radius.GetX(), radius.GetY(), rect.GetRight(), rect.GetBottom());
+            break;
+        }
+        default: {
+            RS_LOGE("Invalid corner pos");
+            return nullptr;
+        }
+    }
+    Drawing::Rect absRect;
+    mat.MapRect(absRect, relativeRect);
+    Drawing::RectI drawRect = absRect.RoundOut();
+    drawRect.MakeOutset(1, 1);
+    return std::make_shared<RSPaintFilterCanvasBase::CornerData>(surface->GetImageSnapshot(drawRect, false), drawRect);
+}
+
+void RSPaintFilterCanvas::ClipRRectOptimization(Drawing::RoundRect clipRRect)
+{
+    auto surface = GetSurface();
+    if (!surface) {
+        return;
+    }
+    auto mat = GetTotalMatrix();
+    std::array<std::shared_ptr<RSPaintFilterCanvasBase::CornerData>,
+        RSPaintFilterCanvasBase::ClipRRectData::CORNER_DATA_SIZE> cornerDatas = {
+            GenerateCornerData(clipRRect, Drawing::RoundRect::CornerPos::TOP_LEFT_POS, mat, surface),
+            GenerateCornerData(clipRRect, Drawing::RoundRect::CornerPos::TOP_RIGHT_POS, mat, surface),
+            GenerateCornerData(clipRRect, Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS, mat, surface),
+            GenerateCornerData(clipRRect, Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS, mat, surface)
+    };
+    auto data = std::make_shared<RSPaintFilterCanvasBase::ClipRRectData>(cornerDatas, clipRRect, GetSaveCount());
+    SaveClipRRect(data);
+}
+
 } // namespace Rosen
 } // namespace OHOS

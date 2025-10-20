@@ -332,7 +332,7 @@ struct RSSurfaceCaptureParam {
     bool isSelfCapture = false;
     bool isFreeze = false;
     RSSurfaceCaptureBlurParam blurParam = {};
-    bool ignoreSpecialLayer = false;
+    bool needCaptureSpecialLayer = false;
 };
 
 struct RSSurfaceCapturePermissions {

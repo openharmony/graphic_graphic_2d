@@ -24,9 +24,6 @@ public:
     RSHpaeOfflineThreadManager() {}
     ~RSHpaeOfflineThreadManager() {}
     bool PostTask(const std::function<void()>& task);
-
-private:
-    std::mutex ffrtThreadMutex_;
 };
 }
 #endif // RS_CORE_FEATURE_HPAE_OFFLINE_THREAD_MANAGER_H

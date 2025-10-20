@@ -260,7 +260,7 @@ void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& 
             type != static_cast<uint16_t>(ModifierNG::RSModifierType::CLIP_TO_FRAME)) {
             continue;
         }
-        auto& slot = node.modifiersNG_[type];
+        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }
@@ -408,13 +408,14 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
         out["CornerRadius"] = { properties.GetCornerRadius().x_, properties.GetCornerRadius().y_,
             properties.GetCornerRadius().z_, properties.GetCornerRadius().w_ };
     }
-    if (properties.pixelStretch_.has_value()) {
+    const auto& propPixelStretch = properties.GetPixelStretch();
+    if (propPixelStretch.has_value()) {
         auto& pixelStretch = out["PixelStretch"];
         pixelStretch.PushObject();
-        pixelStretch["left"] = properties.pixelStretch_->x_;
-        pixelStretch["top"] = properties.pixelStretch_->y_;
-        pixelStretch["right"] = properties.pixelStretch_->z_;
-        pixelStretch["bottom"] = properties.pixelStretch_->w_;
+        pixelStretch["left"] = propPixelStretch->x_;
+        pixelStretch["top"] = propPixelStretch->y_;
+        pixelStretch["right"] = propPixelStretch->z_;
+        pixelStretch["bottom"] = propPixelStretch->w_;
         pixelStretch.PopObject();
     }
     if (!ROSEN_EQ(properties.GetAlpha(), 1.f)) {

@@ -449,4 +449,65 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     composerAdapter_->SetBufferColorSpace(*screenDrawable);
 }
+
+/**
+ * @tc.name: SetMetaDataInfoToLayerTest
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.SetMetaDataInfoToLayer
+ * @tc.type: FUNC
+ * @tc.require: issues20101
+*/
+HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayerTest, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto buffer = new SurfaceBufferImpl(0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetUniRenderFlag(true);
+    composerAdapter_->SetMetaDataInfoToLayer(layer, info.buffer, surfaceHandler->GetConsumer());
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRectTest
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.GetComposerInfoSrcRect
+ * @tc.type: FUNC
+ * @tc.require: issues20101
+*/
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRectTest, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto buffer = new SurfaceBufferImpl(0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    RectI rect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(rect);
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+    composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
 } // namespace

@@ -46,7 +46,7 @@ enum SHADOW_MASK_STRATEGY : int {
     MASK_COLOR_BLUR = 2,     // use BlenMode SRC_IN set color on image, then to blur
 };
 
-class RSShadow {
+class RSB_EXPORT RSShadow {
 public:
     RSShadow();
     virtual ~RSShadow();

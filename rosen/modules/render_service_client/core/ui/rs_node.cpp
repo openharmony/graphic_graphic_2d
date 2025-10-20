@@ -38,6 +38,7 @@
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -69,6 +70,7 @@
 #include "modifier_ng/appearance/rs_point_light_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
+#include "modifier_ng/appearance/rs_union_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
@@ -1227,6 +1229,11 @@ void RSNode::SetCornerRadius(const Vector4f& cornerRadius)
     SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetCornerRadius>(cornerRadius);
 }
 
+void RSNode::SetCornerApplyType(RSCornerApplyType type)
+{
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetCornerApplyType>(type);
+}
+
 // transform
 void RSNode::SetRotation(const Quaternion& quaternion)
 {
@@ -1735,6 +1742,17 @@ void RSNode::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& 
     SetPropertyNG<ModifierNG::RSParticleEffectModifier, &ModifierNG::RSParticleEffectModifier::SetParticleNoiseFields>(
         para);
 }
+void RSNode::SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para)
+{
+    SetPropertyNG<ModifierNG::RSParticleEffectModifier, &ModifierNG::RSParticleEffectModifier::SetParticleRippleFields>(
+        para);
+}
+
+void RSNode::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para)
+{
+    SetPropertyNG<ModifierNG::RSParticleEffectModifier,
+        &ModifierNG::RSParticleEffectModifier::SetParticleVelocityFields>(para);
+}
 
 // foreground
 void RSNode::SetForegroundColor(uint32_t colorValue)
@@ -2095,12 +2113,10 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara == nullptr) {
             continue;
         }
-        if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT) {
+        if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
-        }
-        if (visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT) {
-            std::shared_ptr<RSNGShaderBase> headVisualEffect = RSNGShaderBase::Create(visualEffectPara);
-            SetBackgroundNGShader(headVisualEffect);
         }
         
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
@@ -2578,6 +2594,26 @@ void RSNode::SetAlwaysSnapshot(bool enable)
         enable);
 }
 
+void RSNode::SetUseUnion(bool useUnion)
+{
+    SetPropertyNG<ModifierNG::RSUnionModifier, &ModifierNG::RSUnionModifier::SetUseUnion>(useUnion);
+}
+
+void RSNode::SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask)
+{
+    if (!mask) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::UNION);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_MASK)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_MASK);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSUnionModifier, &ModifierNG::RSUnionModifier::SetSDFMask>(mask);
+}
+
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
 {
     SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetUseShadowBatching>(useShadowBatching);
@@ -2888,9 +2924,6 @@ void RSNode::DoFlushModifier()
             std::unique_ptr<RSCommand> command =
                 std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
             AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-            if (modifier->IsCustom()) {
-                std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
-            }
         }
     }
 }
@@ -3885,17 +3918,9 @@ void RSNode::DumpModifiers(std::string& out) const
         if (modifier == nullptr) {
             continue;
         }
-        auto customModifier =
-            modifier->IsCustom() ? std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier) : nullptr;
-        if (customModifier != nullptr) {
-            customModifier->UpdateDrawCmdList();
-        }
         auto renderModifier = modifier->CreateRenderModifier();
         if (renderModifier != nullptr) {
             renderModifier->Dump(modifierInfo, ",");
-        }
-        if (customModifier != nullptr) {
-            customModifier->ClearDrawCmdList();
         }
     }
     if (!modifierInfo.empty()) {
@@ -4100,9 +4125,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         std::unique_ptr<RSCommand> cmdForRemote =
             std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
-    }
-    if (modifier->IsCustom()) {
-        std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->ClearDrawCmdList();
     }
 }
 

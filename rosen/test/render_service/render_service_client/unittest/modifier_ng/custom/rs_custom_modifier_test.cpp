@@ -33,6 +33,17 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::ModifierNG;
 
 namespace OHOS::Rosen {
+namespace {
+class RSNodeMock : public RSCanvasNode {
+public:
+    explicit RSNodeMock() : RSCanvasNode(false, false, nullptr) {}
+    ~RSNodeMock() = default;
+    bool NeedForcedSendToRemote() const override
+    {
+        return true;
+    }
+};
+} // namespace
 class RSCustomModifierHelperTest : public testing::Test {
 public:
     static void SetUpTestCase() {};
@@ -102,7 +113,6 @@ HWTEST_F(RSCustomModifierHelperTest, FinishDrawingTest, TestSize.Level1)
 HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListTest, TestSize.Level1)
 {
     auto modifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
-    modifier->ClearDrawCmdList();
     modifier->UpdateDrawCmdList();
     EXPECT_EQ(modifier->node_.lock(), nullptr);
     auto node = std::make_shared<RSCanvasNode>(true);
@@ -122,7 +132,27 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateDrawCmdListTest, TestSize.Level1)
     EXPECT_NE(modifier->node_.lock(), nullptr);
     EXPECT_NE(property, nullptr);
     EXPECT_NE(property->Get(), nullptr);
-    modifier->ClearDrawCmdList();
-    EXPECT_EQ(property->Get(), nullptr);
+}
+
+/**
+ * @tc.name: UpdatePropertyTest002
+ * @tc.desc: Test the function UpdateProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCustomModifierHelperTest, UpdatePropertyTest002, TestSize.Level1)
+{
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    rsCustomModifier->SetContentTransitionParam(ContentTransitionType::IDENTITY);
+
+    // case1: not send to remote
+    std::shared_ptr<RSNode> node = RSCanvasNode::Create();
+    rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
+    ASSERT_FALSE(node->NeedForcedSendToRemote());
+
+    // case2: send to remote
+    node = std::make_shared<RSNodeMock>();
+    rsCustomModifier->UpdateProperty(node, drawCmdList, 0);
+    ASSERT_TRUE(node->NeedForcedSendToRemote());
 }
 } // namespace OHOS::Rosen

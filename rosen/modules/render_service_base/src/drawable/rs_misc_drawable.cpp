@@ -266,8 +266,9 @@ RSSaveDrawable::RSSaveDrawable(std::shared_ptr<uint32_t> content) : content_(std
 Drawing::RecordingCanvas::DrawFunc RSSaveDrawable::CreateDrawFunc() const
 {
     return [content = content_](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         // Save and return save count
-        *content = canvas->Save();
+        *content = paintFilterCanvas->Save();
     };
 }
 
@@ -275,8 +276,9 @@ RSRestoreDrawable::RSRestoreDrawable(std::shared_ptr<uint32_t> content) : conten
 Drawing::RecordingCanvas::DrawFunc RSRestoreDrawable::CreateDrawFunc() const
 {
     return [content = content_](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         // return to previous save count
-        canvas->RestoreToCount(*content);
+        paintFilterCanvas->RestoreToCount(*content);
     };
 }
 

@@ -76,7 +76,7 @@ void RSCustomModifier::UpdateDrawCmdList()
     auto it = properties_.find(propertyType);
     if (it != properties_.end()) {
         auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
-        property->stagingValue_ = drawCmdList;
+        property->showingValue_ = drawCmdList;
         MarkNodeDirty();
         if (property->isCustom_) {
             property->MarkCustomModifierDirty();
@@ -88,13 +88,6 @@ void RSCustomModifier::UpdateDrawCmdList()
         SetPropertyThresholdType(propertyType, property);
         property->Attach(*node, weak_from_this());
         MarkNodeDirty();
-    }
-}
-
-void RSCustomModifier::ClearDrawCmdList()
-{
-    if (auto property = GetProperty(GetInnerPropertyType())) {
-        std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(property)->stagingValue_ = nullptr;
     }
 }
 
@@ -124,7 +117,9 @@ void RSCustomModifier::UpdateToRender()
         return;
     }
 
-    UpdateProperty(node, drawCmdList, it->second->GetId());
+    auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
+    property->showingValue_ = drawCmdList;
+    UpdateProperty(node, drawCmdList, property->GetId());
 }
 
 void RSCustomModifier::UpdateProperty(

@@ -45,7 +45,7 @@ namespace OHOS::Rosen {
 */
 HWTEST(RSProfilerBaseTest, IsPlaybackParcel, Level1)
 {
-    RSProfiler::SetMode(Mode::READ_EMUL);
+    RSProfiler::SetSubMode(SubMode::READ_EMUL);
     Parcel parcel;
     EXPECT_FALSE(RSProfiler::IsPlaybackParcel(parcel));
 }
@@ -63,7 +63,7 @@ HWTEST(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
 
         RSProfiler::testing_ = true;
         bool useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
+        RSProfiler::SetSubMode(SubMode::READ_EMUL);
         RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
         EXPECT_TRUE(useNodeMatchOptimize);
 
@@ -74,7 +74,7 @@ HWTEST(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
 
         RSProfiler::testing_ = false;
         useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
+        RSProfiler::SetSubMode(SubMode::READ_EMUL);
         RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
         EXPECT_FALSE(useNodeMatchOptimize);
 
@@ -87,7 +87,7 @@ HWTEST(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
 
         RSProfiler::testing_ = true;
         useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
+        RSProfiler::SetSubMode(SubMode::READ_EMUL);
         RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
         EXPECT_TRUE(useNodeMatchOptimize);
 
@@ -98,7 +98,7 @@ HWTEST(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
 
         RSProfiler::testing_ = false;
         useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::READ_EMUL);
+        RSProfiler::SetSubMode(SubMode::READ_EMUL);
         RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
         EXPECT_TRUE(useNodeMatchOptimize);
 
@@ -246,7 +246,7 @@ HWTEST(RSProfilerBaseTest, RSLOGW1, Level1)
 HWTEST(RSProfilerBaseTest, RSLOGW2, Level1)
 {
     RSProfiler::testing_ = true;
-    RSProfiler::SetMode(Mode::READ_EMUL);
+    RSProfiler::SetSubMode(SubMode::READ_EMUL);
 
     std::string msg;
     do {

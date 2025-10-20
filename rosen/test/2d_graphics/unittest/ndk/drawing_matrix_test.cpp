@@ -907,6 +907,48 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixCopy0
     OH_Drawing_MatrixDestroy(matrix3);
 }
 
+/*
+ * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixPreConcat028
+ * @tc.desc: test for normal use of OH_Drawing_MatrixPreConcat.
+ * @tc.type: FUNC
+ * @tc.require: SR20250827411768
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixPreConcat028, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* other = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* result = OH_Drawing_MatrixCreate();
+    EXPECT_TRUE(matrix != nullptr);
+    EXPECT_TRUE(other != nullptr);
+    EXPECT_TRUE(result != nullptr);
+
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 1, 1,
+        0, -1, 0,
+        -1, 0, 1);
+
+    OH_Drawing_MatrixSetMatrix(
+        other,
+        1, 0, 1,
+        0, -2, 0,
+        0, 3, 1);
+
+    OH_Drawing_MatrixSetMatrix(
+        result,
+        1, 1, 2,
+        0, 2, 0,
+        -1, 3, 0);
+    
+    EXPECT_EQ(OH_Drawing_MatrixPreConcat(nullptr, other), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixPreConcat(matrix, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixPreConcat(matrix, other), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(OH_Drawing_MatrixIsEqual(matrix, result));
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_MatrixDestroy(other);
+    OH_Drawing_MatrixDestroy(result);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

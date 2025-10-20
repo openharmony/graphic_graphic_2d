@@ -45,7 +45,6 @@ public:
 private:
     static bool CreateConstructor(napi_env env);
     static napi_value GenerateNewInstance(napi_env env);
-    static std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& moduleName);
     static thread_local napi_ref constructor_;
     static std::mutex constructorMutex_;
     napi_value OnLoadFont(napi_env env, napi_callback_info info);

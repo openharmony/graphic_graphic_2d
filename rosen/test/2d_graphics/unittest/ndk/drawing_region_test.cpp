@@ -19,6 +19,7 @@
 #include "drawing_rect.h"
 #include "drawing_region.h"
 #include "drawing_path.h"
+#include "utils/region.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -179,6 +180,31 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionCopy001, TestSiz
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_RegionDestroy(region2);
     OH_Drawing_RegionDestroy(region3);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region007
+ * @tc.desc: test for set drawing_region empty.
+ * @tc.type: FUNC
+ * @tc.require: SR20250827411768
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionEmpty007, TestSize.Level1)
+{
+    OH_Drawing_Region* region = OH_Drawing_RegionCreate();
+    EXPECT_TRUE(region != nullptr);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100.0f, 100.0f, 256.0f, 256.0f);
+    OH_Drawing_RegionSetRect(region, rect);
+    Region* regionOriginal = reinterpret_cast<Region*>(region);
+    bool isEmptyOriginal = regionOriginal->IsEmpty();
+    EXPECT_FALSE(isEmptyOriginal);
+    EXPECT_EQ(OH_Drawing_RegionEmpty(nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionEmpty(region), OH_DRAWING_SUCCESS);
+    Region* regionFinal = reinterpret_cast<Region*>(region);
+    bool isEmptyFinal = regionFinal->IsEmpty();
+    EXPECT_TRUE(isEmptyFinal);
+
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RectDestroy(rect);
 }
 } // namespace Drawing
 } // namespace Rosen
