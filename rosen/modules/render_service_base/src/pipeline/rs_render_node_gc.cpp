@@ -147,6 +147,15 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 void RSRenderNodeGC::ReleaseNodeMemory()
 {
     RS_TRACE_FUNC();
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    if (mainTask_) {
+        mainTask_([this]() {
+            ReleaseNodeMemNotOnTree();
+        }, DELETE_NODE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
+    } else {
+        ReleaseNodeMemNotOnTree();
+    }
+#endif
     uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
@@ -380,6 +389,86 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<ui
     if (subMap.empty()) {
         offTreeBucketMap_.pop();
         RS_TRACE_NAME_FMT("offTreeBucketMap size=%u", offTreeBucketMap_.size());
+    }
+}
+
+void RSRenderNodeGC::SetAbilityState(pid_t pid, bool isBackground)
+{
+    if (isBackground) {
+        std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+        backgroundPidSet_.insert(pid);
+        return;
+    }
+    ReleaseNodePid(pid);
+}
+
+void RSRenderNodeGC::ReleaseNodePid(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+    auto it = backgroundPidSet_.find(pid);
+    if (it != backgroundPidSet_.end()) {
+        backgroundPidSet_.erase(it);
+    }
+}
+
+void RSRenderNodeGC::ReleaseNodeNotOnTree(pid_t pid)
+{
+    ReleaseNodePid(pid);
+    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+    auto it = notOnTreeNodeMap_.find(pid);
+    if (it != notOnTreeNodeMap_.end()) {
+        notOnTreeNodeMap_.erase(it);
+    }
+}
+
+void RSRenderNodeGC::SetIsOnTheTree(NodeId nodeId, std::weak_ptr<RSBaseRenderNode> node, bool isOnTree)
+{
+    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+    auto nodePid = ExtractPid(nodeId);
+    if (!isOnTree) {
+        notOnTreeNodeMap_[nodePid][nodeId] = node;
+        return;
+    }
+    auto mapIt = notOnTreeNodeMap_.find(nodePid);
+    if (mapIt == notOnTreeNodeMap_.end()) {
+        return;
+    }
+    auto& map = mapIt->second;
+    auto it = map.find(nodeId);
+    if (it != map.end()) {
+        map.erase(it);
+    }
+    if (map.empty()) {
+        notOnTreeNodeMap_.erase(mapIt);
+    }
+}
+
+void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
+{
+    std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
+    uint32_t cnt = 0;
+    for (auto pidIt = backgroundPidSet_.begin(); pidIt != backgroundPidSet_.end(); pidIt++) {
+        auto mapIt = notOnTreeNodeMap_.find(*pidIt);
+        if (mapIt == notOnTreeNodeMap_.end()) {
+            continue;
+        }
+        auto& nodeMap = mapIt->second;
+        auto nodeIt = nodeMap.begin();
+        while (nodeIt != nodeMap.end()) {
+            auto node = nodeIt->second.lock();
+            if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
+                nodeMap.erase(nodeIt++);
+                continue;
+            }
+            if (cnt++ > NODE_MEM_RELEASE_LIMIT) {
+                return;
+            }
+            node->ReleaseNodeMem();
+            nodeMap.erase(nodeIt++);
+        }
+        if (nodeMap.empty())  {
+            notOnTreeNodeMap_.erase(mapIt);
+        }
     }
 }
 } // namespace Rosen

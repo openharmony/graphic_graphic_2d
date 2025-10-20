@@ -44,6 +44,7 @@ namespace {
     const uint32_t GC_LEVEL_THR_IMMEDIATE = 1000;
     const uint32_t GC_LEVEL_THR_HIGH = 500;
     const uint32_t GC_LEVEL_THR_LOW = 50;
+    const uint32_t NODE_MEM_RELEASE_LIMIT = 1000;
 }
 
 enum class GCLevel : uint32_t {
@@ -87,11 +88,17 @@ public:
         isEnable_.store(isEnable);
     }
 
+    void SetIsOnTheTree(NodeId nodeId, std::weak_ptr<RSBaseRenderNode> node, bool isOnTree);
+    void ReleaseNodeMemNotOnTree();
+    void SetAbilityState(pid_t pid, bool isBackground);
+    void ReleaseNodeNotOnTree(pid_t pid);
+
 private:
     GCLevel JudgeGCLevel(uint32_t remainBucketSize);
     void ReleaseOffTreeNodeForBucket(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
     void ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<uint32_t>::DetectCallBack& callBack);
     void AddNodeToBucket(RSRenderNode* ptr);
+    void ReleaseNodePid(pid_t pid);
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
@@ -113,6 +120,9 @@ private:
         DRAWABLE_BUCKET_THR_LOW, DRAWABLE_BUCKET_THR_HIGH);
     std::mutex nodeMutex_;
     std::mutex drawableMutex_;
+    std::mutex nodeNotOnTreeMutex_;
+    std::unordered_map<pid_t, std::unordered_map<NodeId, std::weak_ptr<RSBaseRenderNode>>> notOnTreeNodeMap_;
+    std::set<pid_t> backgroundPidSet_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -978,6 +978,7 @@ public:
 
     void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
     bool GetNeedUseCmdlistDrawRegion();
+    void ReleaseNodeMem();
 
 protected:
     void ResetDirtyStatus();
@@ -1292,8 +1293,8 @@ private:
 
     bool IsNodeMemClearEnable()
     {
-#ifdef NOT_BUILDFOR_OHOS_SDK
-        return RSSystemProperties::GetNodeMemClearEnable() && GetType() == RSRenderNodeType::CANVAS_NODE
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+        return RSSystemProperties::GetNodeMemClearEnabled() && GetType() == RSRenderNodeType::CANVAS_NODE
         && RSProperties::IS_UNI_RENDER && !isTextureExportNode_;
 #else
         return false;
