@@ -16,6 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 ## Build libEGL.so {{{
 declare_args() {
   egl_use_aps_plugin = true
+  egl_use_gameservice_plugin = true
 }
 
 config("egl_config") {
@@ -29,10 +30,8 @@ config("egl_config") {
   } else {
     defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=0" ]
   }
-  if (graphic_2d_feature_use_aps_igameservice_func) {
-    defines += [ "USE_APS_IGAMESERVICE_FUNC=1" ]
-  } else {
-    defines += [ "USE_APS_IGAMESERVICE_FUNC=0" ]
+  if (egl_use_gameservice_plugin) {
+    defines += [ "USE_IGAMESERVICE_PLUGIN" ]
   }
   if (graphic_2d_feature_enable_opengl_to_vulkan) {
     defines += [ "OPENGL_WRAPPER_ENABLE_GL4" ]
@@ -58,8 +57,8 @@ config("egl_public_config") {
   if (graphic_2d_feature_use_igraphics_extend_hooks) {
     include_dirs += egl_igraphics_extend_hooks_include_dirs
   }
-  if (graphic_2d_feature_use_aps_igameservice_func) {
-    include_dirs += gameservice_render_slice_report_include_dirs
+  if (egl_use_gameservice_plugin) {
+    include_dirs += [ "../gameservice_plugin/include" ]
   }
   if (egl_use_aps_plugin) {
     include_dirs += [ "../aps_monitor/include" ]
@@ -95,9 +94,6 @@ if (current_os != "ohos") {
     if (graphic_2d_feature_use_igraphics_extend_hooks) {
       sources += egl_igraphics_extend_hooks_sources
     }
-    if (graphic_2d_feature_use_aps_igameservice_func) {
-      sources += gameservice_render_slice_report_sources
-    }
     if (graphic_2d_feature_product == "wearable") {
       defines += [ "PRELOAD_BLOB_CACHE" ]
     }
@@ -122,10 +118,6 @@ if (current_os != "ohos") {
       "ipc:ipc_core",
       "samgr:samgr_proxy",
     ]
-
-    if (graphic_2d_feature_use_aps_igameservice_func) {
-      external_deps += gameservice_render_slice_report_external_deps
-    }
 
     if (is_emulator) {
       defines += [ "IS_EMULATOR" ]
