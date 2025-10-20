@@ -886,7 +886,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     // 5. surfaceNode1 is focus window, has animation and filter, not has transparent.
     surfaceNode1->hasTransparentSurface_ = false;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     mainThread_->focusNodeId_ = 0;
 
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
@@ -904,7 +904,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 8. surfaceNode2 is not focus window, has filter and transparent.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 9. surfaceNode2 is not focus window, not has filter and transparent, has display rotation.
     surfaceNode2->hasTransparentSurface_ = false;
     uifirstManager_.rotationChanged_ = true;
@@ -1791,17 +1791,17 @@ HWTEST_F(RSUifirstManagerTest, QuerySubAssignable, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes001, TestSize.Level1)
 {
-    RSSurfaceRenderNode node(0);
+    auto node = RSTestUtil::CreateSurfaceNode();
     bool ancestorNodeHasAnimation = true;
-    uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
-    EXPECT_TRUE(node.GetUifirstSupportFlag());
+    uifirstManager_.UpdateUifirstNodes(*node.get(), ancestorNodeHasAnimation);
+    EXPECT_TRUE(node->GetUifirstSupportFlag());
 
     uifirstManager_.isUiFirstOn_ = true;
-    uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
+    uifirstManager_.UpdateUifirstNodes(*node.get(), ancestorNodeHasAnimation);
     EXPECT_TRUE(uifirstManager_.isUiFirstOn_);
 
-    node.isChildSupportUifirst_ = false;
-    uifirstManager_.UpdateUifirstNodes(node, ancestorNodeHasAnimation);
+    node->isChildSupportUifirst_ = false;
+    uifirstManager_.UpdateUifirstNodes(*node.get(), ancestorNodeHasAnimation);
     EXPECT_TRUE(uifirstManager_.isUiFirstOn_);
 }
 
