@@ -168,6 +168,7 @@ public:
     void SetSourceVirtualDisplayId(ScreenId screenId);
     void AttachToWindowContainer(ScreenId screenId);
     void DetachFromWindowContainer(ScreenId screenId);
+    void SetContainerWindowTransparent(bool isContainerWindowTransparent);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,

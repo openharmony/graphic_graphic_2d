@@ -72,6 +72,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER,
     SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER,
     SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
+    SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -124,6 +125,7 @@ public:
     static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
+    static void SetContainerWindowTransparent(RSContext& context, NodeId nodeId, bool isContainerWindowTransparent);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -255,6 +257,9 @@ ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
+ADD_COMMAND(RSSurfaceNodeSetContainerWindowTransparent,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT,
+        SurfaceNodeCommandHelper::SetContainerWindowTransparent, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

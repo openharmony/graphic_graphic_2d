@@ -1024,6 +1024,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Visible" + surfaceNode->GetVisibleRegion().GetRegionInfo();
         out += ", Opaque" + surfaceNode->GetOpaqueRegion().GetRegionInfo();
         out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
+        out += ", IsContainerTransparent: " + std::to_string(surfaceNode->IsContainerWindowTransparent());
         const auto specialLayerManager = surfaceNode->GetSpecialLayerMgr();
         out += ", SpecialLayer: " + std::to_string(specialLayerManager.Get());
         out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());

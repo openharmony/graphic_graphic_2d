@@ -78,6 +78,13 @@ public:
     uint32_t GetIndex() const;
 
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
+
+    /**
+     * @brief Set the ContainerWindow whether is transparent.
+     *
+     * @param isContainerWindowTransparent means whether the ContainerWindow is transparent.
+     */
+    void SetContainerWindowTransparent(bool isContainerWindowTransparent);
 private:
     void AttachSurface();
     static void RecvMessages();
