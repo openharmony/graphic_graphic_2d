@@ -49,7 +49,7 @@ void RSSpecialLayerManager::AddIds(uint32_t type, NodeId id)
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
         auto IsSpecial = isType & 1;
-        if (IsSpecial) {
+        if (IsSpecial && specialLayerIds_[currentType].size() < MAX_IDS_SIZE) {
             specialLayerIds_[currentType].insert(id);
             specialLayerType_ |= (currentType << SPECIAL_TYPE_NUM);
         }
@@ -73,6 +73,11 @@ void RSSpecialLayerManager::RemoveIds(uint32_t type, NodeId id)
         isType >>= 1;
         currentType <<= 1;
     }
+}
+
+void RSSpecialLayerManager::ClearSpecialLayerIds()
+{
+    specialLayerIds_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS
