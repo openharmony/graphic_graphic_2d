@@ -1107,7 +1107,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CancelCurrentFrame, TestSize.Level1)
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     ASSERT_NE(nullptr, rsSurface);
     virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface, nullptr);
-    virtualProcessor->renderFrame_->CancelCurrentFrame();
+    virtualProcessor->renderFrame_->targetSurface_ = nullptr;
+    virtualProcessor->CancelCurrentFrame();
     ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
 }
 #endif // RS_ENABLE_VK

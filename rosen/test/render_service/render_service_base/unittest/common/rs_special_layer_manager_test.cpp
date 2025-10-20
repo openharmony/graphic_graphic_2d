@@ -144,4 +144,22 @@ HWTEST_F(RSSpecialLayerManagerTest, AutoSpecialLayerStateRecover, TestSize.Level
     }
     ASSERT_EQ(RSSpecialLayerManager::GetCurWhiteListRootId(), INVALID_LEASH_PERSISTENTID);
 }
+
+/**
+ * @tc.name: AddIds002
+ * @tc.desc: test RSSpecialLayerManager::AddIds add skip layer to set
+ * @tc.type: FUNC
+ * @tc.require: issue20168
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddIds002, TestSize.Level1)
+{
+    RSSpecialLayerManager slManager;
+    NodeId id = 1;
+    for (int i = 0; i < MAX_IDS_SIZE; i++) {
+        slManager.specialLayerIds_[SpecialLayerType::SKIP].insert(id++);
+    }
+    slManager.AddIds(SpecialLayerType::SKIP, id);
+    ASSERT_EQ(slManager.specialLayerIds_[SpecialLayerType::SKIP].size(), MAX_IDS_SIZE);
+    slManager.ClearSpecialLayerIds();
+}
 } // namespace OHOS::Rosen
