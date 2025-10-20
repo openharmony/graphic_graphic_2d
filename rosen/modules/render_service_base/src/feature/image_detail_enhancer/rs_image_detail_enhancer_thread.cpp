@@ -268,6 +268,29 @@ void RSImageDetailEnhancerThread::ExecuteTaskAsync(int dstWidth, int dstHeight,
     }
 }
 
+std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::EnhanceImageAsync(
+    Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+    const RSImageParams& RSImageParams) const
+{
+    bool isEnable = GetEnableStatus() && IsEnableImageDetailEnhance(RSImageParams.mNodeId);
+    if (isEnable || RSImageParams.mPixelMap == nullptr) {
+        return false;
+    }
+    ScaleImageAsync(RSImageParams.mPixelMap, RSImageParams.mDst, RSImageParams.mNodeId,
+        RSImageParams.mUniqueId, RSImageParams.mImage);
+    std::shared_ptr<Drawing::Image> dstImage = GetOutImage(RSImageParams.mUniqueId);
+    if (dstImage == nullptr) {
+        return false;
+    }
+    Drawing::Rect newSrcRect(0, 0, dstImage->GetWidth(), dstImage->GetHeight());
+    canvas.DrawImageRect(*dstImage, newSrcRect, RSImageParams.mDst, samplingOptions,
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    if (RSImageParams.mNeedDetachPen) {
+        canvas.DetachPen();
+    }
+    return true;
+}
+
 void RSImageDetailEnhancerThread::ScaleImageAsync(const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::Rect& dst, uint64_t nodeId, uint64_t imageId, const std::shared_ptr<Drawing::Image>& image)
 {

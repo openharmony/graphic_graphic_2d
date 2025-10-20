@@ -31,6 +31,15 @@
 
 namespace OHOS {
 namespace Rosen {
+struct RSImageParams {
+    std::shared_ptr<Media::PixelMap> mPixelMap;
+    uint64_t mNodeId;
+    const Drawing::Rect mDst;
+    uint64_t mUniqueid;
+    std::shared_ptr<Drawing::Image> mImage;
+    bool mNeedDetachPen;
+};
+
 class RSB_EXPORT RSImageDetailEnhancerThread final {
 public:
     static RSImageDetailEnhancerThread& Instance();
@@ -42,7 +51,8 @@ public:
     void ScaleImageAsync(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& dst,
         uint64_t nodeId, uint64_t imageId, const std::shared_ptr<Drawing::Image>& image);
 #endif
-
+    std::shared_ptr<Drawing::Image> EnhanceImageAsync (Drawing::Canvas& canvas,
+        const Drawing::SamplingOptions& samplingOptions, const RSImageParams& RSImageParams) const;
     void SetOutImage(uint64_t imageId, const std::shared_ptr<Drawing::Image>& image);
     std::shared_ptr<Drawing::Image> GetOutImage(uint64_t imageId) const;
     void ReleaseOutImage(uint64_t imageId);

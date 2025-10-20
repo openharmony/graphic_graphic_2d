@@ -1253,39 +1253,4 @@ HWTEST_F(RSImageTest, CalcRepeatBoundsTest, TestSize.Level1)
     EXPECT_EQ(minY, 0);
     EXPECT_EQ(maxY, 0);
 }
-
-/**
- * @tc.name: EnhanceImageAsyncTest
- * @tc.desc: Verify function EnhanceImageAsyncTest001
- * @tc.type: FUNC
- */
-HWTEST_F(RSImageTest, EnhanceImageAsyncTest001, TestSize.Level1)
-{
-    auto image = std::make_shared<RSImage>();
-    Drawing::SamplingOptions samplingOptions;
-    Drawing::Canvas canvas;
-    image->pixelMap_ = nullptr;
-    bool needDetachPen = false;
-    bool result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
-    EXPECT_FALSE(result);
-    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
-    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
-    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
-    auto pixelMap = std::make_shared<Media::PixelMap>();
-    image->pixelMap_ = pixelMap;
-    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
-    EXPECT_FALSE(result);
-    auto dstImage = std::make_shared<Drawing::Image>();
-    uint64_t imageId = image->GetUniqueId();
-    rsImageDetailEnhancerThread.SetOutImage(imageId, dstImage);
-    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
-    EXPECT_TRUE(result);
-    needDetachPen = true;
-    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
-    EXPECT_TRUE(result);
-    image->pixelMap_ = nullptr;
-    result = image->EnhanceImageAsync(canvas, samplingOptions, needDetachPen);
-    EXPECT_FALSE(result);
-    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
-}
 } // namespace OHOS::Rosen

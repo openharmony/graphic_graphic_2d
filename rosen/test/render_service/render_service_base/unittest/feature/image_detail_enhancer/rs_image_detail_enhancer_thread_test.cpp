@@ -866,6 +866,46 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ExecuteTaskAsyncTest, TestSize.Level1)
     rsImageDetailEnhancerThread.ReleaseOutImage(imageId);
 }
 
+
+/**
+ * @tc.name: EnhanceImageAsyncTest
+ * @tc.desc: Verify function EnhanceImageAsyncTest001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    Drawing::SamplingOptions samplingOptions;
+    Drawing::Canvas canvas;
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    image->pixelMap_ = nullptr;
+    bool needDetachPen = false;
+    RSImageParams rsImageParams = {
+        image->pixelMap_, image->nodeId_, image->dst_, image->uniqueid_, image->image_, needDetachPen
+    };
+    bool result = RSImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams);
+    EXPECT_FALSE(result);
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    image->pixelMap_ = pixelMap;
+    result = RSImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams);
+    EXPECT_FALSE(result);
+    auto dstImage = std::make_shared<Drawing::Image>();
+    uint64_t imageId = image->GetUniqueId();
+    rsImageDetailEnhancerThread.SetOutImage(imageId, dstImage);
+    
+    result = RSImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams);
+    EXPECT_TRUE(result);
+    rsImageParams.needDetachPen = true;
+    result = RSImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams);
+    EXPECT_TRUE(result);
+    image->pixelMap_ = nullptr;
+    result = RSImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams);
+    EXPECT_FALSE(result);
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
+}
+
 /**
  * @tc.name: ScaleImageAsyncTest
  * @tc.desc: ScaleImageAsyncTest
