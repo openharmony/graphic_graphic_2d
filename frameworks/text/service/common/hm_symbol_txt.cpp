@@ -258,5 +258,15 @@ const std::optional<SymbolShadow>& HMSymbolTxt::GetSymbolShadow() const
 {
     return symbolShadow_;
 }
+
+void HMSymbolTxt::SetFirstActive(bool isFirstActive)
+{
+    isFirstActive_ = isFirstActive;
+}
+
+bool HMSymbolTxt::GetFirstActive() const
+{
+    return isFirstActive_;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -203,7 +203,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
     if (symbolTxt_.GetSymbolType() == SymbolType::SYSTEM) {
         auto groups = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetSymbolLayersGroups(glyphId);
         if (groups.renderModeGroups.empty()) {
-            TEXT_LOGD("Failed to get system symbol layer groups, glyph id %{public}hu", glyphId);
+            TEXT_LOGE("Failed to get system symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
             return;
         }
@@ -212,7 +212,7 @@ void HMSymbolRun::UpdateSymbolLayersGroups(uint16_t glyphId)
         auto groups = OHOS::Rosen::Symbol::CustomSymbolConfig::GetInstance()->GetSymbolLayersGroups(
             symbolTxt_.familyName_, glyphId);
         if (!groups.has_value()) {
-            TEXT_LOGD("Failed to get custom symbol layer groups, glyph id %{public}hu", glyphId);
+            TEXT_LOGE("Failed to get custom symbol layer groups, glyph id %{public}hu", glyphId);
             symbolLayersGroups_.renderModeGroups = {};
             return;
         }
@@ -224,19 +224,19 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
     TEXT_TRACE_FUNC();
     if (!textBlob_) {
-        TEXT_LOGD("Null text blob");
+        TEXT_LOGE("Null text blob");
         return;
     }
 
     if (!canvas) {
-        TEXT_LOGD("Null canvas");
+        TEXT_LOGE("Null canvas");
         return;
     }
 
     std::vector<uint16_t> glyphIds;
     RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
     if (glyphIds.size() != 1) {
-        TEXT_LOGD("Glyph isn't unique");
+        TEXT_LOGE("Glyph isn't unique");
         canvas->DrawTextBlob(textBlob_.get(), offset.GetX(), offset.GetY());
         return;
     }
@@ -400,7 +400,7 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     // 1.0 move path
     path.Offset(locate.GetX(), locate.GetY());
     if (symbolData.symbolInfo_.renderGroups.empty()) {
-        TEXT_LOGD("Empty render groups");
+        TEXT_LOGE("Empty render groups");
         canvas->DrawPath(path);
         return;
     }
@@ -497,6 +497,7 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     symbolNode.SetRenderMode(symbolTxt_.GetRenderMode());
     symbolNode.SetGradients(gradients_);
     symbolNode.SetSymbolShadow(symbolTxt_.GetSymbolShadow());
+    symbolNode.SetFirstActive(symbolTxt_.GetFirstActive());
     symbolNode.SetSlope(animationSetting.slope);
     if (effectMode == RSEffectStrategy::DISABLE) {
         symbolNode.SetCommonSubType(animationSetting.commonSubType);

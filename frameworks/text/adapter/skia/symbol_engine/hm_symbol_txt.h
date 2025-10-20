@@ -65,6 +65,10 @@ public:
     std::vector<std::shared_ptr<SymbolGradient>> GetGradients() const;
 
     void SetSymbolColor(const SymbolColor& symbolColor);
+    
+    void SetFirstActive(bool isFirstActive);
+
+    bool GetFirstActive() const;
 
     SymbolColor GetSymbolColor() const;
 
@@ -106,6 +110,7 @@ private:
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
     std::optional<SymbolShadow> symbolShadow_;
+    bool isFirstActive_ = false;
 };
 }
 }

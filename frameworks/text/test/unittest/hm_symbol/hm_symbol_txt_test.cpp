@@ -660,5 +660,20 @@ HWTEST_F(OHHmSymbolTxtTest, CommonColorTest001, TestSize.Level0)
     auto localSymbolColor = symbolTxt.GetRenderColor();
     EXPECT_EQ(localSymbolColor.size(), 1); // 1 is colors size
 }
+
+/*
+ * @tc.name: SetFirstActiveTest
+ * @tc.desc: test SetFirstActive
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetFirstActiveTest, TestSize.Level1)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    SPText::TextStyle textStyle;
+    style.symbol.SetFirstActive(true);
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetFirstActive(),  style.symbol.GetFirstActive());
+}
 } // namespace Rosen
 } // namespace OHOS

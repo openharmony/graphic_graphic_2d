@@ -286,6 +286,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetSymbolType(txt.symbol.GetSymbolType());
         paint.symbol.SetSymbolUid(txt.symbol.GetSymbolUid());
         paint.symbol.SetSymbolShadow(txt.symbol.GetSymbolShadow());
+        paint.symbol.SetFirstActive(txt.symbol.GetFirstActive());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 }

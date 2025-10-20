@@ -111,6 +111,11 @@ public:
     {
         symbolShadow_ = symbolShadow;
     }
+    
+    void SetFirstActive(bool isFirstActive)
+    {
+        isFirstActive_ = isFirstActive;
+    }
 
 private:
     RSAnimationSetting animationSetting_;
@@ -128,6 +133,7 @@ private:
     double slope_ = 0.0;
     bool animationStart_ = false;
     bool currentAnimationHasPlayed_ = false;
+    bool isFirstActive_ = false;
 
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     std::vector<std::shared_ptr<SymbolGradient>> gradients_;

@@ -383,6 +383,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
     symbolAnimationConfig->slope = slope_;
     symbolAnimationConfig->symbolShadow = symbolShadow_;
+    symbolAnimationConfig->isFirstActive = isFirstActive_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

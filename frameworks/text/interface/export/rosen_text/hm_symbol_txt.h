@@ -93,6 +93,10 @@ public:
 
     void SetSymbolBitmap(const SymbolBitmapType& symbolStyleBitmap);
 
+    void SetFirstActive(bool isFirstActive);
+
+    bool GetFirstActive() const;
+
     std::vector<Drawing::DrawingSColor> GetRenderColor() const;
 
     Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const;
@@ -139,6 +143,7 @@ private:
     SymbolType symbolType_{SymbolType::SYSTEM};
     SymbolBitmapType relayoutChangeBitmap_;
     std::optional<SymbolShadow> symbolShadow_;
+    bool isFirstActive_ = false;
 };
 }
 }

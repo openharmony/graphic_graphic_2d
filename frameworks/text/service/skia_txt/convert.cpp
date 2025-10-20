@@ -143,6 +143,7 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetSymbolBitmap(style.symbol.GetSymbolBitmap());
     textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor());
     textStyle.symbol.SetSymbolShadow(style.symbol.GetSymbolShadow());
+    textStyle.symbol.SetFirstActive(style.symbol.GetFirstActive());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
         textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }
@@ -234,6 +235,7 @@ void CopyTextStyleSymbol(const SPText::TextStyle& style, TextStyle& textStyle)
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
     textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
     textStyle.symbol.SetSymbolShadow(style.symbol.GetSymbolShadow());
+    textStyle.symbol.SetFirstActive(style.symbol.GetFirstActive());
 }
 
 void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
