@@ -16,8 +16,10 @@
 #ifndef OHOS_ANI_COLOR_SPACE_MANAGER_H
 #define OHOS_ANI_COLOR_SPACE_MANAGER_H
 
-#include "color_space.h"
+#include <unordered_map>
+
 #include "ani.h"
+#include "color_space.h"
 
 namespace OHOS {
 namespace ColorManager {
@@ -41,6 +43,9 @@ public:
     {
         return colorSpaceToken_;
     }
+
+    static ani_enum enumType_;
+    static std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> nativeToEnumMap_;
 
 private:
     ani_enum_item OnGetColorSpaceName(ani_env *env, ani_object obj);
