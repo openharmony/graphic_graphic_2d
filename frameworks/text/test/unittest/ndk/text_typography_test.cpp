@@ -5650,4 +5650,38 @@ HWTEST_F(NdkTypographyTest, TypographyBalanceStrategy002, TestSize.Level0)
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceMaxLinesTest
+ * @tc.desc: Test for balance strategy set maxLines limit and maxLines equals to layout line count
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyBalanceStrategy003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_BALANCED);
+    // Test for maxLines limit 2
+    size_t maxLines{2};
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, maxLines);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 48
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 48);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "不易过敏，您可以尽情享受大自然的拥抱";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 450
+    OH_Drawing_TypographyLayout(typography, 450);
+    EXPECT_EQ(OH_Drawing_TypographyGetLineCount(typography), maxLines);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
 } // namespace OHOS
