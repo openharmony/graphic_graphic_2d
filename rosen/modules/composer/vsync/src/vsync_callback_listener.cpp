@@ -50,7 +50,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         }
     }
     // 3 is array size.
-    int64_t data[3];
+    int64_t data[3] = {0};
     ssize_t dataCount = 0;
     if (ReadFdInternal(fileDescriptor, data, dataCount) != VSYNC_ERROR_OK) {
         return;
