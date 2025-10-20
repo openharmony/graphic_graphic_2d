@@ -89,9 +89,7 @@ public:
     void DumpMemoryStatistics(DfxString& log,
         std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func, bool isLite = false);
     void AddPictureRecord(const void* addr, MemoryInfo info);
-    void AddPictureFdRecord(uint64_t uniqueId);
     void RemovePictureRecord(const void* addr);
-    void RemovePictureFdRecord(uint32_t pid);
     uint32_t CountFdRecordOfPid(uint32_t pid);
     void KillProcessByPid(const pid_t pid, const std::string& reason);
     void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
@@ -132,7 +130,7 @@ private:
     std::unordered_map<NodeId, MemoryInfo> memNodeMap_;
     std::unordered_map<const void*, MemoryInfo> memPicRecord_;
 
-    std::unordered_map<uint32_t, uint32_t> fdNumOfPid_;
+    std::unordered_map<uint32_t, std::unordered_set<const void*>> fdNumOfPid_;
 
     // Data to statistic information of Pid
     std::unordered_map<pid_t, std::vector<MemoryNodeOfPid>> memNodeOfPidMap_;
