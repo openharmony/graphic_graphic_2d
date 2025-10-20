@@ -48,7 +48,7 @@ RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 
 RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
 {
-    preValidateHandle_ = dlopen("libdss_enhance.z.so", RTLD_LAZY);
+    preValidateHandle_ = dlopen("libdss_enhance.z.so", RTLD_NOW);
     if (preValidateHandle_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
         return;
