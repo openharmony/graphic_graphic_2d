@@ -778,7 +778,8 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSRenderThreadVisitor::ProcessSurfaceViewInRT:GetLastFlushedBuffer failed, err: %d", ret);
-        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT: GetLastFlushedBuffer failed, err: %{public}d", ret);
+        RS_LOGE_LIMIT(__func__, __line__,
+            "GetLastFlushedBuffer failed, err: %{public}d", ret);
         return;
     }
     if (fence != nullptr) {
