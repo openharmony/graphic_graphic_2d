@@ -1343,6 +1343,21 @@ HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForListener001, Functi
 }
 
 /*
+ * @tc.name: WaitForTimeoutConNotifyLockedForRefreshRate
+ * @tc.desc: Test For  * @tc.name: WaitForTimeoutConNotifyLockedForRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueICAANX
+ */
+HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForRefreshRate001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    int64_t time = 8333333; // 8333333ns
+    vsyncGeneratorImpl->nextTimeStamp_ = time;
+    vsyncGeneratorImpl->WaitForTimeoutConNotifyLockedForRefreshRate();
+    ASSERT_EQ(vsyncGeneratorImpl->nextTimeStamp_, time);
+}
+
+/*
  * @tc.name: NeedPreexecuteAndUpdateTs001
  * @tc.desc: Test For NeedPreexecuteAndUpdateTs
  * @tc.type: FUNC

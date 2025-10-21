@@ -196,6 +196,7 @@ private:
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
     void WaitForTimeoutConNotifyLocked();
+    void WaitForTimeoutConNotifyLockedForRefreshRate();
     void WaitForTimeoutConNotifyLockedForListener();
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
