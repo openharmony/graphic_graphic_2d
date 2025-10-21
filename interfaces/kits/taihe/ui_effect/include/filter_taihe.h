@@ -26,6 +26,7 @@
 #include "ohos.graphics.uiEffect.uiEffect.impl.hpp"
 #include "stdexcept"
 #include "taihe/array.hpp"
+#include "taihe/runtime.hpp"
 #include "filter/include/filter_bezier_warp_para.h"
 #include "filter/include/filter_blur_para.h"
 #include "filter/include/filter_color_gradient_para.h"
@@ -65,6 +66,7 @@ public:
     Filter DirectionLight(uintptr_t direction, ::ohos::graphics::uiEffect::uiEffect::Color const& color,
         double intensity, taihe::optional_view<::ohos::graphics::uiEffect::uiEffect::Mask> mask,
         taihe::optional_view<double> factor);
+    Filter RadiusGradientBlur(double value, uintptr_t options);
     Filter DisplacementDistort(::ohos::graphics::uiEffect::uiEffect::weak::Mask displacementMap,
         taihe::optional_view<uintptr_t> factor);
     Filter VariableRadiusBlur(double radius, ::ohos::graphics::uiEffect::uiEffect::weak::Mask radiusMap);
@@ -82,6 +84,7 @@ public:
 
 private:
     bool IsFilterValid() const;
+    bool GetFractionStops(ani_env *env, ani_array arrayObj, std::vector<std::pair<float, float>> &fractionStops);
 
     std::shared_ptr<OHOS::Rosen::Filter> nativeFilter_;
 };
