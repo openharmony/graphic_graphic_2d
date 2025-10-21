@@ -720,6 +720,7 @@ VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
     return VSYNC_ERROR_OK;
 }
 
+#ifdef COMPOSER_SCHED_ENABLE
 void VSyncGenerator::SubScribeSystemAbility()
 {
     VLOGI("%{public}s", __func__);
@@ -741,6 +742,7 @@ void VSyncGenerator::SubScribeSystemAbility()
         saStatusChangeListener_ = nullptr;
     }
 }
+#endif
 
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {

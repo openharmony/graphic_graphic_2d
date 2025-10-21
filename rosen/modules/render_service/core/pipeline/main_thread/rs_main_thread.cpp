@@ -1105,6 +1105,7 @@ void RSMainThread::PrintCurrentStatus()
 #endif
 }
 
+#ifdef RES_SCHED_ENABLE
 void RSMainThread::SubScribeSystemAbility()
 {
     RS_LOGI("%{public}s", __func__);
@@ -1130,6 +1131,7 @@ void RSMainThread::SubScribeSystemAbility()
         saStatusChangeListener_ = nullptr;
     }
 }
+#endif
 
 void RSMainThread::CacheCommands()
 {
