@@ -4951,7 +4951,8 @@ HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen001, TestSize.Level2)
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->allBlackList_.clear();
+    rsUniRenderVisitor->allWhiteList_.clear();
     EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), true);
 }
 
@@ -5048,6 +5049,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen006, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->allWhiteList_.emplace(surfaceNode->GetId());
     EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+    rsUniRenderVisitor->allWhiteList_.clear();
 }
 
 /*
@@ -5067,6 +5069,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen007, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->allBlackList_.emplace(surfaceNode->GetId());
     EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), false);
+    rsUniRenderVisitor->allBlackList_.clear();
 }
 
 /*
@@ -5088,6 +5091,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsValidInVirtualScreen008, TestSize.Level2)
     ++otherSurfaceNodeId;
     rsUniRenderVisitor->allBlackList_.emplace(otherSurfaceNodeId);
     EXPECT_EQ(rsUniRenderVisitor->IsValidInVirtualScreen(*surfaceNode), true);
+    rsUniRenderVisitor->allBlackList_.clear();
 }
 
 /*
@@ -5133,6 +5137,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckIfSkipDrawInVirtualScreen, TestSize.Level2
     surfaceNode->SetLeashPersistentId(leashPersistentId);
     rsUniRenderVisitor->allBlackList_.emplace(surfaceNode->GetLeashPersistentId());
     ASSERT_TRUE(rsUniRenderVisitor->CheckIfSkipDrawInVirtualScreen(*surfaceNode));
+    rsUniRenderVisitor->allBlackList_.clear();
 }
 
 /*
