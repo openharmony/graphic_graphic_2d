@@ -21,6 +21,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -330,11 +331,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CalculateScreenTransformMatrix, TestSize
 {
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         HARDWARE_COMPOSITE);
-    NodeId id = 0;
-    ScreenId screenId = 1;
-    auto context = std::make_shared<RSContext>();
-    RSScreenRenderNode node(id, screenId, context);
-    rsHardwareProcessor->CalculateScreenTransformMatrix(node);
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
+    rsHardwareProcessor->CalculateScreenTransformMatrix(*displayNode);
     ASSERT_EQ(rsHardwareProcessor->screenInfo_.width, 0);
 }
 
