@@ -391,11 +391,10 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
 
 bool RSUniHwcVisitor::IsTargetSolidLayer(RSSurfaceRenderNode& node)
 {
-    SystemAnimatedScenes systemAnimatedScene = RSMainThread::instance()->GetSystemAnimatedScenes(); 
     const std::string& bundleName = node.GetBundleName();
     return (RsCommonHook::Instance().IsSolidColorLayerConfig(bundleName) ||
            RsCommonHook::Instance().IsHwcSolidColorLayerConfig(bundleName)) &&
-           (!(systemAnimatedScene == SystemAnimatedScenes::DRAG_WINDOW));
+           (!(RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::DRAG_WINDOW));
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node)
