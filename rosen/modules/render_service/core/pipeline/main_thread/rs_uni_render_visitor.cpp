@@ -1613,10 +1613,13 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     auto dirtyFlag = dirtyFlag_;
     auto prevAlpha = curAlpha_;
     auto curCornerRadius = curCornerRadius_;
+    auto hasEffectNodeInParent = hasEffectNodeInParent_;
+    hasEffectNodeInParent_ = true;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     UpdateRotationStatusForEffectNode(node);
     CheckFilterCacheNeedForceClearOrSave(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
+    CheckFilterNeedEnableDebug(node, hasEffectNodeInParent);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
@@ -1634,6 +1637,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     dirtyFlag_ = dirtyFlag;
     curAlpha_ = prevAlpha;
     curCornerRadius_ = curCornerRadius;
+    hasEffectNodeInParent_ = hasEffectNodeInParent;
     node.RenderTraceDebug();
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
@@ -3636,6 +3640,17 @@ void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node
         }
         child->GetRenderProperties().GetBoundsGeometry()->SetAbsMatrix(absMatrix);
     }
+}
+
+void RSUniRenderVisitor::CheckFilterNeedEnableDebug(RSEffectRenderNode& node,
+    bool hasEffectNodeInParent)
+{
+    if (hasEffectNodeInParent || curSurfaceNode_ == nullptr ||
+        curSurfaceNode_->GetSurfaceWindowType() != SurfaceWindowType::SCB_DESKTOP) {
+        return;
+    }
+
+    node.MarkFilterDebugEnabled();
 }
 } // namespace Rosen
 } // namespace OHOS

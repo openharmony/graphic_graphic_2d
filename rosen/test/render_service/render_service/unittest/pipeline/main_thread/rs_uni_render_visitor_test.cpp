@@ -5683,4 +5683,27 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSufaceRenderNode005, TestSize.Level
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
     ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
 }
+
+/*
+ * @tc.name: CheckFilterNeedEnableDebug001
+ * @tc.desc: Test function CheckFilterNeedEnableDebug
+ * @tc.type: FUNC
+ * @tc.require: issue20057
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNeedEnableDebug001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSEffectRenderNode node(id);
+    rsUniRenderVisitor->CheckFilterNeedEnableDebug(node, true);
+    rsUniRenderVisitor->CheckFilterNeedEnableDebug(node, false);
+    rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
+    rsUniRenderVisitor->CheckFilterNeedEnableDebug(node, false);
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
+    rsUniRenderVisitor->curSurfaceNode_ = std::make_shared<RSSurfaceRenderNode>(config);
+    rsUniRenderVisitor->CheckFilterNeedEnableDebug(node, false);
+}
 } // OHOS::Rosen

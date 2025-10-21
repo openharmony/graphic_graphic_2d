@@ -80,6 +80,8 @@ public:
     bool FirstFrameHasEffectChildren() const override;
     void MarkClearFilterCacheIfEffectChildrenChanged() override;
 
+    void MarkFilterDebugEnabled();
+
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheWithSelfDirty() override;
