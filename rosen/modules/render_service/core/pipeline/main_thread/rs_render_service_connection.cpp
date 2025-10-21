@@ -3723,14 +3723,20 @@ bool RSRenderServiceConnection::GetHighContrastTextState()
 ErrCode RSRenderServiceConnection::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {
-    RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    auto task = [uniqueIdList, surfaceNameList, fps, reportTime]() -> void {
+        RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+    };
+    mainThread_->PostTask(task);
     return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
-    RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    auto task = [uniqueIdList, surfaceNameList, fps]() -> void {
+        RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+    };
+    mainThread_->PostTask(task);
     return ERR_OK;
 }
 

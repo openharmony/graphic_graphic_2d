@@ -1205,6 +1205,9 @@ void RSJankStats::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         info.reportTime = reportTime;
         info.startTime = static_cast<uint64_t>(GetCurrentSystimeMs());
         info.decodeCount = 0;
+        info.previousSequence = 0;
+        info.previousFrameTime = 0;
+        info.previousNotifyTime = 0;
         avcodecVideoCollectOpen_ = true;
     }
 }
@@ -1297,7 +1300,7 @@ void RSJankStats::AvcodecVideoCollectFinish()
     if (!avcodecVideoCollectOpen_ || !isBeta_) {
         return;
     }
-
+    std::lock_guard<std::mutex> lock(avcodecMutex_);
     uint64_t now = static_cast<uint64_t>(GetCurrentSystimeMs());
     std::vector<uint64_t> finishedVideos;
     for (auto it = avcodecVideoMap_.begin(); it != avcodecVideoMap_.end(); it++) {
@@ -1316,7 +1319,7 @@ void RSJankStats::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t se
     if (!avcodecVideoCollectOpen_ || !isBeta_) {
         return;
     }
-
+    std::lock_guard<std::mutex> lock(avcodecMutex_);
     auto it = avcodecVideoMap_.find(uniqueId);
     if (it == avcodecVideoMap_.end()) {
         return;
