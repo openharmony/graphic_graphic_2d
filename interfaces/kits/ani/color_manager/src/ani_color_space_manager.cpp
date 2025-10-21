@@ -26,6 +26,9 @@ static const std::string COLOR_SPACE_MANAGER_CLS_NAME =
 static const std::string DOUBLE_CLS_NAME = "std.core.Double";
 static const std::string ERROR_CLS_NAME = "escompat.Error";
 
+ani_enum AniColorSpaceManager::enumType_ = nullptr;
+std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> AniColorSpaceManager::nativeToEnumMap_;
+
 static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
 {
     ani_class cls {};
@@ -281,17 +284,10 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
         return value;
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
-    auto iter = NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.find(csName);
-    if (iter != NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.end()) {
-        ACMLOGI("[ANI]get color space name %{public}u, api type %{public}u", csName, iter->second);
-        ani_enum enumType;
-        std::string inputEnumNameStr = JS_TO_STRING_MAP.find(iter->second)->second;
-        if (ANI_OK != env->FindEnum("@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpace", &enumType)) {
-            ACMLOGE("[ANI]Find Enum Faild");
-            return value;
-        }
-        env->Enum_GetEnumItemByName(enumType, inputEnumNameStr.c_str(), &value);
-        return value;
+    auto iter = AniColorSpaceManager::nativeToEnumMap_.find(csName);
+    if (iter != AniColorSpaceManager::nativeToEnumMap_.end()) {
+        ACMLOGD("[ANI]get color space name %{public}u", csName);
+        return iter->second;
     }
     ACMLOGE("[ANI]get color space name %{public}u, but not in api type", csName);
     std::string errMsg = "BusinessError 401: Parameter error, the type of colorspace " +

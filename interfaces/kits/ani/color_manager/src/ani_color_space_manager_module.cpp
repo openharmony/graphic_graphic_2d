@@ -54,6 +54,18 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         return ANI_ERROR;
     }
 
+    if (ANI_OK != env->FindEnum("L@ohos/graphics/colorSpaceManager/colorSpaceManager/ColorSpace;",
+        &AniColorSpaceManager::enumType_)) {
+        ACMLOGE("[ANI]Find Enum Faild");
+        return ANI_ERROR;
+    }
+
+    ani_enum_item enumItem = nullptr;
+    for (auto& iter : NATIVE_TO_STRING_MAP) {
+        env->Enum_GetEnumItemByName(AniColorSpaceManager::enumType_, iter.second.c_str(), &enumItem);
+        AniColorSpaceManager::nativeToEnumMap_.emplace(iter.first, enumItem);
+    }
+
     *result = ANI_VERSION_1;
     return ANI_OK;
 }
