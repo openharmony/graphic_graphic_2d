@@ -288,23 +288,23 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
 ani_object AniFontCollection::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) -> napi_value {
             objValue = JsFontCollection::Init(napiEnv, objValue);
             napi_value dynamicObj = nullptr;
             napi_status status = JsFontCollection::CreateFontCollection(napiEnv, objValue, &dynamicObj);
             if (status != napi_ok || dynamicObj == nullptr) {
                 TEXT_LOGE("Failed to create font collection, status %{public}d", status);
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             AniFontCollection* aniFontCollection = reinterpret_cast<AniFontCollection*>(nativeObj);
             if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
                 TEXT_LOGE("Null font collection");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             status = JsFontCollection::SetFontCollection(napiEnv, dynamicObj, aniFontCollection->GetFontCollection());
             if (status != napi_ok) {
                 TEXT_LOGE("Failed to set inner font collection, status %{public}d", status);
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             return dynamicObj;
         });

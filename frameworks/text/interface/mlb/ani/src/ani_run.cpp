@@ -571,22 +571,22 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
 ani_object AniRun::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) -> napi_value {
             napi_value dynamicObj = JsRun::CreateRun(napiEnv);
             if (!dynamicObj) {
                 TEXT_LOGE("Failed to create run");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             AniRun* aniRun = reinterpret_cast<AniRun*>(nativeObj);
             if (aniRun == nullptr || aniRun->run_ == nullptr) {
                 TEXT_LOGE("Null aniRun");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             JsRun* jsRun = nullptr;
             napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsRun));
             if (!jsRun) {
                 TEXT_LOGE("Failed to unwrap run");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             jsRun->SetRun(aniRun->run_);
             return dynamicObj;

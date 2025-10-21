@@ -439,22 +439,22 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
 ani_object AniTextLine::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) -> napi_value {
             napi_value dynamicObj = JsTextLine::CreateTextLine(napiEnv);
             if (!dynamicObj) {
                 TEXT_LOGE("Failed to create run");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             AniTextLine* aniTextLine = reinterpret_cast<AniTextLine*>(nativeObj);
             if (aniTextLine == nullptr || aniTextLine->textLine_ == nullptr) {
                 TEXT_LOGE("Null textLineBase");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             JsTextLine* jsTextLine = nullptr;
             napi_unwrap(napiEnv, dynamicObj, reinterpret_cast<void**>(&jsTextLine));
             if (!jsTextLine) {
                 TEXT_LOGE("Failed to unwrap textLine");
-                return dynamicObj = nullptr;
+                return nullptr;
             }
             jsTextLine->SetTextLine(aniTextLine->textLine_);
             return dynamicObj;

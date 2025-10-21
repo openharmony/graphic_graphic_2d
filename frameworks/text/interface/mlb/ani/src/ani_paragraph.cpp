@@ -631,7 +631,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
 ani_object AniParagraph::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
     return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) -> napi_value {
             napi_value dynamicObj = nullptr;
             AniParagraph* aniParagraph = reinterpret_cast<AniParagraph*>(nativeObj);
             if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
