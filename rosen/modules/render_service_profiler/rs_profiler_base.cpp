@@ -656,6 +656,9 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
     std::shared_ptr<ProfilerMarshallingJob> job)
 {
     const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
+    if (job) {
+        job->offsetNodeCount = data.str().size();
+    }
     const uint32_t count = static_cast<uint32_t>(map.GetSize());
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
     const auto& rootRenderNode = context.GetGlobalRootRenderNode();

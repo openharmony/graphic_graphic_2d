@@ -23,6 +23,7 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_telemetry.h"
+#include "rs_profiler_cache.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS::Rosen {
@@ -148,9 +149,15 @@ void RSProfiler::SaveBetaRecord()
 
     constexpr double recordMinLengthSeconds = 30.0;
     constexpr double recordMaxLengthSeconds = 4 * recordMinLengthSeconds;
+    constexpr size_t maxImageCacheSize = 100 * 1024 * 1024;
     const auto recordLength = Now() - g_recordsTimestamp;
     bool saveShouldBeDone = recordLength > recordMinLengthSeconds;
     bool saveMustBeDone = recordLength > recordMaxLengthSeconds;
+
+    if (ImageCache::Consumption() > maxImageCacheSize) {
+        saveShouldBeDone = true;
+        saveMustBeDone = true;
+    }
 
     if (IsNoneMode()) {
         if (!(!g_animationCount && g_inactiveTimestamp + INACTIVITY_THRESHOLD_SECONDS < Now() && !IsSecureScreen() &&

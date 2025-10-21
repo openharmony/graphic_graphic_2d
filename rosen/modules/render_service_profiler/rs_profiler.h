@@ -213,7 +213,9 @@ enum class TextureRecordType : int {
 class ProfilerMarshallingJob final {
 public:
     std::function<void(NodeId, bool)> marshallingTick;
-    size_t offsetNodes;
+    size_t offsetNodes = 0;
+    size_t offsetNodeCount = 0;
+    uint32_t failedNodeCount = 0;
 
 private:
     std::string nodeData;
@@ -230,6 +232,12 @@ public:
     {
         unfinishedNodeList.erase(nodeId);
         nodeData += data;
+        constexpr size_t ffmSizeLimit = 100 * 1024 * 1024;
+        if (nodeData.size() > ffmSizeLimit) {
+            // too big ffm, memory limit can be exceed, don't save all nodes
+            failedNodeCount = unfinishedNodeList.size();
+            unfinishedNodeList.clear();
+        }
     }
 
     bool IsUnfinished(NodeId nodeId)

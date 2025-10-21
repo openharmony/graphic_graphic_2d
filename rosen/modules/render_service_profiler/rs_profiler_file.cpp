@@ -777,6 +777,20 @@ void RSFile::InsertHeaderData(size_t offset, const std::string& data)
     wasChanged_ = true;
 }
 
+void RSFile::SetHeaderFailedNodeCount(size_t offset, uint32_t failedNodeCount)
+{
+    if (!failedNodeCount) {
+        return;
+    }
+    if (offset + sizeof(uint32_t) >= headerFirstFrame_.size()) {
+        return;
+    }
+    uint32_t* ptr = reinterpret_cast<uint32_t*>(headerFirstFrame_.data() + offset);
+    if (*ptr >= failedNodeCount) {
+        *ptr -= failedNodeCount;
+    }
+}
+
 const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() const
 {
     return headerAnimeStartTimes_;

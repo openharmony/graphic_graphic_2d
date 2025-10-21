@@ -182,6 +182,7 @@ void RSProfiler::JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers)
     job->MarkFinished(nodeId, ssData.str());
 
     if (!job->GetUnfinishedCount()) {
+        g_recordFile.SetHeaderFailedNodeCount(job->offsetNodeCount, job->failedNodeCount);
         std::string& data = job->GetNodeData();
         g_recordFile.InsertHeaderData(job->offsetNodes, data);
         jobGlobal = nullptr;
