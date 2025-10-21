@@ -45,6 +45,7 @@ size_t g_pos;
 uint32_t g_gcLevelLow = 30;
 uint32_t g_gcLevelMid = 100;
 uint32_t g_gcLevelHig = 700;
+constexpr size_t STR_LEN = 10;
 } // namespace
 
 /*
@@ -294,14 +295,14 @@ bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSOcclusionConfigFuzzTes(const uint8_t* data, size_t size)
+bool RSOcclusionConfigFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
     RSOcclusionConfig config = RSOcclusionConfig::GetInstance();
-    std::string win = GetData<std::string>();
+    std::string win = GetStringFromData(STR_LEN);
     config.IsLeashWindow(win);
     config.IsStartingWindow(win);
     config.IsAlphaWindow(win);
@@ -495,7 +496,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSDirtyRegionManagerFuzzTest(data, size);
     OHOS::Rosen::RSScreenRenderParamsNodeFuzzTest(data, size);
     OHOS::Rosen::RSDrawCmdListFuzzTest(data, size);
-    OHOS::Rosen::RSOcclusionConfigFuzzTes(data, size);
+    OHOS::Rosen::RSOcclusionConfigFuzzTest(data, size);
 
     OHOS::Rosen::RSContextFuzzerTest(data, size);
     OHOS::Rosen::RSRenderNodeGcFuzzerTest(data, size);
