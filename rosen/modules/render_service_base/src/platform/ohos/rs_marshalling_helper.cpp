@@ -2179,7 +2179,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
     } else {
         MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
-        MemoryTrack::Instance().AddPictureFdRecord(uniqueId);
     }
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);

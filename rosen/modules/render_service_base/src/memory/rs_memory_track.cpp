@@ -550,48 +550,23 @@ void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     memPicRecord_.emplace(addr, info);
-}
-
-void MemoryTrack::AddPictureFdRecord(uint64_t uniqueId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
-    if (fdNumOfPid_.find(pid) == fdNumOfPid_.end()) {
-        fdNumOfPid_[pid] = 1;
-    } else {
-        ++fdNumOfPid_[pid];
+    if (!(info.allocType == Media::AllocatorType::DMA_ALLOC ||
+        info.allocType ==Media::AllocatorType::SHARE_MEM_ALLOC) || info.type != MEM_PIXELMAP) {
+        return;
     }
+    fdNumOfPid_[info.pid].insert(addr);
 }
 
 void MemoryTrack::RemovePictureRecord(const void* addr)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    uint32_t pid;
+    uint32_t pid = 0;
     if (memPicRecord_.find(addr) != memPicRecord_.end()) {
         pid = static_cast<uint32_t>(memPicRecord_[addr].pid);
-    } else {
-        pid = 0;
     }
     
-    RemovePictureFdRecord(pid);
+    fdNumOfPid_[pid].erase(addr);
     memPicRecord_.erase(addr);
-}
-
-void MemoryTrack::RemovePictureFdRecord(uint32_t pid)
-{
-    auto it = fdNumOfPid_.find(pid);
-    if (it == fdNumOfPid_.end()) {
-        fdNumOfPid_[pid] = 0;
-        return;
-    }
-
-    uint32_t& count = it->second;
-    if (count > 0) {
-        --count;
-    }
-    if (count == 0) {
-        fdNumOfPid_.erase(pid);
-    }
 }
 
 void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
@@ -605,7 +580,10 @@ void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
     AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
     int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
     if (ret == ERR_OK) {
-        fdNumOfPid_.erase(pid);
+        auto it = fdNumOfPid_.find(pid);
+        if (it != fdNumOfPid_.end()) {
+            fdNumOfPid_.erase(it);
+        }
     }
 #endif
 }
@@ -613,7 +591,11 @@ void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
 uint32_t MemoryTrack::CountFdRecordOfPid(uint32_t pid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    return fdNumOfPid_[pid];
+    auto it = fdNumOfPid_.find(pid);
+    if (it != fdNumOfPid_.end()) {
+        return it->second.size();
+    }
+    return 0;
 }
 
 #ifdef RS_MEMORY_INFO_MANAGER
