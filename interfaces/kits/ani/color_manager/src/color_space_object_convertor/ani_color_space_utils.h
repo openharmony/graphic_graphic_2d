@@ -173,6 +173,7 @@ const std::map<ColorSpaceName, std::string> NATIVE_TO_STRING_MAP {
     { ColorSpaceName::DISPLAY_P3_HLG, "DISPLAY_P3_HLG" },
     { ColorSpaceName::DISPLAY_P3_PQ, "DISPLAY_P3_PQ" },
     { ColorSpaceName::CUSTOM, "CUSTOM" },
+    { ColorSpaceName::H_LOG, "H_LOG" },
 };
 }  // namespace ColorManager
 }  // namespace OHOS
