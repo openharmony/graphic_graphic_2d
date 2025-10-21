@@ -295,8 +295,10 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize
     drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     drawFunc(canvas.get(), nullptr);
     ASSERT_TRUE(true);
-
-    drawFunc(canvas.get(), rect.get());
+        
+    Drawing::Canvas* filtercanvas = new Drawing::Canvas();
+    auto rspaintfiltercanvas = std::make_shared<RSPaintFilterCanvas>(filtercanvas);
+    drawFunc(rspaintfiltercanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
 

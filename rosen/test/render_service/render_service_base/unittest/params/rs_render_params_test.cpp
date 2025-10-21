@@ -334,11 +334,11 @@ HWTEST_F(RSRenderParamsTest, SetChildHasVisibleHarmonium_001, TestSize.Level2)
     RSRenderParams params(id);
     auto renderParams = static_cast<RSRenderParams*>(target.get());
     bool val = true;
-    renderParams->childHasVisibleHarmonium_   = val;
+    renderParams->childHasVisibleHarmonium_ = val;
     EXPECT_EQ(renderParams->childHasVisibleHarmonium_, val);
     renderParams->SetChildHasVisibleHarmonium(val);
 
-    renderParams->childHasVisibleHarmonium_   = false;
+    renderParams->childHasVisibleHarmonium_ = false;
     EXPECT_EQ(renderParams->childHasVisibleHarmonium_, val);
     renderParams->SetChildHasVisibleHarmonium(val);
     
