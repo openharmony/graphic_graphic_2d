@@ -1356,7 +1356,7 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
             offscreenTranslateX_ = std::round((maxRenderLength - offscreenWidth) * 0.5f);
             offscreenTranslateY_ = std::round((maxRenderLength - offscreenHeight) * 0.5f);
         } else {
-            maxRenderLength = static_cast<int32_t>(std::max(offscreenWidth, offscreenHeight));
+            maxRenderLength = static_cast<int32_t>(std::max(params->GetFixedWidth(), params->GetFixedHeight()));
             if (offscreenSurface_ != nullptr
                 && maxRenderLength != std::max(offscreenSurface_->Width(), offscreenSurface_->Height())) {
                 RS_TRACE_NAME("offscreen surface's max size has changed");
