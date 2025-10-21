@@ -86,6 +86,7 @@ ohos_source_set("rs_graphic_test_src") {
     "libpng:libpng",
     "window_manager:libdm",
     "zlib:libz",
+    "image_framework:image_native",
   ]
 
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
