@@ -47,7 +47,7 @@ AniFilter::~AniFilter()
     EFFECT_LOG_I("AniFilter destructor");
 }
 
-static const std::string ANI_CLASS_FILTER = "C{@ohos.effectKit.effectKit.FilterInternal}";
+static const std::string ANI_CLASS_FILTER = "@ohos.effectKit.effectKit.FilterInternal";
 
 std::shared_ptr<Media::PixelMap> AniFilter::GetDstPixelMap()
 {
