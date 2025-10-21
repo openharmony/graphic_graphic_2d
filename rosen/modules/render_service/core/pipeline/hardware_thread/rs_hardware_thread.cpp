@@ -1020,6 +1020,7 @@ void RSHardwareThread::AddRefreshRateCount(const OutputPtr& output)
     frameRateMgr->HandleRsFrame();
 }
 
+#ifdef RES_SCHED_ENABLE
 void RSHardwareThread::SubScribeSystemAbility()
 {
     RS_LOGI("%{public}s", __func__);
@@ -1041,6 +1042,7 @@ void RSHardwareThread::SubScribeSystemAbility()
         saStatusChangeListener_ = nullptr;
     }
 }
+#endif
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)

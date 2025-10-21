@@ -1004,6 +1004,7 @@ void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uin
     }
 }
 
+#ifdef COMPOSER_SCHED_ENABLE
 void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
 {
     VLOGI("%{public}s", __func__);
@@ -1024,6 +1025,7 @@ void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
         saStatusChangeListener_ = nullptr;
     }
 }
+#endif
 
 bool VSyncDistributor::NeedForceUpdateRate(sptr<VSyncConnection> connection, int32_t &rate)
 {
