@@ -27,6 +27,7 @@ class RandomDataBasicType {
 public:
     static bool GetRandomBool();
     static int GetRandomInt();
+    static short GetRandomShort();
     static int8_t GetRandomInt8();
     static int16_t GetRandomInt16();
     static int32_t GetRandomInt32();

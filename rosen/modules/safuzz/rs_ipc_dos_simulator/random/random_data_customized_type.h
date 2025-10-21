@@ -71,6 +71,9 @@ public:
     static RectF GetRandomRectF();
     static std::shared_ptr<RectF> GetRandomRectFSharedPtr();
     static RRect GetRandomRRect();
+    static std::vector<Vector2f> GetRandomVectorVector2f();
+    static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
+    static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
 #ifndef ROSEN_CROSS_PLATFORM
     static GraphicColorGamut GetRandomGraphicColorGamut();
 #endif

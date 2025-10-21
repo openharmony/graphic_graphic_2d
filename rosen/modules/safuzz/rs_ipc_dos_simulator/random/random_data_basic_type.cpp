@@ -114,6 +114,11 @@ uint8_t RandomDataBasicType::GetRandomUint8()
     return data;
 }
 
+short RandomDataBasicType::GetRandomShort()
+{
+    return static_cast<short>(GetRandomUint16()); // Implemented using the same backend RandomEngine::GetRandomShort()
+}
+
 uint16_t RandomDataBasicType::GetRandomUint16()
 {
     uint16_t data = 0;
