@@ -70,6 +70,7 @@ public:
     void SetNeedProcess(bool needProcess);
     const std::map<ModifierNG::RSModifierType, ModifierCmdList>& GetDrawCmdListsNG() const;
     void ClearResource() override;
+    void ClearNeverOnTree() override;
     void CheckCanvasDrawingPostPlaybacked();
     bool GetIsPostPlaybacked();
 
@@ -81,6 +82,7 @@ private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifierNG(ModifierNG::RSModifierContext& context, ModifierNG::RSModifierType type);
+    void CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type, size_t originCmdListSize);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
@@ -95,7 +97,9 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
 #endif
+    bool isNeverOnTree_ = true;
     bool isPostPlaybacked_ = false;
+    bool lastOverflowStatus_ = false;
     std::atomic<bool> isNeedProcess_ = false;
     pid_t threadId_ = 0;
     // Used in uni render thread.
@@ -110,6 +114,7 @@ private:
     std::mutex taskMutex_;
     std::mutex drawCmdListsMutex_;
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
+    uint32_t cmdCount_ = 0;
     ModifierCmdList outOfLimitCmdList_;
     size_t cachedOpCount_ = 0;
 

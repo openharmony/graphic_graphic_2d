@@ -50,6 +50,7 @@ namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
+constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300; // limit of the drawcmdlists.
 constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_PER_FRAME = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_FOR_CACHE = 200000;
@@ -215,7 +216,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     // update content_style when node not on tree, need check (waitSync_ false, not on tree, never on tree
     // not texture exportnode, unirender mode)
     // if canvas drawing node never on tree, should not update, it will lost renderParams->localDrawRect_
-    if (IsWaitSync() || IsOnTheTree() || !stagingRenderParams_ ||
+    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
         !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
@@ -523,6 +524,34 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
     RSRenderNode::ApplyModifiers();
 }
 
+void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type, size_t originCmdListSize)	
+{	
+    bool overflow = drawCmdListsNG_[type].size() > DRAWCMDLIST_COUNT_LIMIT;	
+    if (overflow) {	
+        RS_OPTIONAL_TRACE_NAME_FMT("AddDitryType id:[%llu] StateOnTheTree[%d] ModifierType[%d] ModifierCmdSize[%d]"	
+            "originCmdListSize[%d], CmdCount[%d]", GetId(), IsOnTheTree(), type, drawCmdListsNG_[type].size(),	
+            originCmdListSize, cmdCount_);	
+        if (overflow != lastOverflowStatus_) {	
+            RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"	
+                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d], originCmdListSize[%{public}zu],"
+                    " CmdCount:[%{public}u]", GetId(), type, drawCmdListsNG_[type].size(), IsOnTheTree(),
+                    originCmdListSize, cmdCount_);
+        }
+        // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
+        // too many drawOp, so we need to add the limit of drawcmdlists.
+        while (drawCmdListsNG_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            drawCmdListsNG_[type].pop_front();
+        }
+        if (drawCmdListsNG_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            RS_LOGE("AddDirtyType Cmdlist Protect Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu, StateOnTheTree[%{public}d], originCmdListSize[%{public}zu],"
+                    " CmdCount:[%{public}u]", GetId(), type, drawCmdListsNG_[type].size(), IsOnTheTree(),
+                    originCmdListSize, cmdCount_);
+        }	
+    }	
+    lastOverflowStatus_ = overflow;	
+}
+
 void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifierType)
 {
     dirtyTypesNG_.set(static_cast<int>(modifierType), true);
@@ -536,6 +565,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
         return;
     }
 
+    size_t originCmdListSize = drawCmdListsNG_[modifierType].size();
     if (hasContentModifiers) {
         ReportOpCount(drawCmdListsNG_[modifierType]);
     }
@@ -557,6 +587,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
                 SplitDrawCmdList(OP_COUNT_LIMIT_PER_FRAME - lastOpCount, drawCmdList, true);
             } else {
                 drawCmdListsNG_[modifierType].emplace_back(drawCmdList);
+                cmdCount_++;
                 opCountAfterReset_ += opItemSize;
             }
         }
@@ -564,6 +595,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
     if (opCount > 0) {
         SetNeedProcess(true);
     }
+    CheckDrawCmdListSizeNG(modifierType, originCmdListSize);
 }
 
 size_t RSCanvasDrawingRenderNode::ApplyCachedCmdList()
@@ -580,6 +612,7 @@ size_t RSCanvasDrawingRenderNode::ApplyCachedCmdList()
             break;
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(drawCmdList);
+        cmdCount_++;
         cachedOpCount_ -= opItemSize;
         opCountAfterReset_ += opItemSize;
     }
@@ -633,6 +666,7 @@ void RSCanvasDrawingRenderNode::SplitDrawCmdList(
             cachedOpCount_ -= firstCmdList->GetOpItemSize();
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(firstCmdList);
+        cmdCount_++;
         opCountAfterReset_ += firstCmdList->GetOpItemSize();
     }
 }
@@ -665,6 +699,7 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
         cachedOpCount_ = 0;
     }
     std::lock_guard<std::mutex> lockTask(taskMutex_);
+    cmdCount_ = 0;
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
@@ -697,6 +732,11 @@ void RSCanvasDrawingRenderNode::ClearResource()
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         drawCmdListsNG_.clear();
     }
+}
+
+void RSCanvasDrawingRenderNode::ClearNeverOnTree()
+{
+    isNeverOnTree_ = false;
 }
 
 void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
