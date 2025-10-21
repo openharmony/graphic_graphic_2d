@@ -1223,14 +1223,14 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
     RSLogicalDisplayRenderNodeDrawable& mirroredDrawable)
 {
     auto mirroredParams = static_cast<RSLogicalDisplayRenderParams*>(mirroredDrawable.GetRenderParams().get());
-    if (!mirroredParams) {
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(GetRenderParams().get());
+    if (!mirroredParams || !params) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen mirroredParams is null");
         return;
     }
     auto [_, mirroredScreenParams] = GetScreenParams(*mirroredParams);
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(GetRenderParams().get());
     auto [__, screenParam] = GetScreenParams(*params);
-    if (!params || !mirroredScreenParams || !screenParam) {
+    if (!mirroredScreenParams || !screenParam) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen nodeParams is null");
         return;
     }
