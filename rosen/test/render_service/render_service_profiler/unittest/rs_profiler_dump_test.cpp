@@ -57,7 +57,7 @@ HWTEST(RSProfilerDumpTest, DumpOffScreen, TestSize.Level1)
     std::string expected {
         "{\"type\":\"OFF_SCREEN\",\"children\":[{\"type\":\"RS_NODE\",\"id\":0,\"instanceRootNodeId\":0,"
         "\"firstLevelNodeId\":0,\"subclass\":{},\"Properties\":{\"Bounds\":[null,null,null,null],"
-        "\"Frame\":[null,null,null,null]},\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children\":[]}]}"
+        "\"Frame\":[null,null,null,null]},\"IsPureContainer\":1,\"children\":[]}]}"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
@@ -72,7 +72,7 @@ HWTEST(RSProfilerDumpTest, DumpEmptyNode, TestSize.Level1)
     std::string expected {
         "{\"type\":\"RS_NODE\",\"id\":42,\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,"
         "\"subclass\":{},\"Properties\":{\"Bounds\":[null,null,null,null],\"Frame\":[null,null,null,null]},"
-        "\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children\":[]}"
+        "\"IsPureContainer\":1,\"children\":[]}"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
@@ -92,7 +92,7 @@ HWTEST(RSProfilerDumpTest, DumpEmptyNodeAsRoot, TestSize.Level1)
         "{\"type\":\"RS_NODE\",\"id\":42,\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,"
         "\"subclass\":{},\"Properties\":{\"Bounds\":[null,null,null,null],\"Frame\":[null,null,null,null]"
         ",\"ScaleX\":1,\"ScaleY\":1},"
-        "\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children\":[]}"
+        "\"IsPureContainer\":1,\"children\":[]}"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
@@ -123,13 +123,13 @@ HWTEST(RSProfilerDumpTest, DumpNodeWithChildren, TestSize.Level1)
     std::string expected {
         "{\"type\":\"RS_NODE\",\"id\":42,\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,\"subclass\":{},"
         "\"Properties\":{\"Bounds\":[null,null,null,null],\"Frame\":[null,null,null,null],\"ScaleX\":1,\"ScaleY\":1},"
-        "\"isNodeDirty\":1,\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children update\":{\"current "
+        "\"isNodeDirty\":1,\"IsPureContainer\":1,\"children update\":{\"current "
         "count\":0,\"expected "
         "count\":\"0\"},\"children\":[{\"type\":\"RS_NODE\",\"id\":1,\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,"
         "\"subclass\":{},\"Properties\":{\"Bounds\":[null,null,null,null],\"Frame\":[null,null,null,null]},"
-        "\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children\":[]},{\"type\":\"RS_NODE\",\"id\":2,"
+        "\"IsPureContainer\":1,\"children\":[]},{\"type\":\"RS_NODE\",\"id\":2,"
         "\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,\"subclass\":{},\"Properties\":{\"Bounds\":[null,null,null,"
-        "null],\"Frame\":[null,null,null,null]},\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children\":[]}]}"
+        "null],\"Frame\":[null,null,null,null]},\"IsPureContainer\":1,\"children\":[]}]}"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
@@ -157,14 +157,14 @@ HWTEST(RSProfilerDumpTest, DumpNodeWithChildrenSorted, Level1)
     std::string expected {
         "{\"type\":\"RS_NODE\",\"id\":42,\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,\"subclass\":{},"
         "\"Properties\":{\"Bounds\":[null,null,null,null],\"Frame\":[null,null,null,null],\"ScaleX\":1,\"ScaleY\":1},"
-        "\"isNodeDirty\":1,\"IsPureContainer\":1,\"DrawCmdModifiers\":[],\"children\":[{\"type\":\"RS_NODE\",\"id\":2,"
+        "\"isNodeDirty\":1,\"IsPureContainer\":1,\"children\":[{\"type\":\"RS_NODE\",\"id\":2,"
         "\"instanceRootNodeId\":0,\"firstLevelNodeId\":0,\"subclass\":{},\"Properties\":{"
         "\"Bounds\":[null,null,null,null],\"Frame\":[null,null,null,null],\"PositionZ\":0.1},"
         "\"isPropertyDirty\":1,\"IsPureContainer\":1,"
-        "\"DrawCmdModifiers\":[],\"children\":[]},{\"type\":\"RS_NODE\",\"id\":1,\"instanceRootNodeId\":0,"
+        "\"children\":[]},{\"type\":\"RS_NODE\",\"id\":1,\"instanceRootNodeId\":0,"
         "\"firstLevelNodeId\":0,\"subclass\":{},\"Properties\":{\"Bounds\":[null,null,null,null],"
         "\"Frame\":[null,null,null,null],\"PositionZ\":0.2},\"isPropertyDirty\":1,\"IsPureContainer\":1,"
-        "\"DrawCmdModifiers\":[],\"children\":[]}]}"
+        "\"children\":[]}]}"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
