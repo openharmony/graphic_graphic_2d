@@ -2543,8 +2543,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     }
     if (modifier->GetModifierType() > RSModifierType::FRAME &&
         modifier->GetModifierType() != RSModifierType::BACKGROUND_COLOR &&
-        modifier->GetModifierType() != RSModifierType::ALPHA &&
-        modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
+        modifier->GetModifierType() != RSModifierType::ALPHA) {
         SetDrawNode();
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
