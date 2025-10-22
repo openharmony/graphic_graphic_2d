@@ -128,6 +128,7 @@ void NativeImageTest::SetUpTestCase()
     nativeWindow = nullptr;
     glGenTextures(1, &textureId);
     glGenTextures(1, &textureId2);
+    InitEglContext();
 }
 
 void NativeImageTest::TearDownTestCase()
@@ -139,7 +140,7 @@ void NativeImageTest::TearDownTestCase()
 
 void NativeImageTest::InitEglContext()
 {
-    if (eglContext_ != EGL_NO_DISPLAY) {
+    if (eglContext_ != EGL_NO_CONTEXT) {
         return;
     }
 
@@ -178,6 +179,7 @@ void NativeImageTest::InitEglContext()
     eglContext_ = eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
     if (eglContext_ == EGL_NO_CONTEXT) {
         BLOGE("Failed to create egl context %{public}x", eglGetError());
+        eglDisplay_ = EGL_NO_DISPLAY;
         return;
     }
 
@@ -286,8 +288,10 @@ HWTEST_F(NativeImageTest, OHNativeImageDetachContext001, Function | MediumTest |
 */
 HWTEST_F(NativeImageTest, OHNativeImageDetachContext002, Function | MediumTest | Level1)
 {
+    Deinit();
     int32_t ret = OH_NativeImage_DetachContext(image);
     ASSERT_EQ(ret, SURFACE_ERROR_EGL_STATE_UNKONW);
+    InitEglContext();
 }
 
 /*
@@ -301,7 +305,6 @@ HWTEST_F(NativeImageTest, OHNativeImageDetachContext002, Function | MediumTest |
 */
 HWTEST_F(NativeImageTest, OHNativeImageDetachContext003, Function | MediumTest | Level1)
 {
-    InitEglContext();
     int32_t ret = OH_NativeImage_DetachContext(image);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 }
@@ -1541,7 +1544,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_CreateWithSingleBufferMode001, Function
 }
 
 /*
- * Function: OH_NativeImage_Create_With_SingleBufferMode002
+ * Function: OH_NativeImage_CreateWithSingleBufferMode002
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
@@ -1550,7 +1553,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_CreateWithSingleBufferMode001, Function
  *                  3. check nativeImage, and nativeImage is not nullptr
  * @tc.require: issueI5KG61
  */
-HWTEST_F(NativeImageTest, OH_NativeImage_Create_With_SingleBufferMode002, Function | MediumTest | Level1)
+HWTEST_F(NativeImageTest, OH_NativeImage_CreateWithSingleBufferMode002, Function | MediumTest | Level1)
 {
     // create with textureId
     uint32_t textureId = 1;
@@ -1642,6 +1645,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumT
     Deinit();
     ret = OH_NativeImage_ReleaseTextImage(nativeImage);
     ASSERT_EQ(ret, SURFACE_ERROR_EGL_STATE_UNKONW);
+    InitEglContext();
 }
 
 /*
@@ -1661,7 +1665,6 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumT
  */
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumTest | Level1)
 {
-    InitEglContext();
     OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
@@ -1743,7 +1746,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
+ * CaseDescription: 1. call OH_ConsumerSurface_CreateWithSingleBufferMode with textureId in single buffer mode
  *                  2. call OH_NativeWindow_NativeWindowRequestBuffer and OH_NativeWindow_NativeWindowFlushBuffer
  *                  3. call OH_NativeImage_UpdateSurfaceImage to update surface texture
  *                  4. call OH_NativeWindow_NativeWindowRequestBuffer to request buffer again
@@ -1754,7 +1757,6 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
  */
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage004, Function | MediumTest | Level1)
 {
-    InitEglContext();
     OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
