@@ -204,7 +204,6 @@ public:
     SkipType GetSkipType() { return skipType_; }
 
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
-    void SetChildInBlackList(bool hasChildInBlackList);
 
     bool IsFilterCacheValidForOcclusion() const;
     const RectI GetFilterCachedRegion() const;
@@ -368,7 +367,6 @@ protected:
 #endif
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
-    bool hasChildInBlackList_ = false;
     
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:

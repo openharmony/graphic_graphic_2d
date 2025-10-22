@@ -3036,8 +3036,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         bool isInBlackList = false;
         if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
             auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
-            if (surfaceNode.IsLeashWindow() &&
-                allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) {
+            if ((surfaceNode.IsLeashWindow() &&
+                allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) ||
+                allBlackList_.find(surfaceNode.GetId()) != allBlackList_.end()) {
                 isInBlackList = true;
             }
         }

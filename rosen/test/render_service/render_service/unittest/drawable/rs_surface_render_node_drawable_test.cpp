@@ -1759,6 +1759,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     // test security layer
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_SECURITY, true);
     surfaceDrawable_->OnDraw(*canvas_);
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::SECURITY, true);
+    surfaceDrawable_->OnDraw(*canvas_);
     // test blacklist
     surfaceParams->specialLayerManager_.SetWithScreen(
         surfaceDrawable_->curDisplayScreenId_, SpecialLayerType::HAS_BLACK_LIST, true);
@@ -1766,6 +1768,42 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     // test protected layer
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, true);
     surfaceDrawable_->OnDraw(*canvas_);
+}
+
+/**
+ * @tc.name: OnDraw006
+ * @tc.desc: Test OnDraw when CheckIfSurfaceSkipInMirrorOrScreenshot return true
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    NodeId id = 10086;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(renderNode, nullptr);
+    auto drawingCacheRoot = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    ASSERT_NE(drawingCacheRoot, nullptr);
+    drawable_->curDrawingCacheRoot_ = drawingCacheRoot.get();
+    ASSERT_NE(drawable_->curDrawingCacheRoot_, nullptr);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->isMirrorScreen_ = false;
+    params->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_TRUE(surfaceParams);
+    surfaceParams->isNodeGroupHasChildInBlacklist_ = true;
+    EXPECT_TRUE(surfaceParams->NodeGroupHasChildInBlacklist());
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    EXPECT_TRUE(surfaceDrawable_->hasSkipCacheLayer_);
 }
 
 /**

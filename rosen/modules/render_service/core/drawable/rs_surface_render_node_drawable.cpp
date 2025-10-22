@@ -665,17 +665,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto specialLayerManager = surfaceParams->GetSpecialLayerMgr();
-    hasSkipCacheLayer_ =
-        (specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParam->GetSecExemption()) ||
-            specialLayerManager.Find(SpecialLayerType::SKIP);
-    if (curDrawingCacheRoot_) {
-        if (hasSkipCacheLayer_) {
-            curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->NodeGroupHasChildInBlacklist()) {
-            curDrawingCacheRoot_->SetChildInBlackList(true);
-        }
+    hasSkipCacheLayer_ = (specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParam->GetSecExemption()) ||
+                         specialLayerManager.Find(SpecialLayerType::SKIP) ||
+                         surfaceParams->NodeGroupHasChildInBlacklist();
+    if (curDrawingCacheRoot_ && hasSkipCacheLayer_) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hasSkipCacheLayer id:%" PRIu64, surfaceParams->GetId());
+        curDrawingCacheRoot_->SetSkipCacheLayer(true);
     }
-    
+
     if (surfaceParams->GetHardCursorStatus()) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
