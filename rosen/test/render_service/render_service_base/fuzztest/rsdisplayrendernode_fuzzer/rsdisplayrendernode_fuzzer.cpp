@@ -157,8 +157,6 @@ bool DoGetSortedChildren(const uint8_t* data, size_t size)
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     auto oldScbPids = std::vector<int32_t>();
     rsScreenRenderNode.GetSortedChildren();
-    rsScreenRenderNode.isNeedWaitNewScbPid_ = false;
-    rsScreenRenderNode.GetSortedChildren();
     return true;
 }
 

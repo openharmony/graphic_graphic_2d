@@ -2785,12 +2785,9 @@ void RSRenderNode::ApplyPositionZModifier()
         return;
     }
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(shared_from_this());
-    int32_t currentScbPid = displayNode == nullptr ? -1 : displayNode->GetCurrentScbPid();
     ModifierNG::RSTransformRenderModifier::ResetProperties(GetMutableRenderProperties());
     for (auto& modifier : transformModifiers) {
-        if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
-            modifier->ApplyLegacyProperty(GetMutableRenderProperties());
-        }
+        modifier->ApplyLegacyProperty(GetMutableRenderProperties());
     }
     dirtyTypesNG_.reset(transformModifierTypeNG);
 }
@@ -2817,7 +2814,6 @@ void RSRenderNode::MarkForegroundFilterCache()
 void RSRenderNode::ResetAndApplyModifiers()
 {
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(shared_from_this());
-    int32_t currentScbPid = displayNode == nullptr ? -1 : displayNode->GetCurrentScbPid();
     bool needUseCmdlistDrawRegion = GetNeedUseCmdlistDrawRegion();
     for (const auto& [modifierType, resetFunc] : ModifierNG::RSRenderModifier::GetResetFuncMap()) {
         if (dirtyTypesNG_.test(static_cast<size_t>(modifierType))) {
@@ -2830,12 +2826,10 @@ void RSRenderNode::ResetAndApplyModifiers()
             continue;
         }
         for (auto modifier : slot) {
-            if (currentScbPid == -1 || ExtractPid(modifier->GetId()) == currentScbPid) {
-                modifier->ApplyLegacyProperty(GetMutableRenderProperties());
-                if (needUseCmdlistDrawRegion) {
-                    cmdlistDrawRegion_ =
-                        RSOptimizeCanvasDirtyCollector::GetInstance().CalcCmdlistDrawRegionFromOpItem(modifier);
-                }
+            modifier->ApplyLegacyProperty(GetMutableRenderProperties());
+            if (needUseCmdlistDrawRegion) {
+                cmdlistDrawRegion_ =
+                    RSOptimizeCanvasDirtyCollector::GetInstance().CalcCmdlistDrawRegionFromOpItem(modifier);
             }
         }
     }

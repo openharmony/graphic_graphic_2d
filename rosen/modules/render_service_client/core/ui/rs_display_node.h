@@ -177,7 +177,9 @@ public:
      * @param oldPids Indicates the old PIDs to be removed.
      * @param currentPid Indicates the current PID to be added.
      */
-    void SetScbNodePid(const std::vector<int32_t>& oldPids, int32_t currentPid);
+    void SetScbNodePid(const std::vector<int32_t>& oldPids, int32_t currentPid); // to-delete
+
+    void ClearModifierByPid(pid_t pid);
 
     /**
      * @brief Sets the virtual screen mute status.

@@ -2496,10 +2496,8 @@ HWTEST_F(RSRenderNodeTest2, ApplyPositionZModifierTest, TestSize.Level1)
     NodeId nodeId = 2;
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     displayNode->AddModifier(transformModifier);
-    displayNode->currentScbPid_ = 0;
     displayNode->ApplyPositionZModifier();
     EXPECT_FALSE(displayNode->dirtyTypesNG_.test(transformModifierType));
-    displayNode->currentScbPid_ = 1;
     displayNode->dirtyTypesNG_.set(transformModifierType, true);
     displayNode->ApplyPositionZModifier();
     EXPECT_FALSE(displayNode->dirtyTypesNG_.test(transformModifierType));

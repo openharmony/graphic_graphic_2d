@@ -225,46 +225,6 @@ HWTEST_F(RSDisplayNodeCommandTest, SetDisplayMode001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetScbNodePid
- * @tc.desc: SetScbNodePid test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    std::vector<int32_t> oldScbPids = {};
-    int32_t currentScbPid = -1;
-    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-    oldScbPids.push_back(1);
-    oldScbPids.push_back(2);
-    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
-}
-
-/**
- * @tc.name: SetScbNodePid001
- * @tc.desc: SetScbNodePid test.
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    std::vector<int32_t> oldScbPids = {};
-    int32_t currentScbPid = -1;
-    RSDisplayNodeConfig config { 0, true, 0 };
-    DisplayNodeCommandHelper::Create(context, id, config);
-
-    oldScbPids.push_back(1);
-    oldScbPids.push_back(2);
-    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-    DisplayNodeCommandHelper::SetScbNodePid(context, 5, oldScbPids, currentScbPid);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
-}
-
-/**
  * @tc.name: SetVirtualScreenMuteStatus001
  * @tc.desc: SetVirtualScreenMuteStatus test.
  * @tc.type: FUNC

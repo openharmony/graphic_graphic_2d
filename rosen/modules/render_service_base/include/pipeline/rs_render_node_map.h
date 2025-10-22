@@ -83,6 +83,10 @@ public:
 
     // call from main thread
     std::vector<NodeId> GetSelfDrawingNodeInProcess(pid_t pid);
+
+    bool AttachToDisplay(
+        std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const;
+
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;

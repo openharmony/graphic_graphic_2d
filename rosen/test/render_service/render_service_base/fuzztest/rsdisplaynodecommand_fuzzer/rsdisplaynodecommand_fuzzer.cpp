@@ -113,26 +113,6 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size, RSContext& context)
 
     return true;
 }
-bool DoSetScbNodePid(const uint8_t* data, size_t size, RSContext& context)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    NodeId id = GetData<NodeId>();
-    std::vector<int32_t> oldScbPids = {};
-    int32_t currentScbPid = -1;
-    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-    RSDisplayNodeConfig config { 0, true, 0 };
-    DisplayNodeCommandHelper::Create(context, id, config);
-    int32_t pid = GetData<int32_t>();
-    oldScbPids.push_back(pid);
-    pid = GetData<int32_t>();
-    oldScbPids.push_back(pid);
-    DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-
-    return true;
-}
 
 bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size, RSContext& context)
 {
@@ -163,7 +143,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoDisplayNode(data, size, *context);
     OHOS::Rosen::DoSetDisplayMode(data, size, *context);
     OHOS::Rosen::DoSetBootAnimation(data, size, *context);
-    OHOS::Rosen::DoSetScbNodePid(data, size, *context);
     OHOS::Rosen::DoSetVirtualScreenMuteStatus(data, size, *context);
 
     context = nullptr;

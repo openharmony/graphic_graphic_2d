@@ -499,11 +499,6 @@ bool RSScreenRenderNode::GetForceCloseHdr() const
     return ROSEN_EQ(GetRenderProperties().GetHDRBrightnessFactor(), 0.0f);
 }
 
-RSRenderNode::ChildrenListSharedPtr RSScreenRenderNode::GetSortedChildren() const
-{
-    return RSRenderNode::GetSortedChildren();
-}
-
 Occlusion::Region RSScreenRenderNode::GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const
 {
     Occlusion::Region result;

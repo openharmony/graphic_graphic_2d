@@ -40,7 +40,7 @@ public:
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void UpdateRenderParams() override;
 
-    RSRenderNode::ChildrenListSharedPtr GetSortedChildren() const override;
+    void ClearModifiersByPid(pid_t pid);
 
     RSRenderNodeType GetType() const override
     {
@@ -60,25 +60,6 @@ public:
     bool IsValidScreenId() const
     {
         return screenId_ != INVALID_SCREEN_ID;
-    }
-
-    void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
-    {
-        oldScbPids_ = oldScbPids;
-        lastScbPid_ = currentScbPid_;
-        currentScbPid_ = currentScbPid;
-        isNeedWaitNewScbPid_ = true;
-        isFullChildrenListValid_ = false;
-    }
-
-    std::vector<int32_t> GetOldScbPids() const
-    {
-        return oldScbPids_;
-    }
-
-    int32_t GetCurrentScbPid() const
-    {
-        return currentScbPid_;
     }
 
     void SetScreenRotation(const ScreenRotation& screenRotation)
@@ -200,13 +181,6 @@ private:
 
     uint32_t fixedWidth_ = 0;
     uint32_t fixedHeight_ = 0;
-
-    int32_t currentScbPid_ = -1;
-    int32_t lastScbPid_ = -1;
-    std::vector<int32_t> oldScbPids_ {};
-    mutable bool isNeedWaitNewScbPid_ = false;
-    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
-        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
     
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;

@@ -282,7 +282,7 @@ public:
     // return children and disappeared children, not guaranteed to be sorted by z-index
     ChildrenListSharedPtr GetChildren() const;
     // return children and disappeared children, sorted by z-index
-    virtual ChildrenListSharedPtr GetSortedChildren() const;
+    ChildrenListSharedPtr GetSortedChildren() const;
     void CollectAllChildren(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec);
     uint32_t GetChildrenCount() const
     {

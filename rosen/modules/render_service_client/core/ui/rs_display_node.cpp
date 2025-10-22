@@ -250,17 +250,17 @@ bool RSDisplayNode::GetBootAnimation() const
 
 void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetNodePid>(GetId(), oldScbPids, currentScbPid);
-    AddCommand(command, true);
-    std::ostringstream oldPidsStr;
-    oldPidsStr << " NodeId: " << GetId();
-    oldPidsStr << " currentScbPid: " << currentScbPid;
-    oldPidsStr << " oldScbPids:";
-    for (auto iter = oldScbPids.begin(); iter != oldScbPids.end(); ++iter) {
-        oldPidsStr << *iter << ",";
+    // to-delete
+    for (auto pid : oldScbPids) {
+        ClearModifierByPid(pid);
     }
-    DoFlushModifier();
-    ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
+}
+
+void RSDisplayNode::ClearModifierByPid(pid_t pid)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeClearModifiersByPid>(GetId(), pid);
+    AddCommand(command, true);
+    ROSEN_LOGI("RSDisplayNode::ClearModifierByPid %{public}u", static_cast<uint32_t>(pid));
 }
 
 void RSDisplayNode::SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)

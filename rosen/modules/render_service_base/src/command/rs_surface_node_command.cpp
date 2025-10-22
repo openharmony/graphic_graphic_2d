@@ -230,15 +230,9 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
     if (surfaceRenderNode == nullptr) {
         return;
     }
-    nodeMap.TraverseLogicalDisplayNodes(
-        [&surfaceRenderNode, &screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& logicalDisplayRenderNode) {
-            if (logicalDisplayRenderNode == nullptr || logicalDisplayRenderNode->GetScreenId() != screenId ||
-                logicalDisplayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation() ||
-                !logicalDisplayRenderNode->IsOnTheTree()) {
-                return;
-            }
-            logicalDisplayRenderNode->AddChild(surfaceRenderNode);
-        });
+    if (nodeMap.AttachToDisplay(surfaceRenderNode, screenId, false)) {
+        surfaceRenderNode->attachedInfo_ = std::make_pair(screenId, false);
+    }
 }
 
 void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId)
@@ -248,6 +242,7 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
     if (surfaceRenderNode == nullptr) {
         return;
     }
+    surfaceRenderNode->attachedInfo_ = std::nullopt;
     nodeMap.TraverseLogicalDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& logicalDisplayRenderNode) {
             if (logicalDisplayRenderNode == nullptr || logicalDisplayRenderNode->GetScreenId() != screenId ||
@@ -402,25 +397,9 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
         RS_LOGE("SurfaceNodeCommandHelper::AttachToWindowContainer Invalid surfaceRenderNode");
         return;
     }
-    nodeMap.TraverseLogicalDisplayNodes(
-        [surfaceRenderNode, screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
-                !displayRenderNode->IsOnTheTree() ||
-                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
-                return;
-            }
-            auto windowContainer = displayRenderNode->GetWindowContainer();
-            if (windowContainer == nullptr || !windowContainer->IsOnTheTree()) {
-                displayRenderNode->AddChild(surfaceRenderNode);
-                RS_LOGD("SurfaceNodeCommandHelper::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}"
-                    PRIu64, surfaceRenderNode->GetId(), displayRenderNode->GetId());
-            } else {
-                windowContainer->AddChild(surfaceRenderNode);
-                RS_LOGD("SurfaceNodeCommandHelper::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}"
-                    PRIu64, surfaceRenderNode->GetId(), windowContainer->GetId());
-            }
-        }
-    );
+    if (nodeMap.AttachToDisplay(surfaceRenderNode, screenId, false)) {
+        surfaceRenderNode->attachedInfo_ = std::make_pair(screenId, true);
+    }
 }
 
 void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId)

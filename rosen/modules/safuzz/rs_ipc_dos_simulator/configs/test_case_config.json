@@ -1004,7 +1004,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeSetNodePid*100",
+    "commandList": "RSDisplayNodeClearModifiersByPid*100",
     "commandListRepeat": 1
   },
   {

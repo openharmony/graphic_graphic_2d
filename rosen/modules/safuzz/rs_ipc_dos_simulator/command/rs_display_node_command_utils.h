@@ -32,7 +32,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetBootAnimation, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSDisplayNodeAddToTree, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSDisplayNodeRemoveFromTree, Uint64);
-    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSDisplayNodeSetNodePid, Uint64, Int32Vector, Int32);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeClearModifiersByPid, Uint64, Int32);
 };
 } // namespace Rosen
 } // namespace OHOS

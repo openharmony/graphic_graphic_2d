@@ -128,6 +128,19 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
 
     logicalDisplayNode->SetScreenId(screenId);
     logicalDisplayNode->NotifyScreenNotSwitching();
+    for (auto& child : *(logicalDisplayNode->GetChildren())) {
+        if (!child) {
+            continue;
+        }
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceChild) {
+            continue;
+        }
+        auto info = surfaceChild->GetAttachedInfo();
+        if (info.has_value()) {
+            info->first = screenId;
+        }
+    }
     auto lambda = [&logicalDisplayNode](auto& screenRenderNode) {
         screenRenderNode->AddChild(logicalDisplayNode);
     };
@@ -208,12 +221,12 @@ void DisplayNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
     }
 }
 
-void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
-    const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
+void DisplayNodeCommandHelper::ClearModifiersByPid(RSContext& context, NodeId nodeId, int32_t pid)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId)) {
-        RS_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
-        node->SetScbNodePid(oldScbPids, currentScbPid);
+        RS_LOGI(
+            "ClearModifiersByPid NodeId:[%{public}" PRIu64 "] pid:[%{public}u]", nodeId, static_cast<uint32_t>(pid));
+        node->ClearModifiersByPid(pid);
     } else {
         RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, nodeId);
     }

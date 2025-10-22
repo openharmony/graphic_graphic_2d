@@ -692,8 +692,6 @@ HWTEST_F(RSScreenRenderNodeTest, GetSortedChildren, TestSize.Level1)
 {
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     screenNode->GetSortedChildren();
-    screenNode->isNeedWaitNewScbPid_ = true;
-    screenNode->GetSortedChildren();
     ASSERT_TRUE(true);
 }
 

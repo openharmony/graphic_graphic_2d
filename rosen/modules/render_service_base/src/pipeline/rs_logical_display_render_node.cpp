@@ -127,45 +127,21 @@ Occlusion::Region RSLogicalDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
     return topSurfaceOpaqueRegion;
 }
 
-RSRenderNode::ChildrenListSharedPtr RSLogicalDisplayRenderNode::GetSortedChildren() const
+void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
 {
-    int32_t currentScbPid = GetCurrentScbPid();
-    ChildrenListSharedPtr fullChildrenList = RSRenderNode::GetSortedChildren();
-    if (currentScbPid < 0) {
-        return fullChildrenList;
-    }
-    if (isNeedWaitNewScbPid_) {
-        for (auto it = (*fullChildrenList).rbegin(); it != (*fullChildrenList).rend(); ++it) {
-            auto& child = *it;
-            auto childPid = ExtractPid(child->GetId());
-            if (childPid == currentScbPid) {
-                RS_LOGI("child scb pid equals current scb pid and set valid false");
-                isNeedWaitNewScbPid_ = false;
-                break;
+    RS_LOGI("RSLogicalDisplayRenderNode::ClearModifiersByPid %{public}u", static_cast<uint32_t>(pid));
+    for (uint16_t i = 0; i < ModifierNG::MODIFIER_TYPE_COUNT; i++) {
+        ModifierNG::RSModifierType type = static_cast<ModifierNG::RSModifierType>(i);
+        ModifierNGContainer slot = GetModifiersNG(type);
+        if (slot.empty()) {
+            continue;
+        }
+        for (auto& modifier : slot) {
+            if (modifier && (ExtractPid(modifier->GetId()) == pid)) {
+                RemoveModifier(type, modifier->GetId());
             }
         }
     }
-    if (isNeedWaitNewScbPid_ && lastScbPid_ < 0) {
-        return fullChildrenList;
-    }
-    std::vector<int32_t> oldScbPids = GetOldScbPids();
-    currentChildrenList_->clear();
-    for (auto& child : *fullChildrenList) {
-        if (child == nullptr) {
-            continue;
-        }
-        auto childPid = ExtractPid(child->GetId());
-        auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
-        // only when isNeedWaitNewScbPid_ is ture, put lastScb's child to currentChildrenList_
-        if (pidIter != oldScbPids.end() && (!isNeedWaitNewScbPid_ || childPid != lastScbPid_)) {
-            child->SetIsOntheTreeOnlyFlag(false);
-            continue;
-        } else if (childPid == currentScbPid) {
-            child->SetIsOntheTreeOnlyFlag(true);
-        }
-        currentChildrenList_->emplace_back(child);
-    }
-    return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
 }
 
 void RSLogicalDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,

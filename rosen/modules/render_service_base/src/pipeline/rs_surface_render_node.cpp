@@ -427,6 +427,17 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 {
     NotifyTreeStateChange();
     RSRenderNode::OnTreeStateChanged();
+    if (!IsOnTheTree() && attachedInfo_.has_value()) {
+        if (auto context = GetContext().lock()) {
+            RS_TRACE_NAME_FMT("retr attach to the tree Id:%" PRIu64 " Name:%s", GetId(), GetName().c_str());
+            auto& nodeMap = context->GetNodeMap();
+            bool isAttached = nodeMap.AttachToDisplay(
+                ReinterpretCastTo<RSSurfaceRenderNode>(), attachedInfo_->first, attachedInfo_->second);
+            if (isAttached) {
+                return;
+            }
+        }
+    }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!IsOnTheTree()) {
         if (auto context = GetContext().lock()) {

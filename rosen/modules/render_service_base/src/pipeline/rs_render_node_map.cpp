@@ -502,5 +502,32 @@ const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) co
     return "";
 }
 
+bool RSRenderNodeMap::AttachToDisplay(
+    std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const
+{
+    bool result = false;
+    for (const auto& [_, displayRenderNode] : logicalDisplayNodeMap_) {
+        if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
+            !displayRenderNode->IsOnTheTree() ||
+            displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
+            continue;
+        }
+        auto parentNode = displayRenderNode->GetWindowContainer();
+        if (!toContainer || parentNode == nullptr || !parentNode->IsOnTheTree()) {
+            parentNode = displayRenderNode;
+            RS_LOGI("RSRenderNodeMap::AttachToDisplay %{public}" PRIu64 " attach to %{public}" PRIu64,
+                surfaceRenderNode->GetId(), parentNode->GetId());
+        } else {
+            RS_LOGI("RSRenderNodeMap::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}" PRIu64,
+                surfaceRenderNode->GetId(), parentNode->GetId());
+        }
+        if (parentNode == surfaceRenderNode->GetParent().lock()) {
+            continue;
+        }
+        parentNode->AddChild(surfaceRenderNode);
+        result = true;
+    }
+    return result;
+}
 } // namespace Rosen
 } // namespace OHOS

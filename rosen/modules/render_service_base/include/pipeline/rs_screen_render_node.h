@@ -426,8 +426,6 @@ public:
         return surfaceCountForMultiLayersPerf_;
     }
 
-    ChildrenListSharedPtr GetSortedChildren() const override;
-
     Occlusion::Region GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const;
 
     void UpdateZoomState(bool state)
@@ -545,12 +543,9 @@ private:
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;
-    mutable bool isNeedWaitNewScbPid_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
-    int32_t currentScbPid_ = -1;
-    int32_t lastScbPid_ = -1;
     HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
     mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
@@ -590,8 +585,6 @@ private:
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     std::vector<NodeId> lastSurfaceIds_;
-
-    std::vector<int32_t> oldScbPids_ {};
 
     bool hasMirrorDisplay_ = false;
     bool screenResolutionChanged_ = false;
