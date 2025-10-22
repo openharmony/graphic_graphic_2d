@@ -1082,7 +1082,7 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
         return true;
     }
 
-	return false;
+    return false;
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
