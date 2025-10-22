@@ -50,7 +50,6 @@ namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
-constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300; // limit of the drawcmdlists.
 constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_PER_FRAME = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_FOR_CACHE = 200000;
@@ -593,7 +592,6 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
                 SplitDrawCmdList(OP_COUNT_LIMIT_PER_FRAME - lastOpCount, drawCmdList, true);
             } else {
                 drawCmdListsNG_[modifierType].emplace_back(drawCmdList);
-                cmdCount_++;
                 opCountAfterReset_ += opItemSize;
             }
         }
@@ -618,7 +616,6 @@ size_t RSCanvasDrawingRenderNode::ApplyCachedCmdList()
             break;
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(drawCmdList);
-        cmdCount_++;
         cachedOpCount_ -= opItemSize;
         opCountAfterReset_ += opItemSize;
     }
@@ -672,7 +669,6 @@ void RSCanvasDrawingRenderNode::SplitDrawCmdList(
             cachedOpCount_ -= firstCmdList->GetOpItemSize();
         }
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(firstCmdList);
-        cmdCount_++;
         opCountAfterReset_ += firstCmdList->GetOpItemSize();
     }
 }
@@ -705,7 +701,6 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
         cachedOpCount_ = 0;
     }
     std::lock_guard<std::mutex> lockTask(taskMutex_);
-    cmdCount_ = 0;
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
