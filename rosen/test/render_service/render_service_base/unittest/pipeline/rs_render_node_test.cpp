@@ -678,11 +678,12 @@ HWTEST_F(RSRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
     EXPECT_TRUE(node.IsDirty());
 
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    canvasDrawingNode->isNeverOnTree_ = false;
     canvasDrawingNode->OnTreeStateChanged();
-    EXPECT_FALSE(canvasDrawingNode->isOnTheTree_);
+    EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);
     canvasDrawingNode->isOnTheTree_ = true;
     canvasDrawingNode->OnTreeStateChanged();
-    EXPECT_TRUE(canvasDrawingNode->isOnTheTree_);
+    EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);
 }
 
 /**

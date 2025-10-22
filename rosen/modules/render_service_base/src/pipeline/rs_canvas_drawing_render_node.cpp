@@ -215,7 +215,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     // update content_style when node not on tree, need check (waitSync_ false, not on tree, never on tree
     // not texture exportnode, unirender mode)
     // if canvas drawing node never on tree, should not update, it will lost renderParams->localDrawRect_
-    if (IsWaitSync() || IsOnTheTree() || !stagingRenderParams_ ||
+    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
         !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
@@ -523,6 +523,41 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
     RSRenderNode::ApplyModifiers();
 }
 
+void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
+{
+    auto& drawCmdLists = drawCmdListsNG_[type];
+    auto originCmdListSize = drawCmdLists.size();
+    if (originCmdListSize == 0) {
+        return;
+    }
+    size_t originOpCount = 0;
+    size_t opCount = 0;
+    auto it = drawCmdLists.end();
+    while (it != drawCmdLists.begin()) {
+        it--;
+        originOpCount += (*it)->GetOpItemSize();
+        if (originOpCount > OP_COUNT_LIMIT_PER_FRAME) {
+            it = drawCmdLists.erase(it);
+            continue;
+        }
+        opCount = originOpCount;
+    }
+    auto cmdListSize = drawCmdLists.size();
+    bool overflow = originOpCount > OP_COUNT_LIMIT_PER_FRAME;
+    if (overflow) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckDrawCmdListSizeNG nodeId:[%" PRIu64 "] modifierType:[%hd] stateOnTheTree:[%d]"
+            " originCmdListSize:[%zu] cmdListSize:[%zu] originOpCount:[%zu] opCount:[%zu]", GetId(), type,
+            IsOnTheTree(), originCmdListSize, cmdListSize, originOpCount, opCount);
+        if (overflow != lastOverflowStatus_) {
+            RS_LOGE("CheckDrawCmdListSizeNG: Cmdlist out of limit, nodeId:[%{public}" PRIu64 "] "
+                "modifierType:[%{public}hd] stateOnTheTree:[%{public}d] originCmdListSize:[%{public}zu] "
+                "cmdListSize:[%{public}zu] originOpCount:[%{public}zu] opCount:[%{public}zu]", GetId(), type,
+                IsOnTheTree(), originCmdListSize, cmdListSize, originOpCount, opCount);
+        }
+    }
+    lastOverflowStatus_ = overflow;
+}
+
 void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifierType)
 {
     dirtyTypesNG_.set(static_cast<int>(modifierType), true);
@@ -564,6 +599,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
     if (opCount > 0) {
         SetNeedProcess(true);
     }
+    CheckDrawCmdListSizeNG(modifierType);
 }
 
 size_t RSCanvasDrawingRenderNode::ApplyCachedCmdList()
@@ -697,6 +733,11 @@ void RSCanvasDrawingRenderNode::ClearResource()
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         drawCmdListsNG_.clear();
     }
+}
+
+void RSCanvasDrawingRenderNode::ClearNeverOnTree()
+{
+    isNeverOnTree_ = false;
 }
 
 void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
