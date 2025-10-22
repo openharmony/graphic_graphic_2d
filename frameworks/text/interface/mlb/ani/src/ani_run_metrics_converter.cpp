@@ -35,7 +35,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
                 OHOS::Rosen::Drawing::CreateAniFontMetrics(env, runMetrics.fontMetrics));
             ani_status status =
                 env->Object_CallMethodByName_Ref(mapAniObj, "set",
-                "C{std.core.Object}C{std.core.Object}:C{escompat.Map}",
+                "C{std.core.Object}C{std.core.Object}:C{std.core.Map}",
                 &mapRef, AniTextUtils::CreateAniIntObj(env, static_cast<int>(key)), aniObj);
             if (status != ANI_OK) {
                 TEXT_LOGE("Failed to set run metrics map, key %{public}zu, ret %{public}d", key, status);

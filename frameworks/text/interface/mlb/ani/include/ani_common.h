@@ -32,7 +32,7 @@ constexpr const char* ANI_DOUBLE = "std.core.Double";
 constexpr const char* ANI_INT = "std.core.Int";
 constexpr const char* ANI_BOOLEAN = "std.core.Boolean";
 constexpr const char* ANI_STRING = "std.core.String";
-constexpr const char* ANI_MAP = "escompat.Map";
+constexpr const char* ANI_MAP = "std.core.Map";
 constexpr const char* ANI_ARRAY = "escompat.Array";
 constexpr const char* ANI_BUSINESS_ERROR = "@ohos.base.BusinessError";
 /**
