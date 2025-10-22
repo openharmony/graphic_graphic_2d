@@ -397,6 +397,7 @@ enum class SystemAnimatedScenes : uint32_t {
     ENTER_MIN_WINDOW, // Enter the window minimization state
     RECOVER_MIN_WINDOW, // Recover minimized window
     SNAPSHOT_ROTATION,  //  Enter tablet's snapshot rotation scene
+    DRAG_WINDOW, // Enter scale window scene
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
