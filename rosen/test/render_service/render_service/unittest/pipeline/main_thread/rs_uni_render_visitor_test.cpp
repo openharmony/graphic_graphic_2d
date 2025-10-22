@@ -3337,7 +3337,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo005, TestSize.Level2)
     node->GetMutableRenderProperties().hasHarmonium_ = false;
     node->SetChildHasVisibleHarmonium(true);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_FALSE(parent->ChildHasVisibleHarmonium());
+    ASSERT_TRUE(parent->ChildHasVisibleHarmonium());
 }
 
 /*

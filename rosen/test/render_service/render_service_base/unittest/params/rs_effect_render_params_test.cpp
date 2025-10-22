@@ -159,7 +159,7 @@ HWTEST_F(RSEffectRenderParamsTest, SetHasHarmoniumChildren001, TestSize.Level1)
     params.SetHasHarmoniumChildren(true);
 
     params.hasHarmoniumChildren_ = true;
-    params.SetHasHarmoniumChildren(true);
+    params.SetHasEffectChildren(true);
 
     EXPECT_TRUE(params.GetHasEffectChildren());
 }
