@@ -49,7 +49,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int64_t SURFACE_RELEASE_DELAY_MS = 100;
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
@@ -812,7 +811,7 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
         DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
         if (GetFeatureParamValue("SurfaceCaptureConfig",
             &SurfaceCaptureParam::IsDeferredDmaSurfaceReleaseEnabled).value_or(false)) {
-            RSBackgroundThread::Instance().PostDelayedTask([dmaSurface = surface](){}, SURFACE_RELEASE_DELAY_MS);
+            RSBackgroundThread::Instance().HoldSurface(surface);
         }
     } else {
 #else

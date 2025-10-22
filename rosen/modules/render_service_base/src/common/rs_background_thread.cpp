@@ -63,13 +63,6 @@ void RSBackgroundThread::PostSyncTask(const std::function<void()>& task)
     }
 }
 
-void RSBackgroundThread::PostDelayedTask(const std::function<void()>& task, int64_t delayTime)
-{
-    if (handler_) {
-        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
-}
-
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifdef RS_ENABLE_GL
 void RSBackgroundThread::CreateShareEglContext()
@@ -109,6 +102,11 @@ void RSBackgroundThread::InitRenderContext(RenderContext* context)
 std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::GetShareGPUContext() const
 {
     return gpuContext_;
+}
+
+void RSBackgroundThread::HoldSurface(std::shared_ptr<Drawing::Surface> surface) const
+{
+    surfaceHolder_ = surface;
 }
 
 std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
