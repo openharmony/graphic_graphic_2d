@@ -121,7 +121,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest001, testing::ext::TestSiz
 }
 
 /**
- * @tc.name: EraseSnapshotInfoByPidTest001`
+ * @tc.name: EraseSnapshotInfoByPidTest001
  * @tc.desc: Test erasing snapshot info for exited PIDs.
  * @tc.type: FUNC
  * @tc.require:
@@ -217,5 +217,130 @@ HWTEST_F(RSMemorySnapshotTest, InitMemoryLimitTest001, testing::ext::TestSize.Le
     MemorySnapshot::Instance().InitMemoryLimit(nullptr, 5000, 6000, 7000);
     ASSERT_EQ(MemorySnapshot::Instance().singleMemoryWarning_, 1000);
     ASSERT_EQ(MemorySnapshot::Instance().totalMemoryLimit_, 3000);
+}
+
+/**
+ * @tc.name: InstanceSingletonTest001
+ * @tc.desc: Test that Instance() returns the same singleton instance.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, InstanceSingletonTest001, testing::ext::TestSize.Level1)
+{
+    MemorySnapshot& instance1 = MemorySnapshot::Instance();
+    MemorySnapshot& instance2 = MemorySnapshot::Instance();
+    ASSERT_EQ(&instance1, &instance2);
+}
+
+/**
+ * @tc.name: GetDirtyMemorySnapshotTest001
+ * @tc.desc: Test getting dirty memory snapshot list.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, GetDirtyMemorySnapshotTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid1 = 2001;
+    pid_t pid2 = 2002;
+    std::set<pid_t> exitedPids = {pid1, pid2};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    MemorySnapshot::Instance().AddCpuMemory(pid1, 1024);
+    MemorySnapshot::Instance().AddCpuMemory(pid2, 2048);
+    std::vector<pid_t> dirtyList;
+    MemorySnapshot::Instance().GetDirtyMemorySnapshot(dirtyList);
+    ASSERT_TRUE(std::find(dirtyList.begin(), dirtyList.end(), pid1) != dirtyList.end());
+    ASSERT_TRUE(std::find(dirtyList.begin(), dirtyList.end(), pid2) != dirtyList.end());
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: FillMemorySnapshotTest001
+ * @tc.desc: Test filling memory snapshot with bundle info.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, FillMemorySnapshotTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2003;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    MemorySnapshot::Instance().AddCpuMemory(pid, 1024);
+    std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+    MemorySnapshotInfo bundleInfo;
+    bundleInfo.pid = pid;
+    bundleInfo.bundleName = "com.example.test";
+    bundleInfo.uid = 10001;
+    infoMap[pid] = bundleInfo;
+    MemorySnapshot::Instance().FillMemorySnapshot(infoMap);
+    MemorySnapshotInfo actualInfo;
+    bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, actualInfo);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(actualInfo.bundleName, "com.example.test");
+    ASSERT_EQ(actualInfo.uid, 10001);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: GetTotalMemoryTest001
+ * @tc.desc: Test GetTotalMemory returns correct total memory.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid1 = 7001;
+    pid_t pid2 = 7002;
+    std::set<pid_t> exitedPids = {pid1, pid2};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    MemorySnapshot::Instance().AddCpuMemory(pid1, 1024);
+    MemorySnapshot::Instance().AddCpuMemory(pid2, 2048);
+    std::unordered_map<pid_t, size_t> gpuInfo = {{pid1, 512}, {pid2, 1024}};
+    std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
+    bool isTotalOver = false;
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+    size_t totalMemory = MemorySnapshot::Instance().GetTotalMemory();
+    ASSERT_GE(totalMemory, 1000);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuMemoryInfoTest002
+ * @tc.desc: Test UpdateGpuMemoryInfo detects total memory overflow.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest002, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 8001;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    auto callback = [](pid_t, uint64_t, bool) { return true; };
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 1000, 2000, 1);
+    MemorySnapshot::Instance().AddCpuMemory(pid, 50);
+    std::unordered_map<pid_t, size_t> gpuInfo = {{pid, 60}};
+    std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
+    bool isTotalOver = false;
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+    ASSERT_TRUE(isTotalOver);
+    ASSERT_TRUE(pidForReport.find(pid) != pidForReport.end());
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: CalculateRiskScoreTest002
+ * @tc.desc: Test CalculateRiskScore with zero max values.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, CalculateRiskScoreTest002, testing::ext::TestSize.Level1)
+{
+    MemorySnapshotInfo snapshot;
+    snapshot.cpuMemory = 1024;
+    snapshot.gpuMemory = 2048;
+    size_t maxCpu = 0;
+    size_t maxGpu = 0;
+    size_t maxSum = 0;
+    float score = MemorySnapshot::Instance().CalculateRiskScore(snapshot, maxCpu, maxGpu, maxSum);
+    ASSERT_FLOAT_EQ(score, 0.0f);
 }
 } // namespace OHOS::Rosen
