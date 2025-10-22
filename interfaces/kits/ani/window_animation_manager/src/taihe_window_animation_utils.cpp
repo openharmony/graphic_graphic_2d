@@ -39,7 +39,6 @@ WindowAnimationTarget TaiheWindowAnimationUtils::CreateJsWindowAnimationTarget(
         .abilityName = target->abilityName_,
         .windowBounds = jsRRect,
         .missionId = target->missionId_,
-        .windowId = target->windowId_,
     };
     return jsTarget;
 }
