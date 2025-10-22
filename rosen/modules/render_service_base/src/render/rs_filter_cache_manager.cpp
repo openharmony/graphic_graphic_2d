@@ -195,6 +195,7 @@ bool RSFilterCacheManager::DrawFilterUsingHpae(RSPaintFilterCanvas& paintFilterC
         ResetFilterCache(hpaeCacheManager->GetCachedSnapshot(),
             hpaeCacheManager->GetCachedFilteredSnapshot(), hpaeCacheManager->GetSnapshotRegion(), true);
         RSHpaeBaseData::GetInstance().SetBlurContentChanged(hpaeCacheManager->BlurContentChanged());
+        lastHpaeClearCache_ = !hpaeCacheManager->UseCacheImage();
         return true;
     } else {
         hpaeCacheManager->InvalidateFilterCache(FilterCacheType::BOTH);
@@ -573,6 +574,8 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
 
     // renderParams to stagingParams
     lastCacheType_ = cacheManager->lastCacheType_;
+    lastHpaeClearCache_ = cacheManager->lastHpaeClearCache_;
+    cacheManager->lastHpaeClearCache_ = false;
 
     // save staging param value
     lastInForegroundFilter_ = stagingInForegroundFilter_;
@@ -888,6 +891,11 @@ bool RSFilterCacheManager::ForceUpadateCacheByHpae()
     }
 
     return RSHpaeBaseData::GetInstance().GetBlurContentChanged();
+}
+
+bool RSFilterCacheManager::LastHpaeClearCache() const
+{
+    return lastHpaeClearCache_;
 }
 
 void RSFilterCacheManager::CompactFilterCache()

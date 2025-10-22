@@ -529,6 +529,14 @@ bool RSFilterDrawable::IsForceUseFilterCache() const
     return stagingCacheManager_->IsForceUseFilterCache();
 }
 
+bool RSFilterDrawable::LastHpaeClearCache() const
+{
+    if (stagingCacheManager_ == nullptr) {
+        return false;
+    }
+    return stagingCacheManager_->LastHpaeClearCache();
+}
+
 bool RSFilterDrawable::NeedPendingPurge() const
 {
     if (stagingCacheManager_ == nullptr) {

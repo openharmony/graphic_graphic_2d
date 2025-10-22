@@ -97,6 +97,8 @@ public:
         return blurContentChanged_;
     }
 
+    bool UseCacheImage() const;
+
 private:
     bool CheckIfUsingGpu();
     void SetBlurOutput(HpaeBackgroundCacheItem &outputBuffer);
@@ -131,6 +133,7 @@ private:
     float curRadius_ = 0.f;
     float backgroundRadius_ = 0.f;
     bool blurContentChanged_ = false;
+    bool useCacheImage_ = false;
     std::shared_ptr<Drawing::Image> prevBlurImage_ = nullptr;
 };
 

@@ -1304,7 +1304,7 @@ void RSRenderNode::CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& 
     if (node == nullptr) {
         return;
     }
-    
+
     for (auto& child : *node->GetSortedChildren()) {
         child->CollectSelfDrawingChild(child, vec);
     }
@@ -2541,6 +2541,12 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
         " forceClearWithoutNextVsync:%d, filterRegion: %s",
         GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
         filterRegion_.ToString().c_str());
+    // force update if last frame hpae-blur clear cache
+    if (filterDrawable->LastHpaeClearCache()) {
+        dirtyManager.MergeDirtyRect(filterRegion_);
+        isDirtyRegionUpdated_ = true;
+    }
+
     // force update if last frame use cache because skip-frame and current frame background is not dirty
     if (filterDrawable->NeedPendingPurge()) {
         dirtyManager.MergeDirtyRect(filterRegion_);
@@ -4811,7 +4817,7 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
             }
         }
     }
-    
+
 #endif
 }
 } // namespace Rosen
