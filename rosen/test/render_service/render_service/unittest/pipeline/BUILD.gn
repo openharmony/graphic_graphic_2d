@@ -350,6 +350,7 @@ ohos_unittest("RSRenderServiceConnectionTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",

@@ -52,7 +52,9 @@ const uint8_t DO_SET_PIXELFORMAT = 7;
 const uint8_t DO_SET_COLOR_FOLLOW = 8;
 const uint8_t DO_SET_LAYER_TOP = 9;
 const uint8_t DO_SET_FORCE_REFRESH = 10;
-const uint8_t TARGET_SIZE = 11;
+const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
+const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
+const uint8_t TARGET_SIZE = 13;
 } // namespace
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 sptr<RSIConnectionToken> g_token = nullptr;
@@ -220,6 +222,35 @@ void DoSetLayerTop(FuzzedDataProvider& fdp)
     g_connectionStub->SetLayerTop(nodeId, isLayerTop);
 }
 
+/* Fuzzer test SetBrightnessInfoChangeCallback */
+void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    bool hasCallback = fdp.ConsumeBool();
+    dataParcel.WriteBool(hasCallback);
+    if (hasCallback) {
+        MockBrightnessInfoChangeCallback callback;
+        dataParcel.WriteRemoteObject(callback.AsObject());
+    }
+    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+/* Fuzzer test GetBrightnessInfo */
+void DoGetBrightnessInfo(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
+    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 /* Fuzzer test SetForceRefresh */
 void DoSetForceRefresh(FuzzedDataProvider& fdp)
 {
@@ -253,43 +284,34 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::SetUp(fdp);
     /* Run your code on data */
     uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-    switch (tarPos) {
-        case OHOS::Rosen::DO_GET_SCREEN_SUPPORTED_HDRFORMATS:
-            OHOS::Rosen::DoGetScreenSupportedHDRFormats(fdp);
-            break;
-        case OHOS::Rosen::DO_GET_SCREEN_HDR_FORMAT:
-            OHOS::Rosen::DoGetScreenHDRFormat(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_SCREEN_HDR_FORMAT:
-            OHOS::Rosen::DoSetScreenHDRFormat(fdp);
-            break;
-        case OHOS::Rosen::DO_GET_SCREEN_SUPPORTED_COLOR_SPACES:
-            OHOS::Rosen::DoGetScreenSupportedColorSpaces(fdp);
-            break;
-        case OHOS::Rosen::DO_GET_SCREEN_COLORSPACE:
-            OHOS::Rosen::DoGetScreenColorSpace(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_SCREEN_COLORSPACE:
-            OHOS::Rosen::DoSetScreenColorSpace(fdp);
-            break;
-        case OHOS::Rosen::DO_GET_PIXEL_FORMAT:
-            OHOS::Rosen::DoGetPixelFormat(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_PIXELFORMAT:
-            OHOS::Rosen::DoSetPixelFormat(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_COLOR_FOLLOW:
-            OHOS::Rosen::DoSetColorFollow(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_LAYER_TOP:
-            OHOS::Rosen::DoSetLayerTop(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_FORCE_REFRESH:
-            OHOS::Rosen::DoSetForceRefresh(fdp);
-            break;
-        default:
-            // do nothing
-            break;
+    if (tarPos == OHOS::Rosen::DO_GET_SCREEN_SUPPORTED_HDRFORMATS) {
+        OHOS::Rosen::DoGetScreenSupportedHDRFormats(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_GET_SCREEN_HDR_FORMAT) {
+        OHOS::Rosen::DoGetScreenHDRFormat(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_SCREEN_HDR_FORMAT) {
+        OHOS::Rosen::DoSetScreenHDRFormat(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_GET_SCREEN_SUPPORTED_COLOR_SPACES) {
+        OHOS::Rosen::DoGetScreenSupportedColorSpaces(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_GET_SCREEN_COLORSPACE) {
+        OHOS::Rosen::DoGetScreenColorSpace(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_SCREEN_COLORSPACE) {
+        OHOS::Rosen::DoSetScreenColorSpace(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_GET_PIXEL_FORMAT) {
+        OHOS::Rosen::DoGetPixelFormat(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_PIXELFORMAT) {
+        OHOS::Rosen::DoSetPixelFormat(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_COLOR_FOLLOW) {
+        OHOS::Rosen::DoSetColorFollow(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_LAYER_TOP) {
+        OHOS::Rosen::DoSetLayerTop(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK) {
+        OHOS::Rosen::DoSetBrightnessInfoChangeCallback(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_GET_BRIGHTNESS_INFO) {
+        OHOS::Rosen::DoGetBrightnessInfo(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_FORCE_REFRESH) {
+        OHOS::Rosen::DoSetForceRefresh(fdp);
+    } else {
+        // do nothing
     }
     OHOS::Rosen::TearDown();
     return 0;

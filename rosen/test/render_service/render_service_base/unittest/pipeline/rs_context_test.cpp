@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <ipc_callbacks/brightness_info_change_callback.h>
+#include <iremote_proxy.h>
+
 #include "gtest/gtest.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
@@ -22,6 +25,15 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class MockBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+} // namespace
 class RSContextTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -207,5 +219,53 @@ HWTEST_F(RSContextTest, GetSetUnirenderVisibleLeashWindowCountTest001, TestSize.
     rSContext.SetUnirenderVisibleLeashWindowCount(testCount);
     testReturn = rSContext.GetUnirenderVisibleLeashWindowCount();
     EXPECT_EQ(testReturn, testCount);
+}
+
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: test SetBrightnessInfoChangeCallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSContextTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level1)
+{
+    RSContext rsContext;
+
+    // case 1: callback not null
+    sptr<MockBrightnessInfoChangeCallback> callback = new MockBrightnessInfoChangeCallback();
+    rsContext.SetBrightnessInfoChangeCallback(0, callback);
+    ASSERT_FALSE(rsContext.IsBrightnessInfoChangeCallbackMapEmpty());
+
+    // case 2: callback null
+    callback = nullptr;
+    rsContext.SetBrightnessInfoChangeCallback(0, callback);
+    ASSERT_TRUE(rsContext.IsBrightnessInfoChangeCallbackMapEmpty());
+}
+
+/**
+ * @tc.name: NotifyBrightnessInfoChangeCallbackTest
+ * @tc.desc: test NotifyBrightnessInfoChangeCallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSContextTest, NotifyBrightnessInfoChangeCallbackTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    BrightnessInfo brightnessInfo;
+
+    // case 1: callback map empty
+    rsContext.NotifyBrightnessInfoChangeCallback(0, brightnessInfo);
+    ASSERT_TRUE(rsContext.IsBrightnessInfoChangeCallbackMapEmpty());
+
+    // case 2: callback map not empty
+    sptr<MockBrightnessInfoChangeCallback> callback = new MockBrightnessInfoChangeCallback();
+    rsContext.SetBrightnessInfoChangeCallback(0, callback);
+    rsContext.NotifyBrightnessInfoChangeCallback(0, brightnessInfo);
+    ASSERT_FALSE(rsContext.IsBrightnessInfoChangeCallbackMapEmpty());
+
+    // case 3: callback null
+    rsContext.brightnessInfoChangeCallbackMap_[1] = nullptr;
+    rsContext.NotifyBrightnessInfoChangeCallback(0, brightnessInfo);
+    rsContext.SetBrightnessInfoChangeCallback(0, nullptr);
+    rsContext.SetBrightnessInfoChangeCallback(1, nullptr);
+    ASSERT_TRUE(rsContext.IsBrightnessInfoChangeCallbackMapEmpty());
 }
 } // namespace OHOS::Rosen

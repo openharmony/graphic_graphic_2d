@@ -2382,6 +2382,20 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "SET_BRIGHTNESS_INFO_CHANGE_CALLBACK_TEST_001",
+    "interfaceName": "SET_BRIGHTNESS_INFO_CHANGE_CALLBACK",
+    "inputParams": "WriteBool;WriteBrightnessInfoChangeCallbackSptr",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "GET_BRIGHTNESS_INFO_TEST_001",
+    "interfaceName": "GET_BRIGHTNESS_INFO",
+    "inputParams": "WriteUint64;",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "FREEZE_SCREEN_TEST_001",
     "interfaceName": "FREEZE_SCREEN",
     "inputParams": "WriteUint64;WriteBool;",

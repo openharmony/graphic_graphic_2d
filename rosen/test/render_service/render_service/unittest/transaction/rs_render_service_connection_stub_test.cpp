@@ -26,6 +26,7 @@
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
@@ -35,6 +36,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "rs_irender_service.h"
+#include "screen_manager/screen_types.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
@@ -52,6 +54,15 @@ namespace {
 };
 
 namespace OHOS::Rosen {
+namespace {
+class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockRSBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockRSBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+} // namespace
 class RSRenderServiceConnectionStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -65,6 +76,7 @@ public:
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
     static inline std::unique_ptr<RSComposerAdapter> composerAdapter_;
     static inline sptr<RSScreenManager> screenManager_;
+    static inline RSMainThread* mainThread_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
     int32_t offsetX = 0; //screenOffset on x axis equals to 0
     int32_t offsetY = 0; //screenOffset on y axis equals to 0
@@ -98,6 +110,9 @@ void RSRenderServiceConnectionStubTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
+    mainThread_ = new RSMainThread();
+    mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
 }
 
 class RSSurfaceCaptureCallbackStubMock : public RSSurfaceCaptureCallbackStub {
@@ -1736,6 +1751,159 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenGamutMapTest004, TestSize.L
     data.WriteUint32(static_cast<uint32_t>(ScreenGamutMap::GAMUT_MAP_HDR_EXTENSION));
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: Test SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
+{
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(0, nullptr, mainThread_, CreateOrGetScreenManager(), token_->AsObject(), nullptr);
+    ASSERT_NE(connectionStub, nullptr);
+
+    // case 1: no data
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // case 2: readRemoteObject false
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        data.WriteBool(false);
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 3: remoteObject null
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        data.WriteBool(true);
+        data.WriteRemoteObject(nullptr);
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 4: remoteObject not null
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        data.WriteBool(true);
+        MockRSBrightnessInfoChangeCallback callback;
+        data.WriteRemoteObject(callback.AsObject());
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: Test GetBrightnessInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, GetBrightnessInfoTest, TestSize.Level2)
+{
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
+
+    // case 1: no data
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // case 2: valid screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        data.WriteUint64(hdiOutput_->GetScreenId());
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 3: invalid screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+        data.WriteUint64(INVALID_SCREEN_ID);
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: WriteBrightnessInfoTest
+ * @tc.desc: Test WriteBrightnessInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, WriteBrightnessInfoTest, TestSize.Level2)
+{
+    // case 1: normal write
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        ASSERT_TRUE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 2: can't write any data
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        size_t desireCapacity = sizeof(float) * 0;
+        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
+        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 3: can write one float
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        size_t desireCapacity = sizeof(float) * 1;
+        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
+        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 4: can write two float
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        size_t desireCapacity = sizeof(float) * 2;
+        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
+        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
 }
 
 /**

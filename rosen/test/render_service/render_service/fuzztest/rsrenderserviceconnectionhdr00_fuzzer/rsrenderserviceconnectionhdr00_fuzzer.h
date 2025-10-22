@@ -15,6 +15,19 @@
 #ifndef RSRENDERSERVICECONNECTIONHDR_FUZZER_H
 #define RSRENDERSERVICECONNECTIONHDR_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "rsrenderserviceconnectionhdr00_fuzzer"
+#include <ipc_callbacks/brightness_info_change_callback.h>
+#include <iremote_proxy.h>
 
+#define FUZZ_PROJECT_NAME "rsrenderserviceconnectionhdr00_fuzzer"
+namespace OHOS {
+namespace Rosen {
+class MockBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+} // namespace Rosen
+} // namespace OHOS
 #endif // RSRENDERSERVICECONNECTIONHDR_FUZZER_H

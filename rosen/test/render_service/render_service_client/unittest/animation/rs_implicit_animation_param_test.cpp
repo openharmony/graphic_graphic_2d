@@ -290,8 +290,26 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateAnimation003
+ * @tc.desc: Verify the RSImplicitCurveAnimationParam CreateAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation003, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSImplicitCurveAnimationParam param(timingProtocol, timingCurve);
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    ASSERT_TRUE(param.CreateAnimation(property, startValue, endValue));
+}
+
+/**
  * @tc.name: CreateAnimation004
- * @tc.desc: Verify the RSImplicitKeyframeAnimationParam CreateAnimation
+ * @tc.desc: Verify the RSImplicitCurveAnimationParam CreateAnimation
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -305,5 +323,180 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation004, TestSize.Level1)
     auto startValue = std::make_shared<MockCmdListProperty>(0.f);
     auto endValue = std::make_shared<MockCmdListProperty>(1.f);
     ASSERT_TRUE(param.CreateAnimation(property, startValue, endValue));
+}
+
+/**
+ * @tc.name: AddPropertyToPendingSyncListTest
+ * @tc.desc: Verify the AddPropertyToPendingSyncList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, AddPropertyToPendingSyncListTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AddPropertyToPendingSyncListTest start";
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+    ASSERT_TRUE(animationParam.pendingSyncList_.empty());
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    animationParam.AddPropertyToPendingSyncList(property);
+    ASSERT_FALSE(animationParam.pendingSyncList_.empty());
+    GTEST_LOG_(INFO) << "RSAnimationTest AddPropertyToPendingSyncListTest end";
+}
+
+/**
+ * @tc.name: SyncPropertiesTest
+ * @tc.desc: Verify the SyncProperties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, SyncPropertiesTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest SyncPropertiesTest start";
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
+    // case1: pendingSyncList_ empty
+    ASSERT_EQ(animationParam.SyncProperties(nullptr), CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
+
+    // case2: target_ is null
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    property->target_ = {};
+    animationParam.AddPropertyToPendingSyncList(property);
+    animationParam.SyncProperties(nullptr);
+    ASSERT_TRUE(animationParam.pendingSyncList_.empty());
+
+    // case3: node not has property animation
+    auto node = RSCanvasNode::Create();
+    property->target_ = node;
+    ASSERT_FALSE(node->HasPropertyAnimation(property->GetId()));
+    animationParam.AddPropertyToPendingSyncList(property);
+    animationParam.SyncProperties(nullptr);
+    ASSERT_TRUE(animationParam.pendingSyncList_.empty());
+
+    // case4: node has property animation and property is custom
+    node->animatingPropertyNum_[property->GetId()] = 1;
+    property->SetIsCustom(true);
+    ASSERT_TRUE(node->HasPropertyAnimation(property->GetId()));
+    ASSERT_TRUE(property->GetIsCustom());
+    animationParam.AddPropertyToPendingSyncList(property);
+    animationParam.SyncProperties(nullptr);
+    ASSERT_TRUE(animationParam.pendingSyncList_.empty());
+
+    // case5: node has property animation and property not custom and render service node
+    node->isRenderServiceNode_ = true;
+    node->isTextureExportNode_ = false;
+    property->SetIsCustom(false);
+    ASSERT_TRUE(node->HasPropertyAnimation(property->GetId()));
+    ASSERT_TRUE(node->IsRenderServiceNode());
+    ASSERT_FALSE(property->GetIsCustom());
+    animationParam.AddPropertyToPendingSyncList(property);
+    animationParam.SyncProperties(nullptr);
+    ASSERT_TRUE(animationParam.pendingSyncList_.empty());
+
+    // case6: node has property animation and property not custom and not render service node
+    node->isTextureExportNode_ = true;
+    ASSERT_TRUE(node->HasPropertyAnimation(property->GetId()));
+    ASSERT_FALSE(node->IsRenderServiceNode());
+    ASSERT_FALSE(property->GetIsCustom());
+    animationParam.AddPropertyToPendingSyncList(property);
+    animationParam.SyncProperties(nullptr);
+    ASSERT_TRUE(animationParam.pendingSyncList_.empty());
+
+    GTEST_LOG_(INFO) << "RSAnimationTest SyncPropertiesTest end";
+}
+
+/**
+ * @tc.name: ExecuteSyncPropertiesTaskTest
+ * @tc.desc: Verify the ExecuteSyncPropertiesTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTaskTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
+    // case1: rsUIContext is null
+    std::shared_ptr<RSUIContext> rsUIContext = nullptr;
+    {
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
+    }
+
+    // case2: rsUIContext not null
+    rsUIContext = std::make_shared<RSUIContext>();
+    {
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
+    }
+
+    auto node = RSCanvasNode::Create();
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto renderProperty = std::make_shared<RSRenderAnimatableProperty<float>>(1.f);
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMapValue;
+    propertiesMapValue.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), property->GetId()),
+        std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
+            renderProperty, node->GetAnimationByPropertyId(property->GetId())));
+    propertiesMapValue.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), property->GetId()),
+        std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
+            nullptr, node->GetAnimationByPropertyId(property->GetId())));
+
+    {
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap = propertiesMapValue;
+        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
+    }
+
+    // case3: in node map
+    auto& nodeMap = rsUIContext->GetMutableNodeMap();
+    nodeMap.RegisterNode(node);
+    {
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap = propertiesMapValue;
+        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
+    }
+
+    // cas4: node has property
+    node->properties_[property->GetId()] = property;
+    {
+        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap = propertiesMapValue;
+        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
+    }
+}
+
+/**
+ * @tc.name: CreateEmptyAnimationTest
+ * @tc.desc: Verify the CreateEmptyAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, CreateEmptyAnimationTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
+
+    ASSERT_TRUE(animationParam.CreateEmptyAnimation(property, startValue, endValue));
+}
+
+/**
+ * @tc.name: CreateAnimationTest
+ * @tc.desc: Verify the CreateAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, CreateAnimationTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
+    std::string path = "L150 0 L50 50";
+    auto option = std::make_shared<RSMotionPathOption>(path);
+    RSImplicitPathAnimationParam animationParam(protocol, curve, option);
+
+    auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
+    auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    ASSERT_TRUE(animationParam.CreateAnimation(property, startValue, endValue));
 }
 } // namespace OHOS::Rosen

@@ -18,7 +18,9 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 
+#include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
@@ -27,10 +29,20 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
+public:
+    explicit MockRSBrightnessInfoChangeCallback() : IRemoteProxy<RSIBrightnessInfoChangeCallback>(nullptr) {};
+    virtual ~MockRSBrightnessInfoChangeCallback() noexcept = default;
+
+    void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override {}
+};
+} // namespace
 class RSRenderServiceConnectionTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static inline RSMainThread* mainThread_;
     void SetUp() override;
     void TearDown() override;
 };
@@ -38,6 +50,9 @@ public:
 void RSRenderServiceConnectionTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
+    mainThread_ = new RSMainThread();
+    mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
 }
 void RSRenderServiceConnectionTest::TearDownTestCase() {}
 void RSRenderServiceConnectionTest::SetUp() {}
@@ -135,6 +150,93 @@ HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic002, TestSize.Level1)
     std::vector<MemoryGraphic> memoryGraphics;
     rsRenderServiceConnection->GetMemoryGraphics(memoryGraphics);
     ASSERT_EQ(memoryGraphics.size(), 0);
+}
+
+/**
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: test SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+
+    // case 1: mainThread null
+    {
+        sptr<RSRenderServiceConnection> connection =
+            new RSRenderServiceConnection(0, nullptr, nullptr, nullptr, token->AsObject(), nullptr);
+        ASSERT_NE(connection->SetBrightnessInfoChangeCallback(nullptr), SUCCESS);
+    }
+
+    // case 2: mainThread not null
+    {
+        ASSERT_NE(mainThread_, nullptr);
+        sptr<RSRenderServiceConnection> connection = new RSRenderServiceConnection(
+            0, nullptr, mainThread_, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        ASSERT_EQ(connection->SetBrightnessInfoChangeCallback(nullptr), SUCCESS);
+        sptr<MockRSBrightnessInfoChangeCallback> callback = new MockRSBrightnessInfoChangeCallback();
+        ASSERT_EQ(connection->SetBrightnessInfoChangeCallback(callback), SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: CleanBrightnessInfoChangeCallbacksTest
+ * @tc.desc: test CleanBrightnessInfoChangeCallbacks
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CleanBrightnessInfoChangeCallbacksTest, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+
+    // case 1: mainThread null
+    {
+        sptr<RSRenderServiceConnection> connection =
+            new RSRenderServiceConnection(0, nullptr, nullptr, nullptr, token->AsObject(), nullptr);
+        connection->CleanBrightnessInfoChangeCallbacks();
+    }
+
+    // case 2: mainThread not null
+    {
+        RSMainThread* mainThread = new RSMainThread();
+        mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
+        sptr<RSRenderServiceConnection> connection = new RSRenderServiceConnection(
+            0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        connection->CleanBrightnessInfoChangeCallbacks();
+        ASSERT_NE(mainThread, nullptr);
+        delete mainThread;
+    }
+}
+
+/**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: test GetBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+
+    // case 1: mainThread null
+    {
+        sptr<RSRenderServiceConnection> connection =
+            new RSRenderServiceConnection(0, nullptr, nullptr, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        BrightnessInfo brightnessInfo;
+        ASSERT_EQ(connection->GetBrightnessInfo(0, brightnessInfo), SUCCESS);
+    }
+
+    // case 2: mainThread not null
+    {
+        RSMainThread* mainThread = new RSMainThread();
+        mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
+        sptr<RSRenderServiceConnection> connection = new RSRenderServiceConnection(
+            0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        BrightnessInfo brightnessInfo;
+        ASSERT_EQ(connection->GetBrightnessInfo(0, brightnessInfo), SUCCESS);
+        ASSERT_EQ(connection->GetBrightnessInfo(INVALID_SCREEN_ID, brightnessInfo), SUCCESS);
+        delete mainThread;
+    }
 }
 
 /**

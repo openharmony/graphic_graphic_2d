@@ -2655,6 +2655,35 @@ HWTEST_F(RSInterfacesTest, GetScreenHDRStatus001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: SetBrightnessInfoChangeCallbackTest
+ * @tc.desc: Test SetBrightnessInfoChangeCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, SetBrightnessInfoChangeCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    BrightnessInfoChangeCallback callback = nullptr;
+    ASSERT_EQ(rsInterfaces->SetBrightnessInfoChangeCallback(callback), 0);
+    callback = [](ScreenId id, BrightnessInfo info) -> void {};
+    ASSERT_EQ(rsInterfaces->SetBrightnessInfoChangeCallback(callback), 0);
+}
+
+/*
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: Test GetBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, GetBrightnessInfoTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    BrightnessInfo info = { 0 };
+    ASSERT_EQ(rsInterfaces->GetBrightnessInfo(0, info), 0);
+    ASSERT_NE(info.currentHeadroom, 0);
+    ASSERT_NE(info.maxHeadroom, 0);
+    ASSERT_NE(info.sdrNits, 0);
+}
+
+/*
  * @tc.name: GetScreenHDRStatus002
  * @tc.desc: Test GetScreenHDRStatus
  * @tc.type: FUNC
