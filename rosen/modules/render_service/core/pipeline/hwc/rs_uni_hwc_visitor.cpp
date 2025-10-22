@@ -1073,8 +1073,12 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
     }
 
     // screenId > 0 means non-primary screen normally.
-    return HWCParam::IsDisableHwcOnExpandScreen() &&
-        uniRenderVisitor_.curScreenNode_->GetScreenId() > 0;
+    if (HWCParam::IsDisableHwcOnExpandScreen() && uniRenderVisitor_.curScreenNode_->GetScreenId() > 0) {
+        return true;
+    } else {
+        // virtual expand screen
+        return uniRenderVisitor_.curScreenNode_->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    }
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
