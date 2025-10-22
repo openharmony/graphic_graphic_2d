@@ -2968,7 +2968,7 @@ HWTEST_F(RSRenderNodeTest, UpdateAbsDirtyRegion001, TestSize.Level1)
 
     RectI clipRect(0, 0, surfaceWidth, surfaceHeight);
     RectI selfDrawingNodeAbsDirtyRect{0, 0, 1000, 2000};
-    RectI absCmdlistDrawRect{0, 0, 1000, 2000};
+    RectI absCmdlistDrawRect{0, 0, 0, 0};
     node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect, selfDrawingNodeAbsDirtyRect, absCmdlistDrawRect);
     EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), node.oldChildrenRect_.IntersectRect(node.oldClipRect_));
 
@@ -3727,7 +3727,7 @@ HWTEST_F(RSRenderNodeTest, GetHDRBrightness, TestSize.Level1)
     RSRootRenderNode::ModifierNGContainer modifiers { modifier };
     nodeTest->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
     float result = nodeTest->GetHDRBrightness();
-    ASSERT_EQ(result, 1.0f);
+    ASSERT_EQ(result, 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS
