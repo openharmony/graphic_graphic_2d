@@ -29,8 +29,8 @@
 #include "window.h"
 #include "wrapper_log.h"
 #include "egl_blob_cache.h"
-#if USE_APS_IGAMESERVICE_FUNC
-#include "egl_slice_report.h"
+#if USE_IGAMESERVICE_PLUGIN
+#include "igameservice_plugin.h"
 #endif
 #ifdef EGL_USE_APS_PLUGIN
 #include "iaps_plugin.h"
@@ -351,8 +351,8 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
 EGLBoolean EglInitializeImpl(EGLDisplay dpy, EGLint *major, EGLint *minor)
 {
     WLOGD("");
-#if USE_APS_IGAMESERVICE_FUNC
-    OHOS::GameService::EglSliceReport::GetInstance().InitSliceReport();
+#if USE_IGAMESERVICE_PLUGIN
+    OHOS::Rosen::IGameServicePlugin::Instance()->InitEglSliceReport();
 #endif
 #ifdef EGL_USE_APS_PLUGIN
     OHOS::Rosen::IApsPlugin::Instance()->InitGameFpsCtrl();
@@ -462,8 +462,8 @@ EGLBoolean EglSwapBuffersImpl(EGLDisplay dpy, EGLSurface surf)
 {
     ClearError();
     WLOGD("");
-#if USE_APS_IGAMESERVICE_FUNC
-    OHOS::GameService::EglSliceReport::GetInstance().AddGraphicCount();
+#if USE_IGAMESERVICE_PLUGIN
+    OHOS::Rosen::IGameServicePlugin::Instance()->AddEglGraphicCount();
 #endif
 #ifdef EGL_USE_APS_PLUGIN
     OHOS::Rosen::IApsPlugin::Instance()->PowerControlOfSwapbuffer();
@@ -1291,8 +1291,8 @@ EGLBoolean EglSwapBuffersWithDamageKHRImpl(EGLDisplay dpy, EGLSurface draw,
 {
     ClearError();
     WLOGD("");
-#if USE_APS_IGAMESERVICE_FUNC
-    OHOS::GameService::EglSliceReport::GetInstance().AddGraphicCount();
+#if USE_IGAMESERVICE_PLUGIN
+    OHOS::Rosen::IGameServicePlugin::Instance()->AddEglGraphicCount();
 #endif
     EglWrapperDisplay *display = ValidateDisplay(dpy);
     if (!display) {

@@ -39,8 +39,8 @@
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
-#if USE_APS_IGAMESERVICE_FUNC
-#include "vulkan_slice_report.h"
+#if USE_IGAMESERVICE_PLUGIN
+#include "igameservice_plugin.h"
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
 #include "iaps_plugin.h"
@@ -1250,8 +1250,8 @@ VKAPI_ATTR VkResult VKAPI_CALL QueuePresentKHR(
     if (rects != nullptr) {
         defaultAllocator->pfnFree(defaultAllocator->pUserData, rects);
     }
-#if USE_APS_IGAMESERVICE_FUNC
-    OHOS::GameService::VulkanSliceReport::GetInstance().ReportVulkanRender();
+#if USE_IGAMESERVICE_PLUGIN
+    OHOS::Rosen::IGameServicePlugin::Instance()->ReportVulkanRender();
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
     OHOS::Rosen::IApsPlugin::Instance()->PowerControlOfSwapbuffer();
@@ -1578,8 +1578,8 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateInstance(
     if (result != VK_SUCCESS) {
         return result;
     }
-#if USE_APS_IGAMESERVICE_FUNC
-    OHOS::GameService::VulkanSliceReport::GetInstance().InitVulkanReport();
+#if USE_IGAMESERVICE_PLUGIN
+    OHOS::Rosen::IGameServicePlugin::Instance()->InitVulkanReport();
 #endif
 #ifdef VULKAN_USE_APS_PLUGIN
     OHOS::Rosen::IApsPlugin::Instance()->InitGameFpsCtrl();
