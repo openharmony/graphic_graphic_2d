@@ -65,7 +65,7 @@ public:
     void ClearBuffer() override;
     void ResetBufferAge() override;
     void SetCleanUpHelper(std::function<void(std::unordered_map<NativeWindowBuffer*,
-        NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap)> func);
+        NativeBufferUtils::NativeSurfaceInfo>&)> func);
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
     {
