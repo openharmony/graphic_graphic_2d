@@ -21,6 +21,7 @@
 #include "feature_cfg/feature_param/performance_feature/video_metadata_param.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "iconsumer_surface.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -148,6 +149,18 @@ HWTEST_F(TvMetadataTest, CopyTvMetadataToSurface_001, TestSize.Level1)
     ASSERT_EQ(0, outMetadata.uiFrameCnt);
     ASSERT_EQ(0, outMetadata.vidFrameCnt);
     ASSERT_EQ(0, outMetadata.dpPixFmt);
+
+    RSTvMetadataManager::Instance().cachedSurfaceNodeId_ = 1;
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    ASSERT_NE(renderThreadParams, nullptr);
+    renderThreadParams->cachedSurfaceNodeId_ = 1;
+    renderThreadParams->cachedSurfaceNodeOnTheTree_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderThreadParams));
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(rsSurface);
+    MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
+    ASSERT_EQ(1, tvMetadata.sceneTag);
+    ASSERT_EQ(24, tvMetadata.vidFrameCnt);
+    ASSERT_EQ(0, tvMetadata.dpPixFmt);
 }
 
 /**
@@ -405,5 +418,23 @@ HWTEST_F(TvMetadataTest, IsSdpInfoApp_002, TestSize.Level1)
 
     bool result = RSTvMetadataManager::IsSdpInfoApp("com.other.app");
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetUniRenderThreadParam_001
+ * @tc.desc: Test SetUniRenderThreadParam
+ * @tc.type: FUNC
+ * @tc.require: issueIBNN9I
+ */
+HWTEST_F(TvMetadataTest, SetUniRenderThreadParam_001, TestSize.Level1)
+{
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(1);
+    RSTvMetadataManager::Instance().cachedSurfaceNodeId_ = 1;
+    surfaceNode1->SetIsOnTheTree(true);
+    RSMainThread::Instance()->AddSelfDrawingNodes(surfaceNode1);
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams);
+    ASSERT_EQ(1, renderThreadParams->cachedSurfaceNodeId_);
+    ASSERT_EQ(true, renderThreadParams->cachedSurfaceNodeOnTheTree_);
 }
 }

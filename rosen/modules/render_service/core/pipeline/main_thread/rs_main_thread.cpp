@@ -63,6 +63,9 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 #include "feature/hpae/rs_hpae_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "graphic_feature_param_manager.h"
@@ -2680,6 +2683,9 @@ void RSMainThread::Render()
         renderThreadParams_->SetCacheEnabledForRotation(RSSystemProperties::GetCacheEnabledForRotation());
         renderThreadParams_->SetUIFirstCurrentFrameCanSkipFirstWait(
             RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
+#ifdef RS_ENABLE_TV_PQ_METADATA
+        RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
+#endif
         // If use DoDirectComposition, we do not sync renderThreadParams,
         // so we use hgmCore to keep force refresh flag, then reset flag.
         hgmCore.SetForceRefreshFlag(isForceRefresh_);

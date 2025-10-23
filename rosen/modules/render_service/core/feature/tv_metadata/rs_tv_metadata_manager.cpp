@@ -17,6 +17,8 @@
 
 #include "feature_cfg/feature_param/performance_feature/video_metadata_param.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSTvMetadataManager"
@@ -105,11 +107,32 @@ void RSTvMetadataManager::CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>
     }
     auto buffer = surface->GetCurrentBuffer();
     std::lock_guard<std::mutex> lock(mutex_);
+    TvPQMetadata *metadata = &metadata_;
+    if (metadata_.sceneTag == 0 && cachedSurfaceNodeId_ != 0) {
+        bool isOnTheTree = false;
+        NodeId cachedNodeId = 0;
+        auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+        if (renderThreadParams) {
+            isOnTheTree = renderThreadParams->GetCachedNodeOnTheTree();
+            cachedNodeId = renderThreadParams->GetCachedNodeId();
+        }
+        if (!isOnTheTree && cachedNodeId == cachedSurfaceNodeId_) {
+            ClearVideoMetadata(cachedMetadata_);
+            cachedSurfaceNodeId_ = 0;
+        }
+        metadata = &cachedMetadata_;
+    }
     static uint8_t uiFrameCnt = 0;
     uiFrameCnt++;
-    metadata_.uiFrameCnt = uiFrameCnt;
-    if (MetadataHelper::SetVideoTVMetadata(buffer, metadata_) != GSERROR_OK) {
+    metadata->uiFrameCnt = uiFrameCnt;
+    metadata->dpPixFmt = metadata_.dpPixFmt; // use new
+    if (MetadataHelper::SetVideoTVMetadata(buffer, *metadata) != GSERROR_OK) {
         RS_LOGE("SetVideoTVMetadata failed!");
+    }
+    if (NeedDisableCache(cachedMetadata_, metadata_)) {
+        (void)memset_s(&cachedMetadata_, sizeof(cachedMetadata_), 0, sizeof(cachedMetadata_));
+    } else if (metadata_.sceneTag >= VIDEO_PLAYING_SCENE) {
+        cachedMetadata_ = metadata_;
     }
     (void)memset_s(&metadata_, sizeof(metadata_), 0, sizeof(metadata_));
 }
@@ -237,6 +260,7 @@ void RSTvMetadataManager::RecordTvMetadata(const RSSurfaceRenderParams& params, 
     CollectTvMetadata(params, buffer, info);
     info.scaleMode = SCALER_MODE_GPU;
     RecordAndCombineMetadata(info);
+    cachedSurfaceNodeId_ = params.GetId();
 }
 
 void RSTvMetadataManager::CollectTvMetadata(const RSSurfaceRenderParams& params,
@@ -302,5 +326,36 @@ bool RSTvMetadataManager::IsSdpInfoAppId(const std::string& bundleName)
     const auto& sdpAppMap = VideoMetadataParam::GetVideoMetadataAppMap();
     auto it = sdpAppMap.find(bundleName);
     return (it != sdpAppMap.end());
+}
+
+void RSTvMetadataManager::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams)
+{
+    renderThreadParams->SetCachedNodeId(cachedSurfaceNodeId_);
+    const auto &selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    for (auto surfaceNode : selfDrawingNodes) {
+        if (surfaceNode == nullptr) {
+            return;
+        }
+        if (surfaceNode->GetId() == cachedSurfaceNodeId_) {
+            bool isOnTheTree = surfaceNode->IsOnTheTree();
+            NodeId nodeId = surfaceNode->GetId();
+            renderThreadParams->SetCachedNodeOnTheTree(isOnTheTree);
+            renderThreadParams->SetCachedNodeId(nodeId);
+        }
+    }
+}
+
+bool RSTvMetadataManager::NeedDisableCache(TvPQMetadata& oldMetadata, const TvPQMetadata& newMetadata)
+{
+    if (oldMetadata.sceneTag == 0 || newMetadata.sceneTag == 0) {
+        return false;
+    }
+    if (oldMetadata.vidWinX == newMetadata.vidWinX &&
+        oldMetadata.vidWinY == newMetadata.vidWinY &&
+        oldMetadata.vidWinWidth == newMetadata.vidWinWidth &&
+        oldMetadata.vidWinHeight == newMetadata.vidWinHeight) {
+        return false;
+    }
+    return true;
 }
 } // namespace OHOS::Rosen

@@ -21,6 +21,7 @@
 #include "platform/ohos/rs_surface_ohos.h"
 #include "hdi_layer.h"
 #include "params/rs_surface_render_params.h"
+#include "params/rs_render_thread_params.h"
 
 namespace OHOS::Rosen {
 class RSTvMetadataManager {
@@ -38,6 +39,7 @@ public:
     void UpdateTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     static bool IsSdpInfoAppId(const std::string& bundleName);
+    void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
 
 private:
     static void CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata);
@@ -47,12 +49,15 @@ private:
     void CollectSurfaceSize(const RSSurfaceRenderParams& params, TvPQMetadata& metaData);
     void CollectColorPrimaries(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
     void CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
+    bool NeedDisableCache(TvPQMetadata& oldMetadata, const TvPQMetadata& newMetadata);
     RSTvMetadataManager() = default;
     ~RSTvMetadataManager() = default;
     RSTvMetadataManager(const RSTvMetadataManager&) = delete;
     RSTvMetadataManager& operator =(const RSTvMetadataManager&) = delete;
 
+    NodeId cachedSurfaceNodeId_{0};
     TvPQMetadata metadata_;
+    TvPQMetadata cachedMetadata_;
     mutable std::mutex mutex_;
 };
 } // namespace OHOS::Rosen

@@ -526,6 +526,28 @@ public:
         return slrManager_;
     }
 
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    bool GetCachedNodeOnTheTree() const
+    {
+        return cachedSurfaceNodeOnTheTree_;
+    }
+ 
+    void SetCachedNodeOnTheTree(bool isOnTheTree)
+    {
+        cachedSurfaceNodeOnTheTree_ = isOnTheTree;
+    }
+ 
+    NodeId GetCachedNodeId() const
+    {
+        return cachedSurfaceNodeId_;
+    }
+ 
+    void SetCachedNodeId(NodeId nodeId)
+    {
+        cachedSurfaceNodeId_ = nodeId;
+    }
+#endif
+
 private:
     bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
@@ -601,6 +623,11 @@ private:
     bool isSecurityDisplay_ = false;
     ScreenInfo screenInfo_ = {};
     std::shared_ptr<RSProcessor> processor_ = nullptr;
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    bool cachedSurfaceNodeOnTheTree_{false};
+    NodeId cachedSurfaceNodeId_{0};
+#endif
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
