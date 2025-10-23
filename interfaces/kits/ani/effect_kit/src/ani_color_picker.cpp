@@ -277,7 +277,7 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     if (int(length) >= REGION_COORDINATE_NUM) {
         for (int i = 0; i < REGION_COORDINATE_NUM; i++) {
             ani_ref doubleValueRef{};
-            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:C{std.core.Object}",
+            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:Y",
                 &doubleValueRef, (ani_int)i);
             ani_double doubleValue;
             status = env->Object_CallMethodByName_Double(static_cast<ani_object>(doubleValueRef),

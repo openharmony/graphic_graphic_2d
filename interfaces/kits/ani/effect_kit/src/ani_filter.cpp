@@ -215,7 +215,7 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
     for (int i = 0; i < int(length) && i < matrixLen; ++i) {
         ani_double val;
         ani_ref ref;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:C{std.core.Object}", &ref, (ani_int)i) ||
+        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:Y", &ref, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "toDouble", ":d", &val)) {
             EFFECT_LOG_E("Object_CallMethodByName_Ref or Object_CallMethodByName_Double failed");
             return AniEffectKitUtils::CreateAniUndefined(env);

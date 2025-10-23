@@ -380,7 +380,7 @@ ani_object AniEffect::PixelStretch(ani_env* env, ani_object obj, ani_object arra
     for (int i = 0; i < int(length) && i < vectorLen; i++) {
         ani_double val;
         ani_ref ref;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:C{std.core.Object}", &ref, (ani_int)i) ||
+        if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:Y", &ref, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "toDouble", ":d", &val)) {
             UIEFFECT_LOG_E("Object_CallMethodByName_Ref or Object_CallMethodByName_Double Failed");
             return retVal;

@@ -182,7 +182,7 @@ ani_object AniFontDescriptor::GetSystemFontFullNamesByType(ani_env* env, ani_enu
     ani_size index = 0;
     for (const auto& item : fontList) {
         ani_string aniStr = AniTextUtils::CreateAniStringObj(env, item);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniStr)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniStr)) {
             TEXT_LOGE("Failed to set fontList item %{public}zu", index);
             continue;
         }
@@ -248,7 +248,7 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
             TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
             continue;

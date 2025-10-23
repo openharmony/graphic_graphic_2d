@@ -1198,7 +1198,7 @@ bool GetPoints(ani_env* env, ani_object pointsObj, uint32_t size, Drawing::Point
     for (uint32_t i = 0; i < size; i++) {
         ani_ref pointRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            pointsObj, "$_get", "i:C{std.core.Object}", &pointRef, (ani_int)i)) {
+            pointsObj, "$_get", "i:Y", &pointRef, (ani_int)i)) {
             ROSEN_LOGE("GetPoints get points failed");
             return false;
         }
@@ -1334,7 +1334,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         ani_double vertex;
         ani_ref vertexRef;
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
-            verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
+            verticesObj, "$_get", "i:Y", &vertexRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Double(
                 static_cast<ani_object>(vertexRef), "toDouble", ":d", &vertex)) {
             delete []vertices;
@@ -1378,7 +1378,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
         ani_int color;
         ani_ref colorRef;
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
-            colorsObj, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
+            colorsObj, "$_get", "i:Y", &colorRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Int(
                 static_cast<ani_object>(colorRef), "toInt", ":i", &color)) {
             delete []vertices;
