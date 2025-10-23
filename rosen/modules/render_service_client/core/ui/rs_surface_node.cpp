@@ -973,5 +973,12 @@ void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
     RS_LOGD("RSSurfaceNode::DetachFromWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
         GetId(), screenId);
 }
+
+void RSSurfaceNode::SetContainerWindowTransparent(bool isContainerWindowTransparent)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetContainerWindowTransparent>(GetId(), isContainerWindowTransparent);
+    AddCommand(command, true);
+}
 } // namespace Rosen
 } // namespace OHOS

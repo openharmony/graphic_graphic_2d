@@ -665,5 +665,12 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
     }
     return animateRate;
 }
+
+void RSUIDirector::SetContainerWindowTransparent(bool isContainerWindowTransparent)
+{
+    if (auto node = surfaceNode_.lock()) {
+        node->SetContainerWindowTransparent(isContainerWindowTransparent);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -671,4 +671,26 @@ HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
     bool res = director->HasFirstFrameAnimation();
     ASSERT_FALSE(res);
 }
+
+/**
+ * @tc.name: SetContainerWindowTransparentTest
+ * @tc.desc: Test SetContainerWindowTransparent when surfaceNode_ is nullptr and normal
+ * @tc.type: FUNC
+ * @tc.require: issue19957
+ */
+HWTEST_F(RSUIDirectorTest, SetContainerWindowTransparentTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool isContainerWindowTransparent = true;
+
+    director->surfaceNode_.reset();
+    director->SetContainerWindowTransparent(isContainerWindowTransparent);
+
+    RSSurfaceNodeConfig config;
+    auto surfaceNode = RSSurfaceNode::Create(config);
+    director->SetRSSurfaceNode(surfaceNode);
+    ASSERT_NE(director->surfaceNode_.lock(), nullptr);
+    director->SetContainerWindowTransparent(isContainerWindowTransparent);
+}
 } // namespace OHOS::Rosen
