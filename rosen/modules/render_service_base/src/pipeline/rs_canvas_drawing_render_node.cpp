@@ -629,6 +629,7 @@ void RSCanvasDrawingRenderNode::SplitDrawCmdList(
     size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin)
 {
     if (splitOrigin && cachedOpCount_ > OP_COUNT_LIMIT_FOR_CACHE) {
+        drawCmdList->ClearOp();
         RS_LOGE("RSCanvasDrawingRenderNode::SplitDrawCmdList: OP count(%{public}zu) out of limit", cachedOpCount_);
         return;
     }
@@ -674,6 +675,7 @@ void RSCanvasDrawingRenderNode::SplitDrawCmdList(
         drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(firstCmdList);
         opCountAfterReset_ += firstCmdList->GetOpItemSize();
     }
+    drawCmdList->ClearOp();
 }
 
 void RSCanvasDrawingRenderNode::ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const
