@@ -167,7 +167,7 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     dst_.top_ = 0;
     dst_.width_ = boundSize.x_;
     dst_.height_ = boundSize.y_;
-    bool preIsFixed = FixConditionPrejudgment(isUiFirstMode, surfaceParams);
+    bool preIsFixed = FixConditionPrejudgment(drawable, isUiFirstMode, surfaceParams);
     isFixedDstBuffer_ = preIsFixed || sizeJudge;
     if (!isFixedDstBuffer_) {
         dst_.width_ = dstRect.w;
