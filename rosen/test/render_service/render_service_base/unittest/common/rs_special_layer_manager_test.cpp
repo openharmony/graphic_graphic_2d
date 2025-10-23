@@ -155,7 +155,7 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIds002, TestSize.Level1)
 {
     RSSpecialLayerManager slManager;
     NodeId id = 1;
-    for (int i = 0; i < MAX_IDS_SIZE; i++) {
+    for (uint32_t i = 0; i < MAX_IDS_SIZE; i++) {
         slManager.specialLayerIds_[SpecialLayerType::SKIP].insert(id++);
     }
     slManager.AddIds(SpecialLayerType::SKIP, id);
