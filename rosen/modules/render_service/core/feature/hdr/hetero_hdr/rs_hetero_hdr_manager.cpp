@@ -99,12 +99,15 @@ void RSHeteroHDRManager::UpdateHDRNodes(RSSurfaceRenderNode& node, bool isCurren
     isCurrentFrameBufferConsumedMap_[node.GetId()] = isCurrentFrameBufferConsumed;
 }
 
-bool RSHeteroHDRManager::FixConditionPrejudgment(bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams)
+bool RSHeteroHDRManager::FixConditionPrejudgment(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
+    bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams)
 {
     auto srcRect = surfaceParams->GetLayerInfo().srcRect;
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
     float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
+    Vector2f boundSize = surfaceParams->GetCacheSize();
+    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
         (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
 
