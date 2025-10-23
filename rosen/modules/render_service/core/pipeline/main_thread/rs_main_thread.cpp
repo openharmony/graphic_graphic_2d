@@ -1774,6 +1774,15 @@ bool RSMainThread::CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const
     return false;
 }
 
+static bool CheckOverlayDisplayEnable()
+{
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    return RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync();
+#else
+    return false;
+#endif
+}
+
 void RSMainThread::CollectInfoForHardwareComposer()
 {
 #ifdef RS_ENABLE_GPU
@@ -1786,6 +1795,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
     if (RSOverlayDisplayManager::Instance().CheckStatusChanged()) {
         SetDirtyFlag();
     }
+    renderThreadParams_->overlayDisplayEnable_ = CheckOverlayDisplayEnable();
 #endif
     CheckIfHardwareForcedDisabled();
     if (!pendingUiCaptureTasks_.empty()) {
@@ -1917,15 +1927,6 @@ bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
         }
     }
     return false;
-}
-
-static bool CheckOverlayDisplayEnable()
-{
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-    return RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync();
-#else
-    return false;
-#endif
 }
 
 bool RSMainThread::GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode)

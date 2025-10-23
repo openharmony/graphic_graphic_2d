@@ -461,6 +461,13 @@ public:
         screenInfo_ = info;
     }
 
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    bool GetOverlayDisplayEnable() const
+    {
+        return overlayDisplayEnable_;
+    }
+#endif
+
     CompositeType GetCompositeType() const
     {
         return compositeType_;
@@ -580,6 +587,10 @@ private:
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    bool overlayDisplayEnable_{false};
+#endif
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
