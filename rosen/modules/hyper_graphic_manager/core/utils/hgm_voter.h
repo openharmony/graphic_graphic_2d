@@ -47,7 +47,7 @@ struct VoteInfo {
 
     std::string ToString(uint64_t timestamp) const
     {
-        char buf[STRING_BUFFER_MAX_SIZE] = {0};
+        char buf[STRING_BUFFER_MAX_SIZE] = { 0 };
         int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
             "VOTER_NAME:%s;PREFERRED:%u;EXT_INFO:%s;PID:%d;BUNDLE_NAME:%s;TIMESTAMP:%lu.",
             voterName.c_str(), max, extInfo.c_str(), pid, bundleName.c_str(), timestamp);
@@ -59,7 +59,7 @@ struct VoteInfo {
 
     std::string ToSimpleString() const
     {
-        char buf[STRING_BUFFER_MAX_SIZE] = {0};
+        char buf[STRING_BUFFER_MAX_SIZE] = { 0 };
         int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "VOTER:%s; FPS:%u; EXT:%s; PID:%d.",
             voterName.c_str(), max, extInfo.c_str(), pid);
         if (len <= 0) {
