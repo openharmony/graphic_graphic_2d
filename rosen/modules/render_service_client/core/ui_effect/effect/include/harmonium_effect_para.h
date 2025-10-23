@@ -40,6 +40,16 @@ public:
         return maskPara_;
     }
 
+    void SetUseEffectMask(std::shared_ptr<MaskPara> mask)
+    {
+        useEffectMaskPara_ = mask;
+    }
+
+    const std::shared_ptr<MaskPara>& GetUseEffectMask() const
+    {
+        return useEffectMaskPara_;
+    }
+
     void SetRipplePosition(const Vector3f& position)
     {
         ripplePosition_ = position;
@@ -130,8 +140,99 @@ public:
         return cornerRadius_;
     }
 
+    void SetEnable(bool enable)
+    {
+        enable_ = enable;
+    }
+
+    const bool& GetEnable() const
+    {
+        return enable_;
+    }
+
+    void SetRate(float rate)
+    {
+        rate_ = rate;
+    }
+
+    const float& GetRate() const
+    {
+        return rate_;
+    }
+
+    void SetLightUpDegree(float lightUpDegree)
+    {
+        lightUpDegree_ = lightUpDegree;
+    }
+
+    const float& GetLightUpDegree() const
+    {
+        return lightUpDegree_;
+    }
+
+    void SetCubicCoeff(float cubicCoeff)
+    {
+        cubicCoeff_ = cubicCoeff;
+    }
+
+    const float& GetCubicCoeff() const
+    {
+        return cubicCoeff_;
+    }
+
+    void SetQuadCoeff(float quadCoeff)
+    {
+        quadCoeff_ = quadCoeff;
+    }
+
+    const float& GetQuadCoeff() const
+    {
+        return quadCoeff_;
+    }
+
+    void SetSaturation(float saturation)
+    {
+        saturation_ = saturation;
+    }
+
+    const float& GetSaturation() const
+    {
+        return saturation_;
+    }
+
+    void SetPosRGB(const Vector3f& posRGB)
+    {
+        posRGB_ = posRGB;
+    }
+
+    const Vector3f& GetPosRGB() const
+    {
+        return posRGB_;
+    }
+
+    void SetNegRGB(const Vector3f& negRGB)
+    {
+        negRGB_ = negRGB;
+    }
+
+    const Vector3f& GetNegRGB() const
+    {
+        return negRGB_;
+    }
+
+    void SetFraction(float fraction)
+    {
+        fraction_ = fraction;
+    }
+
+    const float& GetFraction() const
+    {
+        return fraction_;
+    }
+
 private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
+    std::shared_ptr<MaskPara> useEffectMaskPara_ = nullptr;
     float rippleProgress_ = 0.0f;
     float distortProgress_ = 0.0f;
     Vector3f ripplePosition_;
@@ -141,6 +242,15 @@ private:
     float reflectionFactor_ = 0.0f;
     float refractionFactor_ = 0.0f;
     float cornerRadius_ = 0.0f;
+    bool enable_ = false;
+    float rate_ = 0.0f;
+    float lightUpDegree_ = 0.0f;
+    float cubicCoeff_ = 0.0f;
+    float quadCoeff_ = 0.0f;
+    float saturation_ = 0.0f;
+    Vector3f posRGB_;
+    Vector3f negRGB_;
+    float fraction_ = 1.0f; // 1 means default value
 };
 } // namespace Rosen
 } // namespace OHOS

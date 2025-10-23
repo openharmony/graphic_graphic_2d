@@ -121,7 +121,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetBackgroundColorBlender),
         DECLARE_NAPI_FUNCTION("borderLight", CreateBorderLight),
         DECLARE_NAPI_FUNCTION("colorGradient", CreateColorGradientEffect),
-        DECLARE_NAPI_FUNCTION("materialEffect", CreateHarmoniumEffect),
+        DECLARE_NAPI_FUNCTION("liquidMaterial", CreateHarmoniumEffect),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -483,9 +483,8 @@ bool ParseHarmoniumEffectPara(napi_env env, napi_value jsObject, HarmoniumEffect
     bool enableVal = false;
  
     if (ParseJsBoolValue(env, jsObject, "enable", enableVal)) {
-        if (enableVal) {
-            parseTimes++;
-        }
+        para->SetEnable(static_cast<bool>(enableVal));
+        parseTimes++;
     }
  
     if (ParseJsDoubleValue(env, jsObject, "distortProgress", val)) {
@@ -529,6 +528,55 @@ bool ParseHarmoniumEffectPara(napi_env env, napi_value jsObject, HarmoniumEffect
     }
  
     return (parseTimes == NUM_9);
+}
+
+bool ParseHarmoniumSelectablePara(napi_env env, napi_value jsObject, HarmoniumEffectPara* para)
+{
+    double val;
+    Vector3f tmpVector3;
+    int parseTimes = 0;
+
+    if (ParseJsDoubleValue(env, jsObject, "rate", val)) {
+        para->SetRate(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    if (ParseJsDoubleValue(env, jsObject, "lightUpDegree", val)) {
+        para->SetLightUpDegree(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    if (ParseJsDoubleValue(env, jsObject, "cubicCoeff", val)) {
+        para->SetCubicCoeff(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    if (ParseJsDoubleValue(env, jsObject, "quadCoeff", val)) {
+        para->SetQuadCoeff(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    if (ParseJsDoubleValue(env, jsObject, "saturation", val)) {
+        para->SetSaturation(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    if (ParseJsVec3Value(env, jsObject, "posRGB", tmpVector3)) {
+        para->SetPosRGB(tmpVector3);
+        parseTimes++;
+    }
+
+    if (ParseJsVec3Value(env, jsObject, "negRGB", tmpVector3)) {
+        para->SetNegRGB(tmpVector3);
+        parseTimes++;
+    }
+
+    if (ParseJsDoubleValue(env, jsObject, "fraction", val)) {
+        para->SetFraction(static_cast<float>(val));
+        parseTimes++;
+    }
+
+    return (parseTimes == NUM_8);
 }
  
 
@@ -757,8 +805,8 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
             "EffectNapi CreateHarmoniumEffect failed, is not system app");
         return nullptr;
     }
-    static const size_t requireArgc = NUM_2;
-    size_t realArgc = NUM_2;
+    static const size_t requireArgc = NUM_4;
+    size_t realArgc = NUM_4;
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
@@ -772,13 +820,26 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(ParseHarmoniumEffectPara(env, argv[0], para.get()), nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect fail"));
 
-    if (realArgc >= NUM_2) {
+    Mask* useEffectMask = nullptr;
+    status = napi_unwrap(env, argv[NUM_1], reinterpret_cast<void**>(&useEffectMask));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && useEffectMask != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect useEffectMask napi_unwrap fail"));
+    para->SetUseEffectMask(useEffectMask->GetMaskPara());
+
+    if (realArgc >= NUM_3) {
         Mask* mask = nullptr;
-        if (napi_unwrap(env, argv[NUM_1], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+        if (napi_unwrap(env, argv[NUM_2], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
             para->SetMask(mask->GetMaskPara());
         }
     }
- 
+
+    // parse selectable para
+    if (realArgc == NUM_4) {
+        if (!ParseHarmoniumSelectablePara(env, argv[NUM_3], para.get())) {
+            UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect fail");
+        }
+    }
+
     VisualEffect* visualEffectObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,

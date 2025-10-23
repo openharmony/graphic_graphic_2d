@@ -171,7 +171,13 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
     }
     auto harmoniumEffect = std::static_pointer_cast<RSNGHarmoniumEffect>(effect);
     auto harmoniumEffectPara = std::static_pointer_cast<HarmoniumEffectPara>(effectPara);
+    if (!harmoniumEffectPara->GetEnable()) {
+        ROSEN_LOGE("ConvertHarmoniumEffectPara enable is false");
+        return nullptr;
+    }
     harmoniumEffect->Setter<HarmoniumEffectMaskTag>(RSNGMaskBase::Create(harmoniumEffectPara->GetMask()));
+    harmoniumEffect->Setter<HarmoniumEffectUseEffectMaskTag>(RSNGMaskBase::Create(
+        harmoniumEffectPara->GetUseEffectMask()));
     harmoniumEffect->Setter<HarmoniumEffectRipplePositionTag>(harmoniumEffectPara->GetRipplePosition());
     harmoniumEffect->Setter<HarmoniumEffectRippleProgressTag>(harmoniumEffectPara->GetRippleProgress());
     harmoniumEffect->Setter<HarmoniumEffectTintColorTag>(harmoniumEffectPara->GetTintColor());
@@ -180,6 +186,14 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
     harmoniumEffect->Setter<HarmoniumEffectReflectionFactorTag>(harmoniumEffectPara->GetReflectionFactor());
     harmoniumEffect->Setter<HarmoniumEffectRefractionFactorTag>(harmoniumEffectPara->GetRefractionFactor());
     harmoniumEffect->Setter<HarmoniumEffectMaterialFactorTag>(harmoniumEffectPara->GetMaterialFactor());
+    harmoniumEffect->Setter<HarmoniumEffectRateTag>(harmoniumEffectPara->GetRate());
+    harmoniumEffect->Setter<HarmoniumEffectLightUpDegreeTag>(harmoniumEffectPara->GetLightUpDegree());
+    harmoniumEffect->Setter<HarmoniumEffectCubicCoeffTag>(harmoniumEffectPara->GetCubicCoeff());
+    harmoniumEffect->Setter<HarmoniumEffectQuadCoeffTag>(harmoniumEffectPara->GetQuadCoeff());
+    harmoniumEffect->Setter<HarmoniumEffectSaturationTag>(harmoniumEffectPara->GetSaturation());
+    harmoniumEffect->Setter<HarmoniumEffectPosRGBTag>(harmoniumEffectPara->GetPosRGB());
+    harmoniumEffect->Setter<HarmoniumEffectNegRGBTag>(harmoniumEffectPara->GetNegRGB());
+    harmoniumEffect->Setter<HarmoniumEffectFractionTag>(harmoniumEffectPara->GetFraction());
     return harmoniumEffect;
 }
 

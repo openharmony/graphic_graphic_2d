@@ -19,7 +19,7 @@
 #include "mask/include/mask_para.h"
 #include "mask/include/pixel_map_mask_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
-#include "mask/include/harmonium_effect_mask_para.h"
+#include "mask/include/image_mask_para.h"
 #include "image/bitmap.h"
 #include "draw/surface.h"
 #include "mask/include/mask_unmarshalling_singleton.h"
@@ -326,13 +326,13 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectMaskParamTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSUIEffectHarmoniumEffectMaskParaTest
- * @tc.desc: Verify the HarmoniumEffectMaskPara func
+ * @tc.name: RSUIEffectImageMaskParaTest
+ * @tc.desc: Verify the ImageMaskPara func
  * @tc.type: FUNC
  */
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectHarmoniumEffectMaskParaTest, TestSize.Level1)
+HWTEST_F(RSUIEffectMaskTest, RSUIEffectImageMaskParaTest, TestSize.Level1)
 {
-    auto maskPara = std::make_shared<HarmoniumEffectMaskPara>();
+    auto maskPara = std::make_shared<ImageMaskPara>();
     auto pixelMap = CreatePixelMap(50, 50);
     EXPECT_NE(nullptr, pixelMap);
     maskPara->SetPixelMap(pixelMap);
@@ -346,21 +346,21 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectHarmoniumEffectMaskParaTest, TestSize.Lev
     EXPECT_NE(nullptr, clonePara);
 
     // test create
-    maskPara = std::make_shared<HarmoniumEffectMaskPara>();
+    maskPara = std::make_shared<ImageMaskPara>();
     EXPECT_NE(maskPara, nullptr);
-    auto maskPara1 = std::make_shared<HarmoniumEffectMaskPara>(*maskPara);
+    auto maskPara1 = std::make_shared<ImageMaskPara>(*maskPara);
 
     // test OnUnmarshalling
     std::shared_ptr<MaskPara> valTest = nullptr;
     Parcel parcelTest;
-    EXPECT_EQ(false, HarmoniumEffectMaskPara::OnUnmarshalling(parcelTest, valTest));
+    EXPECT_EQ(false, ImageMaskPara::OnUnmarshalling(parcelTest, valTest));
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(666);
-    EXPECT_EQ(false, HarmoniumEffectMaskPara::OnUnmarshalling(parcelTest, valTest));
+    EXPECT_EQ(false, ImageMaskPara::OnUnmarshalling(parcelTest, valTest));
 
     parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::HARMONIUM_EFFECT_MASK));
-    EXPECT_EQ(false, HarmoniumEffectMaskPara::OnUnmarshalling(parcelTest, valTest));
+    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::IMAGE_MASK));
+    EXPECT_EQ(false, ImageMaskPara::OnUnmarshalling(parcelTest, valTest));
 }
 
 } // namespace Rosen

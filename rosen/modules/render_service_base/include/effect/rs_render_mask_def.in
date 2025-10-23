@@ -51,3 +51,12 @@ DECLARE_MASK(DoubleRippleMask, DOUBLE_RIPPLE_MASK,
     ADD_PROPERTY_TAG(DoubleRippleMask, Turbulence),
     ADD_PROPERTY_TAG(DoubleRippleMask, HaloThickness)
 );
+
+DECLARE_MASK(ImageMask, IMAGE_MASK,
+    ADD_PROPERTY_TAG(ImageMask, Image)
+);
+
+DECLARE_MASK(UseEffectMask, USE_EFFECT_MASK,
+    ADD_PROPERTY_TAG(UseEffectMask, Image),
+    ADD_PROPERTY_TAG(UseEffectMask, UseEffect)
+);

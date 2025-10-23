@@ -93,7 +93,8 @@ public:
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
             case RSNGEffectType::GASIFY: return "Gasify";
-            case RSNGEffectType::HARMONIUM_EFFECT_MASK: return "HarmoniumEffectMask";
+            case RSNGEffectType::IMAGE_MASK: return "ImageMask";
+            case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             default:
                 return "UNKNOWN";
         }

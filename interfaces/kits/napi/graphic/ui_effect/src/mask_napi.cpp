@@ -17,9 +17,10 @@
 #include "js_native_api_types.h"
 #include "mask_napi.h"
 #include "mask/include/pixel_map_mask_para.h"
-#include "mask/include/harmonium_effect_mask_para.h"
+#include "mask/include/image_mask_para.h"
 #include "pixel_map.h"
 #include "ui_effect_napi_utils.h"
+#include "mask/include/use_effect_mask_para.h"
 
 #ifdef IMAGE_NAPI_ENABLE
 #include "pixel_map_napi.h"
@@ -93,7 +94,8 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
-        DECLARE_NAPI_STATIC_FUNCTION("createHarmoniumEffectMask", CreateHarmoniumEffectMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createImageMask", CreateImageMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createUseEffectMask", CreateUseEffectMask),
     };
 
     napi_value constructor = nullptr;
@@ -455,8 +457,8 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
     return Create(env, para);
 }
 
-static bool ParseHarmoniumEffectMask(napi_env env, napi_value* argv,
-    size_t realArgc, std::shared_ptr<HarmoniumEffectMaskPara> para)
+static bool ParseImageMask(napi_env env, napi_value* argv,
+    size_t realArgc, std::shared_ptr<ImageMaskPara> para)
 {
     if (!para) {
         return false;
@@ -464,19 +466,19 @@ static bool ParseHarmoniumEffectMask(napi_env env, napi_value* argv,
 
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     if (!ParsePixelMap(env, argv[NUM_0], pixelMap)) {
-        MASK_LOG_E("ParsePixelMapMask parse pixelMap failed");
+        MASK_LOG_E("ParseImageMask parse pixelMap failed");
         return false;
     }
     para->SetPixelMap(pixelMap);
     return true;
 }
 
-napi_value MaskNapi::CreateHarmoniumEffectMask(napi_env env, napi_callback_info info)
+napi_value MaskNapi::CreateImageMask(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
-        MASK_LOG_E("MaskNapi CreateHarmoniumEffectMask failed");
+        MASK_LOG_E("MaskNapi CreateImageMask failed");
         napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "MaskNapi CreateHarmoniumEffectMask failed, is not system app");
+            "MaskNapi CreateImageMask failed, is not system app");
         return nullptr;
     }
     static const size_t maxArgc = NUM_1;
@@ -488,10 +490,54 @@ napi_value MaskNapi::CreateHarmoniumEffectMask(napi_env env, napi_callback_info 
     napi_value thisVar = nullptr;
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == maxArgc, nullptr,
-        MASK_LOG_E("MaskNapi CreateHarmoniumEffectMask parsing input fail."));
-    auto para = std::make_shared<HarmoniumEffectMaskPara>();
-    if (!ParseHarmoniumEffectMask(env, argv, realArgc, para)) {
-        MASK_LOG_E("MaskNapi CreateHarmoniumEffectMask parse param failed");
+        MASK_LOG_E("MaskNapi CreateImageMask parsing input fail."));
+    auto para = std::make_shared<ImageMaskPara>();
+    if (!ParseImageMask(env, argv, realArgc, para)) {
+        MASK_LOG_E("MaskNapi CreateImageMask parse param failed");
+        return nullptr;
+    }
+
+    return Create(env, para);
+}
+
+static bool ParseUseEffectMask(napi_env env, napi_value* argv,
+    size_t realArgc, std::shared_ptr<UseEffectMaskPara> para)
+{
+    if (!para) {
+        return false;
+    }
+
+    bool val;
+    if (!ParseJsBoolValue(env, argv[NUM_0], val)) {
+        MASK_LOG_E("ParseUseEffectMask parse val failed");
+        return false;
+    }
+    para->SetUseEffect(val);
+
+    return true;
+}
+
+napi_value MaskNapi::CreateUseEffectMask(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        MASK_LOG_E("MaskNapi CreateUseEffectpMask failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "MaskNapi CreateUseEffectpMask failed, is not system app");
+        return nullptr;
+    }
+    static const size_t maxArgc = NUM_1;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc];
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == maxArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreateUseEffectpMask parsing input fail."));
+    auto para = std::make_shared<UseEffectMaskPara>();
+    if (!ParseUseEffectMask(env, argv, realArgc, para)) {
+        MASK_LOG_E("MaskNapi CreateUseEffectpMask parse param failed");
         return nullptr;
     }
 
@@ -502,7 +548,8 @@ void MaskNapi::RegisterMaskParaUnmarshallingCallback()
 {
     PixelMapMaskPara::RegisterUnmarshallingCallback();
     RadialGradientMaskPara::RegisterUnmarshallingCallback();
-    HarmoniumEffectMaskPara::RegisterUnmarshallingCallback();
+    ImageMaskPara::RegisterUnmarshallingCallback();
+    UseEffectMaskPara::RegisterUnmarshallingCallback();
 }
 
 }  // namespace Rosen

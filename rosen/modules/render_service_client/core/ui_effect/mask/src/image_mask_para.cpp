@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ui_effect/mask/include/harmonium_effect_mask_para.h"
+#include "ui_effect/mask/include/image_mask_para.h"
 #include "platform/common/rs_log.h"
 
 #ifdef ROSEN_OHOS
@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
-HarmoniumEffectMaskPara::HarmoniumEffectMaskPara(const HarmoniumEffectMaskPara& other)
+ImageMaskPara::ImageMaskPara(const ImageMaskPara& other)
     : MaskPara(other), pixelMap_(nullptr)
 {
 #ifdef ROSEN_OHOS
@@ -32,41 +32,41 @@ HarmoniumEffectMaskPara::HarmoniumEffectMaskPara(const HarmoniumEffectMaskPara& 
         auto pixelMap = other.pixelMap_->Clone(errorCode);
         pixelMap_ = std::move(pixelMap);
         if (errorCode != Media::SUCCESS || pixelMap_ == nullptr) {
-            RS_LOGE("[ui_effect] HarmoniumEffectMaskPara clone pixelMap failed");
+            RS_LOGE("[ui_effect] ImageMaskPara clone pixelMap failed");
         }
     }
 #endif
 }
 
-bool HarmoniumEffectMaskPara::Marshalling(Parcel& parcel) const
+bool ImageMaskPara::Marshalling(Parcel& parcel) const
 {
     bool isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
         parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
         pixelMap_ != nullptr && pixelMap_->Marshalling(parcel);
     if (!isSuccess) {
-        RS_LOGE("[ui_effect] HarmoniumEffectMaskPara Marshalling write para failed");
+        RS_LOGE("[ui_effect] ImageMaskPara Marshalling write para failed");
         return false;
     }
     return true;
 }
 
-void HarmoniumEffectMaskPara::RegisterUnmarshallingCallback()
+void ImageMaskPara::RegisterUnmarshallingCallback()
 {
-    MaskPara::RegisterUnmarshallingCallback(MaskPara::Type::HARMONIUM_EFFECT_MASK, OnUnmarshalling);
+    MaskPara::RegisterUnmarshallingCallback(MaskPara::Type::IMAGE_MASK, OnUnmarshalling);
 }
 
-bool HarmoniumEffectMaskPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val)
+bool ImageMaskPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val)
 {
     uint16_t type = MaskPara::Type::NONE;
-    if (!parcel.ReadUint16(type) || type != MaskPara::Type::HARMONIUM_EFFECT_MASK) {
-        RS_LOGE("[ui_effect] HarmoniumEffectMaskPara OnUnmarshalling read type failed");
+    if (!parcel.ReadUint16(type) || type != MaskPara::Type::IMAGE_MASK) {
+        RS_LOGE("[ui_effect] ImageMaskPara OnUnmarshalling read type failed");
         return false;
     }
 
-    auto para = std::make_shared<HarmoniumEffectMaskPara>();
+    auto para = std::make_shared<ImageMaskPara>();
     auto pixelMap = Media::PixelMap::Unmarshalling(parcel);
     if (pixelMap == nullptr) {
-        RS_LOGE("[ui_effect] HarmoniumEffectMaskPara OnUnmarshalling pixelMap failed");
+        RS_LOGE("[ui_effect] ImageMaskPara OnUnmarshalling pixelMap failed");
         return false;
     }
     auto pixelMapTmp = std::shared_ptr<Media::PixelMap>(pixelMap);
@@ -75,9 +75,9 @@ bool HarmoniumEffectMaskPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<Ma
     return true;
 }
 
-std::shared_ptr<MaskPara> HarmoniumEffectMaskPara::Clone() const
+std::shared_ptr<MaskPara> ImageMaskPara::Clone() const
 {
-    return std::make_shared<HarmoniumEffectMaskPara>(*this);
+    return std::make_shared<ImageMaskPara>(*this);
 }
 
 } // namespace Rosen

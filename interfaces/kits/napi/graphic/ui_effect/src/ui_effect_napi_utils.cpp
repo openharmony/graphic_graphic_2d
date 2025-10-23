@@ -95,6 +95,16 @@ bool ParseJsBoolValue(napi_env env, napi_value jsObject, const std::string& name
     return true;
 }
 
+bool ParseJsBoolValue(napi_env env, napi_value jsObject, bool& data)
+{
+    if (UIEffectNapiUtils::GetType(env, jsObject) == napi_boolean &&
+        napi_get_value_bool(env, jsObject, &data) == napi_ok) {
+        return true;
+    }
+
+    return false;
+}
+
 bool ParseJsVector2f(napi_env env, napi_value jsObject, Vector2f& values)
 {
     uint32_t length = 0;

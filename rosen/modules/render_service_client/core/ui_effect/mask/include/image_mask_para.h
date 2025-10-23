@@ -12,26 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_HARMONIUM_EFFECT_MASK_PARA_H
-#define UIEFFECT_HARMONIUM_EFFECT_MASK_PARA_H
+#ifndef UIEFFECT_IMAGE_MASK_PARA_H
+#define UIEFFECT_IMAGE_MASK_PARA_H
 
-#include "pixel_map.h"
-#include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_common_def.h"
 #include "common/rs_vector4.h"
 #include "common/rs_macros.h"
+#include "pixel_map.h"
+#include "ui_effect/mask/include/mask_para.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSC_EXPORT HarmoniumEffectMaskPara : public MaskPara {
+class RSC_EXPORT ImageMaskPara : public MaskPara {
 public:
-    HarmoniumEffectMaskPara()
+    ImageMaskPara()
     {
-        type_ = MaskPara::Type::HARMONIUM_EFFECT_MASK;
+        type_ = MaskPara::Type::IMAGE_MASK;
     }
-    ~HarmoniumEffectMaskPara() override = default;
+    ~ImageMaskPara() override = default;
 
-    HarmoniumEffectMaskPara(const HarmoniumEffectMaskPara& other);
+    ImageMaskPara(const ImageMaskPara& other);
 
     void SetPixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
     {

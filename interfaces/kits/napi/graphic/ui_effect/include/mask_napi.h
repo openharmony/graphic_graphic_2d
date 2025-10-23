@@ -53,7 +53,8 @@ private:
     static napi_value CreateRadialGradientMask(napi_env env, napi_callback_info info);
     static napi_value CreatePixelMapMask(napi_env env, napi_callback_info info);
     static napi_value CreateWaveGradientMask(napi_env env, napi_callback_info info);
-    static napi_value CreateHarmoniumEffectMask(napi_env env, napi_callback_info info);
+    static napi_value CreateImageMask(napi_env env, napi_callback_info info);
+    static napi_value CreateUseEffectMask(napi_env env, napi_callback_info info);
 
     static void RegisterMaskParaUnmarshallingCallback();
 };

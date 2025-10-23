@@ -21,7 +21,8 @@
 #include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/mask/include/wave_gradient_mask_para.h"
-#include "ui_effect/mask/include/harmonium_effect_mask_para.h"
+#include "ui_effect/mask/include/image_mask_para.h"
+#include "ui_effect/mask/include/use_effect_mask_para.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGMaskBase"
@@ -64,8 +65,12 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGSDFRRectMask>();
         }
     },
-    {RSNGEffectType::HARMONIUM_EFFECT_MASK, [] {
-            return std::make_shared<RSNGHarmoniumEffectMask>();
+    {RSNGEffectType::IMAGE_MASK, [] {
+            return std::make_shared<RSNGImageMask>();
+        }
+    },
+    {RSNGEffectType::USE_EFFECT_MASK, [] {
+            return std::make_shared<RSNGUseEffectMask>();
         }
     },
 };
@@ -101,16 +106,16 @@ std::shared_ptr<RSNGMaskBase> ConvertPixelMapMaskPara(std::shared_ptr<MaskPara> 
     return pixelMapMask;
 }
 
-std::shared_ptr<RSNGMaskBase> ConvertHarmoniumEffectMaskPara(std::shared_ptr<MaskPara> maskPara)
+std::shared_ptr<RSNGMaskBase> ConvertImageMaskPara(std::shared_ptr<MaskPara> maskPara)
 {
-    auto mask = RSNGMaskBase::Create(RSNGEffectType::HARMONIUM_EFFECT_MASK);
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::IMAGE_MASK);
     if (mask == nullptr) {
         return nullptr;
     }
-    auto harmoniumEffectMask = std::static_pointer_cast<RSNGHarmoniumEffectMask>(mask);
-    auto harmoniumEffectMaskPara = std::static_pointer_cast<HarmoniumEffectMaskPara>(maskPara);
-    harmoniumEffectMask->Setter<HarmoniumEffectMaskImageTag>(harmoniumEffectMaskPara->GetPixelMap());
-    return harmoniumEffectMask;
+    auto imageMask = std::static_pointer_cast<RSNGImageMask>(mask);
+    auto imageMaskPara = std::static_pointer_cast<ImageMaskPara>(maskPara);
+    imageMask->Setter<ImageMaskImageTag>(imageMaskPara->GetPixelMap());
+    return imageMask;
 }
 
 std::shared_ptr<RSNGMaskBase> ConvertRadialGradientMaskPara(std::shared_ptr<MaskPara> maskPara)
@@ -145,6 +150,20 @@ std::shared_ptr<RSNGMaskBase> ConvertWaveGradientMaskPara(std::shared_ptr<MaskPa
 
     return waveGradientMask;
 }
+
+std::shared_ptr<RSNGMaskBase> ConvertUseEffectMaskPara(std::shared_ptr<MaskPara> maskPara)
+{
+    auto mask = RSNGMaskBase::Create(RSNGEffectType::USE_EFFECT_MASK);
+    if (mask == nullptr) {
+        return nullptr;
+    }
+    auto useEffectMask = std::static_pointer_cast<RSNGUseEffectMask>(mask);
+    auto useEffectMaskPara = std::static_pointer_cast<UseEffectMaskPara>(maskPara);
+    useEffectMask->Setter<UseEffectMaskImageTag>(useEffectMaskPara->GetPixelMap());
+    useEffectMask->Setter<UseEffectMaskUseEffectTag>(useEffectMaskPara->GetUseEffect());
+    return useEffectMask;
+}
+
 }
 
 thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
@@ -152,7 +171,8 @@ thread_local std::unordered_map<MaskPara::Type, MaskConvertor> convertorLUT = {
     { MaskPara::Type::PIXEL_MAP_MASK, ConvertPixelMapMaskPara },
     { MaskPara::Type::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskPara },
     { MaskPara::Type::WAVE_GRADIENT_MASK, ConvertWaveGradientMaskPara },
-    { MaskPara::Type::HARMONIUM_EFFECT_MASK, ConvertHarmoniumEffectMaskPara}
+    { MaskPara::Type::IMAGE_MASK, ConvertImageMaskPara},
+    { MaskPara::Type::USE_EFFECT_MASK, ConvertUseEffectMaskPara },
 };
 
 std::shared_ptr<RSNGMaskBase> RSNGMaskBase::Create(RSNGEffectType type)

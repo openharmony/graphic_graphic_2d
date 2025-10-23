@@ -95,10 +95,6 @@ DECLARE_MASK(SDFRRectMask, SDF_RRECT_MASK,
     ADD_PROPERTY_TAG(SDFRRectMask, RRect)
 );
 
-DECLARE_MASK(HarmoniumEffectMask, HARMONIUM_EFFECT_MASK,
-    ADD_PROPERTY_TAG(HarmoniumEffectMask, Image)
-);
-
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK
 
