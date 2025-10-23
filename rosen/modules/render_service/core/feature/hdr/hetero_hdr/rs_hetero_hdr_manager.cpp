@@ -136,7 +136,7 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
     Vector2f boundSize = surfaceParams->GetCacheSize();
-    
+
     ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
     bool isVertical = (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
@@ -163,7 +163,7 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     dst_.top_ = 0;
     dst_.width_ = boundSize.x_;
     dst_.height_ = boundSize.y_;
-    bool preIsFixed = FixConditionPrejudgment(bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams);
+    bool preIsFixed = FixConditionPrejudgment(isUiFirstMode, surfaceParams);
     isFixedDstBuffer_ = preIsFixed || sizeJudge;
     if (!isFixedDstBuffer_) {
         dst_.width_ = dstRect.w;
