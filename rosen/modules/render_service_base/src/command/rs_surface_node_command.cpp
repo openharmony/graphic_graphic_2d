@@ -22,6 +22,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
 #endif
@@ -36,6 +37,10 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
             ROSEN_LOGI("SurfaceNodeCommandHelper::Create command is not vaild because there "
             "have been too many surfaceNodes, nodeId:%{public}" PRIu64 "", id);
             return;
+        }
+        if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
+            ROSEN_LOGE("SurfaceNodeCommandHelper::Create create after add, id:%{public}" PRIu64, id);
+            RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::Create create after add, id:%" PRIu64, id);
         }
         auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
             context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
@@ -57,6 +62,10 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
             "have been too many surfaceNodes, nodeId:%{public}" PRIu64 "", nodeId);
         return;
     }
+    if (context.GetMutableNodeMap().UnRegisterUnTreeNode(nodeId)) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::CreateWithConfig create after add, id:%{public}" PRIu64, nodeId);
+        RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::CreateWithConfig create after add, id:%" PRIu64, nodeId);
+    }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
@@ -69,6 +78,10 @@ std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigI
         ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfigInRS command is not vaild because there have "
             "been too many surfaceNodes, nodeId:%{public}" PRIu64 "", config.id);
         return nullptr;
+    }
+    if (context.GetMutableNodeMap().UnRegisterUnTreeNode(config.id)) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::CreateWithConfigInRS create after add, id:%{public}" PRIu64, config.id);
+        RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::CreateWithConfigInRS create after add, id:%" PRIu64, config.id);
     }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);

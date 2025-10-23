@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "include/command/rs_base_node_command.h"
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_surface_render_node.h"
 #include "params/rs_surface_render_params.h"
@@ -38,6 +39,67 @@ void RSSurfaceNodeCommandTest::SetUpTestCase() {}
 void RSSurfaceNodeCommandTest::TearDownTestCase() {}
 void RSSurfaceNodeCommandTest::SetUp() {}
 void RSSurfaceNodeCommandTest::TearDown() {}
+
+/**
+ * @tc.name: TestCreate
+ * @tc.desc: Create test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, TestCreate, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 5;
+    NodeId childNodeId = 7;
+    int32_t index = static_cast<int32_t>(0);
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    SurfaceNodeCommandHelper::Create(context, childNodeId);
+    ASSERT_EQ(childNodeId, static_cast<NodeId>(7));
+}
+
+/**
+ * @tc.name: TestCreateWithConfig
+ * @tc.desc: CreateWithConfig test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithConfig, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 9;
+    NodeId childNodeId = 11;
+    int32_t index = static_cast<int32_t>(0);
+    std::string name = "name";
+    std::string name2 = "name2";
+    enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
+    SurfaceNodeCommandHelper::CreateWithConfig(context, nodeId, name, 1, windowType);
+    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    SurfaceNodeCommandHelper::CreateWithConfig(context, childNodeId, name2, 1, windowType);
+    ASSERT_EQ(childNodeId, static_cast<NodeId>(11));
+}
+
+/**
+ * @tc.name: TestCreateWithConfigInRS
+ * @tc.desc: CreateWithConfigInRS test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, TestCreateWithConfigInRS, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 13;
+    NodeId childNodeId = 15;
+    int32_t index = static_cast<int32_t>(0);
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .nodeType = RSSurfaceNodeType::DEFAULT };
+    std::string name2 = "name2";
+    RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = childNodeId;
+    config2.name = name2;
+    config2.nodeType = nodeType;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    SurfaceNodeCommandHelper::CreateWithConfigInRS(config2, context);
+    ASSERT_EQ(childNodeId, static_cast<NodeId>(15));
+}
 
 /**
  * @tc.name: TestRSSurfaceNodeCommand002
