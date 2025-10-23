@@ -425,15 +425,17 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
-    rsSurface->SetCleanUpHelper([]() {
-        RSRenderThread::Instance().PostTask([]() {
-            RSRenderThread::Instance().TrimMemory();
-        });
-    });
 #endif
 
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
+        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetCleanUpHelper(
+            [](std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap) {
+                RSRenderThread::Instance().PostSyncTask([&mSurfaceMap]() mutable {
+                    mSurfaceMap.clear();
+                    RSRenderThread::Instance().TrimMemory();
+                });
+            });
         auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (skContext == nullptr) {
             ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");

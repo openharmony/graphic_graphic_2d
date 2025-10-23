@@ -52,7 +52,6 @@ public:
     // clear buffer for both producer and consumer and will receive OnGoBackground callback
     virtual void ClearAllBuffer() = 0;
     virtual void ResetBufferAge() = 0;
-    virtual void SetCleanUpHelper(std::function<void()> func) = 0;
 #ifdef USE_SURFACE_TEXTURE
     virtual RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) = 0;
     virtual RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) = 0;
