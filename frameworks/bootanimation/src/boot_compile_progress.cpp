@@ -229,6 +229,9 @@ void BootCompileProgress::DrawCompileProgress()
         return;
     }
     std::shared_ptr<Rosen::Drawing::TextBlob> textBlob = Rosen::Drawing::TextBlob::MakeFromString(info, font);
+    if (textBlob == nullptr) {
+        return;
+    }
     auto textBound = textBlob->Bounds();
     if (textBound == nullptr) {
         LOGE("textBound is null");
