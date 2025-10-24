@@ -66,7 +66,7 @@
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
-#include "pipeline/main_thread/rs_render_service_listener.h"
+#include "rs_render_service_listener.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"

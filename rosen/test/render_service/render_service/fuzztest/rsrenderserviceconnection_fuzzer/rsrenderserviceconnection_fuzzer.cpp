@@ -40,7 +40,7 @@
 #endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "render_server/rs_render_service.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_render_service_connect_hub.cpp"
 #include "screen_manager/rs_screen_manager.h"

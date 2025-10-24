@@ -19,7 +19,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
-#include "rs_render_service.h"
+#include "render_server/rs_render_service.h"
 
 namespace OHOS {
 namespace Rosen {

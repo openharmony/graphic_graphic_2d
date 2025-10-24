@@ -30,7 +30,7 @@
 #include "rs_profiler_command.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "render_server/rs_render_service.h"
 
 using namespace testing;
 using namespace testing::ext;
