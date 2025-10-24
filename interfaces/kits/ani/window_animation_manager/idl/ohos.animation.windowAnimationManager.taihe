@@ -32,7 +32,6 @@ struct WindowAnimationTarget {
   @readonly abilityName: String;
   @readonly windowBounds: RRect;
   @readonly missionId: i32;
-  @readonly windowId: i32;
 }
 
 interface WindowAnimationFinishedCallback {
@@ -67,9 +66,9 @@ struct WindowAnimationController {
 function setController(controller: WindowAnimationController): void;
 
 function MinimizeWindowWithAnimationSync(windowTarget: WindowAnimationTarget): WindowAnimationFinishedCallback;
-@static_overload("MinimizeWindowWithAnimation")
+@rename("minimizeWindowWithAnimation")
 @async function MinimizeWindowWithAnimationAsync(
   windowTarget: WindowAnimationTarget): WindowAnimationFinishedCallback;
-@static_overload("MinimizeWindowWithAnimation")
+@rename("minimizeWindowWithAnimation")
 @promise function MinimizeWindowWithAnimationPromise(
   windowTarget: WindowAnimationTarget): WindowAnimationFinishedCallback;

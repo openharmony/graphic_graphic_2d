@@ -53,7 +53,7 @@ void SetController(WindowAnimationController const& controller)
 WindowAnimationFinishedCallback OnMinimizeWindowWithAnimation(WindowAnimationTarget const& windowTarget)
 {
     TWA_LOGD("OnMinimizeWindowWithAnimation");
-    uint32_t windowId = windowTarget.windowId;
+    uint32_t windowId = 0;
     std::vector<uint32_t> windowIds = { windowId };
     sptr<RSIWindowAnimationFinishedCallback> finishedCallback;
     SingletonContainer::Get<WindowAdapter>().MinimizeWindowsByLauncher(windowIds, true, finishedCallback);
