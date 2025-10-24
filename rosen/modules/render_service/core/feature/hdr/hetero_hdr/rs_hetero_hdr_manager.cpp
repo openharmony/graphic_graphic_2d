@@ -99,6 +99,25 @@ void RSHeteroHDRManager::UpdateHDRNodes(RSSurfaceRenderNode& node, bool isCurren
     isCurrentFrameBufferConsumedMap_[node.GetId()] = isCurrentFrameBufferConsumed;
 }
 
+bool RSHeteroHDRManager::FixConditionPrejudgment(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
+    bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams)
+{
+    auto srcRect = surfaceParams->GetLayerInfo().srcRect;
+    auto dstRect = surfaceParams->GetLayerInfo().dstRect;
+    // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
+    float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
+    Vector2f boundSize = surfaceParams->GetCacheSize();
+    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
+    bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
+        (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
+
+    sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
+    ScalingMode scalingMode = srcBuffer->GetSurfaceBufferScalingMode();
+
+    bool isFixed = isUiFirstMode || ratioJudge || scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT;
+    return isFixed;
+}
+
 void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
     bool isUiFirstMode, RSSurfaceRenderParams* surfaceParams)
 {
@@ -115,14 +134,13 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     if (curHandleStatus_ == HdrStatus::AI_HDR_VIDEO_GAINMAP) {
         isFixedDstBuffer_ = true;
         dst_ = { 0, 0, bufferWidth, bufferHeight };
+        hpaeBufferSize_ = Vector2f(bufferWidth, bufferHeight);
         return;
     }
-    auto srcRect = surfaceParams->GetLayerInfo().srcRect;
     auto dstRect = surfaceParams->GetLayerInfo().dstRect;
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
     Vector2f boundSize = surfaceParams->GetCacheSize();
-    // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
-    float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
+
     ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
     bool isVertical = (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
@@ -132,8 +150,7 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
         Vector2f(curScreenInfo.width, curScreenInfo.height);
     bool sizeJudge = !(ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.0f) &&
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
-    bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
-        (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
+
     if (isVertical) {
         boundSize.y_ = hpaeBufferSize_.y_;
         // The precondition has already determined that the bufferHeight is not zero(ValidateSurface)
@@ -150,7 +167,8 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     dst_.top_ = 0;
     dst_.width_ = boundSize.x_;
     dst_.height_ = boundSize.y_;
-    isFixedDstBuffer_ = isUiFirstMode || ratioJudge || sizeJudge;
+    bool preIsFixed = FixConditionPrejudgment(drawable, isUiFirstMode, surfaceParams);
+    isFixedDstBuffer_ = preIsFixed || sizeJudge;
     if (!isFixedDstBuffer_) {
         dst_.width_ = dstRect.w;
         dst_.height_ = dstRect.h;
@@ -298,6 +316,7 @@ void RSHeteroHDRManager::ClearBufferCache()
         rsHeteroHDRBufferLayer_.CleanCache();
         framesNoApplyCnt_ = 0;
         nodeSrcRectMap_.clear();
+        RSHDRPatternManager::Instance().MHCReleaseAll();
     } else {
         framesNoApplyCnt_++;
     }
