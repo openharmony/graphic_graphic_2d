@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_base_node_command.h"
+#include "include/command/rs_surface_node_command.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -378,5 +379,45 @@ HWTEST_F(RSBaseNodeCommandText, ClearChildren001, TestSize.Level1)
     nodeId = 0;
     BaseNodeCommandHelper::ClearChildren(context, nodeId);
     EXPECT_TRUE(!nodeId);
+}
+
+/**
+ * @tc.name: AddChildNodeNullTest
+ * @tc.desc: test results of AddChild when node is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseNodeCommandText, AddChildNodeNullTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 17;
+    NodeId childNodeId = 19;
+    int32_t index = static_cast<int32_t>(0);
+    std::string name = "name";
+    std::string name2 = "name2";
+    enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
+    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
+    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    SurfaceNodeCommandHelper::CreateWithConfig(context, childNodeId, name2, 1, windowType);
+    ASSERT_EQ(childNodeId, static_cast<NodeId>(19));
+}
+
+/**
+ * @tc.name: AddChildChildNodeNullTest
+ * @tc.desc: test results of AddChild when childNode is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseNodeCommandText, AddChildChildNodeNullTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 21;
+    NodeId childNodeId = 23;
+    int32_t index = static_cast<int32_t>(0);
+    std::string name = "name";
+    std::string name2 = "name2";
+    enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
+    SurfaceNodeCommandHelper::CreateWithConfig(context, nodeId, name, 1, windowType);
+    BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    SurfaceNodeCommandHelper::CreateWithConfig(context, childNodeId, name2, 1, windowType);
+    ASSERT_EQ(childNodeId, static_cast<NodeId>(23));
 }
 } // namespace OHOS::Rosen

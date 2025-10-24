@@ -43,13 +43,19 @@ void BaseNodeCommandHelper::AddChild(RSContext& context, NodeId nodeId, NodeId c
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode(nodeId);
     auto child = nodeMap.GetRenderNode(childNodeId);
-    if (node && child) {
-        node->AddChild(child, index);
-    } else if (child == nullptr) {
+    if (node == nullptr) {
+        RS_LOGE("BaseNodeCommandHelper::AddChild node:%{public}" PRIu64 " not found in map", nodeId);
+        RS_TRACE_NAME_FMT("BaseNodeCommandHelper::AddChild node:%" PRIu64 " not found in map", nodeId);
+        context.GetMutableNodeMap().RegisterUnTreeNode(nodeId);
+        return;
+    }
+    if (child == nullptr) {
         RS_LOGE("BaseNodeCommandHelper::AddChild child:%{public}" PRIu64 " not found in map", childNodeId);
         RS_TRACE_NAME_FMT("BaseNodeCommandHelper::AddChild child:%" PRIu64 " not found in map", childNodeId);
         context.GetMutableNodeMap().RegisterUnTreeNode(childNodeId);
+        return;
     }
+    node->AddChild(child, index);
 }
 
 void BaseNodeCommandHelper::MoveChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index)
