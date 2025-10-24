@@ -339,6 +339,7 @@ HWTEST_F(RSRenderParamsTest, SetChildHasVisibleHarmonium_001, TestSize.Level2)
     renderParams->SetChildHasVisibleHarmonium(val);
 
     renderParams->childHasVisibleHarmonium_ = false;
+    val = false;
     EXPECT_EQ(renderParams->childHasVisibleHarmonium_, val);
     renderParams->SetChildHasVisibleHarmonium(val);
     

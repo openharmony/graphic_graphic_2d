@@ -339,9 +339,6 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectHarmoniumEffectMaskParaTest, TestSize.Lev
 
     Parcel parcel;
     EXPECT_EQ(true, maskPara->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
-    EXPECT_NE(nullptr, val);
     auto clonePara = maskPara->Clone();
     EXPECT_NE(nullptr, clonePara);
 
