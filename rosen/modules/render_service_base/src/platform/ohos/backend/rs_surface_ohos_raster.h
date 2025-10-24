@@ -45,7 +45,6 @@ public:
     }
     void ClearBuffer() override;
     void ResetBufferAge() override;
-    void SetCleanUpHelper(std::function<void()> func) override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 };
 } // namespace Rosen

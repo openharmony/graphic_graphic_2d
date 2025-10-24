@@ -147,9 +147,5 @@ void RSSurfaceOhosGl::ResetBufferAge()
         mWindow = nullptr;
     }
 }
-
-void RSSurfaceOhosGl::SetCleanUpHelper(std::function<void()> func)
-{
-}
 } // namespace Rosen
 } // namespace OHOS

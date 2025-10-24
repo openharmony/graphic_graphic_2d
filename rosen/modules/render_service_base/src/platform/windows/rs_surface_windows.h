@@ -47,7 +47,6 @@ public:
     void ClearBuffer() override;
     void ClearAllBuffer() override;
     void ResetBufferAge() override;
-    void SetCleanUpHelper(std::function<void()> func) override;
     void SetColorSpace(GraphicColorGamut colorSpace) override
     {
     }
