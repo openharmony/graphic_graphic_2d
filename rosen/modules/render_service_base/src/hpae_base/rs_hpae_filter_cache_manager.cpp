@@ -479,6 +479,11 @@ void RSHpaeFilterCacheManager::SetBlurOutput(HpaeBackgroundCacheItem& hpaeOutput
     hpaeBlurOutputQueue_.push_back(hpaeOutputItem);
 }
 
+bool RSHpaeFilterCacheManager::UseCacheImage() const
+{
+    return useCacheImage_;
+}
+
 HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
 {
     HpaeBackgroundCacheItem result;
@@ -489,8 +494,8 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
             prevItem = hpaeBlurOutputQueue_.front();
             hpaeBlurOutputQueue_.pop_front();
         }
+        useCacheImage_ = false;
         if (!hpaeBlurOutputQueue_.empty()) {
-            bool useCacheImage = false;
             auto headIter = hpaeBlurOutputQueue_.begin();
             if (headIter->useCache_) {
                 headIter->blurImage_ = prevItem.blurImage_;
@@ -504,10 +509,10 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
                 RS_OPTIONAL_TRACE_NAME("UseSnapshot");
             } else {
                 headIter->gpFrameId_ = 0; // avoid submit with FFTS
-                useCacheImage = true;
+                useCacheImage_ = true;
             }
             result = hpaeBlurOutputQueue_.front();
-            if (useCacheImage && hpaeBlurOutputQueue_.size() == 1) {
+            if (useCacheImage_ && hpaeBlurOutputQueue_.size() == 1) {
                 HPAE_LOGD("Clear cache for first frame");
                 hpaeBlurOutputQueue_.clear();
             }

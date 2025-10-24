@@ -126,8 +126,9 @@ public:
     void ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion,
         bool isHpaeCachedFilteredSnapshot = false);
-    
+
     bool ForceUpadateCacheByHpae();
+    bool LastHpaeClearCache() const;
     bool ClearCacheAfterDrawing() const { return renderClearFilteredCacheAfterDrawing_; }
 
     void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
@@ -230,6 +231,7 @@ private:
     bool takeNewSnapshot_ = false;
     std::shared_ptr<RSHpaeFilterCacheManager> hpaeCacheManager_;
     bool isHpaeCachedFilteredSnapshot_ = false;
+    bool lastHpaeClearCache_ = false;
     bool snapshotNeedUpdate_ = false;
 
     bool debugEnabled_ = false;
