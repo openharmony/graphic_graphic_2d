@@ -714,4 +714,54 @@ HWTEST_F(RSDrawCmdTest, GetRsImageCacheTest, TestSize.Level1)
     extendImageObject.GetRsImageCache(canvas, pixelMapT, surfaceBuffer, colorSpace);
 }
 #endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: PurgeMipmapMemTest001
+ * @tc.desc: test results of PurgeMipmapMem, others keep the lock
+ * @tc.type:FUNC
+ * @tc.require:issue20444
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest001, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    extendImageObject.image_ = std::make_shared<Drawing::Image>();
+    std::unique_lock<std::mutex> lock(extendImageObject.drawingImageMutex_);
+    extendImageObject.PurgeMipmapMem();
+    ASSERT_NE(extendImageObject.image_, nullptr);
+}
+/**
+ * @tc.name: PurgeMipmapMemTest002
+ * @tc.desc: test results of PurgeMipmapMem, get the lock itself
+ * @tc.type:FUNC
+ * @tc.require:issue20444
+ */
+HWTEST_F(RSDrawCmdTest, PurgeMipmapMemTest002, TestSize.Level1)
+{
+    {
+        RSExtendImageObject extendImageObject;
+        extendImageObject.image_ = nullptr;
+        extendImageObject.PurgeMipmapMem();
+        ASSERT_EQ(extendImageObject.image_, nullptr);
+    }
+
+    // only if get the lock and image_.use_count() is 1, image_ is assigned value null
+    {
+        RSExtendImageObject extendImageObject;
+        extendImageObject.image_ = std::make_shared<Drawing::Image>();
+        ASSERT_EQ(extendImageObject.image_.use_count(), 1);
+        extendImageObject.PurgeMipmapMem();
+        ASSERT_EQ(extendImageObject.image_, nullptr);
+    }
+
+    {
+        RSExtendImageObject extendImageObject;
+        extendImageObject.image_ = std::make_shared<Drawing::Image>();
+        auto imageptr = extendImageObject.image_;
+        ASSERT_EQ(extendImageObject.image_.use_count(), 2);
+        extendImageObject.PurgeMipmapMem();
+        ASSERT_EQ(extendImageObject.image_.use_count(), 2);
+    }
+}
+#endif
 } // namespace OHOS::Rosen
