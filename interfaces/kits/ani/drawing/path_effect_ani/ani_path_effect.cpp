@@ -58,7 +58,7 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
     env->Reference_IsUndefined(aniSeedAssistObj, &isUndefined);
     if (!isUndefined) {
         ani_double aniSeedAssist = 0;
-        ani_status ret =  env->Object_CallMethodByName_Double(aniSeedAssistObj, "doubleValue", ":d", &aniSeedAssist);
+        ani_status ret =  env->Object_CallMethodByName_Double(aniSeedAssistObj, "toDouble", ":d", &aniSeedAssist);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPathEffect::CreateDiscretePathEffect invalid param seedAssist: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param seedAssist.");

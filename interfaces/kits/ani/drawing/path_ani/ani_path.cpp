@@ -563,6 +563,11 @@ void AniPath::AddOval(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param rect.");
         return;
     }
+    if (aniStart < 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect AddOval paramter1 range. It should be greater than 0.");
+        return;
+    }
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniPathDirectionObj, &isUndefined);
     if (isUndefined) {
