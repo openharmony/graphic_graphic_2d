@@ -501,10 +501,9 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
         }
     }
     auto maskColor = maskColorForHPS.AsArgbInt();
-    bool isMaterial = (GetFilterType() == RSFilter::MATERIAL);
     GraphicsEffectEngine::GERender::HpsGEImageEffectContext context = {
         image, attr.src, attr.dst, Drawing::SamplingOptions(), brush.GetColor().GetAlphaF() * attr.brushAlpha,
-        brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_, isMaterial};
+        brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_};
 
     bool kawaseHpsProcess = geRender->ApplyHpsGEImageEffect(canvas, *visualEffectContainer_,
         context, outImage, brush);
