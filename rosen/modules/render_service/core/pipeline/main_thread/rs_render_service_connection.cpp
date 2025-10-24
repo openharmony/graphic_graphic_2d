@@ -1335,6 +1335,22 @@ int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint3
     }
 }
 
+int32_t RSRenderServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    return screenManager_->SetRogScreenResolution(id, width, height);
+}
+
+int32_t RSRenderServiceConnection::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    return screenManager_->GetRogScreenResolution(id, width, height);
+}
+
 ErrCode RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();

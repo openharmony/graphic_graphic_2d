@@ -61,6 +61,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
@@ -1239,6 +1241,38 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (GetRefreshInfoToSP(nodeId, refreshInfoToSP) != ERR_OK || !reply.WriteString(refreshInfoToSP)) {
                 RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO_TO_SP Write refreshInfoToSP failed!");
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint32_t width{0};
+            uint32_t height{0};
+            if (!data.ReadUint64(id) || !data.ReadUint32(width) || !data.ReadUint32(height)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = SetRogScreenResolution(id, width, height);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION): {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_ROG_SCREEN_RESOLUTION Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t width{0};
+            uint32_t height{0};
+            int32_t status = GetRogScreenResolution(id, width, height);
+            if (!reply.WriteInt32(status) || !reply.WriteUint32(width) || !reply.WriteUint32(height)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_ROG_SCREEN_RESOLUTION Write parcel failed!");
+                ret = IPC_STUB_WRITE_PARCEL_ERR;
             }
             break;
         }

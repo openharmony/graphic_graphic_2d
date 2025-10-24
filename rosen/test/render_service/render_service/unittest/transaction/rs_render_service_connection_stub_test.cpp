@@ -1680,6 +1680,56 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetScreenPowerStatusTest002, TestSiz
 }
 
 /**
+ * @tc.name: SetRogScreenResolutionTest001
+ * @tc.desc: Test SetRogScreenResolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, SetRogScreenResolutionTest001, TestSize.Level1)
+{
+    constexpr uint64_t SCREEN_ID = 0;
+    uint32_t width{1920};
+    uint32_t height{1080};
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(SCREEN_ID);
+    data.WriteUint32(width);
+    data.WriteUint32(height);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    // Authorization failed
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: GetRogScreenResolutionTest001
+ * @tc.desc: Test GetRogScreenResolution
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, GetRogScreenResolutionTest001, TestSize.Level1)
+{
+    constexpr uint64_t SCREEN_ID = 0;
+    int32_t status{0};
+    uint32_t width{0};
+    uint32_t height{0};
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteUint64(SCREEN_ID);
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+    ASSERT_EQ(reply.ReadInt32(status), static_cast<bool>(true));
+    ASSERT_EQ(reply.ReadUint32(width), static_cast<bool>(true));
+    ASSERT_EQ(reply.ReadUint32(height), static_cast<bool>(true));
+}
+
+/**
  * @tc.name: SetScreenGamutMapTest001
  * @tc.desc: Test SetScreenGamutMap when ReadUint64 failed
  * @tc.type: FUNC

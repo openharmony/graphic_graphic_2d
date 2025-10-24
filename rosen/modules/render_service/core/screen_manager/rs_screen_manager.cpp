@@ -1663,8 +1663,19 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
+    RS_LOGI("%{public}s: set rog screen resolution success", __func__);
     screen->SetRogResolution(width, height);
     return SUCCESS;
+}
+
+int32_t RSScreenManager::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    return screen->GetRogResolution(width, height);
 }
 
 void RSScreenManager::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, ScreenPowerStatus status)

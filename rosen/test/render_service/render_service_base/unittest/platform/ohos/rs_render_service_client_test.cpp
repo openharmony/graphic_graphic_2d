@@ -876,6 +876,35 @@ HWTEST_F(RSClientTest, SetPhysicalScreenResolution001, TestSize.Level1)
     EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
 }
 
+/*
+ * @tc.name: SetRogScreenResolution Test
+ * @tc.desc: SetRogScreenResolution Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientTest, SetRogScreenResolution001, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    auto ret = rsClient->SetRogScreenResolution(id, width, height);
+    // authorization failed
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
+}
+
+/*
+ * @tc.name: GetRogScreenResolution Test
+ * @tc.desc: GetRogScreenResolution Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientTest, GetRogScreenResolution001, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t width{0};
+    uint32_t height{0};
+    auto ret = rsClient->GetRogScreenResolution(id, width, height);
+    EXPECT_EQ(ret, SCREEN_NOT_FOUND);
+}
+
 /**
  * @tc.name: SetVirtualScreenResolution Test
  * @tc.desc: SetVirtualScreenResolution Test

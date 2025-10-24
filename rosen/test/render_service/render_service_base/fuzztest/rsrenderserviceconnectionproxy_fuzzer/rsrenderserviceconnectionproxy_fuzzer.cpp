@@ -223,6 +223,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetRefreshInfoToSP(id1, getRefreshInfoToSPEnable);
     rsRenderServiceConnectionProxy.SetPhysicalScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
+    rsRenderServiceConnectionProxy.SetRogScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetScreenPowerStatus(id1, status);
     rsRenderServiceConnectionProxy.RegisterApplicationAgent(width, app);
     rsRenderServiceConnectionProxy.GetVirtualScreenResolution(id1);
