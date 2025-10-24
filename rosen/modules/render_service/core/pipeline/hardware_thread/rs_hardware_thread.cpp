@@ -102,7 +102,6 @@ constexpr int HARDWARE_TIMEOUT = 800;
 constexpr int HARDWARE_TIMEOUT_ABORT_CNT = 30;
 // The number of exceptions in the hardware pipeline required to report hisysevent
 constexpr int HARDWARE_TIMEOUT_CNT = 15;
-constexpr int FRAMEBUFFERSIZE = 3;
 const std::string PROCESS_NAME_FOR_HISYSEVENT = "/system/bin/render_service";
 const std::string HARDWARE_PIPELINE_TIMEOUT = "hardware_pipeline_timeout";
 }
@@ -920,9 +919,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
         } else {
             RsVulkanContext::GetSingleton().SetIsProtected(false);
-        }
-        if (!protectd) {
-            surface->SetQueueSize(FRAMEBUFFERSIZE);
         }
     }
 #endif
