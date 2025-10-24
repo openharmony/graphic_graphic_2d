@@ -1160,7 +1160,7 @@ public:
     void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
     Occlusion::Region ResetOpaqueRegion(
-        const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
+        const RectI& absSolidDrawRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     void SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius);

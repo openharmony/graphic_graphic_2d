@@ -1984,10 +1984,10 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
     }
 }
 
-void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
+void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absSolidDrawRect,
     const ScreenRotation screenRotation, const bool isContainerWindowTransparent, const Vector4<int>& cornerRadius)
 {
-    Occlusion::Region absRegion { absRect };
+    Occlusion::Region absSolidDrawRegion { absSolidDrawRect };
     Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
     Occlusion::Region oldOcclusionRegionBehindWindow { occlusionRegionBehindWindow_ };
 
@@ -2006,8 +2006,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
             RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] has container: inR:[%d], outR:[%d], innerRect:[%s], "
                 "isContainerWindowTransparent:[%d]", GetName().c_str(), containerConfig_.inR_, containerConfig_.outR_,
                 containerConfig_.innerRect_.ToString().c_str(), isContainerWindowTransparent);
-            opaqueRegion_ = ResetOpaqueRegion(GetAbsDrawRect(), screenRotation, isContainerWindowTransparent);
-            opaqueRegion_.AndSelf(absRegion);
+            opaqueRegion_ = ResetOpaqueRegion(absSolidDrawRect, screenRotation, isContainerWindowTransparent);
         } else {
             if (!cornerRadius.IsZero()) {
                 Vector4<int> dstCornerRadius((cornerRadius.x_ > 0 ? maxRadius : 0),
@@ -2016,9 +2015,9 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
                                              (cornerRadius.w_ > 0 ? maxRadius : 0));
                 RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] with cornerRadius: [%d, %d, %d, %d]",
                     GetName().c_str(), dstCornerRadius.x_, dstCornerRadius.y_, dstCornerRadius.z_, dstCornerRadius.w_);
-                SetCornerRadiusOpaqueRegion(absRect, dstCornerRadius);
+                SetCornerRadiusOpaqueRegion(absSolidDrawRect, dstCornerRadius);
             } else {
-                opaqueRegion_ = absRegion;
+                opaqueRegion_ = absSolidDrawRegion;
                 roundedCornerRegion_ = Occlusion::Region();
             }
         }
@@ -2033,7 +2032,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
     behindWindowOcclusionChanged_ = !oldOcclusionRegionBehindWindow.Xor(
         occlusionRegionBehindWindow_).IsEmpty();
-    ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
+    ResetSurfaceContainerRegion(screeninfo, absSolidDrawRect, screenRotation);
 }
 
 void RSSurfaceRenderNode::DealWithDrawBehindWindowTransparentRegion()
