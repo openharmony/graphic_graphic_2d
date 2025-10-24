@@ -72,6 +72,8 @@ struct RSSurfaceNodeConfig {
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
     /* Shared pointer to the UI context associated with this node. Defaults to nullptr. */
     std::shared_ptr<RSUIContext> rsUIContext = nullptr;
+    /* isSkipCheckInMultiInstance true to skip Multi-Instance check; false otherwise. */
+    bool isSkipCheckInMultiInstance = false;
 };
 
 /**

@@ -75,6 +75,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     } else {
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
+    node->SetSkipCheckInMultiInstance(surfaceNodeConfig.isSkipCheckInMultiInstance);
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = {
