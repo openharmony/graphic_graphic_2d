@@ -132,7 +132,7 @@ void RSFrameRateVote::ReleaseSurfaceMap(uint64_t surfaceNodeId)
         std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         auto it = surfaceVideoFrameRateVote_.find(surfaceNodeId);
         if (it != surfaceVideoFrameRateVote_.end()) {
-            RS_LOGI("video vote release surfaceNodeId(%{public}s), size(%{public}d)",
+            RS_LOGI("video vote release surfaceNodeId(%{public}" PRIu64 "), size(%{public}d)",
                 surfaceNodeId, static_cast<int>(surfaceVideoFrameRateVote_.size()));
             surfaceVideoFrameRateVote_.erase(it);
         }
