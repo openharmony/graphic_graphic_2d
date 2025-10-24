@@ -133,7 +133,7 @@ void RSFrameRateVote::ReleaseSurfaceMap(uint64_t surfaceNodeId)
         auto it = surfaceVideoFrameRateVote_.find(surfaceNodeId);
         if (it != surfaceVideoFrameRateVote_.end()) {
             RS_LOGI("video vote release surfaceNodeId(%{public}s), size(%{public}d)",
-                std::to_string(surfaceNodeId).c_str(), static_cast<int>(surfaceVideoFrameRateVote_.size()));
+                surfaceNodeId, static_cast<int>(surfaceVideoFrameRateVote_.size()));
             surfaceVideoFrameRateVote_.erase(it);
         }
     };
