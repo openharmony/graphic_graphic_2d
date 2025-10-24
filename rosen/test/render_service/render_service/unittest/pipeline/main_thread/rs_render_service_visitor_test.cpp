@@ -21,6 +21,7 @@
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
@@ -327,6 +328,74 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareScreenRenderNode013, TestSize.Level1
     ASSERT_NE(displayNode, nullptr);
     mirroredNode->SetMirrorSource(displayNode);
     rsRenderServiceVisitor.PrepareScreenRenderNode(*mirroredNode);
+}
+
+/**
+ * @tc.name: PrepareLogicalDisplayRenderNode001
+ * @tc.desc: Test RSRenderServiceVisitorTest.PrepareLogicalDisplayRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, PrepareLogicalDisplayRenderNode001, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 100;
+    auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    rsLogicalDisplayRenderNode->GetMultableRenderProperties().SetRotation(0.0f);
+    EXPECT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_0);
+    rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+
+    rsLogicalDisplayRenderNode->GetMultableRenderProperties().SetRotation(-450.0f);
+    EXPECT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_90);
+    rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+
+    rsLogicalDisplayRenderNode->GetMultableRenderProperties().SetRotation(-630.0f);
+    rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+    ASSERT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_270);
+}
+
+/**
+ * @tc.name: PrepareLogicalDisplayRenderNode002
+ * @tc.desc: Test RSRenderServiceVisitorTest.PrepareLogicalDisplayRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, PrepareLogicalDisplayRenderNode002, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 100;
+    auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    rsLogicalDisplayRenderNode->GetMultableRenderProperties().SetRotation(0.0f);
+    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(false);
+    EXPECT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_0);
+    EXPECT_FALSE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+    rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+
+    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+    ASSERT_TRUE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+}
+
+/**
+ * @tc.name: PrepareLogicalDisplayRenderNode003
+ * @tc.desc: Test RSRenderServiceVisitorTest.PrepareLogicalDisplayRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, PrepareLogicalDisplayRenderNode003, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 100;
+    auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    rsLogicalDisplayRenderNode->GetMultableRenderProperties().SetRotation(0.0f);
+    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(true);
+    EXPECT_EQ(rsLogicalDisplayRenderNode->GetRotation(), ScreenRotation::ROTATION_0);
+    
+    rsRenderServiceVisitor.PrepareLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+    ASSERT_TRUE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
 }
 
 /**
@@ -1136,6 +1205,69 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor->ProcessRootRenderNode(node);
+}
+
+/**
+ * @tc.name: ProcessLogicalDisplayRenderNodeTest001
+ * @tc.desc: Test RSRenderServiceVisitorTest.ProcessLogicalDisplayRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest001, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    RSDisplayNodeConfig config;
+    NodeId nodeId = 100;
+    auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+
+    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(true);
+    rsRenderServiceVisitor.ProcessLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+    ASSERT_TRUE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+}
+
+/**
+ * @tc.name: ProcessLogicalDisplayRenderNodeTest002
+ * @tc.desc: Test RSRenderServiceVisitorTest.ProcessLogicalDisplayRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest002, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    constexpr NodeId screenNodeId = 0;
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
+
+    // Init processor_ via ProcessScreenRenderNode, or the test will core dump.
+    rsRenderServiceVisitor.ProcessScreenRenderNode(*rsScreenRenderNode);
+
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 101;
+    auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+
+    rsLogicalDisplayRenderNode->SetIsMirrorDisplay(false);
+    rsRenderServiceVisitor.ProcessLogicalDisplayRenderNode(*rsLogicalDisplayRenderNode);
+    ASSERT_FALSE(rsLogicalDisplayRenderNode->IsMirrorDisplay());
+}
+
+/**
+ * @tc.name: CreateCanvas
+ * @tc.desc: Test RSRenderServiceVisitorTest.CreateCanvas
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, CreateCanvas, TestSize.Level1)
+{
+    RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    int32_t width = 720;
+    int32_t height = 1280;
+    bool isMirrored = false;
+    rsRenderServiceVisitor.CreateCanvas(width, height, isMirrored);
+
+    isMirrored = true;
+    rsRenderServiceVisitor.CreateCanvas(width, height, isMirrored);
+    ASSERT_FALSE(rsRenderServiceVisitor.ShouldForceSerial());
 }
 
 /**
