@@ -63,6 +63,7 @@ constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 constexpr int64_t REMAINING_TIME_THRESHOLD = 100000; // 100000ns == 0.1ms
 constexpr int64_t REMAINING_TIME_THRESHOLD_FOR_LISTENER = 1000000; // 1000000ns == 1ms
+constexpr int64_t REMAINING_TIME_THRESHOLD_LARGER = 500000; // 500000ns == 0.5ms
 constexpr int64_t ONE_SECOND_FOR_CALCUTE_FREQUENCY = 1000000000; // 1000000000ns == 1s
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 constexpr uint32_t MAX_ADAPTIVE_PERIOD = 2;
@@ -310,6 +311,18 @@ void VSyncGenerator::WaitForTimeoutConNotifyLockedForListener()
     }
     int64_t remainingTime = nextTimeStamp_ - curTime;
     if (remainingTime > REMAINING_TIME_THRESHOLD_FOR_LISTENER) {
+        waitForTimeoutCon_.notify_all();
+    }
+}
+
+void VSyncGenerator::WaitForTimeoutConNotifyLockedForRefreshRate()
+{
+    int64_t curTime = SystemTime();
+    if (curTime <= 0 || nextTimeStamp_ <= 0) {
+        return;
+    }
+    int64_t remainingTime = nextTimeStamp_ - curTime;
+    if (remainingTime > REMAINING_TIME_THRESHOLD_LARGER) {
         waitForTimeoutCon_.notify_all();
     }
 }
@@ -928,7 +941,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
             generatorRefreshRate, currRefreshRate_);
     }
 
-    WaitForTimeoutConNotifyLocked();
+    WaitForTimeoutConNotifyLockedForRefreshRate();
     return ret;
 }
 
@@ -1135,11 +1148,14 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
             UpdatePeriodLocked(pendingPeriod_);
         }
         if (needNotify) {
-            WaitForTimeoutConNotifyLocked();
+            WaitForTimeoutConNotifyLockedForRefreshRate();
         }
         pendingPeriod_ = 0;
         targetPeriod_ = 0;
         startRefresh_ = false;
+    } else {
+        RS_TRACE_NAME_FMT("skip updatemode, hardwareVsyncInterval:%ld, pendingPeriod:%ld, targetPeriod:%ld",
+            hardwareVsyncInterval, pendingPeriod_, targetPeriod_);
     }
     return VSYNC_ERROR_OK;
 }
