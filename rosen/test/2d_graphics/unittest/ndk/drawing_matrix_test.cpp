@@ -911,7 +911,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixCopy0
  * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixPreConcat028
  * @tc.desc: test for normal use of OH_Drawing_MatrixPreConcat.
  * @tc.type: FUNC
- * @tc.require: SR20250827411768
+ * @tc.require: 20005
  */
 HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixPreConcat028, TestSize.Level1)
 {

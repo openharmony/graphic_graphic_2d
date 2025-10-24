@@ -186,7 +186,7 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionCopy001, TestSiz
  * @tc.name: NativeDrawingRegionTest_region007
  * @tc.desc: test for set drawing_region empty.
  * @tc.type: FUNC
- * @tc.require: SR20250827411768
+ * @tc.require: 20005
  */
 HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionEmpty007, TestSize.Level1)
 {

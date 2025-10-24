@@ -74,6 +74,7 @@ void AniRectUtils::Inset(ani_env* env, ani_object obj, ani_object aniRectObj,
     if (!GetRectFromAniRectObj(env, aniRectObj, drawingRect)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniRectUtils::Inset invalid params: aniRectObj. ");
+        return;
     }
 
     float originalLeft = drawingRect.GetLeft();
