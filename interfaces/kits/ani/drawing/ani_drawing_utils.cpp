@@ -499,8 +499,8 @@ std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font)
 ani_object CreateAniArrayWithSize(ani_env* env, size_t size)
 {
     ani_class arrayCls;
-    if (env->FindClass("escompat.Array", &arrayCls) != ANI_OK) {
-        ROSEN_LOGE("Failed to findClass escompat.Array");
+    if (env->FindClass("std.core.Array", &arrayCls) != ANI_OK) {
+        ROSEN_LOGE("Failed to findClass std.core.Array");
         return CreateAniUndefined(env);
     }
     ani_method arrayCtor;
