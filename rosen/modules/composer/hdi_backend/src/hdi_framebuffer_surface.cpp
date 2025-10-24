@@ -56,8 +56,9 @@ SurfaceError HdiFramebufferSurface::CreateSurface(sptr<HdiFramebufferSurface> &f
     if (consumerSurface_ == nullptr) {
         return SURFACE_ERROR_NO_CONSUMER;
     }
-
+#if defined(RS_ENABLE_UNI_RENDER)
     consumerSurface_->SetIsPriorityAlloc(true);
+#endif
     sptr<IBufferProducer> producer = consumerSurface_->GetProducer();
     producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
 
