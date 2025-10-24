@@ -979,6 +979,7 @@ public:
     void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
     bool GetNeedUseCmdlistDrawRegion();
     void ReleaseNodeMem();
+    bool IsNodeMemClearEnable();
 
 protected:
     void ResetDirtyStatus();
@@ -1291,17 +1292,6 @@ private:
     void ResetAndApplyModifiers();
 
     void InitRenderDrawableAndDrawableVec();
-
-    bool IsNodeMemClearEnable()
-    {
-#ifdef NOT_BUILD_FOR_OHOS_SDK
-        return RSSystemProperties::GetNodeMemClearEnabled() && GetType() == RSRenderNodeType::CANVAS_NODE
-        && RSProperties::IS_UNI_RENDER && !isTextureExportNode_;
-#else
-        return false;
-#endif
-    }
-
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     friend class DrawFuncOpItem;
     friend class RSContext;

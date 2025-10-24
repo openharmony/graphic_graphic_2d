@@ -76,5 +76,24 @@ HWTEST_F(RSRenderNodeAllocatorTest, AddNodeToAllocatorTest, TestSize.Level1)
     EXPECT_FALSE(nodeAllocator.AddNodeToAllocator(newCanvasNodePtr.get()));
 }
 
+/**
+ * @tc.name: CreateRSCanvasRenderNodeTest002
+ * @tc.desc: test CreateRSCanvasRenderNode for RS_ENABLE_MEMORY_DOWNTREE
+ * @tc.type: FUNC
+ * @tc.require: issueICD9PG
+ */
+HWTEST_F(RSRenderNodeAllocatorTest, CreateRSCanvasRenderNodeTest002, TestSize.Level1)
+{
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    auto& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto node = nodeAllocator.CreateRSCanvasRenderNode(0);
+    ASSERT_NE(node, nullptr);
+
+    nodeAllocator.AddNodeToAllocator(node.get());
+    auto newNode = nodeAllocator.CreateRSCanvasRenderNode(1);
+    ASSERT_NE(newNode, nullptr);
+#endif
+    ASSERT_TRUE(true);
+}
 } // namespace Rosen
 } // namespace OHOS

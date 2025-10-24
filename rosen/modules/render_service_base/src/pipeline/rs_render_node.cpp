@@ -551,7 +551,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 #endif
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (IsNodeMemClearEnable()) {
-        RSRenderNodeGC::GetInstance().SetIsOnTheTree(GetId(), weak_from_this(), isOnTheTree_);
+        RSRenderNodeGC::Instance().SetIsOnTheTree(GetId(), weak_from_this(), isOnTheTree_);
     }
 #endif
 #endif
@@ -566,14 +566,23 @@ void RSRenderNode::ReleaseNodeMem()
     ROSEN_LOGD("RSRenderNode::ReleaseNodeMem, node[id:%{public}" PRIu64 "]", GetId());
     if (renderDrawable_) {
         renderDrawable_.reset();
-        DrawableV2::RSRenderNodeDrawableAdapter::RemoveNodeDrawableAdapter(GetId());
+        DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(GetId());
     }
     if (drawableVec_) {
         drawableVec_.reset();
-        drawableVecStatus = 0;
+        drawableVecStatus_ = 0;
 #endif
 }
 
+bool RSRenderNode::IsNodeMemClearEnable()
+{
+#ifdef NOT_BUILD_FOR_OHOS_SDK
+        return RSSystemProperties::GetNodeMemClearEnabled() && GetType() == RSRenderNodeType::CANVAS_NODE
+        && RSProperties::IS_UNI_RENDER && !isTextureExportNode_;
+#else
+        return false;
+#endif
+}
 void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
@@ -1381,8 +1390,8 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
 #ifdef RS_ENABLE_GPU
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
-    if (IsNodeMemClearEnabled()) {
-        ROSEN_LOGD("RSRenderNode::ReleaseNodeMem, node[id:%{public}" PRIu64 "]", GetId());
+    if (IsNodeMemClearEnable()) {
+        ROSEN_LOGD("RSRenderNode::PrepareSelfNodeForApplyModifiers, node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
     }
 #endif
@@ -4810,6 +4819,7 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     if (!drawableVec_) {
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
         SetDirty();
+        AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
         for (auto& [_, slot] : modifiersNG_) {
             for (auto& modifier : slot) {
                 AddDirtyType(modifier->GetType());
