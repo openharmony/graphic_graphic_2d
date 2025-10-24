@@ -842,4 +842,30 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest002, TestSize.
     node->ContentStyleSlotUpdate();
     EXPECT_TRUE(node->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE)));
 }
+
+/**
+ * @tc.name: SplitDrawCmdListTest
+ * @tc.desc: Test SplitDrawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, SplitDrawCmdListTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(13);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    Drawing::Brush brush;
+    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    node->SplitDrawCmdList(1, drawCmdList, true);
+    EXPECT_TRUE(drawCmdList->IsEmpty());
+    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    node->SplitDrawCmdList(1, drawCmdList, false);
+    EXPECT_TRUE(drawCmdList->IsEmpty());
+    node->cachedOpCount_ = 300000;
+    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    node->SplitDrawCmdList(1, drawCmdList, true);
+    EXPECT_TRUE(drawCmdList->IsEmpty());
+    node->cachedOpCount_ = 300000;
+    drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
+    node->SplitDrawCmdList(1, drawCmdList, false);
+    EXPECT_TRUE(drawCmdList->IsEmpty());
+}
 } // namespace OHOS::Rosen
