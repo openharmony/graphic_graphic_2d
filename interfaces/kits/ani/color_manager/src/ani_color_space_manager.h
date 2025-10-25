@@ -44,7 +44,10 @@ public:
         return colorSpaceToken_;
     }
 
+    static ani_class colorSpaceManagerClass_;
     static ani_enum enumType_;
+    static ani_field nativePtrField_;
+    static ani_method makePointMethod_;
     static std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> nativeToEnumMap_;
 
 private:
