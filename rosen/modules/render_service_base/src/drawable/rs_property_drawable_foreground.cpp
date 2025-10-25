@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
 
 namespace OHOS::Rosen {
@@ -44,6 +45,7 @@ constexpr char NORMAL_LIGHT_SHADER_STRING[](R"(
     uniform float bumpFactor;
     uniform float gradientRadius;
     uniform float bulgeRadius;
+    uniform float attenuationCoeff;
     uniform float eps;
 
     float sdf_g2_rounded_box(vec2 p, vec2 b, float r, float k)
@@ -103,17 +105,26 @@ constexpr char NORMAL_LIGHT_SHADER_STRING[](R"(
 
         for (int i = 0; i < 12; i++) {
             if (abs(specularStrength[i]) > 0.01) {
-                vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
-                vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
-                vec3 halfwayDir = normalize(lightDir + viewDir);                             // half vector
+                vec3 lightVec = vec3(lightPos[i].xy - drawing_coord, lightPos[i].z);
+                vec3 lightDir = normalize(lightVec);
+                vec3 viewDir = normalize(lightVec); // view vector
+                vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+
+                // lightPos[i].w stores the maximum lighting radius
+                float normalizedDistance = length(lightVec) / lightPos[i].w;
+                float smoothFactor = smoothstep(0.8, 1.0, normalizedDistance);
+                float attenuation = (1.0 - smoothFactor) / (1.0 + attenuationCoeff *
+                    normalizedDistance * normalizedDistance);
                 float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);
                 vec4 specularColor = specularLightColor[i];
-                fragColor += specularColor * spec * specularStrength[i];
+                fragColor += specularColor * spec * specularStrength[i] * attenuation;
             }
         }
         return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
     }
 )");
+
+constexpr float SDR_LUMINANCE = 1.0f;
 } // namespace
 
 const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
@@ -679,6 +690,10 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     if (!illuminatedPtr || !illuminatedPtr->IsIlluminatedValid()) {
         return false;
     }
+    enableEDREffect_ = illuminatedPtr->GetIlluminatedType() == IlluminatedType::NORMAL_BORDER_CONTENT;
+    if (enableEDREffect_) {
+        screenNodeId_ = node.GetScreenNodeId();
+    }
     return true;
 }
 
@@ -711,6 +726,93 @@ void RSPointLightDrawable::OnSync()
     if (properties_.GetBoundsGeometry()) {
         rect_ = properties_.GetBoundsGeometry()->GetAbsRect();
     }
+    if (enableEDREffect_) {
+        displayHeadroom_ = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
+    }
+}
+
+float RSPointLightDrawable::GetBrightnessMapping(float headroom, float input)
+{
+    if (ROSEN_GE(headroom, EFFECT_MAX_LUMINANCE)) {
+        return input;
+    }
+    // Bezier curves describing tone mapping rule, anchors define
+    static const std::vector<Vector2f> hdrCurveAnchors = {
+        {0.0f, 0.0f}, {0.75f, 0.75f}, {1.0f, 0.95f}, {1.25f, 0.97f},
+        {1.5f, 0.98f}, {1.75, 0.9875f}, {1.90f, 0.995f}, {2.0f, 1.0f},
+    };
+
+    // Bezier curves describing tone mapping rule, control points define
+    static const std::vector<Vector2f> hdrCurveControlPoint = {
+        {0.375f, 0.375f}, {0.875, 0.875f}, {1.125f, 0.9625f}, {1.375f, 0.9725f},
+        {1.625f, 0.98f}, {1.825f, 0.99f}, {1.95f, 0.998f}, // control points one less than anchor points
+    };
+
+    int rangeIndex = -1;
+    const float epsilon = 1e-6f;
+    for (size_t i = 0; i < hdrCurveAnchors.size(); ++i) {
+        if (input - hdrCurveAnchors[i].x_ < epsilon) {
+            rangeIndex = static_cast<int>(i) - 1;
+            break;
+        }
+    }
+    if (rangeIndex == -1) {
+        rangeIndex = static_cast<int>(hdrCurveAnchors.size()) - PARAM_TWO;
+    }
+    if (rangeIndex >= static_cast<int>(hdrCurveAnchors.size()) - 1) {
+        return headroom;
+    }
+    if (rangeIndex >= static_cast<int>(hdrCurveControlPoint.size())) {
+        return headroom;
+    }
+
+    // calculate new hdr bightness via bezier curve
+    Vector2f start = hdrCurveAnchors[rangeIndex];
+    Vector2f end = hdrCurveAnchors[rangeIndex + 1];
+    Vector2f control = hdrCurveControlPoint[rangeIndex];
+
+    std::optional<float> resultYOptional = CalcBezierResultY(start, end, control, input);
+    const float bezierY = resultYOptional.value_or(input);
+    const float weightHDR = (EFFECT_MAX_LUMINANCE - headroom) / (EFFECT_MAX_LUMINANCE - SDR_LUMINANCE);
+    const float weightSDR = (headroom - SDR_LUMINANCE) / (EFFECT_MAX_LUMINANCE - SDR_LUMINANCE);
+    const float interpolationedY = weightHDR * bezierY + weightSDR * input;
+    return std::clamp(interpolationedY, 0.0f, headroom);
+}
+
+std::optional<float> RSPointLightDrawable::CalcBezierResultY(
+    const Vector2f& start, const Vector2f& end, const Vector2f& control, float x)
+{
+    // Solve quadratic beziier formula with root formula
+    const float a = start[0] - 2 * control[0] + end[0];
+    const float b = 2 * (control[0] - start[0]);
+    const float c = start[0] - x;
+    constexpr float FOUR = 4.0f;
+    constexpr float TWO = 2.0f;
+    const float discriminant = b * b - FOUR * a * c;
+
+    if (ROSEN_LNE(discriminant, 0.0f)) {
+        return std::nullopt;
+    }
+    float t = 0.0f;
+    if (ROSEN_EQ(a, 0.0f) && ROSEN_NE(b, 0.0f)) {
+        t = -c / b;
+    } else {
+        const float sqrtD = std::sqrt(discriminant);
+        const float t1 = (-b + sqrtD) / (TWO * a);
+        const float t2 = (-b - sqrtD) / (TWO * a);
+        if (ROSEN_GE(t1, 0.0f) && ROSEN_LE(t1, 1.0f)) {
+            t = t1;
+        } else if (ROSEN_GE(t2, 0.0f) && ROSEN_LE(t2, 1.0f)) {
+            t = t2;
+        }
+    }
+
+    return start[1] + t * (TWO * (control[1] - start[1]) + t * (start[1] - TWO * control[1] + end[1]));
+}
+
+bool RSPointLightDrawable::NeedToneMapping(float supportHeadroom)
+{
+    return ROSEN_GNE(supportHeadroom, 0.0f) && ROSEN_LNE(supportHeadroom, EFFECT_MAX_LUMINANCE);
 }
 
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeFeatheringBoardLightShaderBuilder() const
@@ -738,6 +840,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalL
     constexpr float DEFAULT_GRADIENT_RADIUS = 10.0f;
     constexpr float DEFAULT_BULGE_RADIUS = 15.0f;
     constexpr float DEFAULT_EPSLION = 1.0f;
+    constexpr float DEFAULT_ATTENUATION_COEFF = 1.0f;
     constexpr float CORNER_RADIUS_SCALE_FACTOR = 1.31f;
     constexpr float CORNER_THRESHOLD_FACTOR = 1.7f;
     constexpr float G2_CURVEATURE_K = 2.77f;
@@ -750,6 +853,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalL
     builder->SetUniform("gradientRadius", DEFAULT_GRADIENT_RADIUS);
     builder->SetUniform("bulgeRadius", DEFAULT_BULGE_RADIUS);
     builder->SetUniform("eps", DEFAULT_EPSLION);
+    builder->SetUniform("attenuationCoeff", DEFAULT_ATTENUATION_COEFF);
     if (cornerRadius * CORNER_THRESHOLD_FACTOR * PARAM_TWO < std::min(rectWidth, rectHeight)) {
         builder->SetUniform("roundCurvature", G2_CURVEATURE_K);
         builder->SetUniform("cornerRadius", cornerRadius * CORNER_RADIUS_SCALE_FACTOR);
@@ -784,6 +888,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
 
     auto iter = lightSourcesAndPosVec_.begin();
     auto cnt = 0;
+    bool needToneMapping = NeedToneMapping(displayHeadroom_);
     while (iter != lightSourcesAndPosVec_.end() && cnt < MAX_LIGHT_SOURCES) {
         auto lightPos = iter->second;
         auto lightIntensity = iter->first->GetLightIntensity();
@@ -793,9 +898,13 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
         for (int i = 0; i < vectorLen; i++) {
             lightPosArray[cnt * vectorLen + i] = lightPos[i];
             viewPosArray[cnt * vectorLen + i] = lightPos[i];
-            lightColorArray[cnt * vectorLen + i] = lightColorVec[i] / UINT8_MAX;
+            float lightColorNorm = lightColorVec[i] / UINT8_MAX;
+            if (enableEDREffect_ && needToneMapping) {
+                lightColorNorm = GetBrightnessMapping(displayHeadroom_, lightColorNorm);
+            }
+            lightColorArray[cnt * vectorLen + i] = lightColorNorm;
         }
-        lightIntensityArray[cnt] = lightIntensity;
+        lightIntensityArray[cnt] = std::abs(lightIntensity);
         iter++;
         cnt++;
     }
@@ -806,7 +915,8 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-    ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d", illuminatedType_);
+    ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d displayHeadroom_:%{public}f",
+        illuminatedType_, displayHeadroom_);
     if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT)) {
@@ -935,7 +1045,7 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
-    constexpr float contentIntensityCoefficient = 0.3f;
+    float contentIntensityCoefficient = illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT ? 1.0f : 0.3f;
     float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
     for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
         specularStrengthArr[i] = lightIntensityArray[i] * contentIntensityCoefficient;

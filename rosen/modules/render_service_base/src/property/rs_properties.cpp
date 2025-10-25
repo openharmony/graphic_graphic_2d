@@ -3689,13 +3689,12 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     if (!GetLightSource()) {
         GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
     }
-    GetLightSource()->SetLightIntensity(lightIntensity);
-    SetDirty();
-    contentDirty_ = true;
-
     if (ROSEN_EQ(lightIntensity, INVALID_INTENSITY)) { // skip when resetFunc call
         return;
     }
+    GetLightSource()->SetLightIntensity(lightIntensity);
+    SetDirty();
+    contentDirty_ = true;
     auto preIntensity = GetLightSource()->GetPreLightIntensity();
     auto renderNode = backref_.lock();
     if (renderNode == nullptr) {
@@ -3746,14 +3745,13 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
         GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
     }
     auto curIlluminateType = IlluminatedType(illuminatedType);
+    if (curIlluminateType == IlluminatedType::INVALID) { // skip when resetFunc call
+        return;
+    }
     GetIlluminated()->SetIlluminatedType(curIlluminateType);
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
-
-    if (curIlluminateType == IlluminatedType::INVALID) { // skip when resetFunc call
-        return;
-    }
     auto renderNode = backref_.lock();
     if (renderNode == nullptr) {
         return;

@@ -29,11 +29,11 @@ const RSPointLightRenderModifier::LegacyPropertyApplierMap RSPointLightRenderMod
 
 void RSPointLightRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetLightIntensity(0.f);
+    properties.SetLightIntensity(INVALID_INTENSITY);
     properties.SetLightColor(RgbPalette::White());
     properties.SetLightPosition(Vector4f());
     properties.SetIlluminatedBorderWidth(0.f);
-    properties.SetIlluminatedType(0);
+    properties.SetIlluminatedType(static_cast<int>(IlluminatedType::INVALID));
     properties.SetBloom(0.f);
 }
 } // namespace OHOS::Rosen::ModifierNG

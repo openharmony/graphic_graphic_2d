@@ -184,7 +184,8 @@ Vector4f RSPointLightManager::CalculateLightPosForIlluminated(
             break;
     }
     lightPos.z_ = lightPosition.z_;
-    lightPos.w_ = lightPosition.w_;
+    // store the lightRadius at lightPos.w_
+    lightPos.w_ = lightSource.GetLightRadius();
     return lightPos;
 }
 

@@ -80,7 +80,8 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::BACKGROUND_FILTER,
     RSDrawableSlot::BACKGROUND_NG_SHADER,
     RSDrawableSlot::COMPOSITING_FILTER,
-    RSDrawableSlot::BLENDER
+    RSDrawableSlot::BLENDER,
+    RSDrawableSlot::POINT_LIGHT,
 };
 
 constexpr uint32_t SET_IS_ON_THE_TREE_THRESHOLD = 50;

@@ -300,7 +300,7 @@ public:
 
     bool IsLightSourceValid() const
     {
-        return !ROSEN_EQ(intensity_, 0.f);
+        return ROSEN_GNE(intensity_, 0.f);
     }
     float GetPreLightIntensity() const
     {
@@ -363,7 +363,7 @@ public:
     }
     bool IsIlluminatedValid() const
     {
-        return illuminatedType_ != IlluminatedType::NONE;
+        return illuminatedType_ != IlluminatedType::NONE && illuminatedType_ != IlluminatedType::INVALID;
     }
     const IlluminatedType& GetPreIlluminatedType() const
     {

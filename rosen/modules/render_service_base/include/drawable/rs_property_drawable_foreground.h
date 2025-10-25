@@ -196,6 +196,10 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    bool GetEnableEDR() const override
+    {
+        return enableEDREffect_;
+    }
 
 private:
     const RSProperties &properties_;
@@ -204,11 +208,20 @@ private:
     IlluminatedType illuminatedType_ = IlluminatedType::INVALID;
     Drawing::RoundRect borderRRect_ = {};
     Drawing::RoundRect contentRRect_ = {};
+
+    NodeId screenNodeId_ = INVALID_NODEID;
+    bool enableEDREffect_ = false;
+    float displayHeadroom_ = 0.0f;
     float borderWidth_ = 0.0f;
     void DrawLight(Drawing::Canvas* canvas) const;
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetFeatheringBoardLightShaderBuilder();
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetNormalLightShaderBuilder();
+
+    static float GetBrightnessMapping(float headroom, float input);
+    static bool NeedToneMapping(float supportHeadroom);
+    static std::optional<float> CalcBezierResultY(
+        const Vector2f& start, const Vector2f& end, const Vector2f& control, float x);
 
     std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeFeatheringBoardLightShaderBuilder() const;
     std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeNormalLightShaderBuilder() const;

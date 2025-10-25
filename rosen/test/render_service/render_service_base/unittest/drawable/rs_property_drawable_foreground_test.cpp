@@ -360,6 +360,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest003, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest2 =
         std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest2);
     EXPECT_NE(pointLightDrawableTest2, nullptr);
+    pointLightDrawableTest2->enableEDREffect_ = true;
     pointLightDrawableTest2->OnSync();
     EXPECT_EQ(pointLightDrawableTest2->rect_, RectI(0, 1, 2, 3));
 }
@@ -403,6 +404,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest004, TestSize.Level1)
     EXPECT_FLOAT_EQ(pointLightDrawableTest2->contentRRect_.GetRect().GetWidth(),
         pointLightDrawableTest2->borderRRect_.GetRect().GetWidth() + 1.0f);
 }
+
 
 /**
  * @tc.name: CreateDrawFuncTest001
@@ -497,6 +499,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest001, TestSize.Level1)
 
     Drawing::Canvas canvasTest6;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
+    pointLightDrawableTest->enableEDREffect_ = true;
     pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
         std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest6);
@@ -583,6 +586,46 @@ HWTEST_F(RSPropertyDrawableForegroundTest, MakeShaderTest001, TestSize.Level1)
     EXPECT_NE(pointLightDrawableTest->MakeFeatheringBoardLightShaderBuilder(), nullptr);
     EXPECT_NE(pointLightDrawableTest->MakeNormalLightShaderBuilder(), nullptr);
 }
+
+/**
+ * @tc.name: GetBrightnessMappingTest001
+ * @tc.desc: test results of GetBrightnessMapping
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+*/
+HWTEST_F(RSPropertyDrawableForegroundTest, GetBrightnessMappingTest001, TestSize.Level1)
+{
+    RSProperties propertiesTest;
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest);
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    EXPECT_EQ(pointLightDrawableTest->GetBrightnessMapping(10.0f, 4.0f), 4.0f);
+    EXPECT_EQ(pointLightDrawableTest->GetBrightnessMapping(1.5f, -1.0f), 0.0f);
+    EXPECT_NE(pointLightDrawableTest->GetBrightnessMapping(1.5f, 1.25f), 1.25f);
+    EXPECT_NE(pointLightDrawableTest->GetBrightnessMapping(1.5f, 1.1f), 1.1f);
+}
+
+/**
+ * @tc.name: CalcBezierResultYTest001
+ * @tc.desc: test results of CalcBezierResultY
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+*/
+HWTEST_F(RSPropertyDrawableForegroundTest, CalcBezierResultYTest001, TestSize.Level1)
+{
+    RSProperties propertiesTest;
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest);
+    auto resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {0.5f, 0.5f}, 0.5f);
+    EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}, 2.0f);
+    EXPECT_EQ(0.0f, resultYOptional.value_or(0.0f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}, 1.0f);
+    EXPECT_EQ(1.0f, resultYOptional.value_or(1.0f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({4.0f, 0.0f}, {-1.0f, 1.0f}, {2.0f, 2.0f}, 2.0f);
+    EXPECT_EQ(1.191836f, resultYOptional.value_or(1.191836f));
+}
+
 
 /**
  * @tc.name: DrawBorderTest001
