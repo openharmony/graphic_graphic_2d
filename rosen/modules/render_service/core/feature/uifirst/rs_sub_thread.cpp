@@ -68,6 +68,7 @@ pid_t RSSubThread::Start()
         if (grContext_ == nullptr) {
             return;
         }
+        RSMainThread::Instance()->InitVulkanErrorCallback(grContext_.get());
         grContext_->RegisterPostFunc([this](const std::function<void()>& task) {
             PostTask(task);
         });
