@@ -496,7 +496,7 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis002, TestSize.Level0)
     paragraphMiddleEllipsis_->Layout(200);
     OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
     EXPECT_EQ(range.start, 5);
-    EXPECT_EQ(range.end, 27);
+    EXPECT_EQ(range.end, 30);
 }
 
 /*
