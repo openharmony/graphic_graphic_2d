@@ -23,10 +23,12 @@ namespace OHOS {
 namespace ColorManager {
 static const std::string COLOR_SPACE_MANAGER_CLS_NAME =
     "@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpaceManagerInner";
-static const std::string DOUBLE_CLS_NAME = "std.core.Double";
 static const std::string ERROR_CLS_NAME = "escompat.Error";
 
+ani_class AniColorSpaceManager::colorSpaceManagerClass_ = nullptr;
 ani_enum AniColorSpaceManager::enumType_ = nullptr;
+ani_field AniColorSpaceManager::nativePtrField_ = nullptr;
+ani_method AniColorSpaceManager::makePointMethod_ = nullptr;
 std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> AniColorSpaceManager::nativeToEnumMap_;
 
 static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
@@ -47,29 +49,6 @@ static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
     ani_object errorObject;
     env->Object_New(cls, ctor, &errorObject, error_msg);
     return static_cast<ani_error>(errorObject);
-}
-
-static ani_object DoubleToObject(ani_env *env, double value)
-{
-    ani_object aniObject = nullptr;
-    ani_double doubleValue = static_cast<ani_double>(value);
-    ani_class aniClass;
-    static const char* className = DOUBLE_CLS_NAME.c_str();
-    if (ANI_OK != env->FindClass(className, &aniClass)) {
-        ACMLOGE("Not found '%{public}s'.", className);
-        return aniObject;
-    }
-    ani_method ctorMethod;
-    if (ANI_OK != env->Class_FindMethod(aniClass, "<ctor>", "d:", &ctorMethod)) {
-        ACMLOGE("Class_GetMethod Failed '%{public}s <ctor>.'", className);
-        return aniObject;
-    }
-
-    if (ANI_OK != env->Object_New(aniClass, ctorMethod, &aniObject, doubleValue)) {
-        ACMLOGE("Object_New Failed '%{public}s. <ctor>", className);
-        return aniObject;
-    }
-    return aniObject;
 }
 
 bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
@@ -96,7 +75,7 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
 AniColorSpaceManager* AniColorSpaceManager::unwrap(ani_env *env, ani_object object)
 {
     ani_long nativePtrLong;
-    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &nativePtrLong)) {
+    if (ANI_OK != env->Object_GetField_Long(object, AniColorSpaceManager::nativePtrField_, &nativePtrLong)) {
         ACMLOGE("[ANI]Object_GetField_Long failed");
         return nullptr;
     }
@@ -136,7 +115,7 @@ ani_object AniColorSpaceManager::CreateByColorSpace(ani_env* env, ani_enum_item 
 
     ani_int intValue;
     if (ANI_OK != env->EnumItem_GetValue_Int(enumObj, &intValue)) {
-        ACMLOGE("Enum_GetEnumItemByIndex FAILD");
+        ACMLOGE("Enum_GetEnumItemByIndex Failed");
         return result;
     }
     
@@ -309,33 +288,10 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
     }
 
     std::array<float, DIMES_2> wp = colorSpaceToken_->GetWhitePoint();
-
-    ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
-        ACMLOGE("[ANI]FindClass escompat.Array Failed");
+    if (ANI_OK != env->Object_CallMethod_Ref(obj, AniColorSpaceManager::makePointMethod_, &arrayValue, wp[0], wp[1])) {
+        ACMLOGE("[ANI]Object_CallMethod_Ref failed");
     }
-    ani_method arrayCtor;
-    if (ANI_OK != env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) {
-        ACMLOGE("[ANI]Class_FindMethod <ctor> Failed");
-    }
-
-    ani_object arrayObj;
-    if (ANI_OK != env->Object_New(arrayCls, arrayCtor, &arrayObj, DIMES_2)) {
-        ACMLOGE("[ANI]Object_New Array Faild");
-        return arrayObj;
-    }
-
-    ani_size index = 0;
-    for (auto item : wp) {
-        ACMLOGE("[ANI]item = %{public}f ", item);
-        ani_object aniValue = DoubleToObject(env, item);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
-            ACMLOGE("[ANI]Object_CallMethodByName_Void  $_set Faild ");
-            break;
-        }
-        index++;
-    }
-    return arrayObj;
+    return arrayValue;
 }
 
 ani_double AniColorSpaceManager::OnGetGamma(ani_env *env, ani_object obj)
