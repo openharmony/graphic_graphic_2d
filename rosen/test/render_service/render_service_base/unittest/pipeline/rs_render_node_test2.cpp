@@ -1343,6 +1343,27 @@ HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalDistortionEffectRecttest, TestS
 }
 
 /**
+ * @tc.name: CollectAndUpdateLocalMagnifierEffectRectTest
+ * @tc.desc: CollectAndUpdateLocalMagnifierEffectRect
+ * @tc.type: FUNC
+ * @tc.require: issue20188
+ */
+HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalMagnifierEffectRectTest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.CollectAndUpdateLocalMagnifierEffectRect();
+    EXPECT_FALSE(node.renderProperties_.GetMagnifierDirty());
+
+    std::shared_ptr<RSMagnifierParams> para = std::make_shared<RSMagnifierParams>();
+    para->offsetX_ = 50.f; // set offset 50 of X
+    para->offsetY_ = 100.f; // set offset 100 of Y
+    para->factor_ = 0.5f; // set factor 0.5
+    node.renderProperties_.SetMagnifierParams(para);
+    node.CollectAndUpdateLocalMagnifierEffectRect();
+    EXPECT_TRUE(node.renderProperties_.GetMagnifierDirty());
+}
+
+/**
  * @tc.name: ChildrenBlurBehindWindowTest
  * @tc.desc: ChildrenBlurBehindWindowTest
  * @tc.type: FUNC

@@ -1334,6 +1334,7 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
     void CollectAndUpdateLocalDistortionEffectRect();
+    void CollectAndUpdateLocalMagnifierEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
     bool UpdateSelfDrawRect();

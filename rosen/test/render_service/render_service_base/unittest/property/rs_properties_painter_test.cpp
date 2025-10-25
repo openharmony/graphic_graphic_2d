@@ -1263,5 +1263,31 @@ HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
     RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
 }
+
+/**
+ * @tc.name: GetMagnifierEffectDirtyRectTest
+ * @tc.desc: GetMagnifierEffectDirtyRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetMagnifierEffectDirtyRectTest, TestSize.Level1)
+{
+    RectI localDistortionEffectRect(0, 0, 0, 0);
+    RSProperties properties;
+    float width = 200.0f; // set width 200
+    float height = 200.0f; // set height 200
+    Vector4f bounds(0.0, 0.0, width, height);
+    properties.SetBounds(bounds);
+
+    RSPropertiesPainter::GetMagnifierEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_EQ(localDistortionEffectRect.left_, 0);
+
+    std::shared_ptr<RSMagnifierParams> para = std::make_shared<RSMagnifierParams>();
+    para->offsetX_ = 50.f; // set offset 50 of X
+    para->offsetY_ = 100.f; // set offset 100 of Y
+    para->factor_ = 0.5f; // set factor 0.5
+    properties.SetMagnifierParams(para);
+    RSPropertiesPainter::GetMagnifierEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_NE(localDistortionEffectRect.left_, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

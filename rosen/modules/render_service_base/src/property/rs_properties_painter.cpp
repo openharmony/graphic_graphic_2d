@@ -827,6 +827,23 @@ void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEff
     }
 }
 
+// calculate the magnifier effect's dirty area
+void RSPropertiesPainter::GetMagnifierEffectDirtyRect(RectI& dirtyMagnifierEffect, const RSProperties& properties)
+{
+    const auto& magnifierPara = properties.GetMagnifierPara();
+    if (!magnifierPara) {
+        return;
+    }
+    auto boundsRect = properties.GetBoundsRect();
+    auto scaledBounds = RectF(boundsRect.left_ + magnifierPara->offsetX_, boundsRect.top_ + magnifierPara->offsetY_,
+        boundsRect.width_, boundsRect.height_);
+    auto drawingRect = Rect2DrawingRect(scaledBounds);
+    dirtyMagnifierEffect.left_ = static_cast<int>(std::floor(drawingRect.GetLeft()));
+    dirtyMagnifierEffect.top_ = static_cast<int>(std::floor(drawingRect.GetTop()));
+    dirtyMagnifierEffect.width_ = static_cast<int>(std::ceil(drawingRect.GetRight())) - dirtyMagnifierEffect.left_ ;
+    dirtyMagnifierEffect.height_ = static_cast<int>(std::ceil(drawingRect.GetBottom())) - dirtyMagnifierEffect.top_;
+}
+
 Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)
 {
     // create a 1x1 SkPixmap
