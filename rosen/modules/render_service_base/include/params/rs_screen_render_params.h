@@ -225,6 +225,8 @@ public:
 
     bool GetForceFreeze() const;
     void SetForceFreeze(bool forceFreeze);
+    bool GetHasMirroredScreenChanged() const;
+    void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
 
 private:
 
@@ -268,6 +270,7 @@ private:
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
+    bool hasMirroredScreenChanged_ = false;
 };
 } // namespace OHOS::Rosen
 

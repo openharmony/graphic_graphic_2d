@@ -242,4 +242,29 @@ HWTEST_F(RSScreenRenderParamsTest, SetForceFreeze, TestSize.Level1)
     params.SetForceFreeze(true);
     ASSERT_TRUE(params.GetForceFreeze());
 }
+
+/**
+ * @tc.name: SetHasMirroredScreenChanged
+ * @tc.desc: test result of SetHasMirroredScreenChanged
+ * @tc.type: FUNC
+ * @tc.require: issue20471
+ */
+HWTEST_F(RSScreenRenderParamsTest, SetHasMirroredScreenChanged, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    ASSERT_FALSE(params.GetHasMirroredScreenChanged());
+
+    params.SetHasMirroredScreenChanged(true);
+    ASSERT_TRUE(params.GetHasMirroredScreenChanged());
+
+    params.SetHasMirroredScreenChanged(true);
+    ASSERT_TRUE(params.GetHasMirroredScreenChanged());
+
+    params.SetHasMirroredScreenChanged(false);
+    ASSERT_FALSE(params.GetHasMirroredScreenChanged());
+
+    params.SetHasMirroredScreenChanged(false);
+    ASSERT_FALSE(params.GetHasMirroredScreenChanged());
+}
 } // namespace OHOS::Rosen

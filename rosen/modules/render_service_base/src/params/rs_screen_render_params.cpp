@@ -262,6 +262,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->childDisplayCount_ =  childDisplayCount_;
     targetScreenParams->logicalDisplayNodeDrawables_ =  std::move(logicalDisplayNodeDrawables_);
     targetScreenParams->forceFreeze_ = forceFreeze_;
+    targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
 
     RSRenderParams::OnSync(target);
 }
@@ -327,4 +328,17 @@ bool RSScreenRenderParams::GetForceFreeze() const
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
 
+void RSScreenRenderParams::SetHasMirroredScreenChanged(bool hasMirroredScreenChanged)
+{
+    if (hasMirroredScreenChanged_ == hasMirroredScreenChanged) {
+        return;
+    }
+    needSync_ = true;
+    hasMirroredScreenChanged_ = hasMirroredScreenChanged;
+}
+
+bool RSScreenRenderParams::GetHasMirroredScreenChanged() const
+{
+    return hasMirroredScreenChanged_;
+}
 } // namespace OHOS::Rosen
