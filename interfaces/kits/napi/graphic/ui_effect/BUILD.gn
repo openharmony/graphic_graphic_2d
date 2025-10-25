@@ -71,9 +71,12 @@ ohos_shared_library("uieffect_napi") {
     ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
       "image_framework:image",
       "image_framework:image_native",
       "ipc:ipc_core",
+      "samgr:samgr_proxy",
     ]
   }
 
