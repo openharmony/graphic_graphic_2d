@@ -95,6 +95,18 @@ ani_string AniTypeface::GetFamilyName(ani_env* env, ani_object obj)
     return CreateAniString(env, typeface->GetFamilyName());
 }
 
+ani_object AniTypeface::CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface> typeface)
+{
+    AniTypeface* aniTypeface = new AniTypeface(typeface);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        delete aniTypeface;
+        ROSEN_LOGE("AniTypeface::CreateAniTypeface failed create aniTypeface");
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+}
+
 ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string aniFilePath)
 {
     std::string filePath = CreateStdString(env, aniFilePath);
@@ -103,15 +115,7 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
         ROSEN_LOGE("AniTypeface::MakeFromFile create typeface failed!");
         return nullptr;
     }
-    AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TYPEFACE_NAME, aniTypeface);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
-        delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause aniObj is undefined");
-    }
-    return aniObj;
+    return CreateAniTypeface(env, typeface);
 }
 
 ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string aniFilePath,
@@ -126,15 +130,7 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     FontArguments fontArguments;
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
-    AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TYPEFACE_NAME, aniTypeface);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
-        delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments failed cause aniObj is undefined");
-    }
-    return aniObj;
+    return CreateAniTypeface(env, typeface);
 }
 
 std::shared_ptr<Typeface> LoadZhCnTypeface()
@@ -180,12 +176,11 @@ ani_object AniTypeface::MakeFromRawFile(ani_env* env, ani_object obj, ani_object
             return CreateAniUndefined(env);
         }
     }
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TYPEFACE_NAME, aniTypeface);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
         delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromRawFile failed cause aniObj is undefined");
+        ROSEN_LOGE("AniTypeface::MakeFromRawFile failed create aniTypeface");
+        return CreateAniUndefined(env);
     }
     return aniObj;
 #else
