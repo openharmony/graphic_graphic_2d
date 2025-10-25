@@ -141,7 +141,7 @@ ani_double AniMatrix::GetValue(ani_env* env, ani_object obj, ani_int index)
         return 0;
     }
 
-    if (CheckInt32OutOfRange(static_cast<ani_int>(index), NUMBER_ZREO, MATRIX_SIZE)) {
+    if (index < NUMBER_ZREO || index >= MATRIX_SIZE) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param index out of range.");
         return 0;
     }

@@ -102,7 +102,7 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_o
     env->Reference_IsUndefined(aniOffsetObj, &isUndefined);
     if (!isUndefined) {
         ani_int aniOffset = 0;
-        if (ANI_OK != env->Object_CallMethodByName_Int(aniOffsetObj, "unboxed", ":i", &aniOffset)) {
+        if (ANI_OK != env->Object_CallMethodByName_Int(aniOffsetObj, "toInt", ":i", &aniOffset)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param offset.");
             return CreateAniUndefined(env);
         }

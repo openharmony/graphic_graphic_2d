@@ -494,7 +494,7 @@ ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniTex
     env->Reference_IsUndefined(glyphCount, &isUndefined);
     if (!isUndefined) {
         ani_int aniGlyphCount;
-        if (ANI_OK != env->Object_CallMethodByName_Int(glyphCount, ":i", nullptr, &aniGlyphCount)) {
+        if (ANI_OK != env->Object_CallMethodByName_Int(glyphCount, "toInt", ":i", &aniGlyphCount)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniFont::TextToGlyphs incorrect type glyph.");
             return arrayObj;
@@ -824,7 +824,7 @@ ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText
     std::shared_ptr<Path> path = std::make_shared<Path>();
     realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
     AniPath* aniPath = new AniPath(path);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, ":");
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniFont::GetTextPath failed cause by Object_SetFieldByName_Long");
