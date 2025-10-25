@@ -33,6 +33,7 @@ constexpr uint8_t WIND_SIZE_FULLSCREEN = 2;
 constexpr uint8_t WIND_SIZE_SMALLSCREEN = 1;
 constexpr uint8_t SCALER_MODE_GPU = 3;
 constexpr uint8_t VIDEO_PLAYING_SCENE = 1;
+constexpr uint8_t VIDEO_PLAYING_NO_AIHDR_SCENE = 2;
 }
 
 enum TvColorPrimaries {
@@ -236,11 +237,12 @@ void RSTvMetadataManager::UpdateTvMetadata(const RSSurfaceRenderParams& params, 
     TvPQMetadata info{};
     static_cast<void>(MetadataHelper::GetVideoTVMetadata(buffer, info));
     if (info.sceneTag < VIDEO_PLAYING_SCENE) {
-        info.sceneTag = VIDEO_PLAYING_SCENE;
+        info.sceneTag = VIDEO_PLAYING_NO_AIHDR_SCENE;
     }
     CollectTvMetadata(params, buffer, info);
     info.scaleMode = 0;
-    static_cast<void>(MetadataHelper::SetVideoTVMetadata(const_cast<sptr<SurfaceBuffer>&>(buffer), info));
+    sptr<SurfaceBuffer> mutableBuffer = buffer;
+    static_cast<void>(MetadataHelper::SetVideoTVMetadata(const_cast<sptr<SurfaceBuffer>&>(mutableBuffer), info));
 }
 
 void RSTvMetadataManager::RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer)
@@ -255,7 +257,7 @@ void RSTvMetadataManager::RecordTvMetadata(const RSSurfaceRenderParams& params, 
     TvPQMetadata info{};
     static_cast<void>(MetadataHelper::GetVideoTVMetadata(buffer, info));
     if (info.sceneTag < VIDEO_PLAYING_SCENE) {
-        info.sceneTag = VIDEO_PLAYING_SCENE;
+        info.sceneTag = VIDEO_PLAYING_NO_AIHDR_SCENE;
     }
     CollectTvMetadata(params, buffer, info);
     info.scaleMode = SCALER_MODE_GPU;
@@ -334,7 +336,7 @@ void RSTvMetadataManager::SetUniRenderThreadParam(std::unique_ptr<RSRenderThread
     const auto &selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     for (auto surfaceNode : selfDrawingNodes) {
         if (surfaceNode == nullptr) {
-            return;
+            continue;
         }
         if (surfaceNode->GetId() == cachedSurfaceNodeId_) {
             bool isOnTheTree = surfaceNode->IsOnTheTree();

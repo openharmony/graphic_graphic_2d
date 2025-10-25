@@ -398,10 +398,10 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
  */
 HWTEST_F(TvMetadataTest, IsSdpInfoApp_001, TestSize.Level1)
 {
-    std::unordered_map<std::string, std::string> sdpAppMap = { {"com.example.app", "1"} };
-    EXPECT_CALL(VideoMetadataParam::GetVideoMetadataAppMap(), sdpAppMap).Times(1);
-
-    bool result = RSTvMetadataManager::IsSdpInfoApp("com.example.app");
+    std::string appName = "com.example.app";
+    std::string val = "1";
+    VideoMetadataParam::AddVideoMetadataApp(appName, val);
+    bool result = RSTvMetadataManager::IsSdpInfoAppId(appName);
     EXPECT_TRUE(result);
 }
 
@@ -413,10 +413,10 @@ HWTEST_F(TvMetadataTest, IsSdpInfoApp_001, TestSize.Level1)
  */
 HWTEST_F(TvMetadataTest, IsSdpInfoApp_002, TestSize.Level1)
 {
-    std::unordered_map<std::string, std::string> sdpAppMap = { {"com.example.app", "1"} };
-    EXPECT_CALL(VideoMetadataParam::GetVideoMetadataAppMap(), sdpAppMap).Times(1);
-
-    bool result = RSTvMetadataManager::IsSdpInfoApp("com.other.app");
+    std::string appName = "com.example.app";
+    std::string val = "1";
+    VideoMetadataParam::AddVideoMetadataApp(appName, val);
+    bool result = RSTvMetadataManager::IsSdpInfoAppId("com.other.app");
     EXPECT_FALSE(result);
 }
 

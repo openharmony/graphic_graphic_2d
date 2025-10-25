@@ -21,6 +21,7 @@
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -116,6 +117,11 @@ HWTEST_F(OverlayDisplayTest, OverlayProc_001, TestSize.Level1)
     Occlusion::Region damageRegion{Occlusion::Rect(0, 0, 200, 400)};
     ASSERT_EQ(0, RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(0));
     RSOverlayDisplayManager::Instance().PreProcForRender();
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    ASSERT_NE(renderThreadParams, nullptr);
+    renderThreadParams->overlayDisplayEnable_ =
+        RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync();
+    RSUniRenderThread::Instance().Sync(std::move(renderThreadParams));
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(dirtyManager, screenInfo, drawnRegion, damageRegion);
     RSOverlayDisplayManager::Instance().PostProcFilter(canvas);
     ASSERT_EQ(0, drawnRegion.GetBound().left_);
@@ -151,6 +157,11 @@ HWTEST_F(OverlayDisplayTest, OverlayProc_002, TestSize.Level1)
     Occlusion::Region damageRegion{Occlusion::Rect(0, 0, 200, 400)};
     ASSERT_EQ(0, RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(1));
     RSOverlayDisplayManager::Instance().PreProcForRender();
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    ASSERT_NE(renderThreadParams, nullptr);
+    renderThreadParams->overlayDisplayEnable_ =
+        RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync();
+    RSUniRenderThread::Instance().Sync(std::move(renderThreadParams));
     RSOverlayDisplayManager::Instance().ExpandDirtyRegion(dirtyManager, screenInfo, drawnRegion, damageRegion);
     RSOverlayDisplayManager::Instance().PostProcFilter(canvas);
     ASSERT_EQ(0, drawnRegion.GetBound().left_);
