@@ -205,6 +205,7 @@ void RSScreenRenderNode::UpdateRenderParams()
     screenParams->childDisplayCount_ = GetChildrenCount();
     screenParams->screenInfo_ = screenInfo_;
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
+    screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
     screenParams->roundCornerSurfaceDrawables_.clear();
     if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
         screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
