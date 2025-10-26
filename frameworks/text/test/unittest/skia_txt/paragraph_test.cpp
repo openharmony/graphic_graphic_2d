@@ -384,17 +384,18 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
     paragraphBuilder->AddText(text);
     std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
     ASSERT_NE(paragraph, nullptr);
-    paragraph->Layout(560);
+    // Test for layout width 519
+    paragraph->Layout(519);
     std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
-    EXPECT_EQ(textLines.size(), 7);
-    //expect lines 0,2,4 to have hyphenation breakpoints,
-    //and the last charater of each line to have a hyphen glyphid of 800
-    size_t breakArr[3] = {0, 2, 4};
+    EXPECT_EQ(textLines.size(), 8);
+    //expect lines 0,3,6 to have hyphenation breakpoints,
+    size_t breakArr[3] = {0, 3, 6};
     for (size_t i = 0; i < 3; i++) {
         ASSERT_NE(textLines.at(breakArr[i]), nullptr);
         std::vector<std::unique_ptr<SPText::Run>> runs = textLines.at(breakArr[i])->GetGlyphRuns();
         ASSERT_NE(runs.back(), nullptr);
         std::vector<uint16_t> glyphs = runs.back()->GetGlyphs();
+        // The last charater of each line to have a hyphen glyphid of 800
         EXPECT_EQ(glyphs.back(), 800);
     }
 }
