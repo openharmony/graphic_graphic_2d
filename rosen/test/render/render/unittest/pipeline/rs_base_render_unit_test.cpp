@@ -403,14 +403,15 @@ HWTEST_F(RSBaseRenderUnitTest, CreateImageFromBuffer002, TestSize.Level1)
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && renderEngine->imageManager_ && recordingCanvas) {
         unmappedCache.insert(params.buffer->GetSeqNum());
-        params.buffer->SetBufferDeleteFromCacheFlag(false);
+        EXPECT_FALSE(params.buffer->IsBufferDeleted());
         EXPECT_NE(renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo), nullptr);
         auto vkImageManager = std::static_pointer_cast<RSVkImageManager>(renderEngine->imageManager_);
         EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 1);
         renderEngine->ClearCacheSet(unmappedCache);
         EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
 
-        params.buffer->SetBufferDeleteFromCacheFlag(true);
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        EXPECT_TRUE(params.buffer->IsBufferDeleted());
         EXPECT_NE(renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo), nullptr);
         EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
     }
@@ -453,7 +454,7 @@ HWTEST_F(RSBaseRenderUnitTest, CreateImageFromBuffer003, TestSize.Level1)
         EXPECT_NE(params.buffer, nullptr);
         if (params.buffer && renderEngine->vkImageManager_ && recordingCanvas) {
             unmappedCache.insert(params.buffer->GetSeqNum());
-            params.buffer->SetBufferDeleteFromCacheFlag(false);
+            EXPECT_FALSE(params.buffer->IsBufferDeleted());
             auto image = renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo);
             EXPECT_NE(image, nullptr);
             EXPECT_EQ(image->GetAlphaType(), Drawing::AlphaType::ALPHATYPE_OPAQUE);

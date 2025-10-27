@@ -170,18 +170,25 @@ HWTEST_F(RSSurfaceHandlerTest, UpdateBuffer001, TestSize.Level1)
     int64_t timestamp = 0;
     Rect damage = { 0 };
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+
     // case 1: rSSurfaceHandlerPtr_->preBuffer_->buffer is nullptr
     auto ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
     EXPECT_EQ(ret, GSERROR_OK);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->preBuffer_.buffer, nullptr);
     rSSurfaceHandlerPtr_->UpdateBuffer(buffer, acquireFence, damage, timestamp);
     EXPECT_TRUE(!rSSurfaceHandlerPtr_->bufferSizeChanged_);
-    // case 2: rSSurfaceHandlerPtr_->preBuffer_->buffer isn't nullptr
+
+    // case 2: rSSurfaceHandlerPtr_->preBuffer_->buffer: nullptr -> not nullptr
     requestConfig.width = 0x300;
     ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
     EXPECT_EQ(ret, GSERROR_OK);
     rSSurfaceHandlerPtr_->UpdateBuffer(buffer, acquireFence, damage, timestamp);
     EXPECT_TRUE(rSSurfaceHandlerPtr_->bufferSizeChanged_);
     rSSurfaceHandlerPtr_->RegisterDeleteBufferListener(BufferDeleteCbFunc);
+
+    // case 3: rSSurfaceHandlerPtr_->preBuffer_->buffer isn't nullptr
+    EXPECT_NE(rSSurfaceHandlerPtr_->preBuffer_.buffer, nullptr);
+    rSSurfaceHandlerPtr_->UpdateBuffer(buffer, acquireFence, damage, timestamp);
 #endif
 }
 

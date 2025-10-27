@@ -179,32 +179,40 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
         ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer buffer is nullptr");
         return {};
     }
-    auto bufferId = buffer->GetBufferId();
-    auto deleteFlag = buffer->GetBufferDeleteFromCacheFlag();
+    BufferInfoCache bufferInfoCache{
+        .bufferId = buffer->GetBufferId(),
+        .width = buffer->GetWidth(),
+        .height = buffer->GetHeight(),
+        .fd = buffer->GetFileDescriptor(),
+        .size = buffer->GetSize(),
+        .bufferDeletedFlag = buffer->GetBufferDeletedFlag()
+    };
     auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
         HILOG_COMM_ERROR(
             "RSVkImageManager::NewImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}" PRIu64 ".",
-            bufferId);
+            bufferInfoCache.bufferId);
         return {};
     }
 
     size_t imageCacheSeqSize = imageCacheSeqs_.size();
-    DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: create image, bufferId=%{public}" PRIu64 ","
-        "threadIndex=%{public}d, deleteFlag=%{public}d, isProtected=%{public}d,cacheSeq=%{public}lu",
-        bufferId, threadIndex, deleteFlag, isProtectedCondition, imageCacheSeqSize);
+    DFX_LOGD(ENABLE_VKIMAGE_DFX,
+        "RSVkImageManagerDfx: create image, bufferId=%{public}" PRIu64 ","
+        "threadIndex=%{public}d, isProtected=%{public}d,cacheSeq=%{public}lu, bufferDeletedFlag=%{public}u",
+        bufferInfoCache.bufferId, threadIndex, isProtectedCondition, imageCacheSeqSize,
+        bufferInfoCache.bufferDeletedFlag);
     RS_TRACE_NAME_FMT("RSVkImageManagerDfx: create image, bufferId=%" PRIu64 ", "
-        "deleteFlag=%d, isProtected=%d, cacheSeq=%lu",
-        bufferId, deleteFlag, isProtectedCondition, imageCacheSeqSize);
+                      "isProtected=%d, cacheSeq=%lu, bufferDeletedFlag=%u",
+        bufferInfoCache.bufferId, isProtectedCondition, imageCacheSeqSize, bufferInfoCache.bufferDeletedFlag);
     imageCache->SetThreadIndex(threadIndex);
-    imageCache->SetBufferDeleteFromCacheFlag(deleteFlag);
+    imageCache->SetBufferInfoCache(bufferInfoCache);
     if (isProtectedCondition) {
         return imageCache;
     }
 
-    RS_LOGD("RSVkImageManager::NewImageCacheFromBuffer %{public}" PRIu64 "", bufferId);
+    RS_LOGD("RSVkImageManager::NewImageCacheFromBuffer %{public}" PRIu64 "", bufferInfoCache.bufferId);
     if (imageCacheSeqSize < MAX_CACHE_SIZE_FOR_REUSE) {
-        imageCacheSeqs_.emplace(bufferId, imageCache);
+        imageCacheSeqs_.emplace(bufferInfoCache.bufferId, imageCache);
     }
 
     return imageCache;
@@ -243,16 +251,20 @@ void RSVkImageManager::DumpVkImageInfo(std::string &dumpString)
     dumpString.append("\n---------RSVkImageManager-DumpVkImageInfo-Begin----------\n");
     dumpString.append("imageCacheSeqs size: " + std::to_string(imageCacheSeqs_.size()) + "\n");
     for (auto iter = imageCacheSeqs_.begin(); iter != imageCacheSeqs_.end(); ++iter) {
+        auto bufferInfoCache = iter->second->GetBufferInfoCache();
         dumpString.append("vkimageinfo: bufferId=" + std::to_string(iter->first) +
             ", threadIndex=" + std::to_string(iter->second->GetThreadIndex()) +
-            ", deleteFlag=" + std::to_string(iter->second->GetBufferDeleteFromCacheFlag()) + "\n");
+            ", width=" + std::to_string(bufferInfoCache.width) +
+            ", height=" + std::to_string(bufferInfoCache.height) +
+            ", fd=" + std::to_string(bufferInfoCache.fd) +
+            ", size=" + std::to_string(bufferInfoCache.size) +
+            ", bufferDeletedFlag=" + std::to_string(static_cast<uint32_t>(bufferInfoCache.bufferDeletedFlag)) + "\n");
     }
     dumpString.append("\n---------RSVkImageManager-DumpVkImageInfo-End----------\n");
 }
 
-std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
-    RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
-    const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
+std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
+    const BufferDrawParam& params, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
     const sptr<SurfaceBuffer>& buffer = params.buffer;
     const sptr<SyncFence>& acquireFence = params.acquireFence;
@@ -264,16 +276,19 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(
         RS_LOGE("RSVkImageManager::CreateImageFromBuffer: buffer is nullptr");
         return nullptr;
     }
-    auto imageCache = MapVkImageFromSurfaceBuffer(buffer,
-        acquireFence, threadIndex, canvas.GetSurface());
+    auto imageCache = MapVkImageFromSurfaceBuffer(buffer, acquireFence, threadIndex, canvas.GetSurface());
     if (imageCache == nullptr) {
         RS_LOGE("RSVkImageManager::MapImageFromSurfaceBuffer failed!");
         return nullptr;
     }
-    if (buffer != nullptr && buffer->GetBufferDeleteFromCacheFlag()) {
+    if (buffer->IsBufferDeleted()) {
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}" PRIu64 " marked for deletion from cache, unmapping",
             buffer->GetBufferId());
         UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
+        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
+            static_cast<BufferDeletedFlag>(0)) {
+            buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        }
     }
     auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
     auto screenColorSpace = RSBaseRenderEngine::GetCanvasColorSpace(canvas);

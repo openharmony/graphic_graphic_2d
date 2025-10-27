@@ -36,6 +36,15 @@
 namespace OHOS {
 namespace Rosen {
 
+using BufferInfoCache = struct {
+    uint64_t bufferId;
+    int32_t width;
+    int32_t height;
+    int32_t fd;
+    uint32_t size;
+    BufferDeletedFlag bufferDeletedFlag;
+};
+
 class VkImageResource {
 public:
     static std::shared_ptr<VkImageResource> Create(sptr<OHOS::SurfaceBuffer> buffer);
@@ -66,14 +75,14 @@ public:
         threadIndex_ = threadIndex;
     }
 
-    void SetBufferDeleteFromCacheFlag(const bool& flag)
+    void SetBufferInfoCache(const BufferInfoCache& bufferInfoCache)
     {
-        isBufferDeleteFromCache = flag;
+        bufferInfoCache_ = bufferInfoCache;
     }
 
-    bool GetBufferDeleteFromCacheFlag() const
+    BufferInfoCache GetBufferInfoCache() const
     {
-        return isBufferDeleteFromCache;
+        return bufferInfoCache_;
     }
 
 private:
@@ -81,7 +90,7 @@ private:
     Drawing::BackendTexture mBackendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
     pid_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
-    bool isBufferDeleteFromCache = false;
+    BufferInfoCache bufferInfoCache_;
 };
 
 class RSVkImageManager : public RSImageManager {

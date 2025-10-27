@@ -79,11 +79,15 @@ void RSSurfaceHandler::UpdateBuffer(
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    preBuffer_.Reset(!RSSystemProperties::GetVKImageUseEnabled());
+    if (preBuffer_.buffer != nullptr) {
+        bool isCached = consumer_->IsCached(preBuffer_.buffer->GetSeqNum());
+        preBuffer_.Reset(isCached ? !RSSystemProperties::GetVKImageUseEnabled() : true);
+    }
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
     if (buffer != nullptr) {
         buffer_.seqNum = buffer->GetBufferId();
+        buffer_.buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
     }
     buffer_.acquireFence = acquireFence;
     buffer_.damageRect = damage;
