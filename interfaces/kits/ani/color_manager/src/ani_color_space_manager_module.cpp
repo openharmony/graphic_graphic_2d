@@ -18,40 +18,6 @@
 using namespace std;
 using namespace OHOS::ColorManager;
 
-ani_status CacheColorSpaceManagerObjects(ani_env *env)
-{
-    if (ANI_OK != env->FindEnum("@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpace",
-        &AniColorSpaceManager::enumType_)) {
-        ACMLOGE("[ANI]Find Enum Failed");
-        return ANI_ERROR;
-    }
-
-    ani_enum_item enumItem = nullptr;
-    for (auto& iter : NATIVE_TO_STRING_MAP) {
-        env->Enum_GetEnumItemByName(AniColorSpaceManager::enumType_, iter.second.c_str(), &enumItem);
-        AniColorSpaceManager::nativeToEnumMap_.emplace(iter.first, enumItem);
-    }
-
-    if (ANI_OK != env->FindClass("@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpaceManagerInner",
-        &AniColorSpaceManager::colorSpaceManagerClass_)) {
-        ACMLOGE("[ANI]FindClass Failed");
-        return ANI_ERROR;
-    }
-
-    if (ANI_OK != env->Class_FindField(AniColorSpaceManager::colorSpaceManagerClass_, "nativePtr",
-        &AniColorSpaceManager::nativePtrField_)) {
-        ACMLOGE("[ANI]FindField Failed");
-        return ANI_ERROR;
-    }
-
-    if (ANI_OK != env->Class_FindMethod(AniColorSpaceManager::colorSpaceManagerClass_, "makePoint", nullptr,
-        &AniColorSpaceManager::makePointMethod_)) {
-        ACMLOGE("[ANI]FindMethod Failed");
-        return ANI_ERROR;
-    }
-    return ANI_OK;
-}
-
 ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
 {
     ani_env *env;
@@ -87,12 +53,6 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         ACMLOGE("AniColorSpaceManager init failed");
         return ANI_ERROR;
     }
-
-    if (ANI_OK != CacheColorSpaceManagerObjects(env)) {
-        ACMLOGE("CacheColorSpaceManagerObjects failed");
-        return ANI_ERROR;
-    }
-
     *result = ANI_VERSION_1;
     return ANI_OK;
 }

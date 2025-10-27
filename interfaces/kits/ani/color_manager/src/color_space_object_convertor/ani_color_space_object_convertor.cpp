@@ -25,7 +25,7 @@ std::shared_ptr<ColorSpace> GetColorSpaceByAniObject(ani_env *env, ani_object ob
         ACMLOGE("[ANI]GetColorSpaceByAniObject::object is nullptr");
         return nullptr;
     }
-    AniColorSpaceManager* aniColorSpaceManager =  AniColorSpaceManager::unwrap(env, object);
+    AniColorSpaceManager* aniColorSpaceManager =  AniColorSpaceManager::Unwrap(env, object);
     if (aniColorSpaceManager == nullptr) {
         ACMLOGE("[ANI]GetColorSpaceByAniObject::ani color space manager is nullptr");
         return nullptr;

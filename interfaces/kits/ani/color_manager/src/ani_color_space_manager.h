@@ -27,28 +27,22 @@ class AniColorSpaceManager {
 public:
     explicit AniColorSpaceManager(const std::shared_ptr<ColorSpace>& colorSpace) : colorSpaceToken_(colorSpace) {};
     ~AniColorSpaceManager() {};
-    
+
     static ani_status AniColorSpaceManagerInit(ani_env *env);
     static ani_object CreateByColorSpace(ani_env* env, ani_enum_item enumObj);
     static ani_object CreateByColorSpacePrimaries(ani_env* env, ani_object aniPrimaries, ani_double gamma);
-        
+
     static ani_enum_item GetColorSpaceName(ani_env *env, ani_object obj);
     static ani_ref GetWhitePoint(ani_env *env, ani_object obj);
     static ani_double GetGamma(ani_env *env, ani_object obj);
     static bool ParseColorSpacePrimaries(ani_env *env, ani_object obj, ColorSpacePrimaries& primaries);
-    static AniColorSpaceManager* unwrap(ani_env *env, ani_object object);
+    static AniColorSpaceManager* Unwrap(ani_env *env, ani_object object);
     static ani_object Wrap(ani_env *env, AniColorSpaceManager* colorSpaceManager);
-    
+
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {
         return colorSpaceToken_;
     }
-
-    static ani_class colorSpaceManagerClass_;
-    static ani_enum enumType_;
-    static ani_field nativePtrField_;
-    static ani_method makePointMethod_;
-    static std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> nativeToEnumMap_;
 
 private:
     ani_enum_item OnGetColorSpaceName(ani_env *env, ani_object obj);
