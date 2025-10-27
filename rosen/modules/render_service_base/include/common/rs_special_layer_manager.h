@@ -30,6 +30,7 @@ constexpr uint32_t VIRTUALSCREEN_IS_SPECIAL = 0X7;  //contain security、skip、
 constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、skip、protected layer
 constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
+constexpr uint32_t MAX_IDS_SIZE = 1024;
 
 enum SpecialLayerType : uint32_t {
     NONE = 0,
@@ -55,6 +56,7 @@ public:
     void AddIds(uint32_t type, NodeId id);
     void RemoveIds(uint32_t type, NodeId id);
 
+    void ClearSpecialLayerIds();
 private:
     uint32_t specialLayerType_ = SpecialLayerType::NONE;
     std::map<uint32_t, std::set<NodeId>> specialLayerIds_;
