@@ -101,6 +101,41 @@ bool RSRenderNode::IsPureContainer() const
     return (!GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_ && !HasDrawCmdModifiers());
 }
 
+bool RSRenderNode::IsPureBackgroundColor() const
+{
+    static std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
+        RSDrawableSlot::BG_SAVE_BOUNDS,
+        RSDrawableSlot::CLIP_TO_BOUNDS,
+        RSDrawableSlot::BACKGROUND_COLOR,
+        RSDrawableSlot::BG_RESTORE_BOUNDS,
+        RSDrawableSlot::SAVE_FRAME,
+        RSDrawableSlot::FRAME_OFFSET,
+        RSDrawableSlot::CLIP_TO_FRAME,
+        RSDrawableSlot::CHILDREN,
+        RSDrawableSlot::RESTORE_FRAME
+    };
+
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    if (!drawableVec_) {
+        RS_LOGE("drawableVec_ is nullptr");
+        return false;
+    }
+    auto &drawableVec = *drawableVec_;
+#else
+    auto &drawableVec = drawableVec_;
+#endif
+
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        if (drawableVec[i]) {
+            auto slot = static_cast<RSDrawableSlot>(i);
+            if (!pureBackgroundColorSlots.count(slot)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void RSRenderNode::SetDrawNodeType(DrawNodeType nodeType)
 {
     drawNodeType_ = nodeType;

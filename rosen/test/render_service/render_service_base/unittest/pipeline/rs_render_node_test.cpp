@@ -3272,6 +3272,36 @@ HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsPureBackgroundColor
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColorTest, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    drawableVec.fill(nullptr);
+    bool result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = std::make_shared<DrawableTest>();
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = nullptr;
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = std::make_shared<DrawableTest>();
+    }
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: SetUIContextTokenTest001
  * @tc.desc: test
  * @tc.type: FUNC
