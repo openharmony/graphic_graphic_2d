@@ -29,6 +29,8 @@
 
 #include "rs_profiler_command.h"
 
+#include "rs_profiler_file.h"
+
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service.h"
 
@@ -545,6 +547,106 @@ HWTEST_F(RecorRsProfileRecordTest, RecordMetrics, Level1)
     EXPECT_NO_THROW({
         RSProfiler::RecordMetrics(ArgList());
     });
+}
+
+HWTEST(RSProfilerMarshalTest, MarshalNode, TestSize.Level1 | Standard)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data;
+    RSProfiler::MarshalNode(node, data, RSFILE_VERSION_LATEST);
+
+    std::string buffer;
+    size_t size = 0;
+    size_t words = 0;
+    while (data >> buffer) {
+        size += buffer.size();
+        ++words;
+    }
+
+    EXPECT_EQ(size, 45u);
+
+    EXPECT_EQ(words, 1u);
+}
+
+HWTEST(RSProfilerMarshalTest, MarshalNodes, TestSize.Level1 | Standard)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data;
+    RSProfiler::MarshalNodes(*context_sptr, data, RSFILE_VERSION_LATEST, nullptr);
+
+    std::string buffer;
+    size_t size = 0;
+    size_t words = 0;
+    while (data >> buffer) {
+        size += buffer.size();
+        ++words;
+    }
+
+    EXPECT_EQ(size, 77u);
+
+    EXPECT_EQ(words, 1u);
+}
+
+HWTEST(RSProfilerMarshalTest, MarshalTree, TestSize.Level1 | Standard)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data;
+    RSProfiler::MarshalTree(node, data, RSFILE_VERSION_LATEST);
+
+    std::string buffer;
+    size_t size = 0;
+    size_t words = 0;
+    while (data >> buffer) {
+        size += buffer.size();
+        ++words;
+    }
+
+    EXPECT_EQ(size, 12u);
+
+    EXPECT_EQ(words, 1u);
+}
+
+HWTEST(RSProfilerMarshalTest, MarshalSubTreeLo, TestSize.Level1 | Standard)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data;
+    RSProfiler::MarshalSubTreeLo(*context_sptr, data, node, RSFILE_VERSION_LATEST);
+
+    std::string buffer;
+    size_t size = 0;
+    size_t words = 0;
+    while (data >> buffer) {
+        size += buffer.size();
+        ++words;
+    }
+
+    EXPECT_EQ(size, 57u);
+
+    EXPECT_EQ(words, 1u);
+}
+
+HWTEST(RSProfilerMarshalTest, MarshalNodeModifiers, TestSize.Level1 | Standard)
+{
+    auto context_sptr = std::make_shared<RSContext>();
+    RSRenderNode node(123, context_sptr, false);
+    std::stringstream data;
+    RSProfiler::MarshalNodeModifiers(node, data, RSFILE_VERSION_LATEST, false, false);
+
+    std::string buffer;
+    size_t size = 0;
+    size_t words = 0;
+    while (data >> buffer) {
+        size += buffer.size();
+        ++words;
+    }
+
+    EXPECT_EQ(size, 20u);
+
+    EXPECT_EQ(words, 1u);
 }
 
 } // namespace OHOS::Rosen

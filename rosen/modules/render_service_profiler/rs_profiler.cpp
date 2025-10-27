@@ -1401,7 +1401,6 @@ void RSProfiler::DumpConnections(const ArgList& args)
             std::string content;
             content.resize(size);
             Utils::FileRead(file, content.data(), content.size());
-            Utils::FileClose(file);
             out += " ";
             out += content;
         }
