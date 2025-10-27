@@ -28,6 +28,7 @@ namespace Rosen {
 class AniEffectKitUtils {
 public:
     static ani_object CreateAniUndefined(ani_env* env);
+    static ani_object CreateAniObject(ani_env* env, ani_class cls, ani_method ctor, ani_long value);
     static ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ani_long value);
     static AniFilter* GetFilterFromEnv(ani_env* env, ani_object obj);
     static AniColorPicker* GetColorPickerFromEnv(ani_env* env, ani_object obj);

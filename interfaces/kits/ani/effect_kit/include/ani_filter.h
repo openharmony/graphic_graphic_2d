@@ -58,6 +58,10 @@ private:
     std::vector<sk_sp<SkImageFilter>> skFilters_;
     std::shared_ptr<Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<Media::PixelMap> dstPixelMap_ = nullptr;
+
+private:
+    static ani_class cacheCls;
+    static ani_method cacheCtor;
 };
 } // namespace Rosen
 } // namespace OHOS
