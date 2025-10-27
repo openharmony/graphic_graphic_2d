@@ -64,32 +64,5 @@ std::shared_ptr<RSRenderFrameRateLinker> RSRenderFrameRateLinkerMap::GetFrameRat
     return frameRateLinkerMap_.count(id) ? frameRateLinkerMap_[id] : nullptr;
 }
 
-bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
-    int32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
-{
-    bool success = false;
-    for (auto& [id, linker] : frameRateLinkerMap_) {
-        if (ExtractPid(id) == dstPid && linker != nullptr) {
-            linker->RegisterExpectedFpsUpdateCallback(listenerPid, callback);
-            success = true;
-        }
-    }
-
-    if (!success) {
-        ROSEN_LOGE("RegisterFrameRateLinkerExpectedFpsUpdateCallback failed: cannot register callback to any linker by"
-            " dstPid=%{public}d", dstPid);
-    }
-    return success;
-}
-
-void RSRenderFrameRateLinkerMap::UnRegisterExpectedFpsUpdateCallbackByListener(pid_t listenerPid)
-{
-    for (auto& [_, linker] : frameRateLinkerMap_) {
-        if (linker != nullptr) {
-            linker->RegisterExpectedFpsUpdateCallback(listenerPid, nullptr);
-        }
-    }
-}
-
 } // namespace Rosen
 } // namespace OHOS

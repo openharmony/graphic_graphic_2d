@@ -332,22 +332,30 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.UpdateSoftVSync(true);
     frameRateMgr.currRefreshRate_.store(OLED_90_HZ);
     frameRateMgr.UpdateSoftVSync(true);
-    int64_t vsyncid = 0;
-    uint32_t rsRate = 0;
-    bool isUiDvsyncOn = false;
     frameRateMgr.pendingRefreshRate_ = nullptr;
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
     frameRateMgr.lastPendingConstraintRelativeTime_ = currTime;
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
-    ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_,
-        frameRateMgr.lastPendingConstraintRelativeTime_);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_, frameRateMgr.lastPendingConstraintRelativeTime_);
     uint32_t pendingRefreshRate = OLED_60_HZ;
     frameRateMgr.pendingRefreshRate_ = std::make_shared<uint32_t>(pendingRefreshRate);
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
     ASSERT_EQ(frameRateMgr.pendingConstraintRelativeTime_, 0);
     ASSERT_EQ(frameRateMgr.lastPendingRefreshRate_, OLED_60_HZ);
     frameRateMgr.pendingRefreshRate_ = nullptr;
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+
+    hgmCore.isLtpoMode_.store(true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
+    hgmCore.isLtpoMode_.store(false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
+
     frameRateMgr.voterTouchEffective_ = true;
     std::string surfaceName = "surface0";
     size_t oldSize = frameRateMgr.surfaceData_.size();

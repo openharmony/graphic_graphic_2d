@@ -239,6 +239,7 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
+    isLtpoMode_.store(ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate()));
     SetIdealPipelineOffset(pipelineOffsetPulseNum_);
     SetASConfig(curScreenSetting);
 

@@ -128,8 +128,9 @@ void HgmFrameRateManager::InitConfig()
     auto screenList = hgmCore.GetScreenIds();
     curScreenId_.store(screenList.empty() ? 0 : screenList.front());
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_.load()));
-    std::string curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+    isLtpo_.store(hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_.load())));
+    std::string curScreenName = "screen" + std::to_string(
+        curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
         auto iter = configData->screenStrategyConfigs_.find(curScreenName);
@@ -139,6 +140,7 @@ void HgmFrameRateManager::InitConfig()
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
+        isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         auto configVisitor = hgmCore.GetPolicyConfigVisitor();
         if (configVisitor != nullptr) {
             configVisitor->ChangeScreen(curScreenStrategyId_);
@@ -304,8 +306,8 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
         }
     }
 
-    if (hgmCore.GetLtpoEnabled() && isLtpo_ && rsRate > OLED_10_HZ &&
-        isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+    if (hgmCore.GetLtpoEnabled() && IsLtpo() && rsRate > OLED_10_HZ &&
+        isUiDvsyncOn && isLtpoScreenStrategyId_.load()) {
         hgmCore.SetPendingScreenRefreshRate(rsRate);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
@@ -676,8 +678,8 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
     bool stylusFlag = (isStylusWakeUp_ && !stylusVec_.empty());
-    if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
-        (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
+    if ((isLtpo_.load() && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
+        (!isLtpo_.load() && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         RS_TRACE_NAME_FMT("Replace supported refresh rates from config");
         if (CheckAncoVoterStatus()) {
             supportRefreshRateVec = ancoLowBrightVec_;
@@ -822,7 +824,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
-    multiAppStrategy_.SetScreenType(isLtpo_);
+    multiAppStrategy_.SetScreenType(isLtpo_.load());
     multiAppStrategy_.HandleLightFactorStatus(state);
     isAmbientStatus_ = state;
     MarkVoteChange();
@@ -1024,7 +1026,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
     std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
 
-    isLtpo_ = isLtpo;
+    isLtpo_.store(isLtpo);
     lastCurScreenId_.store(curScreenId_.load());
     curScreenId_.store(id);
     hgmCore.SetActiveScreenId(curScreenId_.load());
@@ -1073,6 +1075,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
     curScreenDefaultStrategyId_ = curScreenStrategyId_;
 
     curScreenStrategyId_ = GetCurScreenExtStrategyId();
+    isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
     configVisitor->ChangeScreen(curScreenStrategyId_);
     UpdateScreenFrameRate();
 }
@@ -1091,6 +1094,7 @@ void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::
         HILOG_COMM_INFO("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
             curScreenStrategyId.c_str(), status);
         curScreenStrategyId_ = curScreenStrategyId;
+        isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         auto configVisitor = HgmCore::Instance().GetPolicyConfigVisitor();
         if (configVisitor != nullptr) {
             configVisitor->ChangeScreen(curScreenStrategyId_);
@@ -1160,7 +1164,7 @@ void HgmFrameRateManager::UpdateScreenFrameRate()
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
-    if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
+    if (!isLtpoScreenStrategyId_) {
         DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     }
 
@@ -1357,7 +1361,7 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
 
 bool HgmFrameRateManager::CheckAncoVoterStatus() const
 {
-    if (isAmbientStatus_ != LightFactorStatus::NORMAL_LOW || !isLtpo_ ||
+    if (isAmbientStatus_ != LightFactorStatus::NORMAL_LOW || !isLtpo_.load() ||
         !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
         return false;
     }
@@ -1531,10 +1535,9 @@ void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::str
 
 void HgmFrameRateManager::SetChangeGeneratorRateValid(bool valid)
 {
-    if (changeGeneratorRateValid_ == valid) {
+    if (changeGeneratorRateValid_.exchange(valid) == valid) {
         return;
     }
-    changeGeneratorRateValid_ = valid;
     if (!valid) {
         changeGeneratorRateValidTimer_.Start();
     }
