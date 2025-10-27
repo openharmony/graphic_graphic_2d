@@ -434,7 +434,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
     bool hasBrightness = false;
     if (isSolidLayerEnabled) {
         isHdrOn = uniRenderVisitor_.curScreenNode_->GetHasUniRenderHdrSurface() || GetHwcNodeHdrEnabled();
-        hasBrightness = renderProperties.GetBrightnessParams().has_value();
+        hasBrightness = renderProperties.GetBgBrightnessParams().has_value();
         if (!isHdrOn && !hasBrightness) {
             ProcessSolidLayerEnabled(node);
             return;
