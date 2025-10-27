@@ -21,27 +21,32 @@
 
 namespace OHOS {
 namespace ColorManager {
-static const std::string COLOR_SPACE_MANAGER_CLS_NAME =
-    "@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpaceManagerInner";
-static const std::string ERROR_CLS_NAME = "escompat.Error";
 
-ani_class AniColorSpaceManager::colorSpaceManagerClass_ = nullptr;
-ani_enum AniColorSpaceManager::enumType_ = nullptr;
-ani_field AniColorSpaceManager::nativePtrField_ = nullptr;
-ani_method AniColorSpaceManager::makePointMethod_ = nullptr;
-std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> AniColorSpaceManager::nativeToEnumMap_;
+namespace {
+    static const char *COLOR_SPACE_ENUM_NAME =
+        "@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpace";
+    static const char *COLOR_SPACE_MANAGER_CLS_NAME =
+        "@ohos.graphics.colorSpaceManager.colorSpaceManager.ColorSpaceManagerInner";
+    static const char *ERROR_CLS_NAME = "escompat.Error";
+    static const char *MAKE_POINT_METHOD_NAME = "makePoint";
+    static const char *NATIVE_PTR_FIELD_NAME = "nativePtr";
+    ani_class gColorSpaceManagerCls = nullptr;
+    ani_enum gEnumType = nullptr;
+    ani_field gNativePtrField = nullptr;
+    ani_method gMakePointMethod = nullptr;
+    std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> gNativeToEnumMap;
+}
 
 static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
 {
     ani_class cls {};
-    static const char* className = ERROR_CLS_NAME.c_str();
-    if (ANI_OK != env->FindClass(className, &cls)) {
-        ACMLOGE("Not found class '%{public}s'.", className);
+    if (ANI_OK != env->FindClass(ERROR_CLS_NAME, &cls)) {
+        ACMLOGE("Not found class '%{public}s'.", ERROR_CLS_NAME);
         return nullptr;
     }
     ani_method ctor;
     if (ANI_OK != env->Class_FindMethod(cls, "<ctor>", "C{std.core.String}:", &ctor)) {
-        ACMLOGE("Not found ctor '%{public}s'.", className);
+        ACMLOGE("Not found ctor '%{public}s'.", ERROR_CLS_NAME);
         return nullptr;
     }
     ani_string error_msg;
@@ -72,10 +77,33 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
     return true;
 }
 
-AniColorSpaceManager* AniColorSpaceManager::unwrap(ani_env *env, ani_object object)
+ani_status CacheNativePtr(ani_env *env)
 {
+    if (gColorSpaceManagerCls == nullptr) {
+        if (ANI_OK != env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME, &gColorSpaceManagerCls)) {
+            ACMLOGE("[ANI]CacheNativePtr FindClass Failed");
+            return ANI_ERROR;
+        }
+    }
+
+    if (ANI_OK != env->Class_FindField(gColorSpaceManagerCls, NATIVE_PTR_FIELD_NAME, &gNativePtrField)) {
+        ACMLOGE("[ANI]CacheNativePtr FindField Failed");
+        return ANI_ERROR;
+    }
+    return ANI_OK;
+}
+
+AniColorSpaceManager* AniColorSpaceManager::Unwrap(ani_env *env, ani_object object)
+{
+    if (gNativePtrField == nullptr) {
+        if (ANI_OK != CacheNativePtr(env)) {
+            ACMLOGE("[ANI]Unwrap CacheNativePtr Failed");
+            return nullptr;
+        }
+    }
+
     ani_long nativePtrLong;
-    if (ANI_OK != env->Object_GetField_Long(object, AniColorSpaceManager::nativePtrField_, &nativePtrLong)) {
+    if (ANI_OK != env->Object_GetField_Long(object, gNativePtrField, &nativePtrLong)) {
         ACMLOGE("[ANI]Object_GetField_Long failed");
         return nullptr;
     }
@@ -90,8 +118,8 @@ ani_object AniColorSpaceManager::Wrap(ani_env *env, AniColorSpaceManager *native
     }
 
     ani_class cls;
-    if (ANI_OK != env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME.c_str(), &cls)) {
-        ACMLOGE("%{public}s Failed to find class: %{public}s", __func__, COLOR_SPACE_MANAGER_CLS_NAME.c_str());
+    if (ANI_OK != env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME, &cls)) {
+        ACMLOGE("%{public}s Failed to find class: %{public}s", __func__, COLOR_SPACE_MANAGER_CLS_NAME);
         return nullptr;
     }
 
@@ -127,9 +155,8 @@ ani_object AniColorSpaceManager::CreateByColorSpace(ani_env* env, ani_enum_item 
     auto colorSpace = std::make_shared<ColorSpace>(JS_TO_NATIVE_COLOR_SPACE_NAME_MAP.at(csType));
     std::unique_ptr<AniColorSpaceManager> nativeHandle = std::make_unique<AniColorSpaceManager>(colorSpace);
     ani_class cls;
-    static const char* className = COLOR_SPACE_MANAGER_CLS_NAME.c_str();
-    if (ANI_OK != env->FindClass(className, &cls)) {
-        ACMLOGI("Failed to find class: %{public}s", className);
+    if (ANI_OK != env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME, &cls)) {
+        ACMLOGI("Failed to find class: %{public}s", COLOR_SPACE_MANAGER_CLS_NAME);
         return result;
     }
 
@@ -161,9 +188,8 @@ ani_object AniColorSpaceManager::CreateByColorSpacePrimaries(ani_env* env, ani_o
     auto colorSpace = std::make_shared<ColorSpace>(primaries, static_cast<float>(gamma));
     std::unique_ptr<AniColorSpaceManager> nativeHandle = std::make_unique<AniColorSpaceManager>(colorSpace);
     ani_class cls;
-    static const char* className = COLOR_SPACE_MANAGER_CLS_NAME.c_str();
-    if (ANI_OK != env->FindClass(className, &cls)) {
-        ACMLOGI("Failed to find class: %{public}s", className);
+    if (ANI_OK != env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME, &cls)) {
+        ACMLOGI("Failed to find class: %{public}s", COLOR_SPACE_MANAGER_CLS_NAME);
         return result;
     }
 
@@ -183,10 +209,9 @@ ani_object AniColorSpaceManager::CreateByColorSpacePrimaries(ani_env* env, ani_o
 ani_status AniColorSpaceManager::AniColorSpaceManagerInit(ani_env *env)
 {
     ani_class cls;
-    static const char* className = COLOR_SPACE_MANAGER_CLS_NAME.c_str();
-    ani_status status = env->FindClass(className, &cls);
+    ani_status status = env->FindClass(COLOR_SPACE_MANAGER_CLS_NAME, &cls);
     if (status != ANI_OK) {
-        ACMLOGI("Failed to find class: %{public}s", className);
+        ACMLOGI("Failed to find class: %{public}s", COLOR_SPACE_MANAGER_CLS_NAME);
         return status;
     }
 
@@ -198,8 +223,29 @@ ani_status AniColorSpaceManager::AniColorSpaceManagerInit(ani_env *env)
 
     status = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (status != ANI_OK) {
-        ACMLOGI("Failed to bind native methods to: %{public}s", className);
+        ACMLOGI("Failed to bind native methods to: %{public}s", COLOR_SPACE_MANAGER_CLS_NAME);
         return status;
+    }
+
+    if (ANI_OK != env->FindEnum(COLOR_SPACE_ENUM_NAME, &gEnumType)) {
+        ACMLOGE("[ANI]Find Enum Failed");
+        return ANI_ERROR;
+    }
+
+    ani_enum_item enumItem = nullptr;
+    for (auto& iter : NATIVE_TO_STRING_MAP) {
+        env->Enum_GetEnumItemByName(gEnumType, iter.second.c_str(), &enumItem);
+        gNativeToEnumMap.emplace(iter.first, enumItem);
+    }
+
+    if (ANI_OK != CacheNativePtr(env)) {
+        ACMLOGE("[ANI]AniColorSpaceManagerInit CacheNativePtr Failed");
+        return ANI_ERROR;
+    }
+
+    if (ANI_OK != env->Class_FindMethod(gColorSpaceManagerCls, MAKE_POINT_METHOD_NAME, nullptr, &gMakePointMethod)) {
+        ACMLOGE("[ANI]FindMethod Failed");
+        return ANI_ERROR;
     }
     return ANI_OK;
 }
@@ -211,12 +257,12 @@ ani_enum_item AniColorSpaceManager::GetColorSpaceName([[maybe_unused]] ani_env *
         return nullptr;
     }
 
-    auto ptr = unwrap(env, obj);
+    auto ptr = Unwrap(env, obj);
     if (!ptr) {
-        ACMLOGE("[ANI]AniColorSpaceManager unwrap failed");
+        ACMLOGE("[ANI]AniColorSpaceManager Unwrap failed");
         return nullptr;
     }
-    
+
     return ptr->OnGetColorSpaceName(env, obj);
 }
 
@@ -227,9 +273,9 @@ ani_ref AniColorSpaceManager::GetWhitePoint([[maybe_unused]] ani_env *env, [[may
         return nullptr;
     }
 
-    auto ptr = unwrap(env, obj);
+    auto ptr = Unwrap(env, obj);
     if (!ptr) {
-        ACMLOGE("[ANI]AniColorSpaceManager unwrap failed");
+        ACMLOGE("[ANI]AniColorSpaceManager Unwrap failed");
         return nullptr;
     }
 
@@ -243,9 +289,9 @@ ani_double AniColorSpaceManager::GetGamma([[maybe_unused]] ani_env *env, [[maybe
         return 0;
     }
 
-    auto ptr = unwrap(env, obj);
+    auto ptr = Unwrap(env, obj);
     if (!ptr) {
-        ACMLOGE("[ANI]AniColorSpaceManager unwrap failed");
+        ACMLOGE("[ANI]AniColorSpaceManager Unwrap failed");
         return 0;
     }
 
@@ -263,8 +309,8 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
         return value;
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
-    auto iter = AniColorSpaceManager::nativeToEnumMap_.find(csName);
-    if (iter != AniColorSpaceManager::nativeToEnumMap_.end()) {
+    auto iter = gNativeToEnumMap.find(csName);
+    if (iter != gNativeToEnumMap.end()) {
         ACMLOGD("[ANI]get color space name %{public}u", csName);
         return iter->second;
     }
@@ -288,7 +334,7 @@ ani_ref AniColorSpaceManager::OnGetWhitePoint(ani_env *env, ani_object obj)
     }
 
     std::array<float, DIMES_2> wp = colorSpaceToken_->GetWhitePoint();
-    if (ANI_OK != env->Object_CallMethod_Ref(obj, AniColorSpaceManager::makePointMethod_, &arrayValue, wp[0], wp[1])) {
+    if (ANI_OK != env->Object_CallMethod_Ref(obj, gMakePointMethod, &arrayValue, wp[0], wp[1])) {
         ACMLOGE("[ANI]Object_CallMethod_Ref failed");
     }
     return arrayValue;
