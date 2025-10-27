@@ -20,7 +20,18 @@ namespace OHOS {
 namespace Rosen {
 
 ani_object AniEffectKitUtils::CreateAniObject(
-    ani_env* env, const char* className, const char* methodSig, ani_long object)
+    ani_env* env, ani_class cls, ani_method ctor, ani_long value)
+{
+    ani_object aniValue;
+    if (env->Object_New(cls, ctor, &aniValue, value) != ANI_OK) {
+        EFFECT_LOG_E("New Context Failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    return aniValue;
+}
+
+ani_object AniEffectKitUtils::CreateAniObject(
+    ani_env* env, const char* className, const char* methodSig, ani_long value)
 {
     ani_class cls;
     if (env->FindClass(className, &cls) != ANI_OK) {
@@ -33,7 +44,7 @@ ani_object AniEffectKitUtils::CreateAniObject(
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
     ani_object aniValue;
-    if (env->Object_New(cls, ctor, &aniValue, object) != ANI_OK) {
+    if (env->Object_New(cls, ctor, &aniValue, value) != ANI_OK) {
         EFFECT_LOG_E("New Context Failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }

@@ -48,6 +48,8 @@ AniFilter::~AniFilter()
 }
 
 static const std::string ANI_CLASS_FILTER = "@ohos.effectKit.effectKit.FilterInternal";
+ani_class AniFilter::cacheCls;
+ani_method AniFilter::cacheCtor;
 
 std::shared_ptr<Media::PixelMap> AniFilter::GetDstPixelMap()
 {
@@ -88,7 +90,7 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
     aniFilter->AddNextFilter(blur);
 
     return AniEffectKitUtils::CreateAniObject(
-        env, ANI_CLASS_FILTER.c_str(), "l:", reinterpret_cast<ani_long>(aniFilter));
+        env, cacheCls, cacheCtor, reinterpret_cast<ani_long>(aniFilter));
 }
 
 ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
@@ -131,10 +133,8 @@ ani_object AniFilter::CreateEffect(ani_env* env, ani_object para)
     }
     aniFilter->srcPixelMap_ = pixelMap;
 
-    static const char* className = ANI_CLASS_FILTER.c_str();
-    const char* methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(
-        env, className, methodSig, reinterpret_cast<ani_long>(aniFilter.release()));
+        env, cacheCls, cacheCtor, reinterpret_cast<ani_long>(aniFilter.release()));
 }
 
 ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param, ani_enum_item enumItem)
@@ -157,7 +157,7 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param, ani_e
     auto blur = Rosen::SKImageFilterFactory::Blur(radius, static_cast<SkTileMode>(tileMode));
     aniFilter->AddNextFilter(blur);
     
-    return AniEffectKitUtils::CreateAniObject(env, ANI_CLASS_FILTER.c_str(), nullptr,
+    return AniEffectKitUtils::CreateAniObject(env, cacheCls, cacheCtor,
         reinterpret_cast<ani_long>(aniFilter));
 }
 
@@ -315,9 +315,12 @@ ani_object AniFilter::kitTransferDynamicEffect(ani_env* env,  ani_class cls, ani
 ani_status AniFilter::Init(ani_env* env)
 {
     static const char* className = ANI_CLASS_FILTER.c_str();
-    ani_class cls;
-    if (env->FindClass(className, &cls) != ANI_OK) {
+    if (env->FindClass(className, &cacheCls) != ANI_OK) {
         EFFECT_LOG_E("Not found @ohos.effectKit.effectKit.FilterInternal");
+        return ANI_NOT_FOUND;
+    }
+    if (env->Class_FindMethod(cacheCls, "<ctor>", "l:", &cacheCtor) != ANI_OK) {
+        EFFECT_LOG_E("Not found FilterInternal ani_method");
         return ANI_NOT_FOUND;
     }
 
@@ -342,7 +345,7 @@ ani_status AniFilter::Init(ani_env* env)
         ani_native_function { "getPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMap) },
     };
-    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cacheCls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         EFFECT_LOG_E("AniFilter::Init Class_BindNativeMethods ret : %{public}d", ret);
         return ANI_ERROR;
@@ -353,7 +356,7 @@ ani_status AniFilter::Init(ani_env* env)
         ani_native_function { "kitTransferDynamicNative", "l:C{std.interop.ESValue}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::kitTransferDynamicEffect) }
     };
-    ret = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());
+    ret = env->Class_BindStaticNativeMethods(cacheCls, static_methods.data(), static_methods.size());
     if (ret != ANI_OK) {
         EFFECT_LOG_E("AniFilter::Init Class_BindStaticNativeMethods ret : %{public}d", ret);
         return ANI_ERROR;
