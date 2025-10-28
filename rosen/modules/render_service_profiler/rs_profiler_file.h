@@ -139,8 +139,8 @@ public:
     int64_t GetClosestVsyncId(int64_t vsyncId);
     double ConvertVsyncId2Time(int64_t vsyncId);
     int64_t ConvertTime2VsyncId(double time) const;
-    void GetVsyncList(std::set<int64_t>& vsyncSet);
-    void GetStartAndEndTime(std::pair<double, double>& startAndEndTime);
+    void GetVsyncList(std::set<int64_t>& vsyncSet) const;
+    void GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const;
 
 private:
     void WriteHeaders();

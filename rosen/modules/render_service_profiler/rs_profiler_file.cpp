@@ -828,7 +828,7 @@ int64_t RSFile::ConvertTime2VsyncId(double time) const
     return 0;
 }
 
-void RSFile::GetVsyncList(std::set<int64_t>& vsyncList)
+void RSFile::GetVsyncList(std::set<int64_t>& vsyncList) const
 {
     vsyncList.clear();
     for (auto& item : mapVsyncId2Time_) {
@@ -836,7 +836,7 @@ void RSFile::GetVsyncList(std::set<int64_t>& vsyncList)
     }
 }
 
-void RSFile::GetStartAndEndTime(std::pair<double, double>& startAndEndTime)
+void RSFile::GetStartAndEndTime(std::pair<double, double>& startAndEndTime) const
 {
     startAndEndTime.first = mapVsyncId2Time_.begin()->second;
     startAndEndTime.second = mapVsyncId2Time_.rbegin()->second;
