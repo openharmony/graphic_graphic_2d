@@ -693,7 +693,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_DestroyArray002, TestSize.
  * @tc.name: NativeDrawingRectTest_RectContains007
  * @tc.desc: test for normal use of OH_Drawing_RectContains
  * @tc.type: FUNC
- * @tc.require: SR20250827411768
+ * @tc.require: 20005
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectContains007, TestSize.Level1)
 {
@@ -716,7 +716,7 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectContains007, TestSize.
  * @tc.name: NativeDrawingRectTest_Inset007
  * @tc.desc: test for normal use of OH_Drawing_RectInset
  * @tc.type: FUNC
- * @tc.require: SR20250827411768
+ * @tc.require: 20005
  */
 HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Inset007, TestSize.Level1)
 {

@@ -1121,7 +1121,7 @@ namespace drawing {
     native getValue(index: int): double;
 
     /**
-     * Compute the left mltiplication of the marix.
+     * Compute the left multiplication of the marix.
      * @param { Matrix } matrix - The matrix object to copy.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
