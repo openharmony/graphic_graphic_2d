@@ -173,13 +173,11 @@ void RSGraphicTestProfiler::PlaybackWithoutJson(
     // NOT MODIFY THE COMMENTS
     cout << "[   RUN   ] " << filePath << std::endl;
 
-    // playback prepare
+    // playback prepare and get time
     std::string command =
         "rsrecord_replay_prepare VSYNC" + std::to_string(0) + " " + filePath;
     RSGraphicTestDirector::Instance().SendProfilerCommand(command, PLAYBACK_PREPARE_OUT_TIME);
     WaitTimeout(PLAYBACK_OPERATE_INTERVAL_TIME);
-
-    // playback get startTime and endTime
     command = "rsreplay_time";
     RSGraphicTestDirector::Instance().SendProfilerCommand(command, PLAY_BACK_REPLAY_TIME_OUT_TIME);
     pair<double, double> startAndEndTime = RSGraphicTestDirector::Instance().ReceiveProfilerTimeInfo();
@@ -259,8 +257,6 @@ void RSGraphicTestProfiler::GetFilePath(std::filesystem::path rootPath, std::vec
         }
     }
 }
-
-void
 
 int RSGraphicTestProfiler::RunPlaybackTest(const std::string& filePath)
 {
