@@ -166,12 +166,11 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     if (params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw id:%llu cacheType:%d cacheChanged:%d"
                                    " size:[%.2f, %.2f] ChildHasVisibleFilter:%d ChildHasVisibleEffect:%d"
-                                   " shadowRect:[%.2f, %.2f, %.2f, %.2f] HasFilterOrEffect:%d"
-                                   " ChildHasVisibleHarmonium:%d",
+                                   " shadowRect:[%.2f, %.2f, %.2f, %.2f] HasFilterOrEffect:%d",
             params.GetId(), params.GetDrawingCacheType(), params.GetDrawingCacheChanged(), params.GetCacheSize().x_,
             params.GetCacheSize().y_, params.ChildHasVisibleFilter(), params.ChildHasVisibleEffect(),
             params.GetShadowRect().GetLeft(), params.GetShadowRect().GetTop(), params.GetShadowRect().GetWidth(),
-            params.GetShadowRect().GetHeight(), HasFilterOrEffect(), params.ChildHasVisibleHarmonium());
+            params.GetShadowRect().GetHeight(), HasFilterOrEffect());
     }
 
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::GenerateCacheCondition drawingCacheType:%{public}d"
@@ -227,8 +226,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     // reset drawing cache changed false for render param if drawable is visited this frame
     // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
     params.SetDrawingCacheChanged(false, true);
-    bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() ||
-        params.ChildHasVisibleHarmonium();
+    bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !GetOpincDrawCache().OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
@@ -360,8 +358,7 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "CheckCacheTypeAndDraw nodeId[%llu]", nodeId_);
-    bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() ||
-        params.ChildHasVisibleHarmonium();
+    bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
         hasFilter, params.GetDrawingCacheType());
@@ -490,7 +487,7 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     }
     if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
         RSRenderNodeDrawable::OnDraw(canvas);
-    } else if (params.ChildHasVisibleEffect() || params.ChildHasVisibleFilter() || params.ChildHasVisibleHarmonium()) {
+    } else if (params.ChildHasVisibleEffect() || params.ChildHasVisibleFilter()) {
         DrawChildren(canvas, params.GetBounds());
     }
 }

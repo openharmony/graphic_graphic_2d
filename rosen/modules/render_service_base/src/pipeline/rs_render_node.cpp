@@ -588,7 +588,6 @@ void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
-    childHasVisibleHarmonium_ = false;
     childHasSharedTransition_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
@@ -3617,17 +3616,12 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if (childNode.GetRenderProperties().GetUseEffect() && !childNode.GetOldDirtyInSurface().IsEmpty()) {
+    if ((childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) &&
+         !childNode.GetOldDirtyInSurface().IsEmpty()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();
     visibleEffectChild_.insert(childEffectNodes.begin(), childEffectNodes.end());
-}
-
-void RSRenderNode::SetChildHasVisibleHarmonium(bool val)
-{
-    childHasVisibleHarmonium_ = val;
-    stagingRenderParams_->SetChildHasVisibleHarmonium(val);
 }
 
 const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const

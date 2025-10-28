@@ -2959,12 +2959,10 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
-    if ((node.GetRenderProperties().GetUseEffect() || node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
+    if ((node.GetRenderProperties().GetUseEffect() || node.GetRenderProperties().HasHarmonium() ||
+         node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
-    }
-    if ((node.GetRenderProperties().HasHarmonium() && node.ShouldPaint()) || node.ChildHasVisibleHarmonium()) {
-        nodeParent->SetChildHasVisibleHarmonium(true);
     }
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);

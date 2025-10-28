@@ -364,11 +364,6 @@ public:
         return childHasVisibleEffect_;
     }
     void SetChildHasVisibleEffect(bool val);
-    bool ChildHasVisibleHarmonium() const
-    {
-        return childHasVisibleHarmonium_;
-    }
-    void SetChildHasVisibleHarmonium(bool val);
     const std::vector<NodeId>& GetVisibleFilterChild() const
     {
         return visibleFilterChild_;
@@ -1110,7 +1105,6 @@ private:
     bool curFrameHasAnimation_ = false;
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
-    bool childHasVisibleHarmonium_ = false;
     bool hasChildrenOutOfRect_ = false;
 
     bool isSubTreeDirty_ = false;
