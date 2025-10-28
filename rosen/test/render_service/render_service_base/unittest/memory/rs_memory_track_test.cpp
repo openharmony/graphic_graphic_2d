@@ -580,6 +580,94 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddPictureRecordTest2
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest2, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    const void* addr2 = reinterpret_cast<void*>(0x2000);
+    const void* addr3 = reinterpret_cast<void*>(0x3000);
+    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryInfo info2 = {3 * 1024 * 1024, 234, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryInfo info3 = {3 * 1024 * 1024, 345, 0, 0, MEMORY_TYPE::MEM_SKIMAGE,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    test1.AddPictureRecord(addr2, info2);
+    test1.AddPictureRecord(addr3, info3);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(234), 1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(345), 0);
+    test1.RemovePictureRecord(addr1);
+    test1.RemovePictureRecord(addr2);
+    test1.RemovePictureRecord(addr3);
+}
+
+/**
+ * @tc.name: AddPictureRecordTest3
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest3, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    const void* addr2 = reinterpret_cast<void*>(0x2000);
+    const void* addr3 = reinterpret_cast<void*>(0x3000);
+    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    test1.AddPictureRecord(addr2, info1);
+    test1.AddPictureRecord(addr3, info1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 3);
+    test1.RemovePictureRecord(addr1);
+    test1.RemovePictureRecord(addr2);
+    test1.RemovePictureRecord(addr3);
+}
+
+/**
+ * @tc.name: CountFdRecordOfPidTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
+    test1.RemovePictureRecord(addr1);
+}
+
+/**
+ * @tc.name: CountFdRecordOfPidTest2
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest2, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    EXPECT_EQ(test1.CountFdRecordOfPid(234), 0);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 0);
+    test1.AddPictureRecord(addr1, info1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
+    test1.RemovePictureRecord(addr1);
+}
+
+/**
  * @tc.name: RemovePictureRecordTest
  * @tc.desc: test
  * @tc.type: FUNC
@@ -594,6 +682,79 @@ HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest, testing::ext::TestSize.Leve
     EXPECT_TRUE(test1.memPicRecord_.count(addr));
     test1.RemovePictureRecord(addr);
     EXPECT_FALSE(test1.memPicRecord_.count(addr));
+}
+
+/**
+ * @tc.name: RemovePictureRecordTest2
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest2, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    const void* addr2 = reinterpret_cast<void*>(0x2000);
+    const void* addr3 = reinterpret_cast<void*>(0x3000);
+    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryInfo info2 = {3 * 1024 * 1024, 234, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryInfo info3 = {3 * 1024 * 1024, 345, 0, 0, MEMORY_TYPE::MEM_SKIMAGE,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    test1.AddPictureRecord(addr2, info2);
+    test1.AddPictureRecord(addr3, info3);
+    test1.RemovePictureRecord(addr1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 0);
+    EXPECT_EQ(test1.CountFdRecordOfPid(234), 1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(345), 0);
+    test1.RemovePictureRecord(addr2);
+    test1.RemovePictureRecord(addr3);
+}
+
+/**
+ * @tc.name: RemovePictureRecordTest3
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest3, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    const void* addr2 = reinterpret_cast<void*>(0x2000);
+    const void* addr3 = reinterpret_cast<void*>(0x3000);
+    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    test1.AddPictureRecord(addr2, info1);
+    test1.AddPictureRecord(addr3, info1);
+    test1.RemovePictureRecord(addr1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(123), 2);
+    test1.RemovePictureRecord(addr2);
+    test1.RemovePictureRecord(addr3);
+}
+
+/**
+ * @tc.name: KillProcessByPid
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, KillProcessByPid, testing::ext::TestSize.Level1)
+{
+    uint32_t pid = 1234;
+    std::string reason = "test reason";
+    
+    const void* addr1 = reinterpret_cast<void*>(0x1000);
+    MemoryInfo info1 = {2 * 1024 * 1024, pid, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
+        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
+    MemoryTrack::Instance().KillProcessByPid(pid, reason);
+    test1.RemovePictureRecord(addr1);
 }
 
 /**
