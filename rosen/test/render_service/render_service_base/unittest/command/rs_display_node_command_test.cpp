@@ -241,4 +241,36 @@ HWTEST_F(RSDisplayNodeCommandTest, SetVirtualScreenMuteStatus001, TestSize.Level
     bool virtualScreenMuteStatus = false;
     DisplayNodeCommandHelper::SetVirtualScreenMuteStatus(context, 5, virtualScreenMuteStatus);
 }
+
+/**
+ * @tc.name: ClearModifiersByPid001
+ * @tc.desc: SetScreenId test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, ClearModifiersByPid001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    int32_t pid = getpid();
+    DisplayNodeCommandHelper::ClearModifiersByPid(context, id, pid);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+}
+
+/**
+ * @tc.name: ClearModifiersByPid002
+ * @tc.desc: SetScreenId test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, ClearModifiersByPid002, TestSize.Level1)
+{
+    RSContext context;
+    int32_t pid = getpid();
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> renderNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+    DisplayNodeCommandHelper::ClearModifiersByPid(context, id, pid);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
+}
 } // namespace OHOS::Rosen

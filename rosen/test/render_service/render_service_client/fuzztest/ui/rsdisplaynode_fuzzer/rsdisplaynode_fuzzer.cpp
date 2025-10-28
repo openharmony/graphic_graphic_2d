@@ -150,17 +150,6 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetScbNodePid(const uint8_t* data, size_t size)
-{
-    // test
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    std::vector<int32_t> oldPids;
-    int32_t currentPid = GetData<int32_t>();
-    displayNode->SetScbNodePid(oldPids, currentPid);
-    return true;
-}
-
 bool DoCreateNode(const uint8_t* data, size_t size)
 {
     // test
@@ -201,7 +190,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenRotation(data, size);
     OHOS::Rosen::DoSetDisplayNodeMirrorConfig(data, size);
     OHOS::Rosen::DoSetBootAnimation(data, size);
-    OHOS::Rosen::DoSetScbNodePid(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoSetVirtualScreenMuteStatus(data, size);
     return 0;

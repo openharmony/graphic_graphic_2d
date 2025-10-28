@@ -423,29 +423,6 @@ HWTEST_F(RSDisplayNodeTest, ServiceControlBlockTree001, TestSize.Level1)
     displayNode->AddDisplayNodeToTree();
     // RemoveDisplayNodeFromTree test
     displayNode->RemoveDisplayNodeFromTree();
-    // SetScbNodePid test
-    std::vector<int32_t> oldScbPids;
-    oldScbPids.emplace_back(0);
-    displayNode->SetScbNodePid(oldScbPids, 0);
-}
-
-/**
- * @tc.name: SetScbNodePid
- * @tc.desc: SetScbNodePid test.
- * @tc.type: FUNC
- * @tc.require: issueI9UAON
- */
-HWTEST_F(RSDisplayNodeTest, SetScbNodePid, TestSize.Level1)
-{
-    RSDisplayNodeConfig config;
-    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
-    EXPECT_TRUE(displayNode != nullptr);
-    std::vector<int32_t> oldScbPids = {};
-    int32_t currentScbPid = -1;
-    displayNode->SetScbNodePid(oldScbPids, currentScbPid);
-    oldScbPids.push_back(1);
-    oldScbPids.push_back(2);
-    displayNode->SetScbNodePid(oldScbPids, currentScbPid);
 }
 
 /**

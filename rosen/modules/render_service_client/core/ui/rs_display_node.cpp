@@ -248,14 +248,6 @@ bool RSDisplayNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
-{
-    // to-delete
-    for (auto pid : oldScbPids) {
-        ClearModifierByPid(pid);
-    }
-}
-
 void RSDisplayNode::ClearModifierByPid(pid_t pid)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeClearModifiersByPid>(GetId(), pid);

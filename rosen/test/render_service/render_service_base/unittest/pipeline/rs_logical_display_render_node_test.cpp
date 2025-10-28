@@ -472,6 +472,22 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, GetCompositeTypeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearModifiersByPidTest
+ * @tc.desc: test results of ClearModifiersByPid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, ClearModifiersByPidTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(renderNode, nullptr);
+    int32_t pid = getpid();
+    renderNode->ClearModifiersByPid(pid);
+}
+
+/**
  * @tc.name: UpdateDimensionsTest
  * @tc.desc: test results of UpdateDimensions
  * @tc.type: FUNC

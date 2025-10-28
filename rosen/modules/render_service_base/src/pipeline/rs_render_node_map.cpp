@@ -506,6 +506,7 @@ bool RSRenderNodeMap::AttachToDisplay(
     std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const
 {
     bool result = false;
+    surfaceRenderNode->GetAttachedInfo() = std::nullopt;
     for (const auto& [_, displayRenderNode] : logicalDisplayNodeMap_) {
         if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
             !displayRenderNode->IsOnTheTree() ||

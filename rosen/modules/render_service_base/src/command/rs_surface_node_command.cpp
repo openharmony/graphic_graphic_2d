@@ -410,7 +410,7 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
         RS_LOGE("SurfaceNodeCommandHelper::AttachToWindowContainer Invalid surfaceRenderNode");
         return;
     }
-    if (nodeMap.AttachToDisplay(surfaceRenderNode, screenId, false)) {
+    if (nodeMap.AttachToDisplay(surfaceRenderNode, screenId, true)) {
         surfaceRenderNode->attachedInfo_ = std::make_pair(screenId, true);
     }
 }

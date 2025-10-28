@@ -344,4 +344,21 @@ HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode004, TestSize.Level1)
     isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
     EXPECT_FALSE(isUIExtensionSurfaceNode);
 }
+
+/**
+ * @tc.name: AttachToDisplayTest
+ * @tc.desc: test results of AttachToDisplay
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSRenderNodeMapTest, AttachToDisplayTest, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    ScreenId screenId = 1;
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.AttachToDisplay(node, screenId, false);
+}
 } // namespace OHOS::Rosen
