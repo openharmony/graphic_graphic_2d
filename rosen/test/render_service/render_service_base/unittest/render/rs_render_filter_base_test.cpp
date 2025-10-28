@@ -263,7 +263,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     }
     Parcel parcel;
     auto ret = longFilter->Marshalling(parcel);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     // Test Unmarshalling with a parcel that has exceeded the limit
     Parcel parcel2;
@@ -280,7 +280,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
         current = nextFilter;
     }
     ret = (filter->Marshalling(parcel2));
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     std::shared_ptr<RSNGRenderFilterBase> outFilter = nullptr;
     ret = RSNGRenderFilterBase::Unmarshalling(parcel2, outFilter);
     EXPECT_TRUE(ret);
