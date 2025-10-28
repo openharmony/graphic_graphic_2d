@@ -99,6 +99,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level0)
 
     instance.queue_ = nullptr;
     instance.PostTask(func, delayTime);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 /**

@@ -761,20 +761,15 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
     auto& hgm = HgmCore::Instance();
     mgr->DeliverRefreshRateVote({ "VOTER_GAMES", 120, 90, 0 }, true);
 
-    mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(RSPropertyUnit::PIXEL_POSITION), 100.f, 0, 0);
-    mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(0xff), 100.f, 0, 0);
     if (hgm.mPolicyConfigData_ == nullptr) {
         return;
     }
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
-    mgr->GetPreferredFps("aaa", 100.f, 100.f, 100.f);
-    mgr->GetPreferredFps("aaa", 100.f, 0.f, 0.f);
 
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
     ASSERT_EQ(nullptr, hgm.GetPolicyConfigData());
-    mgr->GetPreferredFps("aaa", 100.f, 0.f, 0.f);
 
     EventInfo eventInfo = { .eventName = "VOTER_GAMES", .eventStatus = false,
         .description = pkg0,
@@ -957,7 +952,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
-    EXPECT_EQ(frameRateMgr->GetPreferredFps("aaa", errorVelocity, 0, 0), 0);
+    EXPECT_EQ(frameRateMgr->isNeedUpdateAppOffset_, false);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
     VSyncController* rsController;
     VSyncController* appController;
@@ -1693,6 +1688,61 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
     mgr.CheckRefreshRateChange(false, true, 120, true);
     mgr.CheckRefreshRateChange(false, true, 120, false);
     EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
+}
+
+/**
+ * @tc.name: TestSetHgmConfigUpdateCallback
+ * @tc.desc: Verify the result of SetHgmConfigUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestSetHgmConfigUpdateCallback, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    auto hgmConfigUpdateCallbackTask = [](std::shared_ptr<RPHgmConfigData> configData,
+        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum) {
+    };
+    mgr.SetHgmConfigUpdateCallback(hgmConfigUpdateCallbackTask);
+    EXPECT_NE(mgr.hgmConfigUpdateCallback_, nullptr);
+}
+
+/**
+ * @tc.name: TestSyncHgmConfigUpdateCallback
+ * @tc.desc: Verify the result of SyncHgmConfigUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestSyncHgmConfigUpdateCallback, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    const auto id = mgr.curScreenStrategyId_;
+    const std::string mode = std::to_string(mgr.curRefreshRateMode_);
+    std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
+    HgmCore::Instance().mPolicyConfigData_ = nullptr;
+    mgr.SyncHgmConfigUpdateCallback();
+
+    std::shared_ptr<PolicyConfigData> data = std::make_shared<PolicyConfigData>();
+    HgmCore::Instance().mPolicyConfigData_ = data;
+    mgr.SyncHgmConfigUpdateCallback();
+
+    data->screenConfigs_[id] = {};
+    mgr.SyncHgmConfigUpdateCallback();
+
+    data->screenConfigs_[id][mode] = {};
+    mgr.SyncHgmConfigUpdateCallback();
+
+    EXPECT_EQ(HgmCore::Instance().mPolicyConfigData_->screenConfigs_[id][mode].animationDynamicSettings.size(), 0);
+    data->screenConfigs_[id][mode].smallSizeAnimationDynamicSettings["translate"]["1"] =  { 0, 10, 60 };
+    data->screenConfigs_[id][mode].animationDynamicSettings["translate"]["1"] = { 0, 10, 72 };
+    EXPECT_EQ(HgmCore::Instance().mPolicyConfigData_->screenConfigs_[id][mode].animationDynamicSettings.size(), 1);
+    mgr.SyncHgmConfigUpdateCallback();
+
+    auto curScreenId = HgmCore::Instance().hgmFrameRateMgr_->GetCurScreenId();
+    HgmCore::Instance().hgmFrameRateMgr_->curScreenId_.store(INVALID_SCREEN_ID);
+    mgr.SyncHgmConfigUpdateCallback();
+
+    HgmCore::Instance().hgmFrameRateMgr_->curScreenId_.store(curScreenId);
+    HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
 }
 } // namespace Rosen
 } // namespace OHOS

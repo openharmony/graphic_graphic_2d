@@ -726,6 +726,7 @@ void RSMainThread::Init()
     RS_LOGI("HgmTaskHandleThread init");
     hgmContext_.InitHgmTaskHandleThread(
         rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
+    hgmContext_.InitHgmConfig(context_->GetMutableUiFrameworkTypeTable());
     SubscribeAppState();
     PrintCurrentStatus();
     RS_LOGI("UpdateGpuContextCacheSize");
@@ -3532,7 +3533,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         node->animationManager_.SetRateDeciderEnable(
-            isRateDeciderEnabled, hgmContext_.FrameRateGetFunc);
+            isRateDeciderEnabled, hgmContext_.GetConvertFrameRateFunc());
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
             node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {

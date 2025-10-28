@@ -41,6 +41,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "screen_manager/screen_types.h"
+#include "transaction/rp_hgm_config_data.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS {
@@ -130,7 +131,6 @@ public:
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
-    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx, int32_t areaPx, int32_t lengthPx) const;
     void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
     {
         forceUpdateCallback_ = forceUpdateCallback;
@@ -177,6 +177,8 @@ public:
         const std::vector<std::pair<std::string, std::string>>& newConfig);
     HgmFrameVoter& FrameVoterRef() { return frameVoter_; }
     void UpdateSoftVSync(bool followRs);
+    void SetHgmConfigUpdateCallback(
+        std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
 private:
     friend class HgmUserDefineImpl;
 
@@ -194,11 +196,6 @@ private:
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
-    int32_t GetPreferredFps(const std::string& type, float velocityMM, float areaSqrMM, float lengthMM) const;
-    template<typename T>
-    static float PixelToMM(T pixel);
-    template<typename T>
-    static float SqrPixelToSqrMM(T sqrPixel);
 
     void HandleIdleEvent(bool isIdle);
     void HandleStylusSceneEvent(const std::string& sceneName);
@@ -251,6 +248,14 @@ private:
         }
     }
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
+    void HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData,
+        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum)
+    {
+        if (hgmConfigUpdateCallback_) {
+            hgmConfigUpdateCallback_(configData, ltpoEnabled, isDelayMode, pipelineOffsetPulseNum);
+        }
+    }
+    void SyncHgmConfigUpdateCallback();
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
 
@@ -327,6 +332,7 @@ private:
     
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
+    std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
