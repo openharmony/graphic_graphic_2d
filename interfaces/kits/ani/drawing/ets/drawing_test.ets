@@ -115,21 +115,21 @@ function testErrorCode() {
     try {
         pen.setAlpha(157);
         console.log(`testErrorCode pen.setAlpha(157) success`);
-    } catch (e: Error) {
+    } catch (e) {
         console.log(`testErrorCode pen.setAlpha(157) failed, err.msg = ${e.message}`);
     }
     console.log(`testErrorCode pen.getAlpha = ${pen.getAlpha()}`);
     try {
         pen.setAlpha(-10);
         console.log(`testErrorCode pen.setAlpha(-10) success`);
-    } catch (e: Error) {
+    } catch (e) {
         console.log(`testErrorCode pen.setAlpha(-10) failed, err.msg = ${e.message}`);
     }
     console.log(`testErrorCode pen.getAlpha = ${pen.getAlpha()}`);
     try {
         pen.setAlpha(321);
         console.log(`testErrorCode pen.setAlpha(321) success`);
-    } catch (e: Error) {
+    } catch (e) {
         console.log(`testErrorCode pen.setAlpha(321) failed, err.msg = ${e.message}`);
     }
     console.log(`testErrorCode pen.getAlpha = ${pen.getAlpha()}`);
