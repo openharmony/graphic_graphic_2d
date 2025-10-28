@@ -66,23 +66,21 @@ HWTEST_F(RSPerfmonitorReporterTest, SetFocusAppInfoTest, TestSize.Level1)
 HWTEST_F(RSPerfmonitorReporterTest, EndRendergroupMonitorTest, TestSize.Level1)
 {
     RSPerfMonitorReporter perfMonitor;
-    std::shared_ptr<RSContext> ctx = std::make_shared<RSContext>();
     int updateTimes = 1;
     NodeId nodeId1 = 1;
     auto startTime = high_resolution_clock::now();
-    perfMonitor.EndRendergroupMonitor(startTime, nodeId1, ctx, updateTimes);
+    perfMonitor.EndRendergroupMonitor(startTime, nodeId1, updateTimes);
     EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId1].size(), 1);
 
     updateTimes = 8;
     NodeId nodeId2 = 2;
     startTime = high_resolution_clock::now() - std::chrono::microseconds(5001);
-    perfMonitor.EndRendergroupMonitor(startTime, nodeId2, ctx, updateTimes);
+    perfMonitor.EndRendergroupMonitor(startTime, nodeId2, updateTimes);
     EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId2].size(), 1);
     
     NodeId nodeId3 = 3;
-    ctx = nullptr;
     startTime = high_resolution_clock::now();
-    perfMonitor.EndRendergroupMonitor(startTime, nodeId3, ctx, updateTimes);
+    perfMonitor.EndRendergroupMonitor(startTime, nodeId3, updateTimes);
     EXPECT_EQ(perfMonitor.drawingCacheLastTwoTimestampMap_[nodeId3].size(), 1);
 }
 
@@ -98,15 +96,14 @@ HWTEST_F(RSPerfmonitorReporterTest, ProcessRendergroupSubhealthTest, TestSize.Le
     NodeId nodeId = 1;
     int updateTimes = 1;
     auto startTime = high_resolution_clock::now();
-    std::shared_ptr<RSContext> ctx = std::make_shared<RSContext>();
     int interval = 1000;
-    perfMonitor.ProcessRendergroupSubhealth(nodeId, ctx, updateTimes, interval, startTime);
+    perfMonitor.ProcessRendergroupSubhealth(nodeId, updateTimes, interval, startTime);
     auto startTime2 = startTime + std::chrono::microseconds(1000);
-    perfMonitor.ProcessRendergroupSubhealth(nodeId, ctx, updateTimes + 1, interval, startTime2);
+    perfMonitor.ProcessRendergroupSubhealth(nodeId, updateTimes + 1, interval, startTime2);
     auto startTime3 = startTime + std::chrono::microseconds(2000);
-    perfMonitor.ProcessRendergroupSubhealth(nodeId, ctx, updateTimes + 2, interval, startTime3);
+    perfMonitor.ProcessRendergroupSubhealth(nodeId, updateTimes + 2, interval, startTime3);
     auto startTime4 = startTime + std::chrono::microseconds(3000);
-    perfMonitor.ProcessRendergroupSubhealth(nodeId, ctx, updateTimes + 3, interval, startTime4);
+    perfMonitor.ProcessRendergroupSubhealth(nodeId, updateTimes + 3, interval, startTime4);
     EXPECT_EQ(perfMonitor.drawingCacheTimeTakenMap_[nodeId].size(), 3);
 }
 
