@@ -1072,9 +1072,14 @@ HWTEST_F(RSClientTest, SetScreenGamutMap001, TestSize.Level1)
 */
 HWTEST_F(RSClientTest, SetScreenCorrection001, TestSize.Level1)
 {
-    ScreenId screenId = rsClient->GetDefaultScreenId();
-    uint32_t ret = rsClient->SetScreenCorrection(screenId, ScreenRotation::ROTATION_90);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
+        "virtualScreenTest", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    uint32_t ret = rsClient->SetScreenCorrection(virtualScreenId, ScreenRotation::ROTATION_90);
     ASSERT_EQ(ret, SUCCESS);
+    rsClient->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -1123,6 +1128,7 @@ HWTEST_F(RSClientTest, SetVirtualScreenAutoRotationTest, TestSize.Level1)
     RSRenderServiceConnectHub::Destroy();
     EXPECT_EQ(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::RENDER_SERVICE_NULL);
     RSRenderServiceConnectHub::Init();
+    EXPECT_NE(rsClient->SetVirtualScreenAutoRotation(virtualScreenId, true), StatusCode::RENDER_SERVICE_NULL);
 }
 
 /*
