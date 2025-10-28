@@ -28,7 +28,6 @@ void RSEffectRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     }
     targetEffectRenderParam->cacheValid_ = cacheValid_;
     targetEffectRenderParam->hasEffectChildren_ = hasEffectChildren_;
-    targetEffectRenderParam->hasHarmoniumChildren_ = hasHarmoniumChildren_;
     targetEffectRenderParam->isDarkColorMode_ = isDarkColorMode_;
     targetEffectRenderParam->isIntersectWithDRM_ = isIntersectWithDRM_;
 
@@ -60,20 +59,6 @@ void RSEffectRenderParams::SetHasEffectChildren(bool hasEffectChildren)
 bool RSEffectRenderParams::GetHasEffectChildren() const
 {
     return hasEffectChildren_;
-}
-
-void RSEffectRenderParams::SetHasHarmoniumChildren(bool hasHarmoniumChildren)
-{
-    if (hasHarmoniumChildren_ == hasHarmoniumChildren) {
-        return;
-    }
-    hasHarmoniumChildren_ = hasHarmoniumChildren;
-    needSync_ = true;
-}
- 
-bool RSEffectRenderParams::GetHasHarmoniumChildren() const
-{
-    return hasHarmoniumChildren_;
 }
 
 void RSEffectRenderParams::SetEffectIntersectWithDRM(bool intersect)

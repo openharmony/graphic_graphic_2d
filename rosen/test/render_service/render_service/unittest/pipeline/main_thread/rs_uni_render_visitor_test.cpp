@@ -3325,19 +3325,18 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo005, TestSize.Level2)
     parent->InitRenderParams();
     parent->AddChild(node);
     node->GetMutableRenderProperties().hasHarmonium_ = true;
-    node->SetChildHasVisibleHarmonium(true);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_TRUE(parent->ChildHasVisibleHarmonium());
+    ASSERT_TRUE(parent->ChildHasVisibleEffect());
 
     node->GetMutableRenderProperties().hasHarmonium_ = false;
-    node->SetChildHasVisibleHarmonium(true);
+    node->SetChildHasVisibleEffect(true);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_TRUE(parent->ChildHasVisibleHarmonium());
+    ASSERT_TRUE(parent->ChildHasVisibleEffect());
 
     node->GetMutableRenderProperties().hasHarmonium_ = false;
-    node->SetChildHasVisibleHarmonium(true);
+    node->SetChildHasVisibleEffect(false);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_TRUE(parent->ChildHasVisibleHarmonium());
+    ASSERT_FALSE(parent->ChildHasVisibleEffect());
 }
 
 /*

@@ -322,32 +322,6 @@ HWTEST_F(RSRenderParamsTest, SetHasSandBox_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetChildHasVisibleHarmonium_001
- * @tc.desc: Test function SetChildHasVisibleHarmonium
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, SetChildHasVisibleHarmonium_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-    bool val = true;
-    renderParams->childHasVisibleHarmonium_ = val;
-    EXPECT_EQ(renderParams->childHasVisibleHarmonium_, val);
-    renderParams->SetChildHasVisibleHarmonium(val);
-
-    renderParams->childHasVisibleHarmonium_ = false;
-    val = false;
-    EXPECT_EQ(renderParams->childHasVisibleHarmonium_, val);
-    renderParams->SetChildHasVisibleHarmonium(val);
-    
-    renderParams->needSync_ = false;
-    EXPECT_FALSE(renderParams->needSync_);
-}
-
-/**
  * @tc.name: SetLocalDrawRect_001
  * @tc.desc: Test function SetLocalDrawRect
  * @tc.type:FUNC

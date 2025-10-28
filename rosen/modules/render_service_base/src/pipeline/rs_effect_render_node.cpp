@@ -276,7 +276,6 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
         return;
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
-    effectParams->SetHasHarmoniumChildren(ChildHasVisibleHarmonium());
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
