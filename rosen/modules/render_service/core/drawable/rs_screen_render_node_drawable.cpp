@@ -552,6 +552,7 @@ void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDi
 
 void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RSSpecialLayerManager::ClearWhiteListRootIds();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     SetDrawSkipType(DrawSkipType::NONE);
     // canvas will generate in every request frame

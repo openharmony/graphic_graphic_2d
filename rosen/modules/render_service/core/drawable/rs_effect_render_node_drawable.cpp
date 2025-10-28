@@ -35,6 +35,9 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
+        return;
+    }
 #ifdef RS_ENABLE_GPU
     if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
         RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " isSoloNodeUiCapture, skip", nodeId_);
@@ -160,9 +163,6 @@ void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         captureParam.endNodeId_ == GetId() &&
         captureParam.endNodeId_ != INVALID_NODEID);
     if (stopDrawForRangeCapture) {
-        return;
-    }
-    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
         return;
     }
     RSEffectRenderNodeDrawable::OnDraw(canvas);

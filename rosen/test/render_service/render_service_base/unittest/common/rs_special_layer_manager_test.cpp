@@ -162,4 +162,44 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIds002, TestSize.Level1)
     ASSERT_EQ(slManager.specialLayerIds_[SpecialLayerType::SKIP].size(), MAX_IDS_SIZE);
     slManager.ClearSpecialLayerIds();
 }
+
+/**
+ * @tc.name: ResetWhiteListRootId001
+ * @tc.desc: test ResetWhiteListRootId while whiteListRootIds_ is empty
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSSpecialLayerManagerTest, ResetWhiteListRootId001, TestSize.Level2)
+{
+    // test whiteListRootIds_ is empty
+    RSSpecialLayerManager::ClearWhiteListRootIds();
+    LeashPersistentId persistentId = 1;
+    RSSpecialLayerManager::ResetWhiteListRootId(persistentId);
+
+    // test top of whiteListRootIds_ mismatch
+    RSSpecialLayerManager::SetWhiteListRootId(persistentId);
+    RSSpecialLayerManager::ResetWhiteListRootId(persistentId + 1);
+    ASSERT_FALSE(RSSpecialLayerManager::whiteListRootIds_.empty());
+
+    // restore
+    RSSpecialLayerManager::ClearWhiteListRootIds();
+}
+
+/**
+ * @tc.name: SetWhiteListRootId001
+ * @tc.desc: test ResetWhiteListRootId while whiteListRootIds_ exceeds size limit
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSSpecialLayerManagerTest, SetWhiteListRootId001, TestSize.Level2)
+{
+    LeashPersistentId persistentId = 1;
+    std::deque<LeashPersistentId> deq(MAX_IDS_SIZE, persistentId);
+    RSSpecialLayerManager::whiteListRootIds_ = std::stack<LeashPersistentId>(deq);
+
+    RSSpecialLayerManager::SetWhiteListRootId(persistentId);
+    ASSERT_EQ(RSSpecialLayerManager::whiteListRootIds_.size(), MAX_IDS_SIZE);
+    // restore
+    RSSpecialLayerManager::ClearWhiteListRootIds();
+}
 } // namespace OHOS::Rosen

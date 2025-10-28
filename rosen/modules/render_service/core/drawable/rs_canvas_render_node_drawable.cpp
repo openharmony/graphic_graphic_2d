@@ -78,6 +78,9 @@ bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode()
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
+        return;
+    }
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
     // Draw only when should paint is valid or when this node is the end node of the range ui-capture
@@ -184,7 +187,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
     }
-    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
+    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
         return;
     }
     bool stopDrawForRangeCapture = (canvas.GetUICapture() &&

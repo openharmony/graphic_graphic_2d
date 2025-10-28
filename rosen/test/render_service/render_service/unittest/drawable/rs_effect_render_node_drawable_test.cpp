@@ -134,7 +134,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
     CaptureParam params;
     drawable->renderParams_ = nullptr;
     params.isMirror_ = true;
-    params.rootIdInWhiteList_ = INVALID_NODEID;
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     std::unordered_set<NodeId> whiteList = {nodeId};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
     RSUniRenderThread::SetCaptureParam(params);
@@ -173,5 +173,32 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUI
     params.SetHasEffectChildren(false);
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
     EXPECT_NE(paintFilterCanvas.GetEffectData(), nullptr);
+}
+
+/**
+ * @tc.name: OnDraw002
+ * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw002, TestSize.Level2)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
+    ASSERT_NE(effectNode, nullptr);
+    auto effectDrawable =
+        static_cast<RSEffectRenderNodeDrawable*>(RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::captureParam_.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {effectDrawable->nodeId_};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+
+    Drawing::Canvas canvas;
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
+    effectDrawable->OnDraw(canvas);
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 }

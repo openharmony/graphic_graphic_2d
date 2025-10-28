@@ -431,7 +431,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
     CaptureParam params;
     drawable->renderParams_ = nullptr;
     params.isMirror_ = true;
-    params.rootIdInWhiteList_ = INVALID_NODEID;
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     std::unordered_set<NodeId> whiteList = {nodeId};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
     RSUniRenderThread::SetCaptureParam(params);
@@ -719,6 +719,31 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, Tes
     drawable->image_ = std::make_shared<Drawing::Image>();
     auto result = drawable->ResetSurfaceWithTexture(width, height, canvas);
     ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: OnDraw001
+ * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw001, TestSize.Level2)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::captureParam_.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {drawable->nodeId_};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+
+    Drawing::Canvas canvas;
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
+    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
+    drawable->OnDraw(canvas);
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 #endif
 }

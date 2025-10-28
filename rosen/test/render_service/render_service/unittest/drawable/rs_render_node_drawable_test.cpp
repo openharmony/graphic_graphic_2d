@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
@@ -30,6 +31,8 @@ using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
 constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr int DEFAULT_CANVAS_WIDTH = 100;
+constexpr int DEFAULT_CANVAS_HEIGHT = 100;
 class RSRenderNodeDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -679,12 +682,12 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DealWithWhiteListNodes001
- * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.name: SkipDrawByWhiteList001
+ * @tc.desc: Test If SkipDrawByWhiteList while node's child is in whitelist
  * @tc.type: FUNC
  * @tc.require: issueICF7P6
  */
-HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes001, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
 {
     NodeId nodeId = 1;
     auto node = std::make_shared<RSRenderNode>(nodeId);
@@ -696,36 +699,56 @@ HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes001, TestSize.Level1)
     params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
-    params.rootIdInWhiteList_ = INVALID_NODEID;
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     RSUniRenderThread::SetCaptureParam(params);
 
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
     drawable->renderParams_ = nullptr;
-    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
     ASSERT_EQ(drawable->GetRenderParams(), nullptr);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
 
+    // create screenDrawable
+    auto renderNode = std::make_shared<RSRenderNode>(nodeId + 1);
+    auto screenDrawable = std::make_shared<RSScreenRenderNodeDrawable>(renderNode);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(renderNode->id_);
+    // set screenDrawable info
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
     ScreenId screenid = 1;
-    params.virtualScreenId_ = screenid;
+    screenParams->screenInfo_.id = screenid;
+    screenParams->childDisplayCount_++;
+    // sync curDisplayScreenId_
+    screenDrawable->OnDraw(canvas);
+
     std::unordered_map<ScreenId, bool> info;
     info[screenid] = true;
     drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
 
     info.clear();
     info[screenid + 1] = true;
     drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_TRUE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
+
+    info.clear();
+    info[screenid] = false;
+    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
 }
 
 /**
- * @tc.name: DealWithWhiteListNodes002
- * @tc.desc: Test If DealWithWhiteListNodes Can Run
+ * @tc.name: SkipDrawByWhiteList002
+ * @tc.desc: Test If SkipDrawByWhiteList while node is in whitelist
  * @tc.type: FUNC
  * @tc.require: issueICF7P6
  */
-HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes002, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList002, TestSize.Level1)
 {
     NodeId nodeId = 1;
     auto node = std::make_shared<RSRenderNode>(nodeId);
@@ -738,18 +761,90 @@ HWTEST_F(RSRenderNodeDrawableTest, DealWithWhiteListNodes002, TestSize.Level1)
     params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
-    params.rootIdInWhiteList_ = nodeId;
+    AutoSpecialLayerStateRecover whiteListRecover(nodeId);
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
 
     params.isMirror_ = true;
     RSUniRenderThread::Instance().SetWhiteList({});
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
 
     params.isMirror_ = false;
     RSUniRenderThread::SetCaptureParam(params);
-    ASSERT_FALSE(drawable->DealWithWhiteListNodes(canvas));
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+}
+
+/**
+ * @tc.name: SkipDrawByWhiteList003
+ * @tc.desc: Test SkipDrawByWhiteList for security display
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList003, TestSize.Level2)
+{
+    // create drawable
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+
+    // set capture param
+    CaptureParam params;
+    params.isMirror_ = false;
+    RSUniRenderThread::SetCaptureParam(params);
+
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+}
+
+/**
+ * @tc.name: SkipDrawByWhiteList004
+ * @tc.desc: Test SkipDrawByWhiteList while renderThreadParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList004, TestSize.Level2)
+{
+    // create drawable
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+
+    // set render thread param
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+}
+
+/**
+ * @tc.name: SkipDrawByWhiteList005
+ * @tc.desc: Test SkipDrawByWhiteList while is subThread drawing
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList005, TestSize.Level2)
+{
+    // create drawable
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetIsParallelCanvas(true);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
 }
 
 /**

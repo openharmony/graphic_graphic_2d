@@ -270,4 +270,62 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsUiRangeCaptureEndNodeTest, TestSize.Lev
     RSUniRenderThread::SetCaptureParam(params);
     ASSERT_EQ(drawable->IsUiRangeCaptureEndNode(), true);
 }
+
+/**
+ * @tc.name: OnDrawTest002
+ * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest002, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::captureParam_.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
+    canvasDrawable->OnDraw(canvas);
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnCapture004
+ * @tc.desc: Test OnCapture while skip draw by white list
+ * @tc.type: FUNC
+ * @tc.require: issue19858
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnCapture004, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::captureParam_.isMirror_ = true;
+    std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
+    canvasDrawable->OnCapture(canvas);
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
 }

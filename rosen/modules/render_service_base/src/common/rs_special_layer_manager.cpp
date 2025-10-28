@@ -48,7 +48,25 @@ std::stack<LeashPersistentId> RSSpecialLayerManager::whiteListRootIds_ = {};
 
 void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
 {
+    if (id == INVALID_LEASH_PERSISTENTID) {
+        return;
+    }
+    if (whiteListRootIds_.size() >= MAX_IDS_SIZE) {
+        RS_LOGE("RSSpecialLayerManager::SetWhiteListRootId whiteListRootIds_ exceeds size limit.");
+        return;
+    }
     whiteListRootIds_.push(id);
+}
+
+void RSSpecialLayerManager::ResetWhiteListRootId(LeashPersistentId id)
+{
+    if (id == INVALID_LEASH_PERSISTENTID) {
+        return;
+    }
+    if (whiteListRootIds_.empty() || whiteListRootIds_.top() != id) {
+        return;
+    }
+    whiteListRootIds_.pop();
 }
 
 LeashPersistentId RSSpecialLayerManager::GetCurWhiteListRootId()
@@ -59,11 +77,14 @@ LeashPersistentId RSSpecialLayerManager::GetCurWhiteListRootId()
     return whiteListRootIds_.top();
 }
 
-void RSSpecialLayerManager::ResetWhiteListRootId(LeashPersistentId id)
+bool RSSpecialLayerManager::IsWhiteListRootIdsEmpty()
 {
-    if (!whiteListRootIds_.empty() && whiteListRootIds_.top() == id) {
-        whiteListRootIds_.pop();
-    }
+    return whiteListRootIds_.empty();
+}
+
+void RSSpecialLayerManager::ClearWhiteListRootIds()
+{
+    whiteListRootIds_ = std::stack<LeashPersistentId>();
 }
 
 bool RSSpecialLayerManager::Set(uint32_t type, bool is)

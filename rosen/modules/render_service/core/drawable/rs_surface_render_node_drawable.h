@@ -47,9 +47,8 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
-    bool CheckIfSurfaceSkipInMirrorOrScreenshot(const RSSurfaceRenderParams& surfaceParams);
-    void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
-    void ResetVirtualScreenWhiteListRootId(NodeId id);
+    bool CheckIfSurfaceSkipInMirrorOrScreenshot(
+        const RSSurfaceRenderParams& surfaceParams, const RSPaintFilterCanvas& canvas);
 
     const std::string& GetName() const
     {
@@ -167,6 +166,7 @@ private:
     int GetMaxRenderSizeForRotationOffscreen(int& offscreenWidth, int& offscreenHeight);
     void ApplyCanvasScalingIfDownscaleEnabled();
     void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
+    NodeId GetWhiteListPersistentId(const RSSurfaceRenderParams& surfaceParam, const RSPaintFilterCanvas& canvas);
 
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool QuickGetDrawState(RSPaintFilterCanvas* rscanvas, Drawing::Region& curSurfaceDrawRegion,

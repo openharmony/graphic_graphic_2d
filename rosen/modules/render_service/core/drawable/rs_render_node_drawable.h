@@ -74,6 +74,8 @@ public:
 
     bool ShouldPaint() const;
 
+    bool IsWhiteListNode();
+
     static int GetTotalProcessedNodeCount();
     static void TotalProcessedNodeCountInc();
     static void ClearTotalProcessedNodeCount();
@@ -157,7 +159,7 @@ protected:
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
-    bool DealWithWhiteListNodes(Drawing::Canvas& canvas);
+    bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
 
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();

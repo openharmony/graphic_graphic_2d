@@ -308,25 +308,52 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     curDrawingCacheRoot_ = root;
 }
 
-bool RSRenderNodeDrawable::DealWithWhiteListNodes(Drawing::Canvas& canvas)
+bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
 {
-    auto captureParam = RSUniRenderThread::GetCaptureParam();
-    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
-    if (!captureParam.isMirror_ || whiteList.empty() || captureParam.rootIdInWhiteList_ != INVALID_NODEID) {
+    // 1. if it's sub thread drawing, don't skip draw
+    const auto& rsCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (rsCanvas->GetIsParallelCanvas()) {
+        return false;
+    }
+
+    // 2. if it's neither on the security display nor on the mirror screen, don't skip draw
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam == nullptr) {
+        return false;
+    }
+    const auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (!(uniParam->IsSecurityDisplay() || captureParam.isMirror_)) {
+        return false;
+    }
+
+    // 3. if node is in the white list, don't filter the node
+    if (IsWhiteListNode()) {
         return false;
     }
     
+    // 4. if node's child is in the white list, only draw children
     const auto& params = GetRenderParams();
-    if (!params) {
-        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DealWithWhiteListNodes params is nullptr");
-        return true;
-    }
-    auto info = params->GetVirtualScreenWhiteListInfo();
-    if (info.find(captureParam.virtualScreenId_) != info.end()) {
-        DrawChildren(canvas, params->GetFrameRect());
+    if (params != nullptr) {
+        // info : map<ScreenId, hasWhiteList>
+        const auto& info = params->GetVirtualScreenWhiteListInfo();
+        const auto& curScreenWhiteInfo = info.find(curDisplayScreenId_);
+        if (curScreenWhiteInfo != info.end() && curScreenWhiteInfo->second) {
+            DrawChildren(canvas, params->GetFrameRect());
+        }
     }
     return true;
+}
+
+bool RSRenderNodeDrawable::IsWhiteListNode()
+{
+    // if virtual screen white list is empty, don't skip draw
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    if (whiteList.empty()) {
+        return true;
+    }
+
+    // check if the parent node or itself has been recorded as whitelist RootId
+    return !RSSpecialLayerManager::IsWhiteListRootIdsEmpty();
 }
 
 CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(

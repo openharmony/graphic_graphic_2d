@@ -568,6 +568,18 @@ bool RSSurfaceRenderNodeDrawable::QuickGetDrawState(RSPaintFilterCanvas* rscanva
 }
 #endif
 
+NodeId RSSurfaceRenderNodeDrawable::GetWhiteListPersistentId(
+    const RSSurfaceRenderParams& surfaceParam, const RSPaintFilterCanvas& canvas)
+{
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    auto persistentId = surfaceParam.GetLeashPersistentId();
+
+    // 1 . sub thread drawing doesn't check the whitelist, so there is no need to get whiteList's persistentId
+    // 2 . when the persistent id of the node doesn't match the whitelist, don't return the persistent id
+    return (canvas.GetIsParallelCanvas() || whiteList.find(persistentId) == whiteList.end()) ?
+        INVALID_LEASH_PERSISTENTID : persistentId;
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
@@ -625,13 +637,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // process white list
-    if (uniParam->IsSecurityDisplay()) {
-        auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
-        SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
-    }
+    NodeId persistentId = uniParam->IsSecurityDisplay() ?
+        GetWhiteListPersistentId(*surfaceParams, *rscanvas) : INVALID_LEASH_PERSISTENTID;
+    AutoSpecialLayerStateRecover whiteListRecover(persistentId);
 
-    if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams)) {
-        // Whitelist not checked
+    if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams, *rscanvas)) {
         SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw surface skipped in mirror name:[%s] id:%" PRIu64,
             name_.c_str(), surfaceParams->GetId());
@@ -688,7 +698,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 name_.c_str(), absDrawRect.left_, absDrawRect.top_,
                 absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
                 currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
-            ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
             return;
         }
     }
@@ -867,7 +876,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetCulledNodes(std::unordered_set<NodeId>());
         curCanvas_->SetCulledEntireSubtree(std::unordered_set<NodeId>());
     }
-    ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
 }
 
 void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
@@ -977,11 +985,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
-    // process white list
-    auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
-    SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
 
-    if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams)) {
+    NodeId persistentId = GetWhiteListPersistentId(*surfaceParams, *rscanvas);
+    AutoSpecialLayerStateRecover whiteListRecover(persistentId);
+
+    if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams, *rscanvas)) {
         SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture surface skipped in mirror name:[%s] id:%" PRIu64,
             name_.c_str(), surfaceParams->GetId());
@@ -995,6 +1003,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
         surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
@@ -1022,11 +1031,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     CaptureSurface(*rscanvas, *surfaceParams);
-    ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
     RSRenderNodeDrawable::SnapshotProcessedNodeCountInc();
 }
 
-bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(const RSSurfaceRenderParams& surfaceParams)
+bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(
+    const RSSurfaceRenderParams& surfaceParams, const RSPaintFilterCanvas& canvas)
 {
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     const auto& captureParam = RSUniRenderThread::GetCaptureParam();
@@ -1055,36 +1064,14 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(const R
             "(surfaceNodeType:[%{public}u]) is in type black list", nodeType);
         return true;
     }
-    // Check white list.
-    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
-    if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
+    // Check white list (don't check sub thread drawing).
+    if (!canvas.GetIsParallelCanvas() && !IsWhiteListNode()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
             "(id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
         return true;
     }
 
     return false;
-}
-
-void RSSurfaceRenderNodeDrawable::SetVirtualScreenWhiteListRootId(
-    const std::unordered_set<NodeId>& whiteList, NodeId id)
-{
-    if (whiteList.find(id) == whiteList.end()) {
-        return;
-    }
-    // don't update if it's ancestor has already set
-    if (RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ != INVALID_NODEID) {
-        return;
-    }
-    RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ = id;
-}
-
-void RSSurfaceRenderNodeDrawable::ResetVirtualScreenWhiteListRootId(NodeId id)
-{
-    // only reset by the node which sets the flag
-    if (RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == id) {
-        RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ = INVALID_NODEID;
-    }
 }
 
 bool RSSurfaceRenderNodeDrawable::IsVisibleRegionEqualOnPhysicalAndVirtual(RSSurfaceRenderParams& surfaceParams)

@@ -69,6 +69,9 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (!ShouldPaint()) {
@@ -217,9 +220,6 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    if (RSRenderNodeDrawable::DealWithWhiteListNodes(canvas)) {
-        return;
-    }
     OnDraw(canvas);
 }
 

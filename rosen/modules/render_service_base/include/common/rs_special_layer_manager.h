@@ -56,9 +56,10 @@ enum SpecialLayerType : uint32_t {
 class RSB_EXPORT RSSpecialLayerManager {
 public:
     static void SetWhiteListRootId(LeashPersistentId id);
-    static LeashPersistentId GetCurWhiteListRootId();
     static void ResetWhiteListRootId(LeashPersistentId id);
-
+    static LeashPersistentId GetCurWhiteListRootId();
+    static bool IsWhiteListRootIdsEmpty();
+    static void ClearWhiteListRootIds();
     RSSpecialLayerManager() = default;
     ~RSSpecialLayerManager() = default;
 
