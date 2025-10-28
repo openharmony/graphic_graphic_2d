@@ -151,6 +151,10 @@ public:
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
 
+    void UpdateFixedSize();
+    float GetFixedWidth() const;
+    float GetFixedHeight() const;
+
     Occlusion::Region GetTopSurfaceOpaqueRegion() const;
 
     void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
@@ -193,6 +197,9 @@ private:
     bool curRotationStatus_ = false;
     bool lastRotationChanged_ = false;
     float lastRotation_ = 0.f;
+    
+    float fixedWidth_;
+    float fixedHeight_;
 
     int32_t currentScbPid_ = -1;
     int32_t lastScbPid_ = -1;

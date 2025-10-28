@@ -132,6 +132,16 @@ public:
         needSync_ = true;
     }
 
+    float GetFixedWidth() const
+    {
+        return fixedWidth_;
+    }
+
+    float GetFixedHeight() const
+    {
+        return fixedHeight_;
+    }
+
 private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
     std::vector<Occlusion::Rect> topSurfaceOpaqueRects_;
@@ -157,6 +167,8 @@ private:
 
     float offsetX_ = 0.f;
     float offsetY_ = 0.f;
+    float fixedWidth_ = 0;
+    float fixedHeight_ = 0;
 
     friend class RSLogicalDisplayRenderNode;
 };
