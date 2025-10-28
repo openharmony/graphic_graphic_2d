@@ -1882,15 +1882,18 @@ std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::Genera
             break;
         }
         case Drawing::RoundRect::CornerPos::TOP_RIGHT_POS: {
-            relativeRect = Drawing::Rect(radius.GetX(), rect.GetTop(), rect.GetRight(), radius.GetY());
+            relativeRect = Drawing::Rect(
+                rect.GetRight() - radius.GetX(), rect.GetTop(), rect.GetRight(), radius.GetY());
             break;
         }
         case Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS: {
-            relativeRect = Drawing::Rect(rect.GetLeft(), radius.GetY(), radius.GetX(), rect.GetBottom());
+            relativeRect = Drawing::Rect(
+                rect.GetLeft(), rect.GetBottom() - radius.GetY(), radius.GetX(), rect.GetBottom());
             break;
         }
         case Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS: {
-            relativeRect = Drawing::Rect(radius.GetX(), radius.GetY(), rect.GetRight(), rect.GetBottom());
+            relativeRect = Drawing::Rect(
+                rect.GetRight() - radius.GetX(), rect.GetBottom() - radius.GetY(), rect.GetRight(), rect.GetBottom());
             break;
         }
         default: {
