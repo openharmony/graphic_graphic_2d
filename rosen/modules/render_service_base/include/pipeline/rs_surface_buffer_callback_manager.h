@@ -68,7 +68,7 @@ public:
 #ifdef RS_ENABLE_VK
     void RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId);
 #endif
-
+    bool needReleaseSurfaceBuffer();
     static RSSurfaceBufferCallbackManager& Instance();
 private:
     static constexpr size_t ROOTNODEIDS_POS = 3;

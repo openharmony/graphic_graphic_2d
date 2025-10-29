@@ -2757,7 +2757,8 @@ void RSMainThread::OnUniRenderDraw()
     }
 #ifdef RS_ENABLE_GPU
     isLastFrameNeedPostAndWait_ = needPostAndWait_;
-    needPostAndWait_ = !doDirectComposition_ && needDrawFrame_;
+    needPostAndWait_ = (!doDirectComposition_ && needDrawFrame_) ||
+        (RSSurfaceBufferCallbackManager::Instance().needReleaseSurfaceBuffer());
     if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
