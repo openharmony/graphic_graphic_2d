@@ -350,6 +350,37 @@ void RSTypefaceCache::Dump() const
     RS_LOGI("RSTypefaceCache Dump ]");
 }
 
+void RSTypefaceCache::Dump(DfxString& log) const
+{
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    log.AppendFormat("------------------------------------\n");
+    log.AppendFormat("RSTypefaceCache Dump: \n");
+    log.AppendFormat("%-6s %-16s %-4s %-26s %10s %10s\n",
+        "pid", "hash_value", "ref", "familyname", "size(B)", "size(MB)");
+    constexpr double KB = 1024.0;
+    constexpr double MB = KB * KB;
+    std::set<std::pair<int, uint64_t>> processedPairs;
+    for (auto co : typefaceHashCode_) {
+        auto iter = typefaceHashMap_.find(co.second);
+        if (iter == typefaceHashMap_.end()) {
+            continue;
+        }
+        auto [typeface, ref] = iter->second;
+
+        int pid = GetTypefacePid(co.first);
+        uint64_t hash = co.second;
+        const std::string& family = typeface->GetFamilyName();
+        double sizeMB = static_cast<double>(typeface->GetSize()) / MB;
+        
+        std::pair<int, uint64_t> currentPair = {pid, hash};
+        if (processedPairs.find(currentPair) == processedPairs.end()) {
+                log.AppendFormat("%6d %16" PRIu64 " %4u %26s %10u %10.2f\n",
+                pid, hash, ref, family.c_str(), typeface->GetSize(), sizeMB);
+            processedPairs.insert(currentPair);
+        }
+    }
+}
+
 void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)
 {
     size_t fontCount = 0;

@@ -236,6 +236,23 @@ HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DumpTest001
+ * @tc.desc: Verify function Dump(DfxString& log)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, DumpTest001, TestSize.Level1) {
+    auto typeface = Drawing::Typeface::MakeDefault();
+    uint64_t uniqueId = 1;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    DfxString log;
+    RSTypefaceCache::Instance().Dump(log);
+    EXPECT_TRUE(log.GetString().find("RSTypefaceCache Dump:") != std::string::npos);
+    EXPECT_TRUE(log.GetString().find("pid") != std::string::npos);
+    EXPECT_TRUE(log.GetString().find("hash_value") != std::string::npos);
+    EXPECT_TRUE(log.GetString().find("familyname") != std::string::npos);
+}
+
+/**
  * @tc.name: ReplaySerializeTest001
  * @tc.desc: Verify function ReplaySerialize
  * @tc.type:FUNC

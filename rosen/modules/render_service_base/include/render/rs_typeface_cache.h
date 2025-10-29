@@ -78,6 +78,7 @@ public:
         uint32_t refCount = 0;
     };
     void Dump() const;
+    void Dump(DfxString& log) const;
 
 private:
     bool AddIfFound(uint64_t uniqueId, uint32_t hash);
