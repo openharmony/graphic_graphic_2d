@@ -57,7 +57,7 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
             delete data;
             return nullptr;
         }
-        AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
+        AnimDynamicItem item = { type, name, minSpeed, maxSpeed, preferredFps };
         data->AddAnimDynamicItem(item);
     }
 
@@ -79,7 +79,7 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
             delete data;
             return nullptr;
         }
-        AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
+        AnimDynamicItem item = { type, name, minSpeed, maxSpeed, preferredFps };
         data->AddSmallSizeAnimDynamicItem(item);
     }
     return data;
