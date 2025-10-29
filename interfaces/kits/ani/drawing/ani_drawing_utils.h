@@ -55,6 +55,7 @@ enum class DrawingErrorCode : int32_t {
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+    ERROR_PARAM_VERIFICATION_FAILED = 25900001, // after api 18, no throw 401
 };
 
 constexpr char NATIVE_OBJ[] = "nativeObj";
@@ -140,6 +141,8 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
 
     return aniObject;
 }
+
+bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
 
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 

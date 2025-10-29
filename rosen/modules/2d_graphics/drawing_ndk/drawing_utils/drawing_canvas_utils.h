@@ -34,6 +34,12 @@ public:
     static void DrawPixelMapRect(OHOS::Rosen::Drawing::Canvas* canvas, std::shared_ptr<OHOS::Media::PixelMap> pixelMap,
         const OHOS::Rosen::Drawing::Rect* src, const OHOS::Rosen::Drawing::Rect* dst,
         const OHOS::Rosen::Drawing::SamplingOptions* sampling);
+    static OH_Drawing_ErrorCode DrawPixelMapMesh(OHOS::Rosen::Drawing::Canvas* canvas,
+        std::shared_ptr<OHOS::Media::PixelMap> pixelMap, uint32_t meshWidth, uint32_t meshHeight, const float* vertices,
+        uint32_t verticesSize, uint32_t vertOffset, const uint32_t* colors, uint32_t colorsSize, uint32_t colorOffset);
+    static OH_Drawing_ErrorCode DrawPixelMapMeshInternal(OHOS::Rosen::Drawing::Canvas* canvas,
+        std::shared_ptr<OHOS::Media::PixelMap> pixelMap, uint32_t meshWidth, uint32_t meshHeight, const float* vertices,
+        const uint32_t* colors);
     static OH_Drawing_ErrorCode DrawPixelMapRectConstraint(OHOS::Rosen::Drawing::Canvas* canvas,
         std::shared_ptr<OHOS::Media::PixelMap> pixelMap, const OHOS::Rosen::Drawing::Rect* src,
         const OHOS::Rosen::Drawing::Rect* dst, const OHOS::Rosen::Drawing::SamplingOptions* sampling,

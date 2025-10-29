@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
+#include <cstdint>
+#include "ani.h"
 #include "ani_canvas.h"
+#include "utils/point.h"
+#include "utils/vertices.h"
 #include "brush_ani/ani_brush.h"
 #include "effect/color_space.h"
 #include "pixel_map_taihe_ani.h"
@@ -233,6 +237,7 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
 
 namespace Drawing {
 const char* ANI_CLASS_CANVAS_NAME = "L@ohos/graphics/drawing/drawing/Canvas;";
+static constexpr int VERTEX_COUNT_MIN_SIZE = 3;
 ani_status AniCanvas::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -248,6 +253,7 @@ ani_status AniCanvas::AniInit(ani_env *env)
             reinterpret_cast<void*>(DrawRectWithRect) },
         ani_native_function { "drawRect", "DDDD:V", reinterpret_cast<void*>(DrawRect) },
         ani_native_function { "drawImageRect", nullptr, reinterpret_cast<void*>(DrawImageRect) },
+        ani_native_function { "drawVertices", nullptr, reinterpret_cast<void*>(DrawVertices) },
         ani_native_function { "drawPixelMapMesh", nullptr, reinterpret_cast<void*>(DrawPixelMapMesh) },
         ani_native_function { "attachPen", nullptr, reinterpret_cast<void*>(AttachPen) },
         ani_native_function { "attachBrush", nullptr, reinterpret_cast<void*>(AttachBrush) },
@@ -425,6 +431,40 @@ bool AniCanvas::GetVertices(ani_env* env, ani_object verticesObj, float* vertice
     }
     return true;
 }
+
+bool AniCanvas::GetVerticesUint16(ani_env* env, ani_object verticesObj, uint16_t* vertices, uint32_t verticesSize)
+{
+    for (uint32_t i = 0; i < verticesSize; i++) {
+        ani_int vertex;
+        ani_ref vertexRef;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(
+            verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Int(
+                static_cast<ani_object>(vertexRef), "unboxed", ":i", &vertex)) {
+            ROSEN_LOGE("AniCanvas::GetVerticesUint16 vertices is invalid");
+            return false;
+        }
+        vertices[i] = static_cast<uint16_t>(vertex);
+    }
+    return true;
+}
+
+bool AniCanvas::GetVerticesUint32(ani_env* env, ani_object verticesObj, uint32_t* vertices, uint32_t verticesSize)
+{
+    for (uint32_t i = 0; i < verticesSize; i++) {
+        ani_int vertex;
+        ani_ref vertexRef;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(
+            verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Int(
+                static_cast<ani_object>(vertexRef), "unboxed", ":i", &vertex)) {
+            ROSEN_LOGE("AniCanvas::GetVerticesUint32 vertices is invalid");
+            return false;
+        }
+        vertices[i] = static_cast<uint32_t>(vertex);
+    }
+    return true;
+}
 #endif
 
 #ifdef ROSEN_OHOS
@@ -529,6 +569,196 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
     DrawPixelMapMeshArgs args {pixelMap, vertices, verticesSize, vertOffset, column, row};
     GetColorsAndDraw(env, colorsObj, static_cast<int32_t>(aniColorOffset), args, aniCanvas);
 #endif
+}
+
+bool ConvertFromAniPointsArray(ani_env* env, ani_object aniPointArray,
+    Drawing::Point* points, uint32_t pointSize)
+{
+    for (uint32_t i = 0; i < pointSize; i++) {
+        ani_ref pointRef;
+        Drawing::Point point;
+        if (ANI_OK != env->Object_CallMethodByName_Ref(
+            aniPointArray, "$_get", "i:C{std.core.Object}", &pointRef, (ani_int)i)) {
+            ROSEN_LOGE("aniPointArray get pointRef failed.");
+            return false;
+        }
+        if (!GetPointFromAniPointObj(env, static_cast<ani_object>(pointRef), point)) {
+            ROSEN_LOGE("pointRef is invalid");
+            return false;
+        }
+        points[i] = point;
+    }
+    return true;
+}
+
+bool AniCanvas::CheckDrawVerticesParams(ani_env* env, ani_int& vertexCount, ani_int& indexCount)
+{
+    if (vertexCount < VERTEX_COUNT_MIN_SIZE) {
+        ROSEN_LOGE("AniCanvas::DrawVertices vertexCount is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid vertexCount params.");
+        return false;
+    }
+    if (indexCount < VERTEX_COUNT_MIN_SIZE && indexCount != 0) {
+        ROSEN_LOGE("AniCanvas::DrawVertices indexCount is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indexCount params.");
+        return false;
+    }
+    return true;
+}
+
+bool AniCanvas::GetPositions(ani_env* env, ani_int vertexCount,
+    ani_object positionsObj, std::vector<Drawing::Point>& pointPositions)
+{
+    ani_int aniPositionsLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(positionsObj, "length", &aniPositionsLength)) {
+        ROSEN_LOGE("AniCanvas::DrawVertices positions is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
+        return false;
+    }
+    if (aniPositionsLength != vertexCount) {
+        ROSEN_LOGE("AniCanvas::DrawVertices positionsSize is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
+        return false;
+    }
+    uint32_t pointSize = static_cast<uint32_t>(vertexCount);
+    pointPositions.resize(pointSize);
+    if (!ConvertFromAniPointsArray(env, positionsObj, pointPositions.data(), pointSize)) {
+        ROSEN_LOGE("AniCanvas::DrawVertices GetPositionsPoints is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
+        return false;
+    }
+    return true;
+}
+
+bool AniCanvas::GetTexs(ani_env* env, ani_int vertexCount,
+    ani_object texsObj, std::vector<Drawing::Point>& pointTexs)
+{
+    ani_int aniTexsLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(texsObj, "length", &aniTexsLength)) {
+        ROSEN_LOGE("AniCanvas::DrawVertices texs is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid texsObj params.");
+        return false;
+    }
+    uint32_t texsSize = static_cast<uint32_t>(aniTexsLength);
+    if (texsSize != 0) {
+        if (aniTexsLength != vertexCount) {
+            ROSEN_LOGE("AniCanvas::DrawVertices texsSize is invalid");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid texsObj params.");
+            return false;
+        }
+        pointTexs.resize(texsSize);
+        if (!ConvertFromAniPointsArray(env, texsObj, pointTexs.data(), texsSize)) {
+            ROSEN_LOGE("AniCanvas::DrawVertices GetTexsPoints is invalid");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid texsObj params.");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AniCanvas::GetColors(ani_env* env, ani_int vertexCount,
+    ani_object colorsObj, std::unique_ptr<uint32_t[]>& colors)
+{
+    ani_int aniColorsLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(colorsObj, "length", &aniColorsLength)) {
+        ROSEN_LOGE("AniCanvas::DrawVertices colors is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid colors params.");
+        return false;
+    }
+    int32_t colorsSize = aniColorsLength;
+    if (colorsSize != 0) {
+        if (colorsSize != vertexCount) {
+            ROSEN_LOGE("AniCanvas::DrawVertices colorsSize is invalid");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid colors params.");
+            return false;
+        }
+        colors = std::make_unique<uint32_t[]>(colorsSize);
+        if (!GetVerticesUint32(env, colorsObj, colors.get(), colorsSize)) {
+            ROSEN_LOGE("AniCanvas::DrawVertices GetColors is invalid");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid colors params.");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AniCanvas::GetIndices(ani_env* env, ani_int indexCount,
+    ani_object indicesObj, std::unique_ptr<uint16_t[]>& indices)
+{
+    ani_int aniIndicesLength;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(indicesObj, "length", &aniIndicesLength)) {
+        ROSEN_LOGE("AniCanvas::DrawVertices indices is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indices params.");
+        return false;
+    }
+    int32_t indicesSize = aniIndicesLength;
+    if (indicesSize != indexCount) {
+        ROSEN_LOGE("AniCanvas::DrawVertices indicesSize is Invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indices params.");
+        return false;
+    }
+    if (indicesSize != 0) {
+        indices = std::make_unique<uint16_t[]>(indicesSize);
+        if (!GetVerticesUint16(env, indicesObj, indices.get(), indicesSize)) {
+            ROSEN_LOGE("AniCanvas::DrawVertices GetIndices is invalid");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indices params.");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool AniCanvas::GetVertexModeAndBlendMode(ani_env* env, ani_enum_item aniVertexMode,
+    ani_enum_item aniBlendMode, VertexMode& vertexMode, BlendMode& blendMode)
+{
+    ani_int vertexModeTemp;
+    if (ANI_OK != env->EnumItem_GetValue_Int(aniVertexMode, &vertexModeTemp)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid vertexMode params.");
+        return false;
+    }
+    vertexMode = static_cast<VertexMode>(vertexModeTemp);
+    ani_int blendModeTemp;
+    if (ANI_OK != env->EnumItem_GetValue_Int(aniBlendMode, &blendModeTemp)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid blendMode params.");
+        return false;
+    }
+    blendMode = static_cast<BlendMode>(blendModeTemp);
+    return true;
+}
+
+void AniCanvas::DrawVertices(ani_env* env, ani_object obj, ani_enum_item aniVertexMode,
+    ani_int aniVertexCount, ani_object positionsObj, ani_object texsObj, ani_object colorsObj,
+    ani_int aniIndexCount, ani_object indicesObj, ani_enum_item aniBlendMode)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid Canvas params.");
+        return;
+    }
+    int32_t vertexCount = aniVertexCount;
+    int32_t indexCount = aniIndexCount;
+    std::vector<Drawing::Point> pointPositions;
+    std::vector<Drawing::Point> pointTexs;
+    std::unique_ptr<uint32_t[]> colors;
+    std::unique_ptr<uint16_t[]> indices;
+    VertexMode vertexMode;
+    BlendMode blendMode;
+    if (CheckDrawVerticesParams(env, vertexCount, indexCount) == false ||
+        GetPositions(env, vertexCount, positionsObj, pointPositions) == false ||
+        GetTexs(env, vertexCount, texsObj, pointTexs) == false ||
+        GetColors(env, vertexCount, colorsObj, colors) == false ||
+        GetIndices(env, indexCount, indicesObj, indices) == false ||
+        GetVertexModeAndBlendMode(env, aniVertexMode, aniBlendMode, vertexMode, blendMode) == false) {
+        return;
+    }
+    std::unique_ptr<Vertices> vertices = std::make_unique<Vertices>();
+    uint16_t* indicesPtr = indices.get();
+    bool result = vertices->MakeCopy(vertexMode, vertexCount, pointPositions.data(),
+        pointTexs.data(), colors.get(), indicesPtr ? indexCount : 0, indicesPtr);
+    if (result) {
+        aniCanvas->GetCanvas()->DrawVertices(*vertices, blendMode);
+    }
+    aniCanvas->NotifyDirty();
 }
 
 void AniCanvas::AttachBrush(ani_env* env, ani_object obj, ani_object brushObj)

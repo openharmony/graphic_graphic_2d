@@ -254,6 +254,30 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* canvas
     const OH_Drawing_Rect* center, const OH_Drawing_Rect* dst, OH_Drawing_FilterMode mode);
 
 /**
+ * @brief Draw a pixel map on the grid, with the grid evenly distributed over the pixel map.
+ *
+ * @param cCanvas Indicates the pointer to an OH_Drawing_Canvas object.
+ * @param pixelMap Indicates the pointer to an OH_Drawing_PixelMap.
+ * @param meshWidth The number of columns in the mesh.
+ * @param meshHeight The number of rows in the mesh.
+ * @param vertices Indicates the vertex array that specifies the drawing positions of the mesh.
+ * @param verticesSize The size of vertices.
+ * @param vertOffset The number of vert elements to skip before drawing.
+ * @param colors Indicates the color array that specifies a color at each vertex.
+ * @param colorsSize The size of colors.
+ * @param colorOffset The number of color elements to skip before drawing.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if any of canvas, pixelMap
+ *                 and dst is nullptr.
+ * @since 23
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapMesh(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
+    uint32_t meshWidth, uint32_t meshHeight, const float* vertices, uint32_t verticesSize, uint32_t vertOffset,
+    const uint32_t* colors, uint32_t colorsSize, uint32_t colorOffset);
+
+/**
  * @brief Draw the specified area of the Media::PixelMap to the specified area of the canvas.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

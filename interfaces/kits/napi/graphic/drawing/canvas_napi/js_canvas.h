@@ -76,6 +76,7 @@ public:
     static napi_value DrawPoints(napi_env env, napi_callback_info info);
     static napi_value DrawPath(napi_env env, napi_callback_info info);
     static napi_value DrawPixelMapMesh(napi_env env, napi_callback_info info);
+    static napi_value DrawVertices(napi_env env, napi_callback_info info);
     static napi_value DrawShadow(napi_env env, napi_callback_info info);
     static napi_value DrawRegion(napi_env env, napi_callback_info info);
     static napi_value DrawSingleCharacter(napi_env env, napi_callback_info info);
@@ -134,6 +135,7 @@ private:
     napi_value OnDrawPoints(napi_env env, napi_callback_info info);
     napi_value OnDrawPath(napi_env env, napi_callback_info info);
     napi_value OnDrawPixelMapMesh(napi_env env, napi_callback_info info);
+    napi_value OnDrawVertices(napi_env env, napi_callback_info info);
     napi_value OnDrawShadow(napi_env env, napi_callback_info info);
     napi_value OnDrawRegion(napi_env env, napi_callback_info info);
     napi_value OnDrawSingleCharacter(napi_env env, napi_callback_info info);
