@@ -330,7 +330,7 @@ ani_object AniParagraph::GetRectsForRange(
             TEXT_LOGE("Failed to parse text box,index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set textBox item,index %{public}zu, status %{public}d", index, status);
             continue;
@@ -365,7 +365,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
             TEXT_LOGE("Failed to parse text box,index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set textBox item,index %{public}zu, status %{public}d", index, status);
             continue;
@@ -504,7 +504,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
             textLineBasePtr = nullptr;
             continue;
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);
             delete textLineBasePtr;
@@ -536,7 +536,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
         ani_object aniObj = AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set lineMetrics item %{public}zu", index);
             continue;

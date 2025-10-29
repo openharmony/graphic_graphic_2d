@@ -105,7 +105,7 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
     ani_size index = 0;
     for (const T& item : t) {
         ani_object aniObj = convert(env, item);
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Array $_set failed, ret %{public}d", ret);
             continue;
@@ -183,7 +183,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
 
     for (size_t i = 0; i < static_cast<size_t>(length); i++) {
         ani_ref entryRef = nullptr;
-        result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:C{std.core.Object}", &entryRef, i);
+        result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:Y", &entryRef, i);
         if (result != ANI_OK || entryRef == nullptr) {
             TEXT_LOGE("Failed to get array object of %{public}s, ret: %{public}d", fieldName, result);
             continue;

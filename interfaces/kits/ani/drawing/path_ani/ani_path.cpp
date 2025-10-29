@@ -383,7 +383,7 @@ void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_object aniPointArray,
         ani_ref pointRef;
         Drawing::Point point;
         ani_status ret = env->Object_CallMethodByName_Ref(
-            aniPointArray, "$_get", "i:C{std.core.Object}", &pointRef, static_cast<ani_int>(i));
+            aniPointArray, "$_get", "i:Y", &pointRef, static_cast<ani_int>(i));
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPath::AddPolygon get point from array failed: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param points.");

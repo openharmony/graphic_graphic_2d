@@ -390,7 +390,7 @@ bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_o
         ROSEN_LOGE("AniPathIterator::Next Set pointObj from point failed.");
         return false;
     }
-    ani_status ret = env->Object_CallMethodByName_Void(pointArray, "$_set", "iC{std.core.Object}:", index, pointObj);
+    ani_status ret = env->Object_CallMethodByName_Void(pointArray, "$_set", "iY:", index, pointObj);
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniPathIterator::Next SObject_CallMethodByName_Void  $_set Faild. ret: %{public}d", ret);
         return false;

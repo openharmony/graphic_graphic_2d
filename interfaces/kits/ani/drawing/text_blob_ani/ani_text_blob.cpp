@@ -285,7 +285,7 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
         Drawing::Point point;
         ani_ref runBufferRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            posArray, "$_get", "i:C{std.core.Object}", &runBufferRef, (ani_int)i)) {
+            posArray, "$_get", "i:Y", &runBufferRef, (ani_int)i)) {
             ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_CallMethodByName_Ref failed");
             return false;
         }

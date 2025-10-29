@@ -439,7 +439,7 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
         ani_int glyph;
         ani_ref glyphRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            glyphs, "$_get", "i:C{std.core.Object}", &glyphRef, (ani_int)i) ||
+            glyphs, "$_get", "i:Y", &glyphRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
                 static_cast<ani_object>(glyphRef), "toInt", ":i", &glyph)) {
             ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
@@ -466,7 +466,7 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
             return CreateAniUndefined(env);
         }
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set",
-            "iC{std.core.Object}:", (ani_int)i, aniObj);
+            "iY:", (ani_int)i, aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::GetWidths Failed to set width item");
             return CreateAniUndefined(env);
@@ -522,7 +522,7 @@ ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniTex
             return CreateAniUndefined(env);
         }
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set",
-            "iC{std.core.Object}:", (ani_int)i, aniObj);
+            "iY:", (ani_int)i, aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::TextToGlyphs Failed to set width item");
             return CreateAniUndefined(env);
@@ -774,7 +774,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
         ani_int glyph;
         ani_ref glyphRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            glyphs, "$_get", "i:C{std.core.Object}", &glyphRef, (ani_int)i) ||
+            glyphs, "$_get", "i:Y", &glyphRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
                 static_cast<ani_object>(glyphRef), "toInt", ":i", &glyph)) {
             ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");
@@ -799,7 +799,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
         ani_object aniObj;
         CreateRectObj(env, rectPtr[i], aniObj);
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj,
-            "$_set", "iC{std.core.Object}:", (ani_int)i, aniObj);
+            "$_set", "iY:", (ani_int)i, aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::GetBounds Failed to set rect item");
             return CreateAniUndefined(env);

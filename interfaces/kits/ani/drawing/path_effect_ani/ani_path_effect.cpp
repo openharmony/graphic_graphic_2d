@@ -189,7 +189,7 @@ ani_object AniPathEffect::CreateDashPathEffect(
         ani_ref intervalRef;
         ani_double interval;
         ret = env->Object_CallMethodByName_Ref(
-            aniIntervalsArray, "$_get", "i:C{std.core.Object}", &intervalRef, static_cast<ani_int>(i));
+            aniIntervalsArray, "$_get", "i:Y", &intervalRef, static_cast<ani_int>(i));
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPathEffect::CreateDashPathEffect get intervalRef failed: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid intervals array length.");

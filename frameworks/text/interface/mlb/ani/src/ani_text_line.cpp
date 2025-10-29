@@ -191,7 +191,7 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
             runPtr = nullptr;
             continue;
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set runs item %{public}zu", index);
             delete runPtr;

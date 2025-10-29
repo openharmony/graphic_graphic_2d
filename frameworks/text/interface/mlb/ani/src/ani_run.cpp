@@ -161,7 +161,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+            arrayObj, "$_set", "iY:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -203,7 +203,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& glpyh : glyphs) {
         ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+            arrayObj, "$_set", "iY:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -238,7 +238,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -285,7 +285,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -321,7 +321,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -412,7 +412,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     ani_size index = 0;
     for (const auto& stringIndex : stringIndices) {
         ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
+            arrayObj, "$_set", "iY:", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set stringIndices item %{public}zu", index);
             continue;

@@ -291,7 +291,7 @@ ani_object AniMatrix::GetAll(ani_env* env, ani_object obj)
     ani_size index = 0;
     for (auto item : buffer) {
         ani_object aniValue = DoubleToObject(env, item);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniValue)) {
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniValue)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Object_CallMethodByName_Void Array Faild");
             return CreateAniUndefined(env);
         }
@@ -326,7 +326,7 @@ void AniMatrix::SetMatrix(ani_env* env, ani_object obj, ani_object aniValueArray
         ani_ref matrixRef;
         ani_double matrixValue;
         ret = env->Object_CallMethodByName_Ref(
-            aniValueArrayObj, "$_get", "i:C{std.core.Object}", &matrixRef, static_cast<ani_int>(i));
+            aniValueArrayObj, "$_get", "i:Y", &matrixRef, static_cast<ani_int>(i));
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniMatrix::SetMatrix aniValueArrayObj get pointRef failed. ret: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array element.");
@@ -428,7 +428,7 @@ bool ConvertFromAniPointsArray(
         ani_ref pointRef;
         Drawing::Point point;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            aniPointArray, "$_get", "i:C{std.core.Object}", &pointRef, (ani_int)i)) {
+            aniPointArray, "$_get", "i:Y", &pointRef, (ani_int)i)) {
             ROSEN_LOGE("aniPointArray get pointRef failed.");
             return false;
         }
@@ -522,7 +522,7 @@ ani_object GetPointArray(ani_env* env, const std::vector<Drawing::Point>& points
         }
 
         if (ANI_OK != env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, aniPointObj)) {
+            arrayObj, "$_set", "iY:", index, aniPointObj)) {
             ROSEN_LOGE("SObject_CallMethodByName_Void  $_set Faild ");
             return CreateAniUndefined(env);
         }

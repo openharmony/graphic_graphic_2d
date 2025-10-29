@@ -56,7 +56,7 @@ bool GetLatticeDividers(ani_env* env, ani_object dividersArray, uint32_t count, 
             ani_ref dividerRef;
             int ret = 0;
             if ((ret = env->Object_CallMethodByName_Ref(dividersArray,
-                "$_get", "i:C{std.core.Object}", &dividerRef, (ani_int)i)) != ANI_OK) {
+                "$_get", "i:Y", &dividerRef, (ani_int)i)) != ANI_OK) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice  get divider ref failed. ret: %{public}d", ret);
                 return false;
             }
@@ -91,7 +91,7 @@ bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count
             ani_int rectType;
             ani_ref rectTypeRef;
             if (ANI_OK != env->Object_CallMethodByName_Ref(
-                rectTypesArray, "$_get", "i:C{std.core.Object}", &rectTypeRef, (ani_int)i) ||
+                rectTypesArray, "$_get", "i:Y", &rectTypeRef, (ani_int)i) ||
                 ANI_OK != env->EnumItem_GetValue_Int((ani_enum_item)rectTypeRef, &rectType)) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice Incorrect parameter dividers type.");
                 return false;
@@ -157,7 +157,7 @@ bool GetLatticeColors(
         for (uint32_t i = 0; i < colorsSize; i++) {
             ani_ref colorRef;
             if (ANI_OK != env->Object_CallMethodByName_Ref(
-                colorsArray, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i)) {
+                colorsArray, "$_get", "i:Y", &colorRef, (ani_int)i)) {
                 ROSEN_LOGE("GetLatticeColors: colors is invalid %{public}s, %{public}d", __FUNCTION__, __LINE__);
                 return false;
             }

@@ -227,7 +227,7 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
     for (uint32_t i = 0; i < arraySize; i++) {
         ani_double value;
         ani_ref valueRef;
-        ret = env->Object_CallMethodByName_Ref(aniMatrixArrayObj, "$_get", "i:C{std.core.Object}", &valueRef,
+        ret = env->Object_CallMethodByName_Ref(aniMatrixArrayObj, "$_get", "i:Y", &valueRef,
             static_cast<ani_int>(i));
         if (ret != ANI_OK) {
             ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter get matrix array element failed %{public}d", ret);
