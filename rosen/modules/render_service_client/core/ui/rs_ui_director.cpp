@@ -60,7 +60,6 @@
 
 namespace OHOS {
 namespace Rosen {
-std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
@@ -438,8 +437,11 @@ void RSUIDirector::SetRequestVsyncCallback(const std::function<void()>& callback
         return;
     }
     std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-    requestVsyncCallback_ = callback;
-    requestVsyncCallbacks_[this] = callback;
+    if (rsUIContext_) {
+        rsUIContext_->SetRequestVsyncCallback(callback);
+    } else {
+        requestVsyncCallbacks_[this] = callback;
+    }
 }
 
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityName)
@@ -700,18 +702,7 @@ void RSUIDirector::ProcessUIContextMessages(
                 RSContext context; // RSCommand->process() needs it
                 cmd->Process(context);
             }
-            if (counter->fetch_sub(1) == 1) {
-                std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-                if (requestVsyncCallback_ != nullptr) {
-                    requestVsyncCallback_();
-                } else {
-                    auto rsTransaction = rsUICtx->GetRSTransaction();
-                    if (rsTransaction != nullptr) {
-                        rsTransaction->FlushImplicitTransaction();
-                    }
-                }
-                ROSEN_LOGD("ProcessUIContextMessages end");
-            }
+            rsUICtx->RequestVsyncCallback();
         });
     }
 }

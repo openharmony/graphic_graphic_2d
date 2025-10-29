@@ -78,6 +78,39 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, SetRequestVsyncCallback, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
+    uiContext->SetRequestVsyncCallback(nullptr);
+}
+
+/**
+ * @tc.name: RequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
+    uiContext->SetRequestVsyncCallback(nullptr);
+    EXPECT_EQ(uiContext->requestVsyncCallback_, nullptr);
+    uiContext->RequestVsyncCallback();
+
+    // test requestVsyncCallback_ not null
+    uiContext->SetRequestVsyncCallback([]() {});
+    EXPECT_NE(uiContext->requestVsyncCallback_, nullptr);
+    uiContext->RequestVsyncCallback();
+}
+
+/**
  * @tc.name: DumpNodeTreeProcessorTest001
  * @tc.desc:
  * @tc.type:FUNC
