@@ -232,5 +232,25 @@ void RSLuminanceControl::HandleGamutSpecialRender(std::vector<ScreenColorGamut>&
         rSLuminanceControlInterface_->HandleGamutSpecialRender(modes);
     }
 }
+
+uint32_t RSLuminanceControl::ScalerFloatToLevel(float& scaler) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->ScalerFloatToLevel(scaler) : 0;
+}
+
+float RSLuminanceControl::ScalerLevelToFloat(uint32_t level) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->ScalerLevelToFloat(sclevelaler) : 1.0;
+}
+
+void RSLuminanceControl::UpdateCurDisplayHdrBrightnessScaler(ScreenId screenId,
+        std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessRatio)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->UpdateCurDisplayHdrBrightnessScaler(screenId, curDisplayHdrBrightnessRatio);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

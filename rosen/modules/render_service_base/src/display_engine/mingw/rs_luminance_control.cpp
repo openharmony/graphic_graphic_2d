@@ -134,5 +134,21 @@ void RSLuminanceControl::HandleGamutSpecialRender(std::vector<ScreenColorGamut>&
 {
     // Update screen supported color gamut
 }
+
+uint32_t RSLuminanceControl::ScalerFloatToLevel(float& scaler) const
+{
+    return 0;
+}
+
+float RSLuminanceControl::ScalerLevelToFloat(uint32_t level) const
+{
+    return 1.0;
+}
+
+void RSLuminanceControl::UpdateCurDisplayHdrBrightnessScaler(ScreenId screenId,
+        std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessRatio)
+{
+    return;
+}
 } // namespace Rosen
 } // namespace OHOS
