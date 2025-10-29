@@ -94,7 +94,7 @@ int32_t RPFrameRatePolicy::GetPreferredFps(const std::string& type, float veloci
     static bool isBeta = RSSystemProperties::GetVersionType() == "beta";
     if (isBeta) {
         RS_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, area: %f, length: %f",
-        type.c_str(), velocityMM, areaSqrMM, lengthMM);
+            type.c_str(), velocityMM, areaSqrMM, lengthMM);
     }
 
     if ((animAttributes_.count(type) == 0 && smallSizeAnimAttributes_.count(type) == 0) || ROSEN_EQ(velocityMM, 0.f)) {
