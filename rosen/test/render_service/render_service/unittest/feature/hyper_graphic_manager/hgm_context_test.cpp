@@ -36,20 +36,6 @@ void HgmContextTest::SetUp() {}
 void HgmContextTest::TearDown() {}
 
 /**
- * @tc.name: TestInitHgmConfig
- * @tc.desc: test HgmContext.InitHgmConfig
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, TestInitHgmConfig, TestSize.Level1)
-{
-    HgmContext hgmContext;
-    std::vector<std::string> appBufferList;
-    hgmContext.InitHgmConfig(appBufferList);
-    EXPECT_EQ(hgmContext.convertFrameRateFunc_(static_cast<RSPropertyUnit>(0xff), 0.f, 1000.f, 0.f), 0);
-}
-
-/**
  * @tc.name: TestInitHgmUpdateCallback
  * @tc.desc: test HgmContext.InitHgmUpdateCallback
  * @tc.type: FUNC

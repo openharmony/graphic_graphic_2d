@@ -22,9 +22,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
-}
 
 HgmContext::HgmContext()
 {
