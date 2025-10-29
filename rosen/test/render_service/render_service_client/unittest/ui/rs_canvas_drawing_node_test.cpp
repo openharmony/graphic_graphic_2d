@@ -133,8 +133,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
 {
-    bool isRenderServiceNode = true;
-    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(isRenderServiceNode);
+    auto drawingNode = std::make_shared<RSCanvasDrawingNode>(true);
     std::shared_ptr<Media::PixelMap> pixelmap;
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
     Drawing::Rect rect;
@@ -154,6 +153,12 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
     ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
 
+    pixelmap = std::make_shared<Media::PixelMap>();
+    res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+
+    auto drawingNode1 = std::make_shared<RSCanvasDrawingNode>(false, true);
+    RSCanvasDrawingNodeCommandHelper::Create(RSRenderThread::Instance().GetContext(), drawingNode1.GetId(), true);
     pixelmap = std::make_shared<Media::PixelMap>();
     res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
