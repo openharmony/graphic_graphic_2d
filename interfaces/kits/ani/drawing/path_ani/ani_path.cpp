@@ -175,7 +175,7 @@ ani_object AniPath::GetPathIterator(ani_env* env, ani_object obj)
         return CreateAniUndefined(env);
     }
     AniPathIterator* aniPathItertor = new AniPathIterator(*aniPath->GetPath());
-    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.PathIterator", nullptr, nullptr);
+    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.PathIterator", nullptr, obj);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPathItertor))) {
         ROSEN_LOGE("AniPath::GetPathIterator failed create PathIntertor.");
         delete aniPathItertor;
