@@ -51,6 +51,7 @@ enum HdrStatus : uint32_t {
     AI_HDR_VIDEO_GTM = 0x0100,
     HDR_EFFECT = 0x1000,
     AI_HDR_VIDEO_GAINMAP = 0x10000,
+    HDR_UICOMPONENT = 0x100000,
 };
 
 struct BrightnessInfo {
