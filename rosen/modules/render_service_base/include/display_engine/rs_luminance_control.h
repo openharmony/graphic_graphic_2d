@@ -140,7 +140,7 @@ public:
     RSB_EXPORT bool IsBrightnessInfoChanged(ScreenId screenId);
     RSB_EXPORT void HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes);
     RSB_EXPORT uint32_t ScalerFloatToLevel(float& scaler) const = 0;
-    RSB_EXPORT float ScalerLevelToFloat(uint32_t level) const = 0;
+    RSB_EXPORT float ScalerLevelToFloat(uint32_t& level) const = 0;
     RSB_EXPORT void UpdateCurDisplayHdrBrightnessScaler(ScreenId screenId,
         std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessRatio) = 0;
 
