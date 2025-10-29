@@ -6392,16 +6392,14 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
     mainThread->hgmContext_.ProcessHgmFrameRate(0, mainThread->rsVSyncDistributor_, mainThread->vsyncId_);
 
     auto convertFrameRateFunc = mainThread->hgmContext_.GetConvertFrameRateFunc();
-    if (convertFrameRateFunc)
-    {
+    if (convertFrameRateFunc) {
         ASSERT_EQ(convertFrameRateFunc(static_cast<RSPropertyUnit>(0xff), 0.f, 0, 0), 0);
     }
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
     HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
     ASSERT_EQ(HgmCore::Instance().GetFrameRateMgr(), nullptr);
-    if (convertFrameRateFunc)
-    {
+    if (convertFrameRateFunc) {
         ASSERT_EQ(convertFrameRateFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
     }
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;

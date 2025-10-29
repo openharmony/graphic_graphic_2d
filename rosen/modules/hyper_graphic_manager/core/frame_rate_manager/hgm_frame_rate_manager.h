@@ -179,6 +179,7 @@ public:
     void UpdateSoftVSync(bool followRs);
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+
 private:
     friend class HgmUserDefineImpl;
 
@@ -248,7 +249,7 @@ private:
         }
     }
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
-    void HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData,
+    void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData,
         bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum)
     {
         if (hgmConfigUpdateCallback_) {

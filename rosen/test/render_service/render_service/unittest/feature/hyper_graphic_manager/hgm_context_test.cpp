@@ -46,7 +46,7 @@ HWTEST_F(HgmContextTest, TestInitHgmUpdateCallback, TestSize.Level1)
     HgmContext hgmContext;
     hgmContext.InitHgmUpdateCallback();
     auto generator = CreateVSyncGenerator();
-    auto rsVSyncController = new VSyncController(generator, 0);
+    sptr<VSyncController> rsVSyncController = new VSyncController(generator, 0);
     sptr<VSyncDistributor> rsVSyncDistributor = new VSyncDistributor(rsVSyncController, "rs");
     hgmContext.ProcessHgmFrameRate(0, rsVSyncDistributor, 1);
     hgmContext.rpHgmConfigDataChange_ = true;

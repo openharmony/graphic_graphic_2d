@@ -1732,7 +1732,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestSyncHgmConfigUpdateCallback, Function | SmallT
     mgr.SyncHgmConfigUpdateCallback();
 
     EXPECT_EQ(HgmCore::Instance().mPolicyConfigData_->screenConfigs_[id][mode].animationDynamicSettings.size(), 0);
-    data->screenConfigs_[id][mode].smallSizeAnimationDynamicSettings["translate"]["1"] =  { 0, 10, 60 };
+    data->screenConfigs_[id][mode].smallSizeAnimationDynamicSettings["translate"]["1"] = { 0, 10, 60 };
     data->screenConfigs_[id][mode].animationDynamicSettings["translate"]["1"] = { 0, 10, 72 };
     EXPECT_EQ(HgmCore::Instance().mPolicyConfigData_->screenConfigs_[id][mode].animationDynamicSettings.size(), 1);
     mgr.SyncHgmConfigUpdateCallback();

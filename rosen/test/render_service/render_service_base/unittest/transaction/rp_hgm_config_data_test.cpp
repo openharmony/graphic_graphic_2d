@@ -52,8 +52,8 @@ static void SetLeftSize(Parcel& parcel, uint32_t leftSize)
 {
     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
     size_t useSize = PARCEL_MAX_CAPACITY - leftSize;
-    size_t writeInt32Count = useSize/4;
-    size_t writeBoolCount = useSize%4;
+    size_t writeInt32Count = useSize / 4;
+    size_t writeBoolCount = useSize % 4;
 
     for (size_t i = 0; i < writeInt32Count; i++) {
         parcel.WriteInt32(0);

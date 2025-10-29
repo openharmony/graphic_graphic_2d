@@ -1579,7 +1579,7 @@ bool HgmFrameRateManager::SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& 
 void HgmFrameRateManager::SetHgmConfigUpdateCallback(
     std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback)
 {
-    hgmConfigUpdateCallback_ = hgmConfigUpdateCallback;
+    hgmConfigUpdateCallback_ = std::move(hgmConfigUpdateCallback);
     SyncHgmConfigUpdateCallback();
 }
 
@@ -1590,21 +1590,26 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
     auto& hgmCore = HgmCore::Instance();
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData == nullptr) {
-        HgmConfigUpdateCallback(data,
+        TriggerHgmConfigUpdateCallback(data,
             hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
         return;
     }
 
-    if (configData->screenConfigs_.find(curScreenStrategyId_) == configData->screenConfigs_.end() ||
-        configData->screenConfigs_[curScreenStrategyId_].find(settingMode) ==
-        configData->screenConfigs_[curScreenStrategyId_].end()) {
-        HgmConfigUpdateCallback(data,
+    auto& screenConfig = configData->screenConfigs_;
+    auto iter = screenConfig.find(curScreenStrategyId_);
+    if (iter == screenConfig.end()) {
+        TriggerHgmConfigUpdateCallback(data,
             hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
         return;
     }
-    auto& screenSetting = configData->screenConfigs_[curScreenStrategyId_][settingMode];
-    auto screen = hgmCore.GetActiveScreen();
-    if (screen != nullptr) {
+    auto modeIter = iter->second.find(settingMode);
+    if (modeIter == iter->second.end()) {
+        TriggerHgmConfigUpdateCallback(data,
+            hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
+        return;
+    }
+    auto& screenSetting = modeIter->second;
+    if (auto screen = hgmCore.GetActiveScreen()) {
         data->SetPpi(screen->GetPpi());
         data->SetXDpi(screen->GetXDpi());
         data->SetYDpi(screen->GetYDpi());
@@ -1623,7 +1628,7 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
                 animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
         }
     }
-    HgmConfigUpdateCallback(data,
+    TriggerHgmConfigUpdateCallback(data,
         hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
 }
 } // namespace Rosen

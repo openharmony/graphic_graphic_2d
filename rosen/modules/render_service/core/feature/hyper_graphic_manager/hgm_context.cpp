@@ -77,7 +77,7 @@ void HgmContext::InitHgmUpdateCallback()
 
     HgmTaskHandleThread::Instance().PostTask([
         hgmConfigUpdateCallbackTask]() {
-        auto frameRateMgr = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr == nullptr) {
             return;
         }

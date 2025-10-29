@@ -23,12 +23,6 @@ constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
 
 namespace OHOS {
 namespace Rosen {
-RPHgmConfigData::~RPHgmConfigData() noexcept
-{
-    configData_.clear();
-    smallSizeConfigData_.clear();
-}
-
 RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RPHgmConfigData();
@@ -57,7 +51,7 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
             delete data;
             return nullptr;
         }
-        AnimDynamicItem item = { type, name, minSpeed, maxSpeed, preferredFps };
+        AnimDynamicItem item = { std::move(type), std::move(name), minSpeed, maxSpeed, preferredFps };
         data->AddAnimDynamicItem(item);
     }
 
@@ -79,7 +73,7 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
             delete data;
             return nullptr;
         }
-        AnimDynamicItem item = { type, name, minSpeed, maxSpeed, preferredFps };
+        AnimDynamicItem item = { std::move(type), std::move(name), minSpeed, maxSpeed, preferredFps };
         data->AddSmallSizeAnimDynamicItem(item);
     }
     return data;
@@ -88,40 +82,40 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
 bool RPHgmConfigData::Marshalling(Parcel& parcel) const
 {
     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
-    bool flag = parcel.WriteFloat(ppi_) && parcel.WriteFloat(xDpi_) && parcel.WriteFloat(yDpi_) &&
+    bool success = parcel.WriteFloat(ppi_) && parcel.WriteFloat(xDpi_) && parcel.WriteFloat(yDpi_) &&
         parcel.WriteInt32(smallSizeArea_) && parcel.WriteInt32(smallSizeLength_) &&
         parcel.WriteUint32(configData_.size());
-    if (!flag) {
+    if (!success) {
         RS_LOGE("RPHgmConfigData::Marshalling parse failed");
-        return flag;
+        return success;
     }
 
     for (auto& item : configData_) {
-        flag = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
+        success = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
                parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
                parcel.WriteInt32(item.preferredFps);
-        if (!flag) {
+        if (!success) {
             RS_LOGE("RPHgmConfigData::Marshalling parse config item failed");
-            return flag;
+            return success;
         }
     }
 
-    flag = parcel.WriteUint32(smallSizeConfigData_.size());
-    if (!flag) {
+    success = parcel.WriteUint32(smallSizeConfigData_.size());
+    if (!success) {
         RS_LOGE("RPHgmConfigData::Marshalling parse small failed");
-        return flag;
+        return success;
     }
 
     for (auto& item : smallSizeConfigData_) {
-        flag = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
+        success = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
                parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
                parcel.WriteInt32(item.preferredFps);
-        if (!flag) {
+        if (!success) {
             RS_LOGE("RPHgmConfigData::Marshalling parse small config item failed");
-            return flag;
+            return success;
         }
     }
-    return flag;
+    return success;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -36,25 +36,17 @@ struct AnimDynamicAttribute {
 class RPFrameRatePolicy {
 public:
     RPFrameRatePolicy() = default;
-    ~RPFrameRatePolicy();
+    ~RPFrameRatePolicy() = default;
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx, int32_t areaPx, int32_t lengthPx) const;
     void HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData);
+
 private:
     int32_t GetPreferredFps(const std::string& type, float velocityMM, float areaSqrMM, float lengthMM) const;
     template<typename T>
     float PixelToMM(T pixel) const;
     template<typename T>
     float SqrPixelToSqrMM(T sqrPixel) const;
-    void Reset()
-    {
-        smallSizeArea_ = -1;
-        smallSizeLength_ = -1;
-        ppi_ = 1.0f;
-        xDpi_ = 1.0f;
-        yDpi_ = 1.0f;
-        animAttributes_.clear();
-        smallSizeAnimAttributes_.clear();
-    }
+    void Reset();
     int32_t smallSizeArea_ = -1;
     int32_t smallSizeLength_ = -1;
     float ppi_ = 1.0f;
