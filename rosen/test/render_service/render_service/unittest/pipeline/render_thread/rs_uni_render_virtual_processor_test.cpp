@@ -611,8 +611,13 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_003, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_004, TestSize.Level2)
 {
-    ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(virtualProcessor_, nullptr);
+    constexpr NodeId DEFAULT_ID = 0xFFFF;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_ID, config);
+    renderNode->InitRenderParams();
+    displayDrawable_ =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode->GetRenderDrawable()).get();
     virtualProcessor_->mirrorSourceRotation_ = ScreenRotation::ROTATION_0;
     virtualProcessor_->CanvasInit(*displayDrawable_);
 
