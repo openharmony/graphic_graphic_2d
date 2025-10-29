@@ -101,6 +101,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_GetFontDescriptorByFullName(const OH_Drawi
     using namespace OHOS::Rosen::Drawing;
     std::string fullNameString;
     if (!ConvertToString(fullName->strData, fullName->strLen, fullNameString)) {
+        TEXT_LOGE("Failed to convert string to utf8");
         return nullptr;
     }
     std::shared_ptr<TextEngine::FontParser::FontDescriptor> result = nullptr;

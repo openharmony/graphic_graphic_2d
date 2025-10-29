@@ -74,32 +74,33 @@ bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
     return false;
 }
 
-bool RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
+uint8_t RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
     if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
         // this client has already registered this typeface
-        return true;
+        return REGISTERED;
     }
 
     if (hash) {
         // check if someone else has already registered this typeface, add ref count and
         // mapping if so.
         if (AddIfFound(uniqueId, hash)) {
-            return true;
+            return REGISTERED;
         }
 
         // check if someone else is about to register this typeface -> queue uid
-        std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash);
+        auto iterator = typefaceHashQueue_.find(hash);
         if (iterator != typefaceHashQueue_.end()) {
-            iterator->second.push_back(uniqueId);
-            return true;
+            iterator->second.insert(uniqueId);
+            RS_LOGD("TypefaceHashQueue find same hash:%{public}u, size:%{public}zu", hash, iterator->second.size());
+            return REGISTERING;
         } else {
             typefaceHashQueue_[hash] = { uniqueId };
         }
     }
 
-    return false;
+    return NO_REGISTER;
 }
 
 void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
@@ -150,33 +151,25 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
     }
     // register queued entries
-    std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash_value);
+    auto iterator = typefaceHashQueue_.find(hash_value);
     if (iterator != typefaceHashQueue_.end()) {
-        while (iterator->second.size()) {
-            uint64_t back = iterator->second.back();
-            if (back != uniqueId) {
-                AddIfFound(back, hash_value);
+        for (const uint64_t cacheId: iterator->second) {
+            if (cacheId != uniqueId) {
+                AddIfFound(cacheId, hash_value);
             }
-            iterator->second.pop_back();
         }
         typefaceHashQueue_.erase(iterator);
     }
 }
 
-static bool EmptyAfterErase(std::vector<uint64_t>& vec, size_t ix)
-{
-    vec.erase(vec.begin() + ix);
-    return vec.empty();
-}
-
 static void RemoveHashQueue(
-    std::unordered_map<uint32_t, std::vector<uint64_t>>& typefaceHashQueue, uint64_t globalUniqueId)
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& typefaceHashQueue, uint64_t globalUniqueId)
 {
     for (auto& ref : typefaceHashQueue) {
-        auto it = std::find(ref.second.begin(), ref.second.end(), globalUniqueId);
+        auto it = ref.second.find(globalUniqueId);
         if (it != ref.second.end()) {
-            size_t ix = std::distance(ref.second.begin(), it);
-            if (EmptyAfterErase(ref.second, ix)) {
+            ref.second.erase(it);
+            if (ref.second.empty()) {
                 typefaceHashQueue.erase(ref.first);
             }
             return;
@@ -258,24 +251,25 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(uin
     return nullptr;
 }
 
-static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::vector<uint64_t>>& map)
+static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& map)
 {
     // go through queued items;
-    std::vector<size_t> removeList;
+    std::vector<uint32_t> removeList;
 
     for (auto& ref : map) {
-        size_t ix { 0 };
-        std::vector<uint64_t> uniqueIdVec = ref.second;
-        for (auto uid : uniqueIdVec) {
+        std::unordered_set<uint64_t> uniqueIdSet = ref.second;
+        auto it = uniqueIdSet.begin();
+        while (it != uniqueIdSet.end()) {
+            uint64_t uid = *it;
             pid_t pidCache = static_cast<pid_t>(uid >> 32);
-            if (pid != pidCache) {
-                ix++;
-                continue;
+            if (pid == pidCache) {
+                it = uniqueIdSet.erase(it);
+            } else {
+                it++;
             }
-            if (EmptyAfterErase(ref.second, ix)) {
-                removeList.push_back(ref.first);
-                break;
-            }
+        }
+        if (uniqueIdSet.empty()) {
+            removeList.push_back(ref.first);
         }
     }
 

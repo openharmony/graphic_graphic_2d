@@ -28,6 +28,9 @@
 
 namespace OHOS {
 namespace Rosen {
+const uint8_t NO_REGISTER = 0;
+const uint8_t REGISTERING = 1;
+const uint8_t REGISTERED = 2;
 namespace Drawing {
 using TypefaceRegisterCallback = std::function<int32_t(std::shared_ptr<Typeface>)>;
 class DRAWING_API Typeface {
