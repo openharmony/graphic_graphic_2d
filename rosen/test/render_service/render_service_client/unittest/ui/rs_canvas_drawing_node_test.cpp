@@ -158,9 +158,9 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     EXPECT_EQ(res, false);
 
     auto drawingNode1 = std::make_shared<RSCanvasDrawingNode>(false, true);
-    RSCanvasDrawingNodeCommandHelper::Create(RSRenderThread::Instance().GetContext(), drawingNode1.GetId(), true);
+    RSCanvasDrawingNodeCommandHelper::Create(RSRenderThread::Instance().GetContext(), drawingNode1->GetId(), true);
     pixelmap = std::make_shared<Media::PixelMap>();
-    res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    res = drawingNode1->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
 }
 } // namespace OHOS::Rosen
