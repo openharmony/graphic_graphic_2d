@@ -35,11 +35,13 @@ void RSTransaction::FlushImplicitTransaction()
 void RSTransaction::OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler, bool isInnerProcess)
 {
     if (rsTransactionHandler_ != nullptr) {
+        std::unique_lock<std::recursive_mutex> lock(subSyncTransactionsMutex_);
         if (syncId_ > 0) {
             RS_TRACE_NAME_FMT("OpenSyncTransaction: clear last syncId:%" PRIu64 "", syncId_);
             ROSEN_LOGI("OpenSyncTransaction: clear last syncId:%{public}" PRIu64 "", syncId_);
             ProcessAllSyncTransaction();
         }
+        subSyncTransactions_.clear();
         syncId_ = GenerateSyncId();
         RS_TRACE_NAME_FMT("OpenSyncTransaction syncId:%" PRIu64 ", isInnerProcess:%d", syncId_, isInnerProcess);
         ROSEN_LOGI(
@@ -183,6 +185,7 @@ void RSTransaction::StartSubTransaction(const uint64_t syncId)
 void RSTransaction::AddSubSyncTransaction(
     std::shared_ptr<RSTransaction> subRSTransaction, const uint64_t token, const uint64_t syncId)
 {
+    std::unique_lock<std::recursive_mutex> lock(subSyncTransactionsMutex_);
     if (syncId != syncId_) {
         RS_TRACE_NAME_FMT(
             "AddSubSyncTransaction: syncId is not same syncId:%" PRIu64 ", currentSyncId:%" PRIu64 "", syncId, syncId_);
@@ -196,12 +199,12 @@ void RSTransaction::AddSubSyncTransaction(
         "transactionHandler:%{public}zu", syncId, token,
         std::hash<RSTransactionHandler*>()(rsTransactionHandler_.get()));
     subRSTransaction->StartSubTransaction(syncId);
-    std::unique_lock<std::recursive_mutex> lock(subSyncTransactionsMutex_);
     subSyncTransactions_[token]++;
 }
 
 void RSTransaction::RemoveSubSyncTransaction(const uint64_t token, const uint64_t syncId)
 {
+    std::unique_lock<std::recursive_mutex> lock(subSyncTransactionsMutex_);
     if (syncId != syncId_) {
         RS_TRACE_NAME_FMT("RemoveSubSyncTransaction: syncId is not same syncId:%" PRIu64 ", currentSyncId:%" PRIu64 "",
             syncId, syncId_);
@@ -215,7 +218,6 @@ void RSTransaction::RemoveSubSyncTransaction(const uint64_t token, const uint64_
         "transactionHandler:%{public}zu", syncId, token,
         std::hash<RSTransactionHandler*>()(rsTransactionHandler_.get()));
     bool isAllSyncFinished = true;
-    std::unique_lock<std::recursive_mutex> lock(subSyncTransactionsMutex_);
     subSyncTransactions_[token]--;
     for (const auto& pair : subSyncTransactions_) {
         if (pair.second != 0) {
@@ -232,7 +234,6 @@ void RSTransaction::ProcessAllSyncTransaction()
 {
     RS_TRACE_NAME_FMT("ProcessAllSyncTransaction syncId:%" PRIu64 "", syncId_);
     ROSEN_LOGI("ProcessAllSyncTransaction syncId:%{public}" PRIu64 "", syncId_);
-    std::unique_lock<std::recursive_mutex> lock(subSyncTransactionsMutex_);
     if (rsTransactionHandler_ != nullptr) {
         for (const auto& pair : subSyncTransactions_) {
             auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(pair.first);
@@ -267,7 +268,6 @@ void RSTransaction::ResetSyncTransactionInfo()
 {
     RS_TRACE_NAME_FMT("ResetSyncTransactionInfo syncId:%" PRIu64 "", syncId_);
     ROSEN_LOGI("ResetSyncTransactionInfo syncId:%{public}" PRIu64 "", syncId_);
-    std::unique_lock<std::mutex> lock(mutex_);
     syncId_ = 0;
     transactionCount_ = 0;
     parentPid_ = -1;
