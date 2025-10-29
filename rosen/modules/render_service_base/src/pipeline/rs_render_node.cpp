@@ -103,7 +103,7 @@ bool RSRenderNode::IsPureContainer() const
 
 bool RSRenderNode::IsPureBackgroundColor() const
 {
-    static std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
+    static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BACKGROUND_COLOR,
@@ -126,11 +126,9 @@ bool RSRenderNode::IsPureBackgroundColor() const
 #endif
 
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
-        if (drawableVec[i]) {
-            auto slot = static_cast<RSDrawableSlot>(i);
-            if (!pureBackgroundColorSlots.count(slot)) {
-                return false;
-            }
+        if (drawableVec[i] &&
+                !pureBackgroundColorSlots.count(static_cast<RSDrawableSlot>(i))) {
+            return false;
         }
     }
     return true;
