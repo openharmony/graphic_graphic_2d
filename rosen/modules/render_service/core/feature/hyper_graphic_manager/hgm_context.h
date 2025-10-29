@@ -30,7 +30,6 @@ public:
     void InitHgmTaskHandleThread(
         sptr<VSyncController> rsVSyncController, sptr<VSyncController> appVSyncController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor);
-    int32_t InitHgmConfig(std::vector<std::string>& appBufferList);
     void ProcessHgmFrameRate(uint64_t timestamp, sptr<VSyncDistributor> rsVSyncDistributor, uint64_t vsyncId);
     FrameRateRange& GetRSCurrRangeRef()
     {

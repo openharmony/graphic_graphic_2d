@@ -1583,7 +1583,8 @@ void HgmFrameRateManager::SetHgmConfigUpdateCallback(
     SyncHgmConfigUpdateCallback();
 }
 
-void HgmFrameRateManager::SyncHgmConfigUpdateCallback() {
+void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
+{
     auto data = std::make_shared<RPHgmConfigData>();
     const std::string settingMode = std::to_string(curRefreshRateMode_);
     auto& hgmCore = HgmCore::Instance();

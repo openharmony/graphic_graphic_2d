@@ -726,7 +726,6 @@ void RSMainThread::Init()
     RS_LOGI("HgmTaskHandleThread init");
     hgmContext_.InitHgmTaskHandleThread(
         rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
-    hgmContext_.InitHgmConfig(context_->GetMutableUiFrameworkTypeTable());
     SubscribeAppState();
     PrintCurrentStatus();
     RS_LOGI("UpdateGpuContextCacheSize");

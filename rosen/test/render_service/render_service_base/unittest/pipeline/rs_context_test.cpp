@@ -160,8 +160,8 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
 HWTEST_F(RSContextTest, UiFrameworkTest, TestSize.Level1)
 {
     RSContext rSContext;
-    auto& uiFrameworkTypeTable = rSContext.GetMutableUiFrameworkTypeTable();
-    uiFrameworkTypeTable = { "0" };
+    std::vector<std::string> uiFrameworkTypeTable = { "0" };	
+    rSContext.SetUiFrameworkTypeTable(uiFrameworkTypeTable);
     auto uiFwkTypeTable = rSContext.GetUiFrameworkTypeTable();
     auto ret = uiFwkTypeTable.size();
     EXPECT_GT(ret, 0);
