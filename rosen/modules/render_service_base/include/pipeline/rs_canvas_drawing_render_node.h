@@ -52,7 +52,8 @@ public:
     Drawing::Bitmap GetBitmap(const uint64_t tid);
     std::shared_ptr<Drawing::Image> GetImage(const uint64_t tid);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
-        const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
+        const uint64_t tid = UINT32_MAX, Drawing::DrawCmdListPtr drawCmdList = nullptr,
+        Drawing::DrawCmdListPtr lastDrawCmdList = nullptr);
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
     {
