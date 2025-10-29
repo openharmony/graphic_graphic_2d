@@ -246,7 +246,7 @@ float RSLuminanceControl::ScalerLevelToFloat(uint32_t& level) const
 }
 
 void RSLuminanceControl::UpdateCurDisplayHdrBrightnessScaler(ScreenId screenId,
-        std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessRatio)
+    std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessRatio)
 {
     if (rSLuminanceControlInterface_ != nullptr) {
         rSLuminanceControlInterface_->UpdateCurDisplayHdrBrightnessScaler(screenId, curDisplayHdrBrightnessRatio);
