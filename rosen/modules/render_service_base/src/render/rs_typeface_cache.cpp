@@ -162,7 +162,7 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     }
 }
 
-static void RemoveHashQueue(
+void RemoveHashQueue(
     std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& typefaceHashQueue, uint64_t globalUniqueId)
 {
     for (auto& ref : typefaceHashQueue) {
@@ -251,13 +251,13 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(uin
     return nullptr;
 }
 
-static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& map)
+void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& map)
 {
     // go through queued items;
     std::vector<uint32_t> removeList;
 
     for (auto& ref : map) {
-        std::unordered_set<uint64_t> uniqueIdSet = ref.second;
+        std::unordered_set<uint64_t>& uniqueIdSet = ref.second;
         auto it = uniqueIdSet.begin();
         while (it != uniqueIdSet.end()) {
             uint64_t uid = *it;

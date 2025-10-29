@@ -37,6 +37,10 @@ void RSTypefaceCacheTest::TearDownTestCase() {}
 void RSTypefaceCacheTest::SetUp() {}
 void RSTypefaceCacheTest::TearDown() {}
 
+// Add test function forward declaration
+void RemoveHashQueue(std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& hashQueue, uint64_t uniqueId);
+void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& map);
+
 class MockRSTypefaceCache : public RSTypefaceCache {
 public:
     MOCK_METHOD1(GetTypefacePid, pid_t(uint64_t uniqueId));
@@ -81,16 +85,16 @@ HWTEST_F(RSTypefaceCacheTest, MemorySnapshotTest001, TestSize.Level1)
     EXPECT_EQ(ret, false);
 
     // branch1: pid1 register typeface
-    ret = RSTypefaceCache::Instance().HasTypeface(uniqueId1, hash);
-    EXPECT_EQ(ret, false);
+    uint8_t retHasTypeface = RSTypefaceCache::Instance().HasTypeface(uniqueId1, hash);
+    EXPECT_EQ(retHasTypeface, NO_REGISTER);
     RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId1, typeface);
     MemorySnapshotInfo currentInfo;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid1, currentInfo);
     EXPECT_EQ(ret, true);
     EXPECT_EQ(currentInfo.cpuMemory, baseInfo1.cpuMemory + size);
     // branch2: whether pid2 typeface exits
-    ret = RSTypefaceCache::Instance().HasTypeface(uniqueId2, hash);
-    EXPECT_EQ(ret, true);
+    retHasTypeface = RSTypefaceCache::Instance().HasTypeface(uniqueId2, hash);
+    EXPECT_EQ(retHasTypeface, REGISTERED);
     currentInfo = { 0 };
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid2, currentInfo);
     EXPECT_EQ(ret, true);
@@ -292,8 +296,8 @@ HWTEST_F(RSTypefaceCacheTest, HasTypeFaceTest001, TestSize.Level1)
 {
     uint64_t uniqueId = 1;
     uint32_t hash = 2;
-    bool result = RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
-    EXPECT_EQ(result, true);
+    uint8_t result = RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+    EXPECT_EQ(result, REGISTERED);
 }
 
 /**
@@ -333,7 +337,7 @@ HWTEST_F(RSTypefaceCacheTest, HasTypeface_001, TestSize.Level2)
     typefaceHashCode.clear();
     EXPECT_FALSE(typefaceHashCode.find(uniqueId) != typefaceHashCode.end());
 
-    EXPECT_FALSE(RSTypefaceCache::Instance().HasTypeface(uniqueId, hash));
+    EXPECT_EQ(RSTypefaceCache::Instance().HasTypeface(uniqueId, hash), NO_REGISTER);
 }
 
 /**
@@ -348,10 +352,10 @@ HWTEST_F(RSTypefaceCacheTest, HasTypeface_002, TestSize.Level2)
     uint32_t hash = 2;
     EXPECT_TRUE(hash);
 
-    RSTypefaceCache::Instance().typefaceHashQueue_[hash] = std::vector<uint64_t>{};
+    RSTypefaceCache::Instance().typefaceHashQueue_[hash] = std::unordered_set<uint64_t>{};
     EXPECT_TRUE(RSTypefaceCache::Instance().typefaceHashQueue_.find(hash) !=
         RSTypefaceCache::Instance().typefaceHashQueue_.end());
-    EXPECT_TRUE(RSTypefaceCache::Instance().HasTypeface(uniqueId, hash));
+    EXPECT_EQ(RSTypefaceCache::Instance().HasTypeface(uniqueId, hash), REGISTERING);
 }
 
 /**
@@ -376,6 +380,61 @@ HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_002, TestSize.Level2)
     RSTypefaceCache::Instance().typefaceHashCode_.clear(); // key uniqueId not found
     RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
     EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.size(), 0);
+}
+
+/**
+ * @tc.name: PurgeMapWithPidTest
+ * @tc.desc: Verify function PurgeMapWithPid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, PurgeMapWithPidTest, TestSize.Level1) {
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>> testMap1 = {
+        {1, {0x0000000100010001, 0x0000000200020002, 0x0000000100030003}}, // pid 1, 2, 1
+        {2, {0x0000000300040004, 0x0000000100050005}}, // pid 3, 1
+        {3, {0x0000000200060006}} // pid 2
+    };
+    PurgeMapWithPid(1, testMap1);
+    EXPECT_EQ(testMap1[1].size(), 1);
+    EXPECT_EQ(testMap1[2].size(), 1);
+    EXPECT_EQ(testMap1[3].size(), 1);
+
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>> testMap2 = {
+        {1, {0x0000000100010001}}, // only contain pid 1
+        {2, {0x0000000200020002}}  // only contain pid 2
+    };
+    PurgeMapWithPid(1, testMap2);
+    EXPECT_EQ(testMap2.size(), 1);
+
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>> originalMap = {
+        {1, {0x0001000100010001, 0x0002000200020002}},
+        {2, {0x0003000300030003}}
+    };
+    auto mapCopy = originalMap;
+    PurgeMapWithPid(999, mapCopy); // 999 is no exist pid
+    EXPECT_EQ(mapCopy.size(), originalMap.size());
+}
+
+/**
+ * @tc.name: RemoveHashQueueTest
+ * @tc.desc: Verify function RemoveHashQueue
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, RemoveHashQueueTest, TestSize.Level1) {
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>> emptyMap;
+    RemoveHashQueue(emptyMap, 1001);
+    EXPECT_TRUE(emptyMap.empty());
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>> testMap = {
+        {1, {1001, 1002, 1003}},
+        {2, {2001, 2002}},
+        {3, {3001}}
+    };
+    RemoveHashQueue(testMap, 1002);
+    EXPECT_EQ(testMap[1].size(), 2);
+    RemoveHashQueue(testMap, 3001);
+    EXPECT_EQ(testMap.size(), 2);
+    auto mapSizeBefore = testMap.size();
+    RemoveHashQueue(testMap, 9999); // 9999 is no exist uniqueId
+    EXPECT_EQ(testMap.size(), mapSizeBefore);
 }
 } // namespace Rosen
 } // namespace OHOS

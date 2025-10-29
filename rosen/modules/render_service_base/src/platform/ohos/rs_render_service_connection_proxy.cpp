@@ -3429,17 +3429,17 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<M
     return ERR_OK;
 }
 
-uint8_t CheckNeedRegisterTypefaceReply(uint8_t rspRpc, int retryCount)
+void WaitNeedRegisterTypefaceReply(uint8_t rspRpc, int& retryCount)
 {
     RS_LOGD("Check need register state:%{public}hhu", rspRpc);
     if (retryCount > MAX_RETRY_COUNT) {
         RS_LOGD("Other process is registering too long, need reload full typeface.");
-        return rspRpc;
+        return;
     }
     if (rspRpc == REGISTERING) {
         usleep(RETRY_WAIT_TIME_US * 30); // wait 30 ms
     }
-    return rspRpc;
+    retryCount++;
 }
 
 bool FullTypefaceHead(MessageParcel& data, uint64_t globalUniqueId, uint32_t hash)
@@ -3478,15 +3478,14 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         do {
             MessageParcel replyNeedRegister;
             int32_t err = SendRequest(code, data, replyNeedRegister, option);
-            if (err != NO_ERROR) {
+            if (err != NO_ERROR || !replyNeedRegister.ReadUint8(rspRpc)) {
                 RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
                 return false;
             }
-            replyNeedRegister.ReadUint8(rspRpc);
-            if (CheckNeedRegisterTypefaceReply(rspRpc, retryCount) == REGISTERED) {
+            WaitNeedRegisterTypefaceReply(rspRpc, retryCount);
+            if (rspRpc == REGISTERED) {
                 return true;
             }
-            retryCount++;
         } while (rspRpc == REGISTERING && retryCount <= MAX_RETRY_COUNT);
     }
 
