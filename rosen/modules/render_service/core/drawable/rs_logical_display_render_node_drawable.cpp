@@ -1620,7 +1620,7 @@ RSLogicalDisplayRenderNodeDrawable::AncestorParams RSLogicalDisplayRenderNodeDra
     }
     auto screenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(
         displayParams->GetAncestorScreenDrawable().lock());
-    if (!screenDrawable) {
+    if (!screenDrawable || screenDrawable->GetNodeType() != RSRenderNodeType::SCREEN_NODE) {
         return { nullptr, nullptr };
     }
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
