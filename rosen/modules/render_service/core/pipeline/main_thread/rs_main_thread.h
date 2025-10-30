@@ -468,7 +468,7 @@ public:
 
     bool IsReadyForSyncTask() const;
 
-    const std::shared_ptr<RSHwcContext>& GetRSHwcContext() const { return hwcContext_; }
+    const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,

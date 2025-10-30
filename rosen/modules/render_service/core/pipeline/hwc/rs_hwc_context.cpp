@@ -22,7 +22,7 @@
 
 namespace OHOS::Rosen {
 // use in temporary scheme to check package name
-void RSHWCContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs)
+void RSHwcContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs)
 {
     auto& rsCommonHook = RsCommonHook::Instance();
     rsCommonHook.SetVideoSurfaceFlag(false);

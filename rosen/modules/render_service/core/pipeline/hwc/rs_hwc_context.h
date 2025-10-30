@@ -23,17 +23,17 @@
 #include "hgm_command.h"
 
 namespace OHOS::Rosen {
-class RSHWCContext {
+class RSHwcContext {
 public:
-    RSHWCContext(const std::unordered_map<std::string, std::string>& sourceTuningConfig,
+    RSHwcContext(const std::unordered_map<std::string, std::string>& sourceTuningConfig,
         const std::unordered_map<std::string, std::string>& solidLayerConfig)
         : hwcSourceTuningConfig_(sourceTuningConfig), hwcSolidLayerConfig_(solidLayerConfig) {};
-    ~RSHWCContext() = default;
+    ~RSHwcContext() = default;
 
-    RSHWCContext(const RSHWCContext&) = delete;
-    RSHWCContext(const RSHWCContext&&) = delete;
-    RSHWCContext& operator=(const RSHWCContext&) = delete;
-    RSHWCContext& operator=(const RSHWCContext&&) = delete;
+    RSHwcContext(const RSHwcContext&) = delete;
+    RSHwcContext(const RSHwcContext&&) = delete;
+    RSHwcContext& operator=(const RSHwcContext&) = delete;
+    RSHwcContext& operator=(const RSHwcContext&&) = delete;
 
     // use in temporary scheme with background alpha
     void CheckPackageInConfigList(const std::vector<std::string>& pkgs);

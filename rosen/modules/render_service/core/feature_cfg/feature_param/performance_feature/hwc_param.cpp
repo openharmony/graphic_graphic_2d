@@ -40,7 +40,7 @@ bool HWCParam::IsDisableHwcOnExpandScreen()
     return isDisableHwcOnExpandScreen_;
 }
 
-const std::unordered_map<std::string, std::string>& HWCParam::GetSourceTuningMap()
+const std::unordered_map<std::string, std::string>& HWCParam::GetSourceTuningForAppMap()
 {
     return sourceTuningMap_;
 }

@@ -29,7 +29,7 @@ public:
     static bool IsDisableHwcOnExpandScreen();
     static bool IsSolidLayerEnable();
     static bool IsSolidLayerInMultiWindowEnable();
-    static const std::unordered_map<std::string, std::string>& GetSourceTuningMap();
+    static const std::unordered_map<std::string, std::string>& GetSourceTuningForAppMap();
     static const std::unordered_map<std::string, std::string>& GetSolidColorLayerMap();
 
 protected:
@@ -38,7 +38,6 @@ protected:
     static void SetSolidLayerEnable(bool isEnable);
     static void SetDisableHwcOnExpandScreen(bool isEnable);
     static void SetSolidLayerInMultiWindowEnable(bool isEnable);
-    void MoveDataToHgmCore();
 
 private:
     inline static bool isSolidLayerEnable_ = false;

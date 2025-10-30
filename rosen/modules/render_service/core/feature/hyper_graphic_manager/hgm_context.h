@@ -30,8 +30,8 @@ public:
     void InitHgmTaskHandleThread(
         sptr<VSyncController> rsVSyncController, sptr<VSyncController> appVSyncController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor);
-    int32_t InitHgmCore(std::unordered_map<std::string, std::string>& sourceTuningConfig,
-        std::unordered_map<std::string, std::string>& solidLayerConfig);
+    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
     static int32_t FrameRateGetFunc(const RSPropertyUnit unit, float velocity, int32_t area, int32_t length);
     void ProcessHgmFrameRate(uint64_t timestamp, sptr<VSyncDistributor> rsVSyncDistributor, uint64_t vsyncId);
     FrameRateRange& GetRSCurrRangeRef()

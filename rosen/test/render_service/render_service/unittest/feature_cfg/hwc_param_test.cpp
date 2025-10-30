@@ -136,12 +136,12 @@ HWTEST_F(HwcParamTest, SetSourceTuningForApp002, Function | SmallTest | Level1)
 }
 
 /**
- * @tc.name: GetSourceTuningForApp001
- * @tc.desc: Verify the GetSourceTuningForApp function
+ * @tc.name: GetSourceTuningForAppMap001
+ * @tc.desc: Verify the GetSourceTuningForAppMap function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HwcParamTest, GetSourceTuningForApp001, Function | SmallTest | Level1)
+HWTEST_F(HwcParamTest, GetSourceTuningForAppMap001, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
     std::string appName = "TestApp";
@@ -174,18 +174,18 @@ HWTEST_F(HwcParamTest, GetSolidColorLayerMap001, Function | SmallTest | Level1)
 }
 
 /**
- * @tc.name: GetSourceTuningForApp002
- * @tc.desc: Verify the GetSourceTuningForApp function
+ * @tc.name: GetSourceTuningForAppMap002
+ * @tc.desc: Verify the GetSourceTuningForAppMap function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HwcParamTest, GetSourceTuningForApp002, Function | SmallTest | Level1)
+HWTEST_F(HwcParamTest, GetSourceTuningForAppMap002, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
-    std::string appName = "TestApp1";
+    std::string appName1 = "TestApp1";
     std::string val1 = "1";
-    std::string appName = "TestApp2";
-    std::string val1 = "0";
+    std::string appName2 = "TestApp2";
+    std::string val2 = "0";
 
     hwcParam.SetSourceTuningForApp(appName1, val1);
     hwcParam.SetSourceTuningForApp(appName2, val2);
@@ -207,8 +207,8 @@ HWTEST_F(HwcParamTest, GetSolidColorLayerMap002, Function | SmallTest | Level1)
     HWCParam hwcParam;
     std::string appName1 = "TestApp1";
     std::string val1 = "1";
-    std::string appName1 = "TestApp2";
-    std::string val1 = "0";
+    std::string appName2 = "TestApp2";
+    std::string val2 = "0";
 
     hwcParam.SetSolidColorLayerForApp(appName1, val1);
     hwcParam.SetSolidColorLayerForApp(appName2, val2);

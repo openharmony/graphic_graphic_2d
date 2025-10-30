@@ -62,12 +62,12 @@ int32_t RPHgmXMLParser::Parse()
     int32_t setResult = EXEC_SUCCESS;
     xmlNode* currNode = root->xmlChildrenNode;
     if (currNode == nullptr) {
-        HGM_LOGE("%{public}s stop parsing internal, no child nodes", __func__);
+        HGM_LOGE("%{public}s stop parsing internal, no children nodes", __func__);
         return XML_PARSE_INTERNAL_FAIL;
     }
 
     for (; currNode; currNode = currNode->next) {
-        if (currNode->type == XML_ELEMENT_NODE) {
+        if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
         std::string paramName = ExtractPropertyValue("name", *currNode);
@@ -84,10 +84,10 @@ int32_t RPHgmXMLParser::Parse()
 
 int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::vector<std::string>& data)
 {
-    HGM_LOGD("%{public}s ParseNode vector", __func__);
+    HGM_LOGD("%{public}s vector", __func__);
     xmlNode* currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        HGM_LOGD("%{public}s stop parsing simplex, no children nodes", __func__);
+        HGM_LOGD("%{public}s stop parsing ParseNode, no children nodes", __func__);
         return XML_PARSE_INTERNAL_FAIL;
     }
 
@@ -97,6 +97,9 @@ int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::vector<std::string>& data)
             continue;
         }
         auto name = ExtractPropertyValue("name", *currNode);
+        if (name.empty()) {
+            return XML_PARSE_INTERNAL_FAIL;
+        }
         data.push_back(name);
     }
     return EXEC_SUCCESS;
@@ -104,10 +107,10 @@ int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::vector<std::string>& data)
 
 int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::unordered_map<std::string, std::string>& data)
 {
-    HGM_LOGD("%{public}s ParseNode map", __func__);
+    HGM_LOGD("%{public}s map", __func__);
     xmlNode* currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        HGM_LOGD("%{public}s stop parsing simplex, no children nodes", __func__);
+        HGM_LOGD("%{public}s stop parsing ParseNode, no children nodes", __func__);
         return XML_PARSE_INTERNAL_FAIL;
     }
 
@@ -118,7 +121,6 @@ int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::unordered_map<std::string,
         }
         auto name = ExtractPropertyValue("name", *currNode);
         auto value = ExtractPropertyValue("value", *currNode);
-        // check empty
         if (name.empty() || value.empty()) {
             return XML_PARSE_INTERNAL_FAIL;
         }

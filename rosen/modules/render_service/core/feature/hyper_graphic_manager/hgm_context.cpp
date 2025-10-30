@@ -36,17 +36,18 @@ HgmContext::HgmContext()
     };
 }
 
-int32_t HgmContext::InitHgmCore(std::unordered_map<std::string, std::string>& sourceTuningConfig,
-    std::unordered_map<std::string, std::string>& solidLayerConfig)
+int32_t HgmContext::InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+    std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList)
 {
     auto parser = std::make_unique<RPHgmXMLParser>();
 
     if (parser->LoadConfiguration(HGM_CONFIG_PATH) != EXEC_SUCCESS) {
-        RS_LOGW("HgmRPContext failed to load hgm xml configuration file");
+        HGM_LOGW("HgmRPContext failed to load hgm xml configuration file");
         return XML_FILE_LOAD_FAIL;
     }
     sourceTuningConfig = parser->GetSourceTuningConfig();
     solidLayerConfig = parser->GetSolidLayerConfig();
+    appBufferList = parser->GetAppBufferList();
 
     return EXEC_SUCCESS;
 }

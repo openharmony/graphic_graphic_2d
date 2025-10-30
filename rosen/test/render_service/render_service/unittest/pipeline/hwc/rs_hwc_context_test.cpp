@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include <common/rs_common_hook.h>
+#include "common/rs_common_hook.h"
 #include "gtest/gtest.h"
-#include <hgm_core.h>
+#include "hgm_core.h"
 #include "limit_number.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/hwc/rs_hwc_context.h"
@@ -27,8 +27,7 @@ namespace {
 const OHOS::Rosen::RECTI DEFAULT_RECT = {0, 80, 1000, 1000};
 }
 namespace OHOS::Rosen {
-namespace {
-class RSHWCContextTest : public testing::Test {
+class RSHwcContextTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -36,13 +35,13 @@ public:
     void TearDown() override;
 };
 
-void RSHWCContextTest::SetUpTestCase()
+void RSHwcContextTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
 }
-void RSHWCContextTest::TearDownTestCase() {}
-void RSHWCContextTest::SetUp() {}
-void RSHWCContextTest::TearDown() {}
+void RSHwcContextTest::TearDownTestCase() {}
+void RSHwcContextTest::SetUp() {}
+void RSHwcContextTest::TearDown() {}
 
 /**
  * @tc.name: CheckPackageInConfigList
@@ -50,43 +49,43 @@ void RSHWCContextTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHWCContextTest, CheckPackageInConfigList, TestSize.Level1)
+HWTEST_F(RSHwcContextTest, CheckPackageInConfigList, TestSize.Level1)
 {
-    auto hwcContext = std::make_shared<RSHWCContext>();
+    auto hwcContext = std::make_shared<RSHwcContext>();
     std::vector<std::string> pkgs = {};
     pkgs.push_back("com.youku.next");
     auto& rsCommonHook = RsCommonHook::Instance();
     hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result1 = rsCommonHook.GetVideoSurfaceFlag();
     ASSERT_TRUE(result1);
     hwcContext->sourceTuningConfig_["com.youku.next"] = "2";
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result2 = rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
     ASSERT_TRUE(result2);
     hwcContext->solidLayerConfig_["com.youku.next"] = "1";
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result3 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
     ASSERT_TRUE(result3);
     hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "1";
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result4 = rsCommonHook.GetIsVideoSurfaceFlag();
     ASSERT_TRUE(result4);
-    hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "2";
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->hwcSourceTuningConfig_["com.youku.next"] = "2";
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result5 = rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
     ASSERT_TRUE(result5);
     hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "1";
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result6 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
     ASSERT_TRUE(result6);
     pkgs.push_back("yylx.danmaku.bili");
-    hwcContext->CheckPackageChange(pkgs);
+    hwcContext->CheckPackageInConfigList(pkgs);
     auto result7 = rsCommonHook.GetVideoSurfaceFlag();
-    ASSERT_TRUE(result7);
+    ASSERT_FALSE(result7);
     auto result8 = rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
-    ASSERT_TRUE(result8);
+    ASSERT_FALSE(result8);
     auto result9 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
-    ASSERT_TRUE(result9);
+    ASSERT_FALSE(result9);
 }
 } // namespace OHOS::Rosen
