@@ -1078,6 +1078,11 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
         return true;
     }
     
+    // screenId equals 0 or 5 means primary screen normally
+    if (uniRenderVisitor_.curScreenNode_->GetScreenId() != 0 && uniRenderVisitor_.curScreenNode_->GetScreenId() != 5) {
+        return true;
+    }
+
     // screenId > 0 means non-primary screen normally
     if (HWCParam::IsDisableHwcOnExpandScreen() && uniRenderVisitor_.curScreenNode_->GetScreenId() > 0) {
         return true;
