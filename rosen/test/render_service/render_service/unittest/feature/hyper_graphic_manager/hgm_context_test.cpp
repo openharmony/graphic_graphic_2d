@@ -46,7 +46,8 @@ HWTEST_F(HgmContextTest, TestInitHgmConfig, TestSize.Level1)
     HgmContext hgmContext;
     std::unordered_map<std::string, std::string> sourceTuningConfig;
     std::unordered_map<std::string, std::string> solidLayerConfig;
-    int32_t ret = hgmContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig);
+    std::vector<std::string> appBufferList;
+    int32_t ret = hgmContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList);
     
     EXPECT_EQ(ret, EXEC_SUCCESS);
     // EXPECT_FALSE(sourceTuningConfig.empty());
