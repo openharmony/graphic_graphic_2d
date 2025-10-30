@@ -17,6 +17,7 @@
 
 #include "command/rs_canvas_drawing_node_command.h"
 #include "common/rs_obj_geometry.h"
+#include "modifier_ng/rs_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
@@ -150,9 +151,12 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
             RS_LOGE("RSCanvasDrawingNode::GetPixelmap: RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
             return false;
         }
+        auto modifier = GetModifierByType(ModifierNG::RSModifierType::CONTENT_STYLE);
+        auto lastDrawCmdList = modifier != nullptr ? modifier->Getter<Drawing::DrawCmdListPtr>(
+            ModifierNG::RSPropertyType::CONTENT_STYLE, nullptr) : nullptr;
         bool ret = false;
-        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() {
-            ret = node->GetPixelmap(pixelmap, rect, UINT32_MAX, drawCmdList);
+        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList, &lastDrawCmdList]() {
+            ret = node->GetPixelmap(pixelmap, rect, UINT32_MAX, drawCmdList, lastDrawCmdList);
         };
         RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
         if (!ret || !pixelmap) {

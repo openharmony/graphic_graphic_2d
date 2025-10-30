@@ -255,5 +255,16 @@ HWTEST_F(RSCustomModifierHelperTest, UpdateToRenderTest, TestSize.Level1)
     it = rsCustomModifier->properties_.find(type);
     ASSERT_NE(it, rsCustomModifier->properties_.end());
     ASSERT_TRUE(it->second);
+
+    // case8: valid custom property
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto cmdListProperty = std::make_shared<RSAnimatableProperty<std::shared_ptr<Drawing::DrawCmdList>>>(drawCmdList);
+    cmdListProperty->isCustom_ = true;
+    rsCustomModifier->lastDrawCmdListEmpty_ = false;
+    rsCustomModifier->properties_[type] = cmdListProperty;
+    rsCustomModifier->UpdateToRender();
+    it = rsCustomModifier->properties_.find(type);
+    ASSERT_NE(it, rsCustomModifier->properties_.end());
+    ASSERT_TRUE(it->second);
 }
 } // namespace OHOS::Rosen
