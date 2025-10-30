@@ -21,7 +21,6 @@
 #include <memory.h>
 #include <securec.h>
 #include <string.h>
-#include <string_ex.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -71,8 +70,10 @@ namespace Drawing {
     }
 
     std::u16string utf16String(utf16Str.get(), utf16Len);
-    fullNameString = OHOS::Str16ToStr8(utf16String);
-    return !fullNameString.empty();
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+    fullNameString = converter.to_bytes(utf16String);
+
+    return true;
 }
 }
 }

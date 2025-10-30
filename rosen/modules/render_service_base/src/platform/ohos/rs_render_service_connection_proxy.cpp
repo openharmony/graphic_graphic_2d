@@ -3432,8 +3432,8 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<M
 void WaitNeedRegisterTypefaceReply(uint8_t rspRpc, int& retryCount)
 {
     RS_LOGD("Check need register state:%{public}hhu", rspRpc);
-    if (retryCount > MAX_RETRY_COUNT) {
-        RS_LOGD("Other process is registering too long, need reload full typeface.");
+    if (retryCount >= MAX_RETRY_COUNT) {
+        RS_LOGW("Other process is registering too long, need reload full typeface.");
         return;
     }
     if (rspRpc == REGISTERING) {
