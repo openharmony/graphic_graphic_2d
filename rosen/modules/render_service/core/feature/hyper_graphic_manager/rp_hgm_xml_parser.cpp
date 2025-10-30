@@ -124,7 +124,7 @@ int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::unordered_map<std::string,
         if (name.empty() || value.empty()) {
             return XML_PARSE_INTERNAL_FAIL;
         }
-        HGM_LOGD("%{public}s ParseNode name=%{public}s, value=%{public}s",
+        HGM_LOGD("%{public}s name=%{public}s, value=%{public}s",
             __func__, name.c_str(), value.c_str());
         data.insert_or_assign(name, value);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@
 using namespace testing;
 using namespace testing::ext;
 namespace {
-const OHOS::Rosen::RECTI DEFAULT_RECT = {0, 80, 1000, 1000};
+const OHOS::Rosen::RectI DEFAULT_RECT = {0, 80, 1000, 1000};
 }
 namespace OHOS::Rosen {
 class RSHwcContextTest : public testing::Test {
@@ -67,9 +67,9 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList, TestSize.Level1)
     hwcContext->CheckPackageInConfigList(pkgs);
     auto result3 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
     ASSERT_TRUE(result3);
-    hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "1";
+    hwcContext->hwcSourceTuningConfig_["com.youku.next"] = "1";
     hwcContext->CheckPackageInConfigList(pkgs);
-    auto result4 = rsCommonHook.GetIsVideoSurfaceFlag();
+    auto result4 = rsCommonHook.GetVideoSurfaceFlag();
     ASSERT_TRUE(result4);
     hwcContext->hwcSourceTuningConfig_["com.youku.next"] = "2";
     hwcContext->CheckPackageInConfigList(pkgs);

@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* HGM_CONFIG_PATH = "/syc_prod/etc/graphic/hgm_policy_config.xml";
+constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 }
 
 HgmContext::HgmContext()
@@ -124,13 +124,6 @@ void HgmContext::ProcessHgmFrameRate(
     if (frameRateMgr == nullptr || rsVSyncDistributor == nullptr) {
         return;
     }
-
-    static std::once_flag initUIFwkTableFlag;
-    std::call_once(initUIFwkTableFlag, [this]() {
-        if (auto config = HgmCore::Instance().GetPolicyConfigData(); config != nullptr) {
-            RSMainThread::Instance()->GetContext().SetUiFrameworkTypeTable(config->appBufferList_);
-        }
-    });
 
     if (frameRateMgr->AdaptiveStatus() == SupportASStatus::SUPPORT_AS) {
         frameRateMgr->HandleGameNode(RSMainThread::Instance()->GetContext().GetNodeMap());

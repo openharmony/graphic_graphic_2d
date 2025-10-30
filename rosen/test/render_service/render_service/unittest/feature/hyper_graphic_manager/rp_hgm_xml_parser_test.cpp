@@ -47,7 +47,7 @@ static xmlDocPtr StringToXmlDoc(const std::string& xmlContent)
 
 /**
  * @tc.name: TestLoadConfiguration
- * @tc.desc: test RPHgmXMLParser.LoadConfiguration
+ * @tc.desc: test RPHgmXmlParser.LoadConfiguration
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -60,13 +60,13 @@ HWTEST_F(RPHgmXmlParserTest, TestLoadConfiguration, TestSize.Level1)
 
 /**
  * @tc.name: TestParse
- * @tc.desc: test RPHgmXMLParser.Parse
+ * @tc.desc: test RPHgmXmlParser.Parse
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
 {
-    std::string xmlContent = R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                                 <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
                                     <Param name="default_mode" value="-1"/>
                                     <Params name="additional_touch_rate_config">
@@ -83,7 +83,7 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
                                         <Test name="AAAAA" value="1"/>
                                         <Test name="BBBBB"/>
                                     </Params>
-                                </HgmConfig>)";
+                                </HgmConfig>)");
 
     std::string noChildXmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>)");
 
@@ -95,7 +95,7 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
                                     </Params>                           
                                 </HgmConfig>)");
 
-    auto parser = std::maked_shared<RPHgmXMLParser>();
+    auto parser = std::make_shared<RPHgmXMLParser>();
     EXPECT_EQ(parser->Parse(), XML_GET_ROOT_FAIL);
     parser->xmlDocument_ = StringToXmlDoc(noChildXmlContent);
     EXPECT_EQ(parser->Parse(), XML_GET_ROOT_FAIL);
@@ -110,7 +110,7 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
     EXPECT_EQ(parser->appBufferList_.size(), 2);
     EXPECT_EQ(parser->sourceTuningConfig_.size(), 2);
     EXPECT_EQ(parser->solidLayerConfig_.size(), 2);
-    EXPECT_EQ(parser->solidLayerConfig_["BBBB"], "");
+    EXPECT_EQ(parser->solidLayerConfig_["BBBBB"], "");
 }
 
 } // namespace OHOS::Rosen
