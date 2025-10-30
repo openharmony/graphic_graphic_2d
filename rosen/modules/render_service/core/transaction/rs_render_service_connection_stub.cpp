@@ -2499,7 +2499,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
-            bool result = false;
+            uint8_t result = Drawing::NO_REGISTER;
             uint64_t uniqueId{0};
             uint32_t hash{0};
             if (!data.ReadUint64(uniqueId) || !data.ReadUint32(hash)) {
@@ -2509,12 +2509,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
             if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
-                result = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+                result = RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
             } else {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                         "no permission NEED_REGISTER_TYPEFACE", callingPid);
             }
-            if (!reply.WriteBool(result)) {
+            if (!reply.WriteUint8(result)) {
                 RS_LOGE("RSRenderServiceConnectionStub::NEED_REGISTER_TYPEFACE Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }

@@ -3429,6 +3429,32 @@ ErrCode RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<M
     return ERR_OK;
 }
 
+void WaitNeedRegisterTypefaceReply(uint8_t rspRpc, int& retryCount)
+{
+    RS_LOGD("Check need register state:%{public}hhu", rspRpc);
+    if (retryCount >= MAX_RETRY_COUNT) {
+        RS_LOGW("Other process is registering too long, need reload full typeface.");
+        return;
+    }
+    if (rspRpc == Drawing::REGISTERING) {
+        usleep(RETRY_WAIT_TIME_US * 30); // wait 30 ms
+    }
+    retryCount++;
+}
+
+bool FullTypefaceHead(MessageParcel& data, uint64_t globalUniqueId, uint32_t hash)
+{
+    if (!data.WriteUint64(globalUniqueId)) {
+        ROSEN_LOGE("RegisterTypeface: WriteUint64 globalUniqueId %{public}" PRIu64 " err.", globalUniqueId);
+        return false;
+    }
+    if (!data.WriteUint32(hash)) {
+        ROSEN_LOGE("RegisterTypeface: WriteUint32 hash %{public}u err.", hash);
+        return false;
+    }
+    return true;
+}
+
 bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     std::shared_ptr<Drawing::Typeface>& typeface)
 {
@@ -3441,26 +3467,26 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t hash = typeface->GetHash();
-    if (!data.WriteUint64(globalUniqueId)) {
-        ROSEN_LOGE("RegisterTypeface: WriteUint64 globalUniqueId err.");
-        return false;
-    }
-    if (!data.WriteUint32(hash)) {
-        ROSEN_LOGE("RegisterTypeface: WriteUint32 hash err.");
+    if (!FullTypefaceHead(data, globalUniqueId, hash)) {
         return false;
     }
 
     if (hash) { // if adapter does not provide hash, use old path
-        MessageParcel reply2;
         uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE);
-        int32_t err = SendRequest(code, data, reply2, option);
-        if (err != NO_ERROR) {
-            RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
-            return false;
-        }
-        if (!reply2.ReadBool()) {
-            return true; // the hash exists on server, no need to resend full data
-        }
+        int retryCount = 0;
+        uint8_t rspRpc = Drawing::REGISTERED;
+        do {
+            MessageParcel replyNeedRegister;
+            int32_t err = SendRequest(code, data, replyNeedRegister, option);
+            if (err != NO_ERROR || !replyNeedRegister.ReadUint8(rspRpc)) {
+                RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
+                return false;
+            }
+            WaitNeedRegisterTypefaceReply(rspRpc, retryCount);
+            if (rspRpc == Drawing::REGISTERED) {
+                return true;
+            }
+        } while (rspRpc == Drawing::REGISTERING && retryCount <= MAX_RETRY_COUNT);
     }
 
     RSMarshallingHelper::Marshalling(data, typeface);

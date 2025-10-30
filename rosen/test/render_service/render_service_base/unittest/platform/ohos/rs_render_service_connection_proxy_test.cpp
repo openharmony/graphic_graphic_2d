@@ -65,6 +65,8 @@ void RSRenderServiceConnectionProxyTest::SetUpTestCase()
 void RSRenderServiceConnectionProxyTest::TearDownTestCase() {}
 void RSRenderServiceConnectionProxyTest::SetUp() {}
 void RSRenderServiceConnectionProxyTest::TearDown() {}
+// Add test function forward declaration
+void WaitNeedRegisterTypefaceReply(uint8_t rspRpc, int& retryCount);
 
 class IRemoteObjectMock : public IRemoteObject {
 public:
@@ -1144,6 +1146,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, UnRegisterTypeface, TestSize.Level1
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     EXPECT_FALSE(proxy->RegisterTypeface(1, typeface));
     ASSERT_TRUE(proxy->UnRegisterTypeface(1));
+    int retryCount = 10;
+    WaitNeedRegisterTypefaceReply(Drawing::REGISTERING, retryCount);
+    EXPECT_EQ(retryCount, 11);
+    WaitNeedRegisterTypefaceReply(Drawing::REGISTERED, retryCount);
+    EXPECT_EQ(retryCount, 12);
+    retryCount = 21;
+    WaitNeedRegisterTypefaceReply(Drawing::REGISTERING, retryCount);
+    EXPECT_EQ(retryCount, 21);
 }
 
 /**
