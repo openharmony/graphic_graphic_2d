@@ -23,15 +23,20 @@
 #if USE_IGRAPHICS_EXTENDS_HOOKS
 #include "egl_wrapper_hook.h"
 #endif
+#if OPENGL_WRAPPER_ENABLE_GL4
+#include "parameters.h"
+#endif
 #include "wrapper_log.h"
 
 namespace {
+
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
-bool CheckIfNeedOpengl()
+bool CheckIfEnableOpengl()
 {
     const char* needOpenglEnv = "NEED_OPENGL";
     const char* needOpenglEnvValue = getenv(needOpenglEnv);
-    if (needOpenglEnvValue && std::string(needOpenglEnvValue) == "1") {
+    bool supportOpengl = OHOS::system::GetBoolParameter(OHOS::SUPPORT_GL_TO_VK, false);
+    if (needOpenglEnvValue && std::string(needOpenglEnvValue) == "1" && supportOpengl) {
         return true;
     }
     WLOGI("Failed to get env NEED_OPENGL or the value of NEED_OPENGL is not 1");
@@ -122,7 +127,7 @@ bool EglCoreInit()
     }
 
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
-    gWrapperHook.useMesa = CheckIfNeedOpengl();
+    gWrapperHook.useMesa = CheckIfEnableOpengl();
     if (gWrapperHook.useMesa) {
         ThreadPrivateDataCtl::SetGlHookTable(&OHOS::gWrapperHook.gl);
         EglWrapperLoader& loader(EglWrapperLoader::GetInstance());

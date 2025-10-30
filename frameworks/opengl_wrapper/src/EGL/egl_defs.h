@@ -17,6 +17,7 @@
 
 #include <map>
 
+#include <EGL/egl.h>
 #include "egl_wrapper_entry.h"
 #include "hook.h"
 namespace OHOS {
@@ -38,7 +39,10 @@ extern char const * const gGlApiNames1[GLES_API_NUM];
 extern char const * const gGlApiNames2[GLES_API_NUM];
 extern char const * const gGlApiNames3[GLES_API_NUM];
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
+constexpr const char *SUPPORT_GL_TO_VK = "const.graphic.gl_to_vk_support";
 extern char const * const gGlApiNames4[OPENGL_API_NUM];
+extern const std::map<std::string, EglWrapperFuncPointer> gCustomMap;
+extern PENEGLGETPROCADDRESSPROC gGetProcAddress;
 #endif
 extern const std::map<std::string, EglWrapperFuncPointer> gExtensionMap;
 
