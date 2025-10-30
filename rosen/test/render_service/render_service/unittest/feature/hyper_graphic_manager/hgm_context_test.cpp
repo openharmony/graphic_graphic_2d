@@ -50,7 +50,7 @@ HWTEST_F(HgmContextTest, TestInitHgmConfig, TestSize.Level1)
     
     EXPECT_EQ(ret, EXEC_SUCCESS);
     EXEPECT_FALSE(sourceTuningConfig.empty());
-    EXEPECT_FALSE(solidLayerConfig.empty());  
+    EXEPECT_FALSE(solidLayerConfig.empty());
 }
 
 /**

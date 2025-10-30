@@ -802,7 +802,7 @@ private:
     bool doDirectComposition_ = true;
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
-    std::shared_ptr<RSHwcContext_> hwcContext_ = nullptr;
+    std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
 
     // for client node tree dump
     struct NodeTreeDumpTask {

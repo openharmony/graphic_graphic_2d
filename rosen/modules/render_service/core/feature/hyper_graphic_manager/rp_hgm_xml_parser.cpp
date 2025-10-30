@@ -71,11 +71,11 @@ int32_t RPHgmXMLParser::Parse()
             continue;
         }
         std::string paramName = ExtractPropertyValue("name", *currNode);
-        if (nodeName == ADDITIONAL_TOUCH_RATE_CONFIG) {
+        if (paramName == ADDITIONAL_TOUCH_RATE_CONFIG) {
             setResult = ParseNode(*curNode, appBufferList_);
-        } else if (nodeName == SOURCE_TUNING_FOR_YUV420) {
+        } else if (paramName == SOURCE_TUNING_FOR_YUV420) {
             setResult = ParseNode(*curNode, sourceTuningConfig_);
-        } else if (nodeName == RS_SOLID_COLOR_LAYER_CONFIG) {
+        } else if (paramName == RS_SOLID_COLOR_LAYER_CONFIG) {
             setResult = ParseNode(*curNode, solidLayerConfig_);
         }
     }
@@ -123,7 +123,7 @@ int32_t RPHgmXMLParser::ParseNode(xmlNode& node, std::unordered_map<std::string,
             return XML_PARSE_INTERNAL_FAIL;
         }
         HGM_LOGD("%{public}s ParseNode name=%{public}s, value=%{public}s",
-                __func__, name.c_str(), value.c_str());
+            __func__, name.c_str(), value.c_str());
         data.insert_or_assign(name, value);
     }
     return EXEC_SUCCESS;

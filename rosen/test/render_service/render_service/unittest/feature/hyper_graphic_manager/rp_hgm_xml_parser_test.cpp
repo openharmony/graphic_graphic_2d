@@ -109,8 +109,8 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
     EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
     EXPECT_EQ(parser->appBufferList_.size(), 2);
     EXPECT_EQ(parser->sourceTuningConfig_.size(), 2);
-    EXPECT_EQ(parser->solidLayerConfig_.size(), 2); 
-    EXPECT_EQ(parser->solidLayerConfig_["BBBB"], "");    
+    EXPECT_EQ(parser->solidLayerConfig_.size(), 2);
+    EXPECT_EQ(parser->solidLayerConfig_["BBBB"], "");
 }
 
 } // namespace OHOS::Rosen

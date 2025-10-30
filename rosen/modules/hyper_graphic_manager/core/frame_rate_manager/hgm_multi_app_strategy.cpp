@@ -52,7 +52,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     }
     foregroundPidAppMap_.clear();
     pidAppTypeMap_.clear();
-    HgmEnergyConsumptionPolicy::GetInstance().SetCurrentPkgName(pkgs);
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
     std::unordered_set<pid_t> imageEnhancePidList = {};
     for (auto& param : pkgs_) {
         RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());

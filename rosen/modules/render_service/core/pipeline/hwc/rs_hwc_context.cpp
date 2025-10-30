@@ -17,7 +17,7 @@
 
 #include "hgm_core.h"
 #include "hwc_param.h"
-#include "common.rs_common_hook.h"
+#include "common/rs_common_hook.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
@@ -65,4 +65,4 @@ void RSHWCContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs
         }
     }
 }
-}//namespace OHOS::Rosen
+} // namespace OHOS::Rosen

@@ -23,7 +23,7 @@
 #include "hgm_command.h"
 
 namespace OHOS::Rosen {
-class RSHWCContext{
+class RSHWCContext {
 public:
     RSHWCContext(const std::unordered_map<std::string, std::string>& sourceTuningConfig,
         const std::unordered_map<std::string, std::string>& solidLayerConfig)
