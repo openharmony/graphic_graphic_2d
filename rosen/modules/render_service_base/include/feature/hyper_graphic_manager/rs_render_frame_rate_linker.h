@@ -67,7 +67,6 @@ public:
     void SetFrameRate(uint32_t rate);
     uint32_t GetFrameRate() const;
 
-    void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     void UpdateNativeVSyncTimePoint();
     bool NativeVSyncIsTimeOut() const;
 private:
@@ -85,8 +84,6 @@ private:
     uint64_t windowNodeId_ = 0;
     mutable std::mutex mutex_;
     TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
-
-    std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> expectedFpsChangeCallbacks_;
 };
 } // namespace Rosen
 } // namespace OHOS

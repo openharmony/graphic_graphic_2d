@@ -198,16 +198,6 @@ void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
     frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
-void RSRenderServiceConnection::CleanFrameRateLinkerExpectedFpsCallbacks() noexcept
-{
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-    frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(remotePid_);
-}
-
 void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -240,7 +230,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
-            connection->CleanFrameRateLinkerExpectedFpsCallbacks();
             connection->CleanBrightnessInfoChangeCallbacks();
         }).wait();
     mainThread_->ScheduleTask(

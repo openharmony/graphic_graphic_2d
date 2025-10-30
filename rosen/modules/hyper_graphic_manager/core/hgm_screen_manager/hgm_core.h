@@ -181,10 +181,7 @@ public:
         return postHgmTaskFlag_.exchange(value);
     }
 
-    bool GetLtpoEnabled() const
-    {
-        return ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
-    }
+    bool GetLtpoEnabled() const { return isLtpoMode_.load(); }
 
     bool GetAdaptiveSyncEnabled() const
     {
@@ -390,6 +387,7 @@ private:
     std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
     bool isDelayMode_ = true;
     bool ltpoEnabled_ = false;
+    std::atomic<bool> isLtpoMode_{ false };
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
     int64_t idealPipelineOffset_ = 0;

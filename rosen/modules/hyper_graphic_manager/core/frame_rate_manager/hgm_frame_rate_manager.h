@@ -124,8 +124,8 @@ public:
 
     // called by RSHardwareThread
     void HandleRsFrame();
-    bool IsLtpo() const { return isLtpo_; };
-    int32_t AdaptiveStatus() const { return isAdaptive_.load(); };
+    bool IsLtpo() const { return isLtpo_.load(); }
+    int32_t AdaptiveStatus() const { return isAdaptive_.load(); }
     // called by RSHardwareThread
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -292,7 +292,8 @@ private:
     std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
-    bool isLtpo_ = true;
+    std::atomic<bool> isLtpoScreenStrategyId_ { false };
+    std::atomic<bool> isLtpo_ { true };
     int32_t idleFps_ = OLED_60_HZ;
     std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
