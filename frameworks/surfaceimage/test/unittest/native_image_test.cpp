@@ -1570,6 +1570,59 @@ HWTEST_F(NativeImageTest, OH_NativeImage_CreateWithSingleBufferMode002, Function
 }
 
 /*
+ * Function: OH_NativeImage_CreateWithSingleBufferMode003
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call OH_ConsumerSurface_CreateWithSingleBufferMode with textureId in single buffer mode
+ *                  2. check nativeImage, and nativeImage is not nullptr
+ * @tc.require: issueI5KG61
+ */
+HWTEST_F(NativeImageTest, OH_NativeImage_CreateWithSingleBufferMode003, Function | MediumTest | Level1)
+{
+    // create without textureId
+    OH_NativeImage* consumerSurface = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
+    ASSERT_NE(consumerSurface, nullptr);
+    OHNativeWindow* newNativeWindow = OH_NativeImage_AcquireNativeWindow(consumerSurface);
+    ASSERT_NE(newNativeWindow, nullptr);
+
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
+    int32_t ret = NativeWindowHandleOpt(newNativeWindow, code, width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    for (int32_t i = 0; i < 10000; i++) {
+        ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow, &nativeWindowBuffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow, nativeWindowBuffer, fenceFd, *region);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        nativeWindowBuffer = nullptr;
+        ret = OH_NativeImage_AcquireNativeWindowBuffer(consumerSurface, &nativeWindowBuffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+        ASSERT_NE(nativeWindowBuffer, nullptr);
+
+        ret = OH_NativeImage_ReleaseNativeWindowBuffer(consumerSurface, nativeWindowBuffer, fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
+
+    delete rect;
+    delete region;
+    OH_NativeImage_Destroy(&consumerSurface);
+}
+
+/*
  * Function: OH_NativeImage_ReleaseTextImage001
  * Type: Function
  * Rank: Important(1)
@@ -1608,7 +1661,8 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage001, Function | MediumT
  */
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumTest | Level1)
 {
-    OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
+    uint32_t textureId = 1;
+    OH_NativeImage* nativeImage = OH_NativeImage_CreateWithSingleBufferMode(textureId, GL_TEXTURE_2D, true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
     ASSERT_NE(nativeWindow, nullptr);
@@ -1665,7 +1719,8 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage002, Function | MediumT
  */
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumTest | Level1)
 {
-    OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
+    uint32_t textureId = 1;
+    OH_NativeImage* nativeImage = OH_NativeImage_CreateWithSingleBufferMode(textureId, GL_TEXTURE_2D, true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
     ASSERT_NE(nativeWindow, nullptr);
@@ -1746,7 +1801,7 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call OH_ConsumerSurface_CreateWithSingleBufferMode with textureId in single buffer mode
+ * CaseDescription: 1. call OH_NativeImage_CreateWithSingleBufferMode with textureId in single buffer mode
  *                  2. call OH_NativeWindow_NativeWindowRequestBuffer and OH_NativeWindow_NativeWindowFlushBuffer
  *                  3. call OH_NativeImage_UpdateSurfaceImage to update surface texture
  *                  4. call OH_NativeWindow_NativeWindowRequestBuffer to request buffer again
@@ -1757,7 +1812,8 @@ HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage003, Function | MediumT
  */
 HWTEST_F(NativeImageTest, OH_NativeImage_ReleaseTextImage004, Function | MediumTest | Level1)
 {
-    OH_NativeImage* nativeImage = OH_ConsumerSurface_CreateWithSingleBufferMode(true);
+    uint32_t textureId = 1;
+    OH_NativeImage* nativeImage = OH_NativeImage_CreateWithSingleBufferMode(textureId, GL_TEXTURE_2D, true);
     ASSERT_NE(nativeImage, nullptr);
     OHNativeWindow* nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
     ASSERT_NE(nativeWindow, nullptr);
