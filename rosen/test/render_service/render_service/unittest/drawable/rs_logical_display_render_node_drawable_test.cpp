@@ -4022,4 +4022,22 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSiz
     rsRenderThreadParams->SetWatermark(false, nullptr);
     RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
 }
+
+/**
+ * @tc.name: GetScreenParamsTest
+ * @tc.desc: Test GetScreenParams when ancestorScreenDrawable_->nodeType_ is not SCREEN_NODE
+ * @tc.type: FUNC
+ * @tc.require: issue26248
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetScreenParamsTest001, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+    displayParams->ancestorScreenDrawable_->nodeType_ = RSRenderNodeType::UNKNOW;
+    auto [_, screenParams] = displayDrawable_->GetScreenParams(*displayParams);
+    ASSERT_EQ(_, nullptr);
+    ASSERT_EQ(screenParams, nullptr);
+}
 }
