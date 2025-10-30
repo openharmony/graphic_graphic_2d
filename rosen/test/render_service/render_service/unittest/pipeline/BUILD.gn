@@ -1120,7 +1120,7 @@ ohos_unittest("RSHwcContextTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "hwc/rs_hwc_context.cpp",
+    "hwc/rs_hwc_context_test.cpp",
   ]
   deps = [
     ":rs_test_common",
