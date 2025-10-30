@@ -151,7 +151,7 @@ HWTEST_F(HwcParamTest, GetSourceTuningForAppMap001, Function | SmallTest | Level
     auto& map = hwcParam.GetSourceTuningForAppMap();
     EXPECT_NE(map.find(appName), map.end());
     EXPECT_EQ(map.size(), 1);
-    EXPECT_EQ(map[appName], val);
+    EXPECT_EQ(map.at(appName), val);
 }
 
 /**
@@ -170,7 +170,7 @@ HWTEST_F(HwcParamTest, GetSolidColorLayerMap001, Function | SmallTest | Level1)
     auto& map = hwcParam.GetSolidColorLayerMap();
     EXPECT_NE(map.find(appName), map.end());
     EXPECT_EQ(map.size(), 1);
-    EXPECT_EQ(map[appName], val);
+    EXPECT_EQ(map.at(appName), val);
 }
 
 /**
@@ -192,8 +192,8 @@ HWTEST_F(HwcParamTest, GetSourceTuningForAppMap002, Function | SmallTest | Level
 
     auto& map = hwcParam.GetSourceTuningForAppMap();
     EXPECT_EQ(map.size(), 2);
-    EXPECT_EQ(map[appName1], val1);
-    EXPECT_EQ(map[appName2], val2);
+    EXPECT_EQ(map.at(appName1), val1);
+    EXPECT_EQ(map.at(appName2), val2);
 }
 
 /**
@@ -215,8 +215,8 @@ HWTEST_F(HwcParamTest, GetSolidColorLayerMap002, Function | SmallTest | Level1)
 
     auto& map = hwcParam.GetSolidColorLayerMap();
     EXPECT_EQ(map.size(), 2);
-    EXPECT_EQ(map[appName1], val1);
-    EXPECT_EQ(map[appName2], val2);
+    EXPECT_EQ(map.at(appName1), val1);
+    EXPECT_EQ(map.at(appName2), val2);
 }
 
 /**
