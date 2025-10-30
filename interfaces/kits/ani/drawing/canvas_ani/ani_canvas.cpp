@@ -253,8 +253,40 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
 #endif
 
 namespace Drawing {
+namespace {
+ani_field gNativeObjField = nullptr;
+}
+
 const char* ANI_CLASS_CANVAS_NAME = "@ohos.graphics.drawing.drawing.Canvas";
 const char* ANI_CLASS_POINT_NAME = "@ohos.graphics.common2D.common2D.Point";
+
+bool GetNativeObj(ani_env* env, ani_object obj, ani_long& nativeObj)
+{
+    if (env->Object_GetField_Long(obj, gNativeObjField, &nativeObj) == ANI_OK) {
+        return true;
+    }
+    if (env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj) == ANI_OK) {
+        return true;
+    }
+    return false;
+}
+
+AniCanvas* UnwrapAniCanvas(ani_env* env, ani_object obj)
+{
+    ani_long nativeObj;
+    if (!GetNativeObj(env, obj, nativeObj)) {
+        ROSEN_LOGE("[ANI] UnwrapAniCanvas get nativeobj failed");
+        return nullptr;
+    }
+    AniCanvas* aniCanvas = reinterpret_cast<AniCanvas*>(nativeObj);
+    if (!aniCanvas) {
+        ROSEN_LOGE("[ANI] object is null");
+        return nullptr;
+    }
+
+    return aniCanvas;
+}
+
 ani_status AniCanvas::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -357,6 +389,10 @@ ani_status AniCanvas::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
+    if (env->Class_FindField(cls, NATIVE_OBJ, &gNativeObjField) != ANI_OK) {
+        ROSEN_LOGE("[ANI] FindFiled nativeObj failed");
+    }
+
     return ANI_OK;
 }
 
@@ -424,12 +460,12 @@ void AniCanvas::DrawRect(ani_env* env, ani_object obj,
 
 void AniCanvas::DrawRectWithRect(ani_env* env, ani_object obj, ani_object aniRect)
 {
-    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj);
+    auto aniCanvas = UnwrapAniCanvas(env, obj);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         AniThrowError(env, "Invalid params.");
         return;
     }
-    
+
     Drawing::Rect drawingRect;
     if (!GetRectFromAniRectObj(env, aniRect, drawingRect)) {
         ROSEN_LOGE("AniCanvas::DrawRectWithRect get drawingRect failed");
@@ -1398,7 +1434,7 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
 
 void AniCanvas::AttachBrush(ani_env* env, ani_object obj, ani_object brushObj)
 {
-    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj);
+    auto aniCanvas = UnwrapAniCanvas(env, obj);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         AniThrowError(env, "Invalid params.");
         return;
@@ -1432,7 +1468,7 @@ void AniCanvas::AttachPen(ani_env* env, ani_object obj, ani_object penObj)
 
 void AniCanvas::DetachBrush(ani_env* env, ani_object obj)
 {
-    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj);
+    auto aniCanvas = UnwrapAniCanvas(env, obj);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         AniThrowError(env, "Invalid params.");
         return;

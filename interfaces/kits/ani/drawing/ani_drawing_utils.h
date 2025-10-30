@@ -61,6 +61,13 @@ enum class DrawingErrorCode : int32_t {
     ERROR_PARAM_VERIFICATION_FAILED = 25900001, // after api 18, no throw 401
 };
 
+struct RectPropertyConfig {
+    const char* propertyName;
+    const char* methodName;
+    ani_method& method;
+    ani_double& result;
+};
+
 constexpr char NATIVE_OBJ[] = "nativeObj";
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;

@@ -22,6 +22,14 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+namespace {
+ani_ref gRectClassRef = nullptr;
+ani_method gGetLeftMethod = nullptr;
+ani_method gGetTopMethod = nullptr;
+ani_method gGetRightMethod = nullptr;
+ani_method gGetBottomMethod = nullptr;
+}
+
 ani_status AniThrowError(ani_env* env, const std::string& message)
 {
     ani_class errCls;
@@ -184,13 +192,41 @@ ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object&
     return ANI_OK;
 }
 
+bool GetRectClass(ani_env* env, ani_class& rectClass)
+{
+    if (gRectClassRef) {
+        rectClass = reinterpret_cast<ani_class>(gRectClassRef);
+        return true;
+    }
+    if (env->FindClass("@ohos.graphics.common2D.common2D.Rect", &rectClass) != ANI_OK) {
+        ROSEN_LOGE("[Drawing] GetRectClass FindClass failed");
+        return false;
+    }
+    if (env->GlobalReference_Create(reinterpret_cast<ani_ref>(rectClass), &gRectClassRef) != ANI_OK) {
+        ROSEN_LOGE("[Drawing] GetRectClass GlobalReference_Create failed");
+    }
+    return true;
+}
+
+ani_status GetRectPropertyValue(ani_env* env, ani_object obj, ani_class rectClass, const RectPropertyConfig& config)
+{
+    if ((config.method || env->Class_FindMethod(rectClass, config.methodName, ":d", &config.method) == ANI_OK) &&
+        env->Object_CallMethod_Double(obj, config.method, &config.result) == ANI_OK) {
+        return ANI_OK;
+    }
+    return env->Object_GetPropertyByName_Double(obj, config.propertyName, &config.result);
+}
+
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 {
     ani_class rectClass;
-    env->FindClass("@ohos.graphics.common2D.common2D.Rect", &rectClass);
+    if (!GetRectClass(env, rectClass)) {
+        ROSEN_LOGE("[Drawing] GetRectFromAniRectObj GetRectClass failed");
+        return false;
+    }
+
     ani_boolean isRectClass;
     env->Object_InstanceOf(obj, rectClass, &isRectClass);
-
     if (!isRectClass) {
         return false;
     }
@@ -199,11 +235,15 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     ani_double top;
     ani_double right;
     ani_double bottom;
+    RectPropertyConfig leftConfig = { "left", "<get>left", gGetLeftMethod, left };
+    RectPropertyConfig topConfig = { "top", "<get>top", gGetTopMethod, top };
+    RectPropertyConfig rightConfig = { "right", "<get>right", gGetRightMethod, right };
+    RectPropertyConfig bottomConfig = { "bottom", "<get>bottom", gGetBottomMethod, bottom };
 
-    if ((env->Object_GetPropertyByName_Double(obj, "left", &left) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "top", &top) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "right", &right) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Double(obj, "bottom", &bottom) != ANI_OK)) {
+    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, topConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, rightConfig) != ANI_OK) ||
+        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) != ANI_OK)) {
         ROSEN_LOGE("GetRectFromAniRectObj failed");
         return false;
     }
