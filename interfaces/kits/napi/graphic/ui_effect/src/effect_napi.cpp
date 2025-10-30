@@ -452,6 +452,11 @@ bool ParseJsVectorValue(napi_env env, napi_value jsObject, const std::string& na
         UIEFFECT_LOG_E("ParseJsVectorValue: get args fail, not array");
         return false;
     }
+
+    if (arraySize > 10) {
+        UIEFFECT_LOG_E("ParseJsVectorValue: the length of array is over 10");
+        return false;
+    }
  
     for (size_t i = 0; i < arraySize; i++) {
         napi_value jsValue;
