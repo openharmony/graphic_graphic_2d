@@ -94,6 +94,9 @@ napi_value WebGLRenderingContextBase::GetSupportedExtensions(napi_env env, napi_
         return NVal::CreateNull(env).val_;
     }
     const char* extensions = eglQueryString(EglManager::GetInstance().GetEGLDisplay(), EGL_EXTENSIONS);
+    if (extensions == nullptr) {
+        return NVal::CreateNull(env).val_;
+    }
     string str = extensions;
     vector<string> vec {};
     Util::SplitString(str, vec, " ");
