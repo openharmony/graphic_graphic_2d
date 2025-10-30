@@ -13,16 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef RSCANVASDRAWINGNODE_FUZZER_H
-#define RSCANVASDRAWINGNODE_FUZZER_H
+#ifndef RSWINDOWKEYFRAMENODE_FUZZER_H
+#define RSWINDOWKEYFRAMENODE_FUZZER_H
 
-#include <cstdint>
-#include <unistd.h>
-#include <climits>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
+#define FUZZ_PROJECT_NAME "rswindowkeyframenode_fuzzer"
 
-#define FUZZ_PROJECT_NAME "rscanvasdrawingnode_fuzzer"
-
-#endif // RSCANVASDRAWINGNODE_FUZZER_H
+#endif // RSWINDOWKEYFRAMENODE_FUZZER_H

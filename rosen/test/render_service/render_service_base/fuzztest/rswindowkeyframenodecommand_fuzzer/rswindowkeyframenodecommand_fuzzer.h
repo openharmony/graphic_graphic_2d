@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RSWINDOWKEYFRAMENODE_FUZZER_H
-#define RSWINDOWKEYFRAMENODE_FUZZER_H
+#ifndef RSWINDOWKEYFRAMENODECOMMAND_FUZZER_H
+#define RSWINDOWKEYFRAMENODECOMMAND_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "rswindowkeyframenode_fuzzer"
+#define FUZZ_PROJECT_NAME "rswindowkeyframenodecommand_fuzzer"
 
-#endif // RSWINDOWKEYFRAMENODE_FUZZER_H
+#endif // RSWINDOWKEYFRAMENODECOMMAND_FUZZER_H
