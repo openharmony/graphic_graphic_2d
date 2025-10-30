@@ -35,6 +35,7 @@ public:
     struct PlaybackInfo
     {
         std::string fileName;
+        std::string ohrType = "";
         int startTime;
         int endTime;
         int timeInterval;
@@ -55,6 +56,7 @@ private:
     Vector2f GetScreenSize() const;
 
     void LoadNodeTreeProfilerFile(const std::string& filePath, const std::string& savePath);
+    void PlaybackWithoutJson(const std::string& filePath, const std::string& savePath);
     void LoadPlaybackProfilerFile(const std::string& filePath, const std::string& savePath, PlaybackInfo info);
 
     void TestCaseCapture(bool isScreenshot, const std::string& savePath);
@@ -63,6 +65,8 @@ private:
     void DumpBufferSetUp();
     void DumpBufferTearDown();
     std::string GetImageSavePath();
+    void PlayBackPauseAtVsync(
+        const int& startTime, const int& endTime, const int& timeInterval, const std::string& savePath);
 
     std::string rootPath_ = "";
     int runTestCaseNum_ = 0;

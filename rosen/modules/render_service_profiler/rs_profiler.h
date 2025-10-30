@@ -830,6 +830,8 @@ private:
     static void SaveSkpOnCapture(const ArgList& args);
     static void SaveSkpExtended(const ArgList& args);
     static void SaveRdc(const ArgList& args);
+    static void PrintVsync(const ArgList& args);
+    static void PrintTime(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
     static void RenderNodeKeepDrawCmd(const ArgList& args);
     static void PlaybackSetSpeed(const ArgList& args);

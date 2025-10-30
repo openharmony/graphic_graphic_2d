@@ -75,6 +75,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rsrecord_metrics", RecordMetrics },
     { "rssurface_pid", DumpNodeSurface },
     { "rscon_print", DumpConnections },
+    { "rsreplay_vsyncid", PrintVsync},
+    { "rsreplay_time", PrintTime},
     { "save_rdc", SaveRdc },
     { "save_skp", SaveSkp },
     { "save_offscreen", SaveOffscreenSkp },

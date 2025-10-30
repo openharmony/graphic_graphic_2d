@@ -54,6 +54,7 @@ public:
     void SendProfilerCommand(const std::string command, int outTime = 0);
 
     static RSGraphicTestDirector& Instance();
+    std::pair<double, double> ReceiveProfilerTimeInfo();
     void ReleaseRootNode();
 private:
     ScreenId screenId_ = 0;
