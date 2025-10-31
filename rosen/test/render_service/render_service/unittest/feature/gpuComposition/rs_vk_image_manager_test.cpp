@@ -347,13 +347,16 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
     params.ignoreAlpha = true;
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && recordingCanvas) {
-        params.buffer->SetBufferDeleteFromCacheFlag(false);
-        EXPECT_EQ(imageManager->CreateImageFromBuffer(
-            *recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_FALSE(params.buffer->IsBufferDeleted());
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
 
-        params.buffer->SetBufferDeleteFromCacheFlag(true);
-        EXPECT_EQ(imageManager->CreateImageFromBuffer(
-            *recordingCanvas, params, drawingColorSpace), nullptr);
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        EXPECT_TRUE(params.buffer->IsBufferDeleted());
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+        EXPECT_TRUE(params.buffer->IsBufferDeleted());
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
     }
 }
 
