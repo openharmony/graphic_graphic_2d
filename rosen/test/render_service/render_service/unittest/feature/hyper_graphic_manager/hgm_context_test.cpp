@@ -47,7 +47,7 @@ HWTEST_F(HgmContextTest, TestInitHgmConfig, TestSize.Level1)
     std::unordered_map<std::string, std::string> sourceTuningConfig;
     std::unordered_map<std::string, std::string> solidLayerConfig;
     std::vector<std::string> appBufferList;
-    int32_t ret = hgmContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList);
+    hgmContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList);
     EXPECT_EQ(hgmContext.convertFrameRateFunc_(static_cast<RSPropertyUnit>(0xff), 0.f, 1000.f, 0.f), 0);
 }
 
