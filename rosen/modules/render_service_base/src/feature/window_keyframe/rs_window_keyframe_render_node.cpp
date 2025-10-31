@@ -53,7 +53,7 @@ void RSWindowKeyFrameRenderNode::OnTreeStateChanged()
     RSRenderNode::OnTreeStateChanged();
 }
 
-void RSWindowKeyFrameRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) 
+void RSWindowKeyFrameRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
         return;
@@ -173,7 +173,7 @@ bool RSWindowKeyFrameRenderNode::UpdateKeyFrameBehindWindowRegion(
         }
  
         RectI blurRect;
-        auto ratio = rootWidth * keyFrameHeight / rootHeight >= keyFrameWidth ? 
+        auto ratio = rootWidth * keyFrameHeight / rootHeight >= keyFrameWidth ?
             keyFrameHeight / rootHeight : keyFrameWidth / rootWidth;
         blurRect.top_ = static_cast<int>(std::floor(std::min(behindWndRect.top_ * ratio, keyFrameHeight)));
         blurRect.left_ = static_cast<int>(std::floor(std::min(behindWndRect.left_ * ratio, keyFrameWidth)));

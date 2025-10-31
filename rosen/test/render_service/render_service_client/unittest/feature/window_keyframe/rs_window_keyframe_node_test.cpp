@@ -63,7 +63,7 @@ HWTEST_F(RSWindowKeyFrameNodeTest, Create002, TestSize.Level1)
 {
     bool bEnable = RSSystemProperties::GetWindowKeyFrameEnabled();
 
-	system::SetParameter("rosen.graphic.windowkeyframe.enabled", "0");
+    system::SetParameter("rosen.graphic.windowkeyframe.enabled", "0");
     RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create();
     EXPECT_EQ(keyframeNode, nullptr);
     system::SetParameter("rosen.graphic.windowkeyframe.enabled", bEnable ? "1" : "0");

@@ -4643,7 +4643,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode003, TestSize.Level2
  * @tc.name: QuickPrepareWindowKeyFrameRenderNode
  * @tc.desc: Test QuickPrepareWindowKeyFrameRenderNode
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSUniRenderVisitorTest, QuickPrepareWindowKeyFrameRenderNode, TestSize.Level2)
 {

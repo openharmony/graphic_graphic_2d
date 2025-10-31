@@ -1306,7 +1306,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
  * @tc.name: RSWindowkeyFrameRenderNodeDumpTest
  * @tc.desc: test DumpSubClassNode for RSWindowkeyFrameRenderNode
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSRenderNodeTest2, RSWindowkeyFrameRenderNodeDumpTest, TestSize.Level1)
 {

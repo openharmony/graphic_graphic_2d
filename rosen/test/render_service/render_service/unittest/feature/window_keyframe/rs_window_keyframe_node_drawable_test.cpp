@@ -117,8 +117,8 @@ HWTEST_F(RSWindowKeyFrameDrawableTest, OnDraw, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
- HWTEST_F(RSWindowKeyFrameDrawableTest, CheckAndDrawToOffscreen, TestSize.Level1)
- {
+HWTEST_F(RSWindowKeyFrameDrawableTest, CheckAndDrawToOffscreen, TestSize.Level1)
+{
     auto surface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas canvas(surface.get());
@@ -151,7 +151,7 @@ HWTEST_F(RSWindowKeyFrameDrawableTest, OnDraw, TestSize.Level1)
     rootDrawable->OnDraw(canvas);
     EXPECT_TRUE(RSWindowKeyFrameNodeDrawable::CheckAndDrawToOffscreen(canvas, *rootDrawable));
     RSUniRenderThread::Instance().Sync(std::unique_ptr<RSRenderThreadParams>());
- }
+}
 
 /**
  * @tc.name: OnLinkedNodeDraw
@@ -217,7 +217,8 @@ HWTEST_F(RSWindowKeyFrameDrawableTest, OnLinkedNodeDrawWithNullSurface, TestSize
     auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
     ASSERT_NE(renderThreadParams, nullptr);
     RSUniRenderThread::Instance().Sync(std::move(renderThreadParams));
-    EXPECT_FALSE(keyframeDrawable_->OnLinkedNodeDraw(mockRSPaintFilterCanvas, *rootDrawable, *rootDrawable->renderParams_));
+    EXPECT_FALSE(keyframeDrawable_->OnLinkedNodeDraw(mockRSPaintFilterCanvas,
+        *rootDrawable, *rootDrawable->renderParams_));
 }
 
 /**

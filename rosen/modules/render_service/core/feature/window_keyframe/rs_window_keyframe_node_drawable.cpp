@@ -63,7 +63,7 @@ void RSWindowKeyFrameNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    const auto& params = GetRenderParams();  
+    const auto& params = GetRenderParams();
     Drawing::Rect bounds = params->GetBounds();
     RS_TRACE_NAME_FMT("WindowKeyFrameDraw LinkedNode:(%.0fx%.0f), CurNode:(%.0fx%.0f) alpha:%.2f, freeze:%d",
         linkedNodeBounds_.GetWidth(), linkedNodeBounds_.GetHeight(),
