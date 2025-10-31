@@ -57,7 +57,7 @@ void RSDrawingFilterTest::TearDown() {}
 // Mock for RSRenderFilterParaBase to test Pre/Post process calls
 class MockShaderFilter : public RSRenderFilterParaBase {
 public:
-    MockShaderFilter(RSUIFilterType type) : type_(type) {}
+    explicit MockShaderFilter(RSUIFilterType type) : type_(type) {}
     RSUIFilterType GetType() const override { return type_; }
     uint32_t Hash() const override { return 111; }
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override
@@ -78,7 +78,7 @@ public:
 // Mock for RSNGRenderFilterBase to test Set/Get and Hash
 class MockNGRenderFilter : public RSNGRenderFilterBase {
 public:
-    MockNGRenderFilter(uint32_t hash) : hash_(hash) {}
+    explicit MockNGRenderFilter(uint32_t hash) : hash_(hash) {}
     uint32_t CalculateHash() const override { return hash_; }
     void OnSync() override { onSyncCalled = true; }
 
