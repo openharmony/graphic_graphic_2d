@@ -16,10 +16,10 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 
 #include "common/rs_optional_trace.h"
-#include "rp_hgm_xml_parser.h"
 #include "parameters.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "rp_hgm_xml_parser.h"
 
 namespace OHOS {
 namespace Rosen {
