@@ -230,6 +230,10 @@ void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
         node->AddModifier(modifier);
+    } else {
+        ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRId64
+            ", ModifierType %{public}d", nodeId, modifier ? modifier->GetId() : -1,
+            modifier ? static_cast<int>(modifier->GetType()) : -1);
     }
 }
 
@@ -240,6 +244,9 @@ void RSNodeCommandHelper::RemoveModifierNG(
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
         node->RemoveModifier(type, id);
+    } else {
+        ROSEN_LOGE("RSNodeCommandHelper::RemoveModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}"
+            PRIu64 ", ModifierType %{public}hu", nodeId, id, type);
     }
 }
 
