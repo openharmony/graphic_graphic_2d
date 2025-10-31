@@ -124,7 +124,7 @@ BackendTexture Image::GetBackendTexture(bool flushPendingGrContextIO, TextureOri
 
 bool Image::IsValid(GPUContext* context) const
 {
-    return imageImplPtr->IsValid(context);
+    return (imageImplPtr != nullptr) && (imageImplPtr->IsValid(context));
 }
 #endif
 

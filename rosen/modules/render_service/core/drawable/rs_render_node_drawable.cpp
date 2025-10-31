@@ -429,7 +429,10 @@ void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
 void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
 #ifdef RS_ENABLE_PREFETCH
-    __builtin_prefetch(&cachedImage_, 0, 1);
+    {
+        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
+        __builtin_prefetch(&cachedImage_, 0, 1);
+    }
 #endif
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     RS_LOGD("RSRenderNodeDrawable::CheckCacheTAD drawingCacheIncludeProperty is %{public}d",
@@ -743,22 +746,23 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
         RS_LOGE("RSRenderNodeDrawable::GetCachedImage invalid cachedSurface_");
         return nullptr;
     }
-
+    auto gpuContext = canvas.GetGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSRenderNodeDrawable::GetCachedImage invalid context");
+        return nullptr;
+    }
     // do not use threadId to judge image grcontext change
-    if (cachedImage_->IsValid(canvas.GetGPUContext().get())) {
+    if (cachedImage_->IsValid(gpuContext.get())) {
         return cachedImage_;
     }
 #ifdef RS_ENABLE_GL
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-        if (canvas.GetGPUContext() == nullptr) {
-            return nullptr;
-        }
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
         Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
         SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
         cachedImage_ = std::make_shared<Drawing::Image>();
-        bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+        bool ret = cachedImage_->BuildFromTexture(*gpuContext, cachedBackendTexture_.GetTextureInfo(),
             origin, info, nullptr, DeleteSharedTextureContext, sharedContext);
         if (!ret) {
             RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
@@ -770,7 +774,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        if (vulkanCleanupHelper_ == nullptr || canvas.GetGPUContext() == nullptr) {
+        if (vulkanCleanupHelper_ == nullptr || gpuContext == nullptr) {
             return nullptr;
         }
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
@@ -778,7 +782,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
         // Ensure the image's color space matches the target surface's color profile.
         auto colorSpace = cachedSurface_->GetImageInfo().GetColorSpace();
         cachedImage_ = std::make_shared<Drawing::Image>();
-        bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
+        bool ret = cachedImage_->BuildFromTexture(*gpuContext, cachedBackendTexture_.GetTextureInfo(),
             origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_->Ref());
         if (!ret) {
             RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
