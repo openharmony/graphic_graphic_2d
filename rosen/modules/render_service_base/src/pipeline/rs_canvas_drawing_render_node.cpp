@@ -64,11 +64,6 @@ RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (preThreadInfo_.second && surface_) {
-        preThreadInfo_.second(std::move(surface_));
-    }
-#endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this) - sizeof(RSCanvasRenderNode));
 }
 
@@ -120,10 +115,6 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
         }
     }
     canvas_->DrawImage(*sharedTexture, 0.f, 0.f, Drawing::SamplingOptions());
-    if (preThreadInfo_.second && preSurface) {
-        preThreadInfo_.second(std::move(preSurface));
-    }
-    preThreadInfo_ = curThreadInfo_;
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
     return true;
@@ -139,23 +130,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         return;
     }
 
-    if (IsNeedResetSurface()) {
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        if (preThreadInfo_.second && surface_) {
-            preThreadInfo_.second(std::move(surface_));
-        }
-        preThreadInfo_ = curThreadInfo_;
-#endif
-        if (!ResetSurface(width, height, canvas)) {
-            return;
-        }
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    } else if ((isGpuSurface_) && (preThreadInfo_.first != curThreadInfo_.first)) {
-        if (!ResetSurfaceWithTexture(width, height, canvas)) {
-            return;
-        }
+    if (IsNeedResetSurface() && !ResetSurface(width, height, canvas)) {
+        return;
     }
-#endif
     if (!surface_) {
         return;
     }
@@ -343,7 +320,7 @@ uint32_t RSCanvasDrawingRenderNode::GetTid() const
     if (UNI_RENDER_THREAD_INDEX == drawingNodeRenderID) {
         return drawingNodeRenderID;
     }
-    return curThreadInfo_.first;
+    return UNI_MAIN_THREAD_INDEX;
 }
 
 Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
@@ -710,9 +687,6 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
         cachedOpCount_ = 0;
     }
     std::lock_guard<std::mutex> lockTask(taskMutex_);
-    if (preThreadInfo_.second && surface_) {
-        preThreadInfo_.second(std::move(surface_));
-    }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
     GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

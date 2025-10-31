@@ -112,18 +112,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
     rsCanvasDrawingRenderNode.modifiersNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = vecModifier;
-    std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
-        printf("ProcessRenderContentsTest callbackFunc\n");
-    };
     // case 1.1: IsNeedResetSurface
-    rsCanvasDrawingRenderNode.preThreadInfo_.second = callbackFunc;
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
     // case 1.2: Isn't NeedResetSurface
     rsCanvasDrawingRenderNode.isGpuSurface_ = true;
-    rsCanvasDrawingRenderNode.preThreadInfo_.first = 10;
     rsCanvasDrawingRenderNode.isNeedProcess_.store(true);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode.isNeedProcess_);
+    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     // case 2.2.1: can GetGravityMatrix, recordingCanvas_ is false
     rsCanvasDrawingRenderNode.isGpuSurface_ = false;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
@@ -525,11 +520,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
     ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
 
     rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    std::function<void(std::shared_ptr<Drawing::Surface>)> callBackFunc = [](std::shared_ptr<Drawing::Surface>) {
-        printf("ResetSurface preThreadInfo_ callBackFunc\n");
-    };
-    rsCanvasDrawingRenderNode.preThreadInfo_.second = callBackFunc;
-    ASSERT_TRUE(rsCanvasDrawingRenderNode.preThreadInfo_.second && rsCanvasDrawingRenderNode.surface_);
     rsCanvasDrawingRenderNode.ResetSurface(width, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
 
