@@ -50,12 +50,12 @@ public:
         return useEffectMaskPara_;
     }
 
-    void SetRipplePosition(const Vector3f& position)
+    void SetRipplePosition(const std::vector<Vector2f>& position)
     {
         ripplePosition_ = position;
     }
 
-    const Vector3f& GetRipplePosition() const
+    const std::vector<Vector2f>& GetRipplePosition() const
     {
         return ripplePosition_;
     }
@@ -235,7 +235,7 @@ private:
     std::shared_ptr<MaskPara> useEffectMaskPara_ = nullptr;
     float rippleProgress_ = 0.0f;
     float distortProgress_ = 0.0f;
-    Vector3f ripplePosition_;
+    std::vector<Vector2f> ripplePosition_;
     Vector4f tintColor_;
     float materialFactor_ = 0.0f;
     float distortFactor_ = 0.0f;

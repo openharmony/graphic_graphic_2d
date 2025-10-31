@@ -433,6 +433,46 @@ bool ParseJsVec4Value(napi_env env, napi_value jsObject, const std::string& name
     }
     return true;
 }
+
+bool ParseJsVectorValue(napi_env env, napi_value jsObject, const std::string& name, std::vector<Vector2f>& vecTmp)
+{
+    napi_value param = nullptr;
+    napi_get_named_property(env, jsObject, name.c_str(), &param);
+    if (param == nullptr) {
+        return false;
+    }
+    napi_valuetype valueType = napi_undefined;
+    valueType = UIEffectNapiUtils::GetType(env, param);
+    if (valueType == napi_undefined) {
+        return true;
+    }
+    uint32_t arraySize = 0;
+    
+    if (!IsArrayForNapiValue(env, param, arraySize)) {
+        UIEFFECT_LOG_E("ParseJsVectorValue: get args fail, not array");
+        return false;
+    }
+
+    if (arraySize > NUM_10) {
+        UIEFFECT_LOG_E("ParseJsVectorValue: the length of array is over 10");
+        return false;
+    }
+ 
+    for (size_t i = 0; i < arraySize; i++) {
+        napi_value jsValue;
+        if ((napi_get_element(env, param, i, &jsValue)) != napi_ok) {
+            UIEFFECT_LOG_E("ParseJsVectorValue: get args fail, get value of element fail");
+            return false;
+        }
+        Vector2f position;
+        if (!ParseJsVector2f(env, jsValue, position)) {
+            UIEFFECT_LOG_E("ParseJsVectorValue: parse args fail, parse Vector2f fail");
+            return false;
+        }
+        vecTmp.push_back(position);
+    }
+    return true;
+}
  
 bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender)
 {
@@ -477,7 +517,7 @@ bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, Brigh
 bool ParseHarmoniumEffectPara(napi_env env, napi_value jsObject, HarmoniumEffectPara* para)
 {
     double val;
-    Vector3f tmpVector3;
+    std::vector<Vector2f> tmpVector;
     Vector4f tmpVector4;
     int parseTimes = 0;
     bool enableVal = false;
@@ -522,8 +562,8 @@ bool ParseHarmoniumEffectPara(napi_env env, napi_value jsObject, HarmoniumEffect
         parseTimes++;
     }
  
-    if (ParseJsVec3Value(env, jsObject, "ripplePosition", tmpVector3)) {
-        para->SetRipplePosition(tmpVector3);
+    if (ParseJsVectorValue(env, jsObject, "ripplePosition", tmpVector)) {
+        para->SetRipplePosition(tmpVector);
         parseTimes++;
     }
  
