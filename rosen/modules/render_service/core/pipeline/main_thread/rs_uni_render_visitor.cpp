@@ -3133,6 +3133,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
             filterNode->UpdateFilterCacheWithBelowDirty(
                 Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), false);
+            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, false);
         }
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
@@ -3221,8 +3222,11 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     // case - 2. Collect filter node with its current below dirty, process later.
     dirtyManager.GetFilterCollector().CollectFilterDirtyRegionInfo(
         RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
-            node, Occlusion::Region(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion())),
+            node, Occlusion::Region(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion())).Or(
+                dirtyManager.GetFilterCollector().GetPendingPurgeFilterRegion()),
             curSurfaceNode_ != nullptr), false);
+    // case - 3. update pending purge dirty region with foreground filter.
+    node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, true);
 
     if (curSurfaceNode_) {
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);

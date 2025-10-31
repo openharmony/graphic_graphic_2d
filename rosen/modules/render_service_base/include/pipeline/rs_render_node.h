@@ -645,6 +645,7 @@ public:
     void UpdateFilterCacheWithBackgroundDirty();
     virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
+    void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, bool isForeground);
     bool IsBackgroundInAppOrNodeSelfDirty() const
     {
         return backgroundFilterInteractWithDirty_ || backgroundFilterRegionChanged_;

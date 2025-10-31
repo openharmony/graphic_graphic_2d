@@ -1873,6 +1873,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     // 3. update dirtyRegion if needed
     if (properties.GetBackgroundFilter()) {
         UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+        UpdatePendingPurgeFilterDirtyRect(dirtyManager, false);
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false;
@@ -2500,6 +2501,31 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
         }
     }
 #endif
+}
+
+void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, bool isForeground)
+{
+    auto filterDrawable = GetFilterDrawable(isForeground);
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
+        return;
+    }
+
+    const auto filterRect = GetFilterRect();
+    const auto& pendingPurgeFilterRegion = dirtyManager.GetFilterCollector().GetPendingPurgeFilterRegion();
+    if (!isForeground && pendingPurgeFilterRegion.IsIntersectWith(Occlusion::Rect(filterRect))) {
+        backgroundFilterInteractWithDirty_ = true;
+    }
+
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdatePendingPurgeFilterDirtyRect:node[%llu],"
+        " needPendingPurge:%d, pendingPurgeFilterRegion: %s",
+        GetId(), filterDrawable->NeedPendingPurge(), pendingPurgeFilterRegion.GetRegionInfo().c_str());
+    // mainly based on the pendingPurge_ within NeedPendingPurge().
+    // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
+    // may become true later in CheckMergeFilterDirtyWithPreDirty().
+    if (filterDrawable->NeedPendingPurge()) {
+        dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
+            Occlusion::Region(Occlusion::Rect(filterRect)));
+    }
 }
 
 void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)

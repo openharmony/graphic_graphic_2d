@@ -1182,6 +1182,61 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect001
+ * @tc.desc: test pendingPurgeFilterRegion not intersect with node filter rect and not pendingPurge
+ * @tc.type: FUNC
+ * @tc.require: issue20473
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& geoPtr = node.renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(50, 50, 100, 100);
+    geoPtr->absRect_ = rect;
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 10, 10)));
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, false);
+
+    EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
+    const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    auto filterRegion = Occlusion::Region(node.GetFilterRect());
+    EXPECT_FALSE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+}
+
+/**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect002
+ * @tc.desc: test pendingPurgeFilterRegion intersect with node filter rect and pendingPurge
+ * @tc.type: FUNC
+ * @tc.require: issue20473
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect002, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& geoPtr = node.renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(50, 50, 100, 100);
+    geoPtr->absRect_ = rect;
+    node.filterRegion_ = node.GetFilterRect();
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 60, 60)));
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, false);
+
+    EXPECT_TRUE(node.backgroundFilterInteractWithDirty_);
+    const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    auto filterRegion = Occlusion::Region(node.GetFilterRect());
+    EXPECT_TRUE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+}
+
+/**
  * @tc.name: IsBackgroundInAppOrNodeSelfDirty
  * @tc.desc: test
  * @tc.type: FUNC
