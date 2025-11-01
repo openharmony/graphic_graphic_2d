@@ -17,6 +17,7 @@
 #define RS_OPINC_MANAGER_H
 
 #include "pipeline/rs_render_node.h"
+#include <mutex>
 
 namespace OHOS::Rosen {
 enum class OpincUnsupportType : uint8_t {
@@ -31,6 +32,8 @@ enum class OpincUnsupportType : uint8_t {
     CHILD_HAS_FILTER,
     CHILD_HAS_EFFECT,
 };
+constexpr int64_t COLOR_CHANNEL = 4;
+constexpr int64_t SCREEN_RATIO = 2;
 class RSB_EXPORT RSOpincManager {
 public:
     static RSOpincManager& Instance();
@@ -44,6 +47,11 @@ public:
     {
         isOPIncOn_ = opincSwitch;
     }
+
+    void AddOpincCacheMem(int64_t cacheMem);
+    void ReduceOpincCacheMem(int64_t cacheMem);
+    int64_t GetOpincCacheMem();
+    int32_t GetOpincCacheCount();
 
     bool OpincGetNodeSupportFlag(RSRenderNode& node);
     bool IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable);
@@ -64,6 +72,9 @@ private:
     bool OpincGetCanvasNodeSupportFlag(RSRenderNode& node);
 
     bool isOPIncOn_ = false;
+    std::mutex mutex_;
+    int64_t cacheMem_ = 0;
+    int32_t cacheCount_ = 0;
 };
 }
 #endif // RS_OPINC_MANAGER_H

@@ -240,6 +240,22 @@ HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceTest, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
     ASSERT_EQ(drawable->cachedSurface_, nullptr);
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    params.SetCacheSize({100, 200});
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    drawable->GetOpincDrawCache().isAdd_ = false;
+    drawable->GetOpincDrawCache().opCanCache_ = false;
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
+    EXPECT_NE(drawable->cachedSurface_, nullptr);
+    EXPECT_EQ(drawable->GetOpincDrawCache().isAdd_, false);
+
+    drawable->GetOpincDrawCache().opCanCache_ = true;
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
+    EXPECT_NE(drawable->cachedSurface_, nullptr);
+    EXPECT_EQ(drawable->GetOpincDrawCache().isAdd_, true);
+    drawable->ClearCachedSurface();
+#endif
 }
 
 /**
@@ -333,6 +349,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
     paintFilterCanvas.canvas_ = drawingCanvas.get();
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize());
+    drawable->opincDrawCache_.isAdd_ = true;
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
     ASSERT_FALSE(drawable->opincDrawCache_.IsComputeDrawAreaSucc());

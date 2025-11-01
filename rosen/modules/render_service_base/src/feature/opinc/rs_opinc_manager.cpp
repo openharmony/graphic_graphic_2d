@@ -17,6 +17,7 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "platform/common/rs_log.h"
 #include "string_utils.h"
 
 namespace OHOS {
@@ -26,6 +27,40 @@ RSOpincManager& RSOpincManager::Instance()
 {
     static RSOpincManager instance;
     return instance;
+}
+
+void RSOpincManager::AddOpincCacheMem(int64_t cacheMem)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    cacheMem_ += cacheMem;
+    cacheCount_++;
+}
+
+void RSOpincManager::ReduceOpincCacheMem(int64_t cacheMem)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (cacheMem_ > cacheMem) {
+        cacheMem_ -= cacheMem;
+        cacheCount_--;
+        return;
+    }
+    RS_LOGD("Opinc ReduceOpincCacheMem: CacheMem:%{public}" PRId64
+        " exceed current cache mem:%{public}" PRId64, cacheMem * COLOR_CHANNEL,
+        cacheMem_ * COLOR_CHANNEL);
+    cacheMem_ = 0;
+    cacheCount_ = 0;
+}
+
+int64_t RSOpincManager::GetOpincCacheMem()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return cacheMem_;
+}
+
+int32_t RSOpincManager::GetOpincCacheCount()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return cacheCount_;
 }
 
 bool RSOpincManager::OpincGetNodeSupportFlag(RSRenderNode& node)

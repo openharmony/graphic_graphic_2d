@@ -114,6 +114,9 @@ public:
     {
         return opCanCache_;
     }
+
+    void AddOpincCacheMem(int64_t cacheMem);
+    void ReduceOpincCacheMem(int64_t cacheMem);
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static inline RectI screenRectInfo_ = {0, 0, 0, 0};
@@ -123,6 +126,7 @@ private:
     bool BeforeDrawCacheProcessChildNode(RSRenderParams& params);
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    bool IsOpincCacheMemExceedThreshold();
 
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
@@ -135,6 +139,7 @@ private:
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
     bool isOpincMarkCached_ = false;
+    bool isAdd_ = false;
 }; // RSOpincDrawCache
 }
 }

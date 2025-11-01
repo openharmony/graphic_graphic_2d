@@ -1264,6 +1264,13 @@ bool RSSystemProperties::IsOpincRealDrawCacheEnable()
     return  GetDdgrOpincType() == DdgrOpincType::OPINC_AUTOCACHE_REALDRAW;
 }
 
+bool RSSystemProperties::GetOpincCacheMemThresholdEnabled()
+{
+    static bool opincCacheMemThresholdEnabled =
+        (std::atoi(system::GetParameter("persist.rosen.ddgr.opinc.cacheMemThreshold", "1").c_str()) != 0);
+    return opincCacheMemThresholdEnabled;
+}
+
 DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
 {
     return ddgrOpincDfxType_;

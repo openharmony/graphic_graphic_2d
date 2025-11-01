@@ -699,6 +699,8 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     cachedSurface_ =
         Drawing::Surface::MakeRasterN32Premul(static_cast<int32_t>(cacheSize.x_), static_cast<int32_t>(cacheSize.y_));
 #endif
+    GetOpincDrawCache().AddOpincCacheMem(
+        static_cast<int64_t>(width) * static_cast<int64_t>(height));
 }
 
 bool RSRenderNodeDrawable::NeedInitCachedSurface(const Vector2f& newSize)
@@ -867,6 +869,8 @@ void RSRenderNodeDrawable::ClearCachedSurface()
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("ClearCachedSurface id:%llu", GetId());
+    GetOpincDrawCache().ReduceOpincCacheMem(static_cast<int64_t>(cachedSurface_->Width()) *
+        static_cast<int64_t>(cachedSurface_->Height()));
 
     auto clearTask = [surface = cachedSurface_]() mutable { surface = nullptr; };
     cachedSurface_ = nullptr;

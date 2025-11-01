@@ -24,6 +24,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr int64_t CACHE_MEM = 100;
 class RSOpincManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -296,5 +297,40 @@ HWTEST_F(RSOpincManagerTest, QuickGetNodeDebugInfo, Function | SmallTest | Level
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
     ASSERT_NE(rsCanvasRenderNode, nullptr);
     ASSERT_NE(opincManager_.QuickGetNodeDebugInfo(*rsCanvasRenderNode), "");
+}
+
+/**
+ * @tc.name: AddOpincCacheMem
+ * @tc.desc: Verify the AddOpincCacheMem function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, AddOpincCacheMem, Function | SmallTest | Level1)
+{
+    int64_t cacheMem = opincManager_.GetOpincCacheMem();
+    int32_t cacheCount = opincManager_.GetOpincCacheCount();
+    opincManager_.AddOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(opincManager_.GetOpincCacheMem(), cacheMem + CACHE_MEM);
+    EXPECT_EQ(opincManager_.GetOpincCacheCount(), cacheCount + 1);
+}
+
+/**
+ * @tc.name: ReduceOpincCacheMem
+ * @tc.desc: Verify the ReduceOpincCacheMem function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, ReduceOpincCacheMem, Function | SmallTest | Level1)
+{
+    int64_t cacheMem = opincManager_.GetOpincCacheMem();
+    int32_t cacheCount = opincManager_.GetOpincCacheCount();
+    opincManager_.AddOpincCacheMem(CACHE_MEM);
+    opincManager_.ReduceOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(opincManager_.GetOpincCacheMem(), cacheMem);
+    EXPECT_EQ(opincManager_.GetOpincCacheCount(), cacheCount);
+
+    cacheMem = opincManager_.GetOpincCacheMem();
+    opincManager_.ReduceOpincCacheMem(cacheMem + 1);
+    EXPECT_EQ(opincManager_.GetOpincCacheMem(), 0);
 }
 }
