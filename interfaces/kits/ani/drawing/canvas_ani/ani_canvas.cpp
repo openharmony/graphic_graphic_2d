@@ -563,7 +563,8 @@ void AniCanvas::DrawShadow(ani_env* env, ani_object obj, ani_object pathObj,
     Drawing::ColorQuad ambient;
     Drawing::ColorQuad spot;
     if (!GetColorQuadFromParam(env, ambientColor, ambient) || !GetColorQuadFromParam(env, spotColor, spot)) {
-        ROSEN_LOGE("AniCanvas::DrawShadow params4 or params5 is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "AniCanvas::DrawShadow the range of color channels must be [0, 255].");
         return;
     }
 
@@ -610,7 +611,8 @@ void AniCanvas::DrawShadowWithOption(ani_env* env, ani_object obj, ani_object pa
     Drawing::ColorQuad ambient;
     Drawing::ColorQuad spot;
     if (!GetColorQuadFromParam(env, ambientColorOps, ambient) || !GetColorQuadFromParam(env, spotColorOps, spot)) {
-        ROSEN_LOGE("AniCanvas::DrawShadowWithOption params4 or params5 is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "AniCanvas::DrawShadowWithOption the range of color channels must be [0, 255].");
         return;
     }
 
