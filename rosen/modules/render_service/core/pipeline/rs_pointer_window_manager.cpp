@@ -167,6 +167,30 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
 #endif
 }
 
+void RSPointerWindowManager::HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor, NodeId screenNodeId)
+{
+    auto hardCursorDrawable = GetHardCursorDrawable(screenNodeId);
+    if (hardCursorDrawable == nullptr) {
+        return;
+    }
+    processor->CreateLayerForRenderThread(*hardCursorDrawable);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
+    hardCursorCommitResultMap_[screenNodeId] = surfaceParams->GetLayerCreated();
+}
+
+bool RSPointerWindowManager::GetHardCursorNeedCommit(NodeId screenNodeId)
+{
+    auto hardCursorDrawable = GetHardCursorDrawable(screenNodeId);
+    bool hasBuffer = false;
+    if (hardCursorDrawable != nullptr) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
+        hasBuffer = surfaceParams->GetBuffer() != nullptr;
+    }
+    auto iter = hardCursorCommitResultMap_.find(screenNodeId);
+    bool lastCommitResult = iter != hardCursorCommitResultMap_.end() && iter->second;
+    return hasBuffer != lastCommitResult;
+}
+
 bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
 {
     auto screenManager = CreateOrGetScreenManager();
@@ -196,6 +220,15 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
         }
     }
     return false;
+}
+
+void RSPointerWindowManager::UpdateHardCursorStatus(
+    RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSScreenRenderNode>& curScreenNode)
+{
+    if (!hardCursorNode.IsHardwareEnabledTopSurface()) {
+        return;
+    }
+    hardCursorNode.SetHardCursorStatus(CheckHardCursorSupport(curScreenNode->GetScreenId()));
 }
 
 void RSPointerWindowManager::CollectAllHardCursor(

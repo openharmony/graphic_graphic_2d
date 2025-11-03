@@ -2038,6 +2038,7 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
     }
     // 4. collect cursors and check for null
+    RSPointerWindowManager::Instance().UpdateHardCursorStatus(node, curScreenNode_);
     RSPointerWindowManager::Instance().CollectAllHardCursor(node, curScreenNode_, curLogicalDisplayNode_);
     return true;
 }
@@ -2285,14 +2286,13 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
     curScreenNode_->SetDisplayGlobalZOrder(globalZOrder_);
 }
 
-void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow)
+void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    if (!pointWindow->IsHardwareEnabledTopSurface()) {
-        pointWindow->SetHardCursorStatus(false);
+    if (!surfaceNode->IsHardwareEnabledTopSurface()) {
         RSPointerWindowManager::Instance().SetIsPointerEnableHwc(false);
         return;
     }
-    std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
+    std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     if (pointSurfaceHandler) {
         // globalZOrder_  is screenNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
@@ -2304,16 +2304,15 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
             // Set the highest z-order for hardCursor
             pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
         }
-        pointWindow->SetHardwareForcedDisabledState(true);
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by pointWindow and pointSurfaceHandler",
-            pointWindow->GetName().c_str(), pointWindow->GetId());
+        surfaceNode->SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " use hardCursor to display",
+            surfaceNode->GetName().c_str(), surfaceNode->GetId());
         bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorDisplay();
         RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
-        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*pointWindow, curScreenNode_->GetScreenInfo());
-        pointWindow->SetHardCursorStatus(isHardCursor);
-        pointWindow->UpdateHwcNodeLayerInfo(transform, isHardCursor);
+        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, curScreenNode_->GetScreenInfo());
+        surfaceNode->UpdateHwcNodeLayerInfo(transform, isHardCursor);
         if (isHardCursor) {
-            RSPointerWindowManager::Instance().UpdatePointerDirtyToGlobalDirty(pointWindow, curScreenNode_);
+            RSPointerWindowManager::Instance().UpdatePointerDirtyToGlobalDirty(surfaceNode, curScreenNode_);
         }
     }
 }

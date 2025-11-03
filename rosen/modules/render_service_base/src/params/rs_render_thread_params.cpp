@@ -41,4 +41,19 @@ bool RSRenderThreadParams::IsSecurityDisplay() const
     return isSecurityDisplay_;
 }
 
+RSRenderThreadParamsManager& RSRenderThreadParamsManager::Instance()
+{
+    static RSRenderThreadParamsManager instance;
+    return instance;
+}
+
+void RSRenderThreadParamsManager::SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
+{
+    renderThreadParams_ = std::move(renderThreadParams);
+}
+
+const std::unique_ptr<RSRenderThreadParams>& RSRenderThreadParamsManager::GetRSRenderThreadParams() const
+{
+    return renderThreadParams_;
+}
 } // namespace OHOS::Rosen
