@@ -4566,6 +4566,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(", AlwaysSnapshot[true]");
     }
 
+    // HasHarmonium
+    if (HasHarmonium()) {
+        dumpInfo.append(", HasHarmonium[true]");
+    }
+
     // Gray Scale
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -4822,7 +4827,7 @@ void RSProperties::UpdateFilter()
         UpdateForegroundFilter();
     }
 
-    needFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || GetUseEffect() ||
+    needFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || GetUseEffect() || HasHarmonium() ||
                   IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
                   GetLinearGradientBlurPara() != nullptr || IsDynamicDimValid() ||
                   GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
@@ -4856,7 +4861,7 @@ bool RSProperties::DisableHWCForFilter() const
         (GetForegroundFilterCache() != nullptr &&
         GetForegroundFilterCache()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsWaterRippleValid() || GetNeedDrawBehindWindow() || GetMask() || GetColorFilter() != nullptr ||
-        localMagnificationCap_ || GetPixelStretch().has_value();
+        localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium();
 }
 
 void RSProperties::UpdateForegroundFilter()

@@ -2799,6 +2799,8 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     nodeTest->UpdateEffectRegion(region, false);
     nodeTest->renderProperties_.GetEffect().useEffect_ = true;
     nodeTest->UpdateEffectRegion(region, true);
+    nodeTest->renderProperties_.hasHarmonium_ = true;
+    nodeTest->UpdateEffectRegion(region, true);
 
 #ifndef MODIFIER_NG
     // GetModifier test

@@ -30,6 +30,7 @@ enum class OpincUnsupportType : uint8_t {
     COLOR_BLEND,
     CHILD_HAS_FILTER,
     CHILD_HAS_EFFECT,
+    HAS_HARMONIUM,
 };
 class RSB_EXPORT RSOpincManager {
 public:

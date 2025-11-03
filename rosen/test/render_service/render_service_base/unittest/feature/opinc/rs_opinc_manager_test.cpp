@@ -140,6 +140,26 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 }
 
+/**
+ * @tc.name: OpincGetCanvasNodeSupportFlag1
+ * @tc.desc: Verify the OpincGetCanvasNodeSupportFlag function
+ * @tc.type: FUNC
+ * @tc.require: #IBQETW
+ */
+HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag1, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+
+    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
+
+    property.hasHarmonium_ = true;
+    EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
+    property.hasHarmonium_ = false;
+    ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
+}
+
  /**
  * @tc.name: IsOpincSubTreeDirty
  * @tc.desc: Verify the IsOpincSubTreeDirty function
@@ -282,6 +302,25 @@ HWTEST_F(RSOpincManagerTest, GetUnsupportReason, Function | SmallTest | Level1)
     rsCanvasRenderNode->childHasVisibleEffect_ = false;
 
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::NONE);
+}
+
+/**
+ * @tc.name: GetUnsupportReason1
+ * @tc.desc: Verify the GetUnsupportReason function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, GetUnsupportReason1, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+
+    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
+
+    property.hasHarmonium_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::HAS_HARMONIUM);
+    property.hasHarmonium_ = false;
 }
 
 /**

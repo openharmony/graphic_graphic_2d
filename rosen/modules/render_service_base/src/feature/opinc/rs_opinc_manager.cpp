@@ -53,6 +53,7 @@ bool RSOpincManager::OpincGetCanvasNodeSupportFlag(RSRenderNode& node)
         property.IsAttractionValid() ||
         property.NeedFilter() ||
         property.GetUseEffect() ||
+        property.HasHarmonium() ||
         property.GetColorBlend().has_value() ||
         node.ChildHasVisibleFilter() ||
         node.ChildHasVisibleEffect()) {
@@ -122,6 +123,9 @@ OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)
     }
     if (property.GetUseEffect()) {
         return OpincUnsupportType::USE_EFFECT;
+    }
+    if (property.HasHarmonium()) {
+        return OpincUnsupportType::HAS_HARMONIUM;
     }
     if (property.GetColorBlend().has_value()) {
         return OpincUnsupportType::COLOR_BLEND;
