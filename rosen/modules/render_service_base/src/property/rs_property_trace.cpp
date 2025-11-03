@@ -173,7 +173,8 @@ bool RSPropertyTrace::IsNeedRefreshConfig()
         return false;
     }
 
-    std::string curent(ctime(&configFileStatus.st_mtime));
+    auto curentStr = ctime(&configFileStatus.st_mtime);
+    std::string curent(curentStr == nullptr ? "" : curentStr);
     if (curent != propertyFileLastModifyTime) {
         propertyFileLastModifyTime = curent;
         return true;
