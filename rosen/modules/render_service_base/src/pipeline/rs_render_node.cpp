@@ -125,7 +125,10 @@ bool RSRenderNode::IsPureBackgroundColor() const
     auto& drawableVec = drawableVec_;
 #endif
 
-    // node is a pure background node when its drawableVec is within pureBackgroundColorSlots
+    // Defines the valid RSDrawableSlot configuration of the pure background color node:
+    // - if the node includes a "CHILDREN" slot, slots associated with the "CHILDREN" group are permitted.
+    // - if the node includes a "BACKGROUND_COLOR" slot, slots associated with "BACKGROUND_COLOR" group are permitted.
+    // - if both "CHILDREN" and  "BACKGROUND_COLOR" slots are present, slots valid in either group are permitted.
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
         if (drawableVec[i] &&
             !pureBackgroundColorSlots.count(static_cast<RSDrawableSlot>(i))) {
