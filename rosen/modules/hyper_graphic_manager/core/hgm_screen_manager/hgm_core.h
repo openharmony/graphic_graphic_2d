@@ -323,12 +323,12 @@ public:
 
     int64_t GetRsPhaseOffset(const int64_t orgValue) const
     {
-        return isVsyncOffsetCustomized_ ? rsPhaseOffset_ : orgValue;
+        return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : orgValue;
     }
 
     int64_t GetAppPhaseOffset(const int64_t orgValue) const
     {
-        return isVsyncOffsetCustomized_ ? appPhaseOffset_ : orgValue;
+        return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : orgValue;
     }
 
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)

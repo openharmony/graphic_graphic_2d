@@ -303,19 +303,21 @@ void HgmCore::SetPerformanceConfig()
     }
     if (curScreenSetting.performanceConfig.count("rsPhaseOffset") != 0 &&
         XMLParser::IsNumber(curScreenSetting.performanceConfig.at("rsPhaseOffset"))) {
-        rsPhaseOffset_ = std::stoll(curScreenSetting.performanceConfig.at("rsPhaseOffset"));
-        if (rsPhaseOffset_ < RENDER_VSYNC_OFFSET_DELAY_MIN || rsPhaseOffset_ > RENDER_VSYNC_OFFSET_DELAY_MAX) {
-            rsPhaseOffset_ = 0;
+        int64_t rsPhaseOffset = std::stoll(curScreenSetting.performanceConfig.at("rsPhaseOffset"));
+        if (rsPhaseOffset < RENDER_VSYNC_OFFSET_DELAY_MIN || rsPhaseOffset > RENDER_VSYNC_OFFSET_DELAY_MAX) {
+            rsPhaseOffset = 0;
         }
-        isVsyncOffsetCustomized_ = true;
+        rsPhaseOffset_.store(rsPhaseOffset);
+        isVsyncOffsetCustomized_.store(true);
     }
     if (curScreenSetting.performanceConfig.count("appPhaseOffset") != 0 &&
         XMLParser::IsNumber(curScreenSetting.performanceConfig.at("appPhaseOffset"))) {
-        appPhaseOffset_ = std::stoll(curScreenSetting.performanceConfig.at("appPhaseOffset"));
-        if (appPhaseOffset_ < RENDER_VSYNC_OFFSET_DELAY_MIN || appPhaseOffset_ > RENDER_VSYNC_OFFSET_DELAY_MAX) {
-            appPhaseOffset_ = 0;
+        int64_t appPhaseOffset = std::stoll(curScreenSetting.performanceConfig.at("appPhaseOffset"));
+        if (appPhaseOffset < RENDER_VSYNC_OFFSET_DELAY_MIN || appPhaseOffset > RENDER_VSYNC_OFFSET_DELAY_MAX) {
+            appPhaseOffset = 0;
         }
-        isVsyncOffsetCustomized_ = true;
+        appPhaseOffset_.store(appPhaseOffset);
+        isVsyncOffsetCustomized_.store(true);
     }
 }
 
