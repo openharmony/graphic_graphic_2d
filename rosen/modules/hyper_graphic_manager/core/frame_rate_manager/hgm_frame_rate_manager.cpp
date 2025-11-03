@@ -390,10 +390,11 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
     frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
-        HGM_LOGD("ltpo type: %{public}s", finalRange.GetAllTypeDescription().c_str());
+        auto allTypeDescription = finalRange.GetAllTypeDescription();
+        HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
         RS_TRACE_NAME_FMT("ltpo type: %s", finalRange.GetAllTypeDescription().c_str());
         RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d]",
-            frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_);
+            " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
