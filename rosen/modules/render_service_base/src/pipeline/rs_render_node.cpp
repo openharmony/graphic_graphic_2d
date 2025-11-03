@@ -3160,7 +3160,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, boo
         return;
     }
     const auto& property = GetRenderProperties();
-    if (!isForced && !property.GetUseEffect()) {
+    if (!isForced && !property.GetUseEffect() && !property.HasHarmonium()) {
         return;
     }
 
