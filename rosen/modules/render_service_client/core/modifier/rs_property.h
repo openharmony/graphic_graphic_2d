@@ -78,6 +78,7 @@ class RSMask;
 class RSPath;
 class RSNGFilterBase;
 class RSNGMaskBase;
+class RSNGShapeBase;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
 class RSMagnifierParams;
@@ -324,6 +325,12 @@ struct RSRenderPropertyTraits<std::shared_ptr<RSNGMaskBase>> {
     using Type = RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>;
 };
 
+template<>
+struct RSRenderPropertyTraits<std::shared_ptr<RSNGShapeBase>> {
+    using Type = RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>;
+};
+
+
 // Helper class to deduce the property type
 template<typename T>
 struct RSPropertyTypeTraits {
@@ -340,10 +347,12 @@ struct RSPropertyTypeTraits {
 #define FILTER_PTR std::shared_ptr<RSNGFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGShaderBase>
 #define MASK_PTR std::shared_ptr<RSNGMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGShapeBase>
 
 #include "modifier/rs_property_def.in"
 
 #undef FILTER_PTR
+#undef SHAPE_PTR
 #undef SHADER_PTR
 #undef MASK_PTR
 
@@ -932,6 +941,15 @@ template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSNGMaskBase>>::Set(const std::shared_ptr<RSNGMaskBase>& value);
 template<>
 RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGMaskBase>>::GetRenderProperty();
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnAttach(RSNode& node,
+    std::weak_ptr<ModifierNG::RSModifier> modifier);
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach();
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value);
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShapeBase>>::GetRenderProperty();
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);
@@ -948,10 +966,12 @@ RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 #define FILTER_PTR std::shared_ptr<RSNGFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGShaderBase>
 #define MASK_PTR std::shared_ptr<RSNGMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGShapeBase>
 
 #include "modifier/rs_property_def.in"
 
 #undef MASK_PTR
+#undef SHAPE_PTR
 #undef SHADER_PTR
 #undef FILTER_PTR
 #undef DECLARE_PROPERTY

@@ -33,6 +33,7 @@
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
@@ -4695,10 +4696,10 @@ std::string RSProperties::Dump() const
         sprintf_s(buffer, UINT8_MAX, ", UnionSpacing[%.2f]", spacing) != -1) {
         dumpInfo.append(buffer);
     }
-    // SDFMask
-    auto sdfMask = GetSDFMask();
-    if (sdfMask) {
-        dumpInfo.append(", SDFMask[" + sdfMask->Dump() + "]");
+    // SDFShape
+    auto sdfShape = GetSDFShape();
+    if (sdfShape) {
+        dumpInfo.append(", SDFShape[" + sdfShape->Dump() + "]");
     }
     return dumpInfo;
 }
@@ -4909,9 +4910,9 @@ void RSProperties::UpdateForegroundFilter()
         CreateHDRUIBrightnessFilter();
     } else if (GetForegroundNGFilter()) {
         ComposeNGRenderFilter(GetEffect().foregroundFilter_, GetForegroundNGFilter());
-    } else if (renderSDFMask_) {
+    } else if (renderSDFShape_) {
         if (!sdfFilter_) {
-            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFMask_);
+            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
         }
         if (IS_UNI_RENDER) {
             GetEffect().foregroundFilterCache_ = sdfFilter_;
@@ -5106,22 +5107,22 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
     return nullptr;
 }
 
-void RSProperties::SetSDFMask(const std::shared_ptr<RSNGRenderMaskBase>& mask)
+void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
-    renderSDFMask_ = mask;
+    renderSDFShape_ = shape;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
 }
 
-std::shared_ptr<RSNGRenderMaskBase> RSProperties::GetSDFMask() const
+std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
 {
-    return renderSDFMask_;
+    return renderSDFShape_;
 }
 
 const std::shared_ptr<RSSDFEffectFilter> RSProperties::GetSDFEffectFilter() const
 {
-    if (!GetSDFMask() || !effect_) {
+    if (!GetSDFShape() || !effect_) {
         return nullptr;
     }
 

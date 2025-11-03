@@ -48,7 +48,7 @@ public:
     void SetBoundsPositionY(float positionY);
     void SetUseUnion(bool useUnion);
     void SetUnionSpacing(float spacing);
-    void SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask);
+    void SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape);
 
     Vector4f GetBounds() const;
     Vector2f GetBoundsSize() const;
@@ -59,7 +59,7 @@ public:
     float GetBoundsPositionY() const;
     bool GetUseUnion() const;
     float GetUnionSpacing() const;
-    std::shared_ptr<RSNGMaskBase> GetSDFMask() const;
+    std::shared_ptr<RSNGShapeBase> GetSDFShape() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_MODIFIER_H

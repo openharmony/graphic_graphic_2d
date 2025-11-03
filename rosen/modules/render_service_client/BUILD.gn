@@ -213,6 +213,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
       "core/ui_effect/property/src/rs_ui_filter_base.cpp",
       "core/ui_effect/property/src/rs_ui_mask_base.cpp",
+      "core/ui_effect/property/src/rs_ui_shape_base.cpp",
       "core/ui_effect/property/src/rs_ui_shader_base.cpp",
     ]
 

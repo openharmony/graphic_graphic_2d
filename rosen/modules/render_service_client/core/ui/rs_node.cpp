@@ -39,6 +39,7 @@
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -2598,19 +2599,19 @@ void RSNode::SetUseUnion(bool useUnion)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUseUnion>(useUnion);
 }
 
-void RSNode::SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask)
+void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
-    if (!mask) {
+    if (!shape) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
         auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
-        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_MASK)) {
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_SHAPE)) {
             return;
         }
-        modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_MASK);
+        modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_SHAPE);
         return;
     }
-    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFMask>(mask);
+    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFShape>(shape);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

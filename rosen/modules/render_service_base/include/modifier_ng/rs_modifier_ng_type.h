@@ -309,7 +309,7 @@ public:
             case RSPropertyType::FOREGROUND_SHADER: return "ForegroundShader";
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
-            case RSPropertyType::SDF_MASK: return "SDFMask";
+            case RSPropertyType::SDF_SHAPE: return "SDFShape";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

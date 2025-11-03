@@ -54,7 +54,7 @@ HWTEST_F(RSBoundsRenderModifierNGTypeTest, RSBoundsRenderModifierTest, TestSize.
     modifier.ResetProperties(properties);
     EXPECT_EQ(properties.GetUseUnion(), false);
     EXPECT_EQ(properties.GetUnionSpacing(), 0.0f);
-    EXPECT_EQ(properties.GetSDFMask(), nullptr);
+    EXPECT_EQ(properties.GetSDFShape(), nullptr);
 
     std::string dumpClearUnion = properties.Dump();
     EXPECT_NE(dumpExistingUnion, dumpClearUnion);

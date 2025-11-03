@@ -127,13 +127,13 @@ float RSBoundsModifier::GetUnionSpacing() const
     return Getter(RSPropertyType::UNION_SPACING, 0.f);
 }
 
-void RSBoundsModifier::SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask)
+void RSBoundsModifier::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
-    Setter<RSProperty, std::shared_ptr<RSNGMaskBase>>(RSPropertyType::SDF_MASK, mask);
+    Setter<RSProperty, std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, shape);
 }
 
-std::shared_ptr<RSNGMaskBase> RSBoundsModifier::GetSDFMask() const
+std::shared_ptr<RSNGShapeBase> RSBoundsModifier::GetSDFShape() const
 {
-    return Getter<std::shared_ptr<RSNGMaskBase>>(RSPropertyType::SDF_MASK, nullptr);
+    return Getter<std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG

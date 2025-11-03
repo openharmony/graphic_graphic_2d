@@ -22,6 +22,7 @@
 #include "ge_visual_effect_container.h"
 
 #include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_effect_luminance_manager.h"
 

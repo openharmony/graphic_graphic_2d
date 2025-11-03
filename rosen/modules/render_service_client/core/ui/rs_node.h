@@ -68,6 +68,7 @@ class RSUIContext;
 class RSNGFilterBase;
 class RSNGShaderBase;
 class RSNGMaskBase;
+class RSNGShapeBase;
 class Blender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
@@ -1543,11 +1544,11 @@ public:
     void SetUseUnion(bool useUnion);
 
     /**
-     * @brief Sets the SDF Mask.
+     * @brief Sets the SDF Shap.
      *
-     * @param mask SDF Mask (SDF Union OP mask, SDF Smooth Union OP Mask, SDF RRect Mask)
+     * @param shap SDF Shap (SDF Union OP Shap, SDF Smooth Union OP Shap, SDF RRect Shap)
      */
-    void SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask);
+    void SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape);
 
     // driven render was shelved, functions will be deleted soon [start]
     void MarkDrivenRender(bool flag) {}

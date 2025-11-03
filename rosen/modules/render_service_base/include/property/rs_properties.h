@@ -395,8 +395,8 @@ public:
     std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
     void SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
-    void SetSDFMask(const std::shared_ptr<RSNGRenderMaskBase>& mask);
-    std::shared_ptr<RSNGRenderMaskBase> GetSDFMask() const;
+    void SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
+    std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -1068,7 +1068,7 @@ struct CommonEffectParams {
     float hdrUIBrightness_ = 1.0f;
     // filter property
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
-    std::shared_ptr<RSNGRenderMaskBase> renderSDFMask_ = nullptr;
+    std::shared_ptr<RSNGRenderShapeBase> renderSDFShape_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_ = nullptr;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_ = nullptr;

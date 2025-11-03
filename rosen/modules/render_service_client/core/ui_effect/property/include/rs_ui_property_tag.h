@@ -72,11 +72,14 @@ using RSAnimatablePropertyTag = PropertyTagBase<Name, RSAnimatableProperty<T>>;
     using EffectName##PropName##Tag = RSPropertyTag<Type, EffectName##PropName##Name>
 
 class RSNGMaskBase;
+class RSNGShapeBase;
 #define MASK_PTR std::shared_ptr<RSNGMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGShapeBase>
 
 #include "effect/rs_render_property_tag_def.in"
 
 #undef MASK_PTR
+#undef SHAPE_PTR
 #undef DECLARE_ANIMATABLE_PROPERTY_TAG
 #undef DECLARE_NONANIMATABLE_PROPERTY_TAG
 
