@@ -45,9 +45,9 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
     return result;
 }
 
-napi_value NapiThrowError(napi_env env, TextErrorCode err, const std::string& message)
+napi_value NapiThrowError(napi_env env, int32_t err, const std::string& message)
 {
-    napi_throw(env, CreateJsError(env, static_cast<int32_t>(err), message));
+    napi_throw(env, CreateJsError(env, err, message));
     return NapiGetUndefined(env);
 }
 
@@ -1060,8 +1060,8 @@ std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std:
     }
 }
 
-bool ProcessResource(ResourceInfo& info, std::function<bool(std::string&)> pathCB,
-    std::function<bool(const void*, size_t)> fileCB)
+NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(std::string&)> pathCB,
+    std::function<NapiTextResult(const void*, size_t)> fileCB)
 {
     auto resourceManager = GetResourceManager(info.bundleName, info.moduleName);
     TEXT_ERROR_CHECK(resourceManager != nullptr, return false,

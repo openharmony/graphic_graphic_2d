@@ -28,6 +28,7 @@ config("text_config") {
 
   include_dirs = [
     "$rosen_text_root",
+    "$rosen_text_root/interface/mlb",
     "$rosen_text_root/interface/mlb/ani/include",
     "$rosen_text_root/interface/export/rosen_text",
     "$rosen_text_root/service/texgine/src",

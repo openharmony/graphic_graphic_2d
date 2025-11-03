@@ -25,8 +25,10 @@
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "utils/text_log.h"
+#include "utils/error_code.h"
 
 namespace OHOS::Rosen {
+using NapiTextResult = OHOS::MLB::TextResult<napi_value>;
 #define MAX_LOG_SIZE 1024
 /* check condition related to argc/argv, return and logging. */
 #define NAPI_CHECK_ARGS(context, condition, specifyStatus, code, retValue, fmt, ...) \
@@ -89,7 +91,7 @@ private:
 
 class NapiAsyncWork {
 public:
-    static napi_value Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
+    static NapiTextResult Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
                               NapiAsyncExecute execute = NapiAsyncExecute(),
                               NapiAsyncComplete complete = NapiAsyncComplete());
 
