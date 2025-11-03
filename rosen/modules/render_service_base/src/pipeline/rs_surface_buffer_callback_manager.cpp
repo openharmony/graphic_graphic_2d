@@ -35,11 +35,6 @@ void RSSurfaceBufferCallbackManager::SetRunPolicy(
     runPolicy_ = runPolicy;
 }
 
-bool RSSurfaceBufferCallbackManager::needReleaseSurfaceBuffer()
-{
-    return stagingSurfaceBufferIds_.size() > 0;
-}
-
 void RSSurfaceBufferCallbackManager::SetVSyncFuncs(VSyncFuncs vSyncFuncs)
 {
     vSyncFuncs_ = vSyncFuncs;

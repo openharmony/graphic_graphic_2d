@@ -580,28 +580,4 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
     EXPECT_TRUE(bundleName.empty());
 }
 
-/**
- * @tc.name: RSSurfaceBufferCallbackForceFreshTest01
- * @tc.desc: RSSurfaceBufferCallbackForceFreshTest01
- * @tc.type: FUNC
- * @tc.require:
- */
-#ifdef ROSEN_OHOS
-HWTEST_F(RSRenderServiceConnectionTest, RSSurfaceBufferCallbackForceFreshTest01, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->needPostAndWait_ = false;
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = true;
-
-    Drawing::DrawSurfaceBufferFinishCbData data;
-    RSSurfaceBufferCallbackManager::Instance().EnqueueSurfaceBufferId(data);
-
-    mainThread->OnUniRenderDraw();
-    EXPECT_TRUE(RSSurfaceBufferCallbackManager::Instance().needReleaseSurfaceBuffer());
-    EXPECT_TRUE(mainThread->isUniRender_);
-
-    mainThread->isUniRender_ = isUniRender;
-}
-#endif
 } // namespace OHOS::Rosen

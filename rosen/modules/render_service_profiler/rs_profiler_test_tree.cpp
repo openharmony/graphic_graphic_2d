@@ -371,9 +371,10 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
     RSCanvasNodeCommandHelper::UpdateRecording(
         context, currentId, drawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE));
 
+    auto newDrawCmds =
+        std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     RSCanvasNodeCommandHelper::UpdateRecording(context, currentId,
-        std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED),
-        static_cast<uint16_t>(ModifierNG::RSModifierType::OVERLAY_STYLE));
+        newDrawCmds, static_cast<uint16_t>(ModifierNG::RSModifierType::OVERLAY_STYLE));
 
     BaseNodeCommandHelper::AddChild(context, currentId - five, currentId, zero);
 
