@@ -40,6 +40,7 @@ public:
     void Run();
     sptr<RSIRenderServiceConnection> GetConnection(sptr<RSIConnectionToken>& token) override
     {
+        std::unique_lock<std::mutex> lock(mutex_);
         auto tokenObj = token->AsObject();
         auto iter = connections_.find(tokenObj);
         if (iter == connections_.end()) {
