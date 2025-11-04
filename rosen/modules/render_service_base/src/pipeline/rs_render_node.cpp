@@ -4882,7 +4882,7 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
 #endif
     }
     if (!drawableVec_ || released_) {
-        released_ = true;
+        released_ = false;
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
         SetDirty();
         AddDirtyType(ModifierNG::RSModifierType::CHILDREN);

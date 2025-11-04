@@ -1211,9 +1211,9 @@ private:
     Drawing::Matrix oldAbsMatrix_;
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
+    bool released_ = false;
 #else
     mutable RSDrawable::Vec drawableVec_;
-    bool released_ = false;
 #endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;

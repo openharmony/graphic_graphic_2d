@@ -467,11 +467,11 @@ HWTEST_F(RSRenderNodeGCTest, SetIsOnTheTree001, TestSize.Level1)
     auto nodePid = ExtractPid(nodeId);
     EXPECT_NE(nodePid, nodeGC.scbPid_);
 
-    bool isOnTheTree = false;
+    bool isOnTree = false;
     RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
     auto ptr = nodeAllocator.CreateRSCanvasRenderNode(nodeId);
 
-    nodeGC.SetIsOnTheTree(nodeId, ptr, isOnTheTree);
+    nodeGC.SetIsOnTheTree(nodeId, ptr, isOnTree);
     EXPECT_EQ(nodeGC.notOnTreeNodeMap_[nodePid][nodeId].lock().get(), ptr.get());
 }
 } // namespace Rosen
