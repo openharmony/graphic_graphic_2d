@@ -174,12 +174,12 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             appController->SetPhaseOffset(0);
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
         } else {
-            auto& hgm = HgmCore::Instance();
+            auto& hgmCore = HgmCore::Instance();
             if (RSUniRenderJudgement::IsUniRender()) {
-                int64_t offset = hgm.IsDelayMode() ?
+                int64_t offset = hgmCore.IsDelayMode() ?
                     UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
-                rsController->SetPhaseOffset(hgm.GetRsPhaseOffset(offset));
-                appController->SetPhaseOffset(hgm.GetAppPhaseOffset(offset));
+                rsController->SetPhaseOffset(hgmCore.GetRsPhaseOffset(offset));
+                appController->SetPhaseOffset(hgmCore.GetAppPhaseOffset(offset));
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
