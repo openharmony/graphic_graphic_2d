@@ -50,6 +50,7 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     }
     if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_DESKTOP) {
         entryViewNodeId_ = surfaceNode->GetId();
+        RSRenderNodeGC::Instance().SetScbPid(ExtractPid(entryViewNodeId_));
     }
     if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_WALLPAPER) {
         wallpaperViewNodeId_ = surfaceNode->GetId();

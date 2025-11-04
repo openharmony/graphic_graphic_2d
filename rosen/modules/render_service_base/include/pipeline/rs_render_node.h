@@ -1213,6 +1213,7 @@ private:
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
 #else
     mutable RSDrawable::Vec drawableVec_;
+    bool released_ = false;
 #endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
