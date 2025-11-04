@@ -601,6 +601,7 @@ void RSRenderNode::ReleaseNodeMem()
     if (isOnTheTree_) {
         return;
     }
+    released_ = true;
     ROSEN_LOGD("RSRenderNode::ReleaseNodeMem, node[id:%{public}" PRIu64 "]", GetId());
     if (renderDrawable_) {
         renderDrawable_.reset();
@@ -4880,7 +4881,8 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
         RS_LOGD("RSRenderNode::InitRenderDrawableAndDrawableVec init renderDrawable_ failed");
 #endif
     }
-    if (!drawableVec_) {
+    if (!drawableVec_ || released_) {
+        released_ = false;
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
         SetDirty();
         AddDirtyType(ModifierNG::RSModifierType::CHILDREN);

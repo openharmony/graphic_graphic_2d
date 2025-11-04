@@ -394,6 +394,9 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<ui
 
 void RSRenderNodeGC::SetAbilityState(pid_t pid, bool isBackground)
 {
+    if (pid == scbPid_) {
+        return;
+    }
     if (isBackground) {
         std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
         backgroundPidSet_.insert(pid);
@@ -425,6 +428,9 @@ void RSRenderNodeGC::SetIsOnTheTree(NodeId nodeId, std::weak_ptr<RSBaseRenderNod
 {
     std::lock_guard<std::mutex> lock(nodeNotOnTreeMutex_);
     auto nodePid = ExtractPid(nodeId);
+    if (nodePid == scbPid_) {
+        return;
+    }
     if (!isOnTree) {
         notOnTreeNodeMap_[nodePid][nodeId] = node;
         return;
