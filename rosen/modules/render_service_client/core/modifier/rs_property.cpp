@@ -19,6 +19,7 @@
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -59,11 +60,15 @@ PropertyId GeneratePropertyId()
 #define FILTER_PTR std::shared_ptr<RSNGFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGShaderBase>
 #define MASK_PTR std::shared_ptr<RSNGMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGShapeBase>
+
 #include "modifier/rs_property_def.in"
 
+#undef SHAPE_PTR
 #undef MASK_PTR
 #undef SHADER_PTR
 #undef FILTER_PTR
+
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
 
@@ -359,6 +364,56 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
     return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>>(renderProp, id_);
 }
 
+template<>
+void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnAttach(RSNode& node, std::weak_ptr<ModifierNG::RSModifier> modifier)
+{
+    if (stagingValue_) {
+        stagingValue_->Attach(node, modifier);
+    }
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGShapeBase>>::OnDetach()
+{
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGShapeBase>>::Set(const std::shared_ptr<RSNGShapeBase>& value)
+{
+    auto node = target_.lock();
+    if (node == nullptr) {
+        stagingValue_ = value;
+        return;
+    }
+
+    // Incremental update for mask properties, return if success
+    if (stagingValue_ && stagingValue_->SetValue(value, *node, modifierNG_)) {
+        return;
+    }
+
+    // failed to update mask properties, fallback to replace operation
+    if (stagingValue_) {
+        stagingValue_->Detach();
+    }
+    stagingValue_ = value;
+    if (stagingValue_) {
+        stagingValue_->Attach(*node, modifierNG_);
+    }
+
+    MarkNodeDirty();
+    UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
+}
+
+template<>
+RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNGShapeBase>>::GetRenderProperty()
+{
+    std::shared_ptr<RSNGRenderShapeBase> renderProp = stagingValue_ ? stagingValue_->GetRenderEffect() : nullptr;
+    return std::make_shared<RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>>(renderProp, id_);
+}
+
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
     auto node = target_.lock();                                                                                      \
     if (node != nullptr) {                                                                                           \
@@ -602,6 +657,13 @@ void RSProperty<std::shared_ptr<RSNGMaskBase>>::UpdateToRender(
     const std::shared_ptr<RSNGMaskBase>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyNGMaskBase, value ? value->GetRenderEffect() : nullptr, type);
+}
+
+template<>
+void RSProperty<std::shared_ptr<RSNGShapeBase>>::UpdateToRender(
+    const std::shared_ptr<RSNGShapeBase>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyNGShapeBase, value ? value->GetRenderEffect() : nullptr, type);
 }
 
 template<>

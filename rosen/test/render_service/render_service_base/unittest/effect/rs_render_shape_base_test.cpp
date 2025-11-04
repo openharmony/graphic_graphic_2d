@@ -52,7 +52,8 @@ HWTEST_F(RSRenderShapeBaseTest, RSNGRenderShapeBaseUnmarshallingTest010, TestSiz
     Parcel parcel;
     head->Marshalling(parcel);
 
-    RSNGEffectTypeUnderlying sdfUnionOpShape = static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    RSNGEffectTypeUnderlying sdfUnionOpShape = static_cast<RSNGEffectTypeUnderlying>(
+        RSNGEffectType::SDF_UNION_OP_SHAPE);
     parcel.WriteUint32(sdfUnionOpShape);
 
     std::shared_ptr<RSNGRenderShapeBase> result;
@@ -76,7 +77,8 @@ HWTEST_F(RSRenderShapeBaseTest, RSNGRenderShapeBaseUnmarshallingTest011, TestSiz
     Parcel parcel;
     head->Marshalling(parcel);
 
-    RSNGEffectTypeUnderlying sdfUnionOpShape = static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    RSNGEffectTypeUnderlying sdfUnionOpShape = static_cast<RSNGEffectTypeUnderlying>(
+        RSNGEffectType::SDF_UNION_OP_SHAPE);
     parcel.WriteUint32(sdfUnionOpShape);
 
     std::shared_ptr<RSNGRenderShapeBase> result;

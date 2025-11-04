@@ -1544,9 +1544,9 @@ public:
     void SetUseUnion(bool useUnion);
 
     /**
-     * @brief Sets the SDF Shap.
+     * @brief Sets the SDF Shape.
      *
-     * @param shap SDF Shap (SDF Union OP Shap, SDF Smooth Union OP Shap, SDF RRect Shap)
+     * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)
      */
     void SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape);
 

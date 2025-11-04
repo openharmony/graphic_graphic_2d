@@ -35,6 +35,7 @@ using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
 class RSNGRenderFilterBase;
 class RSNGRenderMaskBase;
 class RSNGRenderShaderBase;
+class RSNGRenderShapeBase;
 class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
@@ -116,6 +117,7 @@ enum class RSPropertyType : uint8_t {
     RS_NG_RENDER_MASK_BASE,
     RS_NG_RENDER_SHADER_BASE,
     SHADOW_BLENDER_PARAMS,
+    RS_NG_RENDER_SHAPE_BASE
 };
 
 enum class RSPropertyUnit : uint8_t {
@@ -142,12 +144,14 @@ struct RSRenderPropertyTypeTraits {
 #define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGRenderShaderBase>
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGRenderShapeBase>
 
 #include "modifier/rs_property_def.in"
 
 #undef FILTER_PTR
 #undef SHADER_PTR
 #undef MASK_PTR
+#undef SHAPE_PTR
 
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY
@@ -582,6 +586,14 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::OnDetach();
 template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
     const std::shared_ptr<RSNGRenderMaskBase>& value, PropertyUpdateType type);
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::OnAttach(RSRenderNode& node,
+    std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::OnDetach();
+template<>
+void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::Set(
+    const std::shared_ptr<RSNGRenderShapeBase>& value, PropertyUpdateType type);
 
 #if defined(_WIN32)
 #define PROPERTY_EXPORT
@@ -600,12 +612,14 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderMaskBase>>::Set(
 #define FILTER_PTR std::shared_ptr<RSNGRenderFilterBase>
 #define SHADER_PTR std::shared_ptr<RSNGRenderShaderBase>
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGRenderShapeBase>
 
 #include "modifier/rs_property_def.in"
 
 #undef FILTER_PTR
 #undef SHADER_PTR
 #undef MASK_PTR
+#undef SHAPE_PTR
 
 #undef DECLARE_PROPERTY
 #undef DECLARE_ANIMATABLE_PROPERTY

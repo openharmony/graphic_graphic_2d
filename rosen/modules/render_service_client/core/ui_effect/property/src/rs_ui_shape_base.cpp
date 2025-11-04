@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 using ShapeCreator = std::function<std::shared_ptr<RSNGShapeBase>()>;
 
-thread_local std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
+static thread_local std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
     {RSNGEffectType::SDF_UNION_OP_SHAPE, [] {
             return std::make_shared<RSNGSDFUnionOpShape>();
         }

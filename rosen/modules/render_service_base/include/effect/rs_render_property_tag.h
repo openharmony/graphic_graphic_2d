@@ -93,7 +93,7 @@ enum class RSNGEffectType : int16_t {
     FRAME_GRADIENT_MASK,
     IMAGE_MASK,
     USE_EFFECT_MASK,
-    // shap type
+    // shape type
     SDF_UNION_OP_SHAPE,
     SDF_SMOOTH_UNION_OP_SHAPE,
     SDF_RRECT_SHAPE,
@@ -112,7 +112,6 @@ enum class RSNGEffectType : int16_t {
     GASIFY_SCALE_TWIST,
     GASIFY_BLUR,
     GASIFY
-    
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
