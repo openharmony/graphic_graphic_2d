@@ -15,6 +15,8 @@
 
 #ifndef RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
 #define RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
+
+#include <event_handler.h>
 #include <map>
 #include <unordered_set>
 
@@ -94,7 +96,8 @@ private:
 
     // RS Filter CCM init
     void FilterCCMInit();
-
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSMainThread* mainThread_ = nullptr;
     sptr<RSScreenManager> screenManager_;
 
@@ -109,6 +112,8 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_;
 
     bool isRcdServiceRegister_ = false;
+
+    friend class RSRenderServiceAgent;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
