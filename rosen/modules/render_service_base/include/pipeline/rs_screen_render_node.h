@@ -74,7 +74,9 @@ public:
             properties.SetFrame({0, 0, info.width, info.height});
         }
 
-        screenResolutionChanged_ = screenInfo_.phyWidth != info.phyWidth || screenInfo_.phyHeight != info.phyHeight;
+        screenResolutionChanged_ = screenInfo_.phyWidth != info.phyWidth || screenInfo_.phyHeight != info.phyHeight ||
+            screenInfo_.width != info.width || screenInfo_.height != info.height ||
+            std::fabs(screenInfo_.samplingScale - info.samplingScale) > FLT_EPSILON;
         screenInfo_ = std::move(info);
     }
 
