@@ -101,6 +101,43 @@ bool RSRenderNode::IsPureContainer() const
     return (!GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_ && !HasDrawCmdModifiers());
 }
 
+bool RSRenderNode::IsPureBackgroundColor() const
+{
+    static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
+        RSDrawableSlot::BG_SAVE_BOUNDS,
+        RSDrawableSlot::CLIP_TO_BOUNDS,
+        RSDrawableSlot::BACKGROUND_COLOR,
+        RSDrawableSlot::BG_RESTORE_BOUNDS,
+        RSDrawableSlot::SAVE_FRAME,
+        RSDrawableSlot::FRAME_OFFSET,
+        RSDrawableSlot::CLIP_TO_FRAME,
+        RSDrawableSlot::CHILDREN,
+        RSDrawableSlot::RESTORE_FRAME
+    };
+
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    if (!drawableVec_) {
+        RS_LOGE("drawableVec_ is nullptr");
+        return false;
+    }
+    auto& drawableVec = *drawableVec_;
+#else
+    auto& drawableVec = drawableVec_;
+#endif
+
+    // Defines the valid RSDrawableSlot configuration of the pure background color node:
+    // - if the node includes a "CHILDREN" slot, slots associated with the "CHILDREN" group are permitted.
+    // - if the node includes a "BACKGROUND_COLOR" slot, slots associated with "BACKGROUND_COLOR" group are permitted.
+    // - if both "CHILDREN" and  "BACKGROUND_COLOR" slots are present, slots valid in either group are permitted.
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        if (drawableVec[i] &&
+            !pureBackgroundColorSlots.count(static_cast<RSDrawableSlot>(i))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void RSRenderNode::SetDrawNodeType(DrawNodeType nodeType)
 {
     drawNodeType_ = nodeType;
