@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_LUMINANCE_CONTROL_H
 
 #include <cinttypes>
+#include <unordered_map>
 #include <vector>
 
 #include "common/rs_common_def.h"
@@ -98,6 +99,10 @@ public:
     virtual BrightnessInfo GetBrightnessInfo(ScreenId screenId) = 0;
     virtual bool IsBrightnessInfoChanged(ScreenId screenId) = 0;
     virtual void HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes) = 0;
+    virtual uint32_t ConvertScalerFromFloatToLevel(float& scaler) const = 0;
+    virtual float ConvertScalerFromLevelToFloat(uint32_t& level) const = 0;
+    virtual void SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
+        std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler) = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -135,6 +140,10 @@ public:
     RSB_EXPORT BrightnessInfo GetBrightnessInfo(ScreenId screenId);
     RSB_EXPORT bool IsBrightnessInfoChanged(ScreenId screenId);
     RSB_EXPORT void HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes);
+    RSB_EXPORT uint32_t ConvertScalerFromFloatToLevel(float& scaler) const;
+    RSB_EXPORT float ConvertScalerFromLevelToFloat(uint32_t& level) const;
+    RSB_EXPORT void SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
+        std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler);
 
 private:
     RSLuminanceControl() = default;
