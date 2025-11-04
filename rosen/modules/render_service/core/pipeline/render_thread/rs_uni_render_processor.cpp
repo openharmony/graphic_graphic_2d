@@ -357,6 +357,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
 
     layer->SetBlendType(layerInfo.blendType);
     layer->SetAncoFlags(layerInfo.ancoFlags);
+    layer->SetAncoSrcRect(layerInfo.ancoCropRect);
     RSAncoManager::UpdateLayerSrcRectForAnco(layerInfo.ancoFlags, layerInfo.ancoCropRect, layerInfo.srcRect);
     layer->SetGravity(layerInfo.gravity);
     if (offlineResult) {

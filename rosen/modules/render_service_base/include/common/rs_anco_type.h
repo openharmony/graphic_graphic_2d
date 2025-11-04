@@ -20,7 +20,8 @@ enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001,
     ANCO_SFV_NODE = 0x0011,
     ANCO_NATIVE_NODE = 0x0111,
-    FORCE_REFRESH = 0x1000
+    FORCE_REFRESH = 0x1000,
+    SMART_WINDOW = 0x2000,
 };
 
 enum class AncoHebcStatus : int32_t {

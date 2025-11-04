@@ -490,4 +490,18 @@ HWTEST_F(RSAncoManagerTest, ShrinkAmountIfNeed, TestSize.Level2)
     RSAncoManager::ShrinkAmountIfNeed(ancoInfo, srcRect);
     ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 2, 2));
 }
+
+/**
+ * @tc.name: IsInSmartWindow
+ * @tc.desc: test IsInSmartWindow
+ * @tc.type: FUNC
+ * @tc.require: issue 20577
+ */
+HWTEST_F(RSAncoManagerTest, IsInSmartWindow, TestSize.Level2)
+{
+    uint32_t flag = 1u;
+    ASSERT_FALSE(RSAncoManager::IsInSmartWindow(flag));
+    flag = static_cast<uint32_t>(AncoFlags::SMART_WINDOW) | 1u;
+    ASSERT_TRUE(RSAncoManager::IsInSmartWindow(flag));
+}
 } // namespace OHOS::Rosen
