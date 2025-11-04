@@ -436,7 +436,7 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree, TestSize.Level1)
  * @tc.name: SetAbilityState001
  * @tc.desc: SetAbilityState Test
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issues20579
  */
 HWTEST_F(RSRenderNodeGCTest, SetAbilityState001, TestSize.Level1)
 {
@@ -457,7 +457,7 @@ HWTEST_F(RSRenderNodeGCTest, SetAbilityState001, TestSize.Level1)
  * @tc.name: SetIsOnTheTree001
  * @tc.desc: SetIsOnTheTree Test
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issues20579
  */
 HWTEST_F(RSRenderNodeGCTest, SetIsOnTheTree001, TestSize.Level1)
 {
