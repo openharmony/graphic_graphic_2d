@@ -2980,9 +2980,6 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     if (!curDirtyManager) {
         return;
     }
-    if (!curSurfaceNode_) {
-        return;
-    }
     auto isOccluded = curSurfaceNode_ ?
         curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
     if (subTreeSkipped) {
