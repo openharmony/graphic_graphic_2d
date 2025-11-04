@@ -192,7 +192,7 @@ bool RSHeteroHDRManager::PrepareHpaeTask(
         return false;
     }
     if (!RSHeteroHDRHpae::GetInstance().CheckHpaeAccessible(curHandleStatus_)) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask CheckHpaeAccessible failed");
+        RS_LOGD("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask CheckHpaeAccessible failed");
         return false;
     }
     // 2. Request ExecutionGraph
@@ -388,7 +388,7 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
         return true;
     }
     if (!PrepareHpaeTask(nodeDrawable, surfaceParams, curFrameId)) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareAndSubmitHDRTask PrepareHpaeTask failed!");
+        RS_LOGD("[hdrHetero]:RSHeteroHDRManager PrepareAndSubmitHDRTask PrepareHpaeTask failed!");
         return false;
     }
     hpaeDstRect_ = { dst_.GetLeft(), dst_.GetTop(), dst_.GetRight(), dst_.GetBottom() };

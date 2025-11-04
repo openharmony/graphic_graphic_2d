@@ -169,8 +169,13 @@ int32_t RSHeteroHDRHpae::RequestHpaeChannel(HdrStatus curHandleHdrStatus)
         channelStatus = mdcDev_->requestChannelByCap(mdcDev_, channelCap);
     }
     if (channelStatus < 0) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRHpae RequestHpaeChannel request MDC channel failed caps:%{public}" PRIu64,
-            channelCap);
+        if(channelStatus == -1) {
+            RS_LOGE("[hdrHetero]:RSHeteroHDRHpae RequestHpaeChannel request MDC channel failed caps:%{public}" PRIu64,
+                channelCap);
+        } else {
+            RS_LOGD("[hdrHetero]:RSHeteroHDRHpae RequestHpaeChannel request MDC channel failed "
+                "caps:%{public}" PRIu64 "with error code %{public}d", channelCap, channelStatus);
+        }
         return channelStatus;
     }
     mdcExistedStatus_.store(true);
