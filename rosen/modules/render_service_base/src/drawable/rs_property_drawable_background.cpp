@@ -963,5 +963,37 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+    EffectRectType type, const RectF& bound) const
+{
+    RectF rect = GetRenderRelativeRect(type, bound);
+    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
+
+    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        return Drawing::RectI();
+    }
+
+    RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+        std::ceil(absRect.GetHeight()));
+    effectRect = effectRect.IntersectRect(deviceRect);
+    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+}
+
+void RSMaterialFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
+    const std::optional<RectI>& clipRect, const RectF& defaultRelativeRect)
+{
+    if (stagingRelativeRectInfo_ == nullptr) {
+        return;
+    }
+    stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
+    stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

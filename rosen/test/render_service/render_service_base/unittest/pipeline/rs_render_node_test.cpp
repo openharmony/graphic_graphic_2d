@@ -648,7 +648,7 @@ HWTEST_F(RSRenderNodeTest, CalVisibleFilterRectTest, TestSize.Level1)
     RSRenderNode node(id, context);
     RectI prepareClipRect { 1, 1, 1, 1 };
     node.CalVisibleFilterRect(prepareClipRect);
-    EXPECT_TRUE(node.filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
+    EXPECT_TRUE(node.GetFilterRegionInfo().filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**

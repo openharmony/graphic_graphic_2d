@@ -296,10 +296,14 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
 {
     bool effectNodeExpandDirty =
         filterNode.IsInstanceOf<RSEffectRenderNode>() && !filterNode.FirstFrameHasEffectChildren();
+    RectI filterSnapshotRect = filterNode.GetOldDirtyInSurface().JoinRect(
+        filterNode.GetFilterDrawableSnapshotRegion());
+    RectI filterDirtyRect = filterNode.GetOldDirtyInSurface().JoinRect(filterNode.GetFilterRegion());
     auto filterRegion = effectNodeExpandDirty ?
-        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterNode.GetOldDirtyInSurface()));
+        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterSnapshotRect));
     auto dirtyRegion = effectNodeExpandDirty ?
-        filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) : filterRegion;
+        filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) :
+        Occlusion::Region(Occlusion::Rect(filterDirtyRect));
     if (filterNode.NeedDrawBehindWindow()) {
         filterRegion = Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()));
         dirtyRegion = filterRegion;
@@ -308,8 +312,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
     auto& filterProperties = filterNode.GetRenderProperties();
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
-        .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
-        .filterDirty_ = isSurface ? filterRegion : dirtyRegion,
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = dirtyRegion,
         .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
         .isBackgroundFilterClean_ =

@@ -289,11 +289,17 @@ void RSFilterDrawable::OnSync()
         needSync_ = false;
     }
 
+    renderRelativeRectInfo_ = stagingRelativeRectInfo_ != nullptr ?
+        std::make_unique<FilterRectInfo>(*stagingRelativeRectInfo_) : nullptr;
     renderNodeId_ = stagingNodeId_;
     renderNodeName_ = stagingNodeName_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
     renderIsDarkColorMode_ = stagingIsDarkColorMode_;
+    
+    lastStagingVisibleSnapshotRect_ = stagingVisibleRectInfo_ != nullptr ?
+        std::make_unique<RectI>(stagingVisibleRectInfo_->snapshotRect_) : nullptr;
 
+    stagingVisibleRectInfo_ = nullptr;
     stagingIntersectWithDRM_ = false;
     stagingIsDarkColorMode_ = false;
 
@@ -331,6 +337,28 @@ bool RSFilterDrawable::WouldDrawLargeAreaBlurPrecisely()
         return false;
     }
     return stagingCacheManager_->WouldDrawLargeAreaBlurPrecisely();
+}
+
+Drawing::RectI RSFilterDrawable::GetAbsRenderEffectRect(
+    const Drawing::Canvas& canvas, EffectRectType type, const RectF& bound) const
+{
+    RectF rect = GetRenderRelativeRect(type, bound);
+    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
+
+    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        return Drawing::RectI();
+    }
+
+    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+        std::ceil(absRect.GetHeight()));
+    auto drawingClipBound = canvas.GetDeviceClipBounds();
+    RectI clipBound(drawingClipBound.GetLeft(), drawingClipBound.GetTop(), drawingClipBound.GetWidth(),
+        drawingClipBound.GetHeight());
+    effectRect = effectRect.IntersectRect(clipBound);
+    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
 }
 
 Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
@@ -383,14 +411,20 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             return;
         }
         if (canvas && ptr && ptr->filter_) {
+            RectF bound = (rect != nullptr ?
+                RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
+            Drawing::RectI snapshotRect = ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
+            Drawing::RectI drawRect = ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound);
+            RectF snapshotRelativeRect = ptr->GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
             if (rect) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                filter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
+                filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect),
+                    snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
-                ptr->cacheManager_, ptr->renderNodeId_, ptr->IsForeground());
+                ptr->cacheManager_, ptr->renderNodeId_, ptr->IsForeground(), snapshotRect, drawRect);
             int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
             auto filterType = ptr->filter_->GetFilterType();
             RSPerfMonitorReporter::GetInstance().RecordBlurNode(ptr->renderNodeName_, blurDuration,
@@ -633,6 +667,90 @@ void RSFilterDrawable::MarkDebugEnabled()
         return;
     }
     stagingCacheManager_->MarkDebugEnabled();
+}
+
+void RSFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
+    const std::optional<RectI>& clipRect, const RectF& defaultRelativeRect)
+{
+    if (stagingRelativeRectInfo_ == nullptr) {
+        return;
+    }
+
+    stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
+    stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+    if (clipRect.has_value()) {
+        stagingVisibleRectInfo_->snapshotRect_ = stagingVisibleRectInfo_->snapshotRect_.IntersectRect(*clipRect);
+        stagingVisibleRectInfo_->totalRect_ = stagingVisibleRectInfo_->totalRect_.IntersectRect(*clipRect);
+    }
+}
+
+RectI RSFilterDrawable::GetVisibleTotalRegion(const RectI& defaultValue) const
+{
+    return stagingVisibleRectInfo_ != nullptr ? stagingVisibleRectInfo_->totalRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetVisibleSnapshotRegion(const RectI& defaultValue) const
+{
+    return stagingVisibleRectInfo_ != nullptr ? stagingVisibleRectInfo_->snapshotRect_ : defaultValue;
+}
+
+RectI RSFilterDrawable::GetLastVisibleSnapshotRegion(const RectI& defaultValue) const
+{
+    return lastStagingVisibleSnapshotRect_ != nullptr ? *lastStagingVisibleSnapshotRect_ : defaultValue;
+}
+
+RectF RSFilterDrawable::GetStagingRelativeRect(EffectRectType type, const RectF& defaultValue) const
+{
+    return RSFilterDrawable::GetRelativeRect(stagingRelativeRectInfo_, type, defaultValue);
+}
+
+RectF RSFilterDrawable::GetRenderRelativeRect(EffectRectType type, const RectF& defaultValue) const
+{
+    return RSFilterDrawable::GetRelativeRect(renderRelativeRectInfo_, type, defaultValue);
+}
+
+RectF RSFilterDrawable::GetRelativeRect(const std::unique_ptr<FilterRectInfo>& rectInfo,
+    EffectRectType type, const RectF& defaultValue)
+{
+    if (rectInfo == nullptr) {
+        return defaultValue;
+    }
+
+    switch (type) {
+        case EffectRectType::SNAPSHOT: {
+            return rectInfo->snapshotRect_;
+        }
+        case EffectRectType::DRAW: {
+            return rectInfo->drawRect_;
+        }
+        case EffectRectType::TOTAL: {
+            return rectInfo->drawRect_.JoinRect(rectInfo->snapshotRect_);
+        }
+        default: {
+            return defaultValue;
+        }
+    }
+}
+
+void RSFilterDrawable::UpdateFilterRectInfo(const RectF& bound, const std::shared_ptr<RSFilter>& filter)
+{
+    if (filter == nullptr) {
+        return;
+    }
+
+    auto snapshotRect = filter->GetRect(bound, EffectRectType::SNAPSHOT);
+    auto drawRect = filter->GetRect(bound, EffectRectType::DRAW);
+    bool needGenerateRectInfo = !snapshotRect.IsNearEqual(bound) || !drawRect.IsNearEqual(bound);
+    if (needGenerateRectInfo) {
+        return;
+    }
+
+    stagingRelativeRectInfo_ = std::make_unique<FilterRectInfo>();
+    stagingRelativeRectInfo_->snapshotRect_ = snapshotRect;
+    stagingRelativeRectInfo_->drawRect_ = drawRect;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

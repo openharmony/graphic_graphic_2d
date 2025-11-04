@@ -4928,7 +4928,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
     ASSERT_NE(drmNode, nullptr);
 
     // let drm intersect with blur
-    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    surfaceNode->GetFilterRegionInfo().filterRegion_ = RectT(0, 0, 1, 1);
     drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -4959,7 +4959,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM003, TestSize.Level2)
     ASSERT_NE(drmNode, nullptr);
 
     // let drm not intersect with blur
-    surfaceNode->filterRegion_ = RectT(2, 2, 3, 3);
+    surfaceNode->GetFilterRegionInfo().filterRegion_ = RectT(2, 2, 3, 3);
     drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -4994,7 +4994,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM004, TestSize.Level2)
     ASSERT_NE(drmNode, nullptr);
 
     // let drm intersect with blur
-    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    surfaceNode->GetFilterRegionInfo().filterRegion_ = RectT(0, 0, 1, 1);
     drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -5027,7 +5027,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM005, TestSize.Level2)
     ASSERT_NE(drmNode, nullptr);
 
     // let drm intersect with blur
-    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    surfaceNode->GetFilterRegionInfo().filterRegion_ = RectT(0, 0, 1, 1);
     drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();

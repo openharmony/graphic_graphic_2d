@@ -256,7 +256,12 @@ public:
 
     inline RectI GetFilterRegion() const
     {
-        return filterRegion_;
+        return filterRegionInfo_ != nullptr ? filterRegionInfo_->filterRegion_ : RectI();
+    }
+
+    inline RectI GetDefaultFilterRegion() const
+    {
+        return filterRegionInfo_ != nullptr ? filterRegionInfo_->defaultFilterRegion_ : RectI();
     }
 
     inline bool HasForceSubmit() const
@@ -739,7 +744,12 @@ public:
     void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false);
 
     virtual RectI GetFilterRect() const;
+    RectI GetAbsRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
+    void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
+        const std::optional<RectI>& clipRect);
+    void UpdateFilterRectInfo();
+    std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
     void SetIsTextureExportNode(bool isTextureExportNode)
     {
@@ -995,6 +1005,7 @@ public:
     bool IsNodeMemClearEnable();
     virtual void AfterTreeStatueChanged() {}
 
+    RectI GetFilterDrawableSnapshotRegion() const;
 protected:
     void ResetDirtyStatus();
 
@@ -1049,7 +1060,7 @@ protected:
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     void ExpandDirtyRegionWithFilterRegion(RSDirtyRegionManager& dirtyManager)
     {
-        dirtyManager.MergeDirtyRect(filterRegion_);
+        dirtyManager.MergeDirtyRect(GetFilterRegion());
         isDirtyRegionUpdated_ = true;
     }
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
@@ -1083,7 +1094,6 @@ protected:
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
-    RectI filterRegion_;
 
     ModifierNG::ModifierDirtyTypes dirtyTypesNG_;
     ModifierNG::ModifierDirtyTypes curDirtyTypesNG_;
@@ -1212,6 +1222,11 @@ private:
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache
+    struct FilterRegionInfo {
+        RectI filterRegion_;
+        RectI defaultFilterRegion_;
+    };
+    std::unique_ptr<FilterRegionInfo> filterRegionInfo_;
     RectI lastFilterRegion_;
     std::vector<SharedPtr> cloneCrossNodeVec_;
     bool hasVisitedCrossNode_ = false;
@@ -1260,6 +1275,15 @@ private:
     bool needUseCmdlistDrawRegion_ = false;
     RectF cmdlistDrawRegion_;
 
+    FilterRegionInfo& GetFilterRegionInfo()
+    {
+        if (filterRegionInfo_ == nullptr) {
+            filterRegionInfo_ = std::make_unique<FilterRegionInfo>();
+        }
+
+        return *filterRegionInfo_;
+    }
+
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
@@ -1283,6 +1307,7 @@ private:
     void CollectAndUpdateLocalForegroundEffectRect();
     void CollectAndUpdateLocalDistortionEffectRect();
     void CollectAndUpdateLocalMagnifierEffectRect();
+    void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect);
     bool UpdateSelfDrawRect(RectF& selfDrawingNodeDirtyRect);
@@ -1307,6 +1332,7 @@ private:
 
     void InitRenderDrawableAndDrawableVec();
     RSDrawable::Vec& GetDrawableVec(const char*) const;
+    void ResetFilterInfo();
     friend class DrawFuncOpItem;
     friend class RSContext;
     friend class RSMainThread;

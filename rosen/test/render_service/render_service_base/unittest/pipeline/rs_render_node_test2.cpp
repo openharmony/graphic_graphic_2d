@@ -1216,10 +1216,10 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     RectI inRegion(10, 10, 20, 20);
     RectI outRegion(90, 90, 110, 110);
     RectI lastRegion(0, 0, 100, 100);
-    node.filterRegion_ = inRegion;
+    node.GetFilterRegionInfo().filterRegion_ = inRegion;
     node.lastFilterRegion_ = lastRegion;
     node.UpdateFilterCacheWithSelfDirty();
-    node.filterRegion_ = outRegion;
+    node.GetFilterRegionInfo().filterRegion_ = outRegion;
     node.UpdateFilterCacheWithSelfDirty();
     ASSERT_TRUE(true);
 }
@@ -1261,7 +1261,7 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect002, TestSize.Level
     geoPtr = std::make_shared<RSObjAbsGeometry>();
     RectI rect(50, 50, 100, 100);
     geoPtr->absRect_ = rect;
-    node.filterRegion_ = node.GetFilterRect();
+    node.GetFilterRegionInfo().filterRegion_ = node.GetFilterRect();
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;

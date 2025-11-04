@@ -232,10 +232,11 @@ void RSDrawingFilter::GenerateAndUpdateGEVisualEffect()
     RSNGRenderFilterHelper::UpdateToGEContainer(renderFilter_, visualEffectContainer_);
 }
 
-void RSDrawingFilter::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+void RSDrawingFilter::SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound,
+    float geoWidth, float geoHeight)
 {
     if (visualEffectContainer_) {
-        visualEffectContainer_->SetGeometry(canvas, geoWidth, geoHeight);
+        visualEffectContainer_->SetGeometry(matrix, bound, geoWidth, geoHeight);
     }
 }
 
@@ -695,6 +696,24 @@ bool RSDrawingFilter::NeedForceSubmit() const
     auto found = find_if(shaderFilters_.begin(), shaderFilters_.end(),
         [](const auto& filter) { return filter != nullptr && filter->NeedForceSubmit(); });
     return found != shaderFilters_.end();
+}
+
+RectF RSDrawingFilter::CalcRect(const RectF& bound, EffectRectType type) const
+{
+    RectF result;
+    if (imageFilter_ != nullptr) {
+        result = result.JoinRect(bound);
+    }
+
+    for (auto shaderFilter : shaderFilters_) {
+        if (shaderFilter == nullptr) {
+            continue;
+        }
+        result = result.JoinRect(shaderFilter->CalcRect(bound, type));
+    }
+
+    result = result.JoinRect(RSNGRenderFilterHelper::CalcRect(renderFilter_, bound, type));
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

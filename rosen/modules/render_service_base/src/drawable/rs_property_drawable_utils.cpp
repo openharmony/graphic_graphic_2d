@@ -308,7 +308,8 @@ inline void RSPropertyDrawableUtils::ClipVisibleRect(RSPaintFilterCanvas* canvas
 
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-    NodeId nodeId, const bool isForegroundFilter)
+    NodeId nodeId, const bool isForegroundFilter, const std::optional<Drawing::RectI>& snapshotRect,
+    const std::optional<Drawing::RectI>& drawRect)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -356,7 +357,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     if (isForegroundFilter) {
         paintFilterCanvas->SetAlpha(1.0);
     }
-    auto imageClipIBounds = clipIBounds;
+    auto imageClipIBounds = snapshotRect.value_or(clipIBounds);
     auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
@@ -379,7 +380,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter, nodeId);
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, nodeId, false, true, snapshotRect, drawRect);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         return;
     }
@@ -409,7 +410,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-    Drawing::Rect dstRect = clipIBounds;
+    Drawing::Rect dstRect = drawRect.value_or(clipIBounds);
     filter->DrawImageRect(*canvas, imageSnapshot, srcRect, dstRect);
     filter->PostProcess(*canvas);
 }

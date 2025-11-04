@@ -406,6 +406,12 @@ enum class UnionType : int16_t {
     SMOOTH_UNION,
     MAX = SMOOTH_UNION
 };
+
+enum class EffectRectType : uint8_t {
+    TOTAL = 0,
+    SNAPSHOT = 1,
+    DRAW = 2,
+};
 } // namespace Rosen
 } // namespace OHOS
 

@@ -2569,11 +2569,12 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr
             // foregroundfilter affected by below dirty
             filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, true);
         }
-        RectI filterRect = filterNode->GetFilterRect();
-        bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterRect));
+        RectI filterSnapshotRect = filterNode->GetAbsRect().JoinRect(filterNode->GetFilterDrawableSnapshotRegion());
+        bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterSnapshotRect));
         filterNode->PostPrepareForBlurFilterNode(*dirtyManager, needRequestNextVsync_);
         RsFrameBlurPredict::GetInstance().PredictDrawLargeAreaBlur(*filterNode);
         if (isIntersect) {
+            RectI filterRect = filterNode->GetFilterRect();
             RectI filterDirty = effectNodeIntersectBgDirty ? filterRect : filterInfo.filterDirty_.GetBound().ToRectI();
             RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeFilterDirtyWithPreDirty [%" PRIu64 "] type %d intersects below dirty"
                 " Add %s to dirty.", filterInfo.id_, filterDirtyType, filterDirty.ToString().c_str());

@@ -108,6 +108,7 @@ public:
 
     virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
     Drawing::CanvasInfo GetFilterCanvasInfo() const;
+    virtual RectF CalcRect(const RectF& bound, EffectRectType type) const { return bound; }
 
 protected:
     RSUIFilterType type_;
