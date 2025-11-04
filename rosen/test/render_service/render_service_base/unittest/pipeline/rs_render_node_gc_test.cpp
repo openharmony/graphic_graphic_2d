@@ -430,5 +430,49 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree, TestSize.Level1)
     EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0);
     nodeGC.ReleaseFromTree();
 }
+
+
+/**
+ * @tc.name: SetAbilityState001
+ * @tc.desc: SetAbilityState Test
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSRenderNodeGCTest, SetAbilityState001, TestSize.Level1)
+{
+    RSRenderNodeGC &nodeGC = RSRenderNodeGC::Instance();
+    pid_t pid = 5;
+    nodeGC.backgroundPidSet_.insert(pid);
+    nodeGC.scbPid_ = pid;
+    nodeGC.SetAbilityState(pid, false);
+    EXPECT_NE(nodeGC.backgroundPidSet_.end(), nodeGC.backgroundPidSet_.find(pid));
+
+    nodeGC.scbPid_ = 6;
+    EXPECT_NE(nodeGC.scbPid_, pid);
+    nodeGC.SetAbilityState(pid, false);
+    EXPECT_EQ(nodeGC.backgroundPidSet_.end(), nodeGC.backgroundPidSet_.find(pid));
+}
+
+/**
+ * @tc.name: SetIsOnTheTree001
+ * @tc.desc: SetIsOnTheTree Test
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSRenderNodeGCTest, SetIsOnTheTree001, TestSize.Level1)
+{
+    RSRenderNodeGC &nodeGC = RSRenderNodeGC::Instance();
+    nodeGC.scbPid_ = 1;
+    NodeId nodeId = (2ull << 32) + 1;
+    auto nodePid = ExtractPid(nodeId);
+    EXPECT_NE(nodePid, nodeGC.scbPid_);
+
+    bool isOnTheTree = false;
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto ptr = nodeAllocator.CreateRSCanvasRenderNode(nodeId);
+
+    nodeGC.SetIsOnTheTree(nodeId, ptr, isOnTheTree);
+    EXPECT_EQ(nodeGC.notOnTreeNodeMap_[nodePid][nodeId].lock().get(), ptr.get());
+}
 } // namespace Rosen
 } // namespace OHOS
