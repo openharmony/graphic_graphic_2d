@@ -81,6 +81,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", textStyle.letterSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", textStyle.wordSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "heightScale", textStyle.heightScale);
+    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
     AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", textStyle.halfLeading);
     AniTextUtils::ReadOptionalBoolField(env, obj, "heightOnly", textStyle.heightOnly);
     AniTextUtils::ReadOptionalU16StringField(env, obj, "ellipsis", textStyle.ellipsis);

@@ -132,10 +132,9 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
     aniFontCollection->fontCollection_ = FontCollection::Create();
-    ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":");
-    ani_status ret = env->Object_CallMethodByName_Void(
-        obj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
-    if (ret != ANI_OK) {
+    ani_object obj = AniTextUtils::CreateAniObject(
+        env, ANI_CLASS_FONT_COLLECTION, "l:", reinterpret_cast<ani_long>(aniFontCollection));
+    if (AniTextUtils::IsUndefined(env, obj)) {
         TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
         aniFontCollection = nullptr;

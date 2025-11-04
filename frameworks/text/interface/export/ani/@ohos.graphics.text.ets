@@ -54,6 +54,9 @@ namespace text {
     constructor() {
       this.constructorNative();
     };
+    constructor(nativePtr: long) {
+      this.bindNative(nativePtr);
+    };
     native constructorNative(): void;
     bindNative(ptr: long): void {
       this.nativeObj = ptr;
