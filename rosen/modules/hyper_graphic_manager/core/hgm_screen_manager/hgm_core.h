@@ -410,9 +410,9 @@ private:
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
     HgmHfbcConfig hfbcConfig_;
-    std::atomic<int64_t> rsPhaseOffset_ = { 0 };
-    std::atomic<int64_t> appPhaseOffset_ = { 0 };
-    std::atomic<bool> isVsyncOffsetCustomized_ = { false };
+    std::atomic<int64_t> rsPhaseOffset_{ 0 };
+    std::atomic<int64_t> appPhaseOffset_{ 0 };
+    std::atomic<bool> isVsyncOffsetCustomized_{ false };
 
     friend class HWCParam;
 };
