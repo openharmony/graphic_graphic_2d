@@ -774,6 +774,32 @@ HWTEST_F(HdiOutputTest, CreateLayerFailed, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->layersTobeRelease_.emplace_back(nullptr);
     HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
 }
+
+/*
+ * Function: SetAncoSrcRect
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call SetAncoSrcRect() and GetAncoSrcRect()
+ *                  2.no crash
+ */
+HWTEST_F(HdiOutputTest, SetAncoSrcRect, Function | MediumTest | Level3)
+{
+    GraphicIRect tmpRect {-1, -1, -1, -1};
+    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    GraphicIRect srcRect = layerInfo->GetAncoSrcRect();
+    EXPECT_EQ(srcRect.x, tmpRect.x);
+    EXPECT_EQ(srcRect.y, tmpRect.y);
+    EXPECT_EQ(srcRect.w, tmpRect.w);
+    EXPECT_EQ(srcRect.h, tmpRect.h);
+    srcRect = {-100, -100, 200, 200};
+    layerInfo->SetAncoSrcRect(srcRect);
+    GraphicIRect srcRectRet = layerInfo->GetAncoSrcRect();
+    EXPECT_EQ(srcRect.x, srcRectRet.x);
+    EXPECT_EQ(srcRect.y, srcRectRet.y);
+    EXPECT_EQ(srcRect.w, srcRectRet.w);
+    EXPECT_EQ(srcRect.h, srcRectRet.h);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

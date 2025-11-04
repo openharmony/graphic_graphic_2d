@@ -660,8 +660,8 @@ public:
         constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
         return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
     }
-    void SetAncoFlags(const GraphicIRect& ancoSrcRect) { ancoSrcRect_ = ancoSrcRect; }
-    const GraphicIRect& GetAncoFlags() const { return ancoSrcRect_; }
+    void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) { ancoSrcRect_ = ancoSrcRect; }
+    const GraphicIRect& GetAncoSrcRect() const { return ancoSrcRect_; }
 
     // hpae offline: while creating layer, use srcRect & dstRect instead of bounds to create redraw metrix
     void SetUseDeviceOffline(bool useOffline) { useDeviceOffline_ = useOffline; }

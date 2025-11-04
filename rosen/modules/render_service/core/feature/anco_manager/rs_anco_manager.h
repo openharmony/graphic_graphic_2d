@@ -46,6 +46,7 @@ public:
     static void UpdateLayerSrcRectForAnco(const uint32_t ancoFlags, const GraphicIRect& cropRect,
         GraphicIRect& outSrcRect);
     static bool IsAncoSfv(const uint32_t ancoFlags);
+    static bool IsInSmartWindow(const uint32_t ancoFlags);
     // Check whether CropRect is valid.
     static bool ValidCropRect(const GraphicIRect& cropRect);
     static void IntersectCrop(const GraphicIRect& cropRect, GraphicIRect& outSrcRect);
