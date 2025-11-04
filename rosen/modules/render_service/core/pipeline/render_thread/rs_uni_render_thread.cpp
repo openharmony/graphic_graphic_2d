@@ -389,8 +389,9 @@ void RSUniRenderThread::Render()
         }
     }
     Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSNodeStats::GetInstance().ClearNodeStats();
-    rootNodeDrawable_->OnDraw(canvas);
+    rootNodeDrawable_->OnDraw(paintFilterCanvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     PerfForBlurIfNeeded();
 }
