@@ -147,7 +147,8 @@ void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags, const Graphi
 {
     // It has already intersected when creating the layer by UpdateLayerSrcRectForAnco function
     if (IsAncoSfv(ancoFlags)) {
-        outSrcRect = Drawing::Rect(cropRect.x, cropRect.y, cropRect.x + cropRect.w, cropRect.y + cropRect.h);
+        Drawing::Rect ancoCropRect(cropRect.x, cropRect.y, cropRect.x + cropRect.w, cropRect.y + cropRect.h);
+        outSrcRect.Intersect(ancoCropRect);
         ShrinkAmountIfNeed(ancoInfo, outSrcRect);
     }
 }
