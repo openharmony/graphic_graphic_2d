@@ -99,6 +99,7 @@ HWTEST_F(EglBlobTest, EglBlobInit003, Level1)
     void *value2 = malloc(4);
     BlobCache::SetBlobFunc(key, keysize, value, valuesize);
     BlobCache::GetBlobFunc(key, keysize, value2, valuesize2);
+    *static_cast<int *>(value2) = 0;
     int c = *static_cast<int *>(value2);
     ASSERT_EQ(c, 0);
 }
