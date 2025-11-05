@@ -66,8 +66,8 @@ rosen/modules/render_service_base/src/animation/ @comicchang
 rosen/modules/render_service_client/core/animation/ @comicchang
 
 [uifirst]
-rosen/modules/render_service/core/feature/uifirst/ @conan13234
-rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @conan13234
+rosen/modules/render_service/core/feature/uifirst/ @charlielou
+rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @charlielou
 
 [opinc]
 rosen/modules/render_service_base/src/feature/opinc/ @conan13234
