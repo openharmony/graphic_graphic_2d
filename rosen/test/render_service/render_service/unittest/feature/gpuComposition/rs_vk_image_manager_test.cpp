@@ -265,6 +265,60 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MapVkImageFromSurfaceBufferTest
+ * @tc.desc: Test MapVkImageFromSurfaceBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, MapVkImageFromSurfaceBufferTest, TestSize.Level1)
+{
+    vkImageManager_->imageCacheSeqs_.clear();
+    auto size = vkImageManager_->imageCacheSeqs_.size();
+    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
+    ASSERT_NE(image, nullptr);
+    EXPECT_EQ(size+1, vkImageManager_->imageCacheSeqs_.size());
+    const auto& vkTextureInfo = image->GetBackendTexture().GetTextureInfo().GetVKTextureInfo();
+    ASSERT_NE(vkTextureInfo, nullptr);
+    auto preBufferModel = vkTextureInfo->ycbcrConversionInfo.ycbcrModel;
+
+    auto bufferId = buffer_->GetBufferId();
+    vkImageManager_->imageCacheSeqs_[bufferId] = nullptr;
+    image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
+    EXPECT_EQ(image, nullptr); // imageCache is null
+    
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    Drawing::BackendTexture backendTexture(true);
+    Drawing::TextureInfo textureInfo;
+    std::shared_ptr<Drawing::VKTextureInfo> imageInfo = nullptr;
+    textureInfo.SetVKTextureInfo(imageInfo);
+    backendTexture.SetTextureInfo(textureInfo);
+    auto vkImage = std::make_shared<VkImageResource>(nativeWindowBuffer, backendTexture, nullptr);
+    vkImageManager_->imageCacheSeqs_[bufferId] = vkImage;
+    ASSERT_NE(vkImage, nullptr);
+    EXPECT_EQ(vkImage->GetBackendTexture().GetTextureInfo().GetVKTextureInfo(), nullptr);
+    image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
+    
+    vkImageManager_->imageCacheSeqs_.clear();
+    vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
+
+    sptr<SurfaceBuffer> buffer = CreateBuffer();
+    ASSERT_NE(buffer, nullptr);
+    nativeWindowBuffer = nullptr;
+    Drawing::BackendTexture backendTexture2(true);
+    Drawing::TextureInfo textureInfo2;
+    std::shared_ptr<Drawing::VKTextureInfo> imageInfo2 = std::make_shared<Drawing::VKTextureInfo>();
+    auto ycbcrModel = VkSamplerYcbcrModelConversion::VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_2020;
+    imageInfo2->ycbcrConversionInfo.ycbcrModel = ycbcrModel;
+    textureInfo2.SetVKTextureInfo(imageInfo2);
+    backendTexture2.SetTextureInfo(textureInfo2);
+    auto vkImage2 = std::make_shared<VkImageResource>(nativeWindowBuffer, backendTexture2, nullptr);
+    vkImageManager_->imageCacheSeqs_[bufferId] = vkImage2;
+    vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
+    ASSERT_NE(vkImageManager_->imageCacheSeqs_[bufferId], nullptr);
+    EXPECT_NE(ycbcrModel, preBufferModel);
+}
+
+/**
  * @tc.name: CreateImageCacheFromBuffer001
  * @tc.desc: call CreateImageCacheFromBuffer, check ImageCache will be created
  * @tc.type: FUNC

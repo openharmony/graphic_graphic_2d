@@ -129,7 +129,7 @@ bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const s
 }
 
 std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
-    const sptr<OHOS::SurfaceBuffer>& buffer,
+    sptr<OHOS::SurfaceBuffer> buffer,
     const sptr<SyncFence>& acquireFence,
     pid_t threadIndex, Drawing::Surface *drawingSurface)
 {
@@ -144,12 +144,31 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     bool isProtectedCondition = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) ||
         RsVulkanContext::GetSingleton().GetIsProtected();
     auto bufferId = buffer->GetBufferId();
-    if (isProtectedCondition || imageCacheSeqs_.find(bufferId) == imageCacheSeqs_.end()) {
+    auto iter = imageCacheSeqs_.find(bufferId);
+    if (isProtectedCondition || iter == imageCacheSeqs_.end()) {
         RS_TRACE_NAME_FMT("create vkImage, bufferId=%" PRIu64 "", bufferId);
         return NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
     } else {
+        const auto& imageCache = iter->second;
+        if (!imageCache) {
+            return imageCache;
+        }
+        const auto& textureInfo = imageCache->GetBackendTexture().GetTextureInfo().GetVKTextureInfo();
+        if (!textureInfo) {
+            return imageCache;
+        }
+        const auto& ycbcrInfo = textureInfo->ycbcrConversionInfo;
+        OH_NativeBuffer* nativeBuffer = buffer->SurfaceBufferToNativeBuffer();
+        bool imageCacheNeedUpdate = NativeBufferUtils::IsYcbcrModelOrRangeNotEqual(
+            nativeBuffer, ycbcrInfo.ycbcrModel, ycbcrInfo.ycbcrRange);
+        if (imageCacheNeedUpdate) {
+            RS_TRACE_NAME_FMT("clear cache and create vkImage, bufferId=%" PRIu64 ", model:%d, range:%d",
+                bufferId, ycbcrInfo.ycbcrModel, ycbcrInfo.ycbcrRange);
+            imageCacheSeqs_.erase(iter);
+            return NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
+        }
         RS_TRACE_NAME_FMT("find cache vkImage, bufferId=%" PRIu64 "", bufferId);
-        return imageCacheSeqs_[bufferId];
+        return imageCache;
     }
 }
 

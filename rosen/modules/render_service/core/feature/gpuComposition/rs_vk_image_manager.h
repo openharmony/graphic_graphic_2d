@@ -108,7 +108,7 @@ public:
     void DumpVkImageInfo(std::string &dumpString) override;
 private:
     std::shared_ptr<VkImageResource> MapVkImageFromSurfaceBuffer(
-        const sptr<OHOS::SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
+        sptr<OHOS::SurfaceBuffer> buffer, const sptr<SyncFence>& acquireFence,
         pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
     std::shared_ptr<VkImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence) ;
