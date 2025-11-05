@@ -132,7 +132,7 @@ public:
     void SetCompositeType(CompositeType type);
     CompositeType GetCompositeType() const;
 
-    void UpdateFixedSize();
+    void UpdateFixedSize(bool isSnapshotRotation);
     uint32_t GetFixedWidth() const;
     uint32_t GetFixedHeight() const;
 
