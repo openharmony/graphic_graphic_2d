@@ -45,26 +45,12 @@ public:
         return isNeedForceCommitByPointer_;
     }
 
-    void SetNeedForceCommitByPointer(bool isNeedForceCommitByPointer)
-    {
-        isNeedForceCommitByPointer_ = isNeedForceCommitByPointer;
-    }
-
-    void CollectInfoForHardCursor(NodeId id,
-        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable)
-    {
-        hardCursorDrawables_.id = id;
-        hardCursorDrawables_.drawablePtr = cursorDrawable;
-    }
-
-    const HardCursorInfo& GetHardCursorDrawables() const
-    {
-        return hardCursorDrawables_;
-    }
-
     void CollectAllHardCursor(
         RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSScreenRenderNode>& curScreenNode,
         std::shared_ptr<RSLogicalDisplayRenderNode>& curDisplayNode);
+
+    void UpdateHardCursorStatus(
+        RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSScreenRenderNode>& curScreenNode);
 
     const auto& GetHardCursorDrawableVec() const
     {
@@ -75,6 +61,11 @@ public:
     {
         hardCursorDrawableVec_.clear();
         hardCursorNodeMap_.clear();
+    }
+
+    void RemoveCommitResult(NodeId screenNodeId)
+    {
+        hardCursorCommitResultMap_.erase(screenNodeId);
     }
 
     bool GetIsPointerEnableHwc() const
@@ -149,6 +140,8 @@ public:
     const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetHardCursorNode() const;
 
     void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
+    void HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor, NodeId screenNodeId);
+    bool GetHardCursorNeedCommit(NodeId screenNodeId);
 
     bool CheckHardCursorSupport(uint32_t screenId);
     bool HasMirrorDisplay() const;
@@ -156,10 +149,10 @@ public:
     static void CheckHardCursorValid(const RSSurfaceRenderNode& node);
 private:
     bool isNeedForceCommitByPointer_{ false };
-    HardCursorInfo hardCursorDrawables_;
     std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;
-    std::shared_ptr<RSSurfaceRenderNode> hardCursorNodes_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> hardCursorNodeMap_;
+    // [screenNodeId, lastFrameCommitResult]
+    std::unordered_map<NodeId, bool> hardCursorCommitResultMap_;
     std::mutex mtx_;
     std::atomic<bool> isPointerEnableHwc_ = true;
     std::atomic<bool> isPointerCanSkipFrame_ = false;

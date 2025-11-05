@@ -90,7 +90,7 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerDirtyToGlobalDirtyTest002, Tes
     node->SetHardCursorStatus(true);
     rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node, displayNode);
     ASSERT_EQ(rsPointerWindowManager->IsNeedForceCommitByPointer(), true);
-    rsPointerWindowManager->SetNeedForceCommitByPointer(false);
+    rsPointerWindowManager->isNeedForceCommitByPointer_ = false;
     // run
     std::shared_ptr<RSSurfaceRenderNode> node1 = nullptr;
     rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node1, displayNode);
@@ -115,7 +115,7 @@ HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest001, TestSize.Leve
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
-    ASSERT_EQ(rsPointerWindowManager.hardCursorNodes_, nullptr);
+    ASSERT_EQ(rsPointerWindowManager.hardCursorNodeMap_.size(), 0);
 }
 
 /**
@@ -430,6 +430,90 @@ HWTEST_F(RSPointerWindowManagerTest, CheckHardCursorValidTest, TestSize.Level1)
     surfaceNode->isHardCursor_ = true;
     rsPointerWindowManager.CheckHardCursorValid(*surfaceNode);
     ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: UpdateHardCursorStatus
+ * @tc.desc: Test UpdateHardCursorStatus with hardCursor
+ * @tc.type: FUNC
+ * @tc.require: issues20575
+ */
+HWTEST_F(RSPointerWindowManagerTest, UpdateHardCursorStatus001, TestSize.Level1)
+{
+    NodeId id = 10;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
+    surfaceNode->name_ = "pointer window";
+    surfaceNode->isOnTheTree_ = true;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.UpdateHardCursorStatus(*surfaceNode, screenNode);
+    ASSERT_EQ(surfaceNode->GetHardCursorStatus(), false);
+}
+
+/**
+ * @tc.name: HardCursorCreateLayer
+ * @tc.desc: Test HardCursorCreateLayer with hardCursor
+ * @tc.type: FUNC
+ * @tc.require: issues20575
+ */
+HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayer001, TestSize.Level1)
+{
+    NodeId id = 10;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceAdapter = DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    auto renderParams = std::make_unique<RSSurfaceRenderParams>(id);
+    renderParams->SetHardCursorStatus(true);
+    surfaceDrawable->renderParams_ = std::move(renderParams);
+        std::unique_ptr<RSRenderThreadParams> uniParam = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParam));
+    ASSERT_NE(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
+
+    NodeId screenId = 1;
+    NodeId displayId = 2;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableVec_.emplace_back(
+        screenId, displayId, surfaceDrawable);
+
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    ASSERT_NE(rsPointerWindowManager.GetHardCursorDrawable(screenId), nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    rsPointerWindowManager.HardCursorCreateLayer(processor, screenId);
+}
+
+/**
+ * @tc.name: GetHardCursorNeedCommit
+ * @tc.desc: Test GetHardCursorNeedCommit with hardCursor
+ * @tc.type: FUNC
+ * @tc.require: issues20575
+ */
+HWTEST_F(RSPointerWindowManagerTest, GetHardCursorNeedCommit001, TestSize.Level1)
+{
+    NodeId id = 10;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto surfaceAdapter = DrawableV2::RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    auto surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(surfaceAdapter);
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    auto renderParams = std::make_unique<RSSurfaceRenderParams>(id);
+    renderParams->SetHardCursorStatus(true);
+    surfaceDrawable->renderParams_ = std::move(renderParams);
+    std::unique_ptr<RSRenderThreadParams> uniParam = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParam));
+    ASSERT_NE(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
+
+    NodeId screenId = 1;
+    NodeId displayId = 2;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableVec_.emplace_back(
+        screenId, displayId, surfaceDrawable);
+
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    ASSERT_NE(rsPointerWindowManager.GetHardCursorDrawable(screenId), nullptr);
+    ASSERT_EQ(rsPointerWindowManager.GetHardCursorNeedCommit(screenId), false);
 }
 
 } // OHOS::Rosen

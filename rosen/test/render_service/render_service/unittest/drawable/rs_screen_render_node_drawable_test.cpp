@@ -271,42 +271,6 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RenderOverDraw, TestSize.Level1)
 }
 
 /**
- * @tc.name: HardCursorCreateLayer
- * @tc.desc: Test HardCursorCreateLayer
- * @tc.type: FUNC
- * @tc.require: #IAX2SN
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(screenDrawable_, nullptr);
-    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    ASSERT_NE(processor, nullptr);
-
-    auto result = screenDrawable_->HardCursorCreateLayer(processor);
-    ASSERT_EQ(result, false);
-
-    NodeId nodeId = 1;
-    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
-    auto drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
-    EXPECT_NE(drawablePtr, nullptr);
-    auto renderParams = std::make_unique<RSRenderThreadParams>();
-    renderParams->hardCursorDrawableVec_ = { { nodeId, 0, drawablePtr } };
-    RSUniRenderThread::Instance().Sync(move(renderParams));
-    result = screenDrawable_->HardCursorCreateLayer(processor);
-    ASSERT_EQ(result, false);
-
-    NodeId id = 1;
-    drawablePtr->renderParams_ = std::make_unique<RSRenderParams>(id);
-    result = screenDrawable_->HardCursorCreateLayer(processor);
-    ASSERT_EQ(result, false);
-}
-
-/**
  * @tc.name: CheckScreenNodeSkip
  * @tc.desc: Test CheckScreenNodeSkip
  * @tc.type: FUNC

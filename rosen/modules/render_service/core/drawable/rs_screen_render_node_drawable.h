@@ -33,7 +33,7 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    ~RSScreenRenderNodeDrawable() override = default;
+    ~RSScreenRenderNodeDrawable() override;
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
@@ -156,7 +156,6 @@ private:
     void SetScreenNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSScreenRenderParams& params, const ScreenInfo& screenInfo);
-    bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
 
     void RenderOverDraw();
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
@@ -212,8 +211,6 @@ private:
     bool isRenderSkipIfScreenOff_ = false;
 
     bool filterCacheOcclusionUpdated_ = false;
-
-    bool hardCursorLastCommitSuccess_ = false;
 
     bool accumulateDirtyInSkipFrame_ = false;
 };
