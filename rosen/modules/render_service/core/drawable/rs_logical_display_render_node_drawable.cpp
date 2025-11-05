@@ -336,7 +336,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         }
 
         RSRenderNodeDrawable::OnCapture(canvas);
-        DrawAdditionalContent(*paintFilterCanvas);
+        // paintFilterCanvas is offScreen create Canvas 
+        DrawAdditionalContent(*paintFilterCanvas, RSUniRenderThread::GetCaptureParam().isMirror_);
     } else {
         canvas.Clear(Drawing::Color::COLOR_BLACK);
         DrawHardwareEnabledNodes(canvas, *params);
@@ -399,14 +400,14 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
     }
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
 {
     RS_TRACE_FUNC();
     DrawWatermarkIfNeed(canvas);
     RSRefreshRateDfx(*this).OnDraw(canvas);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
 {
     if (!RSUniRenderThread::Instance().GetWatermarkFlag()) {
         return;
@@ -429,6 +430,10 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
     RS_TRACE_FUNC();
     canvas.Save();
     canvas.ResetMatrix();
+
+    if (isOffScreenCanvas && params->GetMatrix().Invert(invertMatrix)) {
+        canvas.ConcatMatrix(invertMatrix);
+    }
 
     auto rotation = params->GetScreenRotation();
     auto screenCorrection = screenManager->GetScreenCorrection(params->GetScreenId());
