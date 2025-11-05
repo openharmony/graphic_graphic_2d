@@ -1465,10 +1465,13 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
 #endif
     // renderGroup memory tagTracer
-    auto instanceRootNode = GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (instanceRootNode && instanceRootNode->IsAppWindow()) {
-        stagingRenderParams_->SetInstanceRootNodeId(instanceRootNode->GetId());
-        stagingRenderParams_->SetInstanceRootNodeName(instanceRootNode->GetName());
+    auto instanceRootNode = GetInstanceRootNode();
+    if (instanceRootNode) {
+        auto appWindow = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (appWindow && appWindow->IsAppWindow()) {
+            stagingRenderParams_->SetInstanceRootNodeId(appWindow->GetId());
+            stagingRenderParams_->SetInstanceRootNodeName(appWindow->GetName());
+        }
     }
 }
 

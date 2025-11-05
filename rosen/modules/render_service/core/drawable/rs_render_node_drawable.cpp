@@ -950,7 +950,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         if (GetOpincDrawCache().OpincGetCachedMark()) {
             tagTracer.emplace(curCanvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_OPINC);
         } else {
-            tagTracer.emplace(curCanvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_RENDER_GROUP);
+            tagTracer.emplace(curCanvas->GetGPUContext(), params.GetInstanceRootNodeId(),
+                RSTagTracker::TAGTYPE::TAG_RENDER_GROUP, params.GetInstanceRootNodeName());
         }
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);
         InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16,
@@ -1005,6 +1006,13 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // get image & backend
     {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
+        std::optional<RSTagTracker> tagTracer;
+        if (GetOpincDrawCache().OpincGetCachedMark()) {
+            tagTracer.emplace(curCanvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_OPINC);
+        } else {
+            tagTracer.emplace(curCanvas->GetGPUContext(), params.GetInstanceRootNodeId(),
+                RSTagTracker::TAGTYPE::TAG_RENDER_GROUP, params.GetInstanceRootNodeName());
+        }
         cachedImage_ = cacheSurface->GetImageSnapshot();
         if (cachedImage_) {
             SetCacheType(DrawableCacheType::CONTENT);
