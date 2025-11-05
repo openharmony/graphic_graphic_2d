@@ -141,7 +141,9 @@ void RSDrmUtil::MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& no
     if (node == nullptr) {
         return;
     }
-    static bool isMockAllBlurEffectIntersectWithDRMEnabled = DRMParam::IsMockAllBlurEffectIntersectWithDRMEnable();
+    static bool isCCMMockAllBlurEffectIntersectWithDRMEnabled = DRMParam::IsMockAllBlurEffectIntersectWithDRMEnable();
+    bool isMockAllBlurEffectIntersectWithDRMEnabled = isCCMMockAllBlurEffectIntersectWithDRMEnabled ||
+        RSSystemProperties::GetSceneBoardIsPcMode();
     if (isMockAllBlurEffectIntersectWithDRMEnabled) {
         // mark all blurEffect for pc
         MarkAllBlurIntersectWithDRM(node, drmNodes, curScreenNode);

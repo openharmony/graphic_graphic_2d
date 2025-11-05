@@ -394,6 +394,8 @@ public:
 
     static bool GetRSNodeExceedKillEnabled();
 
+    static bool GetSceneBoardIsPcMode();
+
 private:
     RSSystemProperties() = default;
 

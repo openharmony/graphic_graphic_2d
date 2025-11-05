@@ -808,5 +808,10 @@ bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetSceneBoardIsPcMode()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
