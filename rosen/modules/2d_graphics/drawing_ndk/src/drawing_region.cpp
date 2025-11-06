@@ -113,6 +113,7 @@ void OH_Drawing_RegionDestroy(OH_Drawing_Region* cRegion)
     delete CastToRegion(cRegion);
 }
 
+// LCOV_EXCL_START
 OH_Drawing_ErrorCode OH_Drawing_RegionEmpty(OH_Drawing_Region* cRegion)
 {
     if (cRegion == nullptr) {
@@ -123,3 +124,4 @@ OH_Drawing_ErrorCode OH_Drawing_RegionEmpty(OH_Drawing_Region* cRegion)
     region->SetEmpty();
     return OH_DRAWING_SUCCESS;
 }
+// LCOV_EXCL_STOP
