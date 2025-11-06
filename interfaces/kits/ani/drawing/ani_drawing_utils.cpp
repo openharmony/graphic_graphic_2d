@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <ani_signature_builder.h>
 #include "ani_drawing_utils.h"
 #include "typeface_ani/ani_typeface.h"
 #include "rosen_text/font_collection.h"
@@ -29,6 +30,8 @@ ani_method gGetTopMethod = nullptr;
 ani_method gGetRightMethod = nullptr;
 ani_method gGetBottomMethod = nullptr;
 }
+
+using namespace arkts::ani_signature;
 
 ani_status AniThrowError(ani_env* env, const std::string& message)
 {
@@ -235,11 +238,14 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     ani_double top;
     ani_double right;
     ani_double bottom;
-    RectPropertyConfig leftConfig = { "left", "<get>left", gGetLeftMethod, left };
-    RectPropertyConfig topConfig = { "top", "<get>top", gGetTopMethod, top };
-    RectPropertyConfig rightConfig = { "right", "<get>right", gGetRightMethod, right };
-    RectPropertyConfig bottomConfig = { "bottom", "<get>bottom", gGetBottomMethod, bottom };
-
+    RectPropertyConfig leftConfig = {
+        "left", Builder::BuildGetterName("left").c_str(), gGetLeftMethod, left };
+    RectPropertyConfig topConfig = {
+        "top", Builder::BuildGetterName("top").c_str(), gGetTopMethod, top };
+    RectPropertyConfig rightConfig = {
+        "right", Builder::BuildGetterName("right").c_str(), gGetRightMethod, right };
+    RectPropertyConfig bottomConfig = {
+        "bottom", Builder::BuildGetterName("bottom").c_str(), gGetBottomMethod, bottom };
     if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) != ANI_OK) ||
         (GetRectPropertyValue(env, obj, rectClass, topConfig) != ANI_OK) ||
         (GetRectPropertyValue(env, obj, rectClass, rightConfig) != ANI_OK) ||
