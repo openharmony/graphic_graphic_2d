@@ -139,12 +139,13 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
 
     // The offset needs to be set
     int64_t offset = 0;
-    if (!HgmCore::Instance().GetLtpoEnabled()) {
+    auto& hgmCore = HgmCore::Instance();
+    if (!hgmCore.GetLtpoEnabled()) {
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            offset = HgmCore::Instance().IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
+            offset = hgmCore.IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
         }
-        rsVSyncController_ = new VSyncController(generator, offset);
-        appVSyncController_ = new VSyncController(generator, offset);
+        rsVSyncController_ = new VSyncController(generator, hgmCore.GetRsPhaseOffset(offset));
+        appVSyncController_ = new VSyncController(generator, hgmCore.GetAppPhaseOffset(offset));
     } else {
         rsVSyncController_ = new VSyncController(generator, 0);
         appVSyncController_ = new VSyncController(generator, 0);
