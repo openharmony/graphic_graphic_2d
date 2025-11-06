@@ -126,6 +126,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+    return false;
+}
+
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
     return {};
