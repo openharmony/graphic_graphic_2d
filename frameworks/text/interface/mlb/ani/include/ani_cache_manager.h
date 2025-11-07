@@ -20,11 +20,38 @@
 #include <memory>
 #include <shared_mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
+
+struct ani_cache_param
+{
+    const char* clsName = nullptr;
+    const char* methodName = nullptr;
+    const char* signature = nullptr;
+
+    bool IsValid() const
+    {
+        return clsName != nullptr && methodName != nullptr && signature != nullptr;
+    }
+
+    std::string BuildCacheKey() const
+    {
+        std::string_view clsNameView(clsName);
+        std::string_view methodNameView(methodName);
+        std::string_view signatureView(signature);
+        std::string key;
+        key.reserve(clsNameView.size() + methodNameView.size() + signatureView.size() + 3);
+        key.append(clsNameView);
+        key.append(methodNameView);
+        key.append(signatureView);
+        return key;
+    }
+};
+
 class AniCacheManager {
 public:
     static AniCacheManager& Instance()

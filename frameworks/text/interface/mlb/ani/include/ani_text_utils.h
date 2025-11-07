@@ -53,6 +53,7 @@ public:
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
+    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
     static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
@@ -67,7 +68,13 @@ public:
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
     static ani_status FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls);
+    static ani_status FindMethodWithCache(ani_env* env, const ani_cache_param& param, ani_method& method);
     static ani_status Object_InstanceOf(ani_env* env, ani_object obj, const char* clsName, ani_boolean* result);
+
+    static ani_status GetPropertyByCache_Ref(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref);
+    static ani_status GetPropertyByCache_Double(ani_env* env, ani_object obj, const ani_cache_param& param, ani_double& value);
+    static ani_status GetPropertyByCache_Int(ani_env* env, ani_object obj, const ani_cache_param& param, ani_int& value);
+    static ani_status GetPropertyByCache_Long(ani_env* env, ani_object obj, const ani_cache_param& param, ani_long& value);
 };
 
 template <typename... Args>
@@ -80,12 +87,11 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string& name, 
     }
 
     ani_method ctor = nullptr;
-    std::string methodKey = name + (signature == nullptr ? "" : std::string(signature));
-    if (AniCacheManager::Instance().FindMethod(methodKey, ctor)) {
-    } else if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) == ANI_OK) {
-        AniCacheManager::Instance().InsertMethod(methodKey, ctor);
-    } else {
-        TEXT_LOGE("Failed to get ctor %{public}s", name.c_str());
+    ani_cache_param param = { name.c_str(), "<ctor>", signature };
+    ani_status ret = FindMethodWithCache(env, param, ctor);
+
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), ret);
         return CreateAniUndefined(env);
     }
 
@@ -175,7 +181,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
 
     ani_object arrayObj = reinterpret_cast<ani_object>(ref);
     ani_int length;
-    result = env->Object_GetPropertyByName_Int(arrayObj, "length", &length);
+    result = env->Array_GetLength(arrayObj, &length);
     if (result != ANI_OK) {
         TEXT_LOGE("Failed to get length of %{public}s, ret: %{public}d", fieldName, result);
         return result;
@@ -183,7 +189,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
 
     for (size_t i = 0; i < static_cast<size_t>(length); i++) {
         ani_ref entryRef = nullptr;
-        result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:Y", &entryRef, i);
+        result = env->Array_Get(reinterpret_cast<ani_array>(arrayObj), i, &entryRef);
         if (result != ANI_OK || entryRef == nullptr) {
             TEXT_LOGE("Failed to get array object of %{public}s, ret: %{public}d", fieldName, result);
             continue;

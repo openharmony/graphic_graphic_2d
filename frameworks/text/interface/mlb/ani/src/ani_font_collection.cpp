@@ -208,13 +208,12 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
             TEXT_LOGE("Null jsFontcollection");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":");
         AniFontCollection* aniFontCollection = new AniFontCollection();
         aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
+        ani_object staticObj = AniTextUtils::CreateAniObject(
+            env, ANI_CLASS_FONT_COLLECTION, "l:", reinterpret_cast<ani_long>(aniFontCollection));
+        if (AniTextUtils::IsUndefined(env, staticObj)) {
+            TEXT_LOGE("Failed to create ani font collection obj");
             delete aniFontCollection;
             aniFontCollection = nullptr;
             return AniTextUtils::CreateAniUndefined(env);

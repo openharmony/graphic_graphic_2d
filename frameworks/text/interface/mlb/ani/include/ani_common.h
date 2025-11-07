@@ -18,6 +18,16 @@
 #include <cstdint>
 
 namespace OHOS::Text::ANI {
+#define ANI_WRAP_RETURN_C(name) ([]() -> const char* {                                                                 \
+    static const std::string wrapped = ":C{" + std::string(name) + "}";                                                \
+    return wrapped.c_str();                                                                                            \
+}())
+
+#define ANI_WRAP_RETURN_E(name) ([]() -> const char* {                                                                 \
+    static const std::string wrapped = ":E{" + std::string(name) + "}";                                                \
+    return wrapped.c_str();                                                                                            \
+}())
+
 /**
  * define namespace
  */
@@ -35,11 +45,14 @@ constexpr const char* ANI_STRING = "std.core.String";
 constexpr const char* ANI_MAP = "std.core.Map";
 constexpr const char* ANI_ARRAY = "escompat.Array";
 constexpr const char* ANI_BUSINESS_ERROR = "@ohos.base.BusinessError";
+constexpr const char* ANI_GLOBAL_RESOURCE = "global.resource.Resource";
 /**
  * define interface
  */
 constexpr const char* ANI_INTERFACE_PARAGRAPH_STYLE = "@ohos.graphics.text.text.ParagraphStyle";
 constexpr const char* ANI_INTERFACE_TEXT_STYLE = "@ohos.graphics.text.text.TextStyle";
+constexpr const char* ANI_INTERFACE_STRUT_STYLE = "@ohos.graphics.text.text.StrutStyle";
+constexpr const char* ANI_INTERFACE_TEXT_TAB = "@ohos.graphics.text.text.TextTab";
 constexpr const char* ANI_INTERFACE_FONT_FEATURE = "@ohos.graphics.text.text.FontFeature";
 constexpr const char* ANI_INTERFACE_FONT_VARIATION = "@ohos.graphics.text.text.FontVariation";
 constexpr const char* ANI_INTERFACE_TEXTSHADOW = "@ohos.graphics.text.text.TextShadow";

@@ -33,9 +33,13 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    env->Object_GetPropertyByName_Long(obj, "id", &aniId);
-    env->Object_GetPropertyByName_Ref(obj, "bundleName", &aniBundleName);
-    env->Object_GetPropertyByName_Ref(obj, "moduleName", &aniModuleName);
+    static ani_cache_param paramId = { ANI_GLOBAL_RESOURCE, "<get>id", ":l" };
+    AniTextUtils::GetPropertyByCache_Long(env, obj, paramId, aniId);
+    static ani_cache_param paramBundleName = { ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING) };
+    AniTextUtils::GetPropertyByCache_Ref(env, obj, paramBundleName, aniBundleName);
+    static ani_cache_param paramModuleName = { ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING) };
+    AniTextUtils::GetPropertyByCache_Ref(env, obj, paramModuleName, aniModuleName);
+
     AniTextUtils::ReadOptionalArrayField(env, obj, "params", result.params, [](ani_env* env, ani_ref ref) {
         std::string utf8Str;
         AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);

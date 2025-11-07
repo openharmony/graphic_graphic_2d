@@ -27,7 +27,7 @@ ani_object AniTransferUtils::TransferStatic(
 {
     if (env == nullptr) {
         TEXT_LOGE("null env");
-        return AniTextUtils::CreateAniUndefined(env);
+        return nullptr;
     }
     void* unwrapResult = nullptr;
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);

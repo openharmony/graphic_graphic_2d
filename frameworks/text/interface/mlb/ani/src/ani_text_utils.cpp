@@ -51,13 +51,11 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     }
 
     ani_method aniCtor = nullptr;
-    static std::string methodSign = "C{std.core.String}C{escompat.ErrorOptions}:";
-    static std::string methodKey = "C{" + std::string(ANI_BUSINESS_ERROR) + "}" + methodSign;
-    if (AniCacheManager::Instance().FindMethod(methodKey, aniCtor)) {
-    } else if ((status = env->Class_FindMethod(aniClass, "<ctor>", methodSign.c_str(), &aniCtor)) == ANI_OK) {
-        AniCacheManager::Instance().InsertMethod(methodKey, aniCtor);
-    } else {
-        TEXT_LOGE("Failed to find ctor, status %{public}d", static_cast<int32_t>(status));
+    static const char* methodSign = "C{std.core.String}C{escompat.ErrorOptions}:";
+    ani_cache_param param = { ANI_BUSINESS_ERROR, "<ctor>", methodSign };
+    status = FindMethodWithCache(env, param, aniCtor);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to find ctor %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), status);
         return status;
     }
 
@@ -102,14 +100,13 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
         return CreateAniUndefined(env);
     }
 
+
     ani_method arrayCtor = nullptr;
-    static std::string methodSign = "i:";
-    static std::string methodKey = "C{" + std::string(ANI_ARRAY) + "}" + methodSign;
-    if (AniCacheManager::Instance().FindMethod(methodKey, arrayCtor)) {
-    } else if ((ret = env->Class_FindMethod(arrayCls, "<ctor>", methodSign.c_str(), &arrayCtor)) == ANI_OK) {
-        AniCacheManager::Instance().InsertMethod(methodKey, arrayCtor);
-    } else {
-        TEXT_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(ret));
+    static const char* methodSign = "i:";
+    ani_cache_param param = { ANI_ARRAY, "<ctor>", methodSign };
+    ret = FindMethodWithCache(env, param, arrayCtor);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find ctor %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), ret);
         return CreateAniUndefined(env);
     }
 
@@ -288,6 +285,27 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
     return ret;
 }
 
+ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref)
+{
+    ani_status ret = GetPropertyByCache_Ref(env, obj, param, ref);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to get property %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), ret);
+        return ret;
+    }
+    ani_boolean isUndefined;
+    ret = env->Reference_IsUndefined(ref, &isUndefined);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to check ref is undefined, ret %{public}d", ret);
+        ref = nullptr;
+        return ret;
+    }
+
+    if (isUndefined) {
+        ref = nullptr;
+    }
+    return ret;
+}
+
 ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value)
 {
     ani_ref ref = nullptr;
@@ -355,6 +373,34 @@ ani_status AniTextUtils::FindClassWithCache(ani_env* env, const char* clsName, a
     return ret;
 }
 
+ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const ani_cache_param& param, ani_method& method)
+{
+    if (!param.IsValid()) {
+        TEXT_LOGE("clsName methodName signature is null");
+        return ANI_ERROR;
+    }
+
+    std::string key = param.BuildCacheKey();
+    if (AniCacheManager::Instance().FindMethod(key, method)) {
+        return ANI_OK;
+    }
+
+    ani_class cls = nullptr;
+    ani_status ret =  FindClassWithCache(env, param.clsName, cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find class %{public}s, ret %{public}d", param.clsName, ret);
+        return ret;
+    }
+
+    ani_status ret = env->Class_FindMethod(cls, param.methodName, param.signature, &method);
+    if (ret == ANI_OK) {
+        AniCacheManager::Instance().InsertMethod(key, method);
+    } else {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", key.c_str(), ret);
+    }
+    return ret;
+}
+
 ani_status AniTextUtils::Object_InstanceOf(ani_env* env, ani_object obj, const char* clsName, ani_boolean* result)
 {
     ani_class cls = nullptr;
@@ -364,5 +410,49 @@ ani_status AniTextUtils::Object_InstanceOf(ani_env* env, ani_object obj, const c
         return ret;
     }
     return env->Object_InstanceOf(obj, cls, result);
+}
+
+ani_status AniTextUtils::GetPropertyByCache_Ref(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref)
+{
+    ani_method method = nullptr;
+    ani_status ret = FindMethodWithCache(env, param, method);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.methodName, ret);
+        return ret;
+    }
+    return env->Object_CallMethod_Ref(obj, method, &ref);
+}
+
+ani_status AniTextUtils::GetPropertyByCache_Double(ani_env* env, ani_object obj, const ani_cache_param& param, ani_double& value)
+{
+    ani_method method = nullptr;
+    ani_status ret = FindMethodWithCache(env, param, method);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.methodName, ret);
+        return ret;
+    }
+    return env->Object_CallMethod_Double(obj, method, &value);
+}
+
+ani_status AniTextUtils::GetPropertyByCache_Int(ani_env* env, ani_object obj, const ani_cache_param& param, ani_int& value)
+{
+    ani_method method = nullptr;
+    ani_status ret = FindMethodWithCache(env, param, method);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.methodName, ret);
+        return ret;
+    }
+    return env->Object_CallMethod_Int(obj, method, &value);
+}
+
+ani_status AniTextUtils::GetPropertyByCache_Long(ani_env* env, ani_object obj, const ani_cache_param& param, ani_long& value)
+{
+    ani_method method = nullptr;
+    ani_status ret = FindMethodWithCache(env, param, method);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.methodName, ret);
+        return ret;
+    }
+    return env->Object_CallMethod_Long(obj, method, &value);
 }
 } // namespace OHOS::Text::ANI

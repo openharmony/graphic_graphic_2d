@@ -23,24 +23,14 @@ using namespace OHOS::Rosen;
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_PLACEHOLDER_SPAN, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
-    }
-    ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
-        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
-        return ret;
-    }
-    ret = env->Object_GetPropertyByName_Double(obj, "width", &placeholderSpan.width);
+    static ani_cache_param paramWidth = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d" };
+    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramWidth, placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_GetPropertyByName_Double(obj, "height", &placeholderSpan.height);
+    static ani_cache_param paramHeight = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>height", ":d" };
+    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramHeight, placeholderSpan.height);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
@@ -55,7 +45,8 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_GetPropertyByName_Double(obj, "baselineOffset", &placeholderSpan.baselineOffset);
+    static ani_cache_param paramBaselineOffset = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baselineOffset", ":d" };
+    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramBaselineOffset, placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baselineOffset, ret %{public}d", ret);
         return ret;
