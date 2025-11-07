@@ -16,6 +16,7 @@
 #ifndef OHOS_ROSEN_TEXT_FONT_COLLECTION_MGR_H
 #define OHOS_ROSEN_TEXT_FONT_COLLECTION_MGR_H
 
+#include <limits>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -44,8 +45,8 @@ public:
     void DestroyHapPath(const std::string& bundle, const std::string& module);
     std::string GetHapPath(const std::string& bundle, const std::string& module);
 
-    void SetLocalFontCollectionMaxSize(size_t maxSize) { localFontCollectionMaxSize_ = maxSize; }
-    size_t GetLocalFontCollectionMaxSize() const { return localFontCollectionMaxSize_; }
+    void SetLocalFontCollectionMaxSize(uint64_t maxSize) { localFontCollectionMaxSize_ = maxSize; }
+    uint64_t GetLocalFontCollectionMaxSize() const { return localFontCollectionMaxSize_; }
 
 private:
     FontCollectionMgr() = default;
@@ -58,7 +59,7 @@ private:
     std::unordered_map<void*, std::shared_ptr<FontCollection>> sharedCollections_;
     std::shared_mutex mutex_;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> hapPaths_;
-    size_t localFontCollectionMaxSize_{0xFFFFFFFF};
+    uint64_t localFontCollectionMaxSize_{std::numeric_limits<uint64_t>::max()};
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_TEXT_FONT_COLLECTION_MGR_H

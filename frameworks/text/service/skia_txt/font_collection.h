@@ -97,13 +97,16 @@ private:
     RegisterError RegisterTypeface(TypefaceWithAlias& ta);
     static std::shared_ptr<Drawing::Typeface> CreateTypeface(
         const std::string& familyName, const uint8_t* data, size_t datalen);
+    enum class LocalActionType { ADD, DEL };
+    bool CheckLocalFontCollectionSize(uint64_t size);
+    void ChangeLocalFontCollectionSize(LocalActionType type, uint64_t size);
 
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
     std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
     std::unordered_set<TypefaceWithAlias, TypefaceWithAlias::Hasher> typefaceSet_;
     std::shared_mutex mutex_;
     bool enableGlobalFontMgr_{false};
-    uint32_t registeredFontSize_{0};
+    uint64_t localRegisteredSizeCount_{0};
 };
 } // namespace AdapterTxt
 } // namespace Rosen

@@ -96,6 +96,29 @@ std::shared_ptr<Drawing::FontMgr> FontCollection::GetFontMgr()
     return dfmanager_;
 }
 
+bool FontCollection::CheckLocalFontCollectionSize(uint64_t size)
+{
+    if (!IsLocalFontCollection()) {
+        return true;
+    }
+    if (localRegisteredSizeCount_ + size <= FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
+        return true;
+    }
+    return false;
+}
+
+void FontCollection::ChangeLocalFontCollectionSize(LocalActionType type, uint64_t size)
+{
+    if (!IsLocalFontCollection()) {
+        return;
+    }
+    if (type == LocalActionType::ADD) {
+        localRegisteredSizeCount_ += size;
+    } else {
+        localRegisteredSizeCount_ -= size;
+    }
+}
+
 RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
 {
     if (ta.GetTypeface() == nullptr || Drawing::Typeface::GetTypefaceRegisterCallBack() == nullptr) {
@@ -139,8 +162,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         return nullptr;
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
-    uint32_t needSpaceSize = registeredFontSize_ + typeface->GetSize();
-    if (IsLocalFontCollection() && needSpaceSize > FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
+    if (!CheckLocalFontCollectionSize(typeface->GetSize())) {
         TEXT_LOGE("Has exceeded the set max value");
         return nullptr;
     }
@@ -155,7 +177,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         typeface = ta.GetTypeface();
         if (dfmanager_->LoadDynamicFont(familyName, typeface)) {
             FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, ta.GetAlias());
-            registeredFontSize_ = needSpaceSize;
+            ChangeLocalFontCollectionSize(LocalActionType::ADD, typeface->GetSize());
             fontCollection_->ClearFontFamilyCache();
         } else {
             typefaceSet_.erase(ta);
@@ -284,7 +306,7 @@ bool FontCollection::UnloadFont(const std::string& familyName)
             FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
             fontCollection_->RemoveCacheByUniqueId(it->GetTypeface()->GetUniqueID());
             cb.AddTypefaceUniqueId(it->GetTypeface()->GetUniqueID());
-            registeredFontSize_ -= it->GetTypeface()->GetSize();
+            ChangeLocalFontCollectionSize(LocalActionType::DEL, it->GetTypeface()->GetSize());
             typefaceSet_.erase(it++);
         } else {
             ++it;
