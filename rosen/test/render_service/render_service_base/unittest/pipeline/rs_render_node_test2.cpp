@@ -53,6 +53,23 @@ const RectF DEFAULT_SELF_DRAW_RECT = { 0, 0, 200, 200 };
 
 const int DEFAULT_NODE_ID = 1;
 const uint64_t BUFFER_USAGE_GPU_RENDER_DIRTY = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_AUXILLARY_BUFFER0;
+
+class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit RSRenderNodeDrawableAdapterBoy(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {
+        renderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
+        uifirstRenderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
+    }
+    ~RSRenderNodeDrawableAdapterBoy() override = default;
+
+    void Draw(Drawing::Canvas& canvas) override
+    {
+        printf("Draw:GetRecordingState: %d \n", canvas.GetRecordingState());
+    }
+};
+
 class RSRenderNodeTest2 : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -2657,6 +2674,82 @@ HWTEST_F(RSRenderNodeTest2, ClearDrawableVec2Test001, TestSize.Level1)
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)], nullptr);
+#endif
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: InitRenderDrawableAndDrawableVec001
+ * @tc.desc: InitRenderDrawableAndDrawableVec test if not reset node on the tree
+ * @tc.type: FUNC
+ * @tc.require: issues20621
+ */
+HWTEST_F(RSRenderNodeTest2, InitRenderDrawableAndDrawableVec001, TestSize.Level1)
+{
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->released_ = false;
+
+    std::shared_ptr<RSRenderNode> child = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(child, nullptr);
+
+    // renderDrawable_ not null, drawableVec_ not null
+    node->renderDrawable_ = std::make_shared<RSRenderNodeDrawableAdapterBoy>(child);
+    EXPECT_NE(node->renderDrawable_, nullptr);
+    node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
+    node->InitRenderDrawableAndDrawableVec();
+    EXPECT_NE(static_cast<int>(node->dirtyStatus_), 1);
+    EXPECT_FALSE(node->released_);
+
+    // renderDrawable_ null, drawableVec_ null
+    node->renderDrawable_ = nullptr;
+    EXPECT_EQ(node->renderDrawable_, nullptr);
+    node->drawableVec_ = nullptr;
+    node->InitRenderDrawableAndDrawableVec();
+    EXPECT_NE(static_cast<int>(node->dirtyStatus_), 1);
+    EXPECT_FALSE(node->released_);
+#endif
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: InitRenderDrawableAndDrawableVec002
+ * @tc.desc: InitRenderDrawableAndDrawableVec test if reset on node the tree
+ * @tc.type: FUNC
+ * @tc.require: issues20621
+ */
+HWTEST_F(RSRenderNodeTest2, InitRenderDrawableAndDrawableVec002, TestSize.Level1)
+{
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_NE(node, nullptr);
+
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(parent, nullptr);
+    std::shared_ptr<RSRenderNode> child = std::make_shared<RSRenderNode>(2);
+    EXPECT_NE(child, nullptr);
+
+    node->renderDrawable_ = std::make_shared<RSRenderNodeDrawableAdapterBoy>(child);
+    EXPECT_NE(node->renderDrawable_, nullptr);
+    node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
+
+    node->released_ = true;
+    EXPECT_TRUE(node->parent_.expired());
+    node->InitRenderDrawableAndDrawableVec();
+    EXPECT_EQ(static_cast<int>(node->dirtyStatus_), 1);
+    EXPECT_FALSE(node->released_);
+
+    node->released_ = true;
+    node->SetParent(parent);
+    EXPECT_FALSE(node->parent_.expired());
+    node->InitRenderDrawableAndDrawableVec();
+    EXPECT_EQ(static_cast<int>(node->dirtyStatus_), 1);
+    EXPECT_EQ(static_cast<int>(node->parent_.lock()->dirtyStatus_), 1);
+    EXPECT_FALSE(node->released_);
+
 #endif
     ASSERT_TRUE(true);
 }
