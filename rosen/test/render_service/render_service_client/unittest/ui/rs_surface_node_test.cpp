@@ -133,12 +133,14 @@ HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode, TestSize.Level1)
         RSSurfaceNode::SharedPtr shadowNode = surfaceNode->CreateShadowSurfaceNode();
         EXPECT_TRUE(shadowNode->isShadowNode_);
     }
+#ifdef RS_ENABLE_UNI_RENDER
     {
         RSSurfaceNode::SharedPtr shadowNode2 = surfaceNode->CreateShadowSurfaceNode();
         auto rsUIContext = shadowNode2->GetRSUIContext();
         ASSERT_TRUE(shadowNode2->isShadowNode_);
         RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
     }
+#endif
 }
 
 /**
