@@ -174,7 +174,9 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
         env, obj, "fontFeatures", array, [&fontFeatures](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref nameRef = nullptr;
-            ani_status ret = env->Object_GetPropertyByName_Ref(obj, "name", &nameRef);
+            static ani_cache_param paramName =
+                { ANI_INTERFACE_FONT_FEATURE, "<get>name", ANI_WRAP_RETURN_C(ANI_STRING) };
+            AniTextUtils::GetPropertyByCache_Ref(env, obj, paramName, nameRef);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get name, ret %{public}d", ret);
                 return "";
@@ -186,7 +188,8 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
             }
 
             ani_int valueInt;
-            ret = env->Object_GetPropertyByName_Int(obj, "value", &valueInt);
+            static ani_cache_param paramValue = { ANI_INTERFACE_FONT_FEATURE, "<get>value", ":i" };
+            AniTextUtils::GetPropertyByCache_Int(env, obj, paramValue, valueInt);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get value, ret %{public}d", ret);
                 return "";
@@ -203,7 +206,9 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
         env, obj, "fontVariations", array, [&fontVariations](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref axisRef = nullptr;
-            ani_status ret = env->Object_GetPropertyByName_Ref(obj, "axis", &axisRef);
+            static ani_cache_param paramAxis =
+                { ANI_INTERFACE_FONT_FEATURE, "<get>axis", ANI_WRAP_RETURN_C(ANI_STRING) };
+            AniTextUtils::GetPropertyByCache_Ref(env, obj, paramAxis, axisRef);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get filed axis, ret %{public}d", ret);
                 return "";

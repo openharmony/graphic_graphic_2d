@@ -63,7 +63,7 @@ public:
     template <typename EnumType>
     static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
     template <typename EnumType>
-    static ani_status ReadEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
+    static ani_status ReadEnumField(ani_env* env, ani_object obj, const ani_cache_param& param, EnumType& value);
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
@@ -154,10 +154,10 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
 };
 
 template <typename EnumType>
-ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value)
+ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const ani_cache_param& param, EnumType& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
+    ani_status result = AniTextUtils::GetPropertyByCache_Ref(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_int index = 0;
         result = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ref), &index);

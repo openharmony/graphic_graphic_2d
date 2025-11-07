@@ -35,12 +35,17 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, "align", placeholderSpan.alignment);
+
+    static ani_cache_param paramAlign =
+        { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT) };
+    ret = AniTextUtils::ReadEnumField(env, obj, paramAlign, placeholderSpan.alignment);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, "baseline", placeholderSpan.baseline);
+    static ani_cache_param paramBaseline =
+        { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE) };
+    ret = AniTextUtils::ReadEnumField(env, obj, paramBaseline, placeholderSpan.baseline);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;

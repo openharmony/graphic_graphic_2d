@@ -109,6 +109,7 @@ constexpr const char* ANI_ENUM_RECT_HEIGHT_STYLE = "@ohos.graphics.text.text.Rec
 constexpr const char* ANI_ENUM_TEXT_DIRECTION = "@ohos.graphics.text.text.TextDirection";
 constexpr const char* ANI_ENUM_AFFINITY = "@ohos.graphics.text.text.Affinity";
 constexpr const char* ANI_ENUM_SYSTEM_FONT_TYPE = "@ohos.graphics.text.text.SystemFontType";
+constexpr const char* ANI_ENUM_PLACEHOLDER_ALIGNMENT = "@ohos.graphics.text.text.PlaceholderAlignment";
 
 enum class TextErrorCode : int32_t {
     OK = 0,
