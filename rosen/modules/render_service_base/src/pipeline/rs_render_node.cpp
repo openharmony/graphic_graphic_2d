@@ -4877,26 +4877,32 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
 {
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (renderDrawable_ == nullptr) {
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
+        renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     }
-    if (renderDrawable_ == nullptr) {
 #ifndef ROSEN_ARKUI_X
+    if (renderDrawable_ == nullptr) {
         RS_LOGD("RSRenderNode::InitRenderDrawableAndDrawableVec init renderDrawable_ failed");
-#endif
     }
-    if (!drawableVec_ || released_) {
-        released_ = false;
+#endif
+    if (!drawableVec_) {
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
-        SetDirty();
-        AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
-        for (auto& [_, slot] : modifiersNG_) {
-            for (auto& modifier : slot) {
-                AddDirtyType(modifier->GetType());
-                break;
-            }
+    }
+    if (!released_) {
+        return;
+    }
+    SetDirty();
+    for (auto& [_, slot] : modifiersNG_) {
+        for (auto& modifier : slot) {
+            AddDirtyType(modifier->GetType());
+            break;
         }
     }
-
+    auto parent = parent_.lock();
+    if (parent != nullptr) {
+        parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
+        parent->SetDirty();
+    }
+    released_ = false;
 #endif
 }
 } // namespace Rosen
