@@ -4891,6 +4891,7 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
         return;
     }
     SetDirty();
+    AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
     for (auto& [_, slot] : modifiersNG_) {
         for (auto& modifier : slot) {
             AddDirtyType(modifier->GetType());
@@ -4900,7 +4901,6 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     auto parent = parent_.lock();
     if (parent != nullptr) {
         parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
-        parent->SetDirty();
     }
     released_ = false;
 #endif

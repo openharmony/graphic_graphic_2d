@@ -2747,7 +2747,7 @@ HWTEST_F(RSRenderNodeTest2, InitRenderDrawableAndDrawableVec002, TestSize.Level1
     EXPECT_FALSE(node->parent_.expired());
     node->InitRenderDrawableAndDrawableVec();
     EXPECT_EQ(static_cast<int>(node->dirtyStatus_), 1);
-    EXPECT_EQ(static_cast<int>(node->parent_.lock()->dirtyStatus_), 1);
+    EXPECT_TRUE(node->parent_.lock()->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CHILDREN)));
     EXPECT_FALSE(node->released_);
 
 #endif
