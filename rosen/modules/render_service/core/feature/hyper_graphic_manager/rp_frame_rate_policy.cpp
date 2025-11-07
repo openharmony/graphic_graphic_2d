@@ -68,7 +68,7 @@ void RPFrameRatePolicy::HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData>
     }
 }
 
-int32_t RPFrameRatePolicy::GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx,
+int32_t RPFrameRatePolicy::GetExpectedFrameRate(RSPropertyUnit unit, float velocityPx,
     int32_t areaPx, int32_t lengthPx) const
 {
     static const std::map<RSPropertyUnit, std::string> typeMap = {
@@ -103,10 +103,9 @@ int32_t RPFrameRatePolicy::GetPreferredFps(const std::string& type, float veloci
     bool matchLength = lengthMM > 0 && lengthMM < smallSizeLength_;
     if (needCheck && matchArea && matchLength) {
         if (auto it = smallSizeAnimAttributes_.find(type); it != smallSizeAnimAttributes_.end()) {
-            const auto& config = smallSizeAnimAttributes_.at(type);
-            if (auto iter = std::find_if(config.begin(), config.end(), matchFunc);
-                iter != config.end()) {
-                RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps (small size): type: %s, speed: %f, area: %f, length: %f,"
+            const auto& config = it->second;
+            if (auto iter = std::find_if(config.begin(), config.end(), matchFunc); iter != config.end()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps (small size): type: %s, speed: %f, area: %f, length: %f, "
                     "rate: %d", type.c_str(), velocityMM, areaSqrMM, lengthMM, iter->second.preferredFps);
                 return iter->second.preferredFps;
             }
@@ -115,7 +114,7 @@ int32_t RPFrameRatePolicy::GetPreferredFps(const std::string& type, float veloci
 
     // it's not a small size animation or current small size config don't cover it, find result in normal config
     if (auto it = animAttributes_.find(type); it != animAttributes_.end()) {
-        const auto& config = animAttributes_.at(type);
+        const auto& config = it->second;
         if (auto iter = std::find_if(config.begin(), config.end(), matchFunc); iter != config.end()) {
             RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, area: %f, length: %f, rate: %d",
                 type.c_str(), velocityMM, areaSqrMM, lengthMM, iter->second.preferredFps);
@@ -139,7 +138,6 @@ float RPFrameRatePolicy::SqrPixelToSqrMM(T sqrPixel) const
 {
     return PixelToMM(PixelToMM(sqrPixel));
 }
-
 
 void RPFrameRatePolicy::Reset()
 {

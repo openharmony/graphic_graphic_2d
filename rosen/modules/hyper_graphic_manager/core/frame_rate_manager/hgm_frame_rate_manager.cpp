@@ -1590,7 +1590,6 @@ void HgmFrameRateManager::SetHgmConfigUpdateCallback(
 void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
 {
     auto data = std::make_shared<RPHgmConfigData>();
-    const std::string settingMode = std::to_string(curRefreshRateMode_);
     auto& hgmCore = HgmCore::Instance();
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData == nullptr) {
@@ -1606,6 +1605,7 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
             hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
         return;
     }
+    const std::string settingMode = std::to_string(curRefreshRateMode_);
     auto modeIter = iter->second.find(settingMode);
     if (modeIter == iter->second.end()) {
         TriggerHgmConfigUpdateCallback(data,

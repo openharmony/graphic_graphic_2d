@@ -235,10 +235,7 @@ public:
         return pipelineOffsetPulseNum_ * pulse;
     }
 
-    int32_t GetPipelineOffsetPulseNum() const
-    {
-        return pipelineOffsetPulseNum_;
-    }
+    int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
     uint32_t GetSupportedMaxTE() const
     {

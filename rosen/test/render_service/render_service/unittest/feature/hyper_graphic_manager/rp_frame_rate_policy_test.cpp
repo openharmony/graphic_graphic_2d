@@ -29,6 +29,7 @@ constexpr float SCREEN_PPI = 3.9f;
 constexpr float SCREEN_XDPI = 3.9f;
 constexpr float SCREEN_YDPI = 3.9f;
 }
+
 class RPFrameRatePolicyTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -50,6 +51,7 @@ void RPFrameRatePolicyTest::SetUpTestCase()
     data->AddAnimDynamicItem({"translate", "2", 77, 800, 120});
     data->AddAnimDynamicItem({"translate", "3", 10, 77, 90});
     data->AddAnimDynamicItem({"translate", "4", 0, 10, 60});
+    data->AddAnimDynamicItem({"rotation", "1", 0, -1, 90});
     rpFrameRatePolicy_->HgmConfigUpdateCallback(data);
 
     data->SetSmallSizeArea(SMALL_SIZE_AREA);
@@ -160,19 +162,19 @@ HWTEST_F(RPFrameRatePolicyTest, TestGetPreferredFps, TestSize.Level1)
     EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("translate", 800.1f, 100.f, 100.f), 120);
     EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("translate", 3.f, 100.f, 100.f), 72);
     EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("translate", 1.f, 100.f, 100.f), 60);
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, 100.f), 0);
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, SMALL_SIZE_LENGTH + 1.f), 0);
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, -1.f), 0);
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, -1.f, -1.f), 0);
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, SMALL_SIZE_AREA + 1.f, -1.f), 0);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, 100.f), 90);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, SMALL_SIZE_LENGTH + 1.f), 90);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, -1.f), 90);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, -1.f, -1.f), 90);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, SMALL_SIZE_AREA + 1.f, -1.f), 90);
     EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("scale", 800.1f, -1.f, -1.f), 0);
 
     rpFrameRatePolicyHasSamll_->smallSizeLength_ = -1.f;
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, 100.f), 0);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, 100.f), 90);
     rpFrameRatePolicyHasSamll_->smallSizeLength_ = SMALL_SIZE_LENGTH;
 
     rpFrameRatePolicyHasSamll_->smallSizeArea_ = -1.f;
-    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, 100.f), 0);
+    EXPECT_EQ(rpFrameRatePolicyHasSamll_->GetPreferredFps("rotation", 800.1f, 100.f, 100.f), 90);
     rpFrameRatePolicyHasSamll_->smallSizeArea_ = SMALL_SIZE_AREA;
 }
 } // namespace OHOS::Rosen

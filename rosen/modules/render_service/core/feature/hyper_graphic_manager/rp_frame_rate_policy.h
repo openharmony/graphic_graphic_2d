@@ -37,7 +37,7 @@ class RPFrameRatePolicy {
 public:
     RPFrameRatePolicy() = default;
     ~RPFrameRatePolicy() = default;
-    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx, int32_t areaPx, int32_t lengthPx) const;
+    int32_t GetExpectedFrameRate(RSPropertyUnit unit, float velocityPx, int32_t areaPx, int32_t lengthPx) const;
     void HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData);
 
 private:

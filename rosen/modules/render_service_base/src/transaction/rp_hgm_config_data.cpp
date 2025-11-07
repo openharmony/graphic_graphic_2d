@@ -17,7 +17,6 @@
 #include "platform/common/rs_log.h"
 
 namespace {
-static constexpr size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 constexpr uint32_t MAX_ANIM_DYNAMIC_ITEM_SIZE = 256;
 }
 
@@ -81,7 +80,6 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
 
 bool RPHgmConfigData::Marshalling(Parcel& parcel) const
 {
-    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
     bool success = parcel.WriteFloat(ppi_) && parcel.WriteFloat(xDpi_) && parcel.WriteFloat(yDpi_) &&
         parcel.WriteInt32(smallSizeArea_) && parcel.WriteInt32(smallSizeLength_) &&
         parcel.WriteUint32(configData_.size());
@@ -92,8 +90,8 @@ bool RPHgmConfigData::Marshalling(Parcel& parcel) const
 
     for (auto& item : configData_) {
         success = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
-               parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
-               parcel.WriteInt32(item.preferredFps);
+            parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
+            parcel.WriteInt32(item.preferredFps);
         if (!success) {
             RS_LOGE("RPHgmConfigData::Marshalling parse config item failed");
             return success;
@@ -108,8 +106,8 @@ bool RPHgmConfigData::Marshalling(Parcel& parcel) const
 
     for (auto& item : smallSizeConfigData_) {
         success = parcel.WriteString(item.animType) && parcel.WriteString(item.animName) &&
-               parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
-               parcel.WriteInt32(item.preferredFps);
+            parcel.WriteInt32(item.minSpeed) && parcel.WriteInt32(item.maxSpeed) &&
+            parcel.WriteInt32(item.preferredFps);
         if (!success) {
             RS_LOGE("RPHgmConfigData::Marshalling parse small config item failed");
             return success;

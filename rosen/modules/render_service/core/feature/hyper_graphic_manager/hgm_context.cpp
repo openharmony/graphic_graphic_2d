@@ -31,7 +31,7 @@ HgmContext::HgmContext()
 {
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(
         [](const RSRenderFrameRateLinker& linker) { HgmCore::Instance().SetHgmTaskFlag(true); });
-    convertFrameRateFunc_ = [this](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
+    convertFrameRateFunc_ = [this](RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return rpFrameRatePolicy_.GetExpectedFrameRate(unit, velocity, area, length);
     };
 }
@@ -94,13 +94,10 @@ void HgmContext::InitHgmUpdateCallback()
         });
     };
 
-    HgmTaskHandleThread::Instance().PostTask([
-        hgmConfigUpdateCallbackTask]() {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr == nullptr) {
-            return;
+    HgmTaskHandleThread::Instance().PostTask([callback = std::move(hgmConfigUpdateCallbackTask)]() {
+        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
+            frameRateMgr->SetHgmConfigUpdateCallback(std::move(callback));
         }
-        frameRateMgr->SetHgmConfigUpdateCallback(hgmConfigUpdateCallbackTask);
     });
 }
 
