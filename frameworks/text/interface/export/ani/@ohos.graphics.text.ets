@@ -224,7 +224,7 @@ namespace text {
     }
   }
 
-  enum FontWidth {
+  export enum FontWidth {
     ULTRA_CONDENSED = 1,
     EXTRA_CONDENSED = 2,
     CONDENSED = 3,
@@ -236,14 +236,14 @@ namespace text {
     ULTRA_EXPANDED = 9,
   }
 
-  enum TextHeightBehavior {
+  export enum TextHeightBehavior {
     ALL = 0x0,
     DISABLE_FIRST_ASCENT = 0x1,
     DISABLE_LAST_ASCENT = 0x2,
     DISABLE_ALL = 0x1 | 0x2,
   }
 
-  enum TextAlign {
+  export enum TextAlign {
     LEFT = 0,
     RIGHT = 1,
     CENTER = 2,
@@ -252,25 +252,25 @@ namespace text {
     END = 5,
   }
 
-  enum TextDirection {
+  export enum TextDirection {
     RTL,
     LTR,
   }
 
-  enum BreakStrategy {
+  export enum BreakStrategy {
     GREEDY,
     HIGH_QUALITY,
     BALANCED,
   }
 
-  enum WordBreak {
+  export enum WordBreak {
     NORMAL,
     BREAK_ALL,
     BREAK_WORD,
     BREAK_HYPHEN,
   }
 
-  interface StrutStyle {
+  export interface StrutStyle {
     fontFamilies?: Array<string>;
     fontStyle?: FontStyle;
     fontWidth?: FontWidth;
@@ -284,7 +284,7 @@ namespace text {
     halfLeading?: boolean;
   }
 
-  interface TextTab {
+  export interface TextTab {
     alignment: TextAlign;
     location: double;
   }
@@ -301,7 +301,7 @@ namespace text {
     tab?: TextTab;
   }
 
-  interface TextShadow {
+  export interface TextShadow {
     color?: common2D.Color;
     point?: common2D.Point;
     blurRadius?: double;
@@ -409,7 +409,7 @@ namespace text {
     }
   }
 
-  interface LineMetrics {
+  export interface LineMetrics {
     startIndex: int;
     endIndex: int;
     ascent: double;
