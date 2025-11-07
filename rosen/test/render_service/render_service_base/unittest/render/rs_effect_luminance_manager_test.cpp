@@ -115,8 +115,12 @@ HWTEST_F(RSEffectLuminanceManagerTest, GetEnableHdrShader, TestSize.Level1)
     auto& manager = RSEffectLuminanceManager::GetInstance();
     EXPECT_FALSE(manager.GetEnableHdrEffect(std::shared_ptr<RSNGRenderShaderBase>(nullptr)));
 
-    auto cdflShader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    auto cdflShader = std::make_shared<RSNGRenderContourDiagonalFlowLight>();
     EXPECT_FALSE(manager.GetEnableHdrEffect(cdflShader));
+
+    Vector4f colorA{0.5f, 1.5f, 0.5f, 1.5f};
+    cdflShader->Setter<ContourDiagonalFlowLightLine1ColorRenderTag>(colorA);
+    EXPECT_TRUE(manager.GetEnableHdrEffect(cdflShader));
 }
 
 } // namespace OHOS::Rosen

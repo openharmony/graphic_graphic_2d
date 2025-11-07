@@ -111,9 +111,24 @@ static std::unordered_map<RSNGEffectType, FilterEDRChecker> edrFilterCheckerLUT 
     {RSNGEffectType::COLOR_GRADIENT, GetEnableEDREffectColorGradient},
     {RSNGEffectType::SOUND_WAVE, GetEnableEDREffectSoundWave},
 };
- 
+
+bool GetEnableEDRContourDiagonalFlowLight(std::shared_ptr<RSNGRenderShaderBase> renderShader)
+{
+    auto shader = std::static_pointer_cast<RSNGRenderContourDiagonalFlowLight>(renderShader);
+    if (!shader) {
+        return false;
+    }
+    // Using the alpha switch EDR, ContourDiagonalFlowLight has not use it yet.
+    // RGB cannot to be used to switch EDR may cause ContourDiagonalFlowLight flickering.
+    const float diagonalEDRThreshold = 1.0f;
+    const auto& color0 = shader->Getter<ContourDiagonalFlowLightLine1ColorRenderTag>()->Get();
+    const auto& color1 = shader->Getter<ContourDiagonalFlowLightLine2ColorRenderTag>()->Get();
+    return ROSEN_GNE(color0.w_, diagonalEDRThreshold) ||  ROSEN_GNE(color1.w_, diagonalEDRThreshold);
+}
+
 static std::unordered_map<RSNGEffectType, ShaderEDRChecker> edrShaderCheckerLUT = {
     {RSNGEffectType::COLOR_GRADIENT_EFFECT, GetEnableEDRShaderColorGradient},
+    {RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT, GetEnableEDRContourDiagonalFlowLight}
 };
 
 std::mutex g_dataMutex;
