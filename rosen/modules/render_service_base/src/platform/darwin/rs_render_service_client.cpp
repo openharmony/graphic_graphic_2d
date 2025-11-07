@@ -336,6 +336,15 @@ std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
     return "";
 }
 
+int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return 0;
+}
+
+int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
+{
+    return RS_CONNECTION_ERROR;
+}
 
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {

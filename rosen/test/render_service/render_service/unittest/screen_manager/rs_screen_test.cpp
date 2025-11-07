@@ -642,7 +642,7 @@ HWTEST_F(RSScreenTest, GetVirtualScreenAutoRotationTest, testing::ext::TestSize.
 
 /**
  * @tc.name: SetRogResolution_002
- * @tc.desc: SetRogResolution Test, trigger branch -- hdiScreen_->SetScreenOverlayResolution(width, height) < 0
+ * @tc.desc: SetRogResolution Test
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -660,11 +660,45 @@ HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
 
     rsScreen->phyWidth_ = width + 1;
     rsScreen->phyHeight_ = height + 1;
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // case 1: hdiScreen_->SetScreenOverlayResolution failed
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+    rsScreen->SetRogResolution(width, height);
+
+    // case 2: hdiScreen_->SetScreenOverlayResolution success
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
+    rsScreen->SetRogResolution(width, height);
+}
+
+/**
+ * @tc.name: GetRogResolution_001
+ * @tc.desc: test GetRogResolution with mock HDI device
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    uint32_t width{0};
+    uint32_t height{0};
+    uint32_t setWidth{1920};
+    uint32_t setHeight{1080};
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    
+    ASSERT_NE(nullptr, hdiDeviceMock_);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_NE(nullptr, rsScreen->hdiScreen_);
 
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
 
-    rsScreen->SetRogResolution(width, height);
+    // case 1: GetRogResolution without prior setup
+    ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::INVALID_ARGUMENTS);
+
+    // case 2: GetRogResolution with prior setup
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
+    rsScreen->SetRogResolution(setWidth, setHeight);
+    ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::SUCCESS);
 }
 
 /*

@@ -1684,6 +1684,76 @@ ErrCode RSRenderServiceConnectionProxy::GetRefreshInfoToSP(NodeId id, std::strin
     return ERR_OK;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(width)) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteUint32 width err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(height)) {
+        ROSEN_LOGE("SetRogScreenResolution: WriteUint32 height err.");
+        return WRITE_PARCEL_ERR;
+    }
+    auto code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetRogScreenResolution: SendRequest error: %{public}d.", err);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetRogScreenResolution Read status failed");
+        return READ_PARCEL_ERR;
+    }
+    return status;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("GetRogScreenResolution: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("GetRogScreenResolution: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    auto code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRogScreenResolution: SendRequest error: %{public}d.", err);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t status{0};
+    if (!reply.ReadInt32(status)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRogScreenResolution Read status failed");
+        return READ_PARCEL_ERR;
+    }
+    if (!reply.ReadUint32(width)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRogScreenResolution Read width failed");
+        return READ_PARCEL_ERR;
+    }
+    if (!reply.ReadUint32(height)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRogScreenResolution Read height failed");
+        return READ_PARCEL_ERR;
+    }
+    return status;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     MessageParcel data;

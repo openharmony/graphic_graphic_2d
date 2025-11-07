@@ -65,7 +65,8 @@ const uint8_t DO_GET_SCREEN_GAMUT_MAP = 18;
 const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 19;
 const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
 const uint8_t DO_CLEAN_VIRTUAL_SCREENS = 21;
-const uint8_t TARGET_SIZE = 22;
+const uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
+const uint8_t TARGET_SIZE = 23;
 } // namespace
 
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
@@ -229,6 +230,22 @@ void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
     dataP.WriteInterfaceToken(GetDescriptor());
     dataP.WriteUint64(id);
     dataP.WriteUint32(modeId);
+    g_connectionStub->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    dataP.WriteInterfaceToken(GetDescriptor());
+    uint64_t id = fdp.ConsumeIntegral<uint64_t>();
+    dataP.WriteUint64(id);
+    uint32_t width = fdp.ConsumeIntegral<uint32_t>();
+    dataP.WriteUint32(width);
+    uint32_t height = fdp.ConsumeIntegral<uint32_t>();
+    dataP.WriteUint32(height);
     g_connectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -533,6 +550,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_CLEAN_VIRTUAL_SCREENS:
             OHOS::Rosen::DoCleanVirtualScreens();
+            break;
+        case OHOS::Rosen::DO_SET_ROG_SCREEN_RESOLUTION:
+            OHOS::Rosen::DoSetRogScreenResolution(fdp);
             break;
         default:
             return -1;

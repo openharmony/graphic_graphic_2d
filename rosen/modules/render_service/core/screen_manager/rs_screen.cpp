@@ -523,13 +523,27 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 
     if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
         RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
+        return;
     }
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
+    isRogResolution_ = true;
     width_ = width;
     height_ = height;
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
         " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",
         __func__, id_, width_, height_, phyWidth_, phyHeight_);
+}
+
+int32_t RSScreen::GetRogResolution(uint32_t& width, uint32_t& height)
+{
+    std::lock_guard<std::shared_mutex> lock(screenMutex_);
+    if (isRogResolution_) {
+        width = width_;
+        height = height_;
+        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::INVALID_ARGUMENTS;
 }
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
