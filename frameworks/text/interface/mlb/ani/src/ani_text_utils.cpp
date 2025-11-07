@@ -392,7 +392,7 @@ ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const ani_cache_param
         return ret;
     }
 
-    ani_status ret = env->Class_FindMethod(cls, param.methodName, param.signature, &method);
+    ret = env->Class_FindMethod(cls, param.methodName, param.signature, &method);
     if (ret == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(key, method);
     } else {

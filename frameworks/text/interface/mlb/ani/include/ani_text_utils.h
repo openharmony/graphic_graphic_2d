@@ -179,17 +179,17 @@ ani_status AniTextUtils::ReadOptionalArrayField(
         return result;
     }
 
-    ani_object arrayObj = reinterpret_cast<ani_object>(ref);
-    ani_int length;
+    ani_array arrayObj = reinterpret_cast<ani_array>(ref);
+    ani_size length;
     result = env->Array_GetLength(arrayObj, &length);
     if (result != ANI_OK) {
         TEXT_LOGE("Failed to get length of %{public}s, ret: %{public}d", fieldName, result);
         return result;
     }
 
-    for (size_t i = 0; i < static_cast<size_t>(length); i++) {
+    for (size_t i = 0; i < length; i++) {
         ani_ref entryRef = nullptr;
-        result = env->Array_Get(reinterpret_cast<ani_array>(arrayObj), i, &entryRef);
+        result = env->Array_Get(arrayObj, i, &entryRef);
         if (result != ANI_OK || entryRef == nullptr) {
             TEXT_LOGE("Failed to get array object of %{public}s, ret: %{public}d", fieldName, result);
             continue;

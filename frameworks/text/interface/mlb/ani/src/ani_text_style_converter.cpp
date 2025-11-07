@@ -29,7 +29,6 @@ ani_status ParseDrawingColorToNative(
 {
     ani_ref colorRef = nullptr;
     ani_status result = ANI_ERROR;
-    param.signature = ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR);
     if (readOptional) { // true: read optional field (eg: param?: string)
         result = AniTextUtils::ReadOptionalField(env, obj, param, colorRef);
     } else {
@@ -50,7 +49,7 @@ ani_status ParseDrawingColorToNative(
 ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ParseDecorationToNative(env, obj, textStyle);
-    static ani_cache_param paramColor = { ANI_INTERFACE_TEXT_STYLE, "<get>color" };
+    static ani_cache_param paramColor = { ANI_INTERFACE_TEXT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
     ParseDrawingColorToNative(env, obj, true, paramColor, textStyle.color);
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle.fontWeight);
@@ -105,7 +104,7 @@ void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj
             env, reinterpret_cast<ani_object>(decorationRef), "decorationStyle", textStyle.decorationStyle);
         AniTextUtils::ReadOptionalDoubleField(env, reinterpret_cast<ani_object>(decorationRef),
             "decorationThicknessScale", textStyle.decorationThicknessScale);
-        static ani_cache_param paramColor = { ANI_INTERFACE_DECORATION, "<get>color" };
+        static ani_cache_param paramColor = { ANI_INTERFACE_DECORATION, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
         ParseDrawingColorToNative(
             env, reinterpret_cast<ani_object>(decorationRef), true, paramColor, textStyle.decorationColor);
     }
@@ -115,7 +114,7 @@ inline void GetPointXFromJsBumber(ani_env* env, ani_object argValue, Drawing::Po
 {
     ani_double objValue = 0;
     static ani_cache_param paramX = { ANI_INTERFACE_POINT, "<get>x", ":d" };
-    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramX, objValue);
+    ani_status ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramX, objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param x is invalid, ret %{public}d", ret);
         return;
@@ -127,7 +126,7 @@ inline void GetPointYFromJsBumber(ani_env* env, ani_object argValue, Drawing::Po
 {
     ani_double objValue = 0;
     static ani_cache_param paramY = { ANI_INTERFACE_POINT, "<get>y", ":d" };
-    ret = AniTextUtils::GetPropertyByCache_Double(env, argValue, paramY, objValue);
+    ani_status ret = AniTextUtils::GetPropertyByCache_Double(env, argValue, paramY, objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param y is invalid, ret %{public}d", ret);
         return;
@@ -146,18 +145,19 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
         env, obj, "textShadows", array, [&textShadow](ani_env* env, ani_ref ref) {
+            ani_object shadowObj = reinterpret_cast<ani_object>(ref);
             double runTimeRadius;
             AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
 
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            static ani_cache_param paramColor = { ANI_INTERFACE_TEXTSHADOW, "<get>color" };
+            static ani_cache_param paramColor = { ANI_INTERFACE_TEXTSHADOW, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
             ParseDrawingColorToNative(env, shadowObj, true, paramColor, colorSrc);
 
             Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
             static ani_cache_param pointParam =
                 { ANI_INTERFACE_TEXTSHADOW, "<get>point", ANI_WRAP_RETURN_C(ANI_INTERFACE_POINT) };
-            ret = AniTextUtils::ReadOptionalField(env, shadowObj, pointParam, pointValue);
+            ani_status ret = AniTextUtils::ReadOptionalField(env, shadowObj, pointParam, pointValue);
             if (ret == ANI_OK && pointValue != nullptr) {
                 GetTextShadowPoint(env, reinterpret_cast<ani_object>(pointValue), offset);
             }
@@ -172,8 +172,9 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
         env, obj, "fontFeatures", array, [&fontFeatures](ani_env* env, ani_ref ref) {
+            ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref nameRef = nullptr;
-            ret = env->Object_GetPropertyByName_Ref(obj, "name", &nameRef);
+            ani_status ret = env->Object_GetPropertyByName_Ref(obj, "name", &nameRef);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get name, ret %{public}d", ret);
                 return "";
@@ -200,8 +201,9 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
         env, obj, "fontVariations", array, [&fontVariations](ani_env* env, ani_ref ref) {
+            ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref axisRef = nullptr;
-            ret = env->Object_GetPropertyByName_Ref(obj, "axis", &axisRef);
+            ani_status ret = env->Object_GetPropertyByName_Ref(obj, "axis", &axisRef);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get filed axis, ret %{public}d", ret);
                 return "";
@@ -226,30 +228,19 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
 
 void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_RECT_STYLE, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return;
-    }
-    ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
-        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
-        return;
-    }
     Drawing::Color color;
-    static ani_cache_param paramColor = { ANI_INTERFACE_RECT_STYLE, "<get>color" };
+    static ani_cache_param paramColor =
+        { ANI_INTERFACE_RECT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
     if (ParseDrawingColorToNative(env, obj, false, paramColor, color) == ANI_OK) {
         rectStyle.color = color.CastToColorQuad();
     }
-    static ani_cache_param paramLeftTopRadius = { ANI_INTERFACE_POINT, "<get>leftTopRadius", ":d" };
+    static ani_cache_param paramLeftTopRadius = { ANI_INTERFACE_RECT_STYLE, "<get>leftTopRadius", ":d" };
     AniTextUtils::GetPropertyByCache_Double(env, obj, paramLeftTopRadius, rectStyle.leftTopRadius);
-    static ani_cache_param paramRightTopRadius = { ANI_INTERFACE_POINT, "<get>rightTopRadius", ":d" };
+    static ani_cache_param paramRightTopRadius = { ANI_INTERFACE_RECT_STYLE, "<get>rightTopRadius", ":d" };
     AniTextUtils::GetPropertyByCache_Double(env, obj, paramRightTopRadius, rectStyle.rightTopRadius);
-    static ani_cache_param paramRightBottomRadius = { ANI_INTERFACE_POINT, "<get>rightBottomRadius", ":d" };
+    static ani_cache_param paramRightBottomRadius = { ANI_INTERFACE_RECT_STYLE, "<get>rightBottomRadius", ":d" };
     AniTextUtils::GetPropertyByCache_Double(env, obj, paramRightBottomRadius, rectStyle.rightBottomRadius);
-    static ani_cache_param paramLeftBottomRadius = { ANI_INTERFACE_POINT, "<get>leftBottomRadius", ":d" };
+    static ani_cache_param paramLeftBottomRadius = { ANI_INTERFACE_RECT_STYLE, "<get>leftBottomRadius", ":d" };
     AniTextUtils::GetPropertyByCache_Double(env, obj, paramLeftBottomRadius, rectStyle.leftBottomRadius);
 }
 

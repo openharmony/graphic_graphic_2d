@@ -24,7 +24,7 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
     static ani_cache_param paramWidth = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d" };
-    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramWidth, placeholderSpan.width);
+    ani_status ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramWidth, placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
