@@ -103,8 +103,8 @@ private:
         const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio);
 
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSLogicalDisplayRenderParams& params);
-    void DrawAdditionalContent(RSPaintFilterCanvas& canvas);
-    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas);
+    void DrawAdditionalContent(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas = false);
+    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas = false);
 
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
