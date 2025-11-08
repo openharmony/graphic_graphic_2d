@@ -16,9 +16,9 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RP_HGM_XML_PARSER_H
 #define RENDER_SERVICE_CORE_PIPELINE_RP_HGM_XML_PARSER_H
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -33,13 +33,11 @@ public:
     const std::vector<std::string>& GetAppBufferList() const
     {
         return appBufferList_;
-    }
-    
+    }  
     const std::unordered_map<std::string, std::string>& GetSourceTuningConfig() const
     {
         return sourceTuningConfig_;
     }
-
     const std::unordered_map<std::string, std::string>& GetSolidLayerConfig() const
     {
         return solidLayerConfig_;

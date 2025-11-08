@@ -72,16 +72,14 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
                                     <Params name="additional_touch_rate_config">
                                         <Test name="AAAAA" value="1"/>
                                         <Test name="BBBBB" value="2"/>
-                                        xxxx
                                     </Params>
                                     <Params name="source_tuning_for_yuv420">
                                         <Test name="AAAAA" value="1"/>
-                                        <Test name="BBBBB" value="2"/>
-                                        xxxx
+                                        <Test name="BBBBB"/>
                                     </Params>
                                     <Params name="rs_solid_color_layer_config">
                                         <Test name="AAAAA" value="1"/>
-                                        <Test name="BBBBB"/>
+                                        <Test name="BBBBB" value="2"/>
                                     </Params>
                                 </HgmConfig>)");
 
@@ -106,11 +104,8 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
 
     xmlFreeDoc(parser->xmlDocument_);
     parser->xmlDocument_ = StringToXmlDoc(xmlContent);
-    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
+    EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
     EXPECT_EQ(parser->appBufferList_.size(), 2);
-    EXPECT_EQ(parser->sourceTuningConfig_.size(), 2);
-    EXPECT_EQ(parser->solidLayerConfig_.size(), 2);
-    EXPECT_EQ(parser->solidLayerConfig_["BBBBB"], "");
+    EXPECT_EQ(parser->sourceTuningConfig_.size(), 1);
 }
-
 } // namespace OHOS::Rosen

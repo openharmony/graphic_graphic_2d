@@ -15,9 +15,9 @@
 
 #include "rs_hwc_context.h"
 
+#include "common/rs_common_hook.h"
 #include "hgm_core.h"
 #include "hwc_param.h"
-#include "common/rs_common_hook.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
@@ -43,7 +43,11 @@ void RSHwcContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs
         return;
     }
     for (auto& param : pkgs) {
-        std::string pkgNameForCheck = param.substr(0, param.find(':'));
+        auto namePos = param.find(':');
+        if (namePos == std::string::npos) {
+            continue;
+        }
+        std::string pkgNameForCheck = param.substr(0, namePos);
         // 1 means crop source tuning
         auto videoIter = videoConfigFromHgm.find(pkgNameForCheck);
         auto hwcVideoIter = hwcVideoConfigFromHgm.find(pkgNameForCheck);

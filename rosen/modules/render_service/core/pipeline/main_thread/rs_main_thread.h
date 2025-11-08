@@ -45,6 +45,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/hwc/rs_direct_composition_helper.h"
+#include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
@@ -60,7 +61,6 @@
 #endif
 
 #include "hgm_core.h"
-#include "pipeline/hwc/rs_hwc_context.h"
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
