@@ -95,6 +95,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
  */
 HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
 {
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
     NodeId nodeId = 0;
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
@@ -151,7 +156,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     ASSERT_TRUE(drawable->ShouldPaint());
     
     CaptureParam params;
-    params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
     ScreenId screenid = 1;
@@ -324,6 +328,37 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCapture004, TestSize.Level2)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     canvasDrawable->OnCapture(canvas);
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw003
+ * @tc.desc: Test OnDraw while isn't security display
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest003, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnDraw(canvas);
+    ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
 
     // restore
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());

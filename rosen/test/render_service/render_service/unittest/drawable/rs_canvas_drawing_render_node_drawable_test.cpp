@@ -38,7 +38,14 @@ public:
     static std::shared_ptr<RSCanvasDrawingRenderNodeDrawable> CreateDrawable();
 };
 
-void RSCanvasDrawingRenderNodeDrawableTest::SetUpTestCase() {}
+void RSCanvasDrawingRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        RsVulkanContext::GetSingleton();
+    }
+#endif
+}
 void RSCanvasDrawingRenderNodeDrawableTest::TearDownTestCase() {}
 void RSCanvasDrawingRenderNodeDrawableTest::SetUp() {}
 void RSCanvasDrawingRenderNodeDrawableTest::TearDown() {}
@@ -744,23 +751,76 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, Tes
 
 /**
  * @tc.name: OnDraw001
- * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.desc: Test OnDraw while isn't security display
  * @tc.type: FUNC
- * @tc.require: issue19858
+ * @tc.require: issue20602
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw001, TestSize.Level2)
 {
     auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
 
     auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetSecurityDisplay(false);
     RSUniRenderThread::Instance().Sync(std::move(params));
-    RSUniRenderThread::captureParam_.isMirror_ = true;
+    RSUniRenderThread::Instance().SetWhiteList({});
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    drawable->OnDraw(canvas);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw002
+ * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw002, TestSize.Level2)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
     std::unordered_set<NodeId> whiteList = {drawable->nodeId_};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
 
-    Drawing::Canvas canvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
+    drawable->OnDraw(canvas);
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw003
+ * @tc.desc: Test OnDraw while list is empty
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw003, TestSize.Level2)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
     drawable->OnDraw(canvas);
 
     // restore

@@ -177,6 +177,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             HILOG_COMM_ERROR("RSLogicalDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
+        uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
         currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
         RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
         if (mirroredRenderParams) {
@@ -185,6 +186,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
                 WiredScreenProjection(*params, processor);
                 lastBlackList_ = currentBlackList_;
+                uniParam->SetSecurityDisplay(false);
                 return;
             }
             currentTypeBlackList_ = screenManager->GetVirtualScreenTypeBlackList(paramScreenId);
@@ -200,11 +202,10 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
-            uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
             DrawExpandDisplay(*params);
             lastSecExemption_ = curSecExemption_;
-            uniParam->SetSecurityDisplay(false);
         }
+        uniParam->SetSecurityDisplay(false);
         lastBlackList_ = currentBlackList_;
         return;
     }

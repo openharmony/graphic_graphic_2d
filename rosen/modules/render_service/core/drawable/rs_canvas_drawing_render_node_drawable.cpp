@@ -69,9 +69,6 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
-        return;
-    }
     SetDrawSkipType(DrawSkipType::NONE);
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
@@ -108,6 +105,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped());
     if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDropNodeExt_) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
+        return;
+    }
+
+    if (uniParam->IsSecurityDisplay() && RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
         return;
     }
 
