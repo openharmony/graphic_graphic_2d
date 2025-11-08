@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_RENDER_CONNECTION_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_RENDER_CONNECTION_STUB_H
 
 #include <unordered_set>
 #include <iremote_stub.h>
@@ -28,30 +28,21 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderServiceConnectionStub : public IRemoteStub<RSIRenderServiceConnection> {
+class RSClientToRenderConnectionStub : public IRemoteStub<RSIRenderServiceConnection> {
 public:
-    RSRenderServiceConnectionStub() = default;
-    ~RSRenderServiceConnectionStub() noexcept = default;
+    RSClientToRenderConnectionStub() = default;
+    ~RSClientToRenderConnectionStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
-    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override {};
-    void RunOnRemoteDiedCallback() override {};
 
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
 
-    bool WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data);
     bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
-    bool ReadAppInfo(AppInfo& info, MessageParcel& data);
-    bool ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
     bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
     bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
     bool ReadSurfaceCaptureAreaRect(Drawing::Rect& specifiedAreaRect, MessageParcel& data);
     void SetQos();
-
-    virtual std::string GetBundleName(pid_t pid) { return {}; }
-
     RSRenderServiceSecurityUtils securityUtils_;
     std::unordered_set<int> tids_;
     std::mutex mutex_;
@@ -59,4 +50,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_RENDER_CONNECTION_STUB_H

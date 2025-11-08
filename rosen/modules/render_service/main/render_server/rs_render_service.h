@@ -24,6 +24,7 @@
 #include "transaction/rs_render_service_stub.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
+#inclulde "vsync_receiver.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,17 +41,19 @@ public:
 
     bool Init();
     void Run();
-    sptr<RSIRenderServiceConnection> GetConnection(sptr<RSIConnectionToken>& token) override
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+        GetConnection(sptr<RSIConnectionToken>& token) override
     {
         std::unique_lock<std::mutex> lock(mutex_);
         auto tokenObj = token->AsObject();
         auto iter = connections_.find(tokenObj);
         if (iter == connections_.end()) {
             RS_LOGE("GetConnection: connections_ cannot find token");
-            return nullptr;
+            return {nullptr, nullptr};
         }
         return iter->second;
     }
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 private:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
     void DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
@@ -80,7 +83,8 @@ private:
         std::string& dumpString, const std::u16string& arg) const;
     void ClearFps(std::string& dumpString, std::string& layerName) const;
 
-    sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+        CreateConnection(const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
     void RegisterRcdMsg();
 
@@ -103,7 +107,7 @@ private:
 
     friend class RSRenderServiceConnection;
     mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>, sptr<RSIRenderServiceConnection>> connections_;
+    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>> connections_;
 
     sptr<VSyncController> rsVSyncController_;
     sptr<VSyncController> appVSyncController_;
