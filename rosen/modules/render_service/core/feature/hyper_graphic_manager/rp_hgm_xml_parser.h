@@ -33,7 +33,7 @@ public:
     const std::vector<std::string>& GetAppBufferList() const
     {
         return appBufferList_;
-    }  
+    }
     const std::unordered_map<std::string, std::string>& GetSourceTuningConfig() const
     {
         return sourceTuningConfig_;
