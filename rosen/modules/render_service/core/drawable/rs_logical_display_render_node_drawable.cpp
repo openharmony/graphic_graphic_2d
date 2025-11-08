@@ -336,7 +336,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         }
 
         RSRenderNodeDrawable::OnCapture(canvas);
-        // paintFilterCanvas is offScreen create Canvas 
+        // paintFilterCanvas is offScreen create Canvas
         DrawAdditionalContent(*paintFilterCanvas, RSUniRenderThread::GetCaptureParam().isMirror_);
     } else {
         canvas.Clear(Drawing::Color::COLOR_BLACK);

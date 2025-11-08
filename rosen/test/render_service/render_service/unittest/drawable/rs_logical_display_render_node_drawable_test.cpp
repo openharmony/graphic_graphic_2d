@@ -4088,7 +4088,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed002, TestSiz
     rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
     rsRenderThreadParams->SetWatermark(true, img);
     displayDrawable_->DrawWatermarkIfNeed(canvas, true);
-
 }
 /**
  * @tc.name: GetScreenParamsTest
