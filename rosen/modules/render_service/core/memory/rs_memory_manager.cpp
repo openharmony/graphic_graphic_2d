@@ -554,16 +554,19 @@ void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext*
         memoryMap[pid] = 0.0f;
     }
     log.AppendFormat("\n---------------\nGPU Memory Data:\n");
+    float totalMemoryKB = 0.0f;
     int32_t rsMemory = MemoryTrackerGetGLByPid(getpid());
-    log.AppendFormat("Render Service GPU memory: %d KB", rsMemory);
     for (auto& [pid, memory] : memoryMap) {
         Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
         memory = DumpGpuCacheNew(log, gpuContext, &tag);
         float memoryKB = memory / MEMUNIT_RATE;
+        totalMemoryKB += memoryKB;
         if (memoryKB >= 0.1f) {
             log.AppendFormat("pid: %d, gpu memory: %.2fKB\n", pid, memoryKB);
         }
     }
+    rsMemory -= static_cast<int32_t>(round(totalMemoryKB));
+    log.AppendFormat("Render Service GPU memory: %d KB\n", rsMemory);
 #endif
 }
 
