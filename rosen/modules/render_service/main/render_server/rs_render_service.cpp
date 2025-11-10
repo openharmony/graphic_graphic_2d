@@ -264,12 +264,12 @@ void RSRenderService::RegisterRcdMsg()
 #endif
 }
 
-std::pair<sptr<RSIRenderServiceConnection>, sptr<RSIClientToRenderConnection>>
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     if (!mainThread_ || !token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
-        return (nullptr, nullptr);
+        return {nullptr, nullptr};
     }
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
@@ -281,7 +281,7 @@ std::pair<sptr<RSIRenderServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
 
-    std::pair<sptr<RSIRenderServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
     auto it = connections_.find(tokenObj);
@@ -308,7 +308,7 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         RS_LOGE("RemoveConnection: connections_ cannot find token");
         return false;
     }
-    auto [newConn, rsRenderConn] = iter->second;
+    auto [rsConn, rsRenderConn] = iter->second;
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }

@@ -753,24 +753,24 @@ uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
 
 int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
+    auto clientToService = GetClientToServiceConnection();
+    if (clientToService == nullptr) {
         ROSEN_LOGE("%{public}s: render service is null", __func__);
         return RENDER_SERVICE_NULL;
     }
 
-    return renderService->SetRogScreenResolution(id, width, height);
+    return clientToService->SetRogScreenResolution(id, width, height);
 }
 
 int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
 {
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
+    auto clientToService = GetClientToServiceConnection();
+    if (clientToService == nullptr) {
         ROSEN_LOGE("%{public}s: render service is null", __func__);
         return RENDER_SERVICE_NULL;
     }
 
-    return renderService->GetRogScreenResolution(id, width, height);
+    return clientToService->GetRogScreenResolution(id, width, height);
 }
 
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1364,15 +1364,6 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_
         return;
     }
     clientToService->SetScreenOffset(id, offSetX, offSetY);
-}
-
-void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-    auto clientToService = GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return;
-    }
-    clientToService->SetScreenFrameGravity(id, gravity);
 }
 
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub

@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
 
 #include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
 #include <memory>
-#include <platform/ohos/rs_irender_service_connection.h>
+#include <platform/ohos/rs_iclient_to_service_connection.h>
 #include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderServiceConnectionProxy : public IRemoteProxy<RSIRenderServiceConnection> {
+class RSClientToServiceConnectionProxy : public IRemoteProxy<RSIClientToServiceConnection> {
 public:
-    explicit RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl);
-    virtual ~RSRenderServiceConnectionProxy() noexcept = default;
+    explicit RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl);
+    virtual ~RSClientToServiceConnectionProxy() noexcept = default;
 
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
@@ -50,8 +50,6 @@ public:
     
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
         std::shared_ptr<Media::PixelMap> &pixelMap) override;
-
-    ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)override;
 
     ErrCode GetDefaultScreenId(uint64_t& screenId) override;
     ErrCode GetActiveScreenId(uint64_t& screenId) override;
@@ -165,33 +163,6 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
-        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
-
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
-        TakeSurfaceCaptureSoloNode(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-            RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
-
-    void TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) override;
-
-    ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
-
-    ErrCode TakeSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
-        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
-
-    ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
-
-    void TakeUICaptureInRange(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
-
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-        float positionZ, float positionW) override;
-
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
@@ -253,8 +224,6 @@ public:
 
     ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) override;
 
-    ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
-
     ErrCode GetScreenSupportedColorSpaces(
         ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) override;
 
@@ -279,8 +248,6 @@ public:
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
     void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
-
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
@@ -359,7 +326,6 @@ public:
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
@@ -385,17 +351,7 @@ public:
         TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
 
-    ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-        sptr<RSISurfaceBufferCallback> callback) override;
-
-    ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
-
-    void RegisterTransactionDataCallback(uint64_t token,
-        uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
-
     ErrCode NotifyScreenSwitched() override;
-
-    ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
@@ -428,8 +384,6 @@ public:
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
-    void ClearUifirstCache(NodeId id) override;
-
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
@@ -447,10 +401,6 @@ private:
 
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
-    ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
-    
-    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
-
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
@@ -463,7 +413,7 @@ private:
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
-    static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
+    static inline BrokerDelegator<RSClientToServiceConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();
     std::atomic<uint32_t> transactionDataIndex_ = 0;
@@ -472,4 +422,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_PROXY_H
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H

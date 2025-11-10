@@ -492,19 +492,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenOffset, TestSize.Level1)
     ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
-/**
- * @tc.name: SetScreenFrameGravity Test
- * @tc.desc: SetScreenFrameGravity Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenFrameGravity, TestSize.Level1)
-{
-    ScreenId id = 100;
-    int32_t gravity = 5;
-    proxy->SetScreenFrameGravity(id, gravity);
-    ASSERT_NE(proxy->transactionDataIndex_, 5);
-}
+
 
 /**
  * @tc.name: SetScreenRefreshRate Test

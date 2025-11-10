@@ -545,10 +545,6 @@ void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_
 {
 }
 
-void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-}
-
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};

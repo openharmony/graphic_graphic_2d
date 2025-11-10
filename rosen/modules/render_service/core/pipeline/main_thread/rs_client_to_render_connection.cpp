@@ -41,6 +41,7 @@
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -751,6 +752,23 @@ ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value
     };
     mainThread_->PostTask(task);
     return ERR_OK;
+}
+
+void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), id, gravity]() -> void {
+        sptr<RSClientToRenderConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        context.GetNodeMap().TraverseScreenNodes([id, gravity](auto& node) {
+            if (node && node->GetScreenId() == id) {
+                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+            }
+        });
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSClientToRenderConnection::ClearUifirstCache(NodeId id)

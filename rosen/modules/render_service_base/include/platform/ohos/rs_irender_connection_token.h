@@ -13,27 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_iRENDER_CONNECTION_TOKEN_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_iRENDER_CONNECTION_TOKEN_H
 
-#include "rs_irender_connection_token.h"
 #include "rs_iclient_to_render_connection.h"
 #include "rs_iclient_to_service_connection.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSIRenderService : public IRemoteBroker {
+
+class RSIConnectionToken : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderService");
-
-    RSIRenderService() = default;
-    virtual ~RSIRenderService() noexcept = default;
-
-    virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
-        const sptr<RSIConnectionToken>& token) = 0;
-    virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSIConnectionToken");
+    RSIConnectionToken() = default;
+    virtual ~RSIConnectionToken() noexcept = default;
 };
+
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_H
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_iRENDER_CONNECTION_TOKEN_H

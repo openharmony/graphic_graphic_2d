@@ -94,6 +94,8 @@
 #undef LOG_TAG
 #define LOG_TAG "RSClientToServiceConnection"
 
+#include "app_mgr_client.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -682,7 +684,8 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
     return ERR_OK;
 }
 
-bool RSClientToServiceConnection::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+ErrCode RSClientToServiceConnection::SetWatermark(
+    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success)
 {
     if (!mainThread_) {
         success = false;
@@ -1347,8 +1350,8 @@ ErrCode RSClientToServiceConnection::ForceRefreshOneFrameWithNextVSync()
         return ERR_INVALID_VALUE;
     }
 
-    auto task = [weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
-        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+    auto task = [weakThis = wptr<RSClientToServiceConnection>(this)]() -> void {
+        sptr<RSClientToServiceConnection> connection = weakThis.promote();
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
         }
@@ -2421,23 +2424,6 @@ void RSClientToServiceConnection::SetScreenOffset(ScreenId id, int32_t offsetX, 
         return;
     }
     screenManager_->SetScreenOffset(id, offsetX, offsetY);
-}
-
-void RSClientToServiceConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
-{
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), id, gravity]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = connection->mainThread_->GetContext();
-        context.GetNodeMap().TraverseScreenNodes([id, gravity](auto& node) {
-            if (node && node->GetScreenId() == id) {
-                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
-            }
-        });
-    };
-    mainThread_->PostTask(task);
 }
 
 ErrCode RSClientToServiceConnection::RegisterOcclusionChangeCallback(

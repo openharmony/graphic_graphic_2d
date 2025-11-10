@@ -298,13 +298,13 @@ void RSRenderInterface::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zO
     renderPiplineClient_->SetLayerTopForHWC(nodeId, isTop, zOrder);
 }
 
-void RSRenderInterface::SetFocusAppInfo(const FocusAppInfo& info)
+int32_t RSRenderInterface::SetFocusAppInfo(const FocusAppInfo& info)
 {
     if (renderPiplineClient_ == nullptr) {
         ROSEN_LOGE("RSRenderInterface::SetFocusAppInfo renderPiplineClient_ nullptr");
-        return;
+        return ERR_INVALID_VALUE;
     }
-    renderPiplineClient_->SetFocusAppInfo(info);
+    return renderPiplineClient_->SetFocusAppInfo(info);
 }
 
 bool RSRenderInterface::SetAncoForceDoDirect(bool direct)
@@ -352,11 +352,6 @@ void RSRenderInterface::DropFrameByPid(const std::vector<int32_t> pidList)
     renderPiplineClient_->DropFrameByPid(pidList);
 }
 
-void RSRenderInterface::ForceRefreshOneFrameWithNextVSync()
-{
-    renderPiplineClient_->ForceRefreshOneFrameWithNextVSync();
-}
-
 void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
 {
     renderPiplineClient_->SetWindowContainer(nodeId, value);
@@ -365,6 +360,11 @@ void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
 int32_t RSRenderInterface::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     return renderPiplineClient_->GetScreenHDRStatus(id, hdrStatus);
+}
+
+void RSRenderInterface::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+{
+    return renderPiplineClient_->SetScreenFrameGravity(id, gravity);
 }
 
 }

@@ -28,7 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSClientToServiceConnectionStub : public IRemoteStub<RSIRenderServiceConnection> {
+class RSClientToServiceConnectionStub : public IRemoteStub<RSIClientToServiceConnection> {
 public:
     RSClientToServiceConnectionStub() = default;
     ~RSClientToServiceConnectionStub() noexcept = default;

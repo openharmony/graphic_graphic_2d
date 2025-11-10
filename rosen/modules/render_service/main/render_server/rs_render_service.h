@@ -24,7 +24,7 @@
 #include "transaction/rs_render_service_stub.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
-#inclulde "vsync_receiver.h"
+#include "vsync_receiver.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -85,7 +85,6 @@ private:
 
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         CreateConnection(const sptr<RSIConnectionToken>& token) override;
-    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
     void RegisterRcdMsg();
 
     // RS dump init

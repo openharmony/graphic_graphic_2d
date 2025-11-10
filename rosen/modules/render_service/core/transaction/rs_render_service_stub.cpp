@@ -94,9 +94,9 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
 
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            auto [newConn, renderConn] = CreateConnection(token);
+            auto [rsConn, renderConn] = GetConnection(token);
             if (rsConn) {
-                auto connection = static_cast<RSClientToServiceConnection>(rsConn.GetRefPtr());
+                auto connection = static_cast<RSClientToServiceConnection*>(rsConn.GetRefPtr());
                 connection->CleanAll(true);
                 reply.WriteBool(true);
             } else {

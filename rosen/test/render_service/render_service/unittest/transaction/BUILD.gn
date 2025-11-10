@@ -25,7 +25,7 @@ group("unittest") {
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
     ":RSClientToServiceConnectionStubTest",
-    ":RSClientToPipelineConnectionStubTest",
+    ":RSClientToRenderConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
   ]

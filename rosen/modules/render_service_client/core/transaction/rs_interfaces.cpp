@@ -286,26 +286,26 @@ int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMap
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
-    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureWithBlur(node, callback, captureConfig, blurRadius);
 }
 
 bool RSInterfaces::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return RSRenderInterface::GetInstance().TakeSelfSurfaceCapture(node->GetId(), callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSelfSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
     return RSRenderInterface::GetInstance().SetWindowFreezeImmediately(
-        node->GetId(), isFreeze, callback, captureConfig, blurParam);
+        node, isFreeze, callback, captureConfig, blurRadius);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
@@ -313,12 +313,12 @@ bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNod
     bool checkDrmAndSurfaceLock)
 {
     return RSRenderInterface::GetInstance().TakeSurfaceCaptureWithAllWindows(
-        node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
+        node, callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
 bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
 {
-    return RSRenderInterface::GetInstance().FreezeScreen(node->GetId(), isFreeze);
+    return RSRenderInterface::GetInstance().FreezeScreen(node, isFreeze);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
@@ -330,7 +330,7 @@ bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float pos
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
@@ -406,7 +406,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
     bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
-    return RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(node, callback, scaleX, scaleY, isSync, specifiedAreaRect);
 }
 
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
@@ -416,10 +416,10 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
 }
 
 bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
-    bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool scaleY)
+    bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
     return RSRenderInterface::GetInstance().TakeUICaptureInRange(
-        beginNode, endNode, useBeginNodeSize, callback, scaleX, scaleY, scaleY);
+        beginNode, endNode, useBeginNodeSize, callback, scaleX, scaleY, isSync);
 }
 
 int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
@@ -521,7 +521,7 @@ void RSInterfaces::RepaintEverything()
 
 void RSInterfaces::ForceRefreshOneFrameWithNextVSync()
 {
-    RSRenderInterface::GetInstance().ForceRefreshOneFrameWithNextVSync();
+    renderServiceClient_->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
@@ -716,7 +716,7 @@ void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY
 
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    return renderServiceClient_->SetScreenFrameGravity(id, gravity);
+    RSRenderInterface::GetInstance().SetScreenFrameGravity(id, gravity);
 }
 
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)

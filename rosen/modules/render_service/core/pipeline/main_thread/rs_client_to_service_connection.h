@@ -182,6 +182,8 @@ private:
 
     ErrCode RepaintEverything() override;
 
+    ErrCode ForceRefreshOneFrameWithNextVSync() override;
+
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
@@ -197,6 +199,8 @@ private:
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) override;
 
     RSScreenCapability GetScreenCapability(ScreenId id) override;
+
+    ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) override;
 
     RSScreenData GetScreenData(ScreenId id) override;
 
@@ -245,8 +249,6 @@ private:
 
     ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) override;
 
-    ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
-
     ErrCode GetScreenSupportedColorSpaces(
         ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) override;
 
@@ -273,8 +275,6 @@ private:
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
-
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 

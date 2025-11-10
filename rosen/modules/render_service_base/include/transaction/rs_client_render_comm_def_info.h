@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_JANK_REPORT_THREAD_H
-#define ROSEN_JANK_REPORT_THREAD_H
+#ifndef RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
+#define RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
 
 #include "event_handler.h"
 #include "common/rs_macros.h"
@@ -23,24 +23,23 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSJankReportThread final {
+class SurfaceBufferCallback {
 public:
-    static RSJankReportThread& Instance();
-    void PostTask(const std::function<void()>& task);
-    void PostSyncTask(const std::function<void()>& task);
+    SurfaceBufferCallback() = default;
+    virtual ~SurfaceBufferCallback() noexcept = default;
+    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
+    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
+};
 
-private:
-    RSJankReportThread();
-    ~RSJankReportThread() = default;
-    RSJankReportThread(const RSJankReportThread&);
-    RSJankReportThread(const RSJankReportThread&&);
-    RSJankReportThread& operator=(const RSJankReportThread&);
-    RSJankReportThread& operator=(const RSJankReportThread&&);
-
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+class SurfaceCaptureCallback {
+public:
+    SurfaceCaptureCallback() {}
+    virtual ~SurfaceCaptureCallback() {}
+    virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+    virtual void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR) = 0;
 };
 
 } // namespace Rosen
 } // namespace OHOS
-#endif // ROSEN_JANK_REPORT_THREAD_H
+#endif // RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H

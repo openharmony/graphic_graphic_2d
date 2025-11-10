@@ -31,7 +31,7 @@ namespace Rosen {
 
 class RSC_EXPORT RSRenderInterface {
 public:
-    static RSRenderInterface &RSRenderInterface::GetInstance()
+    static RSRenderInterface &GetInstance();
     /**
      * @brief Get snapshot of surfaceNode.
      * @param node Indicates which node, usually point to a window.
@@ -163,11 +163,6 @@ public:
         float blurRadius = 1E-6);
 
     /**
-     * @brief Call RequestNextVsync to force refresh one frame with the interface.
-     */
-    void ForceRefreshOneFrameWithNextVSync();
-
-    /**
      * @brief Register a canvasNode as a container for nodes on the desktop.
      * It is a child node of displayNode to achieve unified scalling and other effects.
      * @param nodeId The id of the canvasNode, which will be moved below the displayNode of its subtree
@@ -207,7 +202,7 @@ public:
      * @param info Focus window information, Please refer to the definition for the specific content included.
      * @return 0 means success, others failed.
      */
-    void SetFocusAppInfo(const FocusAppInfo& info);
+    int32_t SetFocusAppInfo(const FocusAppInfo& info);
 
     /**
      * @brief Set all anco node ForceDoDirect.
@@ -237,6 +232,13 @@ public:
      * @return 0 success, others failed.
      */
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
+
+    /**
+     * @brief Set frame gravity of screen node
+     * @param id Screen id.
+     * @param gravity The gravity value of the screen node.
+     */
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
 private:
     RSRenderInterface();

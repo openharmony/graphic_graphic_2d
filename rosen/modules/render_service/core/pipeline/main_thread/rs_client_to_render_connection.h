@@ -111,6 +111,8 @@ private:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+
     void ClearUifirstCache(NodeId id) override;
 
     pid_t remotePid_;
