@@ -104,14 +104,27 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
         { ANI_INTERFACE_STRUT_STYLE, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT) };
     AniTextUtils::ReadOptionalEnumField(env, obj, fontWeightParam, paragraphStyle->lineStyleFontWeight);
 
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", paragraphStyle->lineStyleFontSize);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "height", paragraphStyle->lineStyleHeightScale);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "leading", paragraphStyle->lineStyleSpacingScale);
-
-    AniTextUtils::ReadOptionalBoolField(env, obj, "forceHeight", paragraphStyle->lineStyleOnly);
-    AniTextUtils::ReadOptionalBoolField(env, obj, "enabled", paragraphStyle->useLineStyle);
-    AniTextUtils::ReadOptionalBoolField(env, obj, "heightOverride", paragraphStyle->lineStyleHeightOnly);
-    AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", paragraphStyle->lineStyleHalfLeading);
+    static ani_cache_param fontSizeParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>fontSize", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, fontSizeParam, paragraphStyle->lineStyleFontSize);
+    static ani_cache_param heightParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>height", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, heightParam, paragraphStyle->lineStyleHeightScale);
+    static ani_cache_param leadingParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>leading", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, leadingParam, paragraphStyle->lineStyleSpacingScale);
+    static ani_cache_param forceHeightParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>forceHeight", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
+    AniTextUtils::ReadOptionalBoolField(env, obj, forceHeightParam, paragraphStyle->lineStyleOnly);
+    static ani_cache_param enabledParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>enabled", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
+    AniTextUtils::ReadOptionalBoolField(env, obj, enabledParam, paragraphStyle->useLineStyle);
+    static ani_cache_param heightOverrideParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>heightOverride", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
+    AniTextUtils::ReadOptionalBoolField(env, obj, heightOverrideParam, paragraphStyle->lineStyleHeightOnly);
+    static ani_cache_param halfLeadingParam =
+        { ANI_INTERFACE_STRUT_STYLE, "<get>halfLeading", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
+    AniTextUtils::ReadOptionalBoolField(env, obj, halfLeadingParam, paragraphStyle->lineStyleHalfLeading);
 
     ani_ref aniFontFamilies = nullptr;
     static ani_cache_param fontFamiliesParam =

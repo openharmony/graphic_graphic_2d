@@ -264,27 +264,6 @@ bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
     return false;
 }
 
-ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref)
-{
-    ani_status ret = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get property %{public}s, ret %{public}d", fieldName, ret);
-        return ret;
-    }
-    ani_boolean isUndefined;
-    ret = env->Reference_IsUndefined(ref, &isUndefined);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to check ref is undefined, ret %{public}d", ret);
-        ref = nullptr;
-        return ret;
-    }
-
-    if (isUndefined) {
-        ref = nullptr;
-    }
-    return ret;
-}
-
 ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref)
 {
     ani_status ret = GetPropertyByCache_Ref(env, obj, param, ref);
@@ -306,30 +285,30 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const a
     return ret;
 }
 
-ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value)
+ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const ani_cache_param& param, double& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         result = env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "toDouble", ":d", &value);
     }
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value)
+ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const ani_cache_param& param, int& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         result = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "toInt", ":i", &value);
     }
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str)
+ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const ani_cache_param& param, std::string& str)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         result = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), str);
     }
@@ -337,20 +316,20 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
 }
 
 ani_status AniTextUtils::ReadOptionalU16StringField(
-    ani_env* env, ani_object obj, const char* fieldName, std::u16string& str)
+    ani_env* env, ani_object obj, const ani_cache_param& param, std::u16string& str)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         result = AniTextUtils::AniToStdStringUtf16(env, reinterpret_cast<ani_string>(ref), str);
     }
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value)
+ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const ani_cache_param& param, bool& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean aniBool;
         result = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(ref), "toBoolean", ":z", &aniBool);

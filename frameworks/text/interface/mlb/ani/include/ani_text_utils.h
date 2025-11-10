@@ -52,29 +52,34 @@ public:
     static bool ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 
-    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref);
-    static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
-    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const char* fieldName, int& value);
-    static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
+    static ani_status ReadOptionalDoubleField(
+        ani_env* env, ani_object obj, const ani_cache_param& param, double& value);
+    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const ani_cache_param& param, int& value);
+    static ani_status ReadOptionalStringField(
+        ani_env* env, ani_object obj, const ani_cache_param& param, std::string& str);
     static ani_status ReadOptionalU16StringField(
-        ani_env* env, ani_object obj, const char* fieldName, std::u16string& str);
-    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value);
+        ani_env* env, ani_object obj, const ani_cache_param& param, std::u16string& str);
+    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const ani_cache_param& param, bool& value);
     template <typename EnumType>
-    static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
+    static ani_status ReadOptionalEnumField(
+        ani_env* env, ani_object obj, const ani_cache_param& param, EnumType& value);
     template <typename EnumType>
     static ani_status ReadEnumField(ani_env* env, ani_object obj, const ani_cache_param& param, EnumType& value);
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
-        ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
+        ani_env* env, ani_object obj, const ani_cache_param& param, std::vector<T>& array, Converter convert);
     static ani_status FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls);
     static ani_status FindMethodWithCache(ani_env* env, const ani_cache_param& param, ani_method& method);
     static ani_status Object_InstanceOf(ani_env* env, ani_object obj, const char* clsName, ani_boolean* result);
 
     static ani_status GetPropertyByCache_Ref(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref);
-    static ani_status GetPropertyByCache_Double(ani_env* env, ani_object obj, const ani_cache_param& param, ani_double& value);
-    static ani_status GetPropertyByCache_Int(ani_env* env, ani_object obj, const ani_cache_param& param, ani_int& value);
-    static ani_status GetPropertyByCache_Long(ani_env* env, ani_object obj, const ani_cache_param& param, ani_long& value);
+    static ani_status GetPropertyByCache_Double(
+        ani_env* env, ani_object obj, const ani_cache_param& param, ani_double& value);
+    static ani_status GetPropertyByCache_Int(
+        ani_env* env, ani_object obj, const ani_cache_param& param, ani_int& value);
+    static ani_status GetPropertyByCache_Long(
+        ani_env* env, ani_object obj, const ani_cache_param& param, ani_long& value);
 };
 
 template <typename... Args>
@@ -170,12 +175,12 @@ ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const ani_c
 
 template <typename T, typename Converter>
 ani_status AniTextUtils::ReadOptionalArrayField(
-    ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert)
+    ani_env* env, ani_object obj, const ani_cache_param& param, std::vector<T>& array, Converter convert)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result != ANI_OK || ref == nullptr) {
-        TEXT_LOGE("Failed to read optional field %{public}s, ret: %{public}d", fieldName, result);
+        TEXT_LOGE("Failed to read optional field %{public}s, ret: %{public}d", param.BuildCacheKey().c_str(), result);
         return result;
     }
 

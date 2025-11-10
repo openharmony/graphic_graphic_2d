@@ -49,7 +49,8 @@ ani_status ParseDrawingColorToNative(
 ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ParseDecorationToNative(env, obj, textStyle);
-    static ani_cache_param paramColor = { ANI_INTERFACE_TEXT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
+    static ani_cache_param paramColor =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
     ParseDrawingColorToNative(env, obj, true, paramColor, textStyle.color);
 
     static ani_cache_param fontWeightParam =
@@ -65,25 +66,43 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
         { ANI_INTERFACE_TEXT_STYLE, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE) };
     AniTextUtils::ReadOptionalEnumField(env, obj, baselineParam, textStyle.baseline);
 
+    static ani_cache_param fontFamiliesParams =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>fontFamilies", ANI_WRAP_RETURN_C(ANI_ARRAY) };
     AniTextUtils::ReadOptionalArrayField<std::string>(
-        env, obj, "fontFamilies", textStyle.fontFamilies, [](ani_env* env, ani_ref ref) {
+        env, obj, fontFamiliesParams, textStyle.fontFamilies, [](ani_env* env, ani_ref ref) {
             std::string utf8Str;
             AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
             return utf8Str;
         });
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", textStyle.fontSize);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", textStyle.letterSpacing);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", textStyle.wordSpacing);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "heightScale", textStyle.heightScale);
+    static ani_cache_param fontSizeParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>fontSize", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, fontSizeParam, textStyle.fontSize);
+    static ani_cache_param letterSpacingParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>letterSpacing", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, letterSpacingParam, textStyle.letterSpacing);
+    static ani_cache_param wordSpacingParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>wordSpacing", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, wordSpacingParam, textStyle.wordSpacing);
+    static ani_cache_param heightScaleParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>heightScale", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, heightScaleParam, textStyle.heightScale);
     textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
-    AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", textStyle.halfLeading);
-    AniTextUtils::ReadOptionalBoolField(env, obj, "heightOnly", textStyle.heightOnly);
-    AniTextUtils::ReadOptionalU16StringField(env, obj, "ellipsis", textStyle.ellipsis);
+    static ani_cache_param halfLeadingParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>halfLeading", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
+    AniTextUtils::ReadOptionalBoolField(env, obj, halfLeadingParam, textStyle.halfLeading);
+    static ani_cache_param heightOnlyParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>heightOnly", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
+    AniTextUtils::ReadOptionalBoolField(env, obj, heightOnlyParam, textStyle.heightOnly);
+    static ani_cache_param ellipsisParam = { ANI_INTERFACE_TEXT_STYLE, "<get>ellipsis", ANI_WRAP_RETURN_C(ANI_STRING) };
+    AniTextUtils::ReadOptionalU16StringField(env, obj, ellipsisParam, textStyle.ellipsis);
     static ani_cache_param ellipsisModeParam =
         { ANI_INTERFACE_TEXT_STYLE, "<get>ellipsisMode", ANI_WRAP_RETURN_E(ANI_ENUM_ELLIPSIS_MODE) };
     AniTextUtils::ReadOptionalEnumField(env, obj, ellipsisModeParam, textStyle.ellipsisModal);
-    AniTextUtils::ReadOptionalStringField(env, obj, "locale", textStyle.locale);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "baselineShift", textStyle.baseLineShift);
+    static ani_cache_param localeParam = { ANI_INTERFACE_TEXT_STYLE, "<get>locale", ANI_WRAP_RETURN_C(ANI_STRING) };
+    AniTextUtils::ReadOptionalStringField(env, obj, localeParam, textStyle.locale);
+    static ani_cache_param baselineShiftParam =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>baselineShift", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+    AniTextUtils::ReadOptionalDoubleField(env, obj, baselineShiftParam, textStyle.baseLineShift);
     ParseTextShadowToNative(env, obj, textStyle.shadows);
     ParseFontFeatureToNative(env, obj, textStyle.fontFeatures);
     ParseFontVariationToNative(env, obj, textStyle.fontVariations);
@@ -114,9 +133,12 @@ void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj
             { ANI_INTERFACE_DECORATION, "<get>decorationStyle", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DECORATION_STYLE) };
         AniTextUtils::ReadOptionalEnumField(
             env, reinterpret_cast<ani_object>(decorationRef), decorationStyleParam, textStyle.decorationStyle);
+        static ani_cache_param decorationThicknessScaleParam =
+            { ANI_INTERFACE_DECORATION, "<get>decorationThicknessScale", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
         AniTextUtils::ReadOptionalDoubleField(env, reinterpret_cast<ani_object>(decorationRef),
-            "decorationThicknessScale", textStyle.decorationThicknessScale);
-        static ani_cache_param paramColor = { ANI_INTERFACE_DECORATION, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
+            decorationThicknessScaleParam, textStyle.decorationThicknessScale);
+        static ani_cache_param paramColor =
+            { ANI_INTERFACE_DECORATION, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
         ParseDrawingColorToNative(
             env, reinterpret_cast<ani_object>(decorationRef), true, paramColor, textStyle.decorationColor);
     }
@@ -155,14 +177,18 @@ inline void GetTextShadowPoint(ani_env* env, ani_object obj, Drawing::Point& poi
 void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow)
 {
     std::vector<std::string> array;
+    static ani_cache_param params = { ANI_INTERFACE_TEXT_STYLE, "<get>textShadows", ANI_WRAP_RETURN_C(ANI_ARRAY) };
     AniTextUtils::ReadOptionalArrayField<std::string>(
-        env, obj, "textShadows", array, [&textShadow](ani_env* env, ani_ref ref) {
+        env, obj, params, array, [&textShadow](ani_env* env, ani_ref ref) {
             ani_object shadowObj = reinterpret_cast<ani_object>(ref);
             double runTimeRadius;
-            AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
+            static ani_cache_param blurRadiusParam =
+                { ANI_INTERFACE_DECORATION, "<get>blurRadius", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
+            AniTextUtils::ReadOptionalDoubleField(env, shadowObj, blurRadiusParam, runTimeRadius);
 
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            static ani_cache_param paramColor = { ANI_INTERFACE_TEXTSHADOW, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
+            static ani_cache_param paramColor =
+                { ANI_INTERFACE_TEXTSHADOW, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR) };
             ParseDrawingColorToNative(env, shadowObj, true, paramColor, colorSrc);
 
             Drawing::Point offset(0, 0);
@@ -182,8 +208,10 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
 void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures)
 {
     std::vector<std::string> array;
+    static ani_cache_param params =
+        { ANI_INTERFACE_TEXT_STYLE, "<get>fontFeatures", ANI_WRAP_RETURN_C(ANI_ARRAY) };
     AniTextUtils::ReadOptionalArrayField<std::string>(
-        env, obj, "fontFeatures", array, [&fontFeatures](ani_env* env, ani_ref ref) {
+        env, obj, params, array, [&fontFeatures](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref nameRef = nullptr;
             static ani_cache_param paramName =
@@ -214,8 +242,9 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
 void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object obj, FontVariations& fontVariations)
 {
     std::vector<std::string> array;
+    static ani_cache_param params = { ANI_INTERFACE_TEXT_STYLE, "<get>fontVariations", ANI_WRAP_RETURN_C(ANI_ARRAY) };
     AniTextUtils::ReadOptionalArrayField<std::string>(
-        env, obj, "fontVariations", array, [&fontVariations](ani_env* env, ani_ref ref) {
+        env, obj, params, array, [&fontVariations](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref axisRef = nullptr;
             static ani_cache_param paramAxis =

@@ -95,14 +95,26 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
-    READ_OPTIONAL_FIELD(env, aniObj, postScriptName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, fullName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, fontFamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, width, Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, italic, Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, monoSpace, Bool, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, symbolic, Bool, fontDesc.get(), status);
+    static ani_cache_param postScriptNameParam =
+        { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING) };
+    READ_OPTIONAL_FIELD(env, aniObj, postScriptNameParam, String, fontDesc.get(), status);
+    static ani_cache_param fullNameParam =
+        { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fullName", ANI_WRAP_RETURN_C(ANI_STRING) };
+    READ_OPTIONAL_FIELD(env, aniObj, fullNameParam, String, fontDesc.get(), status);
+    static ani_cache_param fontFamilyParam =
+        { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING) };
+    READ_OPTIONAL_FIELD(env, aniObj, fontFamilyParam, String, fontDesc.get(), status);
+    static ani_cache_param fontSubfamilyParam =
+        { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING) };
+    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamilyParam, String, fontDesc.get(), status);
+    static ani_cache_param widthParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ":i" };
+    READ_OPTIONAL_FIELD(env, aniObj, widthParam, Int, fontDesc.get(), status);
+    static ani_cache_param italicParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ":i" };
+    READ_OPTIONAL_FIELD(env, aniObj, italicParam, Int, fontDesc.get(), status);
+    static ani_cache_param monoSpaceParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ":z" };
+    READ_OPTIONAL_FIELD(env, aniObj, monoSpaceParam, Bool, fontDesc.get(), status);
+    static ani_cache_param symbolicParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ":z" };
+    READ_OPTIONAL_FIELD(env, aniObj, symbolicParam, Bool, fontDesc.get(), status);
 
     return status;
 }
