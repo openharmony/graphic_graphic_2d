@@ -1737,7 +1737,6 @@ void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
         std::shared_ptr<Canvas> offScreenCanvas;
         if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
             DrawHighContrast(offScreenCanvas.get(), true);
-            offScreenCanvas->Flush();
             auto image = offScreenSurface->GetImageSnapshot();
             if (image == nullptr) {
                 return;
