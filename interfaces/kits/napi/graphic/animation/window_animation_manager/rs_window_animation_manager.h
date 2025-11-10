@@ -42,14 +42,10 @@ public:
 
     static napi_value MinimizeWindowWithAnimation(napi_env env, napi_callback_info info);
 
-    static napi_value GetWindowAnimationTargets(napi_env env, napi_callback_info info);
-
 private:
     napi_value OnSetController(napi_env env, napi_callback_info info);
 
     napi_value OnMinimizeWindowWithAnimation(napi_env env, napi_callback_info info);
-
-    napi_value OnGetWindowAnimationTargets(napi_env env, napi_callback_info info);
 
     int32_t GetWindowId(const napi_env& env, const size_t& argc, const napi_value& object, uint32_t& windowId);
 
