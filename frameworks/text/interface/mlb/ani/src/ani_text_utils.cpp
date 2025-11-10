@@ -386,7 +386,7 @@ ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const ani_cache_param
     }
 
     ani_class cls = nullptr;
-    ani_status ret =  FindClassWithCache(env, param.clsName, cls);
+    ani_status ret = FindClassWithCache(env, param.clsName, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class %{public}s, ret %{public}d", param.clsName, ret);
         return ret;

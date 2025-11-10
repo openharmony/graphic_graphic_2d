@@ -114,7 +114,7 @@ inline void GetPointXFromJsBumber(ani_env* env, ani_object argValue, Drawing::Po
 {
     ani_double objValue = 0;
     static ani_cache_param paramX = { ANI_INTERFACE_POINT, "<get>x", ":d" };
-    ani_status ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramX, objValue);
+    ani_status ret = AniTextUtils::GetPropertyByCache_Double(env, argValue, paramX, objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("Param x is invalid, ret %{public}d", ret);
         return;
@@ -176,7 +176,7 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
             ani_ref nameRef = nullptr;
             static ani_cache_param paramName =
                 { ANI_INTERFACE_FONT_FEATURE, "<get>name", ANI_WRAP_RETURN_C(ANI_STRING) };
-            AniTextUtils::GetPropertyByCache_Ref(env, obj, paramName, nameRef);
+            ani_status ret = AniTextUtils::GetPropertyByCache_Ref(env, obj, paramName, nameRef);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get name, ret %{public}d", ret);
                 return "";
@@ -207,8 +207,8 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref axisRef = nullptr;
             static ani_cache_param paramAxis =
-                { ANI_INTERFACE_FONT_FEATURE, "<get>axis", ANI_WRAP_RETURN_C(ANI_STRING) };
-            AniTextUtils::GetPropertyByCache_Ref(env, obj, paramAxis, axisRef);
+                { ANI_INTERFACE_FONT_VARIATION, "<get>axis", ANI_WRAP_RETURN_C(ANI_STRING) };
+            ani_status ret = AniTextUtils::GetPropertyByCache_Ref(env, obj, paramAxis, axisRef);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get filed axis, ret %{public}d", ret);
                 return "";
