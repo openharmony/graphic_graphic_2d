@@ -3540,9 +3540,13 @@ void RSProperties::GenerateForegroundFilter()
 
 void RSProperties::GenerateMaterialFilter()
 {
-    if (GetMaterialNGFilter()) {
-        ComposeNGRenderFilter(GetEffect().materialFilter_, GetMaterialNGFilter());
+    // not support compose yet, so do not use ComposeNGRenderFilter
+    if (!GetMaterialNGFilter()) {
+        return;
     }
+    GetEffect().materialFilter_ = std::make_shared<RSDrawingFilter>();
+    GetEffect().materialFilter_->SetNGRenderFilter(GetMaterialNGFilter());
+    GetEffect().materialFilter_->SetFilterType(RSFilter::COMPOUND_EFFECT);
 }
 
 void RSProperties::SetUseEffect(bool useEffect)
