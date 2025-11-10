@@ -15,6 +15,7 @@
 
 #include "memory_handler.h"
 #include "render_context_log.h"
+#include "utils/system_properties.h"
 #include <set>
 #include <cmath>
 
@@ -24,6 +25,9 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
     const size_t size, const std::string& cacheFilePath, bool isUni)
 {
     context->SetAllowPathMaskCaching(true);
+    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
     auto& cache = ShaderCache::Instance();
     if (cacheFilePath.empty()) {
         cache.SetFilePath(mUniRenderCacheDir);
