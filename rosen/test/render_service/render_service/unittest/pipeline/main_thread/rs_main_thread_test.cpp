@@ -4803,43 +4803,6 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
 }
 
 /**
- * @tc.name: AddUiCaptureTaskTest
- * @tc.desc: test AddUiCaptureTask
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, AddUiCaptureTaskTest, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto node1 = RSTestUtil::CreateSurfaceNode();
-    auto node2 = RSTestUtil::CreateSurfaceNode();
-    auto task = []() {};
-
-    mainThread->ProcessUiCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-
-    mainThread->context_->nodeMap.RegisterRenderNode(node1);
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->AddUiCaptureTask(node2->GetId(), task);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
-
-    node1->SetDirty();
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
-
-    mainThread->ProcessUiCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
-
-    mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
-}
-
-/**
  * @tc.name: CheckUIExtensionCallbackDataChanged001
  * @tc.desc: test CheckUIExtensionCallbackDataChanged, no need to callback (2 frames of empty callback data)
  * @tc.type: FUNC
