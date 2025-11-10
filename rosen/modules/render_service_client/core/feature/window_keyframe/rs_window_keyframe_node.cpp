@@ -58,6 +58,7 @@ RSWindowKeyFrameNode::SharedPtr RSWindowKeyFrameNode::Create(bool isRenderServic
     std::unique_ptr<RSCommand> command = std::make_unique<RSWindowKeyFrameNodeCreate>(
         node->GetId(), isTextureExportNode);
     node->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
     return node;
 }
 
@@ -134,7 +135,7 @@ RSWindowKeyFrameNode::SharedPtr RSWindowKeyFrameNode::ReadFromParcel(Parcel& par
         return prevNode->ReinterpretCastTo<RSWindowKeyFrameNode>();
     }
 
-    SharedPtr keyFrameNode(new (std::nothrow) RSWindowKeyFrameNode(isRenderServiceNode, id, linkedNodeId));
+    SharedPtr keyFrameNode(new (std::nothrow) RSWindowKeyFrameNode(isRenderServiceNode, id));
     if (keyFrameNode == nullptr) {
         ROSEN_LOGE("RSWindowKeyFrameNode::ReadFromParcel alloc object failed");
         return nullptr;
