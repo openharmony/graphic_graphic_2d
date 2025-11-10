@@ -355,6 +355,9 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc(
         if (effectData != nullptr) {
             ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
                 effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
+            ptr->visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
+        } else {
+            ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
         }
         ptr->visualEffectContainer_->UpdateCornerRadius(ptr->cornerRadius_);
         geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
