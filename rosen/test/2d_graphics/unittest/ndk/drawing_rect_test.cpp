@@ -707,7 +707,8 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectContains007, TestSize.
     EXPECT_TRUE(isContains);
     EXPECT_EQ(OH_Drawing_RectContains(nullptr, other, &isContains), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_RectContains(rect, nullptr, &isContains), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-    
+    EXPECT_EQ(OH_Drawing_RectContains(rect, other, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RectDestroy(other);
 }

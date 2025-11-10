@@ -104,6 +104,7 @@ void RectFuzzTest002(const uint8_t* data, size_t size)
     OH_Drawing_RectContains(rect, other, &isContains);
     OH_Drawing_RectContains(nullptr, other, &isContains);
     OH_Drawing_RectContains(rect, nullptr, &isContains);
+    OH_Drawing_RectContains(rect, other, nullptr);
 
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RectDestroy(other);
