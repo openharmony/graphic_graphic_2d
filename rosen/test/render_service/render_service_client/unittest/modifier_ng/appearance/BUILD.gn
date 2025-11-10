@@ -37,6 +37,7 @@ ohos_unittest("RSRenderServiceClientAppearanceModifierNGTest") {
     "rs_pixel_stretch_modifier_test.cpp",
     "rs_point_light_modifier_test.cpp",
     "rs_shadow_modifier_test.cpp",
+    "rs_tranxition_filter_modifier_test.cpp",
     "rs_use_effect_modifier_test.cpp",
     "rs_visibility_modifier_test.cpp",
   ]

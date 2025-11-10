@@ -746,4 +746,69 @@ HWTEST_F(RSNodeTest2, SetUseUnion, TestSize.Level1)
     EXPECT_NE(properties.find(ModifierNG::RSPropertyType::USE_UNION), properties.end());
 }
 
+/**
+ * @tc.name: SetUIMaterialFilter001
+ * @tc.desc: test results of SetUIMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUIMaterialFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetUIMaterialFilter(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
+/**
+ * @tc.name: SetUIMaterialFilter002
+ * @tc.desc: test results of SetUIMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUIMaterialFilter002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    float lightIntensity = 0.5f;
+    para->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para);
+
+    rsNode->SetUIMaterialFilter(filterObj.get());
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
+/**
+ * @tc.name: SetUIMaterialFilter003
+ * @tc.desc: test results of SetUIMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUIMaterialFilter003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    filterObj->AddPara(nullptr);
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    float lightIntensity = 0.5f;
+    para->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para);
+
+    rsNode->SetUIMaterialFilter(filterObj.get());
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
+/**
+ * @tc.name: SetMaterialNGFilter001
+ * @tc.desc: test results of SetMaterialNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetMaterialNGFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetMaterialNGFilter(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+
+    auto filter = std::make_shared<RSNGBlurFilter>();
+    rsNode->SetMaterialNGFilter(filter);
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
 } // namespace OHOS::Rosen

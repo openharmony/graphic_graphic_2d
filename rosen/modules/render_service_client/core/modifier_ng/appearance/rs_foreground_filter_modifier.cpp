@@ -103,7 +103,7 @@ void RSForegroundFilterModifier::SetNGFilterBase(std::shared_ptr<RSNGFilterBase>
 
 std::shared_ptr<RSNGFilterBase> RSForegroundFilterModifier::GetNGFilterBase() const
 {
-    return Getter(RSPropertyType::FOREGROUND_NG_FILTER, nullptr);
+    return Getter<std::shared_ptr<RSNGFilterBase>>(RSPropertyType::FOREGROUND_NG_FILTER, nullptr);
 }
 
 } // namespace OHOS::Rosen::ModifierNG

@@ -1130,6 +1130,13 @@ public:
     void SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter);
 
     /**
+     * @brief Sets the material filter for the UI.
+     *
+     * @param materialFilter Pointer to a Filter that defines the material filter effect.
+     */
+    void SetUIMaterialFilter(const OHOS::Rosen::Filter* materialFilter);
+
+    /**
      * @brief Sets the visual effect for the UI.
      *
      * @param visualEffect Pointer to a VisualEffect that defines the visual effect.
@@ -1177,6 +1184,13 @@ public:
      * @param foregroundShader Indicates the foreground shader to be applied.
      */
     void SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregroundShader);
+
+    /**
+     * @brief Sets the material filter.
+     *
+     * @param materialFilter Indicates the material filter to be applied.
+     */
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter);
 
     /**
      * @brief Sets the filter.

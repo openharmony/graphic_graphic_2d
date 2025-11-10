@@ -397,6 +397,8 @@ public:
     std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
     void SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -472,6 +474,14 @@ public:
         static const std::shared_ptr<RSFilter> defaultValue = nullptr;
         if (effect_) {
             return effect_->filter_;
+        }
+        return defaultValue;
+    }
+    const std::shared_ptr<RSFilter>& GetMaterialFilter() const
+    {
+        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->materialFilter_;
         }
         return defaultValue;
     }
@@ -967,9 +977,11 @@ struct CommonEffectParams {
     std::optional<Color> colorBlend_;
     std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
+    std::shared_ptr<RSFilter> materialFilter_ = nullptr;
 };
     inline float DecreasePrecision(float value)
     {
@@ -989,6 +1001,7 @@ struct CommonEffectParams {
         int colorMode, const RSColor& color);
     void GenerateBackgroundFilter();
     void GenerateForegroundFilter();
+    void GenerateMaterialFilter();
     void GenerateBackgroundMaskFilter();
     void GenerateBackgroundBlurFilter();
     void GenerateForegroundBlurFilter();

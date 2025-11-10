@@ -32,6 +32,7 @@ ohos_unittest("RSRenderServiceAppearanceModifierNGTest") {
     "rs_foreground_filter_render_modifier_test.cpp",
     "rs_hdr_brightness_render_modifier_test.cpp",
     "rs_mask_render_modifier_test.cpp",
+    "rs_material_filter_render_modifier_test.cpp",
     "rs_outline_render_modifier_test.cpp",
     "rs_particle_effect_render_modifier_test.cpp",
     "rs_pixel_stretch_render_modifier_test.cpp",

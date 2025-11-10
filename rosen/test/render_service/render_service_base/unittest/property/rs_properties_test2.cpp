@@ -1293,5 +1293,63 @@ HWTEST_F(PropertiesTest, PixelStretchUpdateFilterFlag001, TestSize.Level1)
     EXPECT_TRUE(properties.NeedHwcFilter());
     EXPECT_TRUE(properties.DisableHWCForFilter());
 }
+
+/**
+ * @tc.name: SetMaterialFilter001
+ * @tc.desc: test SetMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetMaterialNGFilter(filter);
+    ASSERT_NE(properties.effect_->mtNGRenderFilter_, nullptr);
+    ASSERT_TRUE(properties.isDrawn_);
+    ASSERT_TRUE(properties.filterNeedUpdate_);
+    ASSERT_TRUE(properties.contentDirty_);
+}
+
+/**
+ * @tc.name: GetMaterialFilter001
+ * @tc.desc: test GetMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(filter, nullptr);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter001
+ * @tc.desc: test GenerateMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_EQ(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_EQ(properties.GetEffect().materialFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter002
+ * @tc.desc: test GenerateMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS
