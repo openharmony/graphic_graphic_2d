@@ -139,10 +139,10 @@ T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const char* name
 };
 
 template <typename EnumType>
-ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value)
+ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, const ani_cache_param& param, EnumType& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_int index = 0;
         result = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ref), &index);

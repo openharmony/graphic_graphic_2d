@@ -110,6 +110,11 @@ constexpr const char* ANI_ENUM_TEXT_DIRECTION = "@ohos.graphics.text.text.TextDi
 constexpr const char* ANI_ENUM_AFFINITY = "@ohos.graphics.text.text.Affinity";
 constexpr const char* ANI_ENUM_SYSTEM_FONT_TYPE = "@ohos.graphics.text.text.SystemFontType";
 constexpr const char* ANI_ENUM_PLACEHOLDER_ALIGNMENT = "@ohos.graphics.text.text.PlaceholderAlignment";
+constexpr const char* ANI_ENUM_TEXT_ALIGN = "@ohos.graphics.text.text.TextAlign";
+constexpr const char* ANI_ENUM_WORD_BREAK = "@ohos.graphics.text.text.WordBreak";
+constexpr const char* ANI_ENUM_BREAK_STRATEGY = "@ohos.graphics.text.text.BreakStrategy";
+constexpr const char* ANI_ENUM_TEXT_HEIGHT_BEHAVIOR = "@ohos.graphics.text.text.TextHeightBehavior";
+constexpr const char* ANI_ENUM_FONT_WIDTH = "@ohos.graphics.text.text.FontWidth";
 
 enum class TextErrorCode : int32_t {
     OK = 0,
