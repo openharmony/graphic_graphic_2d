@@ -83,7 +83,8 @@ enum class RSNGEffectType : int16_t {
     ALWAYS_SNAPSHOT,
     MASK_TRANSITION,
     VARIABLE_RADIUS_BLUR,
-    CONTENT_LIGHT,
+    CONTENT_LIGHT,    
+    FROSTED_GLASS,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
