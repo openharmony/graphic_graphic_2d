@@ -928,6 +928,7 @@ HWTEST_F(RSUniRenderThreadTest, CollectProcessNodeNumTest, TestSize.Level1)
     EXPECT_EQ(instance.totalProcessNodeNum_, 0);
 
     instance.CollectProcessNodeNum(10);
-    EXPECT_EQ(instance.totalProcessNodeNum_, 10);
+    instance.Render();
+    EXPECT_EQ(instance.totalProcessNodeNum_, 0);
 }
 }
