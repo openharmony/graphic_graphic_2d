@@ -60,10 +60,10 @@ public:
 
 /**
  * @brief This function is used to set the display node by screen id.
- * @param context The context of the render service
- * @param id The screen id of the display node
+ * @param context The context of the render service.
+ * @param id The screen id of the display node.
  * @param lambda The lambda function to set the display node.
- * @return Returns true if the display node is set successfully, otherwise returns false;
+ * @return Returns true if the display node is set successfully, otherwise returns false.
  */
 template <class Lambda>
 bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda)

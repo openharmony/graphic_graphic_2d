@@ -436,7 +436,7 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         nodeMap.RegisterRenderNode(node);
 
         auto lambda = [&node](auto& screenRenderNode) {
-            screenRenderNode.AddChild(node);
+            screenRenderNode->AddChild(node);
         };
         if (!TrySetScreenNodeByScreenId(context, displayNodeConfig.screenId, lambda)) {
             RS_LOGE("%{public}s, displayNode[%{public}" PRIu64 "] failed to SetOnTree, can't find ScreenId[%{public}"
