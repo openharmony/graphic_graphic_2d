@@ -468,6 +468,9 @@ public:
 
     bool IsReadyForSyncTask() const;
 
+    bool TransitionDataMutexLockIfNoCommands();
+    void TransitionDataMutexUnlock();
+
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
 private:

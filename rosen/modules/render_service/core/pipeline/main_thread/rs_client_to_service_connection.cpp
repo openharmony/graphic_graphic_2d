@@ -1434,6 +1434,11 @@ void TakeSurfaceCaptureForUiParallel(
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
     };
     auto& context = RSMainThread::Instance()->GetContext();
+    if (captureConfig.isSync) {
+        context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(id, false);
+        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
+        return;
+    }
 
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
     if (!node) {
@@ -1442,20 +1447,11 @@ void TakeSurfaceCaptureForUiParallel(
         return;
     }
 
-    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode) {
-        std::lock_guard<std::mutex> lock(surfaceNode->GetCaptureUiFirstMutex());
-        surfaceNode->SetCaptureEnableUifirst(true);
-    }
-    bool captureNodeDirty = (node->IsDirty() || node->IsSubTreeDirty() || !node->IsOnTheTree());
-    if (captureConfig.isSync || captureNodeDirty) {
-        if (captureConfig.isSync) {
-            context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(id, false);
-        }
+    if (node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
+        RSMainThread::Instance()->PostTask(captureTask);
+    } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
-        return;
     }
-    RSMainThread::Instance()->PostTask(captureTask);
 #endif
 }
 

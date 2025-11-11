@@ -589,6 +589,29 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo_002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: GetScreenActiveRefreshRate_001
+ * @tc.desc: Test GetScreenActiveRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenActiveRefreshRate_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId id = 0;
+    impl::RSScreenManager& screenManagerImpl = static_cast<impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManager->SetDefaultScreenId(id);
+    auto screen = screenManagerImpl.GetScreen(id);
+    ASSERT_NE(screen, nullptr);
+    screenManager->GetScreenActiveRefreshRate(id);
+ 
+    id = INVALID_SCREEN_ID;
+    screenManager->GetScreenActiveRefreshRate(id);
+}
+
+/*
  * @tc.name: GetProducerSurface_001
  * @tc.desc: Test GetProducerSurface
  * @tc.type: FUNC

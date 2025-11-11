@@ -2217,25 +2217,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
-    const auto& nodeMap = context_->GetNodeMap();
-    auto node = nodeMap.GetRenderNode(id);
-    if (!node) {
-        RS_LOGE("RSMainThread::AddUiCaptureTask node nullptr, id: %{public}" PRIu64, id);
-    } else {
-        bool isNeedSetTreeStateChangeDirty = node && (node->IsDirty() || node->IsSubTreeDirty());
-        RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask isDirty:%d, subDirty:%d, isOnTheTree:%d",
-            node->IsDirty(), node->IsSubTreeDirty(), node->IsOnTheTree());
-        if (isNeedSetTreeStateChangeDirty) {
-            node->SetChildrenTreeStateChangeDirty();
-            node->SetParentTreeStateChangeDirty(true);
-            auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode) {
-                std::lock_guard<std::mutex> lock(surfaceNode->GetCaptureUiFirstMutex());
-                RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask Set UiFirst Disable");
-                surfaceNode->SetCaptureEnableUifirst(false);
-            }
-        }
-    }
     if (!IsRequestedNextVSync()) {
         RequestNextVSync();
     }
@@ -5508,6 +5489,29 @@ void RSMainThread::RegisterHwcEvent()
         });
     }
 #endif
+}
+
+bool RSMainThread::TransitionDataMutexLockIfNoCommands()
+{
+    transitionDataMutex_.lock();
+    for (auto& rsTransactionElem : cachedTransactionDataMap_) {
+        if (rsTransactionElem.second.size()) {
+            transitionDataMutex_.unlock();
+            return false;
+        }
+    }
+    for (auto& rsTransactionElem : effectiveTransactionDataIndexMap_) {
+        if (rsTransactionElem.second.second.size()) {
+            transitionDataMutex_.unlock();
+            return false;
+        }
+    }
+    return true;
+}
+
+void RSMainThread::TransitionDataMutexUnlock()
+{
+    transitionDataMutex_.unlock();
 }
 } // namespace Rosen
 } // namespace OHOS

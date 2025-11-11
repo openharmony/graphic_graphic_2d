@@ -47,8 +47,6 @@ napi_value RSWindowAnimationManager::Init(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "setController", moduleName, RSWindowAnimationManager::SetController);
     BindNativeFunction(env, exportObj, "minimizeWindowWithAnimation", moduleName,
         RSWindowAnimationManager::MinimizeWindowWithAnimation);
-    BindNativeFunction(env, exportObj, "getWindowAnimationTargets", moduleName,
-        RSWindowAnimationManager::GetWindowAnimationTargets);
     return nullptr;
 }
 
@@ -82,19 +80,6 @@ napi_value RSWindowAnimationManager::MinimizeWindowWithAnimation(napi_env env, n
 
     auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
     return (me != nullptr) ? me->OnMinimizeWindowWithAnimation(env, info) : nullptr;
-}
-
-napi_value RSWindowAnimationManager::GetWindowAnimationTargets(napi_env env, napi_callback_info info)
-{
-    WALOGD("GetWindowAnimationTargets");
-    if (!RSWindowAnimationUtils::IsSystemApp()) {
-        WALOGE("GetWindowAnimationTargets failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "WindowAnimationManager getWindowAnimationTargets failed, is not system app");
-        return nullptr;
-    }
-    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
-    return (me != nullptr) ? me->OnGetWindowAnimationTargets(env, info) : nullptr;
 }
 
 napi_value RSWindowAnimationManager::OnSetController(napi_env env, napi_callback_info info)
@@ -192,7 +177,7 @@ napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env,
             task->Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
             delete task;
         };
-    if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
+    if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high, "minimizeWindowWithAnimation")) {
             napiAsyncTask->Reject(env, CreateJsError(env,
                 errCode, "send event failed!"));
         } else {
@@ -239,50 +224,5 @@ int32_t RSWindowAnimationManager::GetMissionIds(
     return errCode;
 }
 
-napi_value RSWindowAnimationManager::OnGetWindowAnimationTargets(napi_env env, napi_callback_info info)
-{
-    WALOGD("RSWindowAnimationManager::OnGetWindowAnimationTargets");
-    size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = { 0 };
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-
-    std::vector<uint32_t> missionIds;
-    napi_value array = argv[0];
-    int32_t errCode = GetMissionIds(env, argc, array, missionIds);
-    napi_value lastParam = nullptr;
-    if (argc > 1) {
-        napi_valuetype type;
-        napi_typeof(env, argv[1], &type);
-        if (type == napi_function) {
-            lastParam = argv[1];
-        }
-    }
-    napi_value result = nullptr;
-
-    std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
-    auto asyncTask = [missionIds, errCode, env, task = napiAsyncTask.get()]() {
-            WALOGE("RSWindowAnimationManager::OnGetWindowAnimationTargets");
-            if (errCode != ERR_OK) {
-                task->Reject(env, CreateJsError(env, errCode, "Invalid params."));
-                delete task;
-                return;
-            }
-            std::vector<sptr<RSWindowAnimationTarget>> targets;
-            if (!missionIds.empty()) {
-                SingletonContainer::Get<WindowAdapter>().GetWindowAnimationTargets(missionIds, targets);
-            }
-
-            WALOGD("Resolve get window animation targets!");
-            task->Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(env, targets));
-            delete task;
-        };
-    if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
-            napiAsyncTask->Reject(env, CreateJsError(env,
-                errCode, "send event failed!"));
-        } else {
-            napiAsyncTask.release();
-        }
-    return result;
-}
 } // namespace Rosen
 } // namespace OHOS

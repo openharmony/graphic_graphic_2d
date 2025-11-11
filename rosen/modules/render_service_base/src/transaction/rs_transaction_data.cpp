@@ -216,6 +216,7 @@ void RSTransactionData::Process(RSContext& context)
             if (!command->IsCallingPidValid()) {
                 continue;
             }
+            RS_PROFILER_EXECUTE_COMMAND(&*command);
             command->Process(context);
         }
     }

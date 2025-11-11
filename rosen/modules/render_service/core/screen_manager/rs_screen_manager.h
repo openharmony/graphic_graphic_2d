@@ -103,6 +103,7 @@ public:
     virtual void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const = 0;
     virtual void GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInfo) const = 0;
     virtual std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) const = 0;
+    virtual uint32_t GetScreenActiveRefreshRate(ScreenId id) const = 0;
 
     virtual RSScreenCapability GetScreenCapability(ScreenId id) const = 0;
     virtual RSScreenData GetScreenData(ScreenId id) const  = 0;
@@ -289,6 +290,7 @@ public:
     void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const override;
     void GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInfo) const override;
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) const override;
+    uint32_t GetScreenActiveRefreshRate(ScreenId id) const override;
 
     RSScreenCapability GetScreenCapability(ScreenId id) const override;
     RSScreenData GetScreenData(ScreenId id) const  override;

@@ -72,7 +72,11 @@ public:
     virtual ~RSRenderThreadParams() = default;
 
     void SetSecurityDisplay(bool isSecurityDisplay);
-    bool IsSecurityDisplay() const;
+
+    bool IsSecurityDisplay() const
+    {
+        return isSecurityDisplay_;
+    }
 
     bool IsPartialRenderEnabled() const
     {

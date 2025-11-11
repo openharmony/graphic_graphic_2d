@@ -593,6 +593,17 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     }
 #endif
 #endif
+    auto context = GetContext().lock();
+    auto task = [weakThis = weak_from_this()] () {
+        auto node = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(weakThis.lock());
+        if (node == nullptr) {
+            return;
+        }
+        node->AfterTreeStatueChanged();
+    };
+    if (context) {
+        context->PostTask(task, false);
+    }
 }
 
 void RSRenderNode::ReleaseNodeMem()
@@ -2215,23 +2226,12 @@ void RSRenderNode::SetTreeStateChangeDirty(bool val)
     isTreeStateChangeDirty_ = val;
 }
 
-void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
+void RSRenderNode::SetParentTreeStateChangeDirty()
 {
     auto parentNode = parent_.lock();
-    if (!parentNode) {
-        return;
-    }
-    if (parentNode && (isUpdateAllParentNode || !parentNode->IsTreeStateChangeDirty())) {
+    if (parentNode && !parentNode->IsTreeStateChangeDirty()) {
         parentNode->SetTreeStateChangeDirty(true);
-        parentNode->SetParentTreeStateChangeDirty(isUpdateAllParentNode);
-    }
-}
-
-void RSRenderNode::SetChildrenTreeStateChangeDirty()
-{
-    auto sortedChildren = GetSortedChildren();
-    for (auto& child : *sortedChildren) {
-        child->SetTreeStateChangeDirty(true);
+        parentNode->SetParentTreeStateChangeDirty();
     }
 }
 
@@ -2558,12 +2558,14 @@ void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirty
     }
 
     RS_OPTIONAL_TRACE_NAME_FMT("UpdatePendingPurgeFilterDirtyRect:node[%llu],"
-        " needPendingPurge:%d, pendingPurgeFilterRegion: %s",
-        GetId(), filterDrawable->NeedPendingPurge(), pendingPurgeFilterRegion.GetRegionInfo().c_str());
+        " needPendingPurge:%d, lastHpaeClearCache: %d, pendingPurgeFilterRegion: %s",
+        GetId(), filterDrawable->NeedPendingPurge(), filterDrawable->LastHpaeClearCache(),
+        pendingPurgeFilterRegion.GetRegionInfo().c_str());
     // mainly based on the pendingPurge_ within NeedPendingPurge().
     // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
+    // also AddPendingPurgeFilterRegion if HpaeBlur clear cache
     // may become true later in CheckMergeFilterDirtyWithPreDirty().
-    if (filterDrawable->NeedPendingPurge()) {
+    if (filterDrawable->NeedPendingPurge() || filterDrawable->LastHpaeClearCache()) {
         dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
             Occlusion::Region(Occlusion::Rect(filterRect)));
     }

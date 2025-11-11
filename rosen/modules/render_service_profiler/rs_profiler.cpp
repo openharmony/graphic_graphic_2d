@@ -106,6 +106,7 @@ static std::unordered_map<std::string, std::string> g_recordRsMetric;
 static std::mutex g_mutexFirstFrameMarshalling;
 static std::mutex g_mutexJobMarshallingTick;
 static std::atomic<uint32_t> g_jobTickTaskCount = 0;
+static std::atomic<uint64_t> g_counterOnRemoteRequest = 0;
 } // namespace
 
 RSContext* RSProfiler::context_ = nullptr;
@@ -416,6 +417,7 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
 uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code,
     MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
 {
+    g_counterOnRemoteRequest++;
     if (!IsEnabled()) {
         return 0;
     }
@@ -1009,16 +1011,16 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
     SetSubMode(SubMode::WRITE_EMUL);
     DisableSharedMemory();
 
-    auto& jobGlobal = GetMarshallingJob();
+    std::shared_ptr<ProfilerMarshallingJob> newJob = nullptr;
     if (IsBetaRecordStarted()) {
-        jobGlobal = std::make_shared<ProfilerMarshallingJob>();
-        if (jobGlobal) {
-            jobGlobal->marshallingTick =
+        newJob = std::make_shared<ProfilerMarshallingJob>();
+        if (newJob) {
+            newJob->marshallingTick =
                 std::bind(RSProfiler::JobMarshallingTick, std::placeholders::_1, std::placeholders::_2);
         }
     }
 
-    MarshalNodes(*context_, stream, fileVersion, jobGlobal);
+    MarshalNodes(*context_, stream, fileVersion, newJob);
     if (!stream.good()) {
         HRPD("strstream error with marshalling nodes");
     }
@@ -1883,6 +1885,25 @@ void RSProfiler::RecordStart(const ArgList& args)
         return;
     }
 
+    bool transactionMutexLocked = false;
+    uint64_t counterParseTransactionDataStart = 0;
+    uint64_t counterParseTransactionDataEnd = 0;
+    uint64_t counterOnRemoteRequest = 0;
+    if (IsBetaRecordStarted()) {
+        counterParseTransactionDataStart = GetParseTransactionDataStartCounter();
+        counterParseTransactionDataEnd = GetParseTransactionDataEndCounter();
+        counterOnRemoteRequest = g_counterOnRemoteRequest;
+        if (counterParseTransactionDataStart != counterParseTransactionDataEnd) {
+            // transaction data unmarshalling is in progress
+            return;
+        }
+        transactionMutexLocked = g_mainThread->TransitionDataMutexLockIfNoCommands();
+        if (!transactionMutexLocked) {
+            // there are unmarshalled commands in a queue to execute
+            return;
+        }
+    }
+
     g_recordStartTime = 0.0;
     g_recordParcelNumber = 0;
 
@@ -1910,6 +1931,23 @@ void RSProfiler::RecordStart(const ArgList& args)
         RSTypefaceCache::Instance().ReplayClear();
 
         g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
+    }
+
+    if (transactionMutexLocked) {
+        g_mainThread->TransitionDataMutexUnlock();
+        if (GetParseTransactionDataStartCounter() != counterParseTransactionDataStart ||
+            GetParseTransactionDataEndCounter() != counterParseTransactionDataEnd ||
+            g_counterOnRemoteRequest != counterOnRemoteRequest) {
+            g_recordStartTime = 0.0;
+            g_lastCacheImageCount = 0;
+            ImageCache::Reset();
+            g_recordFile.Close();
+            auto& jobGlobal = GetMarshallingJob();
+            jobGlobal = nullptr;
+            SetMode(Mode::NONE);
+            SetSubMode(SubMode::NONE);
+            return;
+        }
     }
 
     std::thread threadNodeMarshall([]() {

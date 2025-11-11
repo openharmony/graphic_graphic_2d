@@ -14,6 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+#include "hgm_core.h"
+#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "test_header.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "transaction/rs_interfaces.h"
@@ -148,5 +151,36 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, RSInterface001, TestSize.Level1)
     instance.SetShowRefreshRateEnabled(false);
     ret = instance.GetShowRefreshRateEnabled();
     ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: GetScreenCurrentRefreshRate001
+ * @tc.desc: test RSRealtimeRefreshRateManagerTest.GetScreenCurrentRefreshRate001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRealtimeRefreshRateManagerTest, GetScreenCurrentRefreshRate001, TestSize.Level1)
+{
+    auto& instance = RSRealtimeRefreshRateManager::Instance();
+    instance.GetScreenCurrentRefreshRate(INVALID_SCREEN_ID);
+
+    ScreenId screenId = 0;
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    OHOS::Rosen::ScreenSize screenSize = { 720, 1080, 685, 1218 };
+    int32_t defaultMode = 0;
+    EXPECT_EQ(hgmCore.AddScreen(screenId, defaultMode, screenSize), EXEC_SUCCESS);
+    auto hgmscreen = hgmCore.GetScreen(screenId);
+    ASSERT_NE(hgmscreen, nullptr);
+    hgmscreen->SetSelfOwnedScreenFlag(true);
+    instance.GetScreenCurrentRefreshRate(screenId);
+
+
+    hgmscreen->SetSelfOwnedScreenFlag(false);
+    instance.GetScreenCurrentRefreshRate(screenId);
+    auto tmp = impl::RSScreenManager::instance_;
+    impl::RSScreenManager::instance_ = nullptr;
+    ASSERT_EQ(OHOS::Rosen::CreateOrGetScreenManager(), nullptr);
+    instance.GetScreenCurrentRefreshRate(screenId);
+    impl::RSScreenManager::instance_ = tmp;
 }
 }

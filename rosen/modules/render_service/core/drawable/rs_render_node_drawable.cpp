@@ -314,22 +314,12 @@ bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
         return false;
     }
 
-    // 2. if it's neither on the security display nor on the mirror screen, don't skip draw
-    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (uniParam == nullptr) {
-        return false;
-    }
-    const auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    if (!(uniParam->IsSecurityDisplay() || captureParam.isMirror_)) {
-        return false;
-    }
-
-    // 3. if node is in the white list, don't filter the node
+    // 2. if node is in the white list, don't filter the node
     if (IsWhiteListNode()) {
         return false;
     }
     
-    // 4. if node's child is in the white list, only draw children
+    // 3. if node's child is in the white list, only draw children
     const auto& params = GetRenderParams();
     if (params != nullptr) {
         // info : map<ScreenId, hasWhiteList>
