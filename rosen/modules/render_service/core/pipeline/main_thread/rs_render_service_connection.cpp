@@ -423,6 +423,8 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         return ERR_INVALID_VALUE;
     }
     std::function<void()> registerNode = [this, nodeId, node, &displayNodeConfig]() {
+        RS_TRACE_NAME_FMT("RSRenderServiceConnection::CreateNode, nodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
+            nodeId, displayNodeConfig.screenId);
         if (mainThread_ == nullptr) {
             return;
         }
@@ -432,13 +434,8 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         auto& context = mainThread_->GetContext();
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
-        nodeMap.TraverseScreenNodes([&node, id = node->GetScreenId()](auto& screenNode) {
-            if (!screenNode || screenNode->GetScreenId() != id) {
-                return;
-            }
-            screenNode->AddChild(node);
-        });
 
+        DisplayNodeCommandHelper::AddDisplayNodeToTree(context, nodeId);
         DisplayNodeCommandHelper::SetDisplayMode(context, nodeId, displayNodeConfig);
     };
     // When the event runner has not started to rotate, synchronous tasks will not be executed,
