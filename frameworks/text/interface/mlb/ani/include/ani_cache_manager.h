@@ -27,28 +27,42 @@
 
 namespace OHOS::Text::ANI {
 
-struct ani_cache_param
+struct AniCacheParam
 {
-    const char* clsName = nullptr;
-    const char* methodName = nullptr;
-    const char* signature = nullptr;
+    std::string cacheKey{""};
+    const char* clsName{nullptr};
+    const char* methodName{nullptr};
+    const char* signature{nullptr};
+
+    AniCacheParam(const char* cls, const char* method, const char* sig)
+        : clsName(cls), methodName(method), signature(sig)
+    {
+        if (IsValid()) {
+            BuildCacheKey();
+        }
+    }
 
     bool IsValid() const
     {
         return clsName != nullptr && methodName != nullptr && signature != nullptr;
     }
 
-    std::string BuildCacheKey() const
+    const char* GetCacheKey() const
     {
-        std::string_view clsNameView(clsName);
-        std::string_view methodNameView(methodName);
-        std::string_view signatureView(signature);
-        std::string key;
-        key.reserve(clsNameView.size() + methodNameView.size() + signatureView.size() + 3);
-        key.append(clsNameView);
-        key.append(methodNameView);
-        key.append(signatureView);
-        return key;
+        return cacheKey.c_str();
+    }
+
+private:
+    void BuildCacheKey()
+    {
+        cacheKey.clear();
+        size_t clsLen = std::strlen(clsName);
+        size_t methodLen = std::strlen(methodName);
+        size_t sigLen = std::strlen(signature);
+        cacheKey.reserve(clsLen + methodLen + sigLen);
+        cacheKey.append(clsName, clsLen);
+        cacheKey.append(methodName, methodLen);
+        cacheKey.append(signature, sigLen);
     }
 };
 

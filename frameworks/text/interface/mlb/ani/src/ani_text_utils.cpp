@@ -52,10 +52,10 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
 
     ani_method aniCtor = nullptr;
     static const char* methodSign = "C{std.core.String}C{escompat.ErrorOptions}:";
-    ani_cache_param param = { ANI_BUSINESS_ERROR, "<ctor>", methodSign };
+    AniCacheParam param = { ANI_BUSINESS_ERROR, "<ctor>", methodSign };
     status = FindMethodWithCache(env, param, aniCtor);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find ctor %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), status);
+        TEXT_LOGE("Failed to find ctor %{public}s, ret %{public}d", param.GetCacheKey(), status);
         return status;
     }
 
@@ -103,10 +103,10 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
     ani_method arrayCtor = nullptr;
     static const char* methodSign = "i:";
-    ani_cache_param param = { ANI_ARRAY, "<ctor>", methodSign };
+    AniCacheParam param = { ANI_ARRAY, "<ctor>", methodSign };
     ret = FindMethodWithCache(env, param, arrayCtor);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find ctor %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), ret);
+        TEXT_LOGE("Failed to find ctor %{public}s, ret %{public}d", param.GetCacheKey(), ret);
         return CreateAniUndefined(env);
     }
 
@@ -264,11 +264,11 @@ bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
     return false;
 }
 
-ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref)
+ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const AniCacheParam& param, ani_ref& ref)
 {
     ani_status ret = GetPropertyByCache_Ref(env, obj, param, ref);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get property %{public}s, ret %{public}d", param.BuildCacheKey().c_str(), ret);
+        TEXT_LOGE("Failed to get property %{public}s, ret %{public}d", param.GetCacheKey(), ret);
         return ret;
     }
     ani_boolean isUndefined;
@@ -285,7 +285,7 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const a
     return ret;
 }
 
-ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const ani_cache_param& param, double& value)
+ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const AniCacheParam& param, double& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -295,7 +295,7 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const ani_cache_param& param, int& value)
+ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, const AniCacheParam& param, int& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -305,7 +305,7 @@ ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, cons
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const ani_cache_param& param, std::string& str)
+ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const AniCacheParam& param, std::string& str)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -316,7 +316,7 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
 }
 
 ani_status AniTextUtils::ReadOptionalU16StringField(
-    ani_env* env, ani_object obj, const ani_cache_param& param, std::u16string& str)
+    ani_env* env, ani_object obj, const AniCacheParam& param, std::u16string& str)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -326,7 +326,7 @@ ani_status AniTextUtils::ReadOptionalU16StringField(
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const ani_cache_param& param, bool& value)
+ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const AniCacheParam& param, bool& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -352,15 +352,14 @@ ani_status AniTextUtils::FindClassWithCache(ani_env* env, const char* clsName, a
     return ret;
 }
 
-ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const ani_cache_param& param, ani_method& method)
+ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const AniCacheParam& param, ani_method& method)
 {
     if (!param.IsValid()) {
         TEXT_LOGE("clsName methodName signature is null");
         return ANI_ERROR;
     }
 
-    std::string key = param.BuildCacheKey();
-    if (AniCacheManager::Instance().FindMethod(key, method)) {
+    if (AniCacheManager::Instance().FindMethod(param.GetCacheKey(), method)) {
         return ANI_OK;
     }
 
@@ -373,9 +372,9 @@ ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const ani_cache_param
 
     ret = env->Class_FindMethod(cls, param.methodName, param.signature, &method);
     if (ret == ANI_OK) {
-        AniCacheManager::Instance().InsertMethod(key, method);
+        AniCacheManager::Instance().InsertMethod(param.GetCacheKey(), method);
     } else {
-        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", key.c_str(), ret);
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.GetCacheKey(), ret);
     }
     return ret;
 }
@@ -391,7 +390,7 @@ ani_status AniTextUtils::Object_InstanceOf(ani_env* env, ani_object obj, const c
     return env->Object_InstanceOf(obj, cls, result);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Ref(ani_env* env, ani_object obj, const ani_cache_param& param, ani_ref& ref)
+ani_status AniTextUtils::GetPropertyByCache_Ref(ani_env* env, ani_object obj, const AniCacheParam& param, ani_ref& ref)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);
@@ -402,7 +401,7 @@ ani_status AniTextUtils::GetPropertyByCache_Ref(ani_env* env, ani_object obj, co
     return env->Object_CallMethod_Ref(obj, method, &ref);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Double(ani_env* env, ani_object obj, const ani_cache_param& param, ani_double& value)
+ani_status AniTextUtils::GetPropertyByCache_Double(ani_env* env, ani_object obj, const AniCacheParam& param, ani_double& value)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);
@@ -413,7 +412,7 @@ ani_status AniTextUtils::GetPropertyByCache_Double(ani_env* env, ani_object obj,
     return env->Object_CallMethod_Double(obj, method, &value);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Int(ani_env* env, ani_object obj, const ani_cache_param& param, ani_int& value)
+ani_status AniTextUtils::GetPropertyByCache_Int(ani_env* env, ani_object obj, const AniCacheParam& param, ani_int& value)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);
@@ -424,7 +423,7 @@ ani_status AniTextUtils::GetPropertyByCache_Int(ani_env* env, ani_object obj, co
     return env->Object_CallMethod_Int(obj, method, &value);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Long(ani_env* env, ani_object obj, const ani_cache_param& param, ani_long& value)
+ani_status AniTextUtils::GetPropertyByCache_Long(ani_env* env, ani_object obj, const AniCacheParam& param, ani_long& value)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);

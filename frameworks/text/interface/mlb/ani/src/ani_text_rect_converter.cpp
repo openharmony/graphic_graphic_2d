@@ -26,14 +26,14 @@ using namespace OHOS::Rosen;
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
     ani_int startTmp = 0;
-    static ani_cache_param paramStart = { ANI_INTERFACE_RANGE, "<get>start", ":i" };
+    static AniCacheParam paramStart = { ANI_INTERFACE_RANGE, "<get>start", ":i" };
     ani_status ret = AniTextUtils::GetPropertyByCache_Int(env, obj, paramStart, startTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     ani_int endTmp = 0;
-    static ani_cache_param paramEnd = { ANI_INTERFACE_RANGE, "<get>end", ":i" };
+    static AniCacheParam paramEnd = { ANI_INTERFACE_RANGE, "<get>end", ":i" };
     ret = AniTextUtils::GetPropertyByCache_Int(env, obj, paramEnd, endTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);

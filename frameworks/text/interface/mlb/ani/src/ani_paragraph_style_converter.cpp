@@ -33,7 +33,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
 
     ani_ref ref = nullptr;
-    static ani_cache_param param = { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>maxLines", ANI_WRAP_RETURN_C(ANI_INT) };
+    static AniCacheParam param = { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>maxLines", ANI_WRAP_RETURN_C(ANI_INT) };
     ret = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (ret == ANI_OK && ref != nullptr) {
         int maxLines = 0;
@@ -48,7 +48,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref textStyleRef = nullptr;
     TextStyle textStyle;
-    static ani_cache_param textStyleParam =
+    static AniCacheParam textStyleParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>textStyle", ANI_WRAP_RETURN_C(ANI_INTERFACE_TEXT_STYLE) };
     if (AniTextUtils::ReadOptionalField(env, obj, textStyleParam, textStyleRef) == ANI_OK && textStyleRef != nullptr) {
         ret = AniTextStyleConverter::ParseTextStyleToNative(env, reinterpret_cast<ani_object>(textStyleRef), textStyle);
@@ -58,31 +58,31 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     }
     paragraphStyle->ellipsis = textStyle.ellipsis;
     paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
-    static ani_cache_param textDirectionParam =
+    static AniCacheParam textDirectionParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>textDirection", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DIRECTION) };
     AniTextUtils::ReadOptionalEnumField(env, obj, textDirectionParam, paragraphStyle->textDirection);
-    static ani_cache_param textAlignParam =
+    static AniCacheParam textAlignParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_ALIGN) };
     AniTextUtils::ReadOptionalEnumField(env, obj, textAlignParam, paragraphStyle->textAlign);
-    static ani_cache_param wordBreakParam =
+    static AniCacheParam wordBreakParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>wordBreak", ANI_WRAP_RETURN_E(ANI_ENUM_WORD_BREAK) };
     AniTextUtils::ReadOptionalEnumField(env, obj, wordBreakParam, paragraphStyle->wordBreakType);
-    static ani_cache_param breakStrategyParam =
+    static AniCacheParam breakStrategyParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>breakStrategy", ANI_WRAP_RETURN_E(ANI_ENUM_BREAK_STRATEGY) };
     AniTextUtils::ReadOptionalEnumField(env, obj, breakStrategyParam, paragraphStyle->breakStrategy);
-    static ani_cache_param textHeightBehaviorParam =
+    static AniCacheParam textHeightBehaviorParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>textHeightBehavior", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_HEIGHT_BEHAVIOR) };
     AniTextUtils::ReadOptionalEnumField(env, obj, textHeightBehaviorParam, paragraphStyle->textHeightBehavior);
 
     ani_ref strutStyleRef = nullptr;
-    static ani_cache_param strutStyleParam =
+    static AniCacheParam strutStyleParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>strutStyle", ANI_WRAP_RETURN_C(ANI_INTERFACE_STRUT_STYLE) };
     if (AniTextUtils::ReadOptionalField(env, obj, strutStyleParam, strutStyleRef) == ANI_OK && strutStyleRef != nullptr) {
         ParseParagraphStyleStrutStyleToNative(env, reinterpret_cast<ani_object>(strutStyleRef), paragraphStyle);
     }
 
     ani_ref tabRef = nullptr;
-    static ani_cache_param tabParam =
+    static AniCacheParam tabParam =
         { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>tab", ANI_WRAP_RETURN_C(ANI_INTERFACE_TEXT_TAB) };
     if (AniTextUtils::ReadOptionalField(env, obj, tabParam, tabRef) == ANI_OK && tabRef != nullptr) {
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
@@ -94,40 +94,40 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
-    static ani_cache_param fontStyleParam =
+    static AniCacheParam fontStyleParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE) };
     AniTextUtils::ReadOptionalEnumField(env, obj, fontStyleParam, paragraphStyle->lineStyleFontStyle);
-    static ani_cache_param fontWidthParam =
+    static AniCacheParam fontWidthParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>fontWidth", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WIDTH) };
     AniTextUtils::ReadOptionalEnumField(env, obj, fontWidthParam, paragraphStyle->lineStyleFontWidth);
-    static ani_cache_param fontWeightParam =
+    static AniCacheParam fontWeightParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT) };
     AniTextUtils::ReadOptionalEnumField(env, obj, fontWeightParam, paragraphStyle->lineStyleFontWeight);
 
-    static ani_cache_param fontSizeParam =
+    static AniCacheParam fontSizeParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>fontSize", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
     AniTextUtils::ReadOptionalDoubleField(env, obj, fontSizeParam, paragraphStyle->lineStyleFontSize);
-    static ani_cache_param heightParam =
+    static AniCacheParam heightParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>height", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
     AniTextUtils::ReadOptionalDoubleField(env, obj, heightParam, paragraphStyle->lineStyleHeightScale);
-    static ani_cache_param leadingParam =
+    static AniCacheParam leadingParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>leading", ANI_WRAP_RETURN_C(ANI_DOUBLE) };
     AniTextUtils::ReadOptionalDoubleField(env, obj, leadingParam, paragraphStyle->lineStyleSpacingScale);
-    static ani_cache_param forceHeightParam =
+    static AniCacheParam forceHeightParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>forceHeight", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
     AniTextUtils::ReadOptionalBoolField(env, obj, forceHeightParam, paragraphStyle->lineStyleOnly);
-    static ani_cache_param enabledParam =
+    static AniCacheParam enabledParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>enabled", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
     AniTextUtils::ReadOptionalBoolField(env, obj, enabledParam, paragraphStyle->useLineStyle);
-    static ani_cache_param heightOverrideParam =
+    static AniCacheParam heightOverrideParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>heightOverride", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
     AniTextUtils::ReadOptionalBoolField(env, obj, heightOverrideParam, paragraphStyle->lineStyleHeightOnly);
-    static ani_cache_param halfLeadingParam =
+    static AniCacheParam halfLeadingParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>halfLeading", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
     AniTextUtils::ReadOptionalBoolField(env, obj, halfLeadingParam, paragraphStyle->lineStyleHalfLeading);
 
     ani_ref aniFontFamilies = nullptr;
-    static ani_cache_param fontFamiliesParam =
+    static AniCacheParam fontFamiliesParam =
         { ANI_INTERFACE_STRUT_STYLE, "<get>fontFamilies", ANI_WRAP_RETURN_C(ANI_ARRAY) };
     if (AniTextUtils::ReadOptionalField(env, obj, fontFamiliesParam, aniFontFamilies) == ANI_OK
         && aniFontFamilies != nullptr) {
@@ -139,11 +139,11 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
 
 void AniParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab)
 {
-    static ani_cache_param alignmentParam =
+    static AniCacheParam alignmentParam =
         { ANI_INTERFACE_TEXT_TAB, "<get>alignment", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_ALIGN) };
     AniTextUtils::ReadOptionalEnumField(env, obj, alignmentParam, textTab.alignment);
     ani_double tempLocation;
-    static ani_cache_param param = { ANI_INTERFACE_TEXT_TAB, "<get>location", ":d" };
+    static AniCacheParam param = { ANI_INTERFACE_TEXT_TAB, "<get>location", ":d" };
     AniTextUtils::GetPropertyByCache_Double(env, obj, param, tempLocation);
     textTab.location = static_cast<float>(tempLocation);
 }

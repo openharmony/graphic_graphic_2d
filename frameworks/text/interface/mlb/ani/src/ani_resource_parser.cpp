@@ -33,19 +33,19 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    static ani_cache_param paramId = { ANI_GLOBAL_RESOURCE, "<get>id", ":l" };
+    static AniCacheParam paramId = { ANI_GLOBAL_RESOURCE, "<get>id", ":l" };
     AniTextUtils::GetPropertyByCache_Long(env, obj, paramId, aniId);
-    static ani_cache_param paramBundleName = { ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING) };
+    static AniCacheParam paramBundleName = { ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING) };
     AniTextUtils::GetPropertyByCache_Ref(env, obj, paramBundleName, aniBundleName);
-    static ani_cache_param paramModuleName = { ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING) };
+    static AniCacheParam paramModuleName = { ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING) };
     AniTextUtils::GetPropertyByCache_Ref(env, obj, paramModuleName, aniModuleName);
-    static ani_cache_param paramsName = { ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY) };
+    static AniCacheParam paramsName = { ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY) };
     AniTextUtils::ReadOptionalArrayField(env, obj, paramsName, result.params, [](ani_env* env, ani_ref ref) {
         std::string utf8Str;
         AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
         return utf8Str;
     });
-    static ani_cache_param typeParam = { ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT) };
+    static AniCacheParam typeParam = { ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT) };
     AniTextUtils::ReadOptionalIntField(env, obj, typeParam, aniType);
 
     result.type = static_cast<int32_t>(aniType);
