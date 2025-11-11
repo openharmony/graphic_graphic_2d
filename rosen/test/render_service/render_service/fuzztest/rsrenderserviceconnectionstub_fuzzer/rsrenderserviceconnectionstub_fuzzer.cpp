@@ -1282,7 +1282,7 @@ bool DoSetRogScreenResolution()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return false;
     }
     uint64_t id = GetData<uint64_t>();
@@ -1299,10 +1299,10 @@ bool DoSetRogScreenResolution()
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
-    if (rsConnStub_ == nullptr) {
+    if (rsToServiceConnStub_ == nullptr) {
         return false;
     }
-    rsConnStub_->OnRemoteRequest(code, data, reply, option);
+    rsToServiceConnStub_->OnRemoteRequest(code, data, reply, option);
     return true;
 }
 

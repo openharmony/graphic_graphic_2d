@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_PIPELINE_CLIENT_H
 
 #include "common/rs_common_def.h"
-#include "platform/ohos/rs_iclient_to_render_connection.h"
 #include "rs_client_render_comm_def_info.h"
 #include <functional>
 #include <map>
@@ -91,7 +90,6 @@ class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:
     RSRenderPipelineClient() = default;
     ~RSRenderPipelineClient() = default;
-    sptr<RSIClientToRenderConnection> GetClientToRenderConnection();
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
@@ -144,7 +142,6 @@ public:
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 private:
-    sptr<RSIClientToRenderConnection> clientToRenderConnection_;
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;

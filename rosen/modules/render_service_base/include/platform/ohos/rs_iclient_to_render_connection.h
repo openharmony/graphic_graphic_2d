@@ -18,7 +18,6 @@
 
 #include <iremote_broker.h>
 #include <string>
-#include <surface.h>
 
 #include "feature/capture/rs_ui_capture.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
@@ -60,6 +59,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+}
 
 class RSIClientToRenderConnection : public IRemoteBroker {
 public:

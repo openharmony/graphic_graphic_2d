@@ -15,21 +15,9 @@
 
 #ifndef RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
 #define RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
-
-#include "event_handler.h"
-#include "common/rs_macros.h"
-#include "platform/ohos/rs_irender_service.h"
-#include "vsync_receiver.h"
-
+#include "pixel_map.h"
 namespace OHOS {
 namespace Rosen {
-class SurfaceBufferCallback {
-public:
-    SurfaceBufferCallback() = default;
-    virtual ~SurfaceBufferCallback() noexcept = default;
-    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
-    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
-};
 
 class SurfaceCaptureCallback {
 public:

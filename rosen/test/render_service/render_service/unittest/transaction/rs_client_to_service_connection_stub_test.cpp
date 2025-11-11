@@ -1426,7 +1426,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest002, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, SetRogScreenResolutionTest001, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, TestSize.Level1)
 {
     constexpr uint64_t SCREEN_ID = 0;
     uint32_t width{1920};
@@ -1435,7 +1435,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetRogScreenResolutionTest001, TestS
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data.WriteUint64(SCREEN_ID);
     data.WriteUint32(width);
     data.WriteUint32(height);
@@ -1450,7 +1450,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, SetRogScreenResolutionTest001, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceConnectionStubTest, GetRogScreenResolutionTest001, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionStubTest, GetRogScreenResolutionTest001, TestSize.Level1)
 {
     constexpr uint64_t SCREEN_ID = 0;
     int32_t status{0};
@@ -1460,7 +1460,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, GetRogScreenResolutionTest001, TestS
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
-    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     data.WriteUint64(SCREEN_ID);
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);

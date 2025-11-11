@@ -65,7 +65,7 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
 
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->CommitTransaction(transactionData);
     } else {
@@ -79,7 +79,7 @@ void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncT
         return;
     }
 
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ExecuteSynchronousTask(task);
     }
@@ -87,7 +87,7 @@ void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncT
 
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -97,7 +97,7 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
 
 MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return MemoryGraphic {};
     }
@@ -108,7 +108,7 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
 
 std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return {};
     }
@@ -119,7 +119,7 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
 
 bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -128,7 +128,7 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
 
 bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -139,7 +139,7 @@ bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeCon
 
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -151,7 +151,7 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     bool unobscured)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return nullptr;
     }
@@ -196,7 +196,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     bool fromXcomponent)
 {
     ROSEN_LOGD("RSRenderServiceClient::CreateVSyncReceiver Start");
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return nullptr;
     }
@@ -213,7 +213,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 
 int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -225,7 +225,7 @@ int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>&
 std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
     const Rect &srcRect)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return nullptr;
     }
@@ -239,7 +239,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return INVALID_SCREEN_ID;
     }
@@ -251,7 +251,7 @@ ScreenId RSRenderServiceClient::GetDefaultScreenId()
 
 ScreenId RSRenderServiceClient::GetActiveScreenId()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return INVALID_SCREEN_ID;
     }
@@ -263,7 +263,7 @@ ScreenId RSRenderServiceClient::GetActiveScreenId()
 
 std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return std::vector<ScreenId>();
     }
@@ -280,7 +280,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return INVALID_SCREEN_ID;
@@ -291,7 +291,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
@@ -302,7 +302,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
 
 int32_t RSRenderServiceClient::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -313,7 +313,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenTypeBlackList(ScreenId id, std::v
 
 int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
@@ -325,7 +325,7 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
 
 int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
@@ -337,7 +337,7 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
 
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -350,7 +350,7 @@ uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return WATER_MARK_RENDER_SERVICE_NULL;
     }
@@ -360,7 +360,7 @@ uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string
 void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
     const std::vector<NodeId> &nodeIdList)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -369,7 +369,7 @@ void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::
     
 void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -380,7 +380,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -391,7 +391,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
 int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
     std::shared_ptr<Media::PixelMap> securityMask)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -401,7 +401,7 @@ int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
 
 int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -411,7 +411,7 @@ int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rec
 
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -421,7 +421,7 @@ int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool e
 
 int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -431,7 +431,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -443,7 +443,7 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -453,7 +453,7 @@ int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, 
  
 int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -480,7 +480,7 @@ private:
  
 int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -491,7 +491,7 @@ int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const Poin
  
 int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -519,7 +519,7 @@ private:
 
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -548,7 +548,7 @@ private:
 
 int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -581,7 +581,7 @@ private:
 
 int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -597,7 +597,7 @@ int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessI
 
 int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -607,7 +607,7 @@ int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessIn
 
 uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return StatusCode::RENDER_SERVICE_NULL;
     }
@@ -617,7 +617,7 @@ uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId
 
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return;
@@ -628,7 +628,7 @@ void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, i
 
 void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return;
@@ -640,7 +640,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
     const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return;
@@ -651,7 +651,7 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
 
 void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return;
@@ -661,7 +661,7 @@ void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -672,7 +672,7 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 
 int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -683,7 +683,7 @@ int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 
 std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return {};
@@ -694,7 +694,7 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
 
 bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return false;
@@ -707,7 +707,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
 std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return "";
@@ -719,7 +719,7 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
 
 std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return "";
@@ -731,7 +731,7 @@ std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
 
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return;
@@ -742,7 +742,7 @@ void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enabled, int32_t type
 
 uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -753,7 +753,7 @@ uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
 
 int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("%{public}s: render service is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -764,7 +764,7 @@ int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t widt
 
 int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("%{public}s: render service is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -775,7 +775,7 @@ int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& wid
 
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("%{public}s: render service is null", __func__);
         return RENDER_SERVICE_NULL;
@@ -786,7 +786,7 @@ int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t
 
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualScreenResolution clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -797,7 +797,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t 
 
 RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RSVirtualScreenResolution {}; // return empty RSVirtualScreenResolution.
     }
@@ -807,7 +807,7 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
 
 void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -817,7 +817,7 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 
 void RSRenderServiceClient::RepaintEverything()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RepaintEverything clientToService is null, return");
         return;
@@ -828,7 +828,7 @@ void RSRenderServiceClient::RepaintEverything()
 
 void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("ForceRefreshOneFrameWithNextVSync clientToService is nullptr, return");
         return;
@@ -839,7 +839,7 @@ void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
 
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -849,7 +849,7 @@ void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
         return;
@@ -860,7 +860,7 @@ void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus 
 
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RSScreenModeInfo {}; // return empty RSScreenModeInfo.
     }
@@ -872,7 +872,7 @@ RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 
 std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return {};
     }
@@ -882,7 +882,7 @@ std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(Scr
 
 RSScreenCapability RSRenderServiceClient::GetScreenCapability(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RSScreenCapability {};
     }
@@ -892,7 +892,7 @@ RSScreenCapability RSRenderServiceClient::GetScreenCapability(ScreenId id)
 
 ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
@@ -903,7 +903,7 @@ ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
 
 RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RSScreenData {};
     }
@@ -913,7 +913,7 @@ RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
 
 int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
         return INVALID_BACKLIGHT_VALUE;
@@ -925,7 +925,7 @@ int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
 
 void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
         return;
@@ -971,7 +971,7 @@ private:
 bool RSRenderServiceClient::RegisterBufferAvailableListener(
     NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -1000,7 +1000,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
 
 bool RSRenderServiceClient::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
@@ -1032,7 +1032,7 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1041,7 +1041,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::v
 
 int32_t RSRenderServiceClient::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RequestRotation clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1051,7 +1051,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedMetaDataKeys(ScreenId id, std::
 
 int32_t RSRenderServiceClient::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1060,7 +1060,7 @@ int32_t RSRenderServiceClient::GetScreenColorGamut(ScreenId id, ScreenColorGamut
 
 int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1069,7 +1069,7 @@ int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 
 int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1078,7 +1078,7 @@ int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mod
 
 int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1087,7 +1087,7 @@ int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation s
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation: clientToService is nullptr");
         return false;
@@ -1097,7 +1097,7 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
 
 int32_t RSRenderServiceClient::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualScreenAutoRotation: clientToService is nullptr");
         return RENDER_SERVICE_NULL;
@@ -1107,7 +1107,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenAutoRotation(ScreenId id, bool is
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualMirrorScreenScaleMode: clientToService is nullptr");
         return false;
@@ -1117,7 +1117,7 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
 
 bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: clientToService is nullptr");
         return false;
@@ -1127,7 +1127,7 @@ bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
 
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1136,7 +1136,7 @@ int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mo
 
 int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetScreenHDRCapability clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1146,7 +1146,7 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
 
 int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1158,7 +1158,7 @@ int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& p
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1170,7 +1170,7 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
 
 int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1181,7 +1181,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::ve
 
 int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1192,7 +1192,7 @@ int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& 
 
 int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1204,7 +1204,7 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1215,7 +1215,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
 
 int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1226,7 +1226,7 @@ int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1237,7 +1237,7 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetScreenType clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1247,7 +1247,7 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
 
 bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetBitmap clientToService == nullptr!");
         return false;
@@ -1260,7 +1260,7 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetPixelmap: clientToService is nullptr");
         return false;
@@ -1272,7 +1272,7 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelM
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: clientToService is nullptr");
         return false;
@@ -1288,7 +1288,7 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
 
 int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: clientToService is nullptr");
         return false;
@@ -1302,7 +1302,7 @@ int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, in
 
 bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnRegisterTypeface: clientToService is nullptr");
         return false;
@@ -1316,7 +1316,7 @@ bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)
 int32_t RSRenderServiceClient::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
     std::vector<uint8_t>& edidData)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1325,7 +1325,7 @@ int32_t RSRenderServiceClient::GetDisplayIdentificationData(ScreenId id, uint8_t
 
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1337,7 +1337,7 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
 int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     int32_t resCode = RENDER_SERVICE_NULL;
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
@@ -1348,7 +1348,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
 
 uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1359,7 +1359,7 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
 
 void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -1385,7 +1385,7 @@ private:
 
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterOcclusionChangeCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1416,7 +1416,7 @@ private:
 int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1427,7 +1427,7 @@ int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
 
 int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1461,7 +1461,7 @@ private:
 
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterHgmConfigChangeCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1497,7 +1497,7 @@ private:
 int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
     const HgmRefreshRateModeChangeCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1536,7 +1536,7 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     const HgmRefreshRateUpdateCallback& callback)
 {
     sptr<CustomHgmRefreshRateUpdateCallback> cb = nullptr;
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1572,7 +1572,7 @@ int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
     const FirstFrameCommitCallback& callback)
 {
     sptr<CustomFirstFrameCommitCallback> cb = nullptr;
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterFirstFrameCommitCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1609,7 +1609,7 @@ private:
 int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback clientToService == nullptr");
         return RENDER_SERVICE_NULL;
@@ -1626,7 +1626,7 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetAppWindowNum(num);
     }
@@ -1634,7 +1634,7 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetSystemAnimatedScenes clientToService == nullptr!");
         return false;
@@ -1646,7 +1646,7 @@ bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemA
 
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ShowWatermark(watermarkImg, isShow);
     }
@@ -1654,7 +1654,7 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
 
 int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::ResizeVirtualScreen clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1666,7 +1666,7 @@ int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, 
 
 void RSRenderServiceClient::ReportJankStats()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportJankStats();
     }
@@ -1674,7 +1674,7 @@ void RSRenderServiceClient::ReportJankStats()
 
 void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportEventResponse(info);
     }
@@ -1682,7 +1682,7 @@ void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
 
 void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportEventComplete(info);
     }
@@ -1690,7 +1690,7 @@ void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
 
 void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportEventJankFrame(info);
     }
@@ -1698,7 +1698,7 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 
 void RSRenderServiceClient::ReportRsSceneJankStart(AppInfo info)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportRsSceneJankStart(info);
     }
@@ -1706,7 +1706,7 @@ void RSRenderServiceClient::ReportRsSceneJankStart(AppInfo info)
 
 void RSRenderServiceClient::ReportRsSceneJankEnd(AppInfo info)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportRsSceneJankEnd(info);
     }
@@ -1714,7 +1714,7 @@ void RSRenderServiceClient::ReportRsSceneJankEnd(AppInfo info)
 
 void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->ReportGameStateData(info);
     }
@@ -1723,7 +1723,7 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
@@ -1731,7 +1731,7 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
 
 uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         uint32_t resCode;
         clientToService->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
@@ -1742,7 +1742,7 @@ uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePr
 
 void RSRenderServiceClient::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyLightFactorStatus(lightFactorStatus);
     }
@@ -1750,7 +1750,7 @@ void RSRenderServiceClient::NotifyLightFactorStatus(int32_t lightFactorStatus)
 
 void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyPackageEvent(listSize, packageList);
     }
@@ -1759,7 +1759,7 @@ void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vec
 void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
     const std::vector<std::pair<std::string, std::string>>& newConfig)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
     }
@@ -1767,7 +1767,7 @@ void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string
 
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyRefreshRateEvent(eventInfo);
     }
@@ -1775,7 +1775,7 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetWindowExpectedRefreshRate(eventInfos);
     }
@@ -1783,7 +1783,7 @@ void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_ma
 
 void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetWindowExpectedRefreshRate(eventInfos);
     }
@@ -1792,7 +1792,7 @@ void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_ma
 bool RSRenderServiceClient::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
     const std::string &name, uint32_t rateDiscount)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         return clientToService->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
     }
@@ -1801,7 +1801,7 @@ bool RSRenderServiceClient::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
 
 void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyHgmConfigEvent(eventName, state);
     }
@@ -1809,7 +1809,7 @@ void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, b
 
 void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
     }
@@ -1817,7 +1817,7 @@ void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string&
 
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyTouchEvent(touchStatus, touchCnt);
     }
@@ -1825,7 +1825,7 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchC
 
 void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->NotifyDynamicModeEvent(enableDynamicMode);
     }
@@ -1833,7 +1833,7 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetCacheEnabledForRotation(isEnabled);
     }
@@ -1841,7 +1841,7 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetOnRemoteDiedCallback(callback);
     }
@@ -1849,7 +1849,7 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return {};
     }
@@ -1858,7 +1858,7 @@ std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionIn
 
 GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return GlobalDirtyRegionInfo {};
     }
@@ -1867,7 +1867,7 @@ GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
 
 LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return LayerComposeInfo {};
     }
@@ -1876,7 +1876,7 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 
 HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return {};
     }
@@ -1885,7 +1885,7 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
 
 int64_t RSRenderServiceClient::GetHdrOnDuration()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return 0;
     }
@@ -1899,7 +1899,7 @@ int64_t RSRenderServiceClient::GetHdrOnDuration()
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -1910,7 +1910,7 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
     TpFeatureConfigType tpFeatureConfigType)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return;
     }
@@ -1920,7 +1920,7 @@ void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* conf
 
 void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
     }
@@ -1928,7 +1928,7 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
 
 void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     }
@@ -1954,7 +1954,7 @@ private:
 int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback,
     bool unobscured)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterUIExtensionCallback clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1965,7 +1965,7 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
 
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     bool success = false;
     if (clientToService != nullptr) {
         clientToService->SetVirtualScreenStatus(id, screenStatus, success);
@@ -1975,7 +1975,7 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
 
 void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetFreeMultiWindowStatus clientToService == nullptr!");
         return;
@@ -2015,7 +2015,7 @@ void RSRenderServiceClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBuffer
 
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetLayerTop(nodeIdStr, isTop);
     }
@@ -2023,7 +2023,7 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 
 void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetForceRefresh(nodeIdStr, isForceRefresh);
     }
@@ -2064,7 +2064,7 @@ void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(uint64_t toke
 
 void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetColorFollow(nodeIdStr, isColorFollow);
     }
@@ -2072,7 +2072,7 @@ void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool is
 
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
         return;
@@ -2101,7 +2101,7 @@ private:
 int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
     const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback clientToService == nullptr");
         return RENDER_SERVICE_NULL;
@@ -2117,7 +2117,7 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
 
 int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback clientToService == nullptr");
         return RENDER_SERVICE_NULL;
@@ -2128,7 +2128,7 @@ int32_t RSRenderServiceClient::UnRegisterSelfDrawingNodeRectChangeCallback()
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -2139,7 +2139,7 @@ int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::NotifyPageName clientToService == nullptr!");
         return;
@@ -2149,7 +2149,7 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
 
 bool RSRenderServiceClient::GetHighContrastTextState()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         return clientToService->GetHighContrastTextState();
     }
@@ -2158,7 +2158,7 @@ bool RSRenderServiceClient::GetHighContrastTextState()
 
 bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (!clientToService) {
         return false;
     }
@@ -2172,7 +2172,7 @@ bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 
 bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (!clientToService) {
         return false;
     }
@@ -2186,7 +2186,7 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 
 int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (!clientToService) {
         return ERR_INVALID_DATA;
     }
@@ -2199,7 +2199,7 @@ int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 RetCodeHrpService RSRenderServiceClient::ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,
     const std::string& fileName, int32_t flags, int& fd)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RET_HRP_SERVICE_ERR_UNKNOWN;
     }
@@ -2215,7 +2215,7 @@ RetCodeHrpService RSRenderServiceClient::ProfilerServiceOpenFile(const HrpServic
 RetCodeHrpService RSRenderServiceClient::ProfilerServicePopulateFiles(const HrpServiceDirInfo& dirInfo,
     uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RET_HRP_SERVICE_ERR_UNKNOWN;
     }
@@ -2227,27 +2227,17 @@ RetCodeHrpService RSRenderServiceClient::ProfilerServicePopulateFiles(const HrpS
 
 bool RSRenderServiceClient::ProfilerIsSecureScreen()
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         return clientToService->ProfilerIsSecureScreen();
     }
     return false;
 }
 
-sptr<RSIClientToServiceConnection> RSRenderServiceClient::GetClientToServiceConnection()
-{
-    return RSRenderServiceConnectHub::GetRenderService().first;
-}
-
-sptr<RSIClientToRenderConnection> RSRenderServiceClient::GetClientToRenderConnection()
-{
-    return RSRenderServiceConnectHub::GetRenderService().second;
-}
-
 void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (!clientToService) {
         ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoStart clientToService == nullptr!");
         return;
@@ -2258,7 +2248,7 @@ void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqu
 void RSRenderServiceClient::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
-    auto clientToService = GetClientToServiceConnection();
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (!clientToService) {
         ROSEN_LOGE("RSRenderServiceClient::AvcodecVideoStop clientToService == nullptr!");
         return;

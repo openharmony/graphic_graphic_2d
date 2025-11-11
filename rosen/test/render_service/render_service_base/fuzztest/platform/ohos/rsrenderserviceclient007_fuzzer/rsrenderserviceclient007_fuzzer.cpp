@@ -192,8 +192,8 @@ bool DoRepaintEverything()
 
 bool DoForceRefreshOneFrameWithNextVSync()
 {
-    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
-    renderPipelineClient->ForceRefreshOneFrameWithNextVSync();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient->ForceRefreshOneFrameWithNextVSync();
     return true;
 }
 

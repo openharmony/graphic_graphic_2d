@@ -687,7 +687,7 @@ HWTEST_F(RSServiceClientTest, SetPhysicalScreenResolution001, TestSize.Level1)
  * @tc.desc: SetRogScreenResolution Test
  * @tc.type: FUNC
  */
-HWTEST_F(RSClientTest, SetRogScreenResolution001, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, SetRogScreenResolution001, TestSize.Level1)
 {
     ScreenId id = INVALID_SCREEN_ID;
     uint32_t width = 1920;
@@ -702,7 +702,7 @@ HWTEST_F(RSClientTest, SetRogScreenResolution001, TestSize.Level1)
  * @tc.desc: GetRogScreenResolution Test
  * @tc.type: FUNC
  */
-HWTEST_F(RSClientTest, GetRogScreenResolution001, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, GetRogScreenResolution001, TestSize.Level1)
 {
     ScreenId id = INVALID_SCREEN_ID;
     uint32_t width{0};

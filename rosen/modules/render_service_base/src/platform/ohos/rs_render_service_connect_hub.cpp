@@ -81,6 +81,16 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
     }
 }
 
+sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection()
+{
+    return GetRenderService().second;
+}
+
+sptr<RSIClientToServiceConnection> RSRenderServiceConnectHub::GetClientToServiceConnection()
+{
+    return GetRenderService().first;
+}
+
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderServiceConnectHub::GetRenderService()
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
@@ -153,6 +163,7 @@ bool RSRenderServiceConnectHub::Connect()
 
     renderService_ = renderService;
     conn_ = conn;
+    renderConn_ = renderConn;
 
     if (onConnectCallback_) {
         onConnectCallback_(conn_);
@@ -169,6 +180,7 @@ void RSRenderServiceConnectHub::ConnectDied()
         conn_->RunOnRemoteDiedCallback();
     }
     conn_ = nullptr;
+    renderConn_ = nullptr;
     deathRecipient_ = nullptr;
     token_ = nullptr;
     mutex_.unlock();

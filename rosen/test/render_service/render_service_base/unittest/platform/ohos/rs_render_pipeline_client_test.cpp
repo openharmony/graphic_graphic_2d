@@ -354,11 +354,11 @@ HWTEST_F(RSPipelineClientTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize
     ASSERT_EQ(ret, false);
 
     cb = std::make_shared<TestSurfaceCaptureCallback>();
-    auto conn = RSRenderServiceConnectHub::GetInstance()->conn_;
-    RSRenderServiceConnectHub::instance_->conn_ = new MockClientToRenderConnection(nullptr);
+    auto renderConn = RSRenderServiceConnectHub::GetInstance()->renderConn_;
+    RSRenderServiceConnectHub::instance_->renderConn_ = new MockClientToRenderConnection(nullptr);
     ret = rsClient->TakeSurfaceCaptureWithAllWindows(TEST_ID, cb, captureConfig, false);
     ASSERT_EQ(ret, false);
-    RSRenderServiceConnectHub::instance_->conn_ = conn;
+    RSRenderServiceConnectHub::instance_->renderConn_ = renderConn;
 }
 
 /**

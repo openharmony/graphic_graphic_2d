@@ -26,6 +26,10 @@ using OnConnectCallback = std::function<void(sptr<RSIClientToServiceConnection>&
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();
+
+    static sptr<RSIClientToRenderConnection> GetClientToRenderConnection();
+
+    static sptr<RSIClientToServiceConnection> GetClientToServiceConnection();
     static void SetOnConnectCallback(OnConnectCallback cb)
     {
         onConnectCallback_ = cb;

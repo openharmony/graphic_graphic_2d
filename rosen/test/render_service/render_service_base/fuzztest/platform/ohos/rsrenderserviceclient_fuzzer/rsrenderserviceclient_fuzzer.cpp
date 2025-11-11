@@ -1493,6 +1493,7 @@ bool DoRegisterOcclusionChangeCallback002(const uint8_t *data, size_t size)
 bool DoSetHidePrivacyContent002(const uint8_t *data, size_t size)
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId nodeId = GetData<NodeId>();
     bool needHidePrivacyContent = GetData<bool>();
     bool flag = GetData<bool>();
@@ -1508,7 +1509,7 @@ bool DoSetHidePrivacyContent002(const uint8_t *data, size_t size)
     renderServiceClient->GetHwcDisabledReasonInfo();
     renderServiceClient->SetVmaCacheStatus(flag);
     renderServiceClient->RegisterUIExtensionCallback(userId, uiExtensionCallback);
-    renderServiceClient->SetAncoForceDoDirect(direct);
+    renderPipelineClient->SetAncoForceDoDirect(direct);
     return true;
 }
 

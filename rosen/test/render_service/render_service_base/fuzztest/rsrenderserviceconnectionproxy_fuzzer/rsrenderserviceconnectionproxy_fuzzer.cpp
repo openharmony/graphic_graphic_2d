@@ -30,7 +30,8 @@
 
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
-#include "platform/ohos/rs_render_service_connection_proxy.h"
+#include "platform/ohos/rs_client_to_service_connection_proxy.h"
+#include "platform/ohos/rs_client_to_render_connection_proxy.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.h"
 
 namespace OHOS {

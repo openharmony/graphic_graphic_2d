@@ -30,7 +30,6 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    static inline std::shared_ptr<RSRenderServiceClient> rsClient = nullptr;
 };
 
 void RSRenderServiceConnectHubTest::SetUpTestCase() {}

@@ -57,10 +57,6 @@
 namespace OHOS {
 namespace Rosen {
 
-sptr<RSIClientToRenderConnection> RSRenderPipelineClient::GetClientToRenderConnection()
-{
-    return RSRenderServiceConnectHub::GetRenderService().second;
-}
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -141,7 +137,7 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCapture renderPipeline == nullptr!");
         return false;
@@ -172,7 +168,7 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelineClient::TakeSurfaceCaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCaptureSoloNode renderPipeline == nullptr!");
@@ -185,7 +181,7 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelin
 bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::TakeSelfSurfaceCapture renderPipeline == nullptr!");
         return false;
@@ -217,7 +213,7 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::SetWindowFreezeImmediately renderPipeline == nullptr!");
         return false;
@@ -253,7 +249,7 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("%{public}s renderPipeline == nullptr!", __func__);
         return false;
@@ -292,7 +288,7 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
 
 bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("%{public}s renderPipeline == nullptr!", __func__);
         return false;
@@ -304,7 +300,7 @@ bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze)
 bool RSRenderPipelineClient::TakeUICaptureInRange(
     NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::TakeUICaptureInRange renderPipeline == nullptr!");
         return false;
@@ -336,7 +332,7 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
 bool RSRenderPipelineClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         RS_LOGE("RSRenderPipelineClient::SetHwcNodeBounds renderPipeline is null!");
         return false;
@@ -347,7 +343,7 @@ bool RSRenderPipelineClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX,
 
 int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -358,7 +354,7 @@ int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
 
 int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -373,7 +369,7 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
 
 void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
         renderPipeline->DropFrameByPid(pidList);
     }
@@ -381,7 +377,7 @@ void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t> pidList)
 
 bool RSRenderPipelineClient::SetAncoForceDoDirect(bool direct)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
         bool res;
         renderPipeline->SetAncoForceDoDirect(direct, res);
@@ -412,7 +408,7 @@ private:
 bool RSRenderPipelineClient::RegisterSurfaceBufferCallback(
     pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::RegisterSurfaceBufferCallback renderPipeline == nullptr!");
         return false;
@@ -440,7 +436,7 @@ bool RSRenderPipelineClient::RegisterSurfaceBufferCallback(
 
 bool RSRenderPipelineClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::UnregisterSurfaceBufferCallback renderPipeline == nullptr!");
         return false;
@@ -490,7 +486,7 @@ void RSRenderPipelineClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBuffe
 
 void RSRenderPipelineClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
         renderPipeline->SetLayerTopForHWC(nodeId, isTop, zOrder);
     }
@@ -514,7 +510,7 @@ private:
 bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
     std::function<void()> callback)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback renderPipeline == nullptr!");
         return false;
@@ -562,7 +558,7 @@ void RSRenderPipelineClient::TriggerTransactionDataCallbackAndErase(uint64_t tok
 
 void RSRenderPipelineClient::SetWindowContainer(NodeId nodeId, bool value)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline != nullptr) {
         renderPipeline->SetWindowContainer(nodeId, value);
     }
@@ -570,7 +566,7 @@ void RSRenderPipelineClient::SetWindowContainer(NodeId nodeId, bool value)
 
 void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (!renderPipeline) {
         return;
     }
@@ -579,7 +575,7 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 
 void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    auto renderPipeline = GetClientToRenderConnection();
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         return;
     }

@@ -618,7 +618,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetPhysicalScreenResolution, Test
  * @tc.desc: SetRogScreenResolution Test
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, SetRogScreenResolution, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetRogScreenResolution, TestSize.Level1)
 {
     ScreenId id = INVALID_SCREEN_ID;
     uint32_t width = 1920;
@@ -633,7 +633,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetRogScreenResolution, TestSize.Le
  * @tc.desc: GetRogScreenResolution Test
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderServiceConnectionProxyTest, GetRogScreenResolution, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetRogScreenResolution, TestSize.Level1)
 {
     ScreenId id = INVALID_SCREEN_ID;
     uint32_t width = 0;
@@ -1484,7 +1484,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetPixelMapByProcessIdTest, TestS
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
 {
-    auto connectionProxy = RSRenderServiceConnectHub::GetRenderService();
+    auto connectionProxy = RSRenderServiceConnectHub::GetRenderService().first;
     auto res = connectionProxy->SetBehindWindowFilterEnabled(true);
     EXPECT_EQ(res, ERR_OK);
 }
@@ -1498,7 +1498,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetBehindWindowFilterEnabledTest,
 HWTEST_F(RSClientToServiceConnectionProxyTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
 {
     bool enabled = true;
-    auto connectionProxy = RSRenderServiceConnectHub::GetRenderService();
+    auto connectionProxy = RSRenderServiceConnectHub::GetRenderService().first;
     auto res = connectionProxy->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, ERR_OK);
 }

@@ -128,7 +128,7 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
     uint64_t token = 123;
     uint64_t timeStamp = 456;
     RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    instance.renderPiplineClient_ = std::make_unique<RSRenderPipelineClient>();
     bool res = instance.RegisterTransactionDataCallback(token, timeStamp, nullptr);
     EXPECT_TRUE(res == false);
 }
@@ -144,7 +144,7 @@ HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
     uint64_t token = 123;
     uint64_t timeStamp = 456;
     RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    instance.renderPiplineClient_ = std::make_unique<RSRenderPipelineClient>();
     std::function<void()> callback = []() {};
     bool res = instance.RegisterTransactionDataCallback(token, timeStamp, callback);
     EXPECT_TRUE(res == true);
@@ -586,7 +586,7 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
         void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) {}
     };
     RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    instance.renderPiplineClient_ = std::make_unique<RSRenderPipelineClient>();
 
     bool res = instance.RegisterSurfaceBufferCallback(1, 1, nullptr);
     EXPECT_FALSE(res);
@@ -605,7 +605,7 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
 HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
 {
     RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    instance.renderPiplineClient_ = std::make_unique<RSRenderPipelineClient>();
     bool res = instance.UnregisterSurfaceBufferCallback(1, 1);
     EXPECT_FALSE(res);
 }
@@ -635,10 +635,10 @@ HWTEST_F(RSInterfacesTest, RegisterAndUnRegisterFirstFrameCommitCallback001, Tes
 HWTEST_F(RSInterfacesTest, SetWindowContainer001, TestSize.Level1)
 {
     RSRenderInterface& instance = RSRenderInterface::GetInstance();
-    instance.renderPipelineClient_ = std::make_unique<RSRenderPipelineClient>();
+    instance.renderPiplineClient_ = std::make_unique<RSRenderPipelineClient>();
     NodeId nodeId = {};
     instance.SetWindowContainer(nodeId, false);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+    EXPECT_TRUE(instance.renderPiplineClient_ != nullptr);
 }
 
 /**

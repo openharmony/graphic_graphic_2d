@@ -50,7 +50,6 @@ using namespace testing::ext;
 namespace {
     const int DEFAULT_WIDTH = 2160;
     const int DEFAULT_HEIGHT = 1080;
-    const int INVALID_PIDLIST_SIZE = 200;
 };
 
 namespace OHOS::Rosen {

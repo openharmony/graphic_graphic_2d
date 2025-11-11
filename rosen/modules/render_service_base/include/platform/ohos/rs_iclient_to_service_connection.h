@@ -62,12 +62,9 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-    static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
-}
 class RSIClientToServiceConnection : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.ClientToServiceConnection");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 
     RSIClientToServiceConnection() = default;
     virtual ~RSIClientToServiceConnection() noexcept = default;

@@ -238,14 +238,14 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
-    dataP.WriteInterfaceToken(GetDescriptor());
+    dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     uint64_t id = fdp.ConsumeIntegral<uint64_t>();
     dataP.WriteUint64(id);
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     dataP.WriteUint32(width);
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     dataP.WriteUint32(height);
-    g_connectionStub->OnRemoteRequest(code, dataP, reply, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenResolution(FuzzedDataProvider& fdp)

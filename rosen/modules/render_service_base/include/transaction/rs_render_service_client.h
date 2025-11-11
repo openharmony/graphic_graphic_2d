@@ -445,8 +445,6 @@ public:
 private:
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
     void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);
-    sptr<RSIClientToServiceConnection> GetClientToServiceConnection();
-    sptr<RSIClientToRenderConnection> GetClientToRenderConnection();
 
     struct RectHash {
         std::size_t operator()(const Drawing::Rect& rect) const {

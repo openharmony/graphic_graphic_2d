@@ -54,7 +54,7 @@ const uint8_t DO_GET_ACTIVE_SCREEN_ID = 1;
 const uint8_t DO_GET_ALL_SCREEN_IDS = 2;
 const uint8_t TARGET_SIZE = 3;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;

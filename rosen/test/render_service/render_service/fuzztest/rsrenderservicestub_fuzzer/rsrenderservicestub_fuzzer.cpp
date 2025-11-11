@@ -120,11 +120,33 @@ bool RSRenderServiceStubFuzztest004(const uint8_t* data, size_t size)
     sptr<RSIRenderService> renderService = iface_cast<RSRenderServiceProxy>(remoteObject);
     sptr<RSRenderServiceStub> stub = new RSRenderService();
     sptr<RSIConnectionToken>  token = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token);
+    sptr<RSIClientToServiceConnection> conn = renderService->CreateConnection(token).first;
     MessageOption option;
     MessageParcel data1;
     MessageParcel reply;
-    data1.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    stub->OnRemoteRequest(code, data1, reply, option);
+    return true;
+}
+
+bool RSRenderServiceStubFuzztest005(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    
+    // get data
+    uint32_t code = GetData<uint32_t>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIRenderService> renderService = iface_cast<RSRenderServiceProxy>(remoteObject);
+    sptr<RSRenderServiceStub> stub = new RSRenderService();
+    sptr<RSIConnectionToken>  token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSIClientToRenderConnection> conn = renderService->CreateConnection(token).second;
+    MessageOption option;
+    MessageParcel data1;
+    MessageParcel reply;
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     stub->OnRemoteRequest(code, data1, reply, option);
     return true;
 }
@@ -144,5 +166,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::RSRenderServiceStubFuzztest002(data, size);
     OHOS::Rosen::RSRenderServiceStubFuzztest003(data, size);
     OHOS::Rosen::RSRenderServiceStubFuzztest004(data, size);
+    OHOS::Rosen::RSRenderServiceStubFuzztest005(data, size);
     return 0;
 }

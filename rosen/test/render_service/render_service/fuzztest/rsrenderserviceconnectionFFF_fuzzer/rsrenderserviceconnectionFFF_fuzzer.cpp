@@ -40,7 +40,7 @@
 
 namespace OHOS {
 namespace Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
+
 auto g_pid = getpid();
 auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
@@ -389,7 +389,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();
     auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
+    OHOS::Rosen::CONN = new OHOS::Rosen::RSClientToServiceConnection(
         newPid,
         nullptr,
         mainThread,
