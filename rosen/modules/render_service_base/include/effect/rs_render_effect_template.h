@@ -96,6 +96,7 @@ public:
             case RSNGEffectType::GASIFY: return "Gasify";
             case RSNGEffectType::IMAGE_MASK: return "ImageMask";
             case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
+            case RSNGEffectType::FROSTED_GLASS: return "FrostedGlass";
             default:
                 return "UNKNOWN";
         }
