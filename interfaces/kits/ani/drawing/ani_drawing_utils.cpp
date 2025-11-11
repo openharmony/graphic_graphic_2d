@@ -239,6 +239,17 @@ ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object&
     return ANI_OK;
 }
 
+bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj)
+{
+    obj = CreateAniObject(env, "L@ohos/graphics/common2D/common2D/PointInternal;", "DD:V",
+        ani_double(point.GetX()),
+        ani_double(point.GetY())
+    );
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(obj, &isUndefined);
+    return !isUndefined;
+}
+
 ani_object CreateAniUndefined(ani_env* env)
 {
     ani_ref aniRef;
@@ -273,6 +284,13 @@ ani_object CreateAniObject(ani_env* env, const char* className, const char* meth
     return aniObject;
 }
 
+ani_object CreateAniNull(ani_env* env)
+{
+    ani_ref aniRef;
+    env->GetNull(&aniRef);
+    return static_cast<ani_object>(aniRef);
+}
+
 bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
 {
     ani_class pointClass;
@@ -287,10 +305,11 @@ bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point
         ROSEN_LOGE("object is not a point obj");
         return false;
     }
+
     ani_double x = 0.0;
     ani_double y = 0.0;
     if ((env->Object_GetPropertyByName_Double(obj, "x", &x) != ANI_OK) ||
-       (env->Object_GetPropertyByName_Double(obj, "y", &y) != ANI_OK)) {
+        (env->Object_GetPropertyByName_Double(obj, "y", &y) != ANI_OK)) {
         ROSEN_LOGE("GetPointFromAniPointObj failed");
         return false;
     }
