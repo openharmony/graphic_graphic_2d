@@ -2569,12 +2569,14 @@ void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirty
     }
 
     RS_OPTIONAL_TRACE_NAME_FMT("UpdatePendingPurgeFilterDirtyRect:node[%llu],"
-        " needPendingPurge:%d, pendingPurgeFilterRegion: %s",
-        GetId(), filterDrawable->NeedPendingPurge(), pendingPurgeFilterRegion.GetRegionInfo().c_str());
+        " needPendingPurge:%d, lastHpaeClearCache: %d, pendingPurgeFilterRegion: %s",
+        GetId(), filterDrawable->NeedPendingPurge(), filterDrawable->LastHpaeClearCache(),
+        pendingPurgeFilterRegion.GetRegionInfo().c_str());
     // mainly based on the pendingPurge_ within NeedPendingPurge().
     // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
+    // also AddPendingPurgeFilterRegion if HpaeBlur clear cache
     // may become true later in CheckMergeFilterDirtyWithPreDirty().
-    if (filterDrawable->NeedPendingPurge()) {
+    if (filterDrawable->NeedPendingPurge() || filterDrawable->LastHpaeClearCache()) {
         dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
             Occlusion::Region(Occlusion::Rect(filterRect)));
     }
