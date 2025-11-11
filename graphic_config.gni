@@ -55,6 +55,7 @@ declare_args() {
   graphic_2d_feature_upgrade_skia = true
   graphic_2d_feature_enable_rdo = false
   graphic_2d_feature_enable_memory_info_manager = false
+  graphic_2d_feature_enable_dvsync = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -152,14 +153,12 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 }
 
 if (graphic_2d_feature_rs_enable_uni_render) {
-  graphic_2d_feature_enable_dvsync = true
   graphic_2d_feature_enable_sdf = true
   if (graphic_2d_feature_product == "phone") {
     graphic_2d_feature_enable_chipset_vsync = true
   }
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 } else {
-  graphic_2d_feature_enable_dvsync = false
   graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_chipset_vsync = false
 }
@@ -173,9 +172,6 @@ if (graphic_2d_feature_parallel_render_enable) {
   gpu_defines += [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
 
-if (graphic_2d_feature_enable_dvsync) {
-  gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
-}
 if (graphic_2d_feature_enable_chipset_vsync) {
   gpu_defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
 }
@@ -236,6 +232,11 @@ check_subtree_ext_file_args = [
   rebase_path(
     "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
 ]
+
+if (path_exists("//foundation/graphic/graphic_2d_ext/dvsync/BUILD.gn")) {
+  graphic_2d_feature_enable_dvsync = true
+  gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
+}
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")) {
   ddgr_ext_configs = {
