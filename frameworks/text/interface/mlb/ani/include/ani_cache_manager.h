@@ -74,10 +74,14 @@ public:
         return instance;
     }
 
+    void InsertNamespace(ani_env* env, const std::string& key, ani_namespace ns);
+    bool FindNamespace(const std::string& key, ani_namespace& ns);
     void InsertClass(ani_env* env, const std::string& key, ani_class cls);
     bool FindClass(const std::string& key, ani_class& cls);
     void InsertMethod(const std::string& key, ani_method method);
     bool FindMethod(const std::string& key, ani_method& method);
+    void InsertFunction(const std::string& key, ani_function method);
+    bool FindFunction(const std::string& key, ani_function& method);
     void InsertEnum(ani_env* env, const std::string& key, ani_enum enumType);
     bool FindEnum(const std::string& key, ani_enum& enumType);
     void Clear(ani_env* env);
@@ -90,11 +94,15 @@ private:
     AniCacheManager(const AniCacheManager&) = delete;
     AniCacheManager& operator=(const AniCacheManager&) = delete;
 
+    std::unordered_map<std::string, ani_ref> nsCache_;
     std::unordered_map<std::string, ani_ref> clsCache_;
     std::unordered_map<std::string, ani_method> methodCache_;
+    std::unordered_map<std::string, ani_function> functionCache_;
     std::unordered_map<std::string, ani_ref> enumCache_;
+    mutable std::shared_mutex nsMutex_;
     mutable std::shared_mutex clsMutex_;
     mutable std::shared_mutex methodMutex_;
+    mutable std::shared_mutex functionMutex_;
     mutable std::shared_mutex enumMutex_;
 };
 } // namespace OHOS::Text::ANI

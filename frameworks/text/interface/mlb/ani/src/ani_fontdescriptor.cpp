@@ -60,7 +60,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     ani_namespace ns = nullptr;
-    ret = env->FindNamespace(ANI_NAMESPACE_TEXT, &ns);
+    ret = AniTextUtils::FindNamespaceWithCache(env, ANI_NAMESPACE_TEXT, ns);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find namespace %{public}s, ret %{public}d", ANI_NAMESPACE_TEXT, ret);
         return ret;
@@ -107,13 +107,13 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     static AniCacheParam fontSubfamilyParam =
         { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING) };
     READ_OPTIONAL_FIELD(env, aniObj, fontSubfamilyParam, fontSubfamily, String, fontDesc.get(), status);
-    static AniCacheParam widthParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ":i" };
+    static AniCacheParam widthParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ANI_WRAP_RETURN_C(ANI_INT) };
     READ_OPTIONAL_FIELD(env, aniObj, widthParam, width, Int, fontDesc.get(), status);
-    static AniCacheParam italicParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ":i" };
+    static AniCacheParam italicParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT) };
     READ_OPTIONAL_FIELD(env, aniObj, italicParam, italic, Int, fontDesc.get(), status);
-    static AniCacheParam monoSpaceParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ":z" };
+    static AniCacheParam monoSpaceParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
     READ_OPTIONAL_FIELD(env, aniObj, monoSpaceParam, monoSpace, Bool, fontDesc.get(), status);
-    static AniCacheParam symbolicParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ":z" };
+    static AniCacheParam symbolicParam = { ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN) };
     READ_OPTIONAL_FIELD(env, aniObj, symbolicParam, symbolic, Bool, fontDesc.get(), status);
 
     return status;

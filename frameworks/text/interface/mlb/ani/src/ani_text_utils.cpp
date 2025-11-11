@@ -285,7 +285,8 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const A
     return ret;
 }
 
-ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const AniCacheParam& param, double& value)
+ani_status AniTextUtils::ReadOptionalDoubleField(
+    ani_env* env, ani_object obj, const AniCacheParam& param, double& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -305,7 +306,8 @@ ani_status AniTextUtils::ReadOptionalIntField(ani_env* env, ani_object obj, cons
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const AniCacheParam& param, std::string& str)
+ani_status AniTextUtils::ReadOptionalStringField(
+    ani_env* env, ani_object obj, const AniCacheParam& param, std::string& str)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
@@ -340,6 +342,18 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     return result;
 }
 
+ani_status AniTextUtils::FindNamespaceWithCache(ani_env* env, const char* nsName, ani_namespace& ns)
+{
+    if (AniCacheManager::Instance().FindNamespace(nsName, ns)) {
+        return ANI_OK;
+    }
+    ani_status ret = env->FindNamespace(nsName, &ns);
+    if (ret == ANI_OK) {
+        AniCacheManager::Instance().InsertNamespace(env, nsName, ns);
+    }
+    return ret;
+}
+
 ani_status AniTextUtils::FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls)
 {
     if (AniCacheManager::Instance().FindClass(clsName, cls)) {
@@ -358,23 +372,39 @@ ani_status AniTextUtils::FindMethodWithCache(ani_env* env, const AniCacheParam& 
         TEXT_LOGE("clsName methodName signature is null");
         return ANI_ERROR;
     }
-
     if (AniCacheManager::Instance().FindMethod(param.GetCacheKey(), method)) {
         return ANI_OK;
     }
-
     ani_class cls = nullptr;
     ani_status ret = FindClassWithCache(env, param.clsName, cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class %{public}s, ret %{public}d", param.clsName, ret);
         return ret;
     }
-
-    ret = env->Class_FindMethod(cls, param.methodName, param.signature, &method);
+        ret = env->Class_FindMethod(cls, param.methodName, param.signature, &method);
     if (ret == ANI_OK) {
         AniCacheManager::Instance().InsertMethod(param.GetCacheKey(), method);
     } else {
         TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.GetCacheKey(), ret);
+    }
+    return ret;
+}
+
+ani_status AniTextUtils::FindFunctionWithCache(
+    ani_env* env, const AniCacheParam& param, ani_namespace ns, ani_function& function)
+{
+    if (!param.IsValid()) {
+        TEXT_LOGE("clsName methodName signature is null");
+        return ANI_ERROR;
+    }
+    if (AniCacheManager::Instance().FindFunction(param.GetCacheKey(), function)) {
+        return ANI_OK;
+    }
+    ani_status ret = env->Namespace_FindFunction(ns, param.methodName, param.signature, &function);
+    if (ret == ANI_OK) {
+        AniCacheManager::Instance().InsertFunction(param.GetCacheKey(), function);
+    } else {
+        TEXT_LOGE("Failed to find function %{public}s, ret %{public}d", param.GetCacheKey(), ret);
     }
     return ret;
 }
@@ -401,7 +431,8 @@ ani_status AniTextUtils::GetPropertyByCache_Ref(ani_env* env, ani_object obj, co
     return env->Object_CallMethod_Ref(obj, method, &ref);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Double(ani_env* env, ani_object obj, const AniCacheParam& param, ani_double& value)
+ani_status AniTextUtils::GetPropertyByCache_Double(
+    ani_env* env, ani_object obj, const AniCacheParam& param, ani_double& value)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);
@@ -412,7 +443,8 @@ ani_status AniTextUtils::GetPropertyByCache_Double(ani_env* env, ani_object obj,
     return env->Object_CallMethod_Double(obj, method, &value);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Int(ani_env* env, ani_object obj, const AniCacheParam& param, ani_int& value)
+ani_status AniTextUtils::GetPropertyByCache_Int(
+    ani_env* env, ani_object obj, const AniCacheParam& param, ani_int& value)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);
@@ -423,7 +455,8 @@ ani_status AniTextUtils::GetPropertyByCache_Int(ani_env* env, ani_object obj, co
     return env->Object_CallMethod_Int(obj, method, &value);
 }
 
-ani_status AniTextUtils::GetPropertyByCache_Long(ani_env* env, ani_object obj, const AniCacheParam& param, ani_long& value)
+ani_status AniTextUtils::GetPropertyByCache_Long(
+    ani_env* env, ani_object obj, const AniCacheParam& param, ani_long& value)
 {
     ani_method method = nullptr;
     ani_status ret = FindMethodWithCache(env, param, method);
@@ -432,5 +465,46 @@ ani_status AniTextUtils::GetPropertyByCache_Long(ani_env* env, ani_object obj, c
         return ret;
     }
     return env->Object_CallMethod_Long(obj, method, &value);
+}
+
+ani_status AniTextUtils::GetPropertyByCache_Bool(
+    ani_env* env, ani_object obj, const AniCacheParam& param, bool& value)
+{
+    ani_method method = nullptr;
+    ani_status ret = FindMethodWithCache(env, param, method);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.methodName, ret);
+        return ret;
+    }
+    ani_boolean result;
+    ret = env->Object_CallMethod_Boolean(obj, method, &result);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("Failed to call method %{public}s, ret %{public}d", param.methodName, ret);
+    } else {
+        value = result;
+    }
+    return ret;
+}
+
+ani_status AniTextUtils::GetPropertyByCache_String(
+    ani_env* env, ani_object obj, const AniCacheParam& param, std::string& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::GetPropertyByCache_Ref(env, obj, param, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        result = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), value);
+    }
+    return result;
+}
+
+ani_status AniTextUtils::GetPropertyByCache_U16String(
+    ani_env* env, ani_object obj, const AniCacheParam& param, std::u16string& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::GetPropertyByCache_Ref(env, obj, param, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        result = AniTextUtils::AniToStdStringUtf16(env, reinterpret_cast<ani_string>(ref), value);
+    }
+    return result;
 }
 } // namespace OHOS::Text::ANI

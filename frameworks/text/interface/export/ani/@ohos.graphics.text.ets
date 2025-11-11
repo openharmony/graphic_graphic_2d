@@ -345,6 +345,66 @@ namespace text {
     fontVariations?: Array<FontVariation>;
   }
 
+  function transToRequired(textStyle: TextStyle): TextStyleR {
+    let result: TextStyleR = {
+      decoration: textStyle.decoration ?? ({
+        textDecoration: TextDecorationType.NONE,
+        color: ({ alpha: 0, red: 0, green: 0, blue: 0 }) as common2D.Color,
+        decorationStyle: TextDecorationStyle.SOLID,
+        decorationThicknessScale: 0
+      }) as Decoration,
+      color: textStyle.color ?? ({ alpha: 0, red: 0, green: 0, blue: 0 }) as common2D.Color,
+      fontWeight: textStyle.fontWeight ?? FontWeight.W400,
+      fontStyle: textStyle.fontStyle ?? FontStyle.NORMAL,
+      baseline: textStyle.baseline ?? TextBaseline.ALPHABETIC,
+      fontFamilies: textStyle.fontFamilies ?? Array<string>(),
+      fontSize: textStyle.fontSize ?? 14,
+      letterSpacing: textStyle.letterSpacing ?? 0,
+      wordSpacing: textStyle.wordSpacing ?? 0,
+      heightScale: textStyle.heightScale ?? 1,
+      halfLeading: textStyle.halfLeading ?? false,
+      heightOnly: textStyle.heightOnly ?? false,
+      ellipsis: textStyle.ellipsis ?? '',
+      ellipsisMode: textStyle.ellipsisMode ?? EllipsisMode.END,
+      locale: textStyle.locale ?? '',
+      baselineShift: textStyle.baselineShift ?? 0,
+      fontFeatures: textStyle.fontFeatures ?? Array<FontFeature>(),
+      textShadows: textStyle.textShadows ?? Array<TextShadow>(),
+      backgroundRect: textStyle.backgroundRect ?? ({
+        color: ({ alpha: 0, red: 0, green: 0, blue: 0 }) as common2D.Color,
+        leftTopRadius: 0,
+        rightTopRadius: 0,
+        rightBottomRadius: 0,
+        leftBottomRadius: 0
+      }) as RectStyle,
+      fontVariations: textStyle.fontVariations ?? Array<FontVariation>(),
+    }
+    return result;
+  }
+
+  interface TextStyleR {
+    decoration: Decoration;
+    color: common2D.Color;
+    fontWeight: FontWeight;
+    fontStyle: FontStyle;
+    baseline: TextBaseline;
+    fontFamilies: Array<string>;
+    fontSize: double;
+    letterSpacing: double;
+    wordSpacing: double;
+    heightScale: double;
+    halfLeading: boolean;
+    heightOnly: boolean;
+    ellipsis: string;
+    ellipsisMode: EllipsisMode;
+    locale: string;
+    baselineShift: double;
+    fontFeatures: Array<FontFeature>;
+    textShadows: Array<TextShadow>;
+    backgroundRect: RectStyle;
+    fontVariations: Array<FontVariation>;
+  }
+
   class TextStyleInternal implements TextStyle {
     decoration?: Decoration;
     color?: common2D.Color;

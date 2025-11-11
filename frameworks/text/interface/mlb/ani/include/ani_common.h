@@ -51,6 +51,7 @@ constexpr const char* ANI_GLOBAL_RESOURCE = "global.resource.Resource";
  */
 constexpr const char* ANI_INTERFACE_PARAGRAPH_STYLE = "@ohos.graphics.text.text.ParagraphStyle";
 constexpr const char* ANI_INTERFACE_TEXT_STYLE = "@ohos.graphics.text.text.TextStyle";
+constexpr const char* ANI_INTERFACE_TEXT_STYLE_R = "@ohos.graphics.text.text.TextStyleR";
 constexpr const char* ANI_INTERFACE_STRUT_STYLE = "@ohos.graphics.text.text.StrutStyle";
 constexpr const char* ANI_INTERFACE_TEXT_TAB = "@ohos.graphics.text.text.TextTab";
 constexpr const char* ANI_INTERFACE_FONT_FEATURE = "@ohos.graphics.text.text.FontFeature";

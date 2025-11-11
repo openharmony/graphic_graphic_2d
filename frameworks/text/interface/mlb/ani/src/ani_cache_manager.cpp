@@ -16,6 +16,29 @@
 #include "ani_cache_manager.h"
 
 namespace OHOS::Text::ANI {
+void AniCacheManager::InsertNamespace(ani_env* env, const std::string& key, ani_namespace ns)
+{
+    std::unique_lock<std::shared_mutex> lock(nsMutex_);
+    ani_ref savePtr = nullptr;
+    ani_status status = env->GlobalReference_Create(reinterpret_cast<ani_ref>(ns), &savePtr);
+    if (status == ANI_OK) {
+        nsCache_.insert({ key, savePtr });
+    } else {
+        TEXT_LOGE("Failed to cache namespace %{public}s", key.c_str());
+    }
+}
+
+bool AniCacheManager::FindNamespace(const std::string& key, ani_namespace& ns)
+{
+    std::shared_lock<std::shared_mutex> lock(nsMutex_);
+    auto it = nsCache_.find(key);
+    if (it != nsCache_.end()) {
+        ns = reinterpret_cast<ani_namespace>(it->second);
+        return true;
+    }
+    return false;
+}
+
 void AniCacheManager::InsertClass(ani_env* env, const std::string& key, ani_class cls)
 {
     std::unique_lock<std::shared_mutex> lock(clsMutex_);
@@ -27,6 +50,7 @@ void AniCacheManager::InsertClass(ani_env* env, const std::string& key, ani_clas
         TEXT_LOGE("Failed to cache class %{public}s", key.c_str());
     }
 }
+
 bool AniCacheManager::FindClass(const std::string& key, ani_class& cls)
 {
     std::shared_lock<std::shared_mutex> lock(clsMutex_);
@@ -37,11 +61,13 @@ bool AniCacheManager::FindClass(const std::string& key, ani_class& cls)
     }
     return false;
 }
+
 void AniCacheManager::InsertMethod(const std::string& key, ani_method method)
 {
     std::unique_lock<std::shared_mutex> lock(methodMutex_);
     methodCache_.insert({ key, method });
 }
+
 bool AniCacheManager::FindMethod(const std::string& key, ani_method& method)
 {
     std::shared_lock<std::shared_mutex> lock(methodMutex_);
@@ -52,6 +78,24 @@ bool AniCacheManager::FindMethod(const std::string& key, ani_method& method)
     }
     return false;
 }
+
+void AniCacheManager::InsertFunction(const std::string& key, ani_function function)
+{
+    std::unique_lock<std::shared_mutex> lock(functionMutex_);
+    functionCache_.insert({ key, function });
+}
+
+bool AniCacheManager::FindFunction(const std::string& key, ani_function& function)
+{
+    std::shared_lock<std::shared_mutex> lock(functionMutex_);
+    auto it = functionCache_.find(key);
+    if (it != functionCache_.end()) {
+        function = it->second;
+        return true;
+    }
+    return false;
+}
+
 void AniCacheManager::InsertEnum(ani_env* env, const std::string& key, ani_enum enumType)
 {
     std::unique_lock<std::shared_mutex> lock(enumMutex_);
@@ -63,6 +107,7 @@ void AniCacheManager::InsertEnum(ani_env* env, const std::string& key, ani_enum 
         TEXT_LOGE("Failed to cache enum %{public}s", key.c_str());
     }
 }
+
 bool AniCacheManager::FindEnum(const std::string& key, ani_enum& enumType)
 {
     std::shared_lock<std::shared_mutex> lock(enumMutex_);
@@ -73,8 +118,16 @@ bool AniCacheManager::FindEnum(const std::string& key, ani_enum& enumType)
     }
     return false;
 }
+
 void AniCacheManager::Clear(ani_env* env)
 {
+    {
+        std::unique_lock<std::shared_mutex> lock(nsMutex_);
+        for (auto& pair : nsCache_) {
+            env->GlobalReference_Delete(pair.second);
+        }
+        nsCache_.clear();
+    }
     {
         std::unique_lock<std::shared_mutex> lock(clsMutex_);
         for (auto& pair : clsCache_) {
@@ -85,6 +138,10 @@ void AniCacheManager::Clear(ani_env* env)
     {
         std::unique_lock<std::shared_mutex> lock(methodMutex_);
         methodCache_.clear();
+    }
+    {
+        std::unique_lock<std::shared_mutex> lock(functionMutex_);
+        functionCache_.clear();
     }
     {
         std::unique_lock<std::shared_mutex> lock(enumMutex_);
