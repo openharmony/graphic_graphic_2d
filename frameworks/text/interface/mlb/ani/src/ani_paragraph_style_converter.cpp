@@ -24,17 +24,11 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
 {
-    ani_boolean isObj = false;
-    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_PARAGRAPH_STYLE, &isObj);
-    if (ret != ANI_OK || !isObj) {
-        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
-        return nullptr;
-    }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
 
     ani_ref ref = nullptr;
     static AniCacheParam param = { ANI_INTERFACE_PARAGRAPH_STYLE, "<get>maxLines", ANI_WRAP_RETURN_C(ANI_INT) };
-    ret = AniTextUtils::ReadOptionalField(env, obj, param, ref);
+    ani_status ret = AniTextUtils::ReadOptionalField(env, obj, param, ref);
     if (ret == ANI_OK && ref != nullptr) {
         int maxLines = 0;
         ret = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "toInt", ":i", &maxLines);
