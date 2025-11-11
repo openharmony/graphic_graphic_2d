@@ -37,6 +37,7 @@ RSScreenRenderNode::RSScreenRenderNode(
 {
     RS_LOGI("RSScreen RSScreenRenderNode ctor id:%{public}" PRIu64 ", config[screenid:%{public}" PRIu64,
         id, screenId_);
+    RS_TRACE_NAME_FMT("RSScreenRenderNode ctor nodeId[%" PRIu64 "], screenId[%" PRIu64 "]", id, screenId_);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     MemoryTrack::Instance().RegisterNodeMem(ExtractPid(id),

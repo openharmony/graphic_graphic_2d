@@ -465,6 +465,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceCustomWatermarkTest002, TestSi
     mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId);
     mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId1);
 }
+
 /**
  * @tc.name: CreateNode
  * @tc.desc: CreateNode
@@ -492,6 +493,49 @@ HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
     mainThread->isRunning_ = true;
     rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: CreateNodeTest002
+ * @tc.desc: CreateNodeTest002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CreateNodeTest002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    RSDisplayNodeConfig displayNodeConfig;
+    NodeId nodeId = 100;
+    bool result = true;
+    rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: CreateNodeTest003
+ * @tc.desc: CreateNodeTest003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CreateNodeTest003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+
+    RSDisplayNodeConfig displayNodeConfig;
+    displayNodeConfig.screenId = 100;
+    NodeId nodeId = 100;
+    bool result = true;
+    rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
+    ASSERT_TRUE(result);
 }
 
 /**

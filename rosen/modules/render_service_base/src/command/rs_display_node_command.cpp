@@ -19,34 +19,15 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
-
-/**
- * @brief This function is used to set the display node by screen id.
- * @param context The context of the render service
- * @param id The screen id of the display node
- * @param lambda The lambda function to set the display node.
- * @return Returns true if the display node is set successfully, otherwise returns false;
- */
-template <class Lambda>
-bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda)
-{
-    auto& nodeMap = context.GetMutableNodeMap();
-    bool nodeExists = false;
-    nodeMap.TraverseScreenNodes([&lambda, &nodeExists, id](auto& node) {
-        if (!node || node->GetScreenId() != id) {
-            return;
-        }
-        nodeExists = true;
-        lambda(node);
-    });
-    return nodeExists;
-}
-
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::Create displayNodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
+        id, config.screenId);
+    
     auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     auto& nodeMap = context.GetMutableNodeMap();
@@ -58,6 +39,9 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
     if (!TrySetScreenNodeByScreenId(context, config.screenId, lambda)) {
         RS_LOGE("%{public}s Invalid ScreenId NodeId: %{public}" PRIu64
             ", curNodeId: %{public}" PRIu64, __func__, config.screenId, id);
+        node->NotifySetOnTreeFlag();
+    } else {
+        node->ResetSetOnTreeFlag();
     }
 
     SetDisplayMode(context, id, config);

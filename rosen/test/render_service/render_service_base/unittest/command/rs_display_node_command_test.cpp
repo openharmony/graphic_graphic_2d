@@ -111,6 +111,35 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateTest002
+ * @tc.desc: CreateTest002
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, CreateTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 100;
+    RSDisplayNodeConfig rsDisplayNodeConfig;
+    DisplayNodeCommandHelper::Create(context, nodeId, rsDisplayNodeConfig);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId), nullptr);
+}
+
+/**
+ * @tc.name: CreateTest003
+ * @tc.desc: CreateTest003
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, CreateTest003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 101;
+    RSDisplayNodeConfig rsDisplayNodeConfig;
+    rsDisplayNodeConfig.screenId = 1000;
+    DisplayNodeCommandHelper::Create(context, nodeId, rsDisplayNodeConfig);
+    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId), nullptr);
+}
+
+/**
  * @tc.name: AddDisplayNodeToTree001
  * @tc.desc: test.
  * @tc.type: FUNC

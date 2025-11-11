@@ -33,6 +33,11 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
     const RSDisplayNodeConfig& displayNodeConfig, std::shared_ptr<RSUIContext> rsUIContext)
 {
     SharedPtr node(new RSDisplayNode(displayNodeConfig, rsUIContext));
+    RS_TRACE_NAME_FMT("RSDisplayNode::Create displayNodeId[%" PRIu64 "], config[screenId=%" PRIu64
+        ", isMirror=%d, mirroredNodeId=%" PRIu64 ", isSync=%d, mirrorSourceRotation=%" PRIu32 "]",
+        node->GetId(), displayNodeConfig.screenId, displayNodeConfig.isMirrored, displayNodeConfig.mirrorNodeId,
+        displayNodeConfig.isSync, displayNodeConfig.mirrorSourceRotation);
+
     if (rsUIContext != nullptr) {
         rsUIContext->GetMutableNodeMap().RegisterNode(node);
     } else {

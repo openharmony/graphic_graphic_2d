@@ -423,6 +423,8 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         return ERR_INVALID_VALUE;
     }
     std::function<void()> registerNode = [this, nodeId, node, &displayNodeConfig]() {
+        RS_TRACE_NAME_FMT("RSRenderServiceConnection::CreateNode, nodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
+            nodeId, displayNodeConfig.screenId);
         if (mainThread_ == nullptr) {
             return;
         }
@@ -432,12 +434,17 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         auto& context = mainThread_->GetContext();
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
-        nodeMap.TraverseScreenNodes([&node, id = node->GetScreenId()](auto& screenNode) {
-            if (!screenNode || screenNode->GetScreenId() != id) {
-                return;
-            }
-            screenNode->AddChild(node);
-        });
+
+        auto lambda = [&node](auto& screenRenderNode) {
+            screenRenderNode.AddChild(node);
+        };
+        if (!TrySetScreenNodeByScreenId(context, displayNodeConfig.screenId, lambda)) {
+            RS_LOGE("%{public}s, displayNode[%{public}" PRIu64 "] failed to SetOnTree, can't find ScreenId[%{public}"
+                PRIu64 "]", __func__, nodeId, displayNodeConfig.screenId);
+            node->NotifySetOnTreeFlag();
+        } else {
+            node->ResetSetOnTreeFlag();
+        }
 
         DisplayNodeCommandHelper::SetDisplayMode(context, nodeId, displayNodeConfig);
     };

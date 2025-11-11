@@ -58,6 +58,28 @@ public:
     static void SetForceCloseHdr(RSContext&, NodeId, bool);
 };
 
+/**
+ * @brief This function is used to set the display node by screen id.
+ * @param context The context of the render service
+ * @param id The screen id of the display node
+ * @param lambda The lambda function to set the display node.
+ * @return Returns true if the display node is set successfully, otherwise returns false;
+ */
+template <class Lambda>
+bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda)
+{
+    auto& nodeMap = context.GetMutableNodeMap();
+    bool nodeExists = false;
+    nodeMap.TraverseScreenNodes([&lambda, &nodeExists, id](auto& node) {
+        if (!node || node->GetScreenId() != id) {
+            return;
+        }
+        nodeExists = true;
+        lambda(node);
+    });
+    return nodeExists;
+}
+
 ADD_COMMAND(RSDisplayNodeCreate,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_CREATE,
         DisplayNodeCommandHelper::Create, NodeId, RSDisplayNodeConfig))
