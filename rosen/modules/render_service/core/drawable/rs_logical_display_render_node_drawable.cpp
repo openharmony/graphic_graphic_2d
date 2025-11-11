@@ -207,6 +207,10 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         uniParam->SetSecurityDisplay(false);
         lastBlackList_ = currentBlackList_;
+        RSUniRenderThread::Instance().SetBlackList({});
+        RSUniRenderThread::Instance().SetTypeBlackList({});
+        RSUniRenderThread::Instance().SetWhiteList({});
+        uniParam->SetSecExemption(false);
         return;
     }
 
@@ -1184,10 +1188,6 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
-    RSUniRenderThread::Instance().SetBlackList({});
-    RSUniRenderThread::Instance().SetTypeBlackList({});
-    RSUniRenderThread::Instance().SetWhiteList({});
-    uniParam.SetSecExemption(false);
 }
 
 void RSLogicalDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params)
