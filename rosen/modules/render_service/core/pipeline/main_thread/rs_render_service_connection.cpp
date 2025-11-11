@@ -435,17 +435,7 @@ ErrCode RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& display
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
 
-        auto lambda = [&node](auto& screenRenderNode) {
-            screenRenderNode->AddChild(node);
-        };
-        if (!TrySetScreenNodeByScreenId(context, displayNodeConfig.screenId, lambda)) {
-            RS_LOGE("%{public}s, displayNode[%{public}" PRIu64 "] failed to SetOnTree, can't find ScreenId[%{public}"
-                PRIu64 "]", __func__, nodeId, displayNodeConfig.screenId);
-            node->NotifySetOnTreeFlag();
-        } else {
-            node->ResetSetOnTreeFlag();
-        }
-
+        DisplayNodeCommandHelper::AddDisplayNodeToTree(context, nodeId);
         DisplayNodeCommandHelper::SetDisplayMode(context, nodeId, displayNodeConfig);
     };
     // When the event runner has not started to rotate, synchronous tasks will not be executed,
