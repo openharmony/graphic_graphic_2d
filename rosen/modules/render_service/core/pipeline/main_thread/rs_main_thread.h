@@ -96,7 +96,8 @@ class RSMainThread {
 public:
     static RSMainThread* Instance();
 
-    void Init();
+    void Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
+        const std::shared_ptr<AppExecFwk::EventHandler>& handler);
     void Start();
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);

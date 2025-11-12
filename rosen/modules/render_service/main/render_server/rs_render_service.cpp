@@ -163,12 +163,14 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     if (mainThread_ == nullptr) {
         return false;
     }
+    runner_ = AppExecFwk::EventRunner::Create(false);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainThread_->rsVSyncDistributor_ = rsVSyncDistributor_;
     mainThread_->rsVSyncController_ = rsVSyncController_;
     mainThread_->appVSyncController_ = appVSyncController_;
     mainThread_->vsyncGenerator_ = generator;
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
-    mainThread_->Init();
+    mainThread_->Init(runner_, handler_);
     mainThread_->PostTask([]() {
         system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
         RS_LOGI("Set boot render service started true");

@@ -451,7 +451,8 @@ void RSMainThread::TraverseCanvasDrawingNodes()
     }
 }
 
-void RSMainThread::Init()
+void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
+    const std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
     mainLoop_ = [&]() {
         RS_PROFILER_ON_FRAME_BEGIN(timestamp_);
@@ -609,8 +610,8 @@ void RSMainThread::Init()
     }
 
     RS_LOGI("thread init");
-    runner_ = AppExecFwk::EventRunner::Create(false);
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_ = runner;
+    handler_ = handler;
     uint32_t timeForWatchDog = WATCHDOG_TIMEVAL;
     int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_, timeForWatchDog);
     if (ret != 0) {
