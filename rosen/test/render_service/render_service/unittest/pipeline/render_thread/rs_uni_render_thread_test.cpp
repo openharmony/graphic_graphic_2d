@@ -298,7 +298,6 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     instance.SetScreenPowerOnChanged(true);
     instance.Render();
     EXPECT_FALSE(instance.screenPowerOnChanged_);
-    
 }
 
 #ifdef RES_SCHED_ENABLE
