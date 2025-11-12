@@ -693,7 +693,8 @@ HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | L
     auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
     if (configVisitor){
         std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
-        EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
+        EXPECT_CALL(*mock,
+            GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
         HgmCore::Instance().mPolicyConfigVisitor_ = mock;
         EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
         EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
