@@ -579,6 +579,14 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
         OnTreeStateChanged();
+        auto instanceRootNode = GetInstanceRootNode();
+        if (instanceRootNode) {
+            auto appWindow = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (appWindow && appWindow->IsAppWindow()) {
+                stagingRenderParams_->SetInstanceRootNodeId(appWindow->GetId());
+                stagingRenderParams_->SetInstanceRootNodeName(appWindow->GetName());
+            }
+        }
     } else {
         OnTreeStateChanged();
         instanceRootNodeId_ = instanceRootNodeId;
