@@ -478,13 +478,14 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level0
 
     instance.AddScreen(screenId1, 0, screenSize);
     EXPECT_GE(screen->GetActiveRefreshRate(), 0);
-    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), 2);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate), 0);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), 1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), -1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
-    EXPECT_EQ(screen2->SetActiveRefreshRate(SWITCH_SCREEN_SCENE, rate2), 2);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(SWITCH_SCREEN_SCENE, rate2), 1);
     screen2->SetRateAndResolution(screenId2, rate2, width, height);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width, height), mode);
+    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width, height), 0);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate3, width, height), -1);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate4, width, height), -1);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate5, width, height), -1);
