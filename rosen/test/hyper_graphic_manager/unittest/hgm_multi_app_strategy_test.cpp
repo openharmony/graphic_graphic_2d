@@ -702,20 +702,22 @@ HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | L
     auto multiAppStrategy = HgmMultiAppStrategy();
     PolicyConfigData::StrategyConfig strategyRes;
     auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
+    if (configVisitor) {
+        std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
+        EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
+        HgmCore::Instance().mPolicyConfigVisitor_ = mock;
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+        EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
+            testing::Return(EXEC_SUCCESS));
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
 
-    // null
-    std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
-    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
-    HgmCore::Instance().mPolicyConfigVisitor_ = mock;
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
-    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
-        testing::Return(EXEC_SUCCESS));
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
-
-    HgmCore::Instance().mPolicyConfigVisitor_ = nullptr;
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
-    HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+        HgmCore::Instance().mPolicyConfigVisitor_ = nullptr;
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+        HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+    } else {
+        EXPECT_EQ(HgmCore::Instance().mPolicyConfigVisitor_, nullptr);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
