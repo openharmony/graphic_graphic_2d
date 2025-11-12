@@ -165,6 +165,9 @@ protected:
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
     static thread_local bool drawBlurForCache_;
+    static std::shared_ptr<Drawing::Image> GetImageAlias(
+        std::shared_ptr<Drawing::Surface>& surface,
+        Drawing::TextureOrigin textureOrigin = Drawing::TextureOrigin::BOTTOM_LEFT);
     // Used to skip nodes or entire subtree that were culled by the control-level occlusion.
     bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 

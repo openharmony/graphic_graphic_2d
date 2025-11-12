@@ -699,6 +699,42 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetImageAlias
+ * @tc.desc: Test GetImageAlias by nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GetImageAliasTest001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    std::shared_ptr<Drawing::Surface> surface = nullptr;
+    auto image = drawable->GetImageAlias(surface);
+    EXPECT_EQ(image, nullptr);
+}
+
+/**
+ * @tc.name: GetImageAlias
+ * @tc.desc: Test GetImageAlias by dafault
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GetImageAliasTest002, TestSize.Level1)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({100, 200});
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    EXPECT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
+    EXPECT_NE(drawable->cachedSurface_, nullptr);
+    auto image = drawable->GetImageAlias(drawable->cachedSurface_);
+    EXPECT_NE(image, nullptr);
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
  * @tc.name: SkipDrawByWhiteList001
  * @tc.desc: Test If SkipDrawByWhiteList while node's child is in whitelist
  * @tc.type: FUNC

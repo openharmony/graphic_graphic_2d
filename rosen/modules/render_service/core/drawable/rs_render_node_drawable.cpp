@@ -920,6 +920,35 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
     return false;
 }
 
+void ReleaseSurface(void* holder)
+{
+    std::shared_ptr<Drawing::Surface>* surface = static_cast<std::shared_ptr<Drawing::Surface>*>(holder);
+    if (surface != nullptr) {
+        delete surface;
+    }
+}
+
+std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetImageAlias(
+    std::shared_ptr<Drawing::Surface>& surface, Drawing::TextureOrigin textureOrigin)
+{
+    auto canvas = surface != nullptr ? surface->GetCanvas() : nullptr;
+    if (canvas == nullptr) {
+        return nullptr;
+    }
+    const auto& backendTexture = surface->GetBackendTexture();
+    if (!backendTexture.IsValid()) {
+        return nullptr;
+    }
+    canvas->Flush();
+    auto imageInfo = surface->GetImageInfo();
+    Drawing::BitmapFormat bitmapFormat = Drawing::BitmapFormat { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
+    auto image = std::make_shared<Drawing::Image>();
+    auto surfaceHolder = new std::shared_ptr<Drawing::Surface>(surface);
+    bool ret = image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(), textureOrigin,
+        bitmapFormat, imageInfo.GetColorSpace(), ReleaseSurface, surfaceHolder);
+    return ret ? image : nullptr;
+}
+
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
@@ -1005,7 +1034,11 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
             tagTracer.emplace(curCanvas->GetGPUContext(), params.GetInstanceRootNodeId(),
                 RSTagTracker::TAGTYPE::TAG_RENDER_GROUP, params.GetInstanceRootNodeName());
         }
-        cachedImage_ = cacheSurface->GetImageSnapshot();
+        if (RSSystemProperties::GetOpincCacheMemThresholdEnabled()) {
+            cachedImage_ = GetImageAlias(cacheSurface);
+        } else {
+            cachedImage_ = cacheSurface->GetImageSnapshot();
+        }
         if (cachedImage_) {
             SetCacheType(DrawableCacheType::CONTENT);
         }
