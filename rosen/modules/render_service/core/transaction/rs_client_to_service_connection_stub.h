@@ -13,25 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_STUB_H
 
 #include <unordered_set>
 #include <iremote_stub.h>
 #include <message_option.h>
 #include <message_parcel.h>
 
-#include "platform/ohos/rs_irender_service_connection.h"
+#include "platform/ohos/rs_iclient_to_service_connection.h"
 #include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
 #include "rs_render_service_security_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderServiceConnectionStub : public IRemoteStub<RSIRenderServiceConnection> {
+class RSClientToServiceConnectionStub : public IRemoteStub<RSIClientToServiceConnection> {
 public:
-    RSRenderServiceConnectionStub() = default;
-    ~RSRenderServiceConnectionStub() noexcept = default;
+    RSClientToServiceConnectionStub() = default;
+    ~RSClientToServiceConnectionStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 
@@ -59,4 +59,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_STUB_H

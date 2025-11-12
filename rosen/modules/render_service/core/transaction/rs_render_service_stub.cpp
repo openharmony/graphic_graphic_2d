@@ -14,9 +14,8 @@
  */
 
 #include "rs_render_service_stub.h"
-
+#include "pipeline/main_thread/rs_client_to_service_connection.h"
 #include <iremote_proxy.h>
-#include "pipeline/main_thread/rs_render_service_connection.h"
 namespace OHOS {
 namespace Rosen {
 class RSConnectionTokenProxy : public IRemoteProxy<RSIConnectionToken> {
@@ -66,22 +65,10 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
 
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            auto newConn = CreateConnection(token);
-            if (newConn != nullptr) {
-                if (!reply.WriteBool(true)) {
-                    RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Write failed!");
-                    ret = ERR_INVALID_REPLY;
-                    break;
-                }
-                if (!reply.WriteRemoteObject(newConn->AsObject())) {
-                    RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Write remoteObj failed!");
-                    ret = ERR_INVALID_REPLY;
-                }
-            } else {
-                if (!reply.WriteBool(false)) {
-                    RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Write failed and newConn == nullptr");
-                    ret = ERR_INVALID_REPLY;
-                }
+            auto [newConn, newRenderConn] = CreateConnection(token);
+            if (newConn != nullptr && newRenderConn != nullptr) {
+                reply.WriteRemoteObject(newConn->AsObject());
+                reply.WriteRemoteObject(newRenderConn->AsObject());
             }
             break;
         }
@@ -107,9 +94,9 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
 
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            auto rsConn = GetConnection(token);
+            auto [rsConn, renderConn] = GetConnection(token);
             if (rsConn) {
-                auto connection = static_cast<RSRenderServiceConnection*>(rsConn.GetRefPtr());
+                auto connection = static_cast<RSClientToServiceConnection*>(rsConn.GetRefPtr());
                 connection->CleanAll(true);
                 reply.WriteBool(true);
             } else {

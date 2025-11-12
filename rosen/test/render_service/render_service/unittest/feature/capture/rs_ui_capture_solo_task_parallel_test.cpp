@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -65,6 +66,7 @@ public:
         RsVulkanContext::SetRecyclable(false);
 #endif
         rsInterfaces_ = &RSInterfaces::GetInstance();
+        rsRenderInterfaces_ = &RSRenderInterface::GetInstance();
 
         RSTestUtil::InitRenderNodeGC();
         ScreenId screenId = rsInterfaces_->GetDefaultScreenId();
@@ -157,6 +159,7 @@ public:
     }
 
     static RSInterfaces* rsInterfaces_;
+    static RSRenderInterface* rsRenderInterfaces_;
     static RenderContext* renderContext_;
     static RSDisplayNodeConfig mirrorConfig_;
     static std::shared_ptr<RSDisplayNode> displayNode_;
@@ -166,6 +169,7 @@ public:
     std::shared_ptr<RSCanvasDrawingNode> canvasDrawingNode_;
 };
 RSInterfaces* RSUiCaptureSoloTaskParallelTest::rsInterfaces_ = nullptr;
+RSRenderInterface* RSUiCaptureSoloTaskParallelTest::rsRenderInterfaces_ = nullptr;
 RenderContext* RSUiCaptureSoloTaskParallelTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSUiCaptureSoloTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSDisplayNode> RSUiCaptureSoloTaskParallelTest::displayNode_ = nullptr;
@@ -180,7 +184,7 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloTaskParallelValid, Func
 {
     SetUpSurface();
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res;
-    res = rsInterfaces_->TakeSurfaceCaptureSoloNodeList(surfaceNode_);
+    res = rsRenderInterfaces_->TakeSurfaceCaptureSoloNodeList(surfaceNode_);
     EXPECT_EQ(res.size(), 0);
 }
 

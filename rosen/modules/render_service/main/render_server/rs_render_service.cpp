@@ -30,7 +30,8 @@
 #include "parameter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_profiler.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_client_to_render_connection.h"
+#include "pipeline/main_thread/rs_client_to_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
 #include "ge_render.h"
@@ -263,30 +264,34 @@ void RSRenderService::RegisterRcdMsg()
 #endif
 }
 
-sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
+    const sptr<RSIConnectionToken>& token)
 {
     if (!mainThread_ || !token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
-        return nullptr;
+        return {nullptr, nullptr};
     }
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
-    sptr<RSIRenderServiceConnection> newConn(
-        new RSRenderServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
+    sptr<RSIClientToServiceConnection> newConn(
+        new RSClientToServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
 
-    sptr<RSIRenderServiceConnection> tmp;
+    sptr<RSIClientToRenderConnection> newRenderConn(
+        new RSClientToRenderConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
+
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
     auto it = connections_.find(tokenObj);
     if (it != connections_.end()) {
         tmp = it->second;
     }
-    connections_[tokenObj] = newConn;
+    connections_[tokenObj] = {newConn, newRenderConn};
     lock.unlock();
     mainThread_->AddTransactionDataPidInfo(remotePid);
-    return newConn;
+    return {newConn, newRenderConn};
 }
 
 bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
@@ -303,10 +308,14 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         RS_LOGE("RemoveConnection: connections_ cannot find token");
         return false;
     }
-    auto rsConn = iter->second;
+    auto [rsConn, rsRenderConn] = iter->second;
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }
+    if (rsRenderConn != nullptr) {
+        rsRenderConn->RemoveToken();
+    }
+    
     connections_.erase(iter);
     lock.unlock();
     return true;

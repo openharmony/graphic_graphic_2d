@@ -20,6 +20,7 @@
 #include <securec.h>
 
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "core/transaction/rs_interfaces.h"
@@ -53,7 +54,7 @@ const uint8_t DO_TRIGGER_SURFACE_BUFFER_CALLBACK = 17;
 const uint8_t DO_SET_LAYER_TOP = 18;
 const uint8_t TARGET_SIZE = 19;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -145,45 +146,45 @@ public:
 
 bool DoSetHardwareEnabled()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     NodeId id = GetData<NodeId>();
     bool isEnabled = GetData<bool>();
     SelfDrawingNodeType selfDrawingType = static_cast<SelfDrawingNodeType>(GetData<uint8_t>() % SELF_DRAWING_TYPE_SIZE);
     bool dynamicHardwareEnable = GetData<bool>();
-    client->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
+    renderServiceClient->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     return true;
 }
 
 bool DoSetHidePrivacyContent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     NodeId id = GetData<NodeId>();
     bool needHidePrivacyContent = GetData<bool>();
-    client->SetHidePrivacyContent(id, needHidePrivacyContent);
+    renderServiceClient->SetHidePrivacyContent(id, needHidePrivacyContent);
     return true;
 }
 
 bool DoNotifyLightFactorStatus()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     int32_t lightFactorStatus = GetData<int32_t>();
-    client->NotifyLightFactorStatus(lightFactorStatus);
+    renderServiceClient->NotifyLightFactorStatus(lightFactorStatus);
     return true;
 }
 
 bool DoNotifyPackageEvent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     uint32_t listSize = GetData<uint32_t>();
     std::string data = GetStringFromData(STR_LEN);
     std::vector<std::string> packageList = { data };
-    client->NotifyPackageEvent(listSize, packageList);
+    renderServiceClient->NotifyPackageEvent(listSize, packageList);
     return true;
 }
 
 bool DoNotifyAppStrategyConfigChangeEvent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     std::string pkgName = GetData<std::string>();
     uint8_t listSize = GetData<uint8_t>();
     std::vector<std::pair<std::string, std::string>> newConfig;
@@ -192,13 +193,13 @@ bool DoNotifyAppStrategyConfigChangeEvent()
         std::string configValue = GetData<std::string>();
         newConfig.push_back(make_pair(configKey, configValue));
     }
-    client->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
+    renderServiceClient->NotifyAppStrategyConfigChangeEvent(pkgName, listSize, newConfig);
     return true;
 }
 
 bool DoNotifyRefreshRateEvent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     EventInfo eventInfo = {
         .eventName = GetData<std::string>(),
         .eventStatus = GetData<bool>(),
@@ -206,123 +207,123 @@ bool DoNotifyRefreshRateEvent()
         .maxRefreshRate = GetData<uint32_t>(),
         .description = GetData<std::string>()
     };
-    client->NotifyRefreshRateEvent(eventInfo);
+    renderServiceClient->NotifyRefreshRateEvent(eventInfo);
     return true;
 }
 
 bool DoNotifySoftVsyncRateDiscountEvent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     uint32_t pid = GetData<uint32_t>();
     std::string name = GetData<std::string>();
     uint32_t rateDiscount = GetData<uint32_t>();
-    client->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+    renderServiceClient->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
     return true;
 }
 
 bool DoNotifyTouchEvent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     int32_t touchStatus = GetData<int32_t>();
     int32_t touchCnt = GetData<int32_t>();
     bool enableDynamicMode = GetData<bool>();
-    client->NotifyTouchEvent(touchStatus, touchCnt);
-    client->NotifyDynamicModeEvent(enableDynamicMode);
+    renderServiceClient->NotifyTouchEvent(touchStatus, touchCnt);
+    renderServiceClient->NotifyDynamicModeEvent(enableDynamicMode);
     return true;
 }
 
 bool DoSetCacheEnabledForRotation()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     bool isEnabled = GetData<bool>();
-    client->SetCacheEnabledForRotation(isEnabled);
+    renderServiceClient->SetCacheEnabledForRotation(isEnabled);
     return true;
 }
 
 bool DoNotifyHgmConfigEvent()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     std::string eventName = GetData<std::string>();
     bool state = GetData<bool>();
-    client->NotifyHgmConfigEvent(eventName, state);
+    renderServiceClient->NotifyHgmConfigEvent(eventName, state);
     return true;
 }
 
 bool DoSetOnRemoteDiedCallback()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     OnRemoteDiedCallback callback;
-    client->SetOnRemoteDiedCallback(callback);
+    renderServiceClient->SetOnRemoteDiedCallback(callback);
     return true;
 }
 
 bool DoGetActiveDirtyRegionInfo()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    client->GetActiveDirtyRegionInfo();
-    client->GetGlobalDirtyRegionInfo();
-    client->GetLayerComposeInfo();
-    client->GetHwcDisabledReasonInfo();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient->GetActiveDirtyRegionInfo();
+    renderServiceClient->GetGlobalDirtyRegionInfo();
+    renderServiceClient->GetLayerComposeInfo();
+    renderServiceClient->GetHwcDisabledReasonInfo();
     return true;
 }
 
 bool DoSetVmaCacheStatus()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     bool flag = GetData<bool>();
     bool isVirtualScreenUsingStatus = GetData<bool>();
     bool isCurtainScreenOn = GetData<bool>();
-    client->SetVmaCacheStatus(flag);
-    client->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
-    client->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+    renderServiceClient->SetVmaCacheStatus(flag);
+    renderServiceClient->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
+    renderServiceClient->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     return true;
 }
 
 bool DoRegisterUIExtensionCallback()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     uint64_t userId = GetData<uint64_t>();
     UIExtensionCallback callback;
-    client->RegisterUIExtensionCallback(userId, callback);
+    renderServiceClient->RegisterUIExtensionCallback(userId, callback);
     return true;
 }
 
 bool DoSetAncoForceDoDirect()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     bool direct = GetData<bool>();
-    client->SetAncoForceDoDirect(direct);
+    renderPipelineClient->SetAncoForceDoDirect(direct);
     return true;
 }
 
 bool DoSetVirtualScreenStatus()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     VirtualScreenStatus screenStatus =
         static_cast<VirtualScreenStatus>(GetData<uint8_t>() % VIRTUAL_SCREEN_STATUS_SIZE);
-    client->SetVirtualScreenStatus(id, screenStatus);
+    renderServiceClient->SetVirtualScreenStatus(id, screenStatus);
     return true;
 }
 
 bool DoRegisterSurfaceBufferCallback()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     pid_t pid = GetData<pid_t>();
     uint64_t uid = GetData<uint64_t>();
     std::shared_ptr<SurfaceBufferCallback> callback;
-    client->RegisterSurfaceBufferCallback(pid, uid, callback);
-    client->UnregisterSurfaceBufferCallback(pid, uid);
+    renderPipelineClient->RegisterSurfaceBufferCallback(pid, uid, callback);
+    renderPipelineClient->UnregisterSurfaceBufferCallback(pid, uid);
     return true;
 }
 
 bool DoTriggerSurfaceBufferCallback()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     uint64_t uid = GetData<uint64_t>();
     std::vector<uint32_t> surfaceBufferIds;
     std::vector<uint8_t> isRenderedFlags;
-    client->TriggerOnFinish({
+    renderPipelineClient->TriggerOnFinish({
         .uid = uid,
         .surfaceBufferIds = surfaceBufferIds,
         .isRenderedFlags = isRenderedFlags,
@@ -332,10 +333,10 @@ bool DoTriggerSurfaceBufferCallback()
 
 bool DoSetLayerTop()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     std::string nodeIdStr = GetData<std::string>();
     bool isTop = GetData<bool>();
-    client->SetLayerTop(nodeIdStr, isTop);
+    renderServiceClient->SetLayerTop(nodeIdStr, isTop);
     return true;
 }
 } // namespace Rosen

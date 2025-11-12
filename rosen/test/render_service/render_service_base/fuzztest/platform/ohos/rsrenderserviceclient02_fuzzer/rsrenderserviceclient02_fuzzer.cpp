@@ -24,6 +24,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
@@ -114,10 +115,10 @@ bool DoGetPixelMapByProcessId(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     std::vector<PixelMapInfo> pixelMapInfoVector;
     pid_t pid = GetData<pid_t>();
-    client->GetPixelMapByProcessId(pixelMapInfoVector, pid);
+    renderServiceClient->GetPixelMapByProcessId(pixelMapInfoVector, pid);
     return true;
 }
 
@@ -132,7 +133,7 @@ bool DoTakeSelfSurfaceCapture(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId nodeId = GetData<NodeId>();
     std::shared_ptr<SurfaceCaptureCallback> callback;
     RSSurfaceCaptureConfig captureConfig;
@@ -144,9 +145,9 @@ bool DoTakeSelfSurfaceCapture(const uint8_t* data, size_t size)
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
 
-    client->TakeSelfSurfaceCapture(nodeId, callback, captureConfig);
+    renderPipelineClient->TakeSelfSurfaceCapture(nodeId, callback, captureConfig);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->TakeSelfSurfaceCapture(nodeId, callback, captureConfig);
+    renderPipelineClient->TakeSelfSurfaceCapture(nodeId, callback, captureConfig);
     return true;
 }
 
@@ -161,7 +162,7 @@ bool DoSetWindowFreezeImmediately(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId nodeId = GetData<NodeId>();
     bool isFreeze = GetData<bool>();
     std::shared_ptr<SurfaceCaptureCallback> callback;
@@ -174,9 +175,9 @@ bool DoSetWindowFreezeImmediately(const uint8_t* data, size_t size)
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
 
-    client->SetWindowFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
+    renderPipelineClient->SetWindowFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->SetWindowFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
+    renderPipelineClient->SetWindowFreezeImmediately(nodeId, isFreeze, callback, captureConfig);
     return true;
 }
 
@@ -191,7 +192,7 @@ bool DoSetScreenSecurityMask(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     Media::InitializationOptions opts;
     opts.size.width = GetData<int32_t>();
@@ -204,9 +205,9 @@ bool DoSetScreenSecurityMask(const uint8_t* data, size_t size)
     opts.useSourceIfMatch = GetData<bool>();
     std::shared_ptr<Media::PixelMap> securityMask = Media::PixelMap::Create(opts);
 
-    client->SetScreenSecurityMask(id, securityMask);
+    renderServiceClient->SetScreenSecurityMask(id, securityMask);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->SetScreenSecurityMask(id, securityMask);
+    renderServiceClient->SetScreenSecurityMask(id, securityMask);
     return true;
 }
 
@@ -221,10 +222,10 @@ bool DoRepaintEverything(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    client->RepaintEverything();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient->RepaintEverything();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->RepaintEverything();
+    renderServiceClient->RepaintEverything();
     return true;
 }
 
@@ -239,10 +240,10 @@ bool DoForceRefreshOneFrameWithNextVSync(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    client->ForceRefreshOneFrameWithNextVSync();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient->ForceRefreshOneFrameWithNextVSync();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->ForceRefreshOneFrameWithNextVSync();
+    renderServiceClient->ForceRefreshOneFrameWithNextVSync();
     return true;
 }
 
@@ -257,7 +258,7 @@ bool DoRegisterTypeface(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     std::shared_ptr<Drawing::Typeface> typeface;
     int32_t dstPid = GetData<int32_t>();
     FrameRateLinkerExpectedFpsUpdateCallback callback;
@@ -266,13 +267,13 @@ bool DoRegisterTypeface(const uint8_t* data, size_t size)
     pid_t pid = GetData<pid_t>();
     uint64_t uid = GetData<uint64_t>();
 
-    client->RegisterTypeface(typeface);
-    client->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
+    renderServiceClient->RegisterTypeface(typeface);
+    renderServiceClient->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
-    client->SetAppWindowNum(num);
-    client->SetFreeMultiWindowStatus(enable);
-    client->UnregisterSurfaceBufferCallback(pid, uid);
+    renderServiceClient->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+    renderServiceClient->SetAppWindowNum(num);
+    renderServiceClient->SetFreeMultiWindowStatus(enable);
+    renderServiceClient->UnregisterSurfaceBufferCallback(pid, uid);
 
     return true;
 }
@@ -297,12 +298,12 @@ bool DoReportRsSceneJank(const uint8_t* data, size_t size)
     info.bundleName = GetStringFromData(DATA_LENGTH);
     info.processName = GetStringFromData(DATA_LENGTH);
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    client->ReportRsSceneJankStart(info);
-    client->ReportRsSceneJankEnd(info);
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient->ReportRsSceneJankStart(info);
+    renderServiceClient->ReportRsSceneJankEnd(info);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->ReportRsSceneJankStart(info);
-    client->ReportRsSceneJankEnd(info);
+    renderServiceClient->ReportRsSceneJankStart(info);
+    renderServiceClient->ReportRsSceneJankEnd(info);
     return true;
 }
 
@@ -317,10 +318,10 @@ bool DoGetHdrOnDuration(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    client->GetHdrOnDuration();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    renderServiceClient->GetHdrOnDuration();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->GetHdrOnDuration();
+    renderServiceClient->GetHdrOnDuration();
     return true;
 }
 
@@ -344,12 +345,13 @@ bool DoSetWindowContainer(const uint8_t* data, size_t size)
     std::string nodeIdStr = GetStringFromData(DATA_LENGTH);
     bool isColorFollow = GetData<bool>();
 
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
-    client->SetWindowContainer(nodeId, value);
-    client->NotifyPageName(packageName, pageName, isEnter);
-    client->SetColorFollow(nodeIdStr, isColorFollow);
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
+    renderPipelineClient->SetWindowContainer(nodeId, value);
+    renderServiceClient->NotifyPageName(packageName, pageName, isEnter);
+    renderServiceClient->SetColorFollow(nodeIdStr, isColorFollow);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->NotifyPageName(packageName, pageName, isEnter);
+    renderServiceClient->NotifyPageName(packageName, pageName, isEnter);
     return true;
 }
 

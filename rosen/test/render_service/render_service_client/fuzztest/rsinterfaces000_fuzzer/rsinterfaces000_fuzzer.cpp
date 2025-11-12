@@ -18,6 +18,7 @@
 #include <securec.h>
 
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -133,8 +134,8 @@ void DoSetFocusAppInfo()
     info.bundleName = GetStringFromData(STR_LEN);
     info.abilityName = GetStringFromData(STR_LEN);
     info.focusNodeId = GetData<uint64_t>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetFocusAppInfo(info);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SetFocusAppInfo(info);
 }
 
 void DoSetPhysicalScreenResolution()
@@ -219,7 +220,7 @@ public:
 
 void DoTakeSurfaceCapture()
 {
-    auto& rsInterfaces = RSInterfaces::GetInstance();
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
     RSDisplayNodeConfig config;
     config.mirrorNodeId = GetData<uint64_t>();
     config.screenId = GetData<uint64_t>();
@@ -249,10 +250,10 @@ void DoTakeSurfaceCapture()
     captureConfig.mainScreenRect.top_ = GetData<float>();
     captureConfig.mainScreenRect.right_ = GetData<float>();
     captureConfig.mainScreenRect.bottom_ = GetData<float>();
-    rsInterfaces.TakeSurfaceCapture(surfaceNode, callback, captureConfig);
+    rsRenderInterfaces.TakeSurfaceCapture(surfaceNode, callback, captureConfig);
     uint64_t nodeId2 = GetData<uint64_t>();
-    rsInterfaces.TakeSurfaceCapture(nodeId2, callback, captureConfig);
-    rsInterfaces.TakeSurfaceCapture(displayNode, callback, captureConfig);
+    rsRenderInterfaces.TakeSurfaceCapture(nodeId2, callback, captureConfig);
+    rsRenderInterfaces.TakeSurfaceCapture(displayNode, callback, captureConfig);
 }
 
 void DoSetWindowFreezeImmediately()
@@ -271,8 +272,8 @@ void DoSetWindowFreezeImmediately()
     uint8_t type = GetData<uint8_t>();
     captureConfig.captureType = static_cast<SurfaceCaptureType>(type);
     captureConfig.isSync = GetData<bool>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetWindowFreezeImmediately(surfaceNode, isFreeze, callback, captureConfig);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SetWindowFreezeImmediately(surfaceNode, isFreeze, callback, captureConfig);
 }
 
 void DoSetHwcNodeBounds()
@@ -282,8 +283,8 @@ void DoSetHwcNodeBounds()
     float positionY = GetData<float>();
     float positionZ = GetData<float>();
     float positionW = GetData<float>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetWindowFreezeImmediately(id, positionX, positionY, positionZ, positionW);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SetWindowFreezeImmediately(id, positionX, positionY, positionZ, positionW);
 }
 
 void DoSetAppWindowNum()
@@ -321,13 +322,13 @@ void DoSetCurtainScreenUsingStatus()
 
 void DoDropFrameByPid()
 {
-    auto& rsInterfaces = RSInterfaces::GetInstance();
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
     std::vector<int32_t> pidList;
     uint8_t pidListSize = GetData<uint8_t>();
     for (size_t i = 0; i < pidListSize; i++) {
         pidList.push_back(GetData<int32_t>());
     }
-    rsInterfaces.DropFrameByPid(pidList);
+    rsRenderInterfaces.DropFrameByPid(pidList);
 }
 
 void DoRegisterUIExtensionCallback()
@@ -342,8 +343,8 @@ void DoRegisterUIExtensionCallback()
 void DoSetAncoForceDoDirect()
 {
     bool direct = GetData<bool>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetAncoForceDoDirect(direct);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SetAncoForceDoDirect(direct);
 }
 
 void DoSetVmaCacheStatus()
@@ -365,8 +366,8 @@ void DoRegisterSurfaceBufferCallback()
     pid_t pid = GetData<pid_t>();
     uint64_t uid = GetData<uint64_t>();
     std::shared_ptr<SurfaceBufferCallback> callback;
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.RegisterSurfaceBufferCallback(pid, uid, callback);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
 void DoUnregisterSurfaceBufferCallback()
@@ -374,9 +375,9 @@ void DoUnregisterSurfaceBufferCallback()
     pid_t pid = GetData<pid_t>();
     uint64_t uid = GetData<uint64_t>();
     std::shared_ptr<SurfaceBufferCallback> callback;
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.RegisterSurfaceBufferCallback(pid, uid, callback);
-    rsInterfaces.UnregisterSurfaceBufferCallback(pid, uid);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.RegisterSurfaceBufferCallback(pid, uid, callback);
+    rsRenderInterfaces.UnregisterSurfaceBufferCallback(pid, uid);
 }
 
 void DoSetLayerTop()
@@ -408,8 +409,8 @@ void DoSetWindowContainer()
 {
     NodeId nodeId = GetData<NodeId>();
     bool value = GetData<bool>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetWindowContainer(nodeId, value);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SetWindowContainer(nodeId, value);
 }
 
 void DoNotifyPageName()
@@ -444,8 +445,8 @@ void DoTakeSelfSurfaceCapture()
     captureConfig.mainScreenRect.top_ = GetData<float>();
     captureConfig.mainScreenRect.right_ = GetData<float>();
     captureConfig.mainScreenRect.bottom_ = GetData<float>();
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.TakeSelfSurfaceCapture(surfaceNode, callback, captureConfig);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.TakeSelfSurfaceCapture(surfaceNode, callback, captureConfig);
 }
 
 void DoSetColorFollow()

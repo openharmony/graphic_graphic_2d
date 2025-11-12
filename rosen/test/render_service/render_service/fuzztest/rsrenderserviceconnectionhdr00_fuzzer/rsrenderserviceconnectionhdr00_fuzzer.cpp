@@ -31,10 +31,10 @@
 
 #include "message_parcel.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "pipeline/main_thread/rs_client_to_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
 #include "securec.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "transaction/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
@@ -56,11 +56,10 @@ const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
 const uint8_t TARGET_SIZE = 13;
 } // namespace
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 RSMainThread* g_mainThread = nullptr;
 sptr<RSIConnectionToken> g_token = nullptr;
-sptr<RSRenderServiceConnectionStub> g_connectionStub = nullptr;
-sptr<RSRenderServiceConnection> g_connection = nullptr;
+sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
+sptr<RSClientToServiceConnection> g_toServiceConnection = nullptr;
 std::string g_originTag = "";
 
 void WriteUnirenderConfig(std::string& tag)
@@ -91,13 +90,13 @@ void SetUp(FuzzedDataProvider& fdp)
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
     WriteUnirenderConfig(tag);
     RSUniRenderJudgement::InitUniRenderConfig();
-    g_connection->mainThread_ = g_mainThread;
+    g_toServiceConnection->mainThread_ = g_mainThread;
 }
 
 void TearDown()
 {
     WriteUnirenderConfig(g_originTag);
-    g_connection->mainThread_ = nullptr;
+    g_toServiceConnection->mainThread_ = nullptr;
 }
 
 /* Fuzzer test GetPixelFormat */
@@ -108,9 +107,9 @@ void DoGetPixelFormat(FuzzedDataProvider& fdp)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test SetPixelFormat */
@@ -122,10 +121,10 @@ void DoSetPixelFormat(FuzzedDataProvider& fdp)
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     int32_t pixelFormat = fdp.ConsumeIntegral<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(pixelFormat);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test GetScreenSupportedHDRFormats */
@@ -136,9 +135,9 @@ void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test GetScreenHDRFormat */
@@ -149,9 +148,9 @@ void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test SetScreenHDRFormat */
@@ -163,10 +162,10 @@ void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     int32_t modeIdx = fdp.ConsumeIntegral<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(modeIdx);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test GetScreenSupportedColorSpaces */
@@ -177,9 +176,9 @@ void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test GetScreenColorSpace */
@@ -190,9 +189,9 @@ void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test SetScreenColorSpace */
@@ -204,10 +203,10 @@ void DoSetScreenColorSpace(FuzzedDataProvider& fdp)
     MessageParcel replyParcel;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     int32_t color = fdp.ConsumeIntegral<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(color);
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test SetColorFollow */
@@ -224,7 +223,7 @@ void DoSetColorFollow(FuzzedDataProvider& fdp)
     }).wait();
 
     bool isColorFollow = fdp.ConsumeBool();
-    g_connectionStub->SetColorFollow(config.name, isColorFollow);
+    g_toServiceConnectionStub->SetColorFollow(config.name, isColorFollow);
 
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
@@ -246,7 +245,7 @@ void DoSetLayerTop(FuzzedDataProvider& fdp)
     }).wait();
 
     bool isLayerTop = fdp.ConsumeBool();
-    g_connectionStub->SetLayerTop(config.name, isLayerTop);
+    g_toServiceConnectionStub->SetLayerTop(config.name, isLayerTop);
 
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
@@ -261,14 +260,14 @@ void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     bool hasCallback = fdp.ConsumeBool();
     dataParcel.WriteBool(hasCallback);
     if (hasCallback) {
         MockBrightnessInfoChangeCallback callback;
         dataParcel.WriteRemoteObject(callback.AsObject());
     }
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test GetBrightnessInfo */
@@ -278,9 +277,9 @@ void DoGetBrightnessInfo(FuzzedDataProvider& fdp)
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
-    g_connectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test SetForceRefresh */
@@ -297,7 +296,7 @@ void DoSetForceRefresh(FuzzedDataProvider& fdp)
     }).wait();
 
     bool isForceRefresh = fdp.ConsumeBool();
-    g_connectionStub->SetForceRefresh(config.name, isForceRefresh);
+    g_toServiceConnectionStub->SetForceRefresh(config.name, isForceRefresh);
 
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
@@ -319,9 +318,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto appVSyncDistributor = new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::g_connection = new OHOS::Rosen::RSRenderServiceConnection(getpid(), nullptr, nullptr,
+    OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(getpid(), nullptr, nullptr,
         OHOS::Rosen::impl::RSScreenManager::GetInstance(), OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
-    OHOS::Rosen::g_connectionStub = OHOS::Rosen::g_connection;
+    OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
 #ifdef RS_ENABLE_VK
     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif

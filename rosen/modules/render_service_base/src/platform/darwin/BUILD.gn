@@ -31,6 +31,7 @@ ohos_source_set("darwin") {
     "rs_ashmem_helper.cpp",
     "rs_marshalling_helper.cpp",
     "rs_render_service_client.cpp",
+    "rs_render_pipeline_client.cpp",
     "rs_surface_darwin.cpp",
     "rs_surface_frame_darwin.cpp",
     "rs_system_properties.cpp",
