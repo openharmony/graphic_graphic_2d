@@ -161,6 +161,7 @@ ohos_shared_library("drawing_ani") {
     "path_ani/ani_path.cpp",
     "path_iterator_ani/ani_path_iterator.cpp",
     "path_effect_ani/ani_path_effect.cpp",
+    "shader_effect_ani/ani_shader_effect.cpp",
     "pen_ani/ani_pen.cpp",
     "rect_utils_ani/ani_rect_utils.cpp",
     "region_ani/ani_region.cpp",

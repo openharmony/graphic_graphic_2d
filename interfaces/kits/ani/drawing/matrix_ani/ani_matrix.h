@@ -23,9 +23,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniMatrix final {
 public:
-    AniMatrix() = default;
-    explicit AniMatrix(const Matrix& matrix) : matrix_(matrix) {}
-    ~AniMatrix() = default;
+    explicit AniMatrix(std::shared_ptr<Matrix> matrix = nullptr) : matrix_(matrix) {}
+    ~AniMatrix();
 
     static ani_status AniInit(ani_env *env);
 
@@ -58,10 +57,14 @@ public:
     static void PreTranslate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
     static void SetScale(ani_env* env, ani_object obj, ani_double sx, ani_double sy, ani_double px, ani_double py);
 
-    Matrix& GetMatrix();
+    std::shared_ptr<Matrix> GetMatrix();
 
 private:
-    Matrix matrix_;
+    static ani_object MatrixTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetMatrixAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Matrix>* GetMatrixPtrAddr();
+    std::shared_ptr<Matrix> matrix_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

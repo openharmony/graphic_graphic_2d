@@ -23,6 +23,7 @@
 #include "path_ani/ani_path.h"
 #include "path_iterator_ani/ani_path_iterator.h"
 #include "path_effect_ani/ani_path_effect.h"
+#include "shader_effect_ani/ani_shader_effect.h"
 #include "pen_ani/ani_pen.h"
 #include "region_ani/ani_region.h"
 #include "round_rect_ani/ani_round_rect.h"
@@ -73,6 +74,7 @@ static void Clean(ani_env* env, ani_object object)
         {"Path", SafeDelete<OHOS::Rosen::Drawing::AniPath>},
         {"PathIterator", SafeDelete<OHOS::Rosen::Drawing::AniPathIterator>},
         {"PathEffect", SafeDelete<OHOS::Rosen::Drawing::AniPathEffect>},
+        {"ShaderEffect", SafeDelete<OHOS::Rosen::Drawing::AniShaderEffect>},
         {"Pen", SafeDelete<OHOS::Rosen::Drawing::AniPen>},
         {"Region", SafeDelete<OHOS::Rosen::Drawing::AniRegion>},
         {"RoundRect", SafeDelete<OHOS::Rosen::Drawing::AniRoundRect>},
@@ -133,6 +135,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniPath::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniPathIterator::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniPathEffect::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniShaderEffect::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniRegion::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniRoundRect::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTypefaceArguments::AniInit(env) != ANI_OK ||
