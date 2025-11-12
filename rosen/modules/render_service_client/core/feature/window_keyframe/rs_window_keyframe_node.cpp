@@ -36,11 +36,6 @@ RSWindowKeyFrameNode::SharedPtr RSWindowKeyFrameNode::Create(bool isRenderServic
         return nullptr;
     }
 
-    if (!RSSystemProperties::GetUniRenderEnabled()) {
-        RS_LOGW("RSWindowKeyFrameNode::Create WindowKeyFrame is not supported in separate render");
-        return nullptr;
-    }
-
     SharedPtr node(new (std::nothrow) RSWindowKeyFrameNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
     if (node == nullptr) {
         RS_LOGE("RSWindowKeyFrameNode::Create Alloc object failed");

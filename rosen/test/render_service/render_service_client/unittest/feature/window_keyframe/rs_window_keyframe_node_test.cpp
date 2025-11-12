@@ -67,12 +67,6 @@ HWTEST_F(RSWindowKeyFrameNodeTest, Create002, TestSize.Level1)
     RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create();
     EXPECT_EQ(keyframeNode, nullptr);
     system::SetParameter("rosen.graphic.windowkeyframe.enabled", bEnable ? "1" : "0");
-
-    bool bUniRenderEnableBak = RSSystemProperties::GetUniRenderEnabled();
-    RSSystemProperties::isUniRenderEnabled_ = false;
-    keyframeNode = RSWindowKeyFrameNode::Create();
-    RSSystemProperties::isUniRenderEnabled_ = bUniRenderEnableBak;
-    EXPECT_EQ(keyframeNode, nullptr);
 }
 
 /**
