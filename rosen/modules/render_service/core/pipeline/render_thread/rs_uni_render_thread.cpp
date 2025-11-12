@@ -397,7 +397,7 @@ void RSUniRenderThread::Render()
 
     if (screenPowerOnChanged_) {
         RS_LOGI("RSUniRenderThread Power On First Frame finish, processNode:%{public}d",
-        totalProcessNodeNum_);
+                 totalProcessNodeNum_);
         screenPowerOnChanged_ = false;
     }
     totalProcessNodeNum_ = 0;
