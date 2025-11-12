@@ -45,6 +45,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
+#include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #include "feature/opinc/rs_opinc_manager.h"
@@ -3372,6 +3373,45 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo006, TestSize.Level2)
     parent->SetChildHasVisibleHDRContent(false);
     rsUniRenderVisitor->CollectEffectInfo(*node);
     EXPECT_TRUE(parent->ChildHasVisibleHDRContent());
+}
+
+/**
+ * @tc.name: CollectEffectInfo007
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasVisibleIlluminated
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo007, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::BORDER_CONTENT));
+    node->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(node, true);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(node, false);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_FALSE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
 }
 
 /*

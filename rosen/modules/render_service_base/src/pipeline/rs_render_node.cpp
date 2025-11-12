@@ -681,6 +681,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     childrenRect_.Clear();
     hasChildrenOutOfRect_ = false;
     SetChildHasVisibleHDRContent(false);
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
 void RSRenderNode::ResetPixelStretchSlot()
@@ -1455,6 +1456,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
+        return true;
+    }
+    if (RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(shared_from_this())) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -4291,6 +4295,11 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
+    auto& drawablePtr = GetDrawableVec(__func__)[static_cast<size_t>(RSDrawableSlot::POINT_LIGHT)];
+    if (!drawablePtr) {
+        return;
+    }
+    drawablePtr->OnUpdate(*shared_from_this());
     UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
 }
 
