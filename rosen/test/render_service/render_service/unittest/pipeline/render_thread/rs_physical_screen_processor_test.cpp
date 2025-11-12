@@ -329,10 +329,13 @@ HWTEST_F(RSPhysicalScreenProcessorTest, RequestPerf, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, CalculateScreenTransformMatrix, TestSize.Level1)
 {
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
-    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
-    rsHardwareProcessor->CalculateScreenTransformMatrix(*displayNode);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    NodeId displayNodeId = 0;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto rsLogicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config,
+        context->weak_from_this());
+    rsHardwareProcessor->CalculateScreenTransformMatrix(*rsLogicalDisplayRenderNode);
     ASSERT_EQ(rsHardwareProcessor->screenInfo_.width, 0);
 }
 
