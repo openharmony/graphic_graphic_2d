@@ -30,6 +30,7 @@
 #include "message_parcel.h"
 #include "securec.h"
 
+#include "feature_cfg/feature_param/performance_feature/hwc_param.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
@@ -384,6 +385,8 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();
+    mainThread->hwcContext_ = std::make_shared<OHOS::Rosen::RSHwcContext>(
+        OHOS::Rosen::HWCParam::GetSourceTuningForAppMap(), OHOS::Rosen::HWCParam::GetSolidColorLayerMap());
     auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
     OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
         newPid,

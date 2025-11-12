@@ -2995,7 +2995,7 @@ void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std:
     mainThread_->NotifyPackageEvent(packageList);
     auto task = [weakThis = wptr<RSRenderServiceConnection>(this), packageList]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
-        if (!connection || connection->mainThread_) {
+        if (!connection || !connection->mainThread_ || !connection->mainThread_->GetHwcContext()) {
             return;
         }
         connection->mainThread_->GetHwcContext()->CheckPackageInConfigList(packageList);
