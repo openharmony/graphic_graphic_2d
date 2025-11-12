@@ -301,9 +301,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        bool shouldDropFrame = isScreenPowerOff || isScreenPoweringOff ||
-                               IsDropDirtyFrame(layers, output->GetScreenId());
-        if (!shouldDropFrame) {
+        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers, output->GetScreenId());
+        if (!(shouldDropFrame || isScreenPowerOff)) {
             hgmHardwareUtils_.SwitchRefreshRate(output);
             AddRefreshRateCount(output);
         }
