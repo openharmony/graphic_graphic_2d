@@ -890,7 +890,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest002, TestSize.Level
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
     Drawing::Brush brush;
 
-    // add special drawCmdList 
+    // add special drawCmdList
     auto drawCmdList1 = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList1->width_ = 1;
     drawCmdList1->height_ = 1;
@@ -921,7 +921,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest003, TestSize.Level
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId_ + 1);
     Drawing::Brush brush;
 
-    // add special drawCmdList 
+    // add special drawCmdList
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList->width_ = 2;
     drawCmdList->height_ = 2;
@@ -972,7 +972,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetDrawOpItemInfoTest004, TestSize.Level
 
     std::string outTest1;
     node->DumpSubClassNode(outTest1);
-    EXPECT_EQ(outTest1, 
+    EXPECT_EQ(outTest1,
         ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: [[1,1,2][15,15],[1,1,2][15,15]]");
     std::cout << outTest1 << std::endl;
 }
