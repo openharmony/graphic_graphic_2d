@@ -378,6 +378,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallT
             hccMgr->SyncHgmConfigChangeCallback();
         }
     }
+    usleep(100000);
 }
 
 /**
