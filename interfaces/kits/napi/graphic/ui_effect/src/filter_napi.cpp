@@ -1201,7 +1201,7 @@ static bool RequireVector2f(napi_env env, napi_value arg, Vector2f& out)
 
 static bool RequireFloat(napi_env env, napi_value arg, float& out)
 {
-    double d = 0.0;
+    double d;
     if (!ParseJsDoubleValue(env, arg, d)) {
         return false;
     }
@@ -1226,27 +1226,27 @@ static bool FillFrostedGlass_Common(napi_env env, napi_value* argv, FrostedGlass
         FILTER_LOG_E("SetFrostedGlass: blurParams parse fail"));
     para.SetBlurParams(blurParams);
 
-    float cornerRadius = 0.0f;
+    float cornerRadius;
     UIEFFECT_NAPI_CHECK_RET_D(RequireFloat(env, argv[NUM_2], cornerRadius), false,
         FILTER_LOG_E("SetFrostedGlass: cornerRadius parse fail"));
     para.SetCornerRadius(cornerRadius);
 
-    float borderWidth = 0.0f;
+    float borderWidth;
     UIEFFECT_NAPI_CHECK_RET_D(RequireFloat(env, argv[NUM_3], borderWidth), false,
         FILTER_LOG_E("SetFrostedGlass: borderWidth parse fail"));
     para.SetBorderWidth(borderWidth);
 
-    float offset = 0.0f;
+    float offset;
     UIEFFECT_NAPI_CHECK_RET_D(RequireFloat(env, argv[NUM_4], offset), false,
         FILTER_LOG_E("SetFrostedGlass: offset parse fail"));
     para.SetOffset(offset);
 
-    float downSampleFactor = 0.0f;
+    float downSampleFactor;
     UIEFFECT_NAPI_CHECK_RET_D(RequireFloat(env, argv[NUM_5], downSampleFactor), false,
         FILTER_LOG_E("SetFrostedGlass: downSampleFactor parse fail"));
     para.SetDownSampleFactor(downSampleFactor);
 
-    float bgFactor = 0.0f;
+    float bgFactor;
     UIEFFECT_NAPI_CHECK_RET_D(RequireFloat(env, argv[NUM_6], bgFactor), false,
         FILTER_LOG_E("SetFrostedGlass: bgFactor parse fail"));
     para.SetBgFactor(bgFactor);
@@ -1271,7 +1271,7 @@ static bool FillFrostedGlass_Inner(napi_env env, napi_value* argv, FrostedGlassP
 
 static bool FillFrostedGlass_Env(napi_env env, napi_value* argv, FrostedGlassPara& para)
 {
-    float refractOutPx = 0.0f;
+    float refractOutPx;
     UIEFFECT_NAPI_CHECK_RET_D(RequireFloat(env, argv[NUM_9], refractOutPx), false,
         FILTER_LOG_E("SetFrostedGlass: refractOutPx parse fail"));
     para.SetRefractOutPx(refractOutPx);
