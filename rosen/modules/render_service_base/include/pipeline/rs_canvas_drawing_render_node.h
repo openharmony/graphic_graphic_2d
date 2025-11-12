@@ -112,6 +112,18 @@ private:
     int64_t lastResetSurfaceTime_ = 0;
     size_t opCountAfterReset_ = 0;
 
+    struct CachedReversedOpInfo {
+        std::vector<uint32_t> drawOpTypes;
+        int32_t width = 0;
+        int32_t height = 0;
+        int32_t opItemSize = 0;
+        CachedReversedOpInfo() : drawOpTypes{}, width(0), height(0), opItemSize(0) {}
+    };
+    std::deque<CachedReversedOpInfo> cachedReversedOpTypes_;
+    virtual void DumpSubClassNode(std::string& out) const override;
+    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList, size_t opItemSize);
+
+
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;
 };
