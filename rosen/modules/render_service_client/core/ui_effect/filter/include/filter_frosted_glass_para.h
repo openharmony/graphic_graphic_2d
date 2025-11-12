@@ -28,12 +28,12 @@ public:
     }
     ~FrostedGlassPara() override = default;
 
-    // ===== Common parameters =====
     void SetBorderSize(Vector2f& borderSize)
     {
         borderSize_ = borderSize;
     }
-    Vector2f GetBorderSize() const
+
+    const Vector2f GetBorderSize() const
     {
         return borderSize_;
     }
@@ -42,63 +42,68 @@ public:
     {
         blurParams_ = blurParams;
     }
-    std::vector<float> GetBlurParams() const
+
+    const std::vector<float> GetBlurParams() const
     {
         return blurParams_;
     }
 
-    void SetCornerRadius(float cornerRadius)
+    void SetCornerRadius(float& cornerRadius)
     {
         cornerRadius_ = cornerRadius;
     }
-    float GetCornerRadius() const
+
+    const float& GetCornerRadius() const
     {
         return cornerRadius_;
     }
 
-    void SetBorderWidth(float borderWidth)
+    void SetBorderWidth(float& borderWidth)
     {
         borderWidth_ = borderWidth;
     }
-    float GetBorderWidth() const
+
+    const float& GetBorderWidth() const
     {
         return borderWidth_;
     }
 
-    void SetOffset(float offset)
+    void SetOffset(float& offset)
     {
         offset_ = offset;
     }
-    float GetOffset() const
+
+    const float& GetOffset() const
     {
         return offset_;
     }
 
-    void SetDownSampleFactor(float downSampleFactor)
+    void SetDownSampleFactor(float& downSampleFactor)
     {
         downSampleFactor_ = downSampleFactor;
     }
-    float GetDownSampleFactor() const
+
+    const float& GetDownSampleFactor() const
     {
         return downSampleFactor_;
     }
 
-    // ===== Background darken =====
-    void SetBgFactor(float bgFactor)
+    void SetBgFactor(float& bgFactor)
     {
         bgFactor_ = bgFactor;
     }
-    float GetBgFactor() const
+
+    const float& GetBgFactor() const
     {
         return bgFactor_;
     }
 
-    // ===== Inner shadow =====
     void SetInnerShadowParams(std::vector<float>& innerShadowParams)
     {
         innerShadowParams_ = innerShadowParams;
     }
-    std::vector<float> GetInnerShadowParams() const
+
+    const std::vector<float> GetInnerShadowParams() const
     {
         return innerShadowParams_;
     }
@@ -107,17 +112,18 @@ public:
     {
         sdParams_ = sdParams;
     }
-    std::vector<float> GetSdParams() const
+
+    const std::vector<float> GetSdParams() const
     {
         return sdParams_;
     }
 
-    // ===== Env refraction =====
-    void SetRefractOutPx(float refractOutPx)
+    void SetRefractOutPx(float& refractOutPx)
     {
         refractOutPx_ = refractOutPx;
     }
-    float GetRefractOutPx() const
+
+    const float& GetRefractOutPx() const
     {
         return refractOutPx_;
     }
@@ -126,17 +132,18 @@ public:
     {
         envParams_ = envParams;
     }
-    std::vector<float> GetEnvParams() const
+
+    const std::vector<float> GetEnvParams() const
     {
         return envParams_;
     }
 
-    // ===== Edge highlights =====
     void SetHighLightParams(std::vector<float>& highLightParams)
     {
         highLightParams_ = highLightParams;
     }
-    std::vector<float> GetHighLightParams() const
+
+    const std::vector<float> GetHighLightParams() const
     {
         return highLightParams_;
     }
@@ -145,28 +152,24 @@ public:
     {
         hlParams_ = hlParams;
     }
-    std::vector<float> GetHlParams() const
+
+    const std::vector<float> GetHlParams() const
     {
         return hlParams_;
     }
 
 private:
-    // ===== Common parameters =====
     Vector2f borderSize_;
     std::vector<float> blurParams_;
     float cornerRadius_;
     float borderWidth_;
     float offset_;
     float downSampleFactor_;
-    // ===== Background darken =====
-    float bgFactor_ = 0.9f;
-    // ===== Inner shadow =====
+    float bgFactor_;
     std::vector<float> innerShadowParams_;
     std::vector<float> sdParams_;
-    // ===== Env refraction =====
-    float refractOutPx_ = 20.0f;
+    float refractOutPx_;
     std::vector<float> envParams_;
-    // ===== Edge highlights =====
     std::vector<float> highLightParams_;
     std::vector<float> hlParams_;
 };
