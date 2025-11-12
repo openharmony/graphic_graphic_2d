@@ -84,7 +84,6 @@ enum class RSNGEffectType : int16_t {
     MASK_TRANSITION,
     VARIABLE_RADIUS_BLUR,
     CONTENT_LIGHT,
-    FROSTED_GLASS,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
@@ -112,7 +111,8 @@ enum class RSNGEffectType : int16_t {
     GRADIENT_FLOW_COLORS,
     GASIFY_SCALE_TWIST,
     GASIFY_BLUR,
-    GASIFY
+    GASIFY,
+    FROSTED_GLASS,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;
