@@ -2738,30 +2738,30 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen001, TestSize.Level2)
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
-    screenNode->SetCompositeType(SetCompositeType::UNI_RENDER_EXPAND_COMPOSITE);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_EXPAND_COMPOSITE);
     rsUniRenderVisitor->curScreenNode_ = screenNode;
     EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 
-    screenNode->SetCompositeType(SetCompositeType::UNI_RENDER_COMPOSITE);
-    HWCParam::SetDisableHwcOnExpendScreen(false);
+    screenNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+    HWCParam::SetDisableHwcOnExpandScreen(false);
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
-    HWCParam::SetDisableHwcOnExpendScreen(true);
+    HWCParam::SetDisableHwcOnExpandScreen(true);
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 
     auto rsContext2 = std::make_shared<RSContext>();
     auto screenNode2 = std::make_shared<RSScreenRenderNode>(0, 1, rsContext2->weak_from_this());
-    screenNode2->SetCompositeType(SetCompositeType::UNI_RENDER_COMPOSITE);
+    screenNode2->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     rsUniRenderVisitor->curScreenNode_ = screenNode2;
-    HWCParam::SetDisableHwcOnExpendScreen(false);
+    HWCParam::SetDisableHwcOnExpandScreen(false);
     EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 
     auto rsContext3 = std::make_shared<RSContext>();
     auto screenNode3 = std::make_shared<RSScreenRenderNode>(0, 5, rsContext2->weak_from_this());
-    screenNode3->SetCompositeType(SetCompositeType::UNI_RENDER_COMPOSITE);
+    screenNode3->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     rsUniRenderVisitor->curScreenNode_ = screenNode3;
-    HWCParam::SetDisableHwcOnExpendScreen(false);
+    HWCParam::SetDisableHwcOnExpandScreen(false);
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
-    HWCParam::SetDisableHwcOnExpendScreen(true);
+    HWCParam::SetDisableHwcOnExpandScreen(true);
     EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());   
 }
 
