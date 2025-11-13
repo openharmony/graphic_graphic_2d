@@ -1370,7 +1370,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     std::string outTest7;
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
     canvasDrawingNode->DumpSubClassNode(outTest7);
-    EXPECT_EQ(outTest7, ", lastResetSurfaceTime: 0, opCountAfterReset: 0");
+    EXPECT_EQ(outTest7, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: []");
 }
 
 /**
