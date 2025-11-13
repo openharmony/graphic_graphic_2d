@@ -399,8 +399,8 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     const auto& targetModeInfo = supportedModes_[modeId];
-    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[%{public}dx%{public}d %{public}u],"
-        "CurMode:[%{public}dx%{public}d %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
+    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[(%{public}u x %{public}u) %{public}u],"
+        "CurMode:[(%{public}u x %{public}u) %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
         targetModeInfo.height, targetModeInfo.freshRate, phyWidth_, phyHeight_, activeRefreshRate_);
     resolutionChanging_.store(targetModeInfo.width != phyWidth_ || targetModeInfo.height != phyHeight_);
     int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
