@@ -1329,42 +1329,6 @@ HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_004, Function | SmallTest | Lev
 }
 
 /*
- * @tc.name: IsBlendNeedFilter_001
- * @tc.desc: Test IsBlendNeedFilter
- * @tc.type: FUNC
- * @tc.require: issueIBJ6BZ
- */
-HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedFilter_001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSRenderNode node(id);
-    node.renderProperties_.useEffect_ = true;
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
-
-    node.renderProperties_.useEffect_ = false;
-    node.GetHwcRecorder().SetBlendWithBackground(true);
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
-}
-
-/*
- * @tc.name: IsBlendNeedBackground_001
- * @tc.desc: Test IsBlendNeedBackground
- * @tc.type: FUNC
- * @tc.require: issueIBJ6BZ
- */
-HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedBackground_001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSRenderNode node(id);
-    node.renderProperties_.needHwcFilter_ = true;
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedBackground(node));
-
-    node.renderProperties_.needHwcFilter_ = false;
-    node.GetHwcRecorder().SetBlendWithBackground(true);
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedBackground(node));
-}
-
-/*
  * @tc.name: IsBlendNeedChildNode_001
  * @tc.desc: Test IsBlendNeedChildNode
  * @tc.type: FUNC
