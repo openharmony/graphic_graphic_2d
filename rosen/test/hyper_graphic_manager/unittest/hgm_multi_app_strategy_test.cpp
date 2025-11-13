@@ -70,6 +70,7 @@ public:
 
     std::vector<PkgParam> pkgParams_;
     std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
+    static constexpr char xmlConfig[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 };
 
 void HgmMultiAppStrategyTest::SetUp()
@@ -690,8 +691,9 @@ HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | L
 {
     auto multiAppStrategy = HgmMultiAppStrategy();
     PolicyConfigData::StrategyConfig strategyRes;
-    auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
-    if (configVisitor) {
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+        auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
         std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
         EXPECT_CALL(*mock,
             GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
@@ -706,7 +708,7 @@ HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | L
         HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
         EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
     } else {
-        EXPECT_EQ(HgmCore::Instance().mPolicyConfigVisitor_, nullptr);
+        EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
     }
 }
 } // namespace Rosen
