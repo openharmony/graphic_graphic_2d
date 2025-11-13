@@ -312,7 +312,7 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
         return false;
-    }  
+    }
     if (windowType != SurfaceWindowType::DEFAULT_WINDOW && !IS_SCB_WINDOW_TYPE(windowType)) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
         return false;
@@ -455,7 +455,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                     if (transactionData && isNonSystemAppCalling) {
                         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
                         if (!transactionData->IsCallingPidValid(callingPid, nodeMap)) {
-                            RS_LOGE("RSClientToServiceConnectionStub::COMMIT_TRANSACTION IsCallingPidValid check failed");
+                            RS_LOGE("RSClientToServiceConnectionStub::COMMIT_TRANSACTION IsCallingPidValid "
+                                "check failed");
                         }
                     }
                     CommitTransaction(transactionData);
@@ -1383,15 +1384,15 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<RSScreenModeInfo> screenSupportedModes = GetScreenSupportedModes(id);
             if (!reply.WriteUint64(static_cast<uint64_t>(screenSupportedModes.size()))) {
-                RS_LOGE(
-                    "RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_MODES Write screenSupportedModesSize failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_MODES Write "
+                    "screenSupportedModesSize failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
             for (uint32_t modeIndex = 0; modeIndex < screenSupportedModes.size(); modeIndex++) {
                 if (!reply.WriteParcelable(&screenSupportedModes[modeIndex])) {
-                    RS_LOGE(
-                        "RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_MODES Write screenSupportedModes failed!");
+                    RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_MODES "
+                        "Write screenSupportedModes failed!");
                     ret = ERR_INVALID_REPLY;
                     break;
                 }
@@ -1528,7 +1529,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             auto remoteObject = data.ReadRemoteObject();
             bool isFromRenderThread{false};
             if (!data.ReadBool(isFromRenderThread)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER read isFromRenderThread failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER read "
+                    "isFromRenderThread failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1708,7 +1710,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             ScreenId id{INVALID_SCREEN_ID};
             bool canvasRotation{false};
             if (!data.ReadUint64(id) || !data.ReadBool(canvasRotation)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION Read parcel failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION Read "
+                    "parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2004,7 +2007,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
             if (!reply.WriteUInt32Vector(hdrFormatsSend)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Write hdrFormatsSend failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Write "
+                    "hdrFormatsSend failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -2400,7 +2404,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Read remoteObject failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Read "
+                    "remoteObject failed!");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
@@ -2420,7 +2425,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id{0};
             if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read id failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read "
+                    "id failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2452,8 +2458,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             int32_t status = RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
             if (!reply.WriteInt32(status)) {
-                RS_LOGE(
-                    "RSClientToServiceConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write status failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Write "
+                    "status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -2462,7 +2468,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id{0};
             if (!RSMarshallingHelper::UnmarshallingPidPlusId(data, id)) {
-                RS_LOGE("RSClientToServiceConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read id failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK: "
+                    "Read id failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2792,7 +2799,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             bool needHidePrivacyContent{false};
             if (!data.ReadBool(needHidePrivacyContent)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT read needHidePrivacyContent failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT read "
+                    "needHidePrivacyContent failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
