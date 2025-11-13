@@ -20,7 +20,7 @@
 
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"

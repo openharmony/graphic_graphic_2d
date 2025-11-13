@@ -32,11 +32,11 @@
 
 #include "feature_cfg/feature_param/performance_feature/hwc_param.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_client_to_service_connection.h"
-#include "pipeline/main_thread/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_client_to_service_connection_stub.h"
-#include "transaction/rs_client_to_render_connection_stub.h"
+#include "transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {

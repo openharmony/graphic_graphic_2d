@@ -22,7 +22,6 @@
 #include "hgm_frame_rate_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_frame_report.h"
-#include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
 //blur predict
@@ -63,6 +62,7 @@
 #endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"

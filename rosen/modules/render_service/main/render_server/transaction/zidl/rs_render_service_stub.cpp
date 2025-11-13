@@ -14,7 +14,7 @@
  */
 
 #include "rs_render_service_stub.h"
-#include "pipeline/main_thread/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include <iremote_proxy.h>
 namespace OHOS {
 namespace Rosen {

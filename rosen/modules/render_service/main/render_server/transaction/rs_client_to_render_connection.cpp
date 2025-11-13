@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@
 //blur predict
 #include "rs_frame_blur_predict.h"
 #include "rs_frame_report.h"
-#include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
@@ -60,7 +59,8 @@
 #endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_node_map.h"
-#include "rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"

@@ -26,6 +26,7 @@ ohos_fuzztest("RSRenderServiceConnectionProxyFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
   ]
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",

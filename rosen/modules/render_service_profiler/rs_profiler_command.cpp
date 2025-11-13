@@ -37,8 +37,8 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/main_thread/rs_client_to_service_connection.h"
-#include "pipeline/main_thread/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "render/rs_typeface_cache.h"
 

@@ -42,8 +42,8 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/main_thread/rs_client_to_render_connection.h"
-#include "pipeline/main_thread/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include "render/rs_typeface_cache.h"
 
 namespace OHOS::Rosen {

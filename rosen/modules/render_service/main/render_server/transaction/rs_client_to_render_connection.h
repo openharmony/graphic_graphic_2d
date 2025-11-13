@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "transaction/rs_client_to_render_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "vsync_distributor.h"
 
 namespace OHOS {
