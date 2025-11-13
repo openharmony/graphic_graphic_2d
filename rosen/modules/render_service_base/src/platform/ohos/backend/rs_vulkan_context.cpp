@@ -74,12 +74,12 @@ static std::vector<const char*> gMandatoryDeviceExtensions = {
 static std::vector<const char*> gOptionalDeviceExtensions = {
     VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
     VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+    VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
 };
 
 // enabled when persist.sys.graphic.openVkImageMemoryDfx is true
 static const std::vector<const char*> gOptionalDeviceExtensionsDebug = {
     VK_KHR_MAINTENANCE_5_EXTENSION_NAME,
-    VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
     VK_EXT_DEVICE_ADDRESS_BINDING_REPORT_EXTENSION_NAME,
 };
 

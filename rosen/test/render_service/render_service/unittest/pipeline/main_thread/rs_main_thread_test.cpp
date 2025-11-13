@@ -41,6 +41,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "screen_manager/rs_screen.h"
+#include "string_utils.h"
 #include "pipeline/rs_render_node_gc.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
@@ -6126,6 +6127,21 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     Drawing::GPUContext gpuContext;
     mainThread->InitVulkanErrorCallback(&gpuContext);
+}
+
+/**
+ * @tc.name: InitVulkanErrorCallback002Test
+ * @tc.desc: test InitVulkanErrorCallback002Test
+ * @tc.type: FUNC
+ * @tc.require: issue#20675
+ */
+HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback002, TestSize.Level1)
+{
+    std::vector<pid_t> pidsToKill;
+    pidsToKill.push_back(0);
+    pidsToKill.push_back(1);
+    std::string pidsToKillDesc = MergeToString<pid_t>(pidsToKill);
+    ASSERT_NE(pidsToKillDesc.size(), 0);
 }
 
 /**

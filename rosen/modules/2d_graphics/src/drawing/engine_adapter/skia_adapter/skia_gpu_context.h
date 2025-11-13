@@ -104,7 +104,8 @@ public:
 
     void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) override;
 
-    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) override;
+    void RegisterVulkanErrorCallback(
+        const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback) override;
 
     void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) override;
 

@@ -88,7 +88,8 @@ public:
 
     virtual void PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet) = 0;
 
-    virtual void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) = 0;
+    virtual void RegisterVulkanErrorCallback(
+        const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback) = 0;
 
     virtual void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) = 0;
 

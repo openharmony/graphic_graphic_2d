@@ -184,7 +184,8 @@ void GPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const st
     impl_->PurgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
 }
 
-void GPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+void GPUContext::RegisterVulkanErrorCallback(
+    const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback)
 {
     impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }

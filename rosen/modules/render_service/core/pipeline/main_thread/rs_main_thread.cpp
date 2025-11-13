@@ -113,6 +113,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "string_utils.h"
 #include "transaction/rs_transaction_metric_collector.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_unmarshal_thread.h"
@@ -166,6 +167,10 @@
 // HDRHeterogeneous
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include "ability_manager_client.h"
+#endif
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -213,6 +218,7 @@ constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
+constexpr uint32_t EXT_INFO_MAX_LENGTH = 100;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr uint64_t FASTCOMPOSE_OFFSET = 300000; // 300us
@@ -225,6 +231,7 @@ constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status"
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
+constexpr const char* BUFFER_OVERFLOW = "Buffer Overflow";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
@@ -839,12 +846,13 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         RS_LOGE("InitVulkanErrorCallback gpuContext is nullptr");
         return;
     }
-    gpuContext->RegisterVulkanErrorCallback([this]() {
+    gpuContext->RegisterVulkanErrorCallback([this](const std::vector<pid_t>& pidsToKill, const std::string& reason,
+        bool needKillProcess) {
         RS_LOGE("FocusLeashWindowName:[%{public}s]", this->focusLeashWindowName_.c_str());
 
         char appWindowName[EVENT_NAME_MAX_LENGTH];
         char focusLeashWindowName[EVENT_NAME_MAX_LENGTH];
-        char extinfodefault[EVENT_NAME_MAX_LENGTH] = "ext_info_default";
+        char extInfo[EXT_INFO_MAX_LENGTH];
         auto cpyresult = strcpy_s(appWindowName, EVENT_NAME_MAX_LENGTH, appWindowName_.c_str());
         if (cpyresult != 0) {
             RS_LOGE("Copy appWindowName_ error, AppWindowName:%{public}s", appWindowName_.c_str());
@@ -852,6 +860,16 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         cpyresult = strcpy_s(focusLeashWindowName, EVENT_NAME_MAX_LENGTH, focusLeashWindowName_.c_str());
         if (cpyresult != 0) {
             RS_LOGE("Copy focusLeashWindowName error, focusLeashWindowName:%{public}s", focusLeashWindowName_.c_str());
+        }
+        const std::string pidsToKillDesc = MergeToString<pid_t>(pidsToKill);
+        RS_LOGE("ErrorPids:%{public}s NeedKill:%{public}d", pidsToKillDesc.c_str(), static_cast<int>(needKillProcess));
+        cpyresult = strcpy_s(extInfo, EXT_INFO_MAX_LENGTH, pidsToKillDesc.c_str());
+        if (cpyresult != 0) {
+            RS_LOGE("Copy extInfo error, extInfo:%{public}s", pidsToKillDesc.c_str());
+            cpyresult = strcpy_s(extInfo, EXT_INFO_MAX_LENGTH, BUFFER_OVERFLOW);
+            if (cpyresult != 0) {
+                RS_LOGE("Copy extInfo error, extInfo:%{public}s", BUFFER_OVERFLOW);
+            }
         }
 
         HiSysEventParam pPID = { .name = "PID", .t = HISYSEVENT_UINT32, .v = { .ui32 = appPid_ }, .arraySize = 0 };
@@ -868,7 +886,7 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
             .name = "LeashWindowName", .t = HISYSEVENT_STRING, .v = { .s = focusLeashWindowName }, .arraySize = 0
         };
         HiSysEventParam pExtInfo = {
-            .name = "ExtInfo", .t = HISYSEVENT_STRING, .v = { .s = extinfodefault }, .arraySize = 0
+            .name = "EXT_INFO", .t = HISYSEVENT_STRING, .v = { .s = extInfo }, .arraySize = 0
         };
         HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
             pExtInfo };
@@ -881,6 +899,21 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         }
 
         RSUniRenderThread::Instance().ProcessVulkanErrorTreeDump();
+
+        if (!needKillProcess) {
+            return;
+        }
+#ifdef RS_ENABLE_UNI_RENDER
+        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
+        for (const auto pid : pidsToKill) {
+            if (pid <= 0) {
+                continue;
+            }
+            auto result = AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+            RS_LOGE("VulkanErrorCallback Kill Process, pid: %{public}d, killStatus: %{public}d, reason: %{public}s",
+                static_cast<int>(pid), static_cast<int>(result), reason.c_str());
+        }
+#endif
     });
 }
 

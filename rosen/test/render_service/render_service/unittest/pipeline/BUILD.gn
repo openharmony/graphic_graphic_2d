@@ -746,8 +746,10 @@ ohos_unittest("RSMainThreadTest") {
   ]
   defines = []
   defines += gpu_defines
-  include_dirs =
-      [ "$graphic_2d_root/rosen/test/render_service/render_service/unittest/" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/utils/",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/",
+  ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }

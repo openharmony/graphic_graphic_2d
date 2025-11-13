@@ -665,6 +665,20 @@ HWTEST_F(GpuContextTest, RegisterVulkanErrorCallbackTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterVulkanErrorCallbackTest002
+ * @tc.desc: Test for register vulkan error callback.
+ * @tc.type: FUNC
+ * @tc.require: issue#20675
+ */
+HWTEST_F(GpuContextTest, RegisterVulkanErrorCallbackTest002, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    auto vulkanErrorCallback = [](const std::vector<pid_t>&, const std::string&, bool) {};
+    gpuContext->RegisterVulkanErrorCallback(vulkanErrorCallback);
+}
+
+/**
  * @tc.name: SetEarlyZFlagTest001
  * @tc.desc: Test for set earlyz flag function.
  * @tc.type: FUNC
