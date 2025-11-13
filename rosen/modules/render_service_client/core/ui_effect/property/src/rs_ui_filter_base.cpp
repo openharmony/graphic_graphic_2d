@@ -308,7 +308,9 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(frostedGlassFilterPara->GetSdParams());
     frostedGlassFilter->Setter<FrostedGlassRefractOutPxTag>(frostedGlassFilterPara->GetRefractOutPx());
     frostedGlassFilter->Setter<FrostedGlassEnvParamsTag>(frostedGlassFilterPara->GetEnvParams());
-    frostedGlassFilter->Setter<FrostedGlassHighLightParamsTag>(frostedGlassFilterPara->GetHighLightParams());
+    frostedGlassFilter->Setter<FrostedGlassEdgeLightAngleParamsTag>(frostedGlassFilterPara->GetEdgeLightAngleParams());
+    frostedGlassFilter->Setter<FrostedGlassEdgeLightBlurParamsTag>(frostedGlassFilterPara->GetEdgeLightBlurParams());
+    frostedGlassFilter->Setter<FrostedGlassEdgeLightDirParamsTag>(frostedGlassFilterPara->GetEdgeLightDirParams());
     frostedGlassFilter->Setter<FrostedGlassHlParamsTag>(frostedGlassFilterPara->GetHlParams());
     return frostedGlassFilter;
 }
