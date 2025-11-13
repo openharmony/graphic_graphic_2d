@@ -194,7 +194,7 @@ private:
     Vector3f edgeLightAngle_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f edgeLightBlur_ = Vector2f(0.0f, 0.0f);
     Vector2f edgeLightDir_ = Vector2f(0.0f, 0.0f);
-    Vector3f hlParams_ = Vector2f(0.0f, 0.0f, 0.0f);
+    Vector3f hlParams_ = Vector3f(0.0f, 0.0f, 0.0f);
 };
 } // namespace Rosen
 } // namespace OHOS
