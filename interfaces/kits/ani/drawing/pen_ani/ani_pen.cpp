@@ -42,13 +42,13 @@ ani_status AniPen::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Pen;:V",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Pen}:",
             reinterpret_cast<void*>(ConstructorWithPen) },
-        ani_native_function { "getAlpha", ":I", reinterpret_cast<void*>(GetAlpha) },
-        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "I:V", reinterpret_cast<void*>(SetAlpha) },
-        ani_native_function { "setBlendMode", "L@ohos/graphics/drawing/drawing/BlendMode;:V",
+        ani_native_function { "getAlpha", ":i", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "setAlpha", "i:", reinterpret_cast<void*>(SetAlpha) },
+        ani_native_function { "setBlendMode", "C{@ohos.graphics.drawing.drawing.BlendMode}:",
             reinterpret_cast<void*>(SetBlendMode) },
         ani_native_function { "setColorFilter", nullptr,
             reinterpret_cast<void*>(SetColorFilter) },
@@ -87,12 +87,24 @@ ani_status AniPen::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
+    std::array staticMethods = {
+        ani_native_function { "penTransferStaticNative", nullptr, reinterpret_cast<void*>(PenTransferStatic) },
+        ani_native_function { "getPenAddr", nullptr, reinterpret_cast<void*>(GetPenAddr) },
+    };
+
+    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_PEN_NAME);
+        return ANI_NOT_FOUND;
+    }
+
     return ANI_OK;
 }
 
 void AniPen::Constructor(ani_env* env, ani_object obj)
 {
-    AniPen* aniPen = new AniPen();
+    std::shared_ptr<Pen> pen = std::make_shared<Pen>();
+    AniPen* aniPen = new AniPen(pen);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
         delete aniPen;
@@ -107,8 +119,9 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return;
     }
-
-    AniPen* newAniPen = new AniPen(aniPen->GetPen());
+    std::shared_ptr<Pen> other = aniPen->GetPen();
+    std::shared_ptr<Pen> pen = other == nullptr ? std::make_shared<Pen>() : std::make_shared<Pen>(*other);
+    AniPen* newAniPen = new AniPen(pen);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
         delete newAniPen;
@@ -124,7 +137,7 @@ ani_int AniPen::GetAlpha(ani_env* env, ani_object obj)
         return -1;
     }
 
-    return aniPen->GetPen().GetAlpha();
+    return aniPen->GetPen()->GetAlpha();
 }
 
 void AniPen::Reset(ani_env* env, ani_object obj)
@@ -135,7 +148,7 @@ void AniPen::Reset(ani_env* env, ani_object obj)
         return;
     }
 
-    aniPen->GetPen().Reset();
+    aniPen->GetPen()->Reset();
 }
 
 void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
@@ -151,7 +164,7 @@ void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
         return;
     }
 
-    aniPen->GetPen().SetAlpha(alpha);
+    aniPen->GetPen()->SetAlpha(alpha);
 }
 
 void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode)
@@ -168,9 +181,8 @@ void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMo
         return;
     }
 
-    aniPen->GetPen().SetBlendMode(static_cast<BlendMode>(blendMode));
+    aniPen->GetPen()->SetBlendMode(static_cast<BlendMode>(blendMode));
 }
-
 
 void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
 {
@@ -207,7 +219,7 @@ ani_object AniPen::GetColorFilter(ani_env* env, ani_object obj)
         return CreateAniUndefined(env);
     }
     AniColorFilter* aniColorFilter = new AniColorFilter(aniPen->GetPen()->GetFilter().GetColorFilter());
-    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.ColorFilter", nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniColorFilter))) {
         ROSEN_LOGE(" AniPen::GetColorFilter failed cause by Object_SetFieldByName_Long");
@@ -421,11 +433,16 @@ ani_enum_item AniPen::GetCapStyle(ani_env* env, ani_object obj)
     }
     ani_enum enumType;
     if (ANI_OK != env->FindEnum(ANI_CLASS_CAP_STYLE_NAME, &enumType)) {
-        ROSEN_LOGE("AniPen::GetCapStyle failed cause by FindEnum");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Find enum for CapStyle failed.");
         return value;
     }
     Pen::CapStyle capStyle = aniPen->GetPen()->GetCapStyle();
-    env->Enum_GetEnumItemByIndex(enumType, static_cast<ani_size>(CapCastToTsCap(capStyle)), &value);
+    if (ANI_OK != env->Enum_GetEnumItemByIndex(enumType, static_cast<ani_size>(CapCastToTsCap(capStyle)), &value)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Failed to obtain the CapStyle enumeration.");
+        return value;
+    }
     return value;
 }
 
@@ -478,10 +495,17 @@ ani_enum_item AniPen::GetJoinStyle(ani_env* env, ani_object obj)
     }
     ani_enum enumType;
     if (ANI_OK != env->FindEnum(ANI_CLASS_JOIN_STYLE_NAME, &enumType)) {
-        ROSEN_LOGE(" AniPen::GetJoinStyle failed cause by FindEnum");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Find enum for JoinStyle failed.");
         return value;
     }
-    env->Enum_GetEnumItemByIndex(enumType, static_cast<ani_size>(aniPen->GetPen()->GetJoinStyle()), &value);
+
+    Pen::JoinStyle joinStyle = aniPen->GetPen()->GetJoinStyle();
+    if (ANI_OK != env->Enum_GetEnumItemByIndex(enumType, static_cast<ani_size>(joinStyle), &value)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Failed to obtain the JoinStyle enumeration.");
+        return value;
+    }
     return value;
 }
 
@@ -615,23 +639,23 @@ ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object ob
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniPen::PenTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniPen::PenTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsPen = reinterpret_cast<JsPen*>(unwrapResult);
     if (jsPen->GetPen() == nullptr) {
         ROSEN_LOGE("AniPen::PenTransferStatic jsPen is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniPen = new AniPen(jsPen->GetPen());
     if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
         ROSEN_LOGE("AniPen::PenTransferStatic failed create aniPen");
         delete aniPen;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return output;
 }
