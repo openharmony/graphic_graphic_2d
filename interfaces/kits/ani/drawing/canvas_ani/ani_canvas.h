@@ -84,7 +84,7 @@ private:
         Drawing::Rect& rect, AniSamplingOptions* samplingOptions);
     static bool GetVertices(ani_env* env, ani_object verticesObj, float* vertices, uint32_t verticesSize);
     static bool GetVerticesUint16(ani_env* env, ani_object verticesObj, uint16_t* vertices, uint32_t verticesSize);
-    static bool GetVerticesUint32(ani_env* env, ani_object verticesObj, uint32_t* vertices, uint32_t verticesSize);
+    static bool GetColorsUint32(ani_env* env, ani_object verticesObj, uint32_t* vertices, uint32_t verticesSize);
     static bool GetVertexModeAndBlendMode(ani_env* env, ani_enum_item aniVertexMode, ani_enum_item aniBlendMode,
         VertexMode& vertexMode, BlendMode& blendMode);
     static bool GetIndices(ani_env* env, ani_int indexCount, ani_object indicesObj,
