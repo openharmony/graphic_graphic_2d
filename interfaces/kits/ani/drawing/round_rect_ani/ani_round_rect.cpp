@@ -155,16 +155,16 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsRoundRect = reinterpret_cast<JsRoundRect*>(unwrapResult);
     if (jsRoundRect->GetRoundRectPtr() == nullptr) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic jsRoundRect is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniRoundRect = new AniRoundRect(jsRoundRect->GetRoundRectPtr());
@@ -173,7 +173,7 @@ ani_object AniRoundRect::RoundRectTransferStatic(ani_env* env, [[maybe_unused]]a
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniRoundRect))) {
         ROSEN_LOGE("AniRoundRect::RoundRectTransferStatic failed create aniRoundRect");
         delete aniRoundRect;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return aniRoundRectObj;
 }

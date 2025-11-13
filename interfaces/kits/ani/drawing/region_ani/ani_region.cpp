@@ -242,23 +242,23 @@ ani_object AniRegion::RegionTransferStatic(
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniRegion::RegionTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniRegion::RegionTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsRegion = reinterpret_cast<JsRegion*>(unwrapResult);
     if (jsRegion->GetRegionPtr() == nullptr) {
         ROSEN_LOGE("AniRegion::RegionTransferStatic jsRegion is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniRegion = new AniRegion(jsRegion->GetRegionPtr());
     if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniRegion))) {
         ROSEN_LOGE("AniFont::RegionTransferStatic failed create aniFont");
         delete aniRegion;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return output;
 }

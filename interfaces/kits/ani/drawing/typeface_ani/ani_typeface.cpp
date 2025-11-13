@@ -24,7 +24,7 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TYPEFACE_NAME = "L@ohos/graphics/drawing/drawing/Typeface;";
+const char* ANI_CLASS_TYPEFACE_NAME = "@ohos.graphics.drawing.drawing.Typeface";
 
 ani_status AniTypeface::AniInit(ani_env *env)
 {
@@ -36,16 +36,16 @@ ani_status AniTypeface::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "getFamilyName", ":Lstd/core/String;",
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "getFamilyName", ":C{std.core.String}",
             reinterpret_cast<void*>(GetFamilyName) },
     };
 
     std::array statitMethods = {
-        ani_native_function { "makeFromFile", "Lstd/core/String;:L@ohos/graphics/drawing/drawing/Typeface;",
+        ani_native_function { "makeFromFile", "C{std.core.String}:C{@ohos.graphics.drawing.drawing.Typeface}",
             reinterpret_cast<void*>(MakeFromFile) },
-        ani_native_function { "makeFromFileWithArguments", "Lstd/core/String;"
-            "L@ohos/graphics/drawing/drawing/TypefaceArguments;:L@ohos/graphics/drawing/drawing/Typeface;",
+        ani_native_function { "makeFromFileWithArguments", "C{std.core.String}"
+            "C{@ohos.graphics.drawing.drawing.TypefaceArguments}:C{@ohos.graphics.drawing.drawing.Typeface}",
             reinterpret_cast<void*>(MakeFromFileWithArguments) },
         ani_native_function { "makeFromRawFile", nullptr,
             reinterpret_cast<void*>(MakeFromRawFile) },
@@ -95,23 +95,27 @@ ani_string AniTypeface::GetFamilyName(ani_env* env, ani_object obj)
     return CreateAniString(env, typeface->GetFamilyName());
 }
 
+ani_object AniTypeface::CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface> typeface)
+{
+    AniTypeface* aniTypeface = new AniTypeface(typeface);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        delete aniTypeface;
+        ROSEN_LOGE("AniTypeface::CreateAniTypeface failed create aniTypeface");
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+}
+
 ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string aniFilePath)
 {
     std::string filePath = CreateStdString(env, aniFilePath);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
     if (typeface == nullptr) {
         ROSEN_LOGE("AniTypeface::MakeFromFile create typeface failed!");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
-    AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TYPEFACE_NAME, aniTypeface);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
-        delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause aniObj is undefined");
-    }
-    return aniObj;
+    return CreateAniTypeface(env, typeface);
 }
 
 ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string aniFilePath,
@@ -126,15 +130,7 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     FontArguments fontArguments;
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
-    AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TYPEFACE_NAME, aniTypeface);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
-        delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments failed cause aniObj is undefined");
-    }
-    return aniObj;
+    return CreateAniTypeface(env, typeface);
 }
 
 std::shared_ptr<Typeface> LoadZhCnTypeface()
@@ -180,12 +176,11 @@ ani_object AniTypeface::MakeFromRawFile(ani_env* env, ani_object obj, ani_object
             return CreateAniUndefined(env);
         }
     }
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TYPEFACE_NAME, aniTypeface);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
         delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromRawFile failed cause aniObj is undefined");
+        ROSEN_LOGE("AniTypeface::MakeFromRawFile failed create aniTypeface");
+        return CreateAniUndefined(env);
     }
     return aniObj;
 #else
@@ -199,16 +194,16 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniTypeface::TypefaceTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsTypeface = reinterpret_cast<JsTypeface*>(unwrapResult);
     if (jsTypeface->GetTypeface() == nullptr) {
         ROSEN_LOGE("AniTypeface::TypefaceTransferStatic jsTypeface is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
@@ -217,7 +212,7 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
         NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
         ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");
         delete aniTypeface;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return aniTypefaceObj;
 }

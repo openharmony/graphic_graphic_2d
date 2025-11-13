@@ -44,6 +44,10 @@ public:
     std::shared_ptr<Typeface> GetTypeface();
 
 private:
+    static ani_object CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface> typeface);
+    static ani_object TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_long GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Typeface>* GetTypefacePtrAddr();
     std::shared_ptr<Typeface> typeface_;
 };
 } // namespace Drawing

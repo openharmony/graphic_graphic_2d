@@ -289,16 +289,16 @@ ani_object AniLattice::LatticeTransferStatic(ani_env* env, [[maybe_unused]]ani_o
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniLattice::LatticeTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniLattice::LatticeTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsLattice = reinterpret_cast<JsLattice*>(unwrapResult);
     if (jsLattice->GetLatticePtr() == nullptr) {
         ROSEN_LOGE("AniLattice::LatticeTransferStatic jsLattice is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniLattice = new AniLattice(jsLattice->GetLatticePtr());

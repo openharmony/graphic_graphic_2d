@@ -128,16 +128,16 @@ ani_object AniColorFilter::ColorFilterTransferStatic(ani_env* env, [[maybe_unuse
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsColorFilter = reinterpret_cast<JsColorFilter*>(unwrapResult);
     if (jsColorFilter->GetColorFilterPtr() == nullptr) {
         ROSEN_LOGE("AniColorFilter::ColorFilterTransferStatic jsColorFilter is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniColorFilter = new AniColorFilter(jsColorFilter->GetColorFilterPtr());

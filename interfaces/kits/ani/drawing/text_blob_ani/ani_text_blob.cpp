@@ -136,7 +136,7 @@ ani_object AniTextBlob::MakeFromPosText(ani_env* env, ani_object obj, ani_string
         return CreateAniUndefined(env);
     }
 
-    uint32_t pointsSize = aniLength;
+    uint32_t pointsSize = static_cast<uint32_t>(aniLength);
     std::unique_ptr<Point[]> points = std::make_unique<Point[]>(pointsSize);
     if (!MakePoints(env, points.get(), pointsSize, static_cast<ani_array>(pointArray))) {
         ROSEN_LOGE("AniTextBlob::MakeFromPosText: Argv[2] is invalid");
@@ -205,7 +205,7 @@ ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_obje
         ROSEN_LOGE("AniTextBlob::MakeFromRunBuffer failed. param is invalid");
         return CreateAniUndefined(env);
     }
-    uint32_t size = aniLength;
+    uint32_t size = static_cast<uint32_t>(aniLength);
     auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj);
     if (aniFont == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
@@ -277,22 +277,23 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
         ROSEN_LOGE("AniTextBlob::MakeRunBuffer failed. size exceeds the upper limit.");
         return false;
     }
+    ani_class runBufferClass;
+    if (ANI_OK != env->FindClass(ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME, &runBufferClass)) {
+        ROSEN_LOGE("AniTextBlob::MakeRunBuffer failed. Can't find class %{public}s.",
+            ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME);
+        return false;
+    }
     for (uint32_t i = 0; i < size; i++) {
         Drawing::Point point;
         ani_ref runBufferRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            posArray, "$_get", "i:C{std.core.Object}", &runBufferRef, (ani_int)i)) {
+            posArray, "$_get", "i:Y", &runBufferRef, (ani_int)i)) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_CallMethodByName_Ref failed");
             return false;
         }
         ani_object aniRunBuffer =  static_cast<ani_object>(runBufferRef);
-
-        ani_class runBufferClass;
-        if (ANI_OK != env->FindClass(ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME, &runBufferClass)) {
-            return false;
-        }
         ani_boolean isRunBufferClass;
         env->Object_InstanceOf(aniRunBuffer, runBufferClass, &isRunBufferClass);
-
         if (!isRunBufferClass) {
             return false;
         }
@@ -300,10 +301,10 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
         ani_int glyph;
         ani_double positionX;
         ani_double positionY;
-
         if ((env->Object_GetPropertyByName_Int(aniRunBuffer, "glyph", &glyph) != ANI_OK) ||
             (env->Object_GetPropertyByName_Double(aniRunBuffer, "positionX", &positionX) != ANI_OK) ||
             (env->Object_GetPropertyByName_Double(aniRunBuffer, "positionY", &positionY) != ANI_OK)) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_GetPropertyByName failed");
             return false;
         }
         
