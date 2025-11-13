@@ -2762,7 +2762,7 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen001, TestSize.Level2)
     HWCParam::SetDisableHwcOnExpandScreen(false);
     EXPECT_FALSE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
     HWCParam::SetDisableHwcOnExpandScreen(true);
-    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());   
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 }
 
 /**
