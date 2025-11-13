@@ -2756,7 +2756,7 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen001, TestSize.Level2)
     EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsDisableHwcOnExpandScreen());
 
     auto rsContext3 = std::make_shared<RSContext>();
-    auto screenNode3 = std::make_shared<RSScreenRenderNode>(0, 5, rsContext2->weak_from_this());
+    auto screenNode3 = std::make_shared<RSScreenRenderNode>(0, 5, rsContext3->weak_from_this());
     screenNode3->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     rsUniRenderVisitor->curScreenNode_ = screenNode3;
     HWCParam::SetDisableHwcOnExpandScreen(false);
