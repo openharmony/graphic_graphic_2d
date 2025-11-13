@@ -124,6 +124,8 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, SdParams),
     ADD_PROPERTY_TAG(FrostedGlass, RefractOutPx),
     ADD_PROPERTY_TAG(FrostedGlass, EnvParams),
-    ADD_PROPERTY_TAG(FrostedGlass, HighLightParams),
+    ADD_PROPERTY_TAG(FrostedGlass, EdgeLightAngleParams),
+    ADD_PROPERTY_TAG(FrostedGlass, EdgeLightBlurParams),
+    ADD_PROPERTY_TAG(FrostedGlass, EdgeLightDirParams),
     ADD_PROPERTY_TAG(FrostedGlass, HlParams)
 );
