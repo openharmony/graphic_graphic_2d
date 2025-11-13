@@ -283,15 +283,17 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::P
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BorderSize, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, CornerRadius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BorderWidth, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, Offset, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, DownSampleFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgFactor, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, InnerShadowParams, std::vector<float>);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdParams, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, InnerShadowParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SdParams, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, RefractOutPx, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvParams, std::vector<float>);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, HighLightParams, std::vector<float>);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, HlParams, std::vector<float>);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdgeLightAngleParams, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdgeLightBlurParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdgeLightDirParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, HlParams, Vector3f);
