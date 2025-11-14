@@ -955,11 +955,12 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
 
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
         "PID", pid,
+        "TYPE", "GPU",
         "BUNDLE_NAME", info.bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(),
-        "GPU_PROCESS_INFO", filePath);
+        "FILEPATH", filePath);
     RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
         "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
         ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
