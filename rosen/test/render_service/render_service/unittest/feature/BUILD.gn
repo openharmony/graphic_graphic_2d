@@ -26,6 +26,7 @@ group("unittest") {
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
     ":RSOpincDrawCacheTest",
+    ":RSSpecialLayerUtilsTest",
     ":RSSubThreadCacheTest",
     ":RSSurfaceCaptureParallelTaskTest",
     ":RSSurfaceCaptureTaskTest",
@@ -1014,6 +1015,18 @@ ohos_unittest("RSRDOTest") {
   if (graphic_2d_feature_enable_rdo) {
     defines += [ "RS_ENABLE_RDO" ]
   }
+}
+
+## Build RSSpecialLayerUtilsTest
+ohos_unittest("RSSpecialLayerUtilsTest") {
+  module_out_path = module_output_path
+  sources = [ "special_layer/rs_special_layer_utils_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+  ]
 }
 
 ## Build RSUniDirtyComputeUtilTest
