@@ -44,6 +44,9 @@ public:
         return screenRotation_;
     }
 
+    void SetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode, bool hasVisbleIlluminated);
+    bool GetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode);
+
 private:
     RSPointLightManager() = default;
     ~RSPointLightManager() = default;
@@ -59,8 +62,11 @@ private:
         std::vector<std::weak_ptr<RSRenderNode>>& dirtyList, bool isLightSourceDirty);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> lightSourceNodeMap_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> illuminatedNodeMap_;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> childHasVisbleIlluminatedNodeMap_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyLightSourceList_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyIlluminatedList_;
+    // collect the illuminated nodes from last frame
+    std::unordered_set<NodeId> lastFrameIlluminatedNodeSet_;
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
 };
 } // namespace Rosen

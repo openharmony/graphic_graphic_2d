@@ -357,6 +357,33 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareLight005
+ * @tc.desc: test results of PrepareLight
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> illuminatedMap;
+    std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
+    instance->PrepareLight();
+    EXPECT_TRUE(illuminatedMap.empty());
+
+    std::shared_ptr<RSRenderNode> illuminatedNode = std::make_shared<RSRenderNode>(0);
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    auto illuminatedPtr = illuminatedNode->GetMutableRenderProperties().GetIlluminated();
+    EXPECT_TRUE(illuminatedPtr != nullptr);
+    illuminatedPtr->lightSourcesAndPosMap_.emplace(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    illuminatedMap[0] = illuminatedNode;
+    std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
+    dirtyList.push_back(lightSourceNode);
+    instance->PrepareLight();
+    EXPECT_TRUE(instance->lastFrameIlluminatedNodeSet_.empty());
+}
+
+/**
  * @tc.name: CheckIlluminated001
  * @tc.desc: test results of CheckIlluminated
  * @tc.type:FUNC
@@ -434,6 +461,70 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
     EXPECT_TRUE(lightSourceNode != nullptr);
 }
 
+
+/**
+ * @tc.name: CheckIlluminated003
+ * @tc.desc: test results of CheckIlluminated
+ * @tc.type: FUNC
+ * @tc.require: issueI9RBVH
+ */
+HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    auto lightSourceNode = std::make_shared<RSRenderNode>(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(0);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    
+    illuminatedNode->instanceRootNodeId_ = 1;
+    lightSourceNode->instanceRootNodeId_ = 0;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+
+    illuminatedNode->instanceRootNodeId_ = 0;
+    lightSourceNode->instanceRootNodeId_ = 0;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+
+    lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->height_ = 1.f;
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->width_ = 1.f;
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+
+    instance->lastFrameIlluminatedNodeSet_.insert(illuminatedNode->GetId());
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+
+    illuminatedNode->GetMutableRenderProperties().boundsGeo_->absRect_ = RectI(0, 0, 100, 100);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
+}
+
+/**
+ * @tc.name: ChildHasVisibleIlluminatedTest001
+ * @tc.desc: test results of ChildHasVisibleIlluminated
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, ChildHasVisibleIlluminatedTest001, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    constexpr NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_FALSE(instance->GetChildHasVisibleIlluminated(nullptr));
+    instance->SetChildHasVisibleIlluminated(nullptr, true);
+    EXPECT_TRUE(instance->childHasVisbleIlluminatedNodeMap_.empty());
+    node->InitRenderParams();
+    instance->SetChildHasVisibleIlluminated(node, true);
+    EXPECT_TRUE(instance->GetChildHasVisibleIlluminated(node));
+    instance->SetChildHasVisibleIlluminated(node, false);
+    EXPECT_FALSE(instance->GetChildHasVisibleIlluminated(node));
+}
 /**
  * @tc.name: CalculateLightPosForIlluminated001
  * @tc.desc: test results of CalculateLightPosForIlluminated

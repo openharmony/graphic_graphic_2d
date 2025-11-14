@@ -58,6 +58,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_point_light_manager.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "system/rs_system_parameters.h"
 #include "hgm_core.h"
@@ -2963,6 +2964,11 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
          node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
+    }
+    if (auto& illuminated = node.GetRenderProperties().GetIlluminated();
+        (node.ShouldPaint() && (illuminated && illuminated->IsIlluminatedValid())) ||
+        RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(node.shared_from_this())) {
+        RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(nodeParent, true);
     }
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);
