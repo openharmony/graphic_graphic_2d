@@ -59,6 +59,7 @@ public:
     void AddAnimationCancelTrace(const uint64_t nodeId, const uint64_t propertyId) const;
     void AddChangeAnimationValueTrace(
         const uint64_t propertyId, const std::shared_ptr<RSRenderPropertyBase>& endValue) const;
+    static bool GetAnimationEnabled();
 
 private:
     RSAnimationTraceUtils();

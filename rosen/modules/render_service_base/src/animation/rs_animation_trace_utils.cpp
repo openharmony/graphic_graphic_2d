@@ -45,6 +45,11 @@ void RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(const char* k
     isDebugEnabled_ = RSSystemProperties::GetAnimationTraceEnabled();
 }
 
+bool RSAnimationTraceUtils::GetAnimationEnabled()
+{
+    return isDebugEnabled_;
+}
+
 std::string RSAnimationTraceUtils::GetColorString(const Color& value) const
 {
     std::string colorString;
