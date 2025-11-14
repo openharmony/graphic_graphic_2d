@@ -1802,8 +1802,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
         SetDirtyFlag();
     }
     renderThreadParams_->overlayDisplayEnable_ = CheckOverlayDisplayEnable();
-    hasProtectedLayer_ = RSDrmUtil::IsDRMNodesOnTheTree();
 #endif
+    hasProtectedLayer_ = RSDrmUtil::IsDRMNodesOnTheTree();
     CheckIfHardwareForcedDisabled();
     if (!pendingUiCaptureTasks_.empty()) {
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by uiCapture");
