@@ -153,10 +153,10 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
 }
 
 std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
-    const std::string& familyName, const uint8_t* data, size_t datalen)
+    const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index)
 {
     TEXT_TRACE_FUNC();
-    std::shared_ptr<Drawing::Typeface> typeface = CreateTypeface(familyName, data, datalen);
+    std::shared_ptr<Drawing::Typeface> typeface = CreateTypeface(familyName, data, datalen, index);
     if (typeface == nullptr) {
         TEXT_LOGE("Failed to load font %{public}s", familyName.c_str());
         return nullptr;
@@ -211,7 +211,7 @@ LoadSymbolErrorCode FontCollection::LoadSymbolJson(const std::string& familyName
 }
 
 std::shared_ptr<Drawing::Typeface> FontCollection::CreateTypeface(
-    const std::string& familyName, const uint8_t* data, size_t datalen)
+    const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index)
 {
     uint32_t hash = Drawing::Typeface::CalculateHash(data, datalen);
     auto typeface = TypefaceMap::GetTypeface(hash);

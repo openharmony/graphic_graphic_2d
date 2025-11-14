@@ -119,10 +119,10 @@ NapiTextResult NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBas
             TEXT_ERROR_CHECK(data, return, "Data is null");
             sptr<ContextBase> contextBase(static_cast<ContextBase*>(data));
             TEXT_ERROR_CHECK(contextBase, return, "Context is null");
-            if ((status != napi_ok) && contextBase && (contextBase->status == napi_ok)) {
+            if ((status != napi_ok) && (contextBase->status == napi_ok)) {
                 contextBase->status = status;
             }
-            if (contextBase && (contextBase->complete) && (status == napi_ok) && (contextBase->status == napi_ok)) {
+            if (contextBase->complete) {
                 contextBase->complete(contextBase->output);
             }
             GenerateOutput(contextBase);

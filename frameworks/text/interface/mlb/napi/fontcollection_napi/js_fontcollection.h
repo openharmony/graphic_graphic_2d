@@ -61,9 +61,10 @@ private:
     NapiTextResult OnUnloadFont(napi_env env, napi_callback_info info);
     NapiTextResult OnUnloadFontAsync(napi_env env, napi_callback_info info);
     NapiTextResult OnClearCaches(napi_env env, napi_callback_info info);
-    NapiTextResult LoadFontFromPath(napi_env env, const std::string path, const std::string familyName);
+    NapiTextResult LoadFontFromPath(
+        napi_env env, const std::string path, const std::string familyName, uint32_t index = 0);
     NapiTextResult OnLoadFontAsync(napi_env env, napi_callback_info info, bool withCheck = false);
-    void OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext>& context);
+    void OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext> context);
 
     std::shared_ptr<FontCollection> fontcollection_ = nullptr;
 };
