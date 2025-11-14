@@ -350,6 +350,7 @@ uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen)
         }
         size_t size =
             extraOffset + STATIC_HEADER_LEN + TABLE_ENTRY_LEN * read<uint16_t>(data + extraOffset + TABLE_COUNT);
+        size = size > datalen ? datalen : size;
 #ifdef USE_M133_SKIA
         hash ^= SkChecksum::Hash32(data, size, datalen);
 #else
