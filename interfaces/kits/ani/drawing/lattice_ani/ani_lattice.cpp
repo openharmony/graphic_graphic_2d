@@ -117,11 +117,7 @@ bool GetLatticeColors(ani_env* env, ani_object colorsArray, uint32_t count, std:
             }
             if (i == 0) {
                 ani_class colorClass;
-                ani_status status = env->FindClass("L@ohos/graphics/common2D/common2D/Color;", &colorClass);
-                if (status != ANI_OK) {
-                    ROSEN_LOGE("Failed to find class, status:%{public}d", static_cast<int32_t>(status));
-                    return false;
-                }
+                env->FindClass("L@ohos/graphics/common2D/common2D/Color;", &colorClass);
                 env->Object_InstanceOf(static_cast<ani_object>(colorRef), colorClass, &isColorClass);
             }
 
