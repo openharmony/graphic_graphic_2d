@@ -73,7 +73,6 @@ group("unittest") {
 config("pipeline_test") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service/core", 
-    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
   ]
 }
 
@@ -1206,7 +1205,6 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/main",
-    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",

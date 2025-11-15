@@ -43,7 +43,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "transaction/rs_client_to_render_connection.h"
-#include "transaction/rs_client_to_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "render/rs_typeface_cache.h"
 
 namespace OHOS::Rosen {
@@ -493,13 +493,6 @@ RSClientToServiceConnection* RSProfiler::GetConnection(pid_t pid)
 {
     if (!g_renderService) {
         return nullptr;
-    }
-
-    for (const auto& pair : g_renderService->connections_) {
-        auto connection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-        if (connection->remotePid_ == pid) {
-            return connection;
-        }
     }
 
     for (const auto& pair : g_renderService->connections_) {

@@ -67,7 +67,6 @@ ohos_unittest("feature_cfg_test") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/render_service/core",
-    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
